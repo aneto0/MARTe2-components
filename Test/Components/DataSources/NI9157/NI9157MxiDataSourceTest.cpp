@@ -1,8 +1,9 @@
 /**
  * @file NI9157MxiDataSourceTest.cpp
  * @brief Source file for class NI9157MxiDataSourceTest
- * @date 23/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -51,7 +52,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-
 class NI9157MxiDataSourceTestDS: public NI9157MxiDataSource {
 public:
     CLASS_REGISTER_DECLARATION()
@@ -85,15 +85,19 @@ ReferenceT<NI9157Device> NI9157MxiDataSourceTestDS::GetNiDeviceBoard() {
 NI9157DeviceOperatorTI ** NI9157MxiDataSourceTestDS::GetNiDevice() {
     return niDevice;
 }
+
 uint32 *NI9157MxiDataSourceTestDS::GetVarId() {
     return varId;
 }
+
 uint8 NI9157MxiDataSourceTestDS::GetRunNi() {
     return runNi;
 }
+
 uint8 *NI9157MxiDataSourceTestDS::GetSignalFlag() {
-    return signalFlag;
+    return signalFlag[0];
 }
+
 uint32 *NI9157MxiDataSourceTestDS::GetNumberOfElements() {
     return numberOfElements;
 }
@@ -108,7 +112,6 @@ bool NI9157MxiDataSourceTestDS::PrepareNextState(const char8 * const currentStat
         AsyncWrite("options2", 1);
         AsyncWrite("options", 1);
         AsyncWrite("options2", 1);
-
     }
     return ret;
 }
@@ -127,8 +130,10 @@ public:
     void *GetInputMemoryBuffer();
 
     void *GetOutputMemoryBuffer();
+
 private:
     uint32 totalSize;
+
 };
 
 NI9157MxiDataSourceTestGAM1::NI9157MxiDataSourceTestGAM1() :
@@ -137,7 +142,6 @@ NI9157MxiDataSourceTestGAM1::NI9157MxiDataSourceTestGAM1() :
 }
 
 bool NI9157MxiDataSourceTestGAM1::Setup() {
-
     return true;
 }
 
@@ -153,7 +157,6 @@ void *NI9157MxiDataSourceTestGAM1::GetOutputMemoryBuffer() {
     return GAM::GetOutputSignalsMemory();
 }
 
-
 CLASS_REGISTER(NI9157MxiDataSourceTestGAM1, "1.0")
 
 class NI9157MxiDataSourceTestGAM2: public Interleaved2FlatGAM {
@@ -165,7 +168,9 @@ public:
     void *GetInputMemoryBuffer();
 
     void *GetOutputMemoryBuffer();
+
 private:
+
 };
 
 NI9157MxiDataSourceTestGAM2::NI9157MxiDataSourceTestGAM2() :
@@ -195,16 +200,16 @@ static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config)
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ok = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ok) {
         god->Purge();
         ok = god->Initialise(cdb);
     }
+
     ReferenceT<RealTimeApplication> application;
+
     if (ok) {
         application = god->Find("Application1");
         ok = application.IsValid();
@@ -212,13 +217,16 @@ static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config)
     if (ok) {
         ok = application->ConfigureApplication();
     }
+
     return ok;
 }
 
 NI9157MxiDataSourceTest::NI9157MxiDataSourceTest() {
+
 }
 
 NI9157MxiDataSourceTest::~NI9157MxiDataSourceTest() {
+
 }
 
 bool NI9157MxiDataSourceTest::TestConstructor() {
@@ -232,7 +240,6 @@ bool NI9157MxiDataSourceTest::TestConstructor() {
     ReferenceT<NI9157Device> x = dataSource.GetNiDeviceBoard();
     ret &= !x.IsValid();
     return ret;
-
 }
 
 bool NI9157MxiDataSourceTest::TestInitialise() {
@@ -309,9 +316,7 @@ bool NI9157MxiDataSourceTest::TestInitialise() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
@@ -320,11 +325,11 @@ bool NI9157MxiDataSourceTest::TestInitialise() {
     }
 
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ret &= dataSource->GetRunNi() == 1;
         ReferenceT<NI9157Device> x = dataSource->GetNiDeviceBoard();
@@ -408,9 +413,7 @@ bool NI9157MxiDataSourceTest::TestInitialise_DefaultRunNi() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
@@ -419,16 +422,17 @@ bool NI9157MxiDataSourceTest::TestInitialise_DefaultRunNi() {
     }
 
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ret &= dataSource->GetRunNi() == 0;
         ReferenceT<NI9157Device> x = dataSource->GetNiDeviceBoard();
         ret &= x.IsValid();
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -506,15 +510,14 @@ bool NI9157MxiDataSourceTest::TestInitialise_False_NoNiDev() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -594,100 +597,17 @@ bool NI9157MxiDataSourceTest::TestInitialise_False_InvalidNiDevPath(){
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
-
-
-#if 0
-
-static const char8 * const config = ""
-"+NiDevice = {"
-"    Class = NI9157Device"
-"    NiRioDeviceName = RIO0"
-"    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-"    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-"    Open = 1"
-"    Configuration = {"
-"        options = 2"
-"        options2 = 2"
-"        NiFpga_TestGTD0001_ControlBool_stop = 0"
-"        NiFpga_TestGTD0001_ControlBool_stop2 = 0"
-"        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-"        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-"        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-"        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-"        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-"        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-"        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-"        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-"        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-"        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-"        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-"    }"
-"}"
-"$Application1 = {"
-"    Class = RealTimeApplication"
-"    +Functions = {"
-"        Class = ReferenceContainer"
-"        +GAMA = {"
-"            Class = NI9157MxiDataSourceTestGAM1"
-"            InputSignals = {"
-"                FIFO = {"
-"                   DataSource = Drv1"
-"                   Type = uint64"
-"                   Frequency = 0"
-"                   NumberOfDimensions = 1"
-"                   NumberOfElements = 10000"
-"                }"
-"            }"
-"            OutputSignals = {"
-"               options = {"
-"                   DataSource = Drv1"
-"                   Type = uint8"
-"               }"
-"            }"
-"        }"
-"    }"
-"    +Data = {"
-"        Class = ReferenceContainer"
-"        +Drv1 = {"
-"            Class = NI9157MxiDataSourceTestDS"
-"            NI9157DevicePath = NiDevice"
-"            RunNi = 1"
-"        }"
-"        +Timings = {"
-"            Class = TimingDataSource"
-"        }"
-"    }"
-"    +States = {"
-"        Class = ReferenceContainer"
-"        +State1 = {"
-"            Class = RealTimeState"
-"            +Threads = {"
-"                Class = ReferenceContainer"
-"                +Thread1 = {"
-"                    Class = RealTimeThread"
-"                    Functions = {GAMA}"
-"                }"
-"            }"
-"        }"
-"    }"
-"    +Scheduler = {"
-"        Class = GAMScheduler"
-"        TimingDataSource = Timings"
-"    }"
-"}";
-#endif
 
 bool NI9157MxiDataSourceTest::TestGetBrokerName() {
 
@@ -715,7 +635,6 @@ bool NI9157MxiDataSourceTest::TestGetBrokerName() {
     StandardParser parser1(configStream1, cdb1);
 
     ret &= parser1.Parse();
-
     ret &= StringHelper::Compare(dataSource.GetBrokerName(cdb1, InputSignals), "MemoryMapSynchronisedInputBroker") == 0;
     ret &= StringHelper::Compare(dataSource.GetBrokerName(cdb1, OutputSignals), "MemoryMapSynchronisedOutputBroker") == 0;
 
@@ -728,11 +647,8 @@ bool NI9157MxiDataSourceTest::TestGetBrokerName() {
     StandardParser parser2(configStream2, cdb2);
 
     ret &= parser2.Parse();
-
     ret &= StringHelper::Compare(dataSource.GetBrokerName(cdb2, InputSignals), "MemoryMapInputBroker") == 0;
     ret &= StringHelper::Compare(dataSource.GetBrokerName(cdb2, OutputSignals), "MemoryMapOutputBroker") == 0;
-
-
 
     const char8 * config3 = "Trigger = 1";
     ConfigurationDatabase cdb3;
@@ -742,10 +658,8 @@ bool NI9157MxiDataSourceTest::TestGetBrokerName() {
     StandardParser parser3(configStream3, cdb3);
 
     ret &= parser3.Parse();
-
     ret &= StringHelper::Compare(dataSource.GetBrokerName(cdb3, InputSignals), "MemoryMapSynchronisedInputBroker") == 0;
     ret &= StringHelper::Compare(dataSource.GetBrokerName(cdb3, OutputSignals), "MemoryMapSynchronisedOutputBroker") == 0;
-
 
     const char8 * config4 = "Frequency = -1.0\n";
     ConfigurationDatabase cdb4;
@@ -755,7 +669,6 @@ bool NI9157MxiDataSourceTest::TestGetBrokerName() {
     StandardParser parser4(configStream4, cdb4);
 
     ret &= parser4.Parse();
-
     ret &= StringHelper::Compare(dataSource.GetBrokerName(cdb4, InputSignals), "MemoryMapInputBroker") == 0;
     ret &= StringHelper::Compare(dataSource.GetBrokerName(cdb4, OutputSignals), "MemoryMapOutputBroker") == 0;
 
@@ -767,11 +680,8 @@ bool NI9157MxiDataSourceTest::TestGetBrokerName() {
     StandardParser parser5(configStream5, cdb5);
 
     ret &= parser5.Parse();
-
     ret &= StringHelper::Compare(dataSource.GetBrokerName(cdb5, InputSignals), "MemoryMapInputBroker") == 0;
     ret &= StringHelper::Compare(dataSource.GetBrokerName(cdb5, OutputSignals), "MemoryMapOutputBroker") == 0;
-
-
 
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
@@ -860,16 +770,15 @@ bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase() {
     bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
 
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ReferenceT<NI9157Device> x = dataSource->GetNiDeviceBoard();
         ret = x.IsValid();
     }
-
     if (ret) {
         NI9157DeviceOperatorTI ** operators = dataSource->GetNiDevice();
         NI9157DeviceOperatorT<uint64>* x = dynamic_cast<NI9157DeviceOperatorT<uint64>*>(operators[0]);
@@ -881,7 +790,6 @@ bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase() {
         NI9157DeviceOperatorT<uint16>* x3 = dynamic_cast<NI9157DeviceOperatorT<uint16>*>(operators[3]);
         ret &= x3 != NULL;
     }
-
     if (ret) {
         uint32 descriptors[] = { 1, 0x810C, 0x819A, 0x816A };
         uint32 nElementsTest[] = { 10000, 1, 1, 1 };
@@ -897,21 +805,19 @@ bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase() {
                 if(!ret){
                     printf("Failed1 at %d, %d %d\n", i, nElements[i], nElementsTest[i]);
                 }
-
             }
             if (ret) {
                 ret = (signalFlags[i] == 0);
                 if(!ret){
                     printf("Failed2 at %d, %d\n", i, signalFlags[i]);
                 }
-
             }
         }
     }
-
     if (ret) {
         ret = dataSource->GetRunNi() == 1;
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -1183,16 +1089,15 @@ bool NI9157MxiDataSourceTest::TestPrepareNextState() {
     bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
 
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ReferenceT<NI9157Device> x = dataSource->GetNiDeviceBoard();
         ret = x.IsValid();
     }
-
     if (ret) {
         NI9157DeviceOperatorTI ** operators = dataSource->GetNiDevice();
         NI9157DeviceOperatorT<uint64>* x = dynamic_cast<NI9157DeviceOperatorT<uint64>*>(operators[0]);
@@ -1204,7 +1109,6 @@ bool NI9157MxiDataSourceTest::TestPrepareNextState() {
         NI9157DeviceOperatorT<uint16>* x3 = dynamic_cast<NI9157DeviceOperatorT<uint16>*>(operators[3]);
         ret &= x3 != NULL;
     }
-
     if (ret) {
         uint32 descriptors[] = { 1, 0x810C, 0x819A, 0x816A };
         uint32 nElementsTest[] = { 10000, 1, 1, 1 };
@@ -1223,15 +1127,12 @@ bool NI9157MxiDataSourceTest::TestPrepareNextState() {
             }
         }
     }
-
     if (ret) {
         ret = dataSource->GetRunNi() == 1;
     }
-
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
     }
-
     if (ret) {
         uint8 * signalFlags = dataSource->GetSignalFlag();
         ret &= signalFlags[0] == 5;
@@ -1240,6 +1141,7 @@ bool NI9157MxiDataSourceTest::TestPrepareNextState() {
         ret &= signalFlags[3] == 2;
         ret = dataSource->GetRunNi() == 0;
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -1446,22 +1348,24 @@ bool NI9157MxiDataSourceTest::TestSynchronise() {
     bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
 
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-
         ret = dataSource->PrepareNextState("State1", "State1");
     }
 
     ReferenceT < NI9157MxiDataSourceTestGAM1 > gam1;
+
     if (ret) {
         gam1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam1.IsValid();
     }
+
     ReferenceT < NI9157MxiDataSourceTestGAM2 > gam2;
+
     if (ret) {
         gam2 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMB");
         ret = gam2.IsValid();
@@ -1471,6 +1375,7 @@ bool NI9157MxiDataSourceTest::TestSynchronise() {
     ReferenceT < MemoryMapInputBroker > brokerIn1;
     ReferenceT < MemoryMapOutputBroker > brokerOut1;
     ReferenceT < MemoryMapInputBroker > brokerIn2;
+
     if (ret) {
         ReferenceContainer inputBrokers1, outputBrokers1, inputBrokers2;
         ret = gam1->GetInputBrokers(inputBrokers1);
@@ -1497,13 +1402,10 @@ bool NI9157MxiDataSourceTest::TestSynchronise() {
             ret = brokerIn2.IsValid();
         }
     }
-
     if (ret) {
         uint64 *mem = (uint64 *) gam2->GetOutputMemoryBuffer();
         uint32 *mem1 = (((uint32 *) gam1->GetInputMemoryBuffer()) + 20000);
         uint32 nReads = 100;
-        //uint64 tic=HighResolutionTimer::Counter();
-
         uint32 beginMxiIndex = 16;
         //0.5ms tolerance
         uint32 tol = 8000;
@@ -1511,7 +1413,6 @@ bool NI9157MxiDataSourceTest::TestSynchronise() {
         //20 ticks * 2000 packets
         uint32 expectedDeltaTick = 400000;
         for (uint32 i = 0u; (i < nReads) && (ret); i++) {
-            //tic=HighResolutionTimer::Counter();
 
             brokerSync->Execute();
 
@@ -1521,7 +1422,6 @@ bool NI9157MxiDataSourceTest::TestSynchronise() {
 
             brokerIn2->Execute();
             gam2->Execute();
-            //uint32 elapsed=(uint32)((HighResolutionTimer::Counter()-tic)*HighResolutionTimer::Period()*1e6);
 
             if (i > beginMxiIndex) {
                 uint32 deltaTick = (*mem1 - storeTick);
@@ -1529,29 +1429,17 @@ bool NI9157MxiDataSourceTest::TestSynchronise() {
                 if (!ret) {
                     printf("deltaTick[%d]=%d\n", i, deltaTick);
                 }
-                //printf("deltaTick[%d]=%d\n", i, deltaTick);
             }
             storeTick = *mem1;
             if (ret) {
-                //printf("elapsed[%d]=%d\n", i, elapsed);
                 ret = (mem[0] == ((2000 * i) + 1));
                 if (!ret) {
                     printf("mem[%d]=%lld\n", i, mem[0]);
                 }
             }
-
-            /*
-             for (uint32 j = 0u; (j < 2000) && (ret); j++) {
-             ret = (mem[j] == ((2000 * i) + j + 1));
-             if(!ret){
-             printf("mem[%d]=%lld %d\n", j, mem[j], i);
-             }
-             }
-             */
-
         }
-
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -1757,22 +1645,24 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope() {
     bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
 
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-
         ret = dataSource->PrepareNextState("State1", "State1");
     }
 
     ReferenceT < NI9157MxiDataSourceTestGAM2 > gam1;
+
     if (ret) {
         gam1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam1.IsValid();
     }
+
     ReferenceT<IOGAM> gam2;
+
     if (ret) {
         gam2 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMB");
         ret = gam2.IsValid();
@@ -1811,16 +1701,11 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope() {
             brokerOut2 = outputBrokers2.Get(0);
             ret = brokerOut2.IsValid();
         }
-
     }
-
     if (ret) {
         uint64 *mem = (uint64 *) gam1->GetOutputMemoryBuffer();
         uint32 nReads = 1000;
-        //uint64 tic=HighResolutionTimer::Counter();
-
         for (uint32 i = 0u; (i < nReads) && (ret); i++) {
-            //tic=HighResolutionTimer::Counter();
 
             brokerSync->Execute();
 
@@ -1831,19 +1716,15 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope() {
             gam2->Execute();
             brokerOut2->Execute();
 
-            //uint32 elapsed=(uint32)((HighResolutionTimer::Counter()-tic)*HighResolutionTimer::Period()*1e6);
-
             if (ret) {
-                //printf("elapsed[%d]=%d\n", i, elapsed);
                 ret = (mem[0] == ((2000 * i) + 1));
                 if (!ret) {
                     printf("mem[%d]=%lld\n", i, mem[0]);
                 }
             }
-
         }
-
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -2052,22 +1933,24 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_OutputFIFO() {
     bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
 
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-
         ret = dataSource->PrepareNextState("State1", "State1");
     }
 
     ReferenceT < NI9157MxiDataSourceTestGAM2 > gam1;
+
     if (ret) {
         gam1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam1.IsValid();
     }
+
     ReferenceT<IOGAM> gam2;
+
     if (ret) {
         gam2 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMB");
         ret = gam2.IsValid();
@@ -2106,16 +1989,12 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_OutputFIFO() {
             brokerOut2 = outputBrokers2.Get(0);
             ret = brokerOut2.IsValid();
         }
-
     }
 
     if (ret) {
         uint64 *mem = (uint64 *) gam1->GetOutputMemoryBuffer();
         uint32 nReads = 1000;
-        //uint64 tic=HighResolutionTimer::Counter();
-
         for (uint32 i = 0u; (i < nReads) && (ret); i++) {
-            //tic=HighResolutionTimer::Counter();
 
             brokerSync->Execute();
 
@@ -2126,24 +2005,21 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_OutputFIFO() {
             gam2->Execute();
             brokerOut2->Execute();
 
-            //uint32 elapsed=(uint32)((HighResolutionTimer::Counter()-tic)*HighResolutionTimer::Period()*1e6);
-
             if (ret) {
-                //printf("elapsed[%d]=%d\n", i, elapsed);
                 ret = (mem[0] == ((2000 * i) + 1));
                 if (!ret) {
                     printf("mem[%d]=%lld\n", i, mem[0]);
                 }
             }
-
         }
-
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
 bool NI9157MxiDataSourceTest::TestAsyncRead() {
+
     static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
@@ -2241,11 +2117,11 @@ bool NI9157MxiDataSourceTest::TestAsyncRead() {
     bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
 
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
     }
@@ -2258,9 +2134,7 @@ bool NI9157MxiDataSourceTest::TestAsyncRead() {
     uint64 varValue = 0u;
 
     for (uint32 i = 0u; (i < nReads) && (ret); i++) {
-
         ret = dataSource->AsyncRead(varName, varValue);
-        //printf("ticks = %lld\n", varValue);
         if (i > 0u) {
             uint32 delta = (varValue - store);
             ret = ((delta - deltaExpected) < tol) || ((delta - deltaExpected) > -tol);
@@ -2268,6 +2142,7 @@ bool NI9157MxiDataSourceTest::TestAsyncRead() {
         Sleep::Sec(1e-3);
         store = (uint32) varValue;
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return true;
 }
@@ -2371,6 +2246,7 @@ bool NI9157MxiDataSourceTest::TestAsyncWrite() {
     bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
 
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -2378,6 +2254,7 @@ bool NI9157MxiDataSourceTest::TestAsyncWrite() {
 
     const uint32 nPoints = 1000;
     float32 mem[nPoints];
+
     for (uint32 i = 0u; i < nPoints; i++) {
         mem[i] = sin(i * (2 * M_PI / nPoints));
     }
@@ -2391,14 +2268,12 @@ bool NI9157MxiDataSourceTest::TestAsyncWrite() {
             for (uint32 i = 0u; (i < nPoints) && ret; i++) {
                 StreamString varName = "DAC_value";
                 uint32 varValue = (uint32)((mem[i] + 2.5) * (16383 / 5));
-
-                //see on the oscilloscope
                 ret = dataSource->AsyncWrite(varName, varValue);
-
                 Sleep::Sec(1e-3);
             }
         }
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -2607,17 +2482,21 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_2MHz() {
     bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
 
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
 
     ReferenceT < NI9157MxiDataSourceTestGAM2 > gam1;
+
     if (ret) {
         gam1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam1.IsValid();
     }
+
     ReferenceT<IOGAM> gam2;
+
     if (ret) {
         gam2 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMB");
         ret = gam2.IsValid();
@@ -2656,20 +2535,14 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_2MHz() {
             brokerOut2 = outputBrokers2.Get(0);
             ret = brokerOut2.IsValid();
         }
-
     }
     if (ret) {
-
         ret = dataSource->PrepareNextState("State1", "State1");
     }
-
     if (ret) {
         uint64 *mem = (uint64 *) gam1->GetOutputMemoryBuffer();
         uint32 nReads = 10000;
-        //uint64 tic=HighResolutionTimer::Counter();
-
         for (uint32 i = 0u; (i < nReads) && (ret); i++) {
-            //tic=HighResolutionTimer::Counter();
 
             brokerSync->Execute();
 
@@ -2680,24 +2553,18 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_2MHz() {
             gam2->Execute();
             brokerOut2->Execute();
 
-            //uint32 elapsed=(uint32)((HighResolutionTimer::Counter()-tic)*HighResolutionTimer::Period()*1e6);
-
             if (ret) {
-                //printf("elapsed[%d]=%d\n", i, elapsed);
                 ret = (mem[0] == ((2000 * i) + 1));
                 if (!ret) {
                     printf("mem[%d]=%lld\n", i, mem[0]);
                 }
             }
-
         }
-
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
-
-
 
 bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_OutputFIFO_2MHz() {
 
@@ -2903,18 +2770,21 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_OutputFIFO_2MHz() {
     bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
 
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
 
-
     ReferenceT < NI9157MxiDataSourceTestGAM2 > gam1;
+
     if (ret) {
         gam1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam1.IsValid();
     }
+
     ReferenceT<IOGAM> gam2;
+
     if (ret) {
         gam2 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMB");
         ret = gam2.IsValid();
@@ -2926,7 +2796,6 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_OutputFIFO_2MHz() {
     ReferenceT < MemoryMapOutputBroker > brokerOut2;
 
     if (ret) {
-
         ret = dataSource->PrepareNextState("State1", "State1");
     }
     if (ret) {
@@ -2957,16 +2826,11 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_OutputFIFO_2MHz() {
             brokerOut2 = outputBrokers2.Get(0);
             ret = brokerOut2.IsValid();
         }
-
     }
-
     if (ret) {
         uint64 *mem = (uint64 *) gam1->GetOutputMemoryBuffer();
         uint32 nReads = 10000;
-        //uint64 tic=HighResolutionTimer::Counter();
-
         for (uint32 i = 0u; (i < nReads) && (ret); i++) {
-            //tic=HighResolutionTimer::Counter();
 
             brokerSync->Execute();
 
@@ -2977,20 +2841,15 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_OutputFIFO_2MHz() {
             gam2->Execute();
             brokerOut2->Execute();
 
-            //uint32 elapsed=(uint32)((HighResolutionTimer::Counter()-tic)*HighResolutionTimer::Period()*1e6);
-
             if (ret) {
-                //printf("elapsed[%d]=%d\n", i, elapsed);
                 ret = (mem[0] == ((2000 * i) + 1));
                 if (!ret) {
                     printf("mem[%d]=%lld\n", i, mem[0]);
                 }
             }
-
         }
-
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
-

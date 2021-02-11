@@ -1,8 +1,9 @@
 /**
  * @file NI9157CircularFifoReaderGTest.cpp
  * @brief Source file for class NI9157CircularFifoReaderGTest
- * @date 17/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
  * the class NI9157CircularFifoReaderGTest (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
@@ -24,14 +25,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*/
-/*                         Project header includes                           */
-/*---------------------------------------------------------------------------*/
-
-
-#include <limits.h>
 #include "gtest/gtest.h"
+#include <limits.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -45,7 +40,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
 TEST(NI9157CircularFifoReaderGTest,TestConstructor) {
     NI9157CircularFifoReaderTest test;
     ASSERT_TRUE(test.TestConstructor());
@@ -111,12 +105,10 @@ TEST(NI9157CircularFifoReaderGTest,TestInitialise_False_CounterStepNotDivideAcqu
     ASSERT_TRUE(test.TestInitialise_False_CounterStepNotDivideAcquireFromCounterDifference());
 }
 
-
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_False_NoFifoName) {
     NI9157CircularFifoReaderTest test;
     ASSERT_TRUE(test.TestInitialise_False_NoFifoName());
 }
-
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_False_NoNI9157Device) {
     NI9157CircularFifoReaderTest test;
@@ -127,7 +119,6 @@ TEST(NI9157CircularFifoReaderGTest,TestInitialise_False_Invalidi9157Device) {
     NI9157CircularFifoReaderTest test;
     ASSERT_TRUE(test.TestInitialise_False_Invalidi9157Device());
 }
-
 
 TEST(NI9157CircularFifoReaderGTest,TestSetConfiguredDatabase) {
     NI9157CircularFifoReaderTest test;
@@ -148,7 +139,6 @@ TEST(NI9157CircularFifoReaderGTest,TestSetConfiguredDatabase_False_InvalidFifoNa
     NI9157CircularFifoReaderTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_InvalidFifoName());
 }
-
 
 TEST(NI9157CircularFifoReaderGTest,TestPrepareNextState) {
     NI9157CircularFifoReaderTest test;

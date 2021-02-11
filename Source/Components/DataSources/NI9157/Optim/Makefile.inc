@@ -58,4 +58,3 @@ OPTIM = -O3
 all: $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-

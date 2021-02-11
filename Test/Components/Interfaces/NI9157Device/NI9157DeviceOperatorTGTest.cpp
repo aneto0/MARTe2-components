@@ -1,8 +1,9 @@
 /**
  * @file NI9157DeviceOperatorTGTest.cpp
  * @brief Source file for class NI9157DeviceOperatorTGTest
- * @date 23/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
  * the class NI9157DeviceOperatorTGTest (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
@@ -39,7 +40,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
 TEST(NI9157DeviceOperatorTGTest,TestConstructor) {
     NI9157DeviceOperatorTTest<uint8> test;
     ASSERT_TRUE(test.TestConstructor());
@@ -404,7 +404,6 @@ TEST(NI9157DeviceOperatorTGTest,TestNiReadFifo_I64) {
     NI9157DeviceOperatorTTest<int64> test;
     ASSERT_TRUE(test.TestNiReadFifo("Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_Untitled8.lvbitx","1D84C3D47F5F61DC9C9BFB4778048DBF","FIFOI64r","FIFOI64"));
 }
-
 
 TEST(NI9157DeviceOperatorTGTest,TestGetNI9157Device) {
     NI9157DeviceOperatorTTest<int64> test;

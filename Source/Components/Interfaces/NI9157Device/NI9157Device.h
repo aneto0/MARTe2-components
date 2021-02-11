@@ -1,8 +1,9 @@
 /**
  * @file NI9157Device.h
  * @brief Header file for class NI9157Device
- * @date 17/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This header file contains the declaration of the class NI9157Device
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
@@ -34,6 +35,7 @@
 /*---------------------------------------------------------------------------*/
 #include "ReferenceContainer.h"
 #include "StreamString.h"
+#include "MessageI.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -81,14 +83,14 @@ namespace MARTe {
  * - In the Configuration block, it is possible to automatically initialise the Labview exported variables. Their names can be found in the
  * Labview exported header file. Make sure that the variable names contain the variable types (Bool, U8, I8, U16, I16, U32, I32, U64, I64).
  */
-class NI9157Device: public ReferenceContainer {
+class NI9157Device: public ReferenceContainer, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
 
     /**
      * @brief Constructor. NOOP.
      */
-NI9157Device    ();
+    NI9157Device ();
 
     /**
      * @brief Destructor
@@ -145,6 +147,17 @@ NI9157Device    ();
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
     NiFpga_Status Close();
+
+    /**
+     * @brief Finds a bool variable and returns its descriptor
+     * @param[in] varName the Labview variable name
+     * @param[in] type the value is not important, it is used to select the uint8 type
+     * @param[out] varDescriptor the returned variable descriptor.
+     * @return 0 if the method succeeds, error code if it fails.
+     */
+    NiFpga_Status FindResource(const char8 * const varName,
+                               const bool type,
+                               uint32 &varDescriptor);
 
     /**
      * @brief Finds a unsigned 8-bit variable and returns its descriptor
@@ -447,6 +460,23 @@ NI9157Device    ();
     NiFpga_Status NiStopFifo(const uint32 fifo) const;
 
     /**
+     * @brief Reads from a target-to-host FIFO of booleans.
+     *
+     * @param[in] fifo target-to-host FIFO from which to read
+     * @param[out] data outputs the data that was read
+     * @param[in] numberOfElements number of elements to read
+     * @param[in] timeout timeout in milliseconds, or NiFpga_InfiniteTimeout
+     * @param[out] elementsRemaining if non-NULL, outputs the number of elements
+     *                          remaining in the host memory part of the DMA FIFO
+     * @return status=0 if succeeds, status=[error_code] if fails.
+     */
+    NiFpga_Status NiReadFifo(const uint32 fifo,
+                             bool * const data,
+                             const uint32 numberOfElements,
+                             const uint32 timeout,
+                             uint32 &elementsRemaining) const;
+
+    /**
      * @brief Reads from a target-to-host FIFO of signed 8-bit integers.
      *
      * @param[in] fifo target-to-host FIFO from which to read
@@ -581,6 +611,24 @@ NI9157Device    ();
             const uint32 numberOfElements,
             const uint32 timeout,
             uint32 &elementsRemaining) const;
+
+    /**
+     * @brief Writes to a host-to-target FIFO of booleans.
+     *
+     * @param[in] fifo host-to-target FIFO to which to write
+     * @param[in] data data to write
+     * @param[in] numberOfElements number of elements to write
+     * @param[in] timeout timeout in milliseconds, or NiFpga_InfiniteTimeout
+     * @param[out] emptyElementsRemaining if non-NULL, outputs the number of empty
+     *                               elements remaining in the host memory part of
+     *                               the DMA FIFO
+     * @return status=0 if succeeds, status=[error_code] if fails.
+     */
+    NiFpga_Status NiWriteFifo(const uint32 fifo,
+                              const bool * const data,
+                              const uint32 numberOfElements,
+                              const uint32 timeout,
+                              uint32 &emptyElementsRemaining) const;
 
     /**
      * @brief Writes to a host-to-target FIFO of signed 8-bit integers.
@@ -733,6 +781,48 @@ NI9157Device    ();
      */
     NiFpga_Session GetSession() const;
 
+    /**
+     * @brief TODO - WAS MISSING.
+     * @param[in] fifo TODO - WAS MISSING.
+     * @param[in] numberOfElements TODO - WAS MISSING.
+     * @return TODO - WAS MISSING.
+     */
+    NiFpga_Status ReleaseFifoElements(const uint32 fifo,
+                                      const uint32 numberOfElements);
+
+    /**
+     * @brief TODO - WAS MISSING.
+     * @return TODO - WAS MISSING.
+     */
+    ErrorManagement::ErrorType CrioStart();
+
+    /**
+     * @brief TODO - WAS MISSING.
+     * @return TODO - WAS MISSING.
+     */
+    ErrorManagement::ErrorType CrioStop();
+
+    /**
+     * @brief TODO - WAS MISSING.
+     * @param[in] varName TODO - WAS MISSING.
+     * @param[in] value TODO - WAS MISSING.
+     * @param[in] type TODO - WAS MISSING.
+     * @return TODO - WAS MISSING.
+     */
+    ErrorManagement::ErrorType WriteParam(StreamString varName,
+                                          uint64 value,
+                                          StreamString type);
+    /**
+     * @brief TODO - WAS MISSING.
+     * @param[in] varName TODO - WAS MISSING.
+     * @param[out] value TODO - WAS MISSING.
+     * @param[in] type TODO - WAS MISSING.
+     * @return TODO - WAS MISSING.
+     */
+    ErrorManagement::ErrorType ReadParam(StreamString varName,
+                                         uint64 &value,
+                                         StreamString type);
+
 protected:
 
     /**
@@ -753,6 +843,11 @@ protected:
     /**
      * Specifies if the NI-9157 device has been started.
      */
+    uint8 run;
+
+    /**
+     * Specifies if the NI-9157 device has been started.
+     */
     uint8 isRunning;
 
     /**
@@ -769,11 +864,13 @@ protected:
      * Holds the Ni-9157 device name.
      */
     StreamString niRioDeviceName;
+
 };
+
 }
+
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
 #endif /* NI9157DEVICE_H_ */
-

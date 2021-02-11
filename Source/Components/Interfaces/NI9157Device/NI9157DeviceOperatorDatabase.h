@@ -1,8 +1,9 @@
 /**
  * @file NI9157DeviceOperatorDatabase.h
  * @brief Header file for class NI9157DeviceOperatorDatabase
- * @date 17/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This header file contains the declaration of the class NI9157DeviceOperatorDatabase
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
@@ -33,11 +34,11 @@
 /*---------------------------------------------------------------------------*/
 #include "CreateNI9157DeviceOperatorI.h"
 #include "NI9157DeviceOperatorTI.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe{
-
 
 /**
  * @brief These functions allow to get the CreateNI9157DeviceOperator object or directly the NI9157DeviceOperatorT
@@ -72,7 +73,6 @@ CreateNI9157DeviceOperatorI *GetCreateNI9157DeviceOperator(const char8 * const n
  */
 CreateNI9157DeviceOperatorI *GetCreateNI9157DeviceOperator(const TypeDescriptor &td);
 
-
 /**
  * @brief Creates a NI9157DeviceOperatorT by name.
  * @details Possible values of \a niDevId are:
@@ -92,7 +92,6 @@ CreateNI9157DeviceOperatorI *GetCreateNI9157DeviceOperator(const TypeDescriptor 
  */
 NI9157DeviceOperatorTI *GetNI9157DeviceOperator(const char8 * const niDevId, ReferenceT<NI9157Device> niDev);
 
-
 /**
  * @brief Creates a NI9157DeviceOperatorT by type.
  * @details All the SignedInteger and UnsignedInteger TypeDescriptors are supported.
@@ -111,5 +110,4 @@ NI9157DeviceOperatorTI *GetNI9157DeviceOperator(const TypeDescriptor &td, Refere
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* SOURCE_COMPONENTS_INTERFACES_NI9157DEVICE_NI9157DEVICEOPERATORDATABASE_H_ */
-
+#endif /* NI9157DEVICEOPERATORDATABASE_H_ */

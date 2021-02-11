@@ -1,8 +1,9 @@
 /**
  * @file NI9157DeviceGTest.cpp
  * @brief Source file for class NI9157DeviceGTest
- * @date 22/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
  * the class NI9157DeviceGTest (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
@@ -24,17 +25,13 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include "NI9157DeviceTest.h"
-
-/*---------------------------------------------------------------------------*/
-/*                         Project header includes                           */
-/*---------------------------------------------------------------------------*/
 #include "gtest/gtest.h"
 #include <limits.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "NI9157DeviceTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -163,7 +160,6 @@ TEST(NI9157DeviceGTest,TestNiWriteFifo_U8) {
     ASSERT_TRUE(test.TestNiWriteFifo_U8());
 }
 
-
 TEST(NI9157DeviceGTest,TestNiReadFifo_U16) {
     NI9157DeviceTest test;
     ASSERT_TRUE(test.TestNiReadFifo_U16());
@@ -233,4 +229,3 @@ TEST(NI9157DeviceGTest,TestNiWriteFifo_I64) {
     NI9157DeviceTest test;
     ASSERT_TRUE(test.TestNiWriteFifo_I64());
 }
-

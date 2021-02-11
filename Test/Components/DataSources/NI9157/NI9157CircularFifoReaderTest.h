@@ -1,8 +1,9 @@
 /**
  * @file NI9157CircularFifoReaderTest.h
  * @brief Header file for class NI9157CircularFifoReaderTest
- * @date 17/05/2018
+ * @date 11/02/2021
  * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This header file contains the declaration of the class NI9157CircularFifoReaderTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
@@ -32,11 +33,12 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "NI9157CircularFifoReader.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
 using namespace MARTe;
+
 /**
  * @brief Tests the NI9157CircularFifoReader methods
  * @details Compile into the folder TestLabviewFiles and be sure that in the configuration streams of the tests the variable NiDevice.NiRioGenFile points to this
@@ -157,7 +159,6 @@ public:
      */
     bool TestSetConfiguredDatabase_False_InvalidFifoName();
 
-
     /**
      * @brief Tests the PrepareNextState method
      */
@@ -212,4 +213,3 @@ public:
 /*---------------------------------------------------------------------------*/
 
 #endif /* NI9157CIRCULARFIFOREADERTEST_H_ */
-

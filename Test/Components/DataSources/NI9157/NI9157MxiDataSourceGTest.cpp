@@ -1,8 +1,9 @@
 /**
  * @file NI9157MxiDataSourceGTest.cpp
  * @brief Source file for class NI9157MxiDataSourceGTest
- * @date 23/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
  * the class NI9157MxiDataSourceGTest (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
@@ -24,14 +25,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*/
-/*                         Project header includes                           */
-/*---------------------------------------------------------------------------*/
-
-
-#include <limits.h>
 #include "gtest/gtest.h"
+#include <limits.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -45,7 +40,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
 TEST(NI9157MxiDataSourceGTest,TestConstructor) {
     NI9157MxiDataSourceTest test;
     ASSERT_TRUE(test.TestConstructor());
@@ -105,8 +99,6 @@ TEST(NI9157MxiDataSourceGTest,TestAsyncRead) {
     ASSERT_TRUE(test.TestAsyncRead());
 }
 
-
-
 TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope) {
     NI9157MxiDataSourceTest test;
     ASSERT_TRUE(test.TestSynchronise_Oscilloscope());
@@ -116,21 +108,18 @@ TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope_OutputFIFO) {
     NI9157MxiDataSourceTest test;
     ASSERT_TRUE(test.TestSynchronise_Oscilloscope_OutputFIFO());
 }
-/*
-TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope_2MHz) {
+
+/*TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope_2MHz) {
     NI9157MxiDataSourceTest test;
     ASSERT_TRUE(test.TestSynchronise_Oscilloscope_2MHz());
-}
+}*/
 
-TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope_OutputFIFO_2MHz) {
+/*TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope_OutputFIFO_2MHz) {
     NI9157MxiDataSourceTest test;
     ASSERT_TRUE(test.TestSynchronise_Oscilloscope_OutputFIFO_2MHz());
-}
-*/
+}*/
+
 TEST(NI9157MxiDataSourceGTest,TestAsyncWrite) {
     NI9157MxiDataSourceTest test;
     ASSERT_TRUE(test.TestAsyncWrite());
 }
-
-
-

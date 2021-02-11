@@ -1,8 +1,9 @@
 /**
  * @file NI9157DeviceOperatorT.h
  * @brief Header file for class NI9157DeviceOperatorT
- * @date 17/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This header file contains the declaration of the class NI9157DeviceOperatorT
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
@@ -32,6 +33,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "NI9157DeviceOperatorTI.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -128,10 +130,10 @@ private:
 };
 
 }
+
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
-
 namespace MARTe {
 
 template<typename T>
@@ -198,10 +200,11 @@ int32 NI9157DeviceOperatorT<T>::Compare(const uint8 * const a, const uint8 * con
     T x = *reinterpret_cast<const T*>(a);
     /*lint -e{927} -e{826} enable pointer to pointer cast for the templated types*/
     T y = *reinterpret_cast<const T*>(b);
-
+    /*lint -e{9111} -e{503} boolean used as integer here*/
     if (x > y) {
         ret = 1;
     }
+    /*lint -e{9111} -e{503} boolean used as integer here*/
     if (x < y) {
         ret = -1;
     }
@@ -214,7 +217,7 @@ void NI9157DeviceOperatorT<T>::Copy(uint8 * const dest, const uint8 * const sour
     /*lint -e{927} -e{826} enable pointer to pointer cast for the templated types*/
     *reinterpret_cast<T*>(dest) = *reinterpret_cast<const T*>(source);
 }
+
 }
 
 #endif /* NI9157DEVICEOPERATORT_H_ */
-

@@ -1,8 +1,9 @@
 /**
  * @file NI9157CircularFifoReaderTest.cpp
  * @brief Source file for class NI9157CircularFifoReaderTest
- * @date 17/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -29,7 +30,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
 #include "ConfigurationDatabase.h"
 #include "DataSourceI.h"
 #include "GAMSchedulerI.h"
@@ -43,7 +43,6 @@
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
-
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -70,14 +69,6 @@ public:
     uint8 *GetMiddleBuffer();
 
     uint8 GetRunNi();
-
-    uint32 GetPacketCounter();
-
-    uint32 GetAcquireFromCounter();
-
-    uint32 GetNextPacketCheck();
-
-    uint32 GetCheckCounterAfterNPackets();
 
     uint32 GetCounterStep();
 
@@ -120,13 +111,11 @@ bool NI9157CircularFifoReaderTestDS::PrepareNextState(const char8 * const curren
     if (ret) {
         ret = NI9157CircularFifoReader::PrepareNextState(currentStateName, nextStateName);
     }
-
     return ret;
 }
 
 uint8 NI9157CircularFifoReaderTestDS::GetCheckPacketCounter() {
-    return checkPacketCounter;
-
+    return checkFrame;
 }
 
 uint32 NI9157CircularFifoReaderTestDS::GetNFrameForSync() {
@@ -155,25 +144,6 @@ uint8 *NI9157CircularFifoReaderTestDS::GetMiddleBuffer() {
 
 uint8 NI9157CircularFifoReaderTestDS::GetRunNi() {
     return runNi;
-}
-
-uint32 NI9157CircularFifoReaderTestDS::GetPacketCounter() {
-    return packetCounter;
-}
-uint32 NI9157CircularFifoReaderTestDS::GetAcquireFromCounter() {
-    return acquireFromCounter;
-}
-
-uint32 NI9157CircularFifoReaderTestDS::GetNextPacketCheck() {
-    return nextPacketCheck;
-}
-
-uint32 NI9157CircularFifoReaderTestDS::GetCheckCounterAfterNPackets() {
-    return checkCounterAfterNSteps;
-}
-
-uint32 NI9157CircularFifoReaderTestDS::GetCounterStep() {
-    return counterStep;
 }
 
 uint32 NI9157CircularFifoReaderTestDS::GetNumberOfPacketsInFIFO() {
@@ -261,16 +231,16 @@ static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config)
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ok = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ok) {
         god->Purge();
         ok = god->Initialise(cdb);
     }
+
     ReferenceT<RealTimeApplication> application;
+
     if (ok) {
         application = god->Find("Application1");
         ok = application.IsValid();
@@ -278,6 +248,7 @@ static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config)
     if (ok) {
         ok = application->ConfigureApplication();
     }
+
     return ok;
 }
 
@@ -299,11 +270,6 @@ bool NI9157CircularFifoReaderTest::TestConstructor() {
     ret &= dataSource.GetTotalReadSize() == 0u;
     ret &= dataSource.GetMiddleBuffer() == NULL;
     ret &= dataSource.GetRunNi() == 0u;
-    ret &= dataSource.GetPacketCounter() == 1u;
-    ret &= dataSource.GetAcquireFromCounter() == 0u;
-    ret &= dataSource.GetNextPacketCheck() == 1u;
-    ret &= dataSource.GetCheckCounterAfterNPackets() == 0u;
-    ret &= dataSource.GetCounterStep() == 1u;
     ret &= dataSource.GetNumberOfPacketsInFIFO() == 10u;
 
     return ret;
@@ -357,15 +323,19 @@ bool NI9157CircularFifoReaderTest::TestInitialise() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
+            "            NumberOfPacketsInFIFO = 20"
+            "            CheckFrame = 1"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 3"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 2001"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -395,9 +365,7 @@ bool NI9157CircularFifoReaderTest::TestInitialise() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
@@ -406,23 +374,19 @@ bool NI9157CircularFifoReaderTest::TestInitialise() {
     }
 
     ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ret &= dataSource->GetNFrameForSync() == 3;
         ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 2000u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 2000u;
-        ret &= dataSource->GetCounterStep() == 2000u;
         ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
-
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
-
 }
 
 bool NI9157CircularFifoReaderTest::TestInitialise_DefaultRunNi() {
@@ -473,14 +437,18 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultRunNi() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 3"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 2001"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -510,9 +478,7 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultRunNi() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
@@ -521,23 +487,19 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultRunNi() {
     }
 
     ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ret &= dataSource->GetNFrameForSync() == 3;
         ret &= dataSource->GetRunNi() == 0;
-        ret &= dataSource->GetAcquireFromCounter() == 2000u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 2000u;
-        ret &= dataSource->GetCounterStep() == 2000u;
         ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
-
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
-
 }
 
 bool NI9157CircularFifoReaderTest::TestInitialise_DefaultNumberOfPacketsInFIFO() {
@@ -588,14 +550,18 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultNumberOfPacketsInFIFO()
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 3"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 2001"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -625,9 +591,7 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultNumberOfPacketsInFIFO()
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
@@ -636,23 +600,20 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultNumberOfPacketsInFIFO()
     }
 
     ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ret &= dataSource->GetNFrameForSync() == 3;
         ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 2000u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 2000u;
-        ret &= dataSource->GetCounterStep() == 2000u;
         ret &= dataSource->GetNumberOfPacketsInFIFO() == 10u;
 
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
-
 }
 
 bool NI9157CircularFifoReaderTest::TestInitialise_DefaultAcquiredFromPacket() {
@@ -703,14 +664,18 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultAcquiredFromPacket() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 3"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -740,9 +705,7 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultAcquiredFromPacket() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
@@ -751,20 +714,18 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultAcquiredFromPacket() {
     }
 
     ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ret &= dataSource->GetNFrameForSync() == 3;
         ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 0u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 2000u;
-        ret &= dataSource->GetCounterStep() == 2000u;
         ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
 
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -820,11 +781,15 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCheckPacketCounter() {
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 3"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 2001"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -854,9 +819,7 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCheckPacketCounter() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
@@ -865,20 +828,18 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCheckPacketCounter() {
     }
 
     ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ret &= dataSource->GetNFrameForSync() == 1;
         ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 0u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 0u;
-        ret &= dataSource->GetCounterStep() == 1u;
         ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
 
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -931,14 +892,18 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCheckCounterAfterNPacke
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
             "            RunNi = 1"
-            "            CounterStep = 1"
-            "            AcquireFromCounter = 0"
+            "            FifoName = \"FIFO\""
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 3"
+            "                CounterStep = 1"
+            "                AcquireFromCounter = 0"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -968,9 +933,7 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCheckCounterAfterNPacke
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
@@ -979,20 +942,17 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCheckCounterAfterNPacke
     }
 
     ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ret &= dataSource->GetNFrameForSync() == 3;
         ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 0u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 1u;
-        ret &= dataSource->GetCounterStep() == 1u;
         ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
-
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -1045,14 +1005,18 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCounterStep() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
             "            RunNi = 1"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 0"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 3"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 0"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -1082,9 +1046,7 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCounterStep() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
@@ -1093,20 +1055,18 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCounterStep() {
     }
 
     ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ret &= dataSource->GetNFrameForSync() == 3;
         ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 0u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 2000u;
-        ret &= dataSource->GetCounterStep() == 1u;
         ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
 
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -1159,14 +1119,18 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultNFrameForSync() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 2001"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -1196,9 +1160,7 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultNFrameForSync() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
@@ -1207,20 +1169,18 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultNFrameForSync() {
     }
 
     ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-        ret &= dataSource->GetNFrameForSync() == 2;
+        ret &= dataSource->GetNFrameForSync() == 1;
         ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 2000u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 2000u;
-        ret &= dataSource->GetCounterStep() == 2000u;
         ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
 
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -1273,15 +1233,19 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_CounterStepZero() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
             "            RunNi = 1"
-            "            CounterStep = 0"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 3"
+            "                CounterStep = 0"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 2000"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -1311,15 +1275,14 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_CounterStepZero() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -1372,15 +1335,19 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_NFrameForSyncEqualTo1() 
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 1"
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 1"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 2000"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -1410,15 +1377,14 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_NFrameForSyncEqualTo1() 
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -1471,15 +1437,19 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_CheckAfterNotDivideCount
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CheckCounterAfterNSteps = 1"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            AcquireFromCounter = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 3"
+            "                CounterStep = 2000"
+            "                AcquireFromCounter = 2000"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -1503,20 +1473,20 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_CheckAfterNotDivideCount
             "        TimingDataSource = Timings"
             "    }"
             "}";
+
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -1569,15 +1539,19 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_CounterStepNotDivideAcqu
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 1"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 2"
+            "                NumOfFrameForSync = 3"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -1607,15 +1581,14 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_CounterStepNotDivideAcqu
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -1668,13 +1641,17 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_NoFifoName() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            RunNi = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -1704,15 +1681,14 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_NoFifoName() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -1763,14 +1739,21 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_NoNI9157Device() {
             "        +Drv1 = {"
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
+            "            RunNi = 1"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
             "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
             "            CounterStep = 2000"
             "            CheckCounterAfterNSteps = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -1800,18 +1783,16 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_NoNI9157Device() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
-
 }
 
 bool NI9157CircularFifoReaderTest::TestInitialise_False_Invalidi9157Device() {
@@ -1862,14 +1843,18 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_Invalidi9157Device() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = Boh"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            RunNi = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -1899,15 +1884,14 @@ bool NI9157CircularFifoReaderTest::TestInitialise_False_Invalidi9157Device() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -1960,14 +1944,18 @@ bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
+            "            RunNi = 1"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -1991,17 +1979,19 @@ bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase() {
             "        TimingDataSource = Timings"
             "    }"
             "}";
+
     bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
 
     ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ret = dataSource->GetNiDeviceOperator() != NULL;
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -2059,14 +2049,18 @@ bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_MoreThanOneCh
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
+            "            RunNi = 1"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -2090,6 +2084,7 @@ bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_MoreThanOneCh
             "        TimingDataSource = Timings"
             "    }"
             "}";
+
     bool ret = !InitialiseMemoryMapInputBrokerEnviroment(config);
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
@@ -2143,14 +2138,18 @@ bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_NiDevOperator
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
+            "            RunNi = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -2178,7 +2177,6 @@ bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_NiDevOperator
     bool ret = !InitialiseMemoryMapInputBrokerEnviroment(config);
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
-
 }
 
 bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_InvalidFifoName() {
@@ -2229,14 +2227,18 @@ bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_InvalidFifoNa
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
+            "            RunNi = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"Invalid\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -2315,15 +2317,19 @@ bool NI9157CircularFifoReaderTest::TestPrepareNextState() {
             "        +Drv1 = {"
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
+            "            RunNi = 1"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -2347,23 +2353,24 @@ bool NI9157CircularFifoReaderTest::TestPrepareNextState() {
             "        TimingDataSource = Timings"
             "    }"
             "}";
+
     bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
 
     ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
         ret = dataSource->GetNiDeviceOperator() != NULL;
     }
-
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
         Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
+
     return ret;
 }
 
@@ -2519,16 +2526,20 @@ bool NI9157CircularFifoReaderTest::TestDriverRead() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 1"
-            "            FirstPacketCounter = 1"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 1"
+            "                FirstPacketCounter = 1"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -2566,7 +2577,6 @@ bool NI9157CircularFifoReaderTest::TestDriverRead() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
         ret = dataSource->GetNiDeviceOperator() != NULL;
     }
@@ -2585,27 +2595,20 @@ bool NI9157CircularFifoReaderTest::TestDriverRead() {
         }
 
         uint32 numberOfReads = 2;
-
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
         uint64 counterStore = 0ull;
+    
         for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
             brokerSync->Execute();
             gam->Execute();
-            //printf("counter[%d]=%llu\n", 0, mem[0]);
-
             for (uint32 j = 0u; (j < 2000) && (ret); j++) {
-                //printf("counter[%d]=%llu\n", j, mem[j]);
                 if (i * 2000 + j > 0) {
                     ret = ((mem[j] - counterStore) == 1);
                 }
                 counterStore = mem[j];
             }
-
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
     return ret;
@@ -2783,7 +2786,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AllSignals() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
@@ -2793,6 +2796,15 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AllSignals() {
             "            CheckCounterAfterNSteps = 2000"
             "            AcquireFromCounter = 1"
             "            FirstPacketCounter = 1"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 1"
+            "                FirstPacketCounter = 1"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -2830,7 +2842,6 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AllSignals() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
         ret = dataSource->GetNiDeviceOperator() != NULL;
     }
@@ -2854,16 +2865,11 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AllSignals() {
         }
 
         uint32 numberOfReads = 5;
-
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
         uint64* tsMem = &mem[10000];
         uint32 *errCheckMem = (uint32 *) (&tsMem[1]);
-
         uint64 counterStore = 0ull;
-
         uint64 tsStore = HighResolutionTimer::Counter();
-
         const uint32 expectedDeltaTs = 10000;
         const int32 tol = 100;
 
@@ -2871,32 +2877,22 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AllSignals() {
             brokerSync->Execute();
             broker->Execute();
             gam->Execute();
-            //printf("counter[%d]=%llu\n", 0, mem[0]);
             if (i > 0) {
                 uint32 delta = (uint32)((*tsMem - tsStore) * HighResolutionTimer::Period() * 1e6);
-                //printf("HRT[%d]=%d\n", i, delta);
                 ret = (((int32)(delta - expectedDeltaTs)) < tol) || (((int32)(delta - expectedDeltaTs)) > -tol);
             }
-
             for (uint32 j = 0u; (j < 3u) && (ret); j++) {
-                //printf("ErrorCheck[%d, %d]=%d\n", i, j, errCheckMem[j]);
                 ret = (errCheckMem[j] == 0);
             }
-
             tsStore = *tsMem;
             for (uint32 j = 0u; (j < 2000) && (ret); j++) {
-                //printf("counter[%d]=%llu\n", j, mem[j]);
-
                 if ((i * 2000 + j) > 0) {
                     ret = ((mem[j] - counterStore) == 1);
                 }
                 counterStore = mem[j];
             }
-
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
     return ret;
@@ -3074,16 +3070,20 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AcquiredFromCounter() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 8001"
-            "            FirstPacketCounter = 1"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 8001"
+            "                FirstPacketCounter = 1"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -3121,7 +3121,6 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AcquiredFromCounter() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
         ret = dataSource->GetNiDeviceOperator() != NULL;
     }
@@ -3145,16 +3144,11 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AcquiredFromCounter() {
         }
 
         uint32 numberOfReads = 2;
-
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
         uint64* tsMem = &mem[10000];
         uint32 *errCheckMem = (uint32 *) (&tsMem[1]);
-
         uint64 counterStore = 0ull;
-
         uint64 tsStore = HighResolutionTimer::Counter();
-
         const uint32 expectedDeltaTs = 10000;
         const int32 tol = 100;
 
@@ -3162,33 +3156,23 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AcquiredFromCounter() {
             brokerSync->Execute();
             broker->Execute();
             gam->Execute();
-            //printf("counter[%d]=%llu\n", 0, mem[0]);
             if (i > 0) {
                 uint32 delta = (uint32)((*tsMem - tsStore) * HighResolutionTimer::Period() * 1e6);
-                //printf("HRT[%d]=%d\n", i, delta);
                 ret = (((int32)(delta - expectedDeltaTs)) < tol) || (((int32)(delta - expectedDeltaTs)) > -tol);
             }
-
             for (uint32 j = 0u; (j < 3u) && (ret); j++) {
-                //printf("ErrorCheck[%d, %d]=%d\n", i, j, errCheckMem[j]);
                 ret = (errCheckMem[j] == 0);
             }
-
             tsStore = *tsMem;
             for (uint32 j = 0u; (j < 2000) && (ret); j++) {
-                //printf("counter[%d]=%llu\n", j, mem[j]);
-
                 if ((i * 2000 + j) > 0) {
                     ret = ((mem[j] - counterStore) == 1);
                     ret = (mem[j] > 8000);
                 }
                 counterStore = mem[j];
             }
-
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
     return ret;
@@ -3346,17 +3330,21 @@ bool NI9157CircularFifoReaderTest::TestDriverReadCompleteCycle() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 2"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 1"
-            "            FirstPacketCounter = 1"
             "            sleepInMutexSec = 1e-9"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 1"
+            "                FirstPacketCounter = 1"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -3395,7 +3383,6 @@ bool NI9157CircularFifoReaderTest::TestDriverReadCompleteCycle() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
         ret = dataSource->GetNiDeviceOperator() != NULL;
     }
@@ -3422,14 +3409,10 @@ bool NI9157CircularFifoReaderTest::TestDriverReadCompleteCycle() {
         }
 
         uint32 numberOfReads = 200;
-
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
         uint64 storeCounter = 0ull;
-        //uint64 tic=0;
-        for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
-            //tic=HighResolutionTimer::Counter();
 
+        for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
             brokerSync->Execute();
             gam->Execute();
             outBroker->Execute();
@@ -3441,9 +3424,7 @@ bool NI9157CircularFifoReaderTest::TestDriverReadCompleteCycle() {
             }
             storeCounter = mem[0];
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
     return ret;
@@ -3618,16 +3599,20 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_Resync() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 1"
-            "            FirstPacketCounter = 1"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 1"
+            "                FirstPacketCounter = 1"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -3665,7 +3650,6 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_Resync() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
         ret = dataSource->GetNiDeviceOperator() != NULL;
     }
@@ -3691,7 +3675,6 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_Resync() {
 
         uint32 numberOfReads = 2;
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
         uint64* tsMem = &mem[10000];
         uint32 *errCheckMem = (uint32 *) (&tsMem[1]);
 
@@ -3706,11 +3689,8 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_Resync() {
             else {
                 ret = (errCheckMem[0] == 0);
             }
-            //ret = (errCheckMem[j] == 0);
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
     return ret;
@@ -3909,7 +3889,6 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_NoCheckCounter() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
         ret = dataSource->GetNiDeviceOperator() != NULL;
     }
@@ -3928,10 +3907,9 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_NoCheckCounter() {
         }
 
         uint32 numberOfReads = 200;
-
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
         uint64 counterStore = 0ull;
+
         for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
             brokerSync->Execute();
             gam->Execute();
@@ -3943,9 +3921,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_NoCheckCounter() {
             }
             counterStore = mem[0];
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
     return ret;
@@ -4103,16 +4079,20 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_CheckAfterNPackets() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 16000"
-            "            AcquireFromCounter = 1"
-            "            FirstPacketCounter = 1"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 16000"
+            "                AcquireFromCounter = 1"
+            "                FirstPacketCounter = 1"
+            "                SampleSize = 8"
+            "            }"
             "        }"
             "        +Timings = {"
             "            Class = TimingDataSource"
@@ -4150,7 +4130,6 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_CheckAfterNPackets() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
         ret = dataSource->GetNiDeviceOperator() != NULL;
     }
@@ -4169,17 +4148,13 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_CheckAfterNPackets() {
         }
 
         uint32 numberOfReads = 200;
-
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
         uint64 counterStore = 0ull;
+
         for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
             brokerSync->Execute();
             gam->Execute();
-            //printf("counter[%d]=%llu\n", 0, mem[0]);
-
             for (uint32 j = 0u; (j < 2000) && (ret); j++) {
-                //printf("counter[%d]=%llu\n", j, mem[j]);
                 if (i * 2000 + j > 0) {
                     ret = ((mem[j] - counterStore) == 1);
                 }
@@ -4187,9 +4162,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_CheckAfterNPackets() {
             }
 
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
     return ret;
@@ -4245,17 +4218,21 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_InternalInterleaved() {
             "            Class = NI9157CircularFifoReaderTestDS"
             "            NI9157DevicePath = NiDevice"
             "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
+            "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 5"
             "            CpuMask = 16"
             "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
             "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 1"
-            "            FirstPacketCounter = 1"
             "            SleepInMutexSec = 1e-9"
+            "            +Checker = {"
+            "                Class = NI9157::CounterChecker"
+            "                NumOfFrameForSync = 2"
+            "                CounterStep = 2000"
+            "                CheckCounterAfterNSteps = 2000"
+            "                AcquireFromCounter = 1"
+            "                FirstPacketCounter = 1"
+            "                SampleSize = 8"
+            "            }"
             "            Signals = {"
             "               Signal1 = {"
             "                   DataSource = Drv1"
@@ -4303,32 +4280,28 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_InternalInterleaved() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
         ret = dataSource->GetNiDeviceOperator() != NULL;
     }
-
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
     }
-    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
 
+    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
     if (ret) {
         ReferenceContainer inputBrokers;
         ret = gam->GetInputBrokers(inputBrokers);
+
         if (ret) {
             brokerSync = inputBrokers.Get(0);
             ret = brokerSync.IsValid();
         }
 
         uint32 numberOfReads = 2000;
-
         uint64* mem = (uint64*) gam->GetInputMemoryBuffer();
-
         uint64 storeCounter = 0ull;
-        //uint32 max = 0;
+
         for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
-            //uint64 tic = HighResolutionTimer::Counter();
             brokerSync->Execute();
             if (i > 1) {
                 ret = ((mem[0] - storeCounter) == 2000);
@@ -4340,21 +4313,11 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_InternalInterleaved() {
                     printf("(mem[0] - storeCounter) = %lld\n", (mem[0] - storeCounter));
                     printf("(mem[1999] - mem[0]) = %lld\n", ((mem[1999] - mem[0])));
                 }
-
             }
-
-            /*for(uint32 j=0u; j<2000; j++){
-             printf("mem[%d]=%lld\n", j, mem[j]);
-
-             }*/
             storeCounter = mem[0];
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
     return ret;
-
 }
-

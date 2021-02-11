@@ -1,8 +1,9 @@
 /**
  * @file NI9157MemoryOperationsHelper.cpp
  * @brief Source file for class NI9157MemoryOperationsHelper
- * @date 14/08/2018
+ * @date 11/02/2021
  * @author Andre Neto
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
  * the class NI9157MemoryOperationsHelper (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
@@ -30,6 +31,7 @@
 /*---------------------------------------------------------------------------*/
 #include "MemoryOperationsHelper.h"
 #include "NI9157MemoryOperationsHelper.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -37,7 +39,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
 void NI9157MemoryOperationsHelper::InterleavedToFlat(MARTe::uint8 * const originSource, MARTe::uint8 * const originDest, const MARTe::uint32 beginIndex, const MARTe::uint32 * const packetMemberSize, const MARTe::uint32 packetByteSize,
                                                      const MARTe::uint32 numberOfPacketMembers, const MARTe::uint32 numberOfSamples) {
     MARTe::MemoryOperationsHelper::InterleavedToFlat(originSource, originDest, beginIndex, packetMemberSize, packetByteSize, numberOfPacketMembers, numberOfSamples);

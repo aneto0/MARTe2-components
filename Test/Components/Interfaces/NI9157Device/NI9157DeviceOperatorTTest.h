@@ -1,8 +1,9 @@
 /**
  * @file NI9157DeviceOperatorTTest.h
  * @brief Header file for class NI9157DeviceOperatorTTest
- * @date 23/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This header file contains the declaration of the class NI9157DeviceOperatorTTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
@@ -43,10 +44,10 @@
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
 using namespace MARTe;
 
 /**
@@ -92,20 +93,17 @@ public:
      */
     bool TestFindResource(const char8* resourceName);
 
-
     /**
      * @brief Tests the NI9157DeviceOperatorT::NiRead method
      */
     bool TestNiRead(const char8 *readVarName,
                     const char8 *writeVarName);
 
-
     /**
      * @brief Tests the NI9157DeviceOperatorT::NiWrite method
      */
     bool TestNiWrite(const char8 *readVarName,
                      const char8 *writeVarName);
-
 
     /**
      * @brief Tests the NI9157DeviceOperatorT::NiReadFifo method
@@ -127,12 +125,12 @@ public:
      * @brief Tests the NI9157DeviceOperatorT::GetNI9157Device method
      */
     bool TestGetNI9157Device();
+
 };
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
-
 template<typename T>
 NI9157DeviceOperatorTTest<T>::NI9157DeviceOperatorTTest() {
 }
@@ -177,6 +175,7 @@ bool NI9157DeviceOperatorTTest<T>::TestCopy(T source) {
 
 template<typename T>
 bool NI9157DeviceOperatorTTest<T>::TestFindResource(const char8* resourceName) {
+
     static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
@@ -209,7 +208,6 @@ bool NI9157DeviceOperatorTTest<T>::TestFindResource(const char8* resourceName) {
     StandardParser parser(configStream, cdb);
 
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
@@ -218,39 +216,34 @@ bool NI9157DeviceOperatorTTest<T>::TestFindResource(const char8* resourceName) {
     }
 
     ReferenceT<NI9157Device> interface;
+
     if (ret) {
         interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
         ret = interface.IsValid();
     }
-
     if (ret) {
         ret = interface->IsOpened() == 0;
     }
-
     if (ret) {
         ret = interface->Open() == 0;
     }
     if (ret) {
         ret = interface->IsOpened() == 1;
     }
-
     if (ret) {
-
         NI9157DeviceOperatorT<T> niOperator(interface);
         uint32 varDescriptor;
-
         ret &= (niOperator.FindResource(resourceName, varDescriptor) == 0);
-
     }
 
     ret &= interface->Close() == 0;
-
     return ret;
 }
 
 template<typename T>
 bool NI9157DeviceOperatorTTest<T>::TestNiRead(const char8 *readVarName,
                                               const char8 *writeVarName) {
+                                                
     static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
@@ -281,9 +274,7 @@ bool NI9157DeviceOperatorTTest<T>::TestNiRead(const char8 *readVarName,
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
@@ -292,33 +283,28 @@ bool NI9157DeviceOperatorTTest<T>::TestNiRead(const char8 *readVarName,
     }
 
     ReferenceT<NI9157Device> interface;
+
     if (ret) {
         interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
         ret = interface.IsValid();
     }
-
     if (ret) {
         ret = interface->IsOpened() == 0;
     }
-
     if (ret) {
         ret = interface->Open() == 0;
     }
     if (ret) {
         ret = interface->IsOpened() == 1;
     }
-
     if (ret) {
         ret = interface->Run() == 0;
     }
     if (ret) {
         ret = interface->IsRunning() == 1;
     }
-
     if (ret) {
-
         NI9157DeviceOperatorT<T> niOperator(interface);
-
         uint32 contrDescriptor;
         uint32 varDescriptor;
 
@@ -335,7 +321,6 @@ bool NI9157DeviceOperatorTTest<T>::TestNiRead(const char8 *readVarName,
 
     ret &= interface->Reset() == 0;
     ret &= interface->Close() == 0;
-
     return ret;
 }
 
@@ -378,9 +363,7 @@ bool NI9157DeviceOperatorTTest<T>::TestGetNI9157Device() {
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
     if (ret) {
@@ -389,30 +372,26 @@ bool NI9157DeviceOperatorTTest<T>::TestGetNI9157Device() {
     }
 
     ReferenceT<NI9157Device> interface;
+
     if (ret) {
         interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
         ret = interface.IsValid();
     }
-
     if (ret) {
         ret = interface->IsOpened() == 0;
     }
-
     if (ret) {
         ret = interface->Open() == 0;
     }
     if (ret) {
         ret = interface->IsOpened() == 1;
     }
-
     if (ret) {
-
         NI9157DeviceOperatorT<T> niOperator(interface);
         ret = (niOperator.GetNI9157Device() == interface);
     }
 
     ret &= interface->Close() == 0;
-
     return ret;
 }
 
@@ -437,13 +416,11 @@ bool NI9157DeviceOperatorTTest<T>::TestNiReadFifo(const char8 *fileName,
     StreamString configStream = config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
     ret&=cdb.MoveAbsolute("+NiDevice");
     ret&=cdb.Write("NiRioGenFile", fileName);
     ret&=cdb.Write("NiRioGenSignature", signature);
-
     ret&=cdb.MoveToRoot();
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
@@ -454,19 +431,16 @@ bool NI9157DeviceOperatorTTest<T>::TestNiReadFifo(const char8 *fileName,
     }
 
     ReferenceT < NI9157Device > interface;
+
     if (ret) {
         interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
         ret = interface.IsValid();
     }
-
     if (ret) {
         ret = interface->IsOpened() == 1;
     }
-
     if (ret) {
-
         NI9157DeviceOperatorT<T> niOperator(interface);
-
         uint32 fifow;
         uint32 fifor;
         ret &= (niOperator.FindResource(writeVarName, fifow) == 0);
@@ -479,10 +453,10 @@ bool NI9157DeviceOperatorTTest<T>::TestNiReadFifo(const char8 *fileName,
         ret &= (interface->NiConfigureFifo(fifor, numberOfElements, oldSize) == 0);
         T dataw[numberOfElements];
         T datar[numberOfElements];
+
         for (uint32 i = 0u; i < numberOfElements; i++) {
             dataw[i] = (T) i;
         }
-
         if (ret) {
             if (ret) {
                 ret = interface->Run() == 0;
@@ -490,6 +464,7 @@ bool NI9157DeviceOperatorTTest<T>::TestNiReadFifo(const char8 *fileName,
             if (ret) {
                 ret = interface->IsRunning() == 1;
             }
+
             uint32 emptyElementsRemaining = 0u;
             ret = (niOperator.NiWriteFifo(fifow, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
 
@@ -503,11 +478,9 @@ bool NI9157DeviceOperatorTTest<T>::TestNiReadFifo(const char8 *fileName,
                 }
             }
         }
-
     }
 
     return ret;
-
 }
 
 template<typename T>
@@ -518,5 +491,4 @@ bool NI9157DeviceOperatorTTest<T>::TestNiWriteFifo(const char8 *fileName,
     return TestNiReadFifo(fileName, signature, readVarName, writeVarName);
 }
 
-#endif /* TEST_COMPONENTS_INTERFACES_NI9157DEVICE_NI9157DEVICEOPERATORTTEST_H_ */
-
+#endif /* NI9157DEVICEOPERATORTTEST_H_ */

@@ -1,8 +1,9 @@
 /**
  * @file NI9157MxiDataSource.h
  * @brief Header file for class NI9157MxiDataSource
- * @date 23/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -31,15 +32,13 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
 #include "MemoryDataSourceI.h"
-#include "MessageI.h"
 #include "NI9157DeviceOperatorT.h"
+#include "MessageI.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
 namespace MARTe{
 
 /**
@@ -191,6 +190,27 @@ protected:
      * Holds the number of elements for each signal.
      */
     uint32 *numberOfElements;
+
+    /**
+     * TODO - WAS MISSING.
+     */
+    uint64 *initialPatterns;
+
+    /**
+     * TODO - WAS MISSING.
+     */
+    uint8 *resetInitialPattern;
+
+    /**
+     * TODO - WAS MISSING.
+     */
+    uint8 *useInitialPattern;
+
+    /**
+     * TODO - WAS MISSING.
+     */
+    uint8 blockIfNotRunning;
+
 };
 
 }
@@ -200,4 +220,3 @@ protected:
 /*---------------------------------------------------------------------------*/
 
 #endif /* NI9157MXIDATASOURCE_H_ */
-

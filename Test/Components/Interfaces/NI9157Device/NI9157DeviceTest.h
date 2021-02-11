@@ -1,8 +1,9 @@
 /**
  * @file NI9157DeviceTest.h
  * @brief Header file for class NI9157DeviceTest
- * @date 22/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This header file contains the declaration of the class NI9157DeviceTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
@@ -36,7 +37,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
 using namespace MARTe;
 
 /**
@@ -172,7 +172,6 @@ public:
      */
     bool TestNiReadFifo_U8();
 
-
     /**
      * @brief Tests the NI9157Device::NiWriteFifo method with uint8 input type
      */
@@ -247,6 +246,7 @@ public:
      * @brief Tests the NI9157Device::NiWriteFifo method with int64 input type
      */
     bool TestNiWriteFifo_I64();
+
 };
 
 /*---------------------------------------------------------------------------*/
@@ -254,4 +254,3 @@ public:
 /*---------------------------------------------------------------------------*/
 
 #endif /* NI9157DEVICETEST_H_ */
-

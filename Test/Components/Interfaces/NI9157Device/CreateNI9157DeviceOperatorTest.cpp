@@ -1,8 +1,9 @@
 /**
  * @file CreateNI9157DeviceOperatorTest.cpp
  * @brief Source file for class CreateNI9157DeviceOperatorTest
- * @date 23/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
