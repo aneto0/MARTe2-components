@@ -29,7 +29,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
 #include "CreateNI9157DeviceOperatorTest.h"
 
 /*---------------------------------------------------------------------------*/
@@ -68,4 +67,3 @@ bool CreateNI9157DeviceOperatorTest::TestGetIdentifier() {
 bool CreateNI9157DeviceOperatorTest::TestGetTypeDescriptor() {
     return TestConstructorArgs();
 }
-

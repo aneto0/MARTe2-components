@@ -31,8 +31,7 @@ OBJSX +=  CreateNI9157DeviceOperatorTest.x \
     NI9157DeviceOperatorDatabaseTest.x \
     NI9157DeviceOperatorDatabaseGTest.x \
     NI9157DeviceOperatorTTest.x \
-    NI9157DeviceOperatorTGTest.x \
-
+    NI9157DeviceOperatorTGTest.x
 
 PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..
@@ -65,4 +64,3 @@ all: $(OBJS) \
 include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-

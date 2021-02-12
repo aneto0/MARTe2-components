@@ -453,19 +453,12 @@ bool NI9157MxiDataSource::Synchronise() {
                     }
                     if (useInitialPattern[i] == 0u) {
                         /*lint -e{613} NULL pointer checked*/
-                        /*printf("\n\n");
-                        for (uint32 k = 0u; k < numberOfElements[i]; k++) {
-                            REPORT_ERROR(ErrorManagement::Information, "sending %0x", *((uint64*) (&memory[signalOffsets[i]]) + k));
-                        }
-                        printf("\n\n");*/
-                        
                         int32 status = niDevice[i]->NiWriteFifo(varId[i], &memory[signalOffsets[i]], numberOfElements[i], 0xFFFFFFFFu, emptyElementsRemaining);
                         ret = (status == 0);
                         if (!ret) {
                             REPORT_ERROR(ErrorManagement::FatalError, "Failed Ni9155Device FIFO write. Status = %d", status);
                         }
                     }
-                    //REPORT_ERROR(ErrorManagement::Information, "elements remaining = %d", emptyElementsRemaining);
                 }
                 else {
                     if (useInitialPattern[i] > 0u) {
@@ -497,6 +490,7 @@ ErrorManagement::ErrorType NI9157MxiDataSource::AsyncRead(StreamString varName,
     ErrorManagement::ErrorType ret = GetSignalIndex(i, varName.BufferReference());
 
     REPORT_ERROR(ErrorManagement::Information, "Reading %s", varName.Buffer());
+
     if (static_cast<bool>(ret)) {
         /*lint -e{613} NULL pointer checked*/
         NiFpga_Status status = niDevice[i]->NiRead(varId[i], reinterpret_cast<void*>(&varValue));

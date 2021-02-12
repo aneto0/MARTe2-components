@@ -62,4 +62,3 @@ all: $(OBJS) \
 include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-

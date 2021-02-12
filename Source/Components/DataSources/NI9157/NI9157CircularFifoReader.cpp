@@ -61,11 +61,6 @@ NI9157CircularFifoReader::NI9157CircularFifoReader() :
     totalReadSize = 0u;
     middleBuffer = NULL_PTR(uint8 *);
     runNi = 0u;
-    packetCounter = 1u;
-    acquireFromCounter = 0u;
-    nextPacketCheck = 1u;
-    checkCounterAfterNSteps = 0u;
-    counterStep = 1u;
     numberOfPacketsInFIFO = 10u;
     acqTimeout = 0xFFFFFFFFu;
     nonBlockSleepT = 0.F;

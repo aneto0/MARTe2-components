@@ -410,9 +410,8 @@ public:
             const uint64 value) const;
 
     /**
-     * Specifies the depth of the host memory part of the DMA FIFO. This method is
+     * @brief Specifies the depth of the host memory part of the DMA FIFO. This method is
      * optional.
-     *
      * @param[in] fifo FIFO to configure
      * @param[in] requestedDepth requested number of elements in the host memory part
      *                       of the DMA FIFO

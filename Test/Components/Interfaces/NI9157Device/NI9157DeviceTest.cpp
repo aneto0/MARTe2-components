@@ -45,9 +45,7 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-
 class NI9157DeviceTestIF: public NI9157Device {
-
 public:
     CLASS_REGISTER_DECLARATION()
 
@@ -57,6 +55,7 @@ public:
     const char8 *GetNiRioGenSignature();
 
     const char8 *GetNiRioDeviceName();
+
 };
 
 NiFpga_Status NI9157DeviceTestIF::GetStatus() {
@@ -80,7 +79,6 @@ CLASS_REGISTER(NI9157DeviceTestIF, "1.0")
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
 NI9157DeviceTest::NI9157DeviceTest() {
 }
 

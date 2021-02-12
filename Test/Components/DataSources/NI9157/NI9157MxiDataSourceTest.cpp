@@ -2268,6 +2268,7 @@ bool NI9157MxiDataSourceTest::TestAsyncWrite() {
             for (uint32 i = 0u; (i < nPoints) && ret; i++) {
                 StreamString varName = "DAC_value";
                 uint32 varValue = (uint32)((mem[i] + 2.5) * (16383 / 5));
+                //see on the oscilloscope
                 ret = dataSource->AsyncWrite(varName, varValue);
                 Sleep::Sec(1e-3);
             }
