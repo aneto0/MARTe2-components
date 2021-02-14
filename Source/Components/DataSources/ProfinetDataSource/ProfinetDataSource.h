@@ -31,68 +31,89 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+
 #include "CompilerTypes.h"
 #include "DataSourceI.h"
 #include "EmbeddedServiceMethodBinderT.h"
 #include "Endianity.h"
 #include "FastPollingMutexSem.h"
 #include "HighResolutionTimer.h"
+
+//lint ++flb "Utility libraries"
 #include "ICyclicNotifiable.h"
+#include "IMainThreadEntryPoint.h"
 #include "IOperationalSignalsEntryPoint.h"
 #include "IProfinetEventNotifiable.h"
 #include "ISynchronisableInput.h"
 #include "ISynchronisableOutput.h"
+#include "ITimerEntryPoint.h"
+//lint --flb
+
+//lint ++flb "Custom brokers""
 #include "MemoryMapSynchNMutexInputBroker.h"
 #include "MemoryMapSynchNMutexOutputBroker.h"
+//lint --flb
 #include "MessageI.h"
 #include "MultiThreadService.h" 
 #include "MutexSem.h"
 #include "ObjectRegistryDatabase.h"
+
+#ifndef LINT
 #include "ProfinetDataSourceAdapter.h"
 #include "ProfinetEventType.h"
+#endif
+
+//lint ++flb "Internals"
 #include "ProfinetMainThreadHelper.h"
 #include "ProfinetTimerHelper.h"
 #include "ProfinetToMARTeLogAdapter.h"
-#include "StaticList.h"
+//lint --flb
+
+#ifdef LINT
+//lint ++flb "Internals"
+#include "ProfinetDataSourceAdapter_lint.h"
+//lint --flb
+#endif
+
 #include "StreamString.h"
 
-#define PNETDS_MASK_BASENIC                     (MARTe::uint16)(0x0001 << 0)
-#define PNETDS_MASK_BASESTATIONNAME             (MARTe::uint16)(0x0001 << 1)
-#define PNETDS_MASK_BASEPERIODICINTERVAL        (MARTe::uint16)(0x0001 << 2)
-#define PNETDS_MASK_BASEREDUCTIONRATIO          (MARTe::uint16)(0x0001 << 3)
+#define PNETDS_MASK_BASENIC                     static_cast<MARTe::uint32>(1u)
+#define PNETDS_MASK_BASESTATIONNAME             static_cast<MARTe::uint32>(2u)
+#define PNETDS_MASK_BASEPERIODICINTERVAL        static_cast<MARTe::uint32>(4u)
+#define PNETDS_MASK_BASEREDUCTIONRATIO          static_cast<MARTe::uint32>(8u)
 #define PNETDS_MASK_BASE_MANDATORIES            (PNETDS_MASK_BASENIC | \
                                                 PNETDS_MASK_BASESTATIONNAME | \
                                                 PNETDS_MASK_BASEPERIODICINTERVAL | \
                                                 PNETDS_MASK_BASEREDUCTIONRATIO)
 
 
-#define PNETDS_MASK_BASEIDVENDORID                      (MARTe::uint16)(0x0001 << 0)
-#define PNETDS_MASK_BASEIDDEVICEID                      (MARTe::uint16)(0x0001 << 1)
-#define PNETDS_MASK_BASEIDOEMVENDORID                   (MARTe::uint16)(0x0001 << 2)
-#define PNETDS_MASK_BASEIDOEMDEVICEID                   (MARTe::uint16)(0x0001 << 3)
+#define PNETDS_MASK_BASEIDVENDORID                      static_cast<MARTe::uint32>(1u)
+#define PNETDS_MASK_BASEIDDEVICEID                      static_cast<MARTe::uint32>(2u)
+#define PNETDS_MASK_BASEIDOEMVENDORID                   static_cast<MARTe::uint32>(4u)
+#define PNETDS_MASK_BASEIDOEMDEVICEID                   static_cast<MARTe::uint32>(8u)
 
 #define PNETDS_MASK_BASEID_MANDATORIES                  (PNETDS_MASK_BASEIDVENDORID | \
                                                         PNETDS_MASK_BASEIDDEVICEID | \
                                                         PNETDS_MASK_BASEIDOEMVENDORID | \
                                                         PNETDS_MASK_BASEIDOEMDEVICEID)
 
-#define PNETDS_MASK_IMVENDOR                    (MARTe::uint32)(0x00000001 << 0)
-#define PNETDS_MASK_IMHARDWAREREVISION          (MARTe::uint32)(0x00000001 << 1)
-#define PNETDS_MASK_IMSOFTWAREREVISION          (MARTe::uint32)(0x00000001 << 2)
-#define PNETDS_MASK_IMFUNCTIONALENHANCEMENT     (MARTe::uint32)(0x00000001 << 3)
-#define PNETDS_MASK_IMBUGFIX                    (MARTe::uint32)(0x00000001 << 4)
-#define PNETDS_MASK_IMINTERNALCHANGE            (MARTe::uint32)(0x00000001 << 5)
-#define PNETDS_MASK_IMPROFILEIDENTIFIER         (MARTe::uint32)(0x00000001 << 6)
-#define PNETDS_MASK_IMPROFILESPECIFICTYPE       (MARTe::uint32)(0x00000001 << 7)
-#define PNETDS_MASK_IMVERSIONMAJOR              (MARTe::uint32)(0x00000001 << 8)
-#define PNETDS_MASK_IMVERSIONMINOR              (MARTe::uint32)(0x00000001 << 9)
-#define PNETDS_MASK_IMORDERID                   (MARTe::uint32)(0x00000001 << 10)
-#define PNETDS_MASK_IMSERIALNUMBER              (MARTe::uint32)(0x00000001 << 11)
-#define PNETDS_MASK_IMFUNCTION                  (MARTe::uint32)(0x00000001 << 12)
-#define PNETDS_MASK_IMLOCATION                  (MARTe::uint32)(0x00000001 << 13)
-#define PNETDS_MASK_IMDATE                      (MARTe::uint32)(0x00000001 << 14)
-#define PNETDS_MASK_IMDESCRIPTOR                (MARTe::uint32)(0x00000001 << 15)
-#define PNETDS_MASK_IMSIGNATURE                 (MARTe::uint32)(0x00000001 << 16)
+#define PNETDS_MASK_IMVENDOR                    static_cast<MARTe::uint32>(1u)
+#define PNETDS_MASK_IMHARDWAREREVISION          static_cast<MARTe::uint32>(2u)
+#define PNETDS_MASK_IMSOFTWAREREVISION          static_cast<MARTe::uint32>(4u)
+#define PNETDS_MASK_IMFUNCTIONALENHANCEMENT     static_cast<MARTe::uint32>(8u)
+#define PNETDS_MASK_IMBUGFIX                    static_cast<MARTe::uint32>(16u)
+#define PNETDS_MASK_IMINTERNALCHANGE            static_cast<MARTe::uint32>(32u)
+#define PNETDS_MASK_IMPROFILEIDENTIFIER         static_cast<MARTe::uint32>(64u)
+#define PNETDS_MASK_IMPROFILESPECIFICTYPE       static_cast<MARTe::uint32>(128u)
+#define PNETDS_MASK_IMVERSIONMAJOR              static_cast<MARTe::uint32>(256u)
+#define PNETDS_MASK_IMVERSIONMINOR              static_cast<MARTe::uint32>(512u)
+#define PNETDS_MASK_IMORDERID                   static_cast<MARTe::uint32>(1024u)
+#define PNETDS_MASK_IMSERIALNUMBER              static_cast<MARTe::uint32>(2048u)
+#define PNETDS_MASK_IMFUNCTION                  static_cast<MARTe::uint32>(4096u)
+#define PNETDS_MASK_IMLOCATION                  static_cast<MARTe::uint32>(8192u)
+#define PNETDS_MASK_IMDATE                      static_cast<MARTe::uint32>(16384u)
+#define PNETDS_MASK_IMDESCRIPTOR                static_cast<MARTe::uint32>(32768u)
+#define PNETDS_MASK_IMSIGNATURE                 static_cast<MARTe::uint32>(65536u)
 #define PNETDS_MASK_IM_MANDATORIES      (PNETDS_MASK_IMVENDOR | \
                                         PNETDS_MASK_IMHARDWAREREVISION | \
                                         PNETDS_MASK_IMSOFTWAREREVISION | \
@@ -111,19 +132,19 @@
                                         PNETDS_MASK_IMDESCRIPTOR | \
                                         PNETDS_MASK_IMSIGNATURE)
 
-#define PNETDS_MASK_LLDP_PORTID                 (MARTe::uint8)(0x01 << 0)
-#define PNETDS_MASK_LLDP_RTCLASS2STATUS         (MARTe::uint8)(0x01 << 1)
-#define PNETDS_MASK_LLDP_RTCLASS3STATUS         (MARTe::uint8)(0x01 << 2)
-#define PNETDS_MASK_LLDP_AUTONEGENABLED         (MARTe::uint8)(0x01 << 3)
-#define PNETDS_MASK_LLDP_AUTONEGSUPPORTED       (MARTe::uint8)(0x01 << 4)
-#define PNETDS_MASK_LLDP_AUTONEGSPEED           (MARTe::uint8)(0x01 << 5)
-#define PNETDS_MASK_LLDP_MAUTYPE                (MARTe::uint8)(0x01 << 6)
+#define PNETDS_MASK_LLDP_PORTID                 static_cast<MARTe::uint32>(1u)
+#define PNETDS_MASK_LLDP_RTCLASS2STATUS         static_cast<MARTe::uint32>(2u)
+#define PNETDS_MASK_LLDP_RTCLASS3STATUS         static_cast<MARTe::uint32>(4u)
+#define PNETDS_MASK_LLDP_AUTONEGENABLED         static_cast<MARTe::uint32>(8u)
+#define PNETDS_MASK_LLDP_AUTONEGSUPPORTED       static_cast<MARTe::uint32>(16u)
+#define PNETDS_MASK_LLDP_AUTONEGSPEED           static_cast<MARTe::uint32>(32u)
+#define PNETDS_MASK_LLDP_MAUTYPE                static_cast<MARTe::uint32>(64u)
 
-#define PNETDS_MASK_SUBSLOT_NUMBER              (MARTe::uint8)(0x01 << 0)
-#define PNETDS_MASK_SUBSLOT_ISDAP               (MARTe::uint8)(0x01 << 1)
-#define PNETDS_MASK_SUBSLOT_EXPDIR              (MARTe::uint8)(0x01 << 2)
-#define PNETDS_MASK_SUBSLOT_EXPINSIZE           (MARTe::uint8)(0x01 << 3)
-#define PNETDS_MASK_SUBSLOT_EXPOUTSIZE          (MARTe::uint8)(0x01 << 4)
+#define PNETDS_MASK_SUBSLOT_NUMBER              static_cast<MARTe::uint32>(1u)
+#define PNETDS_MASK_SUBSLOT_ISDAP               static_cast<MARTe::uint32>(2u)
+#define PNETDS_MASK_SUBSLOT_EXPDIR              static_cast<MARTe::uint32>(4u)
+#define PNETDS_MASK_SUBSLOT_EXPINSIZE           static_cast<MARTe::uint32>(4u)
+#define PNETDS_MASK_SUBSLOT_EXPOUTSIZE          static_cast<MARTe::uint32>(8u)
 #define PNETDS_MASK_SUBSLOT_MANDATORIES         (PNETDS_MASK_SUBSLOT_NUMBER | \
                                                 PNETDS_MASK_SUBSLOT_ISDAP | \
                                                 PNETDS_MASK_SUBSLOT_EXPDIR | \
@@ -576,12 +597,53 @@ namespace MARTe {
              */
             virtual bool TerminateOutputCopy (const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples);
 
+            /**
+             * @brief Notification receiver, indicating data memory bank update
+             */
+            virtual void NotifyCycle();
+
+            /**
+             * @brief Entry point implementation for the main thread.
+             */
+            virtual uint16 MainThread(const uint16 inputFlag);
+
+            /**
+             * @brief Entry point implementation for the timer ticks.
+             */
+            virtual void TimerTick();
+
+            /**
+             * @brief Entry point implementation for the event notification.
+             */
+            virtual void NotifyEvent(const ProfinetDataSourceEventType eventType);
+
+            /**
+             * @brief Entry point implementation for the LED signal event.
+             */
+            virtual void SetLED(const bool ledStatus);
+
+            /**
+             * @brief Entry point implementation for the ready signal event.
+             */
+            virtual void SetReady(const bool readyStatus);
+
+            /**
+             * @brief Entry point for the abort indication
+             */
+            virtual void Abort();
+
         private:
                 /**
                  * @brief       The Profinet driver adapter. Handles all the underlying management of the Profinet protocol, bringing
                  *              high-level MARTe2-friendly in/out interface.
                  */
                 ProfinetDataSourceDriver::ProfinetDataSourceAdapter *adapter;              
+
+
+                /**
+                * @brief        Safely tries to close and shutdown underlying layer facilities
+                */
+                void SafeShutDown();
 
                 /**
                  * @brief       The name of the network interface which will be controlled by the Profinet driver.
@@ -739,50 +801,6 @@ namespace MARTe {
                 uint16 rtClass3Status;
 
                 /**
-                 * @brief       Link Layer Discovery Protocol (LLDP) AutoNegotiation capabilities
-                 *              0 - AutoNegotiation not supported
-                 *              1 - AutoNegotiation supported
-                 */
-                uint8 autoNegotiationSupported;
-
-                /**
-                 * @brief       Link Layer Discovery Protocol (LLDP) AutoNegotiation capabilities
-                 *              0 - AutoNegotiation disabled
-                 *              1 - AutoNegotiation enabled
-                 */
-                uint8 autoNegotiationEnabled;
-
-                /**
-                 * @brief       Link Layer Discovery Protocol (LLDP) AutoNegotiation available speeds
-                 *              Treat as flag, ORing available speeds.     
-                 *              1 (1 << 0)      - 1000BaseT Full Duplex
-                 *              2 (1 << 1)      - 1000BaseT Half Duplex
-                 *              4 (1 << 2)      - 1000BaseX Full Duplex
-                 *              8 (1 << 3)      - 1000BaseX Half Duplex
-                 *              1024 (1 << 10)  - 100BaseTX Full Duplex
-                 *              2048 (1 << 11)  - 100BaseTX Half Duplex
-                 *              8192 (1 << 13)  - 10BaseT Full Duplex
-                 *              16384 (1 << 14) - 10BaseT Half Duplex
-                 *              32768 (1 << 15) - Unknown
-                 */
-                uint16 autoNegotiationSpeed;
-
-                /**
-                 * @brief       Link Layer Discovery Protocol (LLDP) Medium Attachment Unit (MAU) supported types
-                 *              RADIO                        0x0000
-                 *              COPPER_10BaseT               0x0005
-                 *              COPPER_100BaseTX_HALF_DUPLEX 0x000F
-                 *              COPPER_100BaseTX_FULL_DUPLEX 0x0010
-                 *              COPPER_1000BaseT_HALF_DUPLEX 0x001D
-                 *              COPPER_1000BaseT_FULL_DUPLEX 0x001E
-                 *              FIBER_100BaseFX_HALF_DUPLEX  0x0011
-                 *              FIBER_100BaseFX_FULL_DUPLEX  0x0012
-                 *              FIBER_1000BaseX_HALF_DUPLEX  0x0015
-                 *              FIBER_1000BaseX_FULL_DUPLEX  0x0016
-                 */
-                uint16 mauType;
-
-                /**
                  * @brief       Quick reference for each signal
                  */
                 profinet_marte_signal_t         *signalIndexer[2];
@@ -790,7 +808,7 @@ namespace MARTe {
                 /**
                  * @brief       Quick reference to the signal count;
                  */
-                uint32_t                        signalIndexerCount;
+                uint32                        signalIndexerCount;
 
                 /**
                  * @brief Heap space were all the input signals are stored
@@ -800,7 +818,7 @@ namespace MARTe {
                 /**
                  * @brief Input heap half size (NOTE: half buffer is used from Profinet, the other half from MARTe)
                  */
-                uint32 inputHeapHalfSize;
+                uint64 inputHeapHalfSize;
 
                 /**
                  * @brief Heap space were all the output signals are stored
@@ -810,7 +828,7 @@ namespace MARTe {
                 /**
                  * @brief Output heap half size (NOTE: half buffer is used from Profinet, the other half from MARTe. This indicates the half size)
                  */
-                uint32 outputHeapHalfSize;
+                uint64 outputHeapHalfSize;
 
                 /**
                  * @brief Protects access to the input signal copy phase
@@ -823,11 +841,6 @@ namespace MARTe {
                 FastPollingMutexSem outputSignalsSemaphore;
 
                 /**
-                 * @brief Notification receiver, indicating data memory bank update
-                 */
-                virtual void NotifyCycle();
-
-                /**
                  * @brief Timer helper reference, ticking at the Profinet scan cycle frequency in order for the protocol to evolve
                  */
                 ReferenceT<ProfinetTimerHelper> timerHelper;
@@ -836,11 +849,6 @@ namespace MARTe {
                  * @brief Main Thread helper reference, which is a very simple event handler for all the possible Profinet events that may occur
                  */
                 ReferenceT<ProfinetMainThreadHelper> mainHelper;
-
-                /**
-                 * @brief Total number of signals in this DataSource.
-                 */
-                uint32 numberOfSignals;
 
                 /**
                  * @brief Indicates whether the LED signal is enabled.
@@ -862,35 +870,6 @@ namespace MARTe {
                  */
                 uint32 profinetReadySignalIndex;
 
-                /**
-                 * @brief Entry point implementation for the main thread.
-                 */
-                virtual uint16 MainThread(uint16 inputFlag);
-
-                /**
-                 * @brief Entry point implementation for the timer ticks.
-                 */
-                virtual void TimerTick();
-
-                /**
-                 * @brief Entry point implementation for the event notification.
-                 */
-                virtual void NotifyEvent(ProfinetDataSourceEventType eventType);
-
-                /**
-                 * @brief Entry point implementation for the LED signal event.
-                 */
-                virtual void SetLED(bool ledStatus);
-
-                /**
-                 * @brief Entry point implementation for the ready signal event.
-                 */
-                virtual void SetReady(bool readyStatus);
-
-                /**
-                 * @brief Entry point for the abort indication
-                 */
-                virtual void Abort();
     };
 
 }

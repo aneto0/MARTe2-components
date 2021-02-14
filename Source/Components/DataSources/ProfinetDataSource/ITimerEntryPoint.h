@@ -48,6 +48,7 @@ namespace MARTe {
      */
     class ITimerEntryPoint {
         public:
+			virtual ~ITimerEntryPoint() {}
             /**
              * @brief Entry-point for the timer service, to be called at every tick from the
              * timer event source.
@@ -62,3 +63,4 @@ namespace MARTe {
 /*---------------------------------------------------------------------------*/
 
 #endif /* DATASOURCES_PROFINET_ITIMERENTRYPOINT_H_ */
+

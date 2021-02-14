@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef __PROFINET_DATASOURCE_ADAPTER_H__
-#define __PROFINET_DATASOURCE_ADAPTER_H__
+#ifndef DATASOURCES_PROFINET_ADAPTER_H
+#define DATASOURCES_PROFINET_ADAPTER_H
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -710,4 +710,5 @@ namespace ProfinetDataSourceDriver
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* __PROFINET_DATASOURCE_ADAPTER_H__ */
+#endif /* DATASOURCES_PROFINET_ADAPTER_H */
+

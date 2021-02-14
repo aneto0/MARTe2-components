@@ -46,6 +46,8 @@ namespace MARTe {
      */
     class IOperationalSignalsEntryPoint {
         public:
+			virtual ~IOperationalSignalsEntryPoint() {}
+
             /**
              * @brief Informs the listener (implementer) that the LED signal is changed.
              * @param[in] ledStatus New status for the LED signal.
@@ -71,3 +73,4 @@ namespace MARTe {
 /*---------------------------------------------------------------------------*/
 
 #endif /* DATASOURCES_PROFINET_OPSIGNALS_H_ */
+

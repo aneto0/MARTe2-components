@@ -82,3 +82,4 @@ namespace MARTe {
 /*---------------------------------------------------------------------------*/
 
 #endif /* DATASOURCES_PROFINET_MEMMAPSYNCHNMUTEXINPUTBROKER_H_ */
+

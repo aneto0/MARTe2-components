@@ -710,7 +710,7 @@ namespace ProfinetDataSourceDriver {
         if(profinetHandle != NULL) {
             if(appRelationshipEndPoint != UINT32_MAX) {
                 //returnValue = (pnet_ar_abort(profinetHandle, appRelationshipEndPoint) == 0);
-                pnet_close(profinetHandle);
+                //pnet_close(profinetHandle);
                 sleep(2);
                 
             }

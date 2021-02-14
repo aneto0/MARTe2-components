@@ -22,8 +22,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef __PROFINET_DATASOURCE_ILOGGERADAPTER_H__
-#define __PROFINET_DATASOURCE_ILOGGERADAPTER_H__
+#ifndef DATASOURCES_PROFINET_ILOGGERADAPTER_H
+#define DATASOURCES_PROFINET_ILOGGERADAPTER_H
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -51,13 +51,14 @@ namespace ProfinetDataSourceDriver {
  * @brief Log levels for the ILogAdapter class.
  * @details Allowed message output levels for the ILogAdapter class.
  */
+//lint ++flb "ILoggerAdapter" Avoids considering enum items unused due to linter skipping underlying layers
 typedef enum logadapter_level {
     LogLevel_Debug      = 0,
     LogLevel_Info       = 1,
     LogLevel_Warning    = 2,
     LogLevel_Error      = 3
 }log_adapter_level_t;
-
+//lint --flb
 
 /**
  * @brief Interface for a simple generic log adaptation.
@@ -88,4 +89,4 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* __PROFINET_DATASOURCE_ILOGGERADAPTER_H__ */
+#endif /* DATASOURCES_PROFINET_ILOGGERADAPTER_H */

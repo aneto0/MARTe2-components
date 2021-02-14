@@ -22,13 +22,16 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef PROFINET_DATASOURCE_DATASTRUCTURE_H_
-#define PROFINET_DATASOURCE_DATASTRUCTURE_H_
+#ifndef DATASOURCES_PROFINET_DATASTRUCTURE_H
+#define DATASOURCES_PROFINET_DATASTRUCTURE_H
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+#ifndef LINT
+//We need stddef just for the NULL constant, evaluate if a define can be better?
 #include <stddef.h>
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -41,6 +44,10 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+/*lint -e1066 Disabled because lint gets confused with standard C headers */
+/*lint -e1714 Excess messages dealing with templates and their usage */
+/*lint -e1795 Excess messages dealing with templates and their usage */
+
 namespace ProfinetDataSourceDriver {
 /**
  * @brief Implementation of classes for the ProfinetDataStructure
@@ -148,7 +155,8 @@ private:
      * @brief Set the current list for the linked list iterator.
      * @param[in] currentList The current list for the iterator.
      */
-    SimpleLinkedListIterator(SimpleLinkedList<T>* currentList);
+    /*lint -e{1704} Private constructor is intentional here as part of the iterator pattern. */
+    SimpleLinkedListIterator(SimpleLinkedList<T>* currentListParam);
 
     /**
      * Memory holding the current list.
@@ -299,7 +307,7 @@ namespace ProfinetDataSourceDriver {
         }
         return tempNodeData;
     }
-
+    
     template <class T>
     void SimpleLinkedListIterator<T>::Last() {
         currentNode = currentList->sentinelNode->previousNode;
@@ -316,12 +324,13 @@ namespace ProfinetDataSourceDriver {
     }
 
     template <class T>
-    SimpleLinkedListIterator<T>::SimpleLinkedListIterator(SimpleLinkedList<T>* currentList) {
-        this->currentList = currentList;
+    SimpleLinkedListIterator<T>::SimpleLinkedListIterator(SimpleLinkedList<T>* currentListParam) {
+        this->currentList = currentListParam;
     }
 
     template <class T>
     SimpleLinkedList<T>::SimpleLinkedList() {
+	//lint -e{1713,1732,1733} POCO object does not need copy ctor and assignment operator overload
         sentinelNode = new SimpleLinkedListNode<T>();
         sentinelNode->nextNode = sentinelNode;
         sentinelNode->previousNode = sentinelNode;
@@ -446,6 +455,9 @@ namespace ProfinetDataSourceDriver {
         BaseAppendNode(sentinelNode->previousNode, newNode);
     }
 }
+/*lint +e1066 Enabled again after exception has been useful */
+/*lint +e1714 Excess messages dealing with templates and their usage */
+/*lint +e1795 Excess messages dealing with templates and their usage */
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

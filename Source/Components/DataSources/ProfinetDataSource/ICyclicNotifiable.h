@@ -43,6 +43,11 @@ namespace ProfinetDataSourceDriver
    
     class ICyclicNotifiable {
         public:
+			/**
+			*  @brief Destructor
+			*/
+			virtual ~ICyclicNotifiable() {}
+
             /**
              * @brief Entry point for the notification of a cyclic update.
              */ 
@@ -55,3 +60,4 @@ namespace ProfinetDataSourceDriver
 /*---------------------------------------------------------------------------*/
 
 #endif /* DATASOURCES_PROFINET_ICYCLICNOTIFIABLE_H_ */
+

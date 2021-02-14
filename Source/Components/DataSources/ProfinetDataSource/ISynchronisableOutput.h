@@ -46,6 +46,8 @@ namespace MARTe {
      */
     class ISynchronisableOutput {
         public:
+
+			virtual ~ISynchronisableOutput() {}
             /**
              * @brief Entry point to inform that an output synchronisation is occurring.
              */
@@ -58,3 +60,4 @@ namespace MARTe {
 /*---------------------------------------------------------------------------*/
 
 #endif /* DATASOURCES_PROFINET_ISYNCHRONISABLEOUTPUT_H_ */
+

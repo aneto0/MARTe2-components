@@ -25,22 +25,19 @@
 #ifndef DATASOURCES_PROFINET_PROFINETEVENTTYPE_H_
 #define DATASOURCES_PROFINET_PROFINETEVENTTYPE_H_
 
-#ifndef BIT
-    #define BIT(n) (1U << (n))
-#endif
-
 namespace MARTe {
     /**
     * @details     Enumeration, structured as bit flag, to model occurring events in the underlying
     *              Profinet library. 
     */
     typedef enum profinetdatasource_eventtype {
-        ProfinetEventReadyForData    = BIT (0),
-        ProfinetEventTimer           = BIT (1),
-        ProfinetEventAlarm           = BIT (2),
-        ProfinetEventAbort           = BIT (15)
+        ProfinetEventReadyForData    = 1u,
+        ProfinetEventTimer           = 2u,
+        ProfinetEventAlarm           = 4u,
+        ProfinetEventAbort           = 32u
     }ProfinetDataSourceEventType;
 
 }
 
 #endif /* DATASOURCES_PROFINET_PROFINETEVENTTYPE_H_ */
+

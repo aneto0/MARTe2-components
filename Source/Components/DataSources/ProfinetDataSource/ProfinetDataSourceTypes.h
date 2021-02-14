@@ -22,8 +22,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef __PNET_DATASOURCE_TYPES_H__
-#define __PNET_DATASOURCE_TYPES_H__
+#ifndef DATASOURCES_PROFINET_TYPES_H
+#define DATASOURCES_PROFINET_TYPES_H
 
 
 /*---------------------------------------------------------------------------*/
@@ -34,7 +34,6 @@
 #define PNET_MAX_DIRECTORYPATH_SIZE 240
 
 #include <pnet_api.h>
-#include <stdint.h>
 #include <string>
 
 /*---------------------------------------------------------------------------*/
@@ -43,7 +42,7 @@
 #include "ProfinetDataStructure.h"
 
 #ifndef BIT
-    #define BIT(n) (1U << (n))
+    #define BIT(n) (1u << (n))
 #endif
 
 namespace ProfinetDataSourceDriver {
@@ -89,32 +88,33 @@ namespace ProfinetDataSourceDriver {
 
         pnet_subslot() {
             isDeviceAccessPoint = masterAdded = configAdded = alarmArmed = false;
-            submoduleIdentifier = subslotNumber = 0;
+            submoduleIdentifier = 0u;
+			subslotNumber = 0u;
             submoduleName = "";
-            inputData = outputData = NULL;
+            inputData = outputData = static_cast<uint8_t*>(0u);
 
             masterConfigurationData.data_dir = PNET_DIR_NO_IO;
-            masterConfigurationData.insize = 0;
-            masterConfigurationData.outsize = 0;
+            masterConfigurationData.insize = 0u;
+            masterConfigurationData.outsize = 0u;
 
             expectedConfigurationData.data_dir = PNET_DIR_NO_IO;
-            expectedConfigurationData.insize = 0;
-            expectedConfigurationData.outsize = 0;
+            expectedConfigurationData.insize = 0u;
+            expectedConfigurationData.outsize = 0u;
         }
 
-        bool IsMatchingExpectedConfiguration() { 
+        bool IsMatchingExpectedConfiguration() const { 
             return  (masterConfigurationData.data_dir ==  expectedConfigurationData.data_dir) &&
                     (masterConfigurationData.insize == expectedConfigurationData.insize) &&
                     (masterConfigurationData.outsize == expectedConfigurationData.outsize);
         }
 
-        bool                IsDAP()     { return isDeviceAccessPoint; }
-        bool                IsInput()   { return (masterConfigurationData.data_dir == PNET_DIR_INPUT) || (masterConfigurationData.data_dir == PNET_DIR_IO); }
-        bool                IsOutput()  { return (masterConfigurationData.data_dir == PNET_DIR_OUTPUT) || (masterConfigurationData.data_dir == PNET_DIR_IO); }
-        bool                IsNoIO()    { return (masterConfigurationData.data_dir == PNET_DIR_NO_IO); }
-        bool                IsUsed()    { return (masterAdded && configAdded);  }
-        bool                IsAlarmed() { return alarmArmed; }
-        void                AckAlarm()  { alarmArmed = false; }
+        bool  IsDAP()     const { return isDeviceAccessPoint; }
+        bool  IsInput()   const { return (masterConfigurationData.data_dir == PNET_DIR_INPUT) || (masterConfigurationData.data_dir == PNET_DIR_IO); }
+        bool  IsOutput()  const { return (masterConfigurationData.data_dir == PNET_DIR_OUTPUT) || (masterConfigurationData.data_dir == PNET_DIR_IO); }
+        bool  IsNoIO()    const { return (masterConfigurationData.data_dir == PNET_DIR_NO_IO); }
+        bool  IsUsed()    const { return (masterAdded && configAdded);  }
+        bool  IsAlarmed() const { return alarmArmed; }
+   	    void  AckAlarm()  { alarmArmed = false; }
 
     }pnet_subslot_t;
 
@@ -141,10 +141,11 @@ namespace ProfinetDataSourceDriver {
 
         pnet_slot() {
             masterAdded = configAdded = false;
-            slotNumber = moduleIdentifier = 0;
+            slotNumber = 0u;
+			moduleIdentifier = 0u;
         }
 
-        bool                                IsUsed()    { return (masterAdded && configAdded);  }
+        bool                                IsUsed()    const { return (masterAdded && configAdded);  }
 
     }pnet_slot_t;
 
@@ -162,10 +163,10 @@ namespace ProfinetDataSourceDriver {
      * @brief Defines the event flag that can occur during Profinet stack execution.
      */
     typedef enum pnet_event {
-        ReadyForData    = BIT (0),
-        Timer           = BIT (1),
-        Alarm           = BIT (2),
-        Abort           = BIT (15)
+        ReadyForData    = 1u,
+        Timer           = 2u,
+        Alarm           = 4u,
+        Abort           = 128u
     }pnet_event_t;
 
     /**
@@ -180,4 +181,4 @@ namespace ProfinetDataSourceDriver {
     }softwarerevision_t;
 }
 
-#endif /* __PNET_DATASOURCE_TYPES_H__ */
+#endif /* DATASOURCES_PROFINET_TYPES_H */

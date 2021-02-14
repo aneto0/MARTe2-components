@@ -124,4 +124,5 @@ namespace MARTe {
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* DATASOURCES_PROFINET_PROFINETTIMERHELPER_H_ */ 
+#endif /* DATASOURCES_PROFINET_PROFINETTIMERHELPER_H_ */
+

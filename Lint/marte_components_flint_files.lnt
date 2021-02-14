@@ -46,6 +46,7 @@
 -i./Source/Components/DataSources/RealTimeThreadAsyncBridge/
 -i./Source/Components/DataSources/RealTimeThreadSynchronisation/
 -i./Source/Components/DataSources/SDN/
+-i./Source/Components/DataSources/ProfinetDataSource/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/ConstantGAM/
 -i./Source/Components/GAMs/ConversionGAM/
@@ -71,7 +72,9 @@
 -i./Source/Components/Interfaces/NI9157Device/
 -i./Source/Components/Interfaces/SysLogger/
 
-Atomic2.h
+ProfinetDataSource.cpp
+
+/*Atomic2.h
 BaseLib2GAM.cpp
 BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
@@ -142,6 +145,8 @@ NI9157DeviceOperatorTI.cpp
 NI9157MxiDataSource.cpp
 Platform.cpp
 PIDGAM.cpp
+ProfinetDataSource.cpp
+ProfinetDataSourceAdapter.cpp
 RealTimeThreadAsyncBridge.cpp
 RealTimeThreadSynchBroker.cpp
 RealTimeThreadSynchronisation.cpp
@@ -168,4 +173,4 @@ WaveformChirp.h
 WaveformSin.cpp
 WaveformSin.h
 WaveformPointsDef.cpp
-WaveformPointsDef.h
+WaveformPointsDef.h*/

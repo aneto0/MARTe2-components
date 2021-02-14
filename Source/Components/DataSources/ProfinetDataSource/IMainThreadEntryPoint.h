@@ -46,6 +46,8 @@ namespace MARTe {
     */
     class IMainThreadEntryPoint {
         public:
+
+			virtual ~IMainThreadEntryPoint() {}
             /**
              * @brief Main thread entry-point.
              * @param[in] inputFlag The current status flag.
@@ -61,3 +63,4 @@ namespace MARTe {
 /*---------------------------------------------------------------------------*/
 
 #endif /* DATASOURCES_PROFINET_IMAINTHREADENTRYPOINT_H_ */
+

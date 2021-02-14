@@ -32,6 +32,8 @@ namespace MARTe {
          *            shall occur.
          */
         public:
+			virtual ~ISynchronisableInput() {}
+
             /**
              * @brief Entry point to inform that an input synchronisation is occurring.
              */
@@ -44,3 +46,4 @@ namespace MARTe {
 /*---------------------------------------------------------------------------*/
 
 #endif /* DATASOURCES_PROFINET_ISYNCHRONISABLEINPUT_H_ */
+

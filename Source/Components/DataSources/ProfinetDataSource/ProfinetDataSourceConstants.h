@@ -21,8 +21,8 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef __PROFINET_DATASOURCE_CONSTANTS_H__
-#define __PROFINET_DATASOURCE_CONSTANTS_H__
+#ifndef DATASOURCES_PROFINET_CONSTANTS_H
+#define DATASOURCES_PROFINET_CONSTANTS_H
 
     #ifndef PNET_MAX_PORT
         #define PNET_MAX_PORT 1
@@ -32,4 +32,4 @@
         #define PNET_MAX_DIRECTORYPATH_SIZE 240
     #endif
 
-#endif /* __PROFINET_DATASOURCE_CONSTANTS_H__ */
+#endif /* DATASOURCES_PROFINET_CONSTANTS_H */
