@@ -51,7 +51,8 @@ namespace MARTe {
     ProfinetDataSource::ProfinetDataSource() :
                         DataSourceI() {
 
-        adapter = NULL_PTR(ProfinetDataSourceDriver::ProfinetDataSourceAdapter*);
+        	adapter = NULL_PTR(ProfinetDataSourceDriver::ProfinetDataSourceAdapter*);
+		loggerAdapter = NULL_PTR(ProfinetDataSourceDriver::ILoggerAdapter*);
 		periodicIntervalus = 0u;
 		reductionRatio = 0u;
 		vendorIdentifier = 0u;
@@ -102,6 +103,10 @@ namespace MARTe {
             delete adapter;
         }
 
+	if(loggerAdapter != (NULL_PTR(ProfinetDataSourceDriver::ILoggerAdapter *))) {
+	    delete loggerAdapter;
+	}
+
 	if(inputHeap != (NULL_PTR(uint8*))) {
 	    void* inputHeapTmp = static_cast<void*>(inputHeap);
 	    GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(inputHeapTmp);
@@ -116,7 +121,7 @@ namespace MARTe {
     }
 
     ProfinetDataSource::~ProfinetDataSource() {
-        //lint -e{106,1579} No exceptions will be thrown here and exit can presumably considered safe
+	//lint -esym(1579, MARTe::ProfinetDataSource::*)
 	SafeShutDown();
     }
 
@@ -133,7 +138,7 @@ namespace MARTe {
         uint32 tempReductionRatio;
 
         //Reading base configuration parameters
-		//First is simply assigned, others are computed
+	//First flag is simply assigned, others are computed
         (data.Read("NetworkInterface", tempNetworkInterface))?(imResultFlag = PNETDS_MASK_BASENIC):(imResultFlag = 0u);
 
         (data.Read("StationName", tempStationName))?(imResultFlag |= PNETDS_MASK_BASESTATIONNAME):(imResultFlag &= static_cast<uint32>(~PNETDS_MASK_BASESTATIONNAME));
@@ -151,8 +156,8 @@ namespace MARTe {
             periodicIntervalus = tempPeriodicIntervalus;
             reductionRatio = tempReductionRatio;
 
-            ProfinetDataSourceDriver::ILoggerAdapter *loggerAdapter = static_cast<ProfinetDataSourceDriver::ILoggerAdapter *>(new ProfinetToMARTeLogAdapter());
-            adapter = static_cast<ProfinetDataSourceDriver::ProfinetDataSourceAdapter*>(new (std::nothrow) ProfinetDataSourceDriver::ProfinetDataSourceAdapter(networkInterface.Buffer(), periodicIntervalus, stationName.Buffer(), reductionRatio, loggerAdapter));
+            loggerAdapter = static_cast<ProfinetDataSourceDriver::ILoggerAdapter *>(new ProfinetToMARTeLogAdapter());
+            adapter = static_cast<ProfinetDataSourceDriver::ProfinetDataSourceAdapter*>(new ProfinetDataSourceDriver::ProfinetDataSourceAdapter(networkInterface.Buffer(), periodicIntervalus, stationName.Buffer(), reductionRatio, loggerAdapter));
 		
 	    //lint -e{774,948} operator new can return NULL when exceptions are disabled and allocations fails, altough very uncommon
             if(adapter != NULL_PTR(ProfinetDataSourceDriver::ProfinetDataSourceAdapter *)) {
@@ -183,8 +188,8 @@ namespace MARTe {
             uint16 tempDeviceIdentifier;
             uint16 tempOEMVendorIdentifier;
             uint16 tempOEMDeviceIdentifier;
-            StreamString tempDeviceVendor;
-            StreamString tempManufacturerSpecificString;
+            //StreamString tempDeviceVendor;
+            //StreamString tempManufacturerSpecificString;
 
             (data.Read("VendorIdentifier", tempVendorIdentifier))?(imResultFlag = PNETDS_MASK_BASEIDVENDORID):(imResultFlag = 0u);
             (data.Read("DeviceIdentifier", tempDeviceIdentifier))?(imResultFlag |= PNETDS_MASK_BASEIDDEVICEID):(imResultFlag &= static_cast<uint32>(~PNETDS_MASK_BASEIDDEVICEID));
@@ -577,6 +582,7 @@ namespace MARTe {
             
             //lint -e{613} Adapter cannot be null as nullity was checked before
      	    ProfinetDataSourceDriver::SimpleLinkedListIterator<ProfinetDataSourceDriver::pnet_slot_t*>* slotsIterator = adapter->GetAPIStructureIterator();
+	    //lint -e{665} Parentheses are checked and good
             if(slotsIterator != (NULL_PTR(ProfinetDataSourceDriver::SimpleLinkedListIterator<ProfinetDataSourceDriver::pnet_slot_t*>*))) {
                 //lint -e{831,1712} Default constructor is not intended to be called as the Iterator is obtained through factory method 
 		slotsIterator->First();
@@ -821,10 +827,10 @@ namespace MARTe {
 
         if(returnValue) {
             //Main helper times out after 10 missed cycles
-            mainHelper->SetPeriodicInterval(static_cast<float64>(periodicIntervalus) * 10.0e-9);
-            mainHelper->SetTimeout(static_cast<float64>(periodicIntervalus) * 10.0e-9 * 10.0);
+            mainHelper->SetPeriodicInterval(static_cast<float32>(periodicIntervalus) * 10.0e-9F);
+            mainHelper->SetTimeout(static_cast<float32>(periodicIntervalus) * 10.0e-9F * 10.0F);
 
-            timerHelper->SetTimerInterval(static_cast<float64>(periodicIntervalus) * 10.0e-9);
+            timerHelper->SetTimerInterval(static_cast<float32>(periodicIntervalus) * 10.0e-9F);
             mainHelper->Start();
             timerHelper->Start();
         }

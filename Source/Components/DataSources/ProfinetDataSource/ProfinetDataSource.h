@@ -32,6 +32,9 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
+//lint -estring(1960, "*ProfinetDataSource*")
+//lint -estring(1960, "*cc_assert*")
+
 #include "CompilerTypes.h"
 #include "DataSourceI.h"
 #include "EmbeddedServiceMethodBinderT.h"
@@ -41,6 +44,7 @@
 
 //lint ++flb "Utility libraries"
 #include "ICyclicNotifiable.h"
+#include "ILoggerAdapter.h"
 #include "IMainThreadEntryPoint.h"
 #include "IOperationalSignalsEntryPoint.h"
 #include "IProfinetEventNotifiable.h"
@@ -49,23 +53,24 @@
 #include "ITimerEntryPoint.h"
 //lint --flb
 
-//lint ++flb "Custom brokers""
 #include "MemoryMapSynchNMutexInputBroker.h"
 #include "MemoryMapSynchNMutexOutputBroker.h"
-//lint --flb
 #include "MessageI.h"
 #include "MultiThreadService.h" 
 #include "MutexSem.h"
 #include "ObjectRegistryDatabase.h"
 
 #ifndef LINT
+//lint ++flb "Internals"
 #include "ProfinetDataSourceAdapter.h"
 #include "ProfinetEventType.h"
+//lint --flb
 #endif
 
-//lint ++flb "Internals"
 #include "ProfinetMainThreadHelper.h"
 #include "ProfinetTimerHelper.h"
+
+//lint ++flb "Internals"
 #include "ProfinetToMARTeLogAdapter.h"
 //lint --flb
 
@@ -151,8 +156,9 @@
                                                 PNETDS_MASK_SUBSLOT_EXPINSIZE | \
                                                 PNETDS_MASK_SUBSLOT_EXPOUTSIZE)
 
+//lint -e1923 Macro is only used once, to avoid magic numbers around the profinet_marte_signal_t structure
 #define PNETDS_MAXIMUM_MARTE2_SIGNALNAME_SIZE   256
-
+//lint +e1923
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -496,7 +502,7 @@ namespace MARTe {
              */
             virtual bool Synchronise();
 
-            ErrorManagement::ErrorType ThreadCallback(ExecutionInfo &info);
+            //ErrorManagement::ErrorType ThreadCallback(ExecutionInfo &info);
 
             /**
              * @brief Reads, checks and initialises the DataSource parameters
@@ -639,6 +645,11 @@ namespace MARTe {
                  */
                 ProfinetDataSourceDriver::ProfinetDataSourceAdapter *adapter;              
 
+		/**
+ 		* @brief	The logger adapter, which is used internally, in the adapter, to redirect console outputs to MARTe2 REPORT_ERROR facility
+ 		*
+ 		*/	 
+		ProfinetDataSourceDriver::ILoggerAdapter *loggerAdapter;
 
                 /**
                 * @brief        Safely tries to close and shutdown underlying layer facilities

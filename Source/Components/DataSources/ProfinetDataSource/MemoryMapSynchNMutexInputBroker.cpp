@@ -54,6 +54,7 @@ namespace MARTe {
         bool returnValue = true;
 
         if(dataSource != NULL_PTR(DataSourceI *)) {
+	    //lint -e{740} Dynamic casting the DataSource to the ISynchronisable part of it, which is of interest of this particular broker
             ISynchronisableInput *synchDataSource = dynamic_cast<ISynchronisableInput*>(dataSource);
             if(synchDataSource != NULL_PTR(ISynchronisableInput*)) {
                 returnValue = synchDataSource->SynchroniseInput();

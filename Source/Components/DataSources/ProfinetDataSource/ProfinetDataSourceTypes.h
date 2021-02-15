@@ -39,7 +39,9 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+//lint ++flb "Data Structure Lib"
 #include "ProfinetDataStructure.h"
+//lint --flb
 
 #ifndef BIT
     #define BIT(n) (1u << (n))
@@ -114,7 +116,8 @@ namespace ProfinetDataSourceDriver {
         bool  IsNoIO()    const { return (masterConfigurationData.data_dir == PNET_DIR_NO_IO); }
         bool  IsUsed()    const { return (masterAdded && configAdded);  }
         bool  IsAlarmed() const { return alarmArmed; }
-   	    void  AckAlarm()  { alarmArmed = false; }
+        //lint -e{1960} Alarm acknowledgement sets the armed variable back, which status can be retrieved with the IsAlarmed function
+	void  AckAlarm()  { alarmArmed = false; }
 
     }pnet_subslot_t;
 

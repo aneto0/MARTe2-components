@@ -73,6 +73,11 @@
 -i./Source/Components/Interfaces/SysLogger/
 
 ProfinetDataSource.cpp
+MemoryMapSynchNMutexInputBroker.cpp
+MemoryMapSynchNMutexOutputBroker.cpp
+ProfinetMainThreadHelper.cpp
+ProfinetTimerHelper.cpp
+
 
 /*Atomic2.h
 BaseLib2GAM.cpp

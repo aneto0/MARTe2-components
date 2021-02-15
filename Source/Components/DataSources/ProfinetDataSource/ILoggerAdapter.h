@@ -80,6 +80,7 @@ public:
      * @brief The Log method.
      * @details The Log method used at ProfinetToMARTeLogAdapter.
      */
+    //lint -esym(1716, ProfinetDataSourceDriver::*) Function is called by underlying libraries which are not seen by the Linter
     virtual void Log(log_adapter_level_t logLevel, std::string message) = 0;
 };
 

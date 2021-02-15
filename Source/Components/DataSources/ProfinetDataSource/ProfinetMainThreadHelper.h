@@ -38,8 +38,10 @@
 #include "EventSem.h"
 #include "FastPollingMutexSem.h"
 #include "IMainThreadEntryPoint.h"
+//lint ++flb "Internals"
 #include "ProfinetDataSourceTypes.h"
 #include "ProfinetEventType.h"
+//lint --flb
 #include "SingleThreadService.h"
 
 
@@ -90,7 +92,7 @@ namespace MARTe {
 
             /**
              * @brief Mutex to make modifications to the event flag under protected region
-             */
+            */
             FastPollingMutexSem flagMutex;
 
             /**
@@ -119,7 +121,7 @@ namespace MARTe {
             /**
              * @brief Sets the entry point for the service to find the main thread function that has to be cyclically called.
              */
-            bool SetEntryPoint(IMainThreadEntryPoint *entryPoint);
+            bool SetEntryPoint(IMainThreadEntryPoint *entryPointParam);
 
             /**
              * @brief Starts the service
@@ -134,19 +136,19 @@ namespace MARTe {
             /**
              * @brief Notifies the service an event happened on the Profinet stack side
              */
-            void NotifyEvent(ProfinetDataSourceEventType eventType);
+            void NotifyEvent(const ProfinetDataSourceEventType eventType);
 
             /**
              * @brief Sets the service Periodic interval
              * @param[in] seconds The periodic interval expressed in seconds
              */
-            void SetPeriodicInterval(float64 seconds);
+            void SetPeriodicInterval(const float32 seconds);
 
             /**
              * @brief Sets the service Timeout
              * @param[in] seconds The service timeout expreseed in seconds
              */
-            void SetTimeout(float64 seconds);
+            void SetTimeout(const float32 seconds);
     };
 
 }

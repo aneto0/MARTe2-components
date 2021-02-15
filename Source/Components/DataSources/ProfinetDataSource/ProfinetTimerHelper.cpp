@@ -61,9 +61,10 @@ namespace MARTe {
         entryPoint = NULL_PTR(ITimerEntryPoint*);
     }
 
+    //lint -e{830, 1764} Function prototype is derived from upper type
     ErrorManagement::ErrorType ProfinetTimerHelper::ThreadCallback(ExecutionInfo &info) {
         if(timerInterval >= lastInterval) {
-            Sleep::Sec(timerInterval - lastInterval);
+            Sleep::Sec(static_cast<float32>(timerInterval - lastInterval));
         }
         uint64 elapsedStart = HighResolutionTimer::Counter();
 
@@ -87,30 +88,38 @@ namespace MARTe {
         else if(info.GetStage() == ExecutionInfo::AsyncTerminationStage) {
             
         }
+	else {
+	    REPORT_ERROR(ErrorManagement::ParametersError, "Unknown thread callback execution stage");
+	}
 
         lastInterval = HighResolutionTimer::TicksToTime(HighResolutionTimer::Counter(), elapsedStart);
 
         return returnValue;
     }   
 
-    bool ProfinetTimerHelper::SetEntryPoint(ITimerEntryPoint *entryPoint) {
+    //lint -e{830,952}
+    bool ProfinetTimerHelper::SetEntryPoint(ITimerEntryPoint *entryPointParam) {
         bool returnValue = false;
         if(entryPoint != NULL_PTR(ITimerEntryPoint*)) {
-            this->entryPoint = entryPoint;
+            this->entryPoint = entryPointParam;
             returnValue = true;
         }
         return returnValue;
     }
 
     void ProfinetTimerHelper::Start() {
-        service.Start();
+        if(!service.Start()) {
+	    REPORT_ERROR(ErrorManagement::FatalError, "Failure to start service");
+	}
     }
 
     void ProfinetTimerHelper::Stop() {
-        service.Stop();
+        if(!service.Stop()) {
+	    REPORT_ERROR(ErrorManagement::FatalError, "Failure to stop service");
+	}
     }
 
-    void ProfinetTimerHelper::SetTimerInterval(float64 intervalInSeconds) {
+    void ProfinetTimerHelper::SetTimerInterval(const float64 intervalInSeconds) {
         timerInterval = intervalInSeconds;
     }
     

@@ -44,14 +44,32 @@ namespace MARTe {
     ProfinetMainThreadHelper::ProfinetMainThreadHelper() :  Object(),
                                                             EmbeddedServiceMethodBinderT<ProfinetMainThreadHelper>(*this, &ProfinetMainThreadHelper::ThreadCallback),
                                                             service(*this) {
-        flagMutex.Create(false);
+        //flagMutex.Create(false);
         
-        eventSemaphore.Create();
-        eventSemaphore.Reset();
+        //eventSemaphore.Create();
+        //eventSemaphore.Reset();
     }
 
     bool ProfinetMainThreadHelper::Initialise(StructuredDataI &data) {
         bool returnValue = Object::Initialise(data);
+	if(returnValue) {
+	   flagMutex.Create(false);
+	}
+
+	if(returnValue) {
+	    returnValue = eventSemaphore.Create();
+	    if(!returnValue) {
+		REPORT_ERROR(ErrorManagement::FatalError, "Error during event semaphore creation");
+	    }
+	}
+
+	if(returnValue) {
+	    returnValue = eventSemaphore.Reset();
+	    if(!returnValue) {
+		REPORT_ERROR(ErrorManagement::FatalError, "Error during event semaphore reset");
+	    }
+	}
+	
         if(returnValue) {
             returnValue = service.Initialise(data);
         }
@@ -63,17 +81,19 @@ namespace MARTe {
         entryPoint = NULL_PTR(IMainThreadEntryPoint*);
     }
 
+    //lint -e{830,830,830,830,830,830,830,830,1764} Parameter is not under this class control
     ErrorManagement::ErrorType ProfinetMainThreadHelper::ThreadCallback(ExecutionInfo &info) {
         ErrorManagement::ErrorType returnValue;
 
         if(info.GetStage() == ExecutionInfo::MainStage) {
             //Stand still, awaiting for an event to be raised
-            if(eventSemaphore.Wait(timeout)) {
-                uint16 localFlag = 0;
-                uint16 workedFlags = 0;
+	    if(eventSemaphore.Wait(timeout) == ErrorManagement::NoError) {
+                uint16 localFlag = 0u;
+                uint16 workedFlags = 0u;
 
                 //Freeze current flag status locally
-                localFlag = eventFlag;
+                //lint -e{838} localFlag is used below in the bitwise XOR operation
+		localFlag = eventFlag;
 
                 //Run a cycle and tell apart which flags were processed (do not assume the MainThread can clear all flags in a single call)
                 if(entryPoint != NULL_PTR(IMainThreadEntryPoint*)) {
@@ -81,9 +101,12 @@ namespace MARTe {
                 }                
 
                 //Clear only local flags which were reported as processed
-                if(flagMutex.FastLock(timeout, sleepTimeSeconds)) {
+		if(flagMutex.FastLock(timeout, sleepTimeSeconds) == ErrorManagement::NoError) {
                     eventFlag &= ~workedFlags;
-                    eventSemaphore.Reset();
+                    bool resetStatus = eventSemaphore.Reset();
+		    if(resetStatus) {
+			REPORT_ERROR(ErrorManagement::Information, "Event semaphore reset failed");
+		    }
                     flagMutex.FastUnLock();
                 }
             }
@@ -101,44 +124,58 @@ namespace MARTe {
         else if(info.GetStage() == ExecutionInfo::AsyncTerminationStage) {
             
         }
+	else {
+	    REPORT_ERROR(ErrorManagement::ParametersError, "Thread is in an unhandled stage");
+	}
         
         return returnValue;
     }
 
-    bool ProfinetMainThreadHelper::SetEntryPoint(IMainThreadEntryPoint *entryPoint) {
+    //lint -e{952} 
+    bool ProfinetMainThreadHelper::SetEntryPoint(IMainThreadEntryPoint *entryPointParam) {
         bool returnValue = false;
         if(entryPoint != NULL_PTR(IMainThreadEntryPoint*)) {
-            this->entryPoint = entryPoint;
+            this->entryPoint = entryPointParam;
             returnValue = true;
         }
         return returnValue;
     }
 
     void ProfinetMainThreadHelper::Start() {
-        service.Start();
+        if(service.Start() != ErrorManagement::NoError) {
+	    REPORT_ERROR(ErrorManagement::FatalError, "Cannot start Main Thread Helper");
+	}
     }
 
     void ProfinetMainThreadHelper::Stop() {
-        service.Stop();
+        if(service.Stop() != ErrorManagement::NoError) {
+	    REPORT_ERROR(ErrorManagement::FatalError, "Cannot stop Main Thread Helper");
+	}
     }
 
-    void ProfinetMainThreadHelper::NotifyEvent(ProfinetDataSourceEventType eventType) {
-        if(flagMutex.FastLock(timeout, sleepTimeSeconds)) {
+    void ProfinetMainThreadHelper::NotifyEvent(const ProfinetDataSourceEventType eventType) {
+        if(flagMutex.FastLock(timeout, sleepTimeSeconds) == ErrorManagement::NoError) {
+	    //lint -e{641,9114,9117,9119,9130} Event Type is an enum which is thought as a flag and its values are 2^n
             eventFlag |= eventType;
-            eventSemaphore.Post();
+            if(!eventSemaphore.Post()) {
+		REPORT_ERROR(ErrorManagement::Information, "Barrier lowering failed");
+	    }
             flagMutex.FastUnLock();
         }
+	else {
+	    REPORT_ERROR(ErrorManagement::Information, "Unable to obtain fast lock");
+	}
     }
 
-    void ProfinetMainThreadHelper::SetPeriodicInterval(float64 seconds) {
+    void ProfinetMainThreadHelper::SetPeriodicInterval(const float32 seconds) {
         //Setting the spinlock sleep time to 1/5 of the whole interval period, 
         //sampling occupation status far above the Nyquist condition
         //thus releasing CPU in between the polling cycles
-        sleepTimeSeconds = seconds / 5.0d;
+        sleepTimeSeconds = static_cast<float32>(seconds / 5.0F);
     }
 
-    void ProfinetMainThreadHelper::SetTimeout(float64 seconds) {
-        timeout.SetTimeoutSec(seconds);
+    void ProfinetMainThreadHelper::SetTimeout(const float32 seconds) {
+        timeout.SetTimeoutSec(static_cast<float64>(seconds));
     }
 
     CLASS_REGISTER(ProfinetMainThreadHelper, "1.0")

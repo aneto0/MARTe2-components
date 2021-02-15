@@ -99,13 +99,13 @@ namespace MARTe {
             /**
              * @brief Sets the entry point for the service to find the timer function that has to be cyclically called.
              */
-            bool SetEntryPoint(ITimerEntryPoint *entryPoint);
+            bool SetEntryPoint(ITimerEntryPoint *entryPointParam);
 
             /**
              * @brief Sets the service Periodic interval
              * @param[in] intervalInSeconds The periodic interval expressed in seconds
              */
-            void SetTimerInterval(float64 intervalInSeconds);
+            void SetTimerInterval(const float64 intervalInSeconds);
             
             /**
              * @brief Starts the service
