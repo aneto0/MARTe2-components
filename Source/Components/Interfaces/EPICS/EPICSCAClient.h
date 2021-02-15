@@ -70,6 +70,7 @@ namespace MARTe {
 class EPICSCAClient: public ReferenceContainer, public EmbeddedServiceMethodBinderI, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
+
     /**
      * @brief Constructor. NOOP.
      */
@@ -131,6 +132,7 @@ public:
      * @return ErrorManagement::NoError if the service wasn't already started.
      */
     ErrorManagement::ErrorType Start();
+
 private:
 
     /**
@@ -149,6 +151,7 @@ private:
     uint32 stackSize;
 
 };
+
 }
 
 /*---------------------------------------------------------------------------*/
@@ -156,4 +159,3 @@ private:
 /*---------------------------------------------------------------------------*/
 
 #endif /* EPICSCACLIENT_H_ */
-

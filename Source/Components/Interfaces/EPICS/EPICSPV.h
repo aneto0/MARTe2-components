@@ -287,6 +287,7 @@ public:
     uint32 GetMemorySize() const;
 
 private:
+
     /**
      * @brief Triggers the sending of a Message with the rules defined in the class description.
      * @param[in] newValue the value to be sent (either as the Function name or the Function parameter).
@@ -382,6 +383,7 @@ private:
      * The number of times HandlePVEvent was called.
      */
     uint8 handlePVEventNthTime;
+
 };
 
 }

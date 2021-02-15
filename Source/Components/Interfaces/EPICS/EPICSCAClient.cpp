@@ -39,7 +39,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-
 namespace MARTe {
 
 /**
@@ -207,4 +206,3 @@ uint32 EPICSCAClient::GetCPUMask() const {
 CLASS_REGISTER(EPICSCAClient, "1.0")
 CLASS_METHOD_REGISTER(EPICSCAClient, Start)
 }
-

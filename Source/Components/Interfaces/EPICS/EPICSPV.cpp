@@ -41,7 +41,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
 namespace MARTe {
 
 EPICSPV::EPICSPV() : 
@@ -631,5 +630,5 @@ CLASS_REGISTER(EPICSPV, "1.0")
 CLASS_METHOD_REGISTER(EPICSPV, CAPut)
 /*lint -e{1023} There is no ambiguity on the function to be called as the compiler can distinguish between both template definitions.*/
 CLASS_METHOD_REGISTER(EPICSPV, CAGet)
-}
 
+}
