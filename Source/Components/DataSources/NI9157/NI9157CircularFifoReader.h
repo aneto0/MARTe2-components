@@ -141,7 +141,7 @@ public:
                                   const char8 * const nextStateName);
 
     /**
-     * @brief TODO - WAS MISSING.
+     * @brief The Synchronise method.
      */
     virtual bool Synchronise();
 
@@ -162,12 +162,12 @@ public:
                             const uint32 signalIdx);
 
     /**
-     * @brief TODO - WAS MISSING.
+     * @brief The StopAcquisition method.
      */
     virtual ErrorManagement::ErrorType StopAcquisition();
 
     /**
-     * @brief TODO - WAS MISSING.
+     * @brief The StartAcquisition method.
      */
     virtual ErrorManagement::ErrorType StartAcquisition();
 

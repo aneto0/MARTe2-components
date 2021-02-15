@@ -47,8 +47,6 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-#define NULL_PTR(x) NULL
-
 NI9157MxiDataSource::NI9157MxiDataSource() :
         MemoryDataSourceI(),
         MessageI() {

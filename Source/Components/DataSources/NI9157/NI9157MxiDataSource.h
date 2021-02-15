@@ -154,6 +154,11 @@ public:
     ErrorManagement::ErrorType AsyncWrite(StreamString varName,
                                           uint64 varValue);
 
+    /**
+     * @brief TODO - WAS MISSING.
+     */
+    ErrorManagement::ErrorType Reset();
+
 protected:
 
     /**
