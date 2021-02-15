@@ -48,10 +48,8 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-#define NULL_PTR(x) NULL
-
 NI9157CircularFifoReader::NI9157CircularFifoReader() :
-        CircularBufferThreadInputDataSource() {
+        CircularBufferThreadInputDataSource(), MessageI() {
 
     checkFrame = 0u;
     nFrameForSync = 1u;
