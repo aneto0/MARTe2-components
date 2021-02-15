@@ -95,7 +95,7 @@ uint8 NI9157MxiDataSourceTestDS::GetRunNi() {
 }
 
 uint8 *NI9157MxiDataSourceTestDS::GetSignalFlag() {
-    return signalFlag[0];
+    return signalFlag;
 }
 
 uint32 *NI9157MxiDataSourceTestDS::GetNumberOfElements() {

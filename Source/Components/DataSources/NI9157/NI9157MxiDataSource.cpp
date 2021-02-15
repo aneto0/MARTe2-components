@@ -59,9 +59,9 @@ NI9157MxiDataSource::NI9157MxiDataSource() :
     signalFlag = NULL_PTR(uint8 *);
     varId = NULL_PTR(uint32 *);
     numberOfElements = NULL_PTR(uint32 *);
-    initialPatterns = NULL_PTR(uint64*);
-    useInitialPattern = NULL_PTR(uint8*);
-    resetInitialPattern = NULL_PTR(uint8*);
+    initialPatterns = NULL_PTR(uint64 *);
+    useInitialPattern = NULL_PTR(uint8 *);
+    resetInitialPattern = NULL_PTR(uint8 *);
 
     blockIfNotRunning = 0u;
     ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT < RegisteredMethodsMessageFilter > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
@@ -97,13 +97,13 @@ NI9157MxiDataSource::~NI9157MxiDataSource() {
         delete[] numberOfElements;
         numberOfElements = NULL_PTR(uint32 *);
     }
-    if (initialPatterns != NULL_PTR(uint64*)) {
+    if (initialPatterns != NULL_PTR(uint64 *)) {
         delete[] initialPatterns;
     }
-    if (useInitialPattern != NULL_PTR(uint64*)) {
+    if (useInitialPattern != NULL_PTR(uint8 *)) {
         delete[] useInitialPattern;
     }
-    if (resetInitialPattern != NULL_PTR(uint64*)) {
+    if (resetInitialPattern != NULL_PTR(uint8 *)) {
         delete[] resetInitialPattern;
     }
     //REPORT_ERROR(ErrorManagement::Information, "MXI closed");
