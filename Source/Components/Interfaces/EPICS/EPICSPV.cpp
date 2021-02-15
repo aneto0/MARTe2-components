@@ -29,7 +29,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
 #include "CLASSMETHODREGISTER.h"
 #include "ConfigurationDatabase.h"
 #include "EPICSPV.h"
@@ -626,7 +625,6 @@ StreamString EPICSPV::GetFunctionFromMap(const StreamString &key) const {
 uint32 EPICSPV::GetMemorySize() const {
     return memorySize;
 }
-
 
 CLASS_REGISTER(EPICSPV, "1.0")
 /*lint -e{1023} There is no ambiguity on the function to be called as the compiler can distinguish between both template definitions.*/
