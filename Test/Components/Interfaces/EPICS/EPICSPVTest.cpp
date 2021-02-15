@@ -1340,6 +1340,7 @@ bool EPICSPVTest::TestHandlePVEvent_Function_Message_PVName() {
         int32 value = 7;
         struct event_handler_args args;
         args.dbr = reinterpret_cast<const void *>(&value);
+        args.count = 1;
         aPV->HandlePVEvent(args);
         //Call twice to trigger change
         aPV->HandlePVEvent(args);

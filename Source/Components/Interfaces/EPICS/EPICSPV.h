@@ -42,6 +42,7 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+
 /**
  * @brief Describes an EPICS PV.
  * @details This class wraps an EPICS PV, allowing to caput and caget values from it.
@@ -390,4 +391,3 @@ private:
 /*---------------------------------------------------------------------------*/
 
 #endif /* EPICSPVCONTEXT_H_ */
-

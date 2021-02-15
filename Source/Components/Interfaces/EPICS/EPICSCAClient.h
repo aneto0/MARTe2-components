@@ -44,8 +44,8 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
 namespace MARTe {
+
 /**
  * @brief A container of EPICSPV variables. Provides the threading context for the EPICS CA interface.
  * @details The configuration syntax is (names are only given as an example):
