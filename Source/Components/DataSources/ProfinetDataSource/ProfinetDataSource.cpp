@@ -830,7 +830,7 @@ namespace MARTe {
             mainHelper->SetPeriodicInterval(static_cast<float32>(periodicIntervalus) * 10.0e-9F);
             mainHelper->SetTimeout(static_cast<float32>(periodicIntervalus) * 10.0e-9F * 10.0F);
 
-            timerHelper->SetTimerInterval(static_cast<float32>(periodicIntervalus) * 10.0e-9F);
+            timerHelper->SetTimerInterval(static_cast<float64>(periodicIntervalus) * 10.0e-9F);
             mainHelper->Start();
             timerHelper->Start();
         }
