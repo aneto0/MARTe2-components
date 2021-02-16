@@ -59,12 +59,14 @@ static MARTe::StreamString GetOrientationName(const rtwCAPI_Orientation  &ELEori
     case rtwCAPI_MATRIX_COL_MAJOR:
         name = "matrix col major";
         break;
-    case rtwCAPI_MATRIX_ROW_MAJOR_ND:
-        name = "matrix row major nd";
-        break;
     case rtwCAPI_MATRIX_COL_MAJOR_ND:
         name = "matrix col major nd";
         break;
+#ifdef ROW_MAJOR_ND_FEATURE
+    case rtwCAPI_MATRIX_ROW_MAJOR_ND:
+        name = "matrix row major nd";
+        break;
+#endif
     default:
         name = "N/A";
         break;
