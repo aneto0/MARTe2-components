@@ -105,7 +105,7 @@ namespace MARTe {
                     eventFlag &= ~workedFlags;
                     bool resetStatus = eventSemaphore.Reset();
 		    if(resetStatus) {
-			REPORT_ERROR(ErrorManagement::Information, "Event semaphore reset failed");
+			//REPORT_ERROR(ErrorManagement::Information, "Event semaphore reset failed");
 		    }
                     flagMutex.FastUnLock();
                 }
@@ -134,7 +134,7 @@ namespace MARTe {
     //lint -e{952} 
     bool ProfinetMainThreadHelper::SetEntryPoint(IMainThreadEntryPoint *entryPointParam) {
         bool returnValue = false;
-        if(entryPoint != NULL_PTR(IMainThreadEntryPoint*)) {
+        if(entryPointParam != NULL_PTR(IMainThreadEntryPoint*)) {
             this->entryPoint = entryPointParam;
             returnValue = true;
         }

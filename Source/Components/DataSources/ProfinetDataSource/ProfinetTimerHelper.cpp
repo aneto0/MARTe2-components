@@ -100,7 +100,7 @@ namespace MARTe {
     //lint -e{830,952}
     bool ProfinetTimerHelper::SetEntryPoint(ITimerEntryPoint *entryPointParam) {
         bool returnValue = false;
-        if(entryPoint != NULL_PTR(ITimerEntryPoint*)) {
+        if(entryPointParam != NULL_PTR(ITimerEntryPoint*)) {
             this->entryPoint = entryPointParam;
             returnValue = true;
         }

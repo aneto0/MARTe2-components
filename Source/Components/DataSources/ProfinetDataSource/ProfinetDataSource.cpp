@@ -834,6 +834,9 @@ namespace MARTe {
             mainHelper->Start();
             timerHelper->Start();
         }
+	if(!returnValue) {
+	    REPORT_ERROR(ErrorManagement::FatalError, "Failure in DataSource initialization");
+	}
 
         return returnValue;
     }
