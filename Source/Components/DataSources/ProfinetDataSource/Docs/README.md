@@ -35,7 +35,7 @@ Aside from the MARTe2 mandatory implementations, the DataSource is reduced to 2 
 Initially:
 - Each segment (input/output) is split into two halfs, one shared with the ProfinetDataSourceAdapter, the other exclusively accessed by MARTe2.
 
-Every MARTe2 synchronisation checkpoint:
+On every MARTe2 synchronisation checkpoint:
 - the MARTe input part is copied inside the Profinet input part;
 - the Profinet output part is copied inside the Profinet output part.
  
@@ -144,42 +144,13 @@ IMSignature = "" [6]
 **Note [6]:**  Truncated to 53 characters.  
 
 ### Network specifics
-```
-LLDPPortIdentifier = "port-001" [1]
-RTClass2Status = 0 [2]
-RTClass3Status = 0 [3]
-AutoNegotiationCapability = 0x03 [4]
-AutoNegotiationSpeed = 0x0010 [5]
-MAUType = 0x00 [6]
-```
-**Note [1]:** LLDP identifier for the network port.  
-**Note [2][3]:** RT Class 2/3 Status, leave them at 0, currently not used.  
-**Note [4]:** AutoNegotiation capabilities, as following described:
-- LSB bit 0 AutoNegotiation supported
-- LSB bit 1 AutoNegotiation enabled  
+Internally the LLDP port name is automatically assigned to "port-001" while media features are automatically detected.
 
-**Note [5]:** AutoNegotiation speed, as following described flag can be combined, list not exhaustive:
-- 1000BaseT Full duplex (1 << 0)
-- 1000BaseT Half Duplex (1 << 1)
-- 1000BaseX Full Duplex (1 << 2)
-- 1000BaseX Half Duplex (1 << 3)
-- 100BaseTX Full Duplex (1 << 10)
-- 100BaseTX Half Duplex (1 << 11)
-- 10BaseT Full Duplex (1 << 13)
-- 10BaseT Half Duplex (1 << 14)
-- Unknown autonegotiation  (1 << 15)
-
-**Note [6]** Medium Attachment Unit (MAU) types, list not exhaustive:
-- Radio 0x0000
-- Copper 10BaseT 0x0005
-- Copper 100BaseTX Half Duplex 0x000F
-- 100BaseTX Full Duplex 0x0010
-- 1000BaseT Half Duplex 0x001D
-- 1000BaseT Full Duplex 0x001E
-- 100BaseFX Half Duplex 0x0011
-- 100BaseFX Full Duplex 0x0012
-- Fiber 1000BaseX Half Duplex 0x0015
-- Fiber 1000BaseX Full Duplex 0x0016
+```
+RTClass2Status = 0 [1]
+RTClass3Status = 0 [2]
+```
+**Note [1][2]:** RT Class 2/3 Status, leave them at 0, currently not used.  
 
 ### MainThread and Timer helpers
 Aforementioned MainThread and Timer helper are **EmbeddedServiceMethodBinderT** service implementations . They can be configured to be executed on specific CPU masks and with specific timeouts. Please refer to the EmbeddedServiceMethodBinderT documentation for specific details on the configuration.
@@ -283,57 +254,66 @@ Two ancillary signals are available: LED and Ready. They give indications about 
 In order to prevent this, an indication about the "goodness" of the data can be extracted from the "ready" signal,
 which is a boolean (0 not ready = bad or stale data, 1 ready = good data).
 
-### PNET and OSAL Installation on CentOS 7
-- Tested using:
+
+### P-NET and OSAL Installation on CentOS 7
+
+This guide was checked in the following conditions:
+
 ```
-GCC version used - gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44)
-cmake version used - cmake3 version 3.17.5
+cat /etc/centos-release
+CentOS Linux release 7.9.2009 (Core)
+
+gcc --version
+gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44)
+
+cmake -version
+cmake version 2.8.12.2
+
+cmake3 -version
+
+**NOTE 1:** P-NET is bundled with OSAL and requires a specific version (automatically pulled during the configuration process). Do not pull separately OSAL in an attempt to force a newer version. If OSAL is not automatically pulled, double check the **recurse-submodules** option and refer to the AddOsal.cmake file in the tools subfolder for the specific needed commit of the lib.
+**NOTE 2:** CMake3 is needed for the P-NET + OSAL bundle, before going on assess the default cmake version which should be >=3
+Following commands will explictly underline the cmake3 command, feel free to omit if your default/alternative already points to cmake3.
+
+In a folder of your preference clone the P-NET GitHub repository:
+```
+git clone --recurse-submodules https://github.com/rtlabs-com/p-net.git
 ```
 
-- Check if the following folders exist (from profinet.zip):
-```
-~/profinet/osal
-~/profinet/p-net
-```
-
-- Edit both "osal/cmake/Linux.cmake" and "p-net/cmake/Linux.cmake" files and add the "-fPIC" option
-to the cmake files "target_compile_options" section:
+Edit "cmake/Linux.cmake" files and remove the **-Werror**
+from the cmake files "target_compile_options" section:
 ```
 target_compile_options(<osal or profinet>
   PRIVATE
   -fPIC
   -Wall
   -Wextra
-  -Werror
+**#  -Werror REMOVE OR COMMENT HERE**
   -Wno-unused-parameter
   INTERFACE
   $<$<CONFIG:Coverage>:--coverage>
   )
 ```
 
-- Compile and install OSAL:
+Compile the bundle, following command refers from one folder above the p-net cloned one
 ```
-$ cd osal/build
-$ cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/
-$ make
-$ sudo make install
+cmake3 -B build -S p-net -DBUILD_SHARED_LIBS=ON
+cmake3 --build build --target install
 ```
 
-- OSAL installation is done. Now the PNET:
+Copy the headers and libs from the build/install subfolder, where the newly generated one are copied by default
 ```
-$ cd ~/profinet/p-net/build
-$ cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/
-$ make
-$ sudo make install
+cp install/lib/*.so /usr/local/lib
+cp -r install/include /usr/local/include (pay attention to the sys subfolder, which has to be copied along
 ```
 
-- Copy the additional PNET header files required by the DataSource:
+Copy additional headers (arch and env dependant) from the cloned p-net folder
 ```
-$ sudo cp ~/profinet/p-net/src/pnal.h /usr/local/include/
-$ sudo cp ~/profinet/p-net/src/ports/linux/pnal_sys.h /usr/local/include/
+cp src/pnal.h /usr/local/include
+cp src/pf_*.h /usr/local/include
+cp src/ports/linux/pnal_sys.h /usr/local/include
 ```
-
-- Do a final check and verify if these files exist:
+Do a final check and verify if these files exist:
 ```
 /usr/local/lib/libosal.so
 /usr/local/lib/libprofinet.so
@@ -345,12 +325,24 @@ $ sudo cp ~/profinet/p-net/src/ports/linux/pnal_sys.h /usr/local/include/
 /usr/local/include/pnet_export.h
 ```
 
-- All Done. To make the '-losal' and '-lprofinet' libraries available at runtime, export the '/usr/local/lib' path to the LD_LIBRARY_PATH:
+Add the Profinet related *.so to the system-wide LD path (Alternative 1)
+```
+vi /etc/ld.so.conf/usrlocal.conf
+```
+Put on the one and only line
+```
+/usr/local/lib
+```
+And then run
+```
+ldconfig (as root)
+```
+
+Conveniently add the specific path to the LD_LIBRARY_PATH env variable (Alternative 2)
+**WARNING:** as the Profinet stuff requires an elevated privileges shell, "Alternative 1" should be preferred
 ```
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 ```
-
-**Note:** To use a different installation directory, change '-DCMAKE_INSTALL_PREFIX=/usr/local/' accordingly when calling 'cmake' on both libraries. Also, check the [DataSource compilation using the 'Makefile.detect' approach](##datasource-compilation-using-the-makefiledetect-approach) section.
 
 ### DataSource compilation using the 'Makefile.detect' approach
 As previously described, the ProfinetDataSource requires pre-installing the PNET (and OSAL) library. Compiling MARTe2 with the ProfinetDataSource present and without the libraries would imply to make changes on the MARTe2 Makefiles. The 'Makefile.detect' approach enables to overcome this issue, providing a versatile alternative to disable the DataSource compilation and change the environment paths to the P-NET/OSAL libraries.

@@ -72,14 +72,8 @@
 -i./Source/Components/Interfaces/NI9157Device/
 -i./Source/Components/Interfaces/SysLogger/
 
-ProfinetDataSource.cpp
-MemoryMapSynchNMutexInputBroker.cpp
-MemoryMapSynchNMutexOutputBroker.cpp
-ProfinetMainThreadHelper.cpp
-ProfinetTimerHelper.cpp
 
-
-/*Atomic2.h
+Atomic2.h
 BaseLib2GAM.cpp
 BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
@@ -131,6 +125,8 @@ MDSReader.cpp
 MDSWriter.cpp
 MDSWriterNode.cpp
 MemoryGate.cpp
+MemoryMapSynchNMutexInputBroker.cpp
+MemoryMapSynchNMutexOutputBroker.cpp
 MuxGAM.cpp
 MuxGAM.h
 NI1588Timestamp.cpp
@@ -151,7 +147,8 @@ NI9157MxiDataSource.cpp
 Platform.cpp
 PIDGAM.cpp
 ProfinetDataSource.cpp
-ProfinetDataSourceAdapter.cpp
+ProfinetMainThreadHelper.cpp
+ProfinetTimerHelper.cpp
 RealTimeThreadAsyncBridge.cpp
 RealTimeThreadSynchBroker.cpp
 RealTimeThreadSynchronisation.cpp
@@ -178,4 +175,4 @@ WaveformChirp.h
 WaveformSin.cpp
 WaveformSin.h
 WaveformPointsDef.cpp
-WaveformPointsDef.h*/
+WaveformPointsDef.h
