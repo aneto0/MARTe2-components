@@ -68,13 +68,12 @@ namespace MARTe {
         }
         uint64 elapsedStart = HighResolutionTimer::Counter();
 
-        ErrorManagement::ErrorType returnValue;
+        ErrorManagement::ErrorType returnValue = ErrorManagement::NoError;
 
         if(info.GetStage() == ExecutionInfo::MainStage) {
             if(entryPoint != NULL_PTR(ITimerEntryPoint*)) {
                 entryPoint->TimerTick();
             }
-            returnValue = ErrorManagement::Completed;
         }
         else if(info.GetStage() == ExecutionInfo::StartupStage) {
             

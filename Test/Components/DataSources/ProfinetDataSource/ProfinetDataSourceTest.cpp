@@ -240,8 +240,8 @@ static const MARTe::char8 * const configurationFile = ""
 "			Class = ProfinetDataSource"
 "			NetworkInterface = \"dummyeth\""
 "			StationName = \"rt-labs-dev\""
-"			PeriodicInterval = 10000"
-"			ReductionRatio = 100"
+"			PeriodicInterval = 1000"
+"			ReductionRatio = 10"
 "			VendorIdentifier = 0xFEED"
 "			DeviceIdentifier = 0xBEEF"
 "			OEMVendorIdentifier = 0xC0FF"
@@ -274,7 +274,7 @@ static const MARTe::char8 * const configurationFile = ""
 "			}"
 "			+TimerHelper = {"
 "				Class = ProfinetTimerHelper"
-"				Timeout = 1000"
+"                               Timeout = 0"
 "				CPUMask = 0xFF"
 "			}"
 "			Slots = {"
@@ -995,7 +995,9 @@ bool ProfinetDataSourceTest::TestStandaloneSweepSoftwareRevision() {
     bool ok = parser.Parse();
     StreamString ethInterface = GetEthInterfaceName(true);
     
-    for(int i = 0; (i < 6) && ok; i++) {
+    ok = PatchConfigurationDatabase(cdb, "$TestApp.+Data.+DDB1", "NetworkInterface", ethInterface.Buffer());
+
+    for(int i = 0; (i < 5) && ok; i++) {
         ProfinetDataSource *testDataSource = new ProfinetDataSource();    
         ok = (testDataSource != NULL);
         if(ok) {

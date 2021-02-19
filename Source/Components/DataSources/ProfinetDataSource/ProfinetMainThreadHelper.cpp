@@ -83,7 +83,7 @@ namespace MARTe {
 
     //lint -e{830,830,830,830,830,830,830,830,1764} Parameter is not under this class control
     ErrorManagement::ErrorType ProfinetMainThreadHelper::ThreadCallback(ExecutionInfo &info) {
-        ErrorManagement::ErrorType returnValue;
+        ErrorManagement::ErrorType returnValue = ErrorManagement::NoError;
 
         if(info.GetStage() == ExecutionInfo::MainStage) {
             //Stand still, awaiting for an event to be raised
@@ -110,7 +110,6 @@ namespace MARTe {
                     flagMutex.FastUnLock();
                 }
             }
-            returnValue = ErrorManagement::Completed;
         }
         else if(info.GetStage() == ExecutionInfo::StartupStage) {
             

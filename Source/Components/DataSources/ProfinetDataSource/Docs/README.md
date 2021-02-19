@@ -409,3 +409,81 @@ PROFINET_LIBRARY=/usr/local/lib/
 ```
 Either add the missing path using ‘export’ or remove the existing path using ‘unset’.
 
+### Setting up the test environment
+Testing the Profinet DataSource requires a working Profinet master within reachability. Test unit requires:
+-   A master which expects at some moment of its lifecycle a compatible slave to come up
+-   Code running on the master in order to realize a loopback behaviour between the slave inputs and outputs
+
+### Configure the GSDML on the master
+Profinet peripherals are described using a GSDML file. In order for the test to be able to run, the PLC must know the slave module/submodule layout. As the configuration is hardwired into the the unit, the matching counterpart has to be loaded on the PLC. The following steps are referred to CodeSys
+
+#### Requirements
+-   Working installation of Codesys IDE on a machine
+-   Working installation of Codesys Control on suitable hardware (VM with Control for Linux, Raspberry Pi with Control for RPi)
+-   Network connection between them
+
+#### Configuration steps
+1. Install the provided GSDML descriptor which matches the DataSource expected configuration
+    a. Using Tools > Device Repository > Install
+    b. Choose Profinet IO Configuration Files from the file type dropdown in the open file dialog modal
+    c. Close the dialog, after the slave appears under the Profinet IO > Profinet Slave subtree
+2. On the project tree on the left, select the Ethernet Controller, right click and add a Profinet IO Master > PN Controller
+    Note: this means that the Ethernet interface will serve as Profinet IO master
+3. Right clicking on the PN Controller, add the device added on step 1
+4. Right clicking on the device added on step 3, add in the following order
+    a. 8 bits O module
+    b. 8 bits I module
+    Note. The nickname of the modules is not representative of the real size of the IO bank
+5. Double click on the PLC_PRG main task to edit it and paste
+    a. In the var section
+    ```
+    PROGRAM PLC_PRG
+    VAR
+        test_in_bit: USINT := 0;
+        test_in_sint: SINT := 0;
+        test_in_usint: USINT := 0;
+        test_in_int: INT := 0;
+        test_in_uint: UINT := 0;
+        test_in_dint: DINT := 0;
+        test_in_udint: UDINT := 0;
+        test_in_lint: LINT := 0;
+        test_in_ulint: ULINT := 0;
+        test_in_real: REAL := 0;
+        test_in_lreal: LREAL := 0;
+    
+        test_out_bit: USINT := 0;
+        test_out_sint: SINT := 0;
+        test_out_usint: USINT := 0;
+        test_out_int: INT := 0;
+        test_out_uint: UINT := 0;
+        test_out_dint: DINT := 0;
+        test_out_udint: UDINT := 0;
+        test_out_lint: LINT := 0;
+        test_out_ulint: ULINT := 0;
+        test_out_real: REAL := 0;
+        test_out_lreal: LREAL := 0;
+    ```
+    b. In the program section
+    ```
+    test_out_bit := test_in_bit;
+    test_out_sint := test_in_sint;
+    test_out_usint := test_in_usint;
+    test_out_int := test_in_int;
+    test_out_uint := test_in_uint;
+    test_out_dint := test_in_dint;
+    test_out_udint := test_in_udint;
+    test_out_lint := test_in_lint;
+    test_out_ulint := test_in_ulint;
+    test_out_real := test_in_real;
+    test_out_lreal := test_in_lreal;
+    ```
+6. Map the variables of the PLC_PRG into the respective Input and Output of the Profinet Slave
+    a. Double clicking on the Input or Output bank opens a window on the right which contains the PNIO Module I/O Mapping
+    b. The tree's first item contains an expandable branch which results in Profinet slave layout
+    c. For each of the variable, assign the right variable from the PLC_PRG
+
+7. Compile, download and run on the PLC
+
+### Notes
+As the Codesys Structured Text is an IEC 61131-3 standard and the GSDML is a Profinet characteristic description language, similar approach can be adapted to equivalent PLC IDE.
+
