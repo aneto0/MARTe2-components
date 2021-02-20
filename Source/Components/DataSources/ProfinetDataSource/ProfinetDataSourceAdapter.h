@@ -157,6 +157,9 @@ namespace ProfinetDataSourceDriver
             //uint32_t        eventMask;
             //uint32_t        eventFlags;
 
+	    /**
+ 	    * @brief Reduction between loop cycles and update cycles (1 update every gearRatio)
+ 	    */ 	
             uint32_t        gearRatio;
 
             /**
@@ -397,6 +400,9 @@ namespace ProfinetDataSourceDriver
 
         public:
         
+	    /**
+ 	    * @brief Destructor 
+ 	    */ 	
             ~ProfinetDataSourceAdapter();
 
             /**
@@ -468,6 +474,8 @@ namespace ProfinetDataSourceDriver
              * @param[in] profileSpecificType Profile specific type
              * @param[in] versionMajor Major software version
              * @param[in] versionMinor Minor software version
+             * @param[in] orderIdentification Device order id
+             * @param[in] serialNumber Device serial number
              * @param[in] tagFunction Tag attribute for function
              * @param[in] tagLocation Tag attribute for location
              * @param[in] date Tag attribute for data
@@ -515,6 +523,7 @@ namespace ProfinetDataSourceDriver
              * @brief Adds a sub-slot to the Profinet slave.
              * @param[in] slotNumber The Profinet slot number where the slot resides.
              * @param[in] subslotNumber The Profinet sub-slot number to be added.
+             * @param[in] expectedDataDirection Direction of the data from the slave point of view
              * @param[in] isDeviceAccessPoint Whether the slot is part of the device DAP.
              * @param[in] expectedInputSize Expected size in bytes for the input image.
              * @param[in] expectedOutputSize Expected size in bytes for the output image.
