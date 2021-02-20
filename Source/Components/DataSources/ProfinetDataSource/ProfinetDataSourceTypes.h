@@ -78,46 +78,57 @@ namespace ProfinetDataSourceDriver {
  	* @brief Indicates if the subslot belongs to the special DAP slots (see DataSource documentation)
  	*/ 
         bool                isDeviceAccessPoint;
+	
 	/**
  	* @brief Indicates if the subslot was added by the master, by advertising it
  	*/ 	
         bool                masterAdded;
+	
 	/**
  	* @brief Indicates if the subslot was added by the user, by configuring it in the MARTe2 configuration file
  	*/ 
         bool                configAdded;
+	
 	/**
  	* @brief Indicates if the alarm for the subslot is armed (currently not supported)
  	*/ 	
         bool                alarmArmed;
-        /*
+        
+	/**
  	* @brief Identifier number for the subslot
  	*/  
         uint16_t            subslotNumber;
+	
 	/**
  	* @brief Identifier number for the submodule
  	*/ 	
         uint32_t            submoduleIdentifier;
+
 	/**
  	* @brief Identifier name for the submodule (unused)
  	*/
         std::string         submoduleName;
+
         /**
  	* @brief Memory bank for input data. This heap block is shared with the underlying p-net lib.
  	*/	
         uint8_t             *inputData;
+
 	/**
  	* @brief Memory bank for output data. This heap block is shared with the underlying p-net lib.
  	*/ 
         uint8_t             *outputData;
+
 	/**
  	* @brief Master advertised configuration data (must match with the expected to enable the slot for the plugging.
  	*/ 
         pnet_data_cfg_t     masterConfigurationData;
+
 	/**
  	* @brief MARTe2 configuration acquired data (must match with master to enable the slot for the plugging.
  	*/
         pnet_data_cfg_t     expectedConfigurationData;
+
 	/**
  	* @brief Constructs and initializes the subslot
  	*/ 
@@ -136,6 +147,7 @@ namespace ProfinetDataSourceDriver {
             expectedConfigurationData.insize = 0u;
             expectedConfigurationData.outsize = 0u;
         }
+
 	/**
  	* @brief Checks if expected and master advertised configuration is matching
  	*/ 
@@ -144,31 +156,38 @@ namespace ProfinetDataSourceDriver {
                     (masterConfigurationData.insize == expectedConfigurationData.insize) &&
                     (masterConfigurationData.outsize == expectedConfigurationData.outsize);
         }
+
 	/**
  	* @brief Convenient acceleration method to tell if the subslot is a DAP
  	*/ 
         bool  IsDAP()     const { return isDeviceAccessPoint; }
+
         /**
 	* @brief Convenient acceleration method to tell if the subslot is an input
 	*/	 
 	bool  IsInput()   const { return (masterConfigurationData.data_dir == PNET_DIR_INPUT) || (masterConfigurationData.data_dir == PNET_DIR_IO); }
+
         /**
  	* @brief Convenient acceleration method to tell if the subslot is an output
  	*/ 
 	bool  IsOutput()  const { return (masterConfigurationData.data_dir == PNET_DIR_OUTPUT) || (masterConfigurationData.data_dir == PNET_DIR_IO); }
+
         /**
  	* @brief Convenient acceleration method to tell if the subslot is a NO-I/O (See DataSource Documentation)
  	*/ 
 	bool  IsNoIO()    const { return (masterConfigurationData.data_dir == PNET_DIR_NO_IO); }
+
         /**
  	* @brief Convenient acceleration method to tell if the subslot is master advertised and present in the MARTe2 cfg file
  	* which means that is used in the adapter loop
  	*/ 
 	bool  IsUsed()    const { return (masterAdded && configAdded);  }
+
         /**
  	* @brief Convenient acceleration method to tell if an alarm is active on the subslot
  	*/
 	bool  IsAlarmed() const { return alarmArmed; }
+
         /**
  	* @brief Convenient acceleration method to clear (ack) the alarm on the subslot
  	*/ 
