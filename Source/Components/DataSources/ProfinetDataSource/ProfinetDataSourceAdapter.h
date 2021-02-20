@@ -538,8 +538,8 @@ namespace ProfinetDataSourceDriver
 
             /**
              * @brief Gets the subslot data, given its identificator
-             * @param[in] the slot number where the sub-slot resides
-             * @param[in] the sub-slot number to get
+             * @param[in] slotNumber the slot number where the sub-slot resides
+             * @param[in] subslotNumber the sub-slot number to get
              * @return The requested sub-slot or null if not exists.
              */
             pnet_subslot_t* GetSubslot(
