@@ -50,21 +50,58 @@
 #include "ProfinetEventType.h"
 #include "StreamString.h"
 
-
+/**
+ * @brief Maximum ethernet interface name size 
+ */
 #define PNDS_MAX_INTERFACE_NAME_SIZE    16
+/**
+ * @brief Maximum Profinet station name size
+ */
 #define PNDS_MAX_STATION_NAME_SIZE      241
+/**
+ * @brief Maximum allowed subslots
+ */
 #define PNDS_MAX_SUPPORTED_SUBSLOTS     5
+/**
+ * @brief Maximum Profinet product name size
+ */
 #define PNDS_MAX_PRODUCTNAME_SIZE       26
-
+/**
+ * @brief Maximum I&M Order identification size
+ */
 #define PNDS_MAX_IM0_ORDERID_SIZE       21
+/**
+ * @brief Maximum I&M Serial Number size
+ */
 #define PNDS_MAX_IM0_SERNUM_SIZE        17
+/**
+ * @brief Maximum I&M Tag Function size
+ */
 #define PNDS_MAX_IM1_TAGFUNC_SIZE       33
+/**
+ * @brief Maximum I&M Tag Location size
+ */
 #define PNDS_MAX_IM1_TAGLOC_SIZE        23
+/**
+ * @brief Maximum I&M Tag Date size
+ */
 #define PNDS_MAX_IM2_DATE_SIZE          17
+/**
+ * @brief Maximum I&M Tag Description size
+ */
 #define PNDS_MAX_IM3_DESC_SIZE          55
+/**
+ * @brief Maximum I&M Tag Signature size
+ */
 #define PNDS_MAX_IM4_SIGN_SIZE          54
 
+/**
+ * @brief Literal for error return
+ */
 #define PNDS_RETURN_VALUE_ERROR         -1
+/**
+ * @brief Literal for success return
+ */
 #define PNDS_RETURN_VALUE_SUCCESS       0
 
 /*---------------------------------------------------------------------------*/
