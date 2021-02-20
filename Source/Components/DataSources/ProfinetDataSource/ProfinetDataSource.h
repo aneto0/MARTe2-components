@@ -81,44 +81,126 @@
 #endif
 
 #include "StreamString.h"
-
+/**
+ * @brief Flag for base network card parameter presence 
+ */
 #define PNETDS_MASK_BASENIC                     static_cast<MARTe::uint32>(1u)
+/**
+ * @brief Flag for station name parameter presence
+ */
 #define PNETDS_MASK_BASESTATIONNAME             static_cast<MARTe::uint32>(2u)
+/**
+ * @brief Flag for periodic interval parameter presence
+ */
 #define PNETDS_MASK_BASEPERIODICINTERVAL        static_cast<MARTe::uint32>(4u)
+/**
+ * @brief Flag for reduction ratio parameter presence
+ */
 #define PNETDS_MASK_BASEREDUCTIONRATIO          static_cast<MARTe::uint32>(8u)
+/**
+ * @brief Cumulative flag for mandatory parameters among base group
+ */
 #define PNETDS_MASK_BASE_MANDATORIES            (PNETDS_MASK_BASENIC | \
                                                 PNETDS_MASK_BASESTATIONNAME | \
                                                 PNETDS_MASK_BASEPERIODICINTERVAL | \
                                                 PNETDS_MASK_BASEREDUCTIONRATIO)
 
 
+/**
+ * @brief Flag for vendor identifier parameter presence
+ */
 #define PNETDS_MASK_BASEIDVENDORID                      static_cast<MARTe::uint32>(1u)
+/**
+ * @brief Flag for device identifier parameter presence
+ */
 #define PNETDS_MASK_BASEIDDEVICEID                      static_cast<MARTe::uint32>(2u)
+/**
+ * @brief Flag for oem vendor identifier parameter presence
+ */
 #define PNETDS_MASK_BASEIDOEMVENDORID                   static_cast<MARTe::uint32>(4u)
+/**
+ * @brief Flag for oem device identifier parameter presence
+ */
 #define PNETDS_MASK_BASEIDOEMDEVICEID                   static_cast<MARTe::uint32>(8u)
-
+/**
+ * @brief Cumulative flag for mandatory parameters among base identification group
+ */
 #define PNETDS_MASK_BASEID_MANDATORIES                  (PNETDS_MASK_BASEIDVENDORID | \
                                                         PNETDS_MASK_BASEIDDEVICEID | \
                                                         PNETDS_MASK_BASEIDOEMVENDORID | \
                                                         PNETDS_MASK_BASEIDOEMDEVICEID)
 
+/**
+ * @brief Flag for I&M vendor parameter presence
+ */
 #define PNETDS_MASK_IMVENDOR                    static_cast<MARTe::uint32>(1u)
+/**
+ * @brief Flag for I&M hardware revision parameter presence
+ */
 #define PNETDS_MASK_IMHARDWAREREVISION          static_cast<MARTe::uint32>(2u)
+/**
+ * @brief Flag for I&M software revision parameter presence
+ */
 #define PNETDS_MASK_IMSOFTWAREREVISION          static_cast<MARTe::uint32>(4u)
+/**
+ * @brief Flag for I&M functional enhancement parameter presence
+ */
 #define PNETDS_MASK_IMFUNCTIONALENHANCEMENT     static_cast<MARTe::uint32>(8u)
+/**
+ * @brief Flag for I&M bugfix parameter presence
+ */
 #define PNETDS_MASK_IMBUGFIX                    static_cast<MARTe::uint32>(16u)
+/**
+ * @brief Flag for I&M internal change parameter presence
+ */
 #define PNETDS_MASK_IMINTERNALCHANGE            static_cast<MARTe::uint32>(32u)
+/**
+ * @brief Flag for I&M profile identifier parameter presence
+ */
 #define PNETDS_MASK_IMPROFILEIDENTIFIER         static_cast<MARTe::uint32>(64u)
+/**
+ * @brief Flag for I&M profile specific type parameter presence
+ */
 #define PNETDS_MASK_IMPROFILESPECIFICTYPE       static_cast<MARTe::uint32>(128u)
+/**
+ * @brief Flag for I&M version major number parameter presence
+ */
 #define PNETDS_MASK_IMVERSIONMAJOR              static_cast<MARTe::uint32>(256u)
+/**
+ * @brief Flag for I&M version minor number parameter presence
+ */
 #define PNETDS_MASK_IMVERSIONMINOR              static_cast<MARTe::uint32>(512u)
+/**
+ * @brief Flag for I&M order identifier parameter presence
+ */
 #define PNETDS_MASK_IMORDERID                   static_cast<MARTe::uint32>(1024u)
+/**
+ * @brief Flag for I&M serial number parameter presence
+ */
 #define PNETDS_MASK_IMSERIALNUMBER              static_cast<MARTe::uint32>(2048u)
+/**
+ * @brief Flag for I&M function parameter presence
+ */
 #define PNETDS_MASK_IMFUNCTION                  static_cast<MARTe::uint32>(4096u)
+/**
+ * @brief Flag for I&M location parameter presence
+ */
 #define PNETDS_MASK_IMLOCATION                  static_cast<MARTe::uint32>(8192u)
+/**
+ * @brief Flag for I&M date parameter presence
+ */
 #define PNETDS_MASK_IMDATE                      static_cast<MARTe::uint32>(16384u)
+/**
+ * @brief Flag for I&M descriptor parameter presence
+ */
 #define PNETDS_MASK_IMDESCRIPTOR                static_cast<MARTe::uint32>(32768u)
+/**
+ * @brief Flag for I&M signature parameter presence
+ */
 #define PNETDS_MASK_IMSIGNATURE                 static_cast<MARTe::uint32>(65536u)
+/**
+ * @brief Cumulative flag for I&M mandatory parameters
+ */
 #define PNETDS_MASK_IM_MANDATORIES      (PNETDS_MASK_IMVENDOR | \
                                         PNETDS_MASK_IMHARDWAREREVISION | \
                                         PNETDS_MASK_IMSOFTWAREREVISION | \
@@ -137,25 +219,67 @@
                                         PNETDS_MASK_IMDESCRIPTOR | \
                                         PNETDS_MASK_IMSIGNATURE)
 
+/**
+ * @brief Flag for LLDP Port identifier parameter presence (no longer used)
+ */
 #define PNETDS_MASK_LLDP_PORTID                 static_cast<MARTe::uint32>(1u)
+/**
+ * @brief Flag for LLDP RT Class 2 status parameter presence
+ */
 #define PNETDS_MASK_LLDP_RTCLASS2STATUS         static_cast<MARTe::uint32>(2u)
+/**
+ * @brief Flag for RT Class 3 status parameter presence
+ */
 #define PNETDS_MASK_LLDP_RTCLASS3STATUS         static_cast<MARTe::uint32>(4u)
+/**
+ * @brief Flag for LLDP AutoNegotiation parameter presence (no longer used, p-net autodiscovery)
+ */
 #define PNETDS_MASK_LLDP_AUTONEGENABLED         static_cast<MARTe::uint32>(8u)
+/**
+ * @brief Flag for LLDP AutoNegotiation support parameterpresence (no longer used, p-net autodiscovery)
+ */
 #define PNETDS_MASK_LLDP_AUTONEGSUPPORTED       static_cast<MARTe::uint32>(16u)
+/**
+ * @brief Flag for LLDP AutoNegotiation speed parameter presence (no longer used, p-net autodiscovery)
+ */
 #define PNETDS_MASK_LLDP_AUTONEGSPEED           static_cast<MARTe::uint32>(32u)
+/**
+ * @brief Flag for LLDP MAU parameter presence (no longer used, p-net autodiscovery)
+ */
 #define PNETDS_MASK_LLDP_MAUTYPE                static_cast<MARTe::uint32>(64u)
-
+/**
+ * @brief Flag for subslot number parameter presence
+ */
 #define PNETDS_MASK_SUBSLOT_NUMBER              static_cast<MARTe::uint32>(1u)
+
+/**
+ * @brief Flag for Device Access Point parameter presence
+ */
 #define PNETDS_MASK_SUBSLOT_ISDAP               static_cast<MARTe::uint32>(2u)
+/**
+ * @brief Flag for Subslot expected direction parameter presence
+ */
 #define PNETDS_MASK_SUBSLOT_EXPDIR              static_cast<MARTe::uint32>(4u)
+/**
+ * @brief Flag for Subslot expected input bank size parameter presence
+ */
 #define PNETDS_MASK_SUBSLOT_EXPINSIZE           static_cast<MARTe::uint32>(4u)
+/**
+ * @brief Flag for Subslot expected output bank size parameter presence
+ */
 #define PNETDS_MASK_SUBSLOT_EXPOUTSIZE          static_cast<MARTe::uint32>(8u)
+/**
+ * @brief Cumulative flag for mandatory subslot parameters
+ */
 #define PNETDS_MASK_SUBSLOT_MANDATORIES         (PNETDS_MASK_SUBSLOT_NUMBER | \
                                                 PNETDS_MASK_SUBSLOT_ISDAP | \
                                                 PNETDS_MASK_SUBSLOT_EXPDIR | \
                                                 PNETDS_MASK_SUBSLOT_EXPINSIZE | \
                                                 PNETDS_MASK_SUBSLOT_EXPOUTSIZE)
 
+/**
+ * @brief Flag for maximum MARTe2 acceptable signal size 
+ */
 //lint -e1923 Macro is only used once, to avoid magic numbers around the profinet_marte_signal_t structure
 #define PNETDS_MAXIMUM_MARTE2_SIGNALNAME_SIZE   256
 //lint +e1923
