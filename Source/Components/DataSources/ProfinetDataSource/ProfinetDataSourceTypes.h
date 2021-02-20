@@ -61,6 +61,7 @@ namespace ProfinetDataSourceDriver {
     } pnet_submodule_direction_t;
     
     /**
+     * @brief 	    Nested containers to represent typical peripheral structure 
      * @details     Set of nested / nestable containers, which represents the typical Profinet peripheral hierarchy.
      *              A peripheral is a module, which can contain submodules. Each module is hosted into a slot
      *              while each submodule in a subslot. A slot can contain 1:N subslots, which once declared, are
