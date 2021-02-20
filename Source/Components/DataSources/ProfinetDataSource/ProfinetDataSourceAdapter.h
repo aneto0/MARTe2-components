@@ -445,9 +445,11 @@ namespace ProfinetDataSourceDriver
              * @param[in] deviceIdLow Low part of the vendor identifier (see GSDML)
              * @param[in] oemDeviceIdHigh High part of the OEM device identifier.
              * @param[in] oemDeviceIdLow Low part of the OEM device identifier.
-             * @param[in] productName The Profinet product name string.
+             * @param[in] oemVendorIdLow Low part of the OEM vendor identifier.
+             * @param[in] oemVendorIdHigh High part of the OEM vendor identifier.
+	     * @param[in] productName The Profinet product name string.
              * @param[in] minimumDeviceInterval Minimum supported update interval for the Profinet slave
-             */
+            */
             bool SetBaseData(
                 MARTe::uint8           vendorIdHigh,
                 MARTe::uint8           vendorIdLow,
