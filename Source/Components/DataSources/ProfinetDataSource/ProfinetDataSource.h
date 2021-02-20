@@ -170,11 +170,35 @@ namespace MARTe {
          * @brief Signal data holder structure.
          */
         typedef struct profinet_marte_signal {
+
+                /**
+         	* @brief Direction of the signal, from the Profinet slave point of view
+         	*/
                 uint8           direction;
+
+        	/**
+         	* @brief Pointer to the first byte of the signal
+         	*/
                 uint8           *firstByteOfSignal;
+
+        	/**
+         	* @brief Size in byte of the whole MARTe2 signal
+         	*/
                 uint32          signalSize;
+
+        	/**
+         	* @brief Name of the signal in MARTe2
+         	*/
                 char8           marteName[PNETDS_MAXIMUM_MARTE2_SIGNALNAME_SIZE];
+
+        	/**
+         	* @brief Index of the signal in MARTe2
+         	*/
                 uint32          marteIndex;
+
+        	/**
+         	* @brief Indicates whether the signal needs endianness correction
+         	*/
                 bool            needsSwapping;
         }profinet_marte_signal_t;
 
