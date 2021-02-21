@@ -25,10 +25,16 @@
 #define DATASOURCES_PROFINET_CONSTANTS_H
 
     #ifndef PNET_MAX_PORT
+	/**
+ 	* @brief Maximum number of Profinet ports (Application Relationship EndPoints) currently the DataSource consumes only 1
+ 	*/ 	
         #define PNET_MAX_PORT 1
     #endif
 
     #ifndef PNET_MAX_DIRECTORYPATH_SIZE
+	/**
+ 	* @brief Maximum path length (needd by P-NET library) 
+ 	*/ 	
         #define PNET_MAX_DIRECTORYPATH_SIZE 240
     #endif
 
