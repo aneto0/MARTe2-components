@@ -40,13 +40,15 @@
 
 namespace ProfinetDataSourceDriver
 {
-   
+   /**
+   * @brief Offers an interface for the cyclic notification of an event
+   */ 
     class ICyclicNotifiable {
         public:
-			/**
-			*  @brief Destructor
-			*/
-			virtual ~ICyclicNotifiable() {}
+	    /**
+	    *  @brief Destructor
+	    */
+	    virtual ~ICyclicNotifiable() {}
 
             /**
              * @brief Entry point for the notification of a cyclic update.

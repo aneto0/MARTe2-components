@@ -25,14 +25,18 @@
 #define DATASOURCES_PROFINET_ISYNCHRONISABLEINPUT_H_
 
 namespace MARTe {
+
+    /**
+    * @brief     Defines a specialization of the MARTe default Synchronise method
+    *            in which differentiation between input and output synchronisation
+    *            shall occur.
+    */
     class ISynchronisableInput {
-        /**
-         * @brief     Defines a specialization of the MARTe default Synchronise method
-         *            in which differentiation between input and output synchronisation
-         *            shall occur.
-         */
         public:
-			virtual ~ISynchronisableInput() {}
+	    /**
+            * @brief Destructor
+            */
+	    virtual ~ISynchronisableInput() {}
 
             /**
              * @brief Entry point to inform that an input synchronisation is occurring.

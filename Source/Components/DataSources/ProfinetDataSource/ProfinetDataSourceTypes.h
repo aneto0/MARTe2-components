@@ -29,8 +29,17 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+/**
+ * @brief Maximum size of the path (needed by the P-NET library
+*/
 #define PNET_MAX_DIRECTORYPATH_LENGTH 4095
+/**
+ * @brief Maximum number of ports (Application Relatioship Endpoints) currently the DataSource consumes 1 port
+*/
 #define PNET_MAX_PORT 1
+/**
+ * @briefMaximum size of the path (needed by the P-NET library)
+*/
 #define PNET_MAX_DIRECTORYPATH_SIZE 240
 
 #include <pnet_api.h>
