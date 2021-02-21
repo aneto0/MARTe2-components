@@ -38,7 +38,7 @@
 */
 #define PNET_MAX_PORT 1
 /**
- * @briefMaximum size of the path (needed by the P-NET library)
+ * @brief Maximum size of the path (needed by the P-NET library)
 */
 #define PNET_MAX_DIRECTORYPATH_SIZE 240
 
@@ -53,6 +53,9 @@
 //lint --flb
 
 #ifndef BIT
+    /**
+     * @brief Computes the bit shift for flag elements creation
+     */ 
     #define BIT(n) (1u << (n))
 #endif
 
