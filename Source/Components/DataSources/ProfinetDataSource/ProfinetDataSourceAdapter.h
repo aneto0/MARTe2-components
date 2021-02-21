@@ -34,6 +34,8 @@
 #include <iostream>
 #include <pnal.h>
 #include <pnet_api.h>
+#undef MAX
+#undef MIN
 #include <sstream>
 #include <unistd.h>
 
