@@ -122,15 +122,15 @@ public:
 /*---------------------------------------------------------------------------*/
 static const uint32 nParams                   = 3;
 static const char8 * const firmwarePath       = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles";
-static const char8 * const multiIOFirmware[]  = ["RIO0", "NiFpga_NI9159_MultiIOSimplified.lvbitx", "1024E2A52B8A06451144CA194CBD81B3"];
-static const char8 * const u8Firmware[]       = ["RIO0", "NiFpga_NI9159_U8FifoLoop.lvbitx", "F61EE912789BA69AB9388C98C06307E8"];
-static const char8 * const i8Firmware[]       = ["RIO0", "NiFpga_NI9159_I8FifoLoop.lvbitx", "5A283FB9AF034F65871DE8FFE77F2DD0"];
-static const char8 * const u16Firmware[]      = ["RIO0", "NiFpga_NI9159_U16FifoLoop.lvbitx", "CDE04ED9C48BDC6C6A762870927EDCE4"];
-static const char8 * const i16Firmware[]      = ["RIO0", "NiFpga_NI9159_I16FifoLoop.lvbitx", "5495C30BD8A8438860BFC8DAC161088F"];
-static const char8 * const u32Firmware[]      = ["RIO0", "NiFpga_NI9159_U32FifoLoop.lvbitx", "FC05550126AD0B999EDBE8D000E69D91"];
-static const char8 * const i32Firmware[]      = ["RIO0", "NiFpga_NI9159_I32FifoLoop.lvbitx", "D7A8F3040B3B5F1D02B882E6016AB1AA"];
-static const char8 * const u64Firmware[]      = ["RIO0", "NiFpga_NI9159_U64FifoLoop.lvbitx", "52F330872695662BB3590B8B57820AB0"];
-static const char8 * const i64Firmware[]      = ["RIO0", "NiFpga_NI9159_I64FifoLoop.lvbitx", "8D17F6F9632E56982594198E5DCC4D69"];
+static const char8 * const multiIOFirmware[]  = {"RIO0", "NiFpga_NI9159_MultiIOSimplified.lvbitx", "1024E2A52B8A06451144CA194CBD81B3"};
+static const char8 * const u8Firmware[]       = {"RIO0", "NiFpga_NI9159_U8FifoLoop.lvbitx", "F61EE912789BA69AB9388C98C06307E8"};
+static const char8 * const i8Firmware[]       = {"RIO0", "NiFpga_NI9159_I8FifoLoop.lvbitx", "5A283FB9AF034F65871DE8FFE77F2DD0"};
+static const char8 * const u16Firmware[]      = {"RIO0", "NiFpga_NI9159_U16FifoLoop.lvbitx", "CDE04ED9C48BDC6C6A762870927EDCE4"};
+static const char8 * const i16Firmware[]      = {"RIO0", "NiFpga_NI9159_I16FifoLoop.lvbitx", "5495C30BD8A8438860BFC8DAC161088F"};
+static const char8 * const u32Firmware[]      = {"RIO0", "NiFpga_NI9159_U32FifoLoop.lvbitx", "FC05550126AD0B999EDBE8D000E69D91"};
+static const char8 * const i32Firmware[]      = {"RIO0", "NiFpga_NI9159_I32FifoLoop.lvbitx", "D7A8F3040B3B5F1D02B882E6016AB1AA"};
+static const char8 * const u64Firmware[]      = {"RIO0", "NiFpga_NI9159_U64FifoLoop.lvbitx", "52F330872695662BB3590B8B57820AB0"};
+static const char8 * const i64Firmware[]      = {"RIO0", "NiFpga_NI9159_I64FifoLoop.lvbitx", "8D17F6F9632E56982594198E5DCC4D69"};
 
 static const char8 * const multiIoConfig = ""
     "+NiDevice = {"
@@ -309,13 +309,15 @@ bool NI9157DeviceOperatorTTest<T>::TestNiWriteRead(uint32 model,
         uint32 varDescriptor;
         ret = (niOperator.FindResource(readVarName, varDescriptor) == 0);
         ret &= (niOperator.FindResource(writeVarName, contrDescriptor) == 0);
-    }
-    if (ret) {
-        T writeVal = 1;
-        ret = (niOperator.NiWrite(contrDescriptor, &writeVal) == 0);
-        T readVal = 0;
-        ret &= (niOperator.NiRead(varDescriptor, &readVal) == 0);
-        ret &= (readVal == writeVal);
+        if (ret) {
+            T writeVal = 1;
+            ret = (niOperator.NiWrite(contrDescriptor, &writeVal) == 0);
+            if (ret) {
+                T readVal = 0;
+                ret &= (niOperator.NiRead(varDescriptor, &readVal) == 0);
+                ret &= (readVal == writeVal);
+            }
+        }
     }
     ret &= interface->Reset() == 0;
     ret &= interface->Close() == 0;
@@ -341,57 +343,56 @@ bool NI9157DeviceOperatorTTest<T>::TestNiWriteReadFifo(uint32 model,
         StreamString signature = "";
         ret = cdb.MoveAbsolute("+NiDevice");
         if (ret) { 
-            switch(typeid(T)) {
-                case typeid(uint8):
-                    name.Printf("%s", u8Firmware[nParams*model + 0]);
-                    pathAndFile.Printf("%s/%s", firmwarePath, u8Firmware[nParams*model + 1]);
-                    signature.Printf("%s", u8Firmware[nParams*model + 2]);
-                    ret = true;
-                    break;
-                case typeid(int8):
-                    name.Printf("%s", i8Firmware[nParams*model + 0]);
-                    pathAndFile.Printf("%s/%s", firmwarePath, i8Firmware[nParams*model + 1]);
-                    signature.Printf("%s", i8Firmware[nParams*model + 2]);
-                    ret = true;
-                    break;
-                case typeid(uint16):
-                    name.Printf("%s", u16Firmware[nParams*model + 0]);
-                    pathAndFile.Printf("%s/%s", firmwarePath, u16Firmware[nParams*model + 1]);
-                    signature.Printf("%s", u16Firmware[nParams*model + 2]);
-                    ret = true;
-                    break;
-                case typeid(int16):
-                    name.Printf("%s", i16Firmware[nParams*model + 0]);
-                    pathAndFile.Printf("%s/%s", firmwarePath, i16Firmware[nParams*model + 1]);
-                    signature.Printf("%s", i16Firmware[nParams*model + 2]);
-                    ret = true;
-                    break;
-                case typeid(uint32):
-                    name.Printf("%s", u32Firmware[nParams*model + 0]);
-                    pathAndFile.Printf("%s/%s", firmwarePath, u32Firmware[nParams*model + 1]);
-                    signature.Printf("%s", u32Firmware[nParams*model + 2]);
-                    ret = true;
-                    break;
-                case typeid(int32):
-                    name.Printf("%s", i32Firmware[nParams*model + 0]);
-                    pathAndFile.Printf("%s/%s", firmwarePath, i32Firmware[nParams*model + 1]);
-                    signature.Printf("%s", i32Firmware[nParams*model + 2]);
-                    ret = true;
-                    break;
-                case typeid(uint64):
-                    name.Printf("%s", u64Firmware[nParams*model + 0]);
-                    pathAndFile.Printf("%s/%s", firmwarePath, u64Firmware[nParams*model + 1]);
-                    signature.Printf("%s", u64Firmware[nParams*model + 2]);
-                    ret = true;
-                    break;
-                case typeid(int64):
-                    name.Printf("%s", i64Firmware[nParams*model + 0]);
-                    pathAndFile.Printf("%s/%s", firmwarePath, i64Firmware[nParams*model + 1]);
-                    signature.Printf("%s", i64Firmware[nParams*model + 2]);
-                    ret = true;
-                    break;
-                default:
-                    ret = false;
+            if (typeid(T) == typeid(uint8)) {
+                name.Printf("%s", u8Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, u8Firmware[nParams*model + 1]);
+                signature.Printf("%s", u8Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else if (typeid(T) == typeid(int8)) {
+                name.Printf("%s", i8Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, i8Firmware[nParams*model + 1]);
+                signature.Printf("%s", i8Firmware[nParams*model + 2]);
+                ret = true;
+ 	    }
+            else if (typeid(T) == typeid(uint16)) {
+                name.Printf("%s", u16Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, u16Firmware[nParams*model + 1]);
+                signature.Printf("%s", u16Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else if (typeid(T) == typeid(int16)) {
+                name.Printf("%s", i16Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, i16Firmware[nParams*model + 1]);
+                signature.Printf("%s", i16Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else if (typeid(T) == typeid(uint32)) {
+                name.Printf("%s", u32Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, u32Firmware[nParams*model + 1]);
+                signature.Printf("%s", u32Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else if (typeid(T) == typeid(int32)) {
+                name.Printf("%s", i32Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, i32Firmware[nParams*model + 1]);
+                signature.Printf("%s", i32Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else if (typeid(T) == typeid(uint64)) {
+                name.Printf("%s", u64Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, u64Firmware[nParams*model + 1]);
+                signature.Printf("%s", u64Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else if (typeid(T) == typeid(int64)) {
+                name.Printf("%s", i64Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, i64Firmware[nParams*model + 1]);
+                signature.Printf("%s", i64Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else {            
+                ret = false;
             }
         }
         if (ret) {
@@ -421,37 +422,35 @@ bool NI9157DeviceOperatorTTest<T>::TestNiWriteReadFifo(uint32 model,
         NI9157DeviceOperatorT<T> niOperator(interface);
         uint32 fifow;
         uint32 fifor;
-        ret &= (niOperator.FindResource(writeVarName, fifow) == 0);
+        ret = (niOperator.FindResource(writeVarName, fifow) == 0);
         ret &= (niOperator.FindResource(readVarName, fifor) == 0);
-    }
-    if (ret) {
-        const uint32 numberOfElements = 1000;
-        uint32 oldSize = 0u;
-        ret &= (interface->NiConfigureFifo(fifow, numberOfElements, oldSize) == 0);
-        ret &= (interface->NiConfigureFifo(fifor, numberOfElements, oldSize) == 0);
-    }
-    if (ret) {
-        T dataw[numberOfElements];
-        T datar[numberOfElements];
-        for (uint32 i = 0u; i < numberOfElements; i++) {
-            dataw[i] = (T) i;
-        }
         if (ret) {
+            const uint32 numberOfElements = 1000;
+            uint32 oldSize = 0u;
+            ret = (interface->NiConfigureFifo(fifow, numberOfElements, oldSize) == 0);
+            ret &= (interface->NiConfigureFifo(fifor, numberOfElements, oldSize) == 0);
             if (ret) {
-                ret = interface->Run() == 0;
-            }
-            if (ret) {
-                ret = interface->IsRunning() == 1;
-            }
-            if (ret) {
-                uint32 emptyElementsRemaining = 0u;
-                ret = (niOperator.NiWriteFifo(fifow, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
-            }
-            if (ret) {
-                uint32 elementsRemaining = 0u;
-                ret = (niOperator.NiReadFifo(fifor, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
-                for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
-                    ret = (datar[i] == (T) i);
+                T dataw[numberOfElements];
+                T datar[numberOfElements];
+                for (uint32 i = 0u; i < numberOfElements; i++) {
+                    dataw[i] = (T) i;
+                }
+                if (ret) {
+                    ret = interface->Run() == 0;
+                }
+                if (ret) {
+                    ret = interface->IsRunning() == 1;
+                }
+                if (ret) {
+                    uint32 emptyElementsRemaining = 0u;
+                    ret = (niOperator.NiWriteFifo(fifow, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
+                    if (ret) {
+                        uint32 elementsRemaining = 0u;
+                        ret = (niOperator.NiReadFifo(fifor, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
+                        for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
+                            ret = (datar[i] == (T) i);
+                        }
+                    }
                 }
             }
         }
