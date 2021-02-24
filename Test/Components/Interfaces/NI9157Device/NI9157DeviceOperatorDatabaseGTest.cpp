@@ -52,7 +52,7 @@ TEST(NI9157DeviceOperatorDatabaseGTest,TestGetCreateNI9157DeviceOperatorFromType
 
 TEST(NI9157DeviceOperatorDatabaseGTest,TestGetNI9157DeviceOperatorFromName_Bool) {
     NI9157DeviceOperatorDatabaseTest test;
-    uint8 x=0;
+    bool x=0;
     ASSERT_TRUE(test.TestGetNI9157DeviceOperatorFromName("NI9157DeviceBool", x));
 }
 

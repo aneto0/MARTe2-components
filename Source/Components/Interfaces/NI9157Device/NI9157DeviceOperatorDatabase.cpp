@@ -100,18 +100,20 @@ CreateNI9157DeviceOperatorI *GetCreateNI9157DeviceOperator(const char8 * const n
         }
         i++;
     }
+
     return createNI9157DeviceOperatorIList[i];
 }
 
 CreateNI9157DeviceOperatorI *GetCreateNI9157DeviceOperator(const TypeDescriptor &td) {
-    //skip the bool
-    uint8 i = 1u;
+
+    uint8 i = 0u;
     while (createNI9157DeviceOperatorIList[i] != NULL_PTR(CreateNI9157DeviceOperatorI *)) {
         if (createNI9157DeviceOperatorIList[i]->GetTypeDescriptor() == td) {
             break;
         }
         i++;
     }
+
     return createNI9157DeviceOperatorIList[i];
 }
 
@@ -126,12 +128,14 @@ NI9157DeviceOperatorTI *GetNI9157DeviceOperator(const char8 * const niDevId,
         }
         i++;
     }
+
     return ret;
 }
 
 NI9157DeviceOperatorTI *GetNI9157DeviceOperator(const TypeDescriptor &td,
                                                 ReferenceT<NI9157Device> niDev) {
-    uint8 i = 1u;
+
+    uint8 i = 0u;
     NI9157DeviceOperatorTI *ret = NULL_PTR(NI9157DeviceOperatorTI *);
     while (createNI9157DeviceOperatorIList[i] != NULL) {
         if (createNI9157DeviceOperatorIList[i]->GetTypeDescriptor() == td) {
@@ -139,6 +143,7 @@ NI9157DeviceOperatorTI *GetNI9157DeviceOperator(const TypeDescriptor &td,
         }
         i++;
     }
+
     return ret;
 }
 

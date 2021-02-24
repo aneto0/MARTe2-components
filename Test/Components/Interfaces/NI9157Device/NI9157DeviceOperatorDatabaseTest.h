@@ -42,39 +42,39 @@
 using namespace MARTe;
 
 /**
- * @brief Tests the NI9157DeviceOperatorDatabase methods
+ * @brief Tests the NI9157DeviceOperatorDatabase methods.
  */
 class NI9157DeviceOperatorDatabaseTest {
 public:
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     NI9157DeviceOperatorDatabaseTest();
 
     /**
-     * @brief Destructor
+     * @brief Destructor.
      */
     virtual ~NI9157DeviceOperatorDatabaseTest();
 
     /**
-     * @brief Tests the NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperatorFromName
+     * @brief Tests the NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperatorFromName.
      */
     bool TestGetCreateNI9157DeviceOperatorFromName();
 
     /**
-     * @brief Tests the NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperatorFromTypeDes
+     * @brief Tests the NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperatorFromTypeDes.
      */
     bool TestGetCreateNI9157DeviceOperatorFromTypeDes();
 
     /**
-     * @brief Tests the NI9157DeviceOperatorDatabase::GetNI9157DeviceOperatorFromName
+     * @brief Tests the NI9157DeviceOperatorDatabase::GetNI9157DeviceOperatorFromName.
      */
     template<typename T>
     bool TestGetNI9157DeviceOperatorFromName(const char8 *opName, T type);
 
     /**
-     * @brief Tests the NI9157DeviceOperatorDatabase::GetNI9157DeviceOperatorFromTypeDes
+     * @brief Tests the NI9157DeviceOperatorDatabase::GetNI9157DeviceOperatorFromTypeDes.
      */
     template<typename T>
     bool TestGetNI9157DeviceOperatorFromTypeDes(TypeDescriptor opType, T type);

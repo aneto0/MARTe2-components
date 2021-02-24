@@ -236,7 +236,7 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
             }
         }
     }
-    REPORT_ERROR(ErrorManagement::Information, "Initialised!");
+    REPORT_ERROR(ErrorManagement::Information, "Initialised returning %s with NI session=%d and status=%d", ret ? "true" : "false", (int32)session, (int32)status);
     return ret;
 }
 

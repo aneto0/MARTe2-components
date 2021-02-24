@@ -91,46 +91,75 @@ public:
     /**
      * @brief Tests the NI9157DeviceOperatorT::FindResource method
      */
-    bool TestFindResource(const char8* resourceName);
+    bool TestFindResource(uint32 model,
+                    const char8* resourceName);
 
     /**
-     * @brief Tests the NI9157DeviceOperatorT::NiRead method
+     * @brief Tests the NI9157DeviceOperatorT::NiWrite and NI9157DeviceOperatorT::NiRead
+     * methods
      */
-    bool TestNiRead(const char8 *readVarName,
-                    const char8 *writeVarName);
+    bool TestNiWriteRead(uint32 model,
+                    const char8 *writeVarName,
+                    const char8 *readVarName);
 
     /**
-     * @brief Tests the NI9157DeviceOperatorT::NiWrite method
+     * @brief Tests the NI9157DeviceOperatorT::NiWriteFifo and NI9157DeviceOperatorT::NiReadFifo
+     * methods
      */
-    bool TestNiWrite(const char8 *readVarName,
-                     const char8 *writeVarName);
-
-    /**
-     * @brief Tests the NI9157DeviceOperatorT::NiReadFifo method
-     */
-    bool TestNiReadFifo(const char8 *fileName,
-                        const char8* signature,
-                        const char8 *readVarName,
-                        const char8 *writeVarName);
-
-    /**
-     * @brief Tests the NI9157DeviceOperatorT::NiWriteFifo method
-     */
-    bool TestNiWriteFifo(const char8 *fileName,
-                         const char8* signature,
-                         const char8 *readVarName,
-                         const char8 *writeVarName);
+    bool TestNiWriteReadFifo(uint32 model,
+                        const char8 *writeVarName,
+                        const char8 *readVarName);
 
     /**
      * @brief Tests the NI9157DeviceOperatorT::GetNI9157Device method
      */
-    bool TestGetNI9157Device();
+    bool TestGetNI9157Device(uint32 model);
 
 };
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+static const uint32 nParams                   = 3;
+static const char8 * const firmwarePath       = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles/";
+static const char8 * const multiIOFirmware[]  = ["RIO0", "NiFpga_NI9159_MultiIOSimplified.lvbitx", "123456789"];
+static const char8 * const u8Firmware[]       = ["RIO0", "NiFpga_NI9159_U8FifoLoop.lvbitx", "123456789"];
+static const char8 * const i8Firmware[]       = ["RIO0", "NiFpga_NI9159_I8FifoLoop.lvbitx", "123456789"];
+static const char8 * const u16Firmware[]      = ["RIO0", "NiFpga_NI9159_U16FifoLoop.lvbitx", "123456789"];
+static const char8 * const i16Firmware[]      = ["RIO0", "NiFpga_NI9159_I16FifoLoop.lvbitx", "123456789"];
+static const char8 * const u32Firmware[]      = ["RIO0", "NiFpga_NI9159_U32FifoLoop.lvbitx", "123456789"];
+static const char8 * const i32Firmware[]      = ["RIO0", "NiFpga_NI9159_I32FifoLoop.lvbitx", "123456789"];
+static const char8 * const u64Firmware[]      = ["RIO0", "NiFpga_NI9159_U64FifoLoop.lvbitx", "123456789"];
+static const char8 * const i64Firmware[]      = ["RIO0", "NiFpga_NI9159_I64FifoLoop.lvbitx", "123456789"];
+
+static const char8 * const multiIoConfig = ""
+    "+NiDevice = {"
+    "    Class = NI9157Device"
+    "    NiRioDeviceName = XptoDevice"
+    "    NiRioGenFile = XptoPath"
+    "    NiRioGenSignature = XptoSignature"
+    "    Open = 0"
+    "    Configuration = {"
+    "        ControlBool_stop = 0"
+    "        ControlBool_use_dsfifo_data = 0"
+    "        ControlBool_use_counter = 1"
+    "        ControlU32_cycle_ticks = 200"
+    "        ControlU64_packet_size = 1"
+    "    }"
+    "}";
+
+static const char8 * const fifoLoopConfig = ""
+    "+NiDevice = {"
+    "    Class = NI9157Device"
+    "    NiRioDeviceName = XptoDevice"
+    "    NiRioGenFile = XptoPath"
+    "    NiRioGenSignature = XptoSignature"
+    "    Open = 1"
+    "    Configuration = {"
+    "        ControlU32_cycle_ticks = 40000"
+    "    }"
+    "}";
+
 template<typename T>
 NI9157DeviceOperatorTTest<T>::NI9157DeviceOperatorTTest() {
 }
@@ -174,49 +203,32 @@ bool NI9157DeviceOperatorTTest<T>::TestCopy(T source) {
 }
 
 template<typename T>
-bool NI9157DeviceOperatorTTest<T>::TestFindResource(const char8* resourceName) {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_stop2 = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}";
+bool NI9157DeviceOperatorTTest<T>::TestFindResource(uint32 model,
+                                            const char8* resourceName) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveRelative("Configuration");
+        // Change....
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = god->Initialise(cdb);
     }
-
     ReferenceT<NI9157Device> interface;
-
     if (ret) {
         interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
         ret = interface.IsValid();
@@ -233,57 +245,41 @@ bool NI9157DeviceOperatorTTest<T>::TestFindResource(const char8* resourceName) {
     if (ret) {
         NI9157DeviceOperatorT<T> niOperator(interface);
         uint32 varDescriptor;
-        ret &= (niOperator.FindResource(resourceName, varDescriptor) == 0);
+        ret = (niOperator.FindResource(resourceName, varDescriptor) == 0);
     }
-
     ret &= interface->Close() == 0;
+
     return ret;
 }
 
 template<typename T>
-bool NI9157DeviceOperatorTTest<T>::TestNiRead(const char8 *readVarName,
-                                              const char8 *writeVarName) {
-                                                
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_stop2 = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}";
+bool NI9157DeviceOperatorTTest<T>::TestNiWriteRead(uint32 model,
+                                            const char8 *writeVarName,
+                                            const char8 *readVarName) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveRelative("Configuration");
+        // Change....
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = god->Initialise(cdb);
     }
-
     ReferenceT<NI9157Device> interface;
-
     if (ret) {
         interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
         ret = interface.IsValid();
@@ -307,72 +303,185 @@ bool NI9157DeviceOperatorTTest<T>::TestNiRead(const char8 *readVarName,
         NI9157DeviceOperatorT<T> niOperator(interface);
         uint32 contrDescriptor;
         uint32 varDescriptor;
-
-        ret &= (niOperator.FindResource(readVarName, varDescriptor) == 0);
+        ret = (niOperator.FindResource(readVarName, varDescriptor) == 0);
         ret &= (niOperator.FindResource(writeVarName, contrDescriptor) == 0);
-
-        uint64 rU64 = 1;
-        ret &= (niOperator.NiWrite(contrDescriptor, &rU64) == 0);
-        uint64 valueU64 = 0;
-        ret &= (niOperator.NiRead(varDescriptor, &valueU64) == 0);
-        ret &= (valueU64 == rU64);
-
     }
-
+    if (ret) {
+        T writeVal = 1;
+        ret = (niOperator.NiWrite(contrDescriptor, &writeVal) == 0);
+        T readVal = 0;
+        ret &= (niOperator.NiRead(varDescriptor, &readVal) == 0);
+        ret &= (readVal == writeVal);
+    }
     ret &= interface->Reset() == 0;
     ret &= interface->Close() == 0;
+
     return ret;
 }
 
 template<typename T>
-bool NI9157DeviceOperatorTTest<T>::TestNiWrite(const char8 *readVarName,
-                                               const char8 *writeVarName) {
-    return TestNiRead(readVarName, writeVarName);
-}
-
-template<typename T>
-bool NI9157DeviceOperatorTTest<T>::TestGetNI9157Device() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_stop2 = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}";
+bool NI9157DeviceOperatorTTest<T>::TestNiWriteReadFifo(uint32 model,
+                                                  const char8 *writeVarName,
+                                                  const char8 *readVarName) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = fifoLoopConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        if (ret) { 
+            switch(typeid(T)) {
+                case typeid(uint8):
+                    const char8 * const name = u8Firmware[nParams*model + 0];
+                    const char8 * const file = firmwarePath + u8Firmware[nParams*model + 1];
+                    const char8 * const signature = uFirmware[nParams*model + 2];
+                    ret = true;
+                    break;
+                case typeid(int8):
+                    const char8 * const name = i8Firmware[nParams*model + 0];
+                    const char8 * const file = firmwarePath + i8Firmware[nParams*model + 1];
+                    const char8 * const signature = i8Firmware[nParams*model + 2];
+                    ret = true;
+                    break;
+                case typeid(uint16):
+                    const char8 * const name = u16Firmware[nParams*model + 0];
+                    const char8 * const file = firmwarePath + u16Firmware[nParams*model + 1];
+                    const char8 * const signature = u16Firmware[nParams*model + 2];
+                    ret = true;
+                    break;
+                case typeid(int16):
+                    const char8 * const name = i16Firmware[nParams*model + 0];
+                    const char8 * const file = firmwarePath + i16Firmware[nParams*model + 1];
+                    const char8 * const signature = i16Firmware[nParams*model + 2];
+                    ret = true;
+                    break;
+                case typeid(uint32):
+                    const char8 * const name = u32Firmware[nParams*model + 0];
+                    const char8 * const file = firmwarePath + u32Firmware[nParams*model + 1];
+                    const char8 * const signature = u32Firmware[nParams*model + 2];
+                    ret = true;
+                    break;
+                case typeid(int32):
+                    const char8 * const name = i32Firmware[nParams*model + 0];
+                    const char8 * const file = firmwarePath + i32Firmware[nParams*model + 1];
+                    const char8 * const signature = i32Firmware[nParams*model + 2];
+                    ret = true;
+                    break;
+                case typeid(uint64):
+                    const char8 * const name = u64Firmware[nParams*model + 0];
+                    const char8 * const file = firmwarePath + u64Firmware[nParams*model + 1];
+                    const char8 * const signature = u64Firmware[nParams*model + 2];
+                    ret = true;
+                    break;
+                case typeid(int64):
+                    const char8 * const name = i64Firmware[nParams*model + 0];
+                    const char8 * const file = firmwarePath + i64Firmware[nParams*model + 1];
+                    const char8 * const signature = i64Firmware[nParams*model + 2];
+                    ret = true;
+                    break;
+                default:
+                    const char8 * const name = "";
+                    const char8 * const file = "";
+                    const char8 * const signature = "";
+                    ret = false;
+            }
+        }
+        if (ret) {
+            ret = cdb.Write("NiRioDeviceName", name);
+            ret &= cdb.Write("NiRioGenFile", file);
+            ret &= cdb.Write("NiRioGenSignature", signature);
+            ret &= cdb.MoveRelative("Configuration");
+            // Change....
+            ret &= cdb.MoveToRoot();
+        }
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = god->Initialise(cdb);
     }
+    ReferenceT < NI9157Device > interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+    if (ret) {
+        ret = interface->IsOpened() == 1;
+    }
+    if (ret) {
+        NI9157DeviceOperatorT<T> niOperator(interface);
+        uint32 fifow;
+        uint32 fifor;
+        ret &= (niOperator.FindResource(writeVarName, fifow) == 0);
+        ret &= (niOperator.FindResource(readVarName, fifor) == 0);
+    }
+    if (ret) {
+        const uint32 numberOfElements = 1000;
+        uint32 oldSize = 0u;
+        ret &= (interface->NiConfigureFifo(fifow, numberOfElements, oldSize) == 0);
+        ret &= (interface->NiConfigureFifo(fifor, numberOfElements, oldSize) == 0);
+    }
+    if (ret) {
+        T dataw[numberOfElements];
+        T datar[numberOfElements];
+        for (uint32 i = 0u; i < numberOfElements; i++) {
+            dataw[i] = (T) i;
+        }
+        if (ret) {
+            if (ret) {
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            if (ret) {
+                uint32 emptyElementsRemaining = 0u;
+                ret = (niOperator.NiWriteFifo(fifow, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
+            }
+            if (ret) {
+                uint32 elementsRemaining = 0u;
+                ret = (niOperator.NiReadFifo(fifor, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
+                for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
+                    ret = (datar[i] == (T) i);
+                }
+            }
+        }
+    }
 
+    return ret;
+}
+
+template<typename T>
+bool NI9157DeviceOperatorTTest<T>::TestGetNI9157Device(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIoConfig;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveRelative("Configuration");
+        // Change....
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
     ReferenceT<NI9157Device> interface;
-
     if (ret) {
         interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
         ret = interface.IsValid();
@@ -390,105 +499,9 @@ bool NI9157DeviceOperatorTTest<T>::TestGetNI9157Device() {
         NI9157DeviceOperatorT<T> niOperator(interface);
         ret = (niOperator.GetNI9157Device() == interface);
     }
-
     ret &= interface->Close() == 0;
-    return ret;
-}
-
-template<typename T>
-bool NI9157DeviceOperatorTTest<T>::TestNiReadFifo(const char8 *fileName,
-                                                  const char8* signature,
-                                                  const char8 *readVarName,
-                                                  const char8 *writeVarName) {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_Untitled1_ControlU32_period = 40000"
-            "    }"
-            "}";
-
-    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-    ConfigurationDatabase cdb;
-    StreamString configStream = config;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ret = parser.Parse();
-
-    ret&=cdb.MoveAbsolute("+NiDevice");
-    ret&=cdb.Write("NiRioGenFile", fileName);
-    ret&=cdb.Write("NiRioGenSignature", signature);
-    ret&=cdb.MoveToRoot();
-
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-
-    if (ret) {
-        god->Purge();
-        ret = god->Initialise(cdb);
-    }
-
-    ReferenceT < NI9157Device > interface;
-
-    if (ret) {
-        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
-        ret = interface.IsValid();
-    }
-    if (ret) {
-        ret = interface->IsOpened() == 1;
-    }
-    if (ret) {
-        NI9157DeviceOperatorT<T> niOperator(interface);
-        uint32 fifow;
-        uint32 fifor;
-        ret &= (niOperator.FindResource(writeVarName, fifow) == 0);
-        ret &= (niOperator.FindResource(readVarName, fifor) == 0);
-
-        const uint32 numberOfElements = 1000;
-
-        uint32 oldSize = 0u;
-        ret &= (interface->NiConfigureFifo(fifow, numberOfElements, oldSize) == 0);
-        ret &= (interface->NiConfigureFifo(fifor, numberOfElements, oldSize) == 0);
-        T dataw[numberOfElements];
-        T datar[numberOfElements];
-
-        for (uint32 i = 0u; i < numberOfElements; i++) {
-            dataw[i] = (T) i;
-        }
-        if (ret) {
-            if (ret) {
-                ret = interface->Run() == 0;
-            }
-            if (ret) {
-                ret = interface->IsRunning() == 1;
-            }
-
-            uint32 emptyElementsRemaining = 0u;
-            ret = (niOperator.NiWriteFifo(fifow, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
-
-            if (ret) {
-                uint32 elementsRemaining = 0u;
-                ret = (niOperator.NiReadFifo(fifor, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
-
-                for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
-                    ret = datar[i] == (T) i;
-                    //printf("datar[%d]=%d\n", i, datar[i]);
-                }
-            }
-        }
-    }
 
     return ret;
-}
-
-template<typename T>
-bool NI9157DeviceOperatorTTest<T>::TestNiWriteFifo(const char8 *fileName,
-                                                   const char8* signature,
-                                                   const char8 *readVarName,
-                                                   const char8 *writeVarName) {
-    return TestNiReadFifo(fileName, signature, readVarName, writeVarName);
 }
 
 #endif /* NI9157DEVICEOPERATORTTEST_H_ */

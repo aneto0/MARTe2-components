@@ -37,6 +37,17 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+/**
+ * The number of devices to be test. Must match firmware config paths.
+ */
+static uint32 nDevices = 1;
+
+/**
+ * Test for all devices (true) or until one matches the firmware config paths
+ * (false).
+ */
+static bool testAll = false;
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -47,185 +58,402 @@ TEST(NI9157DeviceGTest,TestConstructor) {
 
 TEST(NI9157DeviceGTest,TestInitialise) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestInitialise());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise(idx);
+        }
+        else {
+            ret = test.TestInitialise(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceGTest,TestInitialiseIsOpened) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestInitialiseIsOpened());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialiseIsOpened(idx);
+        }
+        else {
+            ret = test.TestInitialiseIsOpened(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceGTest,TestInitialiseRandomConfig) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestInitialiseRandomConfig());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialiseRandomConfig(idx);
+        }
+        else {
+            ret = test.TestInitialiseRandomConfig(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceGTest,TestInitialise_FalseNoDeviceName) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestInitialise_FalseNoDeviceName());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_FalseNoDeviceName(idx);
+        }
+        else {
+            ret = test.TestInitialise_FalseNoDeviceName(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceGTest,TestInitialise_FalseNoGenFile) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestInitialise_FalseNoGenFile());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_FalseNoGenFile(idx);
+        }
+        else {
+            ret = test.TestInitialise_FalseNoGenFile(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceGTest,TestInitialise_FalseNoGenSignature) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestInitialise_FalseNoGenSignature());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_FalseNoGenSignature(idx);
+        }
+        else {
+            ret = test.TestInitialise_FalseNoGenSignature(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceGTest,TestInitialise_FalseNoType) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestInitialise_FalseNoType());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_FalseNoType(idx);
+        }
+        else {
+            ret = test.TestInitialise_FalseNoType(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceGTest,TestInitialise_FalseVariableNotFound) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestInitialise_FalseVariableNotFound());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_FalseVariableNotFound(idx);
+        }
+        else {
+            ret = test.TestInitialise_FalseVariableNotFound(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestOpen) {
+TEST(NI9157DeviceGTest,TestOpenIsOpened) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestOpen());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestOpenIsOpened(idx);
+        }
+        else {
+            ret = test.TestOpenIsOpened(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestRun) {
+TEST(NI9157DeviceGTest,TestRunIsRunning) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestRun());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestRunIsRunning(idx);
+        }
+        else {
+            ret = test.TestRunIsRunning(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestIsOpened) {
+TEST(NI9157DeviceGTest,TestGetSessionResetClose) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestIsOpened());
-}
-
-TEST(NI9157DeviceGTest,TestIsRunning) {
-    NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestIsRunning());
-}
-
-TEST(NI9157DeviceGTest,TestGetSession) {
-    NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestGetSession());
-}
-
-TEST(NI9157DeviceGTest,TestReset) {
-    NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestReset());
-}
-
-TEST(NI9157DeviceGTest,TestClose) {
-    NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestClose());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestGetSessionResetClose(idx);
+        }
+        else {
+            ret = test.TestGetSessionResetClose(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceGTest,TestFindResource) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestFindResource());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestFindResource(idx);
+        }
+        else {
+            ret = test.TestFindResource(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceGTest,TestNiRead) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiRead());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiRead(idx);
+        }
+        else {
+            ret = test.TestNiRead(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceGTest,TestNiWrite) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiWrite());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiWrite(idx);
+        }
+        else {
+            ret = test.TestNiWrite(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceGTest,TestNiConfigureFifo) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiConfigureFifo());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiConfigureFifo(idx);
+        }
+        else {
+            ret = test.TestNiConfigureFifo(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceGTest,TestNiStartFifo) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiStartFifo());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiStartFifo(idx);
+        }
+        else {
+            ret = test.TestNiStartFifo(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceGTest,TestNiStopFifo) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiStopFifo());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiStopFifo(idx);
+        }
+        else {
+            ret = test.TestNiStopFifo(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestNiReadFifo_U8) {
+TEST(NI9157DeviceGTest,TestNiWriteReadFifo_U8) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiReadFifo_U8());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiWriteReadFifo_U8(idx);
+        }
+        else {
+            ret = test.TestNiWriteReadFifo_U8(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestNiWriteFifo_U8) {
+TEST(NI9157DeviceGTest,TestNiWriteReadFifo_U16) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiWriteFifo_U8());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiWriteReadFifo_U16(idx);
+        }
+        else {
+            ret = test.TestNiWriteReadFifo_U16(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestNiReadFifo_U16) {
+TEST(NI9157DeviceGTest,TestNiWriteReadFifo_U32) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiReadFifo_U16());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiWriteReadFifo_U32(idx);
+        }
+        else {
+            ret = test.TestNiWriteReadFifo_U32(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestNiWriteFifo_U16) {
+TEST(NI9157DeviceGTest,TestNiWriteReadFifo_U64) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiWriteFifo_U16());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiWriteReadFifo_U64(idx);
+        }
+        else {
+            ret = test.TestNiWriteReadFifo_U64(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestNiReadFifo_U32) {
+TEST(NI9157DeviceGTest,TestNiWriteReadFifo_I8) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiReadFifo_U32());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiWriteReadFifo_I8(idx);
+        }
+        else {
+            ret = test.TestNiWriteReadFifo_I8(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestNiWriteFifo_U32) {
+TEST(NI9157DeviceGTest,TestNiWriteReadFifo_I16) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiWriteFifo_U32());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiWriteReadFifo_I16(idx);
+        }
+        else {
+            ret = test.TestNiWriteReadFifo_I16(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestNiReadFifo_U64) {
+TEST(NI9157DeviceGTest,TestNiWriteReadFifo_I32) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiReadFifo_U64());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiWriteReadFifo_I32(idx);
+        }
+        else {
+            ret = test.TestNiWriteReadFifo_I32(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestNiWriteFifo_U64) {
+TEST(NI9157DeviceGTest,TestNiWriteReadFifo_I64) {
     NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiWriteFifo_U64());
-}
-
-TEST(NI9157DeviceGTest,TestNiReadFifo_I8) {
-    NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiReadFifo_I8());
-}
-
-TEST(NI9157DeviceGTest,TestNiWriteFifo_I8) {
-    NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiWriteFifo_I8());
-}
-
-TEST(NI9157DeviceGTest,TestNiReadFifo_I16) {
-    NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiReadFifo_I16());
-}
-
-TEST(NI9157DeviceGTest,TestNiWriteFifo_I16) {
-    NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiWriteFifo_I16());
-}
-
-TEST(NI9157DeviceGTest,TestNiReadFifo_I32) {
-    NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiReadFifo_I32());
-}
-
-TEST(NI9157DeviceGTest,TestNiWriteFifo_I32) {
-    NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiWriteFifo_I32());
-}
-
-TEST(NI9157DeviceGTest,TestNiReadFifo_I64) {
-    NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiReadFifo_I64());
-}
-
-TEST(NI9157DeviceGTest,TestNiWriteFifo_I64) {
-    NI9157DeviceTest test;
-    ASSERT_TRUE(test.TestNiWriteFifo_I64());
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiWriteReadFifo_I64(idx);
+        }
+        else {
+            ret = test.TestNiWriteReadFifo_I64(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }

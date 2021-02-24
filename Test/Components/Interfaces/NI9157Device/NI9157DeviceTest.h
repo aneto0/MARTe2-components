@@ -40,212 +40,183 @@
 using namespace MARTe;
 
 /**
- * @brief Tests the NI9157Device methods
+ * @brief Tests the NI9157Device methods.
  */
 class NI9157DeviceTest {
 public:
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     NI9157DeviceTest();
 
     /**
-     * @brief Destructor
+     * @brief Destructor.
      */
     virtual ~NI9157DeviceTest();
 
     /**
-     * @brief Tests the constructor
+     * @brief Tests the constructor.
      */
     bool TestConstructor();
 
     /**
-     * @brief Tests the NI9157Device::Initialise method
+     * @brief Tests the NI9157Device::Initialise method.
+     * @param model the NI crate model being used.
      */
-    bool TestInitialise();
+    bool TestInitialise(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method with parameter Open=1
+     * @brief Tests the NI9157Device::Initialise method with parameter Open=1.
+     * @param model the NI crate model being used.
      */
-    bool TestInitialiseIsOpened();
+    bool TestInitialiseIsOpened(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise mixing the variable types
+     * @brief Tests the NI9157Device::Initialise mixing the variable types.
+     * @param model the NI crate model being used.
      */
-    bool TestInitialiseRandomConfig();
+    bool TestInitialiseRandomConfig(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method that fails if NiRioDeviceName is not specified
+     * @brief Tests the NI9157Device::Initialise method that fails if NiRioDeviceName is not specified.
+     * @param model the NI crate model being used.
      */
-    bool TestInitialise_FalseNoDeviceName();
+    bool TestInitialise_FalseNoDeviceName(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method that fails if NiRioGenFile is not specified
+     * @brief Tests the NI9157Device::Initialise method that fails if NiRioGenFile is not specified.
+     * @param model the NI crate model being used.
      */
-    bool TestInitialise_FalseNoGenFile();
+    bool TestInitialise_FalseNoGenFile(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method that fails if NiRioGenSignature is not specified
+     * @brief Tests the NI9157Device::Initialise method that fails if NiRioGenSignature is not specified.
+     * @param model the NI crate model being used.
      */
-    bool TestInitialise_FalseNoGenSignature();
+    bool TestInitialise_FalseNoGenSignature(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::Initialise method that fails if the type id is not found in the variable
-     * to be initialised
+     * to be initialised.
+     * @param model the NI crate model being used.
      */
-    bool TestInitialise_FalseNoType();
+    bool TestInitialise_FalseNoType(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::Initialise method that fails if the type id is not found in the variable
-     * is not found in the Labview project
+     * is not found in the Labview project.
+     * @param model the NI crate model being used.
      */
-    bool TestInitialise_FalseVariableNotFound();
+    bool TestInitialise_FalseVariableNotFound(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Open method
+     * @brief Tests the NI9157Device::Open and NI9157Device::IsOpened
+     * methods.
+     * @param model the NI crate model being used.
      */
-    bool TestOpen();
+    bool TestOpenIsOpened(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Run method
+     * @brief Tests the NI9157Device::Run  and NI9157Device::IsRunning
+     * methods.
+     * @param model the NI crate model being used.
      */
-    bool TestRun();
+    bool TestRunIsRunning(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::IsOpened method
+     * @brief Tests the NI9157Device::GetSession, NI9157Device::Reset
+     * and NI9157Device::Close methods.
+     * @param model the NI crate model being used.
      */
-    bool TestIsOpened();
+    bool TestGetSessionResetClose(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::IsRunning method
+     * @brief Tests the NI9157Device::FindResource method.
+     * @param model the NI crate model being used.
      */
-    bool TestIsRunning();
+    bool TestFindResource(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::GetSession method
+     * @brief Tests the NI9157Device::NiRead method.
+     * @param model the NI crate model being used.
      */
-    bool TestGetSession();
+    bool TestNiRead(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Reset method
+     * @brief Tests the NI9157Device::NiWrite method.
+     * @param model the NI crate model being used.
      */
-    bool TestReset();
+    bool TestNiWrite(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Close method
+     * @brief Tests the NI9157Device::NiConfigureFifo method.
+     * @param model the NI crate model being used.
      */
-    bool TestClose();
+    bool TestNiConfigureFifo(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::FindResource method
+     * @brief Tests the NI9157Device::TestNiStartFifo and NI9157Device::NiStopFifo
+     * methods.
+     * @param model the NI crate model being used.
      */
-    bool TestFindResource();
+    bool TestNiStartStopFifo(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiRead method
+     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
+     * methods with uint8 input type.
+     * @param model the NI crate model being used.
      */
-    bool TestNiRead();
+    bool TestNiWriteReadFifo_U8(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiWrite method
+     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
+     * methods with uint16 input type.
+     * @param model the NI crate model being used.
      */
-    bool TestNiWrite();
+    bool TestNiWriteReadFifo_U16(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiConfigureFifo method
+     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
+     * methods with uint32 input type.
+     * @param model the NI crate model being used.
      */
-    bool TestNiConfigureFifo();
+    bool TestNiWriteReadFifo_U32(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::TestNiStartFifo method
+     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
+     * methods with uint64 input type.
+     * @param model the NI crate model being used.
      */
-    bool TestNiStartFifo();
+    bool TestNiWriteReadFifo_U64(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiStopFifo method
+     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
+     * methods with int8 input type.
+     * @param model the NI crate model being used.
      */
-    bool TestNiStopFifo();
+    bool TestNiWriteReadFifo_I8(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiReadFifo method with uint8 input type
+     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
+     * methods with int16 input type.
+     * @param model the NI crate model being used.
      */
-    bool TestNiReadFifo_U8();
+    bool TestNiWriteReadFifo_I16(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiWriteFifo method with uint8 input type
+     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
+     * methods with int32 input type.
+     * @param model the NI crate model being used.
      */
-    bool TestNiWriteFifo_U8();
+    bool TestNiWriteReadFifo_I32(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiReadFifo method with uint16 input type
+     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
+     * methods with int64 input type.
+     * @param model the NI crate model being used.
      */
-    bool TestNiReadFifo_U16();
-
-    /**
-     * @brief Tests the NI9157Device::NiWriteFifo method with uint16 input type
-     */
-    bool TestNiWriteFifo_U16();
-
-    /**
-     * @brief Tests the NI9157Device::NiReadFifo method with uint32 input type
-     */
-    bool TestNiReadFifo_U32();
-
-    /**
-     * @brief Tests the NI9157Device::NiWriteFifo method with uint32 input type
-     */
-    bool TestNiWriteFifo_U32();
-
-    /**
-     * @brief Tests the NI9157Device::NiReadFifo method with uint64 input type
-     */
-    bool TestNiReadFifo_U64();
-
-    /**
-     * @brief Tests the NI9157Device::NiWriteFifo method with uint64 input type
-     */
-    bool TestNiWriteFifo_U64();
-
-    /**
-     * @brief Tests the NI9157Device::NiReadFifo method with int8 input type
-     */
-    bool TestNiReadFifo_I8();
-
-    /**
-     * @brief Tests the NI9157Device::NiWriteFifo method with int8 input type
-     */
-    bool TestNiWriteFifo_I8();
-
-    /**
-     * @brief Tests the NI9157Device::NiReadFifo method with int16 input type
-     */
-    bool TestNiReadFifo_I16();
-
-    /**
-     * @brief Tests the NI9157Device::NiWriteFifo method with int16 input type
-     */
-    bool TestNiWriteFifo_I16();
-
-    /**
-     * @brief Tests the NI9157Device::NiReadFifo method with int32 input type
-     */
-    bool TestNiReadFifo_I32();
-
-    /**
-     * @brief Tests the NI9157Device::NiWriteFifo method with int32 input type
-     */
-    bool TestNiWriteFifo_I32();
-
-    /**
-     * @brief Tests the NI9157Device::NiReadFifo method with int64 input type
-     */
-    bool TestNiReadFifo_I64();
-
-    /**
-     * @brief Tests the NI9157Device::NiWriteFifo method with int64 input type
-     */
-    bool TestNiWriteFifo_I64();
+    bool TestNiWriteReadFifo_I64(uint32 model);
 
 };
 
