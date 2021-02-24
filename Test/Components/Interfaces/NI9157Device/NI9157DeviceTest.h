@@ -138,16 +138,10 @@ public:
     bool TestFindResource(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiRead method.
+     * @brief Tests the NI9157Device::NiWrite and NI9157Device::NiRead methods.
      * @param model the NI crate model being used.
      */
-    bool TestNiRead(uint32 model);
-
-    /**
-     * @brief Tests the NI9157Device::NiWrite method.
-     * @param model the NI crate model being used.
-     */
-    bool TestNiWrite(uint32 model);
+    bool TestNiWriteRead(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::NiConfigureFifo method.

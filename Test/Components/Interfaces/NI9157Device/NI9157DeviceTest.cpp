@@ -78,16 +78,16 @@ const char8 *NI9157DeviceTestIF::GetNiRioDeviceName() {
 CLASS_REGISTER(NI9157DeviceTestIF, "1.0")
 
 static const uint32 nParams                   = 3;
-static const char8 * const firmwarePath       = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles/";
-static const char8 * const multiIOFirmware[]  = ["RIO0", "NiFpga_NI9159_MultiIOSimplified.lvbitx", "123456789"];
-static const char8 * const u8Firmware[]       = ["RIO0", "NiFpga_NI9159_U8FifoLoop.lvbitx", "123456789"];
-static const char8 * const i8Firmware[]       = ["RIO0", "NiFpga_NI9159_I8FifoLoop.lvbitx", "123456789"];
-static const char8 * const u16Firmware[]      = ["RIO0", "NiFpga_NI9159_U16FifoLoop.lvbitx", "123456789"];
-static const char8 * const i16Firmware[]      = ["RIO0", "NiFpga_NI9159_I16FifoLoop.lvbitx", "123456789"];
-static const char8 * const u32Firmware[]      = ["RIO0", "NiFpga_NI9159_U32FifoLoop.lvbitx", "123456789"];
-static const char8 * const i32Firmware[]      = ["RIO0", "NiFpga_NI9159_I32FifoLoop.lvbitx", "123456789"];
-static const char8 * const u64Firmware[]      = ["RIO0", "NiFpga_NI9159_U64FifoLoop.lvbitx", "123456789"];
-static const char8 * const i64Firmware[]      = ["RIO0", "NiFpga_NI9159_I64FifoLoop.lvbitx", "123456789"];
+static const char8 * const firmwarePath       = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles";
+static const char8 * const multiIOFirmware[]  = ["RIO0", "NiFpga_NI9159_MultiIOSimplified.lvbitx", "1024E2A52B8A06451144CA194CBD81B3"];
+static const char8 * const u8Firmware[]       = ["RIO0", "NiFpga_NI9159_U8FifoLoop.lvbitx", "F61EE912789BA69AB9388C98C06307E8"];
+static const char8 * const i8Firmware[]       = ["RIO0", "NiFpga_NI9159_I8FifoLoop.lvbitx", "5A283FB9AF034F65871DE8FFE77F2DD0"];
+static const char8 * const u16Firmware[]      = ["RIO0", "NiFpga_NI9159_U16FifoLoop.lvbitx", "CDE04ED9C48BDC6C6A762870927EDCE4"];
+static const char8 * const i16Firmware[]      = ["RIO0", "NiFpga_NI9159_I16FifoLoop.lvbitx", "5495C30BD8A8438860BFC8DAC161088F"];
+static const char8 * const u32Firmware[]      = ["RIO0", "NiFpga_NI9159_U32FifoLoop.lvbitx", "FC05550126AD0B999EDBE8D000E69D91"];
+static const char8 * const i32Firmware[]      = ["RIO0", "NiFpga_NI9159_I32FifoLoop.lvbitx", "D7A8F3040B3B5F1D02B882E6016AB1AA"];
+static const char8 * const u64Firmware[]      = ["RIO0", "NiFpga_NI9159_U64FifoLoop.lvbitx", "52F330872695662BB3590B8B57820AB0"];
+static const char8 * const i64Firmware[]      = ["RIO0", "NiFpga_NI9159_I64FifoLoop.lvbitx", "8D17F6F9632E56982594198E5DCC4D69"];
 
 static const char8 * const multiIoConfig = ""
     "+NiDevice = {"
@@ -150,7 +150,9 @@ bool NI9157DeviceTest::TestInitialise(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -171,7 +173,7 @@ bool NI9157DeviceTest::TestInitialise(uint32 model) {
         ret = interface->IsOpened() == 0;
         ret &= interface->IsRunning() == 0;
         ret &= StringHelper::Compare(interface->GetNiRioDeviceName(), multiIOFirmware[nParams*model + 0]) == 0;
-        ret &= StringHelper::Compare(interface->GetNiRioGenFile(), multiIOFirmware[nParams*model + 1]) == 0;
+        ret &= StringHelper::Compare(interface->GetNiRioGenFile(), pathAndFile) == 0;
         ret &= StringHelper::Compare(interface->GetNiRioGenSignature(), multiIOFirmware[nParams*model + 2]) == 0;
     }
 
@@ -182,7 +184,7 @@ bool NI9157DeviceTest::TestInitialiseIsOpened(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -190,7 +192,9 @@ bool NI9157DeviceTest::TestInitialiseIsOpened(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.Write("Open", 1);
         ret &= cdb.MoveRelative("Configuration");
@@ -212,7 +216,7 @@ bool NI9157DeviceTest::TestInitialiseIsOpened(uint32 model) {
         ret = interface->IsOpened() == 1;
         ret &= interface->IsRunning() == 0;
         ret &= StringHelper::Compare(interface->GetNiRioDeviceName(), multiIOFirmware[nParams*model + 0]) == 0;
-        ret &= StringHelper::Compare(interface->GetNiRioGenFile(), multiIOFirmware[nParams*model + 1]) == 0;
+        ret &= StringHelper::Compare(interface->GetNiRioGenFile(), pathAndFile) == 0;
         ret &= StringHelper::Compare(interface->GetNiRioGenSignature(), multiIOFirmware[nParams*model + 2]) == 0;
     }
 
@@ -223,7 +227,7 @@ bool NI9157DeviceTest::TestInitialiseRandomConfig(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -231,7 +235,9 @@ bool NI9157DeviceTest::TestInitialiseRandomConfig(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         ret &= cdb.Write("ControlBool_stop", 1);
@@ -253,7 +259,7 @@ bool NI9157DeviceTest::TestInitialiseRandomConfig(uint32 model) {
         ret = interface->IsOpened() == 0;
         ret &= interface->IsRunning() == 0;
         ret &= StringHelper::Compare(interface->GetNiRioDeviceName(), multiIOFirmware[nParams*model + 0]) == 0;
-        ret &= StringHelper::Compare(interface->GetNiRioGenFile(), multiIOFirmware[nParams*model + 1]) == 0;
+        ret &= StringHelper::Compare(interface->GetNiRioGenFile(), pathAndFile) == 0;
         ret &= StringHelper::Compare(interface->GetNiRioGenSignature(), multiIOFirmware[nParams*model + 2]) == 0;
     }
 
@@ -264,7 +270,7 @@ bool NI9157DeviceTest::TestInitialise_FalseNoDeviceName(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -272,7 +278,9 @@ bool NI9157DeviceTest::TestInitialise_FalseNoDeviceName(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Delete("NiRioDeviceName");
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -292,7 +300,7 @@ bool NI9157DeviceTest::TestInitialise_FalseNoGenFile(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -320,7 +328,7 @@ bool NI9157DeviceTest::TestInitialise_FalseNoGenSignature(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -328,7 +336,9 @@ bool NI9157DeviceTest::TestInitialise_FalseNoGenSignature(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Delete("NiRioGenSignature");
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -348,7 +358,7 @@ bool NI9157DeviceTest::TestInitialise_FalseNoType(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -356,7 +366,9 @@ bool NI9157DeviceTest::TestInitialise_FalseNoType(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.Write("Open", 1);
         ret &= cdb.MoveRelative("Configuration");
@@ -378,7 +390,7 @@ bool NI9157DeviceTest::TestInitialise_FalseVariableNotFound(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -386,7 +398,9 @@ bool NI9157DeviceTest::TestInitialise_FalseVariableNotFound(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.Write("Open", 1);
         ret &= cdb.MoveRelative("Configuration");
@@ -407,7 +421,7 @@ bool NI9157DeviceTest::TestOpenIsOpened(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -415,7 +429,9 @@ bool NI9157DeviceTest::TestOpenIsOpened(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -449,7 +465,7 @@ bool NI9157DeviceTest::TestRunIsRunning(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -457,7 +473,9 @@ bool NI9157DeviceTest::TestRunIsRunning(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -494,7 +512,7 @@ bool NI9157DeviceTest::TestGetSessionResetClose(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -502,7 +520,9 @@ bool NI9157DeviceTest::TestGetSessionResetClose(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -548,7 +568,7 @@ bool NI9157DeviceTest::TestFindResource(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -556,7 +576,9 @@ bool NI9157DeviceTest::TestFindResource(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -619,11 +641,11 @@ bool NI9157DeviceTest::TestFindResource(uint32 model) {
     return ret;
 }
 
-bool NI9157DeviceTest::TestNiRead(uint32 model) {
+bool NI9157DeviceTest::TestNiWriteRead(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -631,7 +653,9 @@ bool NI9157DeviceTest::TestNiRead(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -744,15 +768,11 @@ bool NI9157DeviceTest::TestNiRead(uint32 model) {
     return ret;
 }
 
-bool NI9157DeviceTest::TestNiWrite() {
-    return TestNiRead();
-}
-
 bool NI9157DeviceTest::TestNiConfigureFifo(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -760,7 +780,9 @@ bool NI9157DeviceTest::TestNiConfigureFifo(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -804,7 +826,7 @@ bool NI9157DeviceTest::TestNiStartStopFifo() {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIoConfig;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -812,7 +834,9 @@ bool NI9157DeviceTest::TestNiStartStopFifo() {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -865,7 +889,9 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_U8(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", u8Firmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + u8Firmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, u8Firmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", u8Firmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -942,7 +968,9 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_U16(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", u16Firmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + u16Firmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, u16Firmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", u16Firmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -1016,7 +1044,9 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_U32(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", u32Firmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + u32Firmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, u32Firmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", u32Firmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -1091,7 +1121,9 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_U64() {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", u64Firmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + u64Firmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, u64Firmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", u64Firmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -1165,7 +1197,9 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_I8(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", i8Firmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + i8Firmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, i8Firmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", i8Firmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -1239,7 +1273,9 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_I16(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", i16Firmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + i16Firmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, i16Firmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", i16Firmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -1313,7 +1349,9 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_I32(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", i32Firmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + i32Firmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, i32Firmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", i32Firmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -1387,7 +1425,9 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_I64(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", i64Firmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + i64Firmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, i64Firmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", i64Firmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....

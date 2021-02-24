@@ -256,8 +256,6 @@ TEST(NI9157DeviceOperatorTGTest,TestCopy_I64) {
     ASSERT_TRUE(test.TestCopy(0x7fffffffffffffff));
 }
 
-////////
-
 TEST(NI9157DeviceOperatorTGTest,TestFindResource_U8) {
     NI9157DeviceOperatorTTest<uint8> test;
     bool ret = true;

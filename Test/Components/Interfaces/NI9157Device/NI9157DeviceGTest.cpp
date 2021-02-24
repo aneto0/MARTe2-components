@@ -250,30 +250,14 @@ TEST(NI9157DeviceGTest,TestFindResource) {
     ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestNiRead) {
+TEST(NI9157DeviceGTest,TestNiWriteRead) {
     NI9157DeviceTest test;
     for (uint32 idx = 0; idx < nDevices; idx++) {
         if(testAll) {
-            ret &= test.TestNiRead(idx);
+            ret &= test.TestNiWriteRead(idx);
         }
         else {
-            ret = test.TestNiRead(idx);
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceGTest,TestNiWrite) {
-    NI9157DeviceTest test;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
-            ret &= test.TestNiWrite(idx);
-        }
-        else {
-            ret = test.TestNiWrite(idx);
+            ret = test.TestNiWriteRead(idx);
             if (ret) {
                 break;
             }

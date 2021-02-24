@@ -121,16 +121,16 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 static const uint32 nParams                   = 3;
-static const char8 * const firmwarePath       = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles/";
-static const char8 * const multiIOFirmware[]  = ["RIO0", "NiFpga_NI9159_MultiIOSimplified.lvbitx", "123456789"];
-static const char8 * const u8Firmware[]       = ["RIO0", "NiFpga_NI9159_U8FifoLoop.lvbitx", "123456789"];
-static const char8 * const i8Firmware[]       = ["RIO0", "NiFpga_NI9159_I8FifoLoop.lvbitx", "123456789"];
-static const char8 * const u16Firmware[]      = ["RIO0", "NiFpga_NI9159_U16FifoLoop.lvbitx", "123456789"];
-static const char8 * const i16Firmware[]      = ["RIO0", "NiFpga_NI9159_I16FifoLoop.lvbitx", "123456789"];
-static const char8 * const u32Firmware[]      = ["RIO0", "NiFpga_NI9159_U32FifoLoop.lvbitx", "123456789"];
-static const char8 * const i32Firmware[]      = ["RIO0", "NiFpga_NI9159_I32FifoLoop.lvbitx", "123456789"];
-static const char8 * const u64Firmware[]      = ["RIO0", "NiFpga_NI9159_U64FifoLoop.lvbitx", "123456789"];
-static const char8 * const i64Firmware[]      = ["RIO0", "NiFpga_NI9159_I64FifoLoop.lvbitx", "123456789"];
+static const char8 * const firmwarePath       = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles";
+static const char8 * const multiIOFirmware[]  = ["RIO0", "NiFpga_NI9159_MultiIOSimplified.lvbitx", "1024E2A52B8A06451144CA194CBD81B3"];
+static const char8 * const u8Firmware[]       = ["RIO0", "NiFpga_NI9159_U8FifoLoop.lvbitx", "F61EE912789BA69AB9388C98C06307E8"];
+static const char8 * const i8Firmware[]       = ["RIO0", "NiFpga_NI9159_I8FifoLoop.lvbitx", "5A283FB9AF034F65871DE8FFE77F2DD0"];
+static const char8 * const u16Firmware[]      = ["RIO0", "NiFpga_NI9159_U16FifoLoop.lvbitx", "CDE04ED9C48BDC6C6A762870927EDCE4"];
+static const char8 * const i16Firmware[]      = ["RIO0", "NiFpga_NI9159_I16FifoLoop.lvbitx", "5495C30BD8A8438860BFC8DAC161088F"];
+static const char8 * const u32Firmware[]      = ["RIO0", "NiFpga_NI9159_U32FifoLoop.lvbitx", "FC05550126AD0B999EDBE8D000E69D91"];
+static const char8 * const i32Firmware[]      = ["RIO0", "NiFpga_NI9159_I32FifoLoop.lvbitx", "D7A8F3040B3B5F1D02B882E6016AB1AA"];
+static const char8 * const u64Firmware[]      = ["RIO0", "NiFpga_NI9159_U64FifoLoop.lvbitx", "52F330872695662BB3590B8B57820AB0"];
+static const char8 * const i64Firmware[]      = ["RIO0", "NiFpga_NI9159_I64FifoLoop.lvbitx", "8D17F6F9632E56982594198E5DCC4D69"];
 
 static const char8 * const multiIoConfig = ""
     "+NiDevice = {"
@@ -216,7 +216,9 @@ bool NI9157DeviceOperatorTTest<T>::TestFindResource(uint32 model,
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -267,7 +269,9 @@ bool NI9157DeviceOperatorTTest<T>::TestNiWriteRead(uint32 model,
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
@@ -332,68 +336,68 @@ bool NI9157DeviceOperatorTTest<T>::TestNiWriteReadFifo(uint32 model,
     bool ret = parser.Parse();
 
     if (ret) {
+        StreamString name = "";
+        StreamString pathAndFile = "";
+        StreamString signature = "";
         ret = cdb.MoveAbsolute("+NiDevice");
         if (ret) { 
             switch(typeid(T)) {
                 case typeid(uint8):
-                    const char8 * const name = u8Firmware[nParams*model + 0];
-                    const char8 * const file = firmwarePath + u8Firmware[nParams*model + 1];
-                    const char8 * const signature = uFirmware[nParams*model + 2];
+                    name.Printf("%s", u8Firmware[nParams*model + 0]);
+                    pathAndFile.Printf("%s/%s", firmwarePath, u8Firmware[nParams*model + 1]);
+                    signature.Printf("%s", u8Firmware[nParams*model + 2]);
                     ret = true;
                     break;
                 case typeid(int8):
-                    const char8 * const name = i8Firmware[nParams*model + 0];
-                    const char8 * const file = firmwarePath + i8Firmware[nParams*model + 1];
-                    const char8 * const signature = i8Firmware[nParams*model + 2];
+                    name.Printf("%s", i8Firmware[nParams*model + 0]);
+                    pathAndFile.Printf("%s/%s", firmwarePath, i8Firmware[nParams*model + 1]);
+                    signature.Printf("%s", i8Firmware[nParams*model + 2]);
                     ret = true;
                     break;
                 case typeid(uint16):
-                    const char8 * const name = u16Firmware[nParams*model + 0];
-                    const char8 * const file = firmwarePath + u16Firmware[nParams*model + 1];
-                    const char8 * const signature = u16Firmware[nParams*model + 2];
+                    name.Printf("%s", u16Firmware[nParams*model + 0]);
+                    pathAndFile.Printf("%s/%s", firmwarePath, u16Firmware[nParams*model + 1]);
+                    signature.Printf("%s", u16Firmware[nParams*model + 2]);
                     ret = true;
                     break;
                 case typeid(int16):
-                    const char8 * const name = i16Firmware[nParams*model + 0];
-                    const char8 * const file = firmwarePath + i16Firmware[nParams*model + 1];
-                    const char8 * const signature = i16Firmware[nParams*model + 2];
+                    name.Printf("%s", i16Firmware[nParams*model + 0]);
+                    pathAndFile.Printf("%s/%s", firmwarePath, i16Firmware[nParams*model + 1]);
+                    signature.Printf("%s", i16Firmware[nParams*model + 2]);
                     ret = true;
                     break;
                 case typeid(uint32):
-                    const char8 * const name = u32Firmware[nParams*model + 0];
-                    const char8 * const file = firmwarePath + u32Firmware[nParams*model + 1];
-                    const char8 * const signature = u32Firmware[nParams*model + 2];
+                    name.Printf("%s", u32Firmware[nParams*model + 0]);
+                    pathAndFile.Printf("%s/%s", firmwarePath, u32Firmware[nParams*model + 1]);
+                    signature.Printf("%s", u32Firmware[nParams*model + 2]);
                     ret = true;
                     break;
                 case typeid(int32):
-                    const char8 * const name = i32Firmware[nParams*model + 0];
-                    const char8 * const file = firmwarePath + i32Firmware[nParams*model + 1];
-                    const char8 * const signature = i32Firmware[nParams*model + 2];
+                    name.Printf("%s", i32Firmware[nParams*model + 0]);
+                    pathAndFile.Printf("%s/%s", firmwarePath, i32Firmware[nParams*model + 1]);
+                    signature.Printf("%s", i32Firmware[nParams*model + 2]);
                     ret = true;
                     break;
                 case typeid(uint64):
-                    const char8 * const name = u64Firmware[nParams*model + 0];
-                    const char8 * const file = firmwarePath + u64Firmware[nParams*model + 1];
-                    const char8 * const signature = u64Firmware[nParams*model + 2];
+                    name.Printf("%s", u64Firmware[nParams*model + 0]);
+                    pathAndFile.Printf("%s/%s", firmwarePath, u64Firmware[nParams*model + 1]);
+                    signature.Printf("%s", u64Firmware[nParams*model + 2]);
                     ret = true;
                     break;
                 case typeid(int64):
-                    const char8 * const name = i64Firmware[nParams*model + 0];
-                    const char8 * const file = firmwarePath + i64Firmware[nParams*model + 1];
-                    const char8 * const signature = i64Firmware[nParams*model + 2];
+                    name.Printf("%s", i64Firmware[nParams*model + 0]);
+                    pathAndFile.Printf("%s/%s", firmwarePath, i64Firmware[nParams*model + 1]);
+                    signature.Printf("%s", i64Firmware[nParams*model + 2]);
                     ret = true;
                     break;
                 default:
-                    const char8 * const name = "";
-                    const char8 * const file = "";
-                    const char8 * const signature = "";
                     ret = false;
             }
         }
         if (ret) {
-            ret = cdb.Write("NiRioDeviceName", name);
-            ret &= cdb.Write("NiRioGenFile", file);
-            ret &= cdb.Write("NiRioGenSignature", signature);
+            ret = cdb.Write("NiRioDeviceName", name.Buffer());
+            ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+            ret &= cdb.Write("NiRioGenSignature", signature.Buffer());
             ret &= cdb.MoveRelative("Configuration");
             // Change....
             ret &= cdb.MoveToRoot();
@@ -469,7 +473,9 @@ bool NI9157DeviceOperatorTTest<T>::TestGetNI9157Device(uint32 model) {
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        ret &= cdb.Write("NiRioGenFile", firmwarePath + multiIOFirmware[nParams*model + 1]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveRelative("Configuration");
         // Change....
