@@ -22,7 +22,11 @@
 #
 #############################################################
 
-OBJSX=LinuxTimer.x
+OBJSX=LinuxTimer.x TimeProvider.x HighResolutionTimeProvider.x
+
+ifdef CODAC_ROOT
+OBJSX += TcnTimeProvider.x
+endif
 
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../../
@@ -40,6 +44,11 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+
+ifdef CODAC_ROOT
+INCLUDES += -I$(CODAC_ROOT)/include
+endif
+
 
 all: $(OBJS)    \
     $(BUILD_DIR)/LinuxTimer$(LIBEXT) \

@@ -28,9 +28,11 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
-#include "EmbeddedServiceMethodBinderI.h"
 #include "EventSem.h"
+#include "EmbeddedServiceMethodBinderI.h"
 #include "SingleThreadService.h"
+#include "TimeProvider.h"
+#include "RealTimeApplication.h"
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
@@ -80,7 +82,7 @@ public:
      *   Counter = 0
      *   Time = 0
      */
-LinuxTimer    ();
+    LinuxTimer ();
 
     /**
      * @brief Destructor. Stops the EmbeddedThread.
@@ -102,8 +104,8 @@ LinuxTimer    ();
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-            const uint32 bufferIdx,
-            void *&signalAddress);
+                                       const uint32 bufferIdx,
+                                       void *&signalAddress);
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
@@ -111,7 +113,7 @@ LinuxTimer    ();
      * @return MemoryMapSynchronisedInputBroker if frequency > 0, MemoryMapInputBroker otherwise.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
-            const SignalDirection direction);
+                                       const SignalDirection direction);
 
     /**
      * @brief Waits on an EventSem for the period given by 1/Frequency to elapse on Execute.
@@ -135,7 +137,7 @@ LinuxTimer    ();
      * @return true if the EmbeddedThread can be successfully started.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
-            const char8 * const nextStateName);
+                                  const char8 * const nextStateName);
 
     /**
      * @brief Initialises the LinuxTimer
@@ -186,13 +188,15 @@ LinuxTimer    ();
      */
     uint32 GetSleepPercentage() const;
 
+
+    virtual void Purge(ReferenceContainer &purgeList);
+
 private:
     /**
      * The two supported sleep natures.
      */
     enum LinuxTimerSleepNature {
-        Default = 0,
-        Busy = 1
+        Default = 0, Busy = 1
     };
 
     /**
@@ -222,19 +226,19 @@ private:
     SingleThreadService executor;
 
     /**
-     * Number of ticks at the start of the cycle
+     * HighResolutionTimer::Counter() value after the last Sleep.
      */
-    uint64 startTimeTicks;
+    uint64 lastTimeTicks;
 
     /**
      * Sleeping period in units of ticks.
      */
-    uint64 sleepTimeTicks;
+    uint64 sleepTimeTicks[2];
 
     /**
      * Sleeping period.
      */
-    uint32 timerPeriodUsecTime;
+    uint32 timerPeriodUsecTime[2];
 
     /**
      * Index of the function which has the signal that synchronises on this DataSourceI.
@@ -260,6 +264,25 @@ private:
      * The execution mode.
      */
     uint32 executionMode;
+
+    /**
+     * The time provider
+     */
+    ReferenceT<TimeProvider> timeProvider;
+
+    uint64 absoluteTime;
+
+    uint64 deltaTime;
+
+    uint64 absoluteTime_1;
+
+    float64 ticksPerUs;
+
+    uint32 phase;
+
+    float32 frequency[2];
+
+    ReferenceT<RealTimeApplication> rtApp;
 
 };
 }

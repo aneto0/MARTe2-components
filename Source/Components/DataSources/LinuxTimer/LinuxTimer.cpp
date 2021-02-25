@@ -33,6 +33,9 @@
 #include "AdvancedErrorManagement.h"
 #include "LinuxTimer.h"
 #include "MemoryMapSynchronisedInputBroker.h"
+#include "HighResolutionTimeProvider.h"
+#include "ReferenceContainerFilterReferences.h"
+#include "ObjectRegistryDatabase.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -46,6 +49,8 @@ const uint32 LINUX_TIMER_EXEC_MODE_RTTHREAD = 1u;
  * Execute in the context of a spawned thread.
  */
 const uint32 LINUX_TIMER_EXEC_MODE_SPAWNED = 2u;
+
+const uint32 MAX_PHASE = 1000000u;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -53,10 +58,12 @@ const uint32 LINUX_TIMER_EXEC_MODE_SPAWNED = 2u;
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 LinuxTimer::LinuxTimer() :
-        DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
-    startTimeTicks = 0u;
-    sleepTimeTicks = 0u;
-    timerPeriodUsecTime = 0u;
+    DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
+    lastTimeTicks = 0u;
+    sleepTimeTicks[0] = 0u;
+    sleepTimeTicks[1] = 0u;
+    timerPeriodUsecTime[0] = 0u;
+    timerPeriodUsecTime[1] = 0u;
     synchronisingFunctionIdx = 0u;
     counterAndTimer[0] = 0u;
     counterAndTimer[1] = 0u;
@@ -64,6 +71,12 @@ LinuxTimer::LinuxTimer() :
     sleepPercentage = 0u;
     synchronising = false;
     executionMode = 0u;
+    absoluteTime = 0ull;
+    deltaTime = 0ull;
+    absoluteTime_1 = 0ull;
+    ticksPerUs = 0.;
+    phase = MAX_PHASE;
+
     if (!synchSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
     }
@@ -92,6 +105,10 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::Information, "SleepNature was not set. Using Default.");
         sleepNatureStr = "Default";
     }
+    if (!data.Read("Phase", phase)) {
+        phase = MAX_PHASE;
+    }
+
     if (sleepNatureStr == "Default") {
         sleepNature = Default;
     }
@@ -152,13 +169,29 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
             executor.SetStackSize(stackSize);
         }
     }
+
+    if (ok) {
+
+        for (uint32 i = 0u; i < Size(); i++) {
+            timeProvider = Get(i);
+            if (timeProvider.IsValid()) {
+                break;
+            }
+        }
+
+        if (!timeProvider.IsValid()) {
+            timeProvider = ReferenceT<HighResolutionTimeProvider> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        }
+        ticksPerUs = (timeProvider->Frequency() / 1e6);
+    }
+
     return ok;
 }
 
 bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok) {
-        ok = (GetNumberOfSignals() == 2u);
+        ok = (GetNumberOfSignals() >= 2u) && (GetNumberOfSignals() <= 4u);
     }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Exactly two signals shall be configured");
@@ -181,8 +214,7 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
     if (ok) {
         ok = (GetSignalType(1u).numberOfBits == 32u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall have 32 bits and %d were specified",
-                         uint16(GetSignalType(1u).numberOfBits));
+            REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall have 32 bits and %d were specified", uint16(GetSignalType(1u).numberOfBits));
         }
     }
     if (ok) {
@@ -194,38 +226,14 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall SignedInteger or UnsignedInteger type");
         }
     }
-    uint32 nOfFunctions = GetNumberOfFunctions();
-    float32 frequency = -1.0F;
-    bool found = false;
-    uint32 functionIdx;
-    for (functionIdx = 0u; (functionIdx < nOfFunctions) && (ok); functionIdx++) {
-        uint32 nOfSignals = 0u;
-        ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfSignals);
-
-        if (ok) {
-            uint32 i;
-            for (i = 0u; (i < nOfSignals) && (ok) && (!found); i++) {
-                ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, i, frequency);
-                found = (frequency > 0.F);
-                if (found) {
-                    synchronisingFunctionIdx = functionIdx;
-                }
-            }
-        }
-
-    }
-    ok = found;
     if (ok) {
-        REPORT_ERROR(ErrorManagement::Information, "The timer will be set using a frequency of %f Hz", frequency);
+        ReferenceContainer result;
+        ReferenceContainerFilterReferences filter(1u, ReferenceContainerFilterMode::PATH, this);
+        ObjectRegistryDatabase::Instance()->ReferenceContainer::Find(result, filter);
+        rtApp = result.Get(0u);
+        ok = rtApp.IsValid();
+    }
 
-        float64 periodUsec = (1e6 / frequency);
-        timerPeriodUsecTime = static_cast<uint32>(periodUsec);
-        float64 sleepTimeT = (static_cast<float64>(HighResolutionTimer::Frequency()) / frequency);
-        sleepTimeTicks = static_cast<uint64>(sleepTimeT);
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "No frequency > 0 was set (i.e. no signal synchronises on this LinuxTimer).");
-    }
     return ok;
 }
 
@@ -234,7 +242,9 @@ uint32 LinuxTimer::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
-bool LinuxTimer::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
+bool LinuxTimer::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                       const uint32 bufferIdx,
+                                       void*& signalAddress) {
     bool ok = true;
     if (signalIdx == 0u) {
         signalAddress = &counterAndTimer[0];
@@ -242,13 +252,21 @@ bool LinuxTimer::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buff
     else if (signalIdx == 1u) {
         signalAddress = &counterAndTimer[1];
     }
+    else if (signalIdx == 2u) {
+        signalAddress = &absoluteTime;
+    }
+    else if (signalIdx == 3u) {
+        signalAddress = &deltaTime;
+    }
+
     else {
         ok = false;
     }
     return ok;
 }
 
-const char8* LinuxTimer::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
+const char8* LinuxTimer::GetBrokerName(StructuredDataI& data,
+                                       const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8 *);
     if (direction == InputSignals) {
         float32 frequency = 0.F;
@@ -284,66 +302,183 @@ bool LinuxTimer::Synchronise() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the counter and the timer are always reset irrespectively of the states being changed.*/
-bool LinuxTimer::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
+                                  const char8* const nextStateName) {
     bool ok = true;
-    if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
-        if (executor.GetStatus() == EmbeddedThreadI::OffState) {
-            executor.SetName(GetName());
-            ok = executor.Start();
+    uint32 numberOfTotalConsumers = 0u;
+
+    float32 frequency = -1.0F;
+
+    uint8 nextIndex = rtApp->GetIndex();
+    nextIndex++;
+    nextIndex &= 0x1u;
+
+    bool notConsumed = true;
+    for (uint32 i = 0u; (i < numberOfSignals) && ok; i++) {
+        uint32 numberOfProducersNextState;
+        if (!GetSignalNumberOfProducers(i, nextStateName, numberOfProducersNextState)) {
+            numberOfProducersNextState = 0u;
+        }
+        ok = (numberOfProducersNextState == 0u);
+        if (ok) {
+            uint32 numberOfConsumers;
+            if (!GetSignalNumberOfConsumers(i, currentStateName, numberOfConsumers)) {
+                numberOfConsumers = 0u;
+            }
+            //reset if not used in current state
+            if (numberOfConsumers > 0u) {
+                notConsumed = false;
+            }
+
+            if (!GetSignalNumberOfConsumers(i, nextStateName, numberOfConsumers)) {
+                numberOfConsumers = 0u;
+            }
+            numberOfTotalConsumers += numberOfConsumers;
+            for (uint32 j = 0u; (j < numberOfConsumers) && ok; j++) {
+                StreamString consumerName;
+                ok = GetSignalConsumerName(i, nextStateName, j, consumerName);
+                uint32 functionIdx;
+                if (ok) {
+                    ok = GetFunctionIndex(functionIdx, consumerName.Buffer());
+                }
+                uint32 nOfFunSignals = 0u;
+                ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunSignals);
+                for (uint32 k = 0u; (k < nOfFunSignals) && ok; k++) {
+                    float32 freqRead = -1.;
+                    ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, k, freqRead);
+                    if (freqRead >= 0.) {
+                        frequency = freqRead;
+                        REPORT_ERROR(ErrorManagement::Information, "Frequency = %!", frequency);
+                    }
+                }
+            }
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::FatalError, "Signal %d cannot be produced!", i);
         }
     }
-    counterAndTimer[0] = 0u;
-    counterAndTimer[1] = 0u;
+
+    if (ok) {
+        if (notConsumed) {
+            counterAndTimer[0] = 0u;
+            counterAndTimer[1] = 0u;
+        }
+        if (numberOfTotalConsumers > 0u) {
+            ok = (frequency >= 0.);
+
+            if (ok) {
+                REPORT_ERROR(ErrorManagement::Information, "The timer will be set using a frequency of %f Hz", frequency);
+
+                float64 periodUsec = (1e6 / frequency);
+                float64 sleepTimeT = (static_cast<float64> (timeProvider->Frequency()) / frequency);
+                timerPeriodUsecTime[nextIndex] = static_cast<uint32> (periodUsec);
+                sleepTimeTicks[nextIndex] = static_cast<uint64> (sleepTimeT);
+                //absoluteTime = timeProvider->Counter();
+                //lastTimeTicks = 0u;
+                if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
+                    if (executor.GetStatus() == EmbeddedThreadI::OffState) {
+                        ok = executor.Start();
+                    }
+                }
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "No frequency > 0 was set (i.e. no signal synchronises on this LinuxTimer).");
+            }
+        }
+    }
+    if (!ok) {
+        if (!synchSem.Post()) {
+            ok = false;
+            REPORT_ERROR(ErrorManagement::FatalError, "Could not post EventSem.");
+        }
+        if (!executor.Stop()) {
+            if (!executor.Stop()) {
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
+                ok = false;
+            }
+        }
+    }
+    REPORT_ERROR(ErrorManagement::FatalError, "LinuxTimer::Prepared");
+
     return ok;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the method sleeps for the given period irrespectively of the input info.*/
 ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
-    if (startTimeTicks == 0u) {
-        startTimeTicks = HighResolutionTimer::Counter();
+
+    uint8 appIndex = rtApp->GetIndex();
+    appIndex %= 0x1u;
+
+    uint64 sleepTimeTicksT;
+    uint32 timerPeriodUsecTimeT;
+    timerPeriodUsecTimeT = timerPeriodUsecTime[appIndex];
+    sleepTimeTicksT = sleepTimeTicks[appIndex];
+
+    if (lastTimeTicks == 0u) {
+        lastTimeTicks = timeProvider->Counter();
+        float64 seconds0 = static_cast<float64> (timeProvider->Counter()) * (timeProvider->Period());
+        absoluteTime_1 = static_cast<uint64> (seconds0 * 1e6);
+        if (phase < MAX_PHASE) {
+            //try to synchronize on the second
+            uint64 overSec = (absoluteTime_1 % MAX_PHASE);
+            absoluteTime_1 += (phase - overSec);
+            float64 secondsT = static_cast<float64> (absoluteTime_1) / 1e6;
+            lastTimeTicks = static_cast<uint64> (secondsT * timeProvider->Frequency());
+        }
     }
 
-    //The last cycle, which started after the sleep below, has just ended. How much time is left before the next cycle should start?
-    uint64 cycleEndTicks = HighResolutionTimer::Counter();
-    //If we lost cycles (i.e. if startTimeTicks < (nCycles * sleepTimeTicks) + cycleEndTicks), rephase to a multiple of the period (sleepTimeTicks).
+    uint64 startTicks = timeProvider->Counter();
+    //cannot be
+    while (startTicks <= lastTimeTicks) {
+        startTicks = timeProvider->Counter();
+    }
+
+    //If we lose cycle, rephase to a multiple of the period.
     uint32 nCycles = 0u;
-    while (startTimeTicks < cycleEndTicks) {
-        startTimeTicks += sleepTimeTicks;
+
+    while (lastTimeTicks < startTicks) {
+        lastTimeTicks += sleepTimeTicksT;
         nCycles++;
     }
-    startTimeTicks -= sleepTimeTicks;
+    lastTimeTicks -= sleepTimeTicksT;
 
-    //Sleep until the next period.
-    uint64 deltaTicks = sleepTimeTicks + startTimeTicks;
-    deltaTicks -= cycleEndTicks;
+    //Sleep until the next period. Cannot be < 0 due to while(lastTimeTicks < startTicks) above
+    uint64 sleepTicksCorrection = (startTicks - lastTimeTicks);
+    uint64 deltaTicks = sleepTimeTicksT - sleepTicksCorrection;
+
     if (sleepNature == Busy) {
         if (sleepPercentage == 0u) {
-            while ((HighResolutionTimer::Counter() - cycleEndTicks) < deltaTicks) {
-            }
+            timeProvider->BusySleep(startTicks, deltaTicks);
         }
         else {
-            float32 totalSleepTime = static_cast<float32>(static_cast<float64>(deltaTicks) * HighResolutionTimer::Period());
-            float32 nonBusyTime = totalSleepTime * (static_cast<float32>(sleepPercentage) / 100.F);
-            Sleep::SemiBusy(totalSleepTime, nonBusyTime);
+            float32 totalSleepTime = static_cast<float32> (static_cast<float64> (deltaTicks) * timeProvider->Period());
+            uint32 busyPercentage = (100u - sleepPercentage);
+            float32 busyTime = totalSleepTime * (static_cast<float32> (busyPercentage) / 100.F);
+            Sleep::SemiBusy(totalSleepTime, busyTime);
         }
     }
     else {
-        float32 sleepTime = static_cast<float32>(static_cast<float64>(deltaTicks) * HighResolutionTimer::Period());
+        float32 sleepTime = static_cast<float32> (static_cast<float64> (deltaTicks) * timeProvider->Period());
         Sleep::NoMore(sleepTime);
     }
-    //Update the start time of the current cycle. 
-    //Note that if startTimeTicks = HighResolutionTimer::Counter(), this would not take into account any possible delay on the sleep above and thus would lead to a drift
-    //An alternative would be to do startTimeTicks = HighResolutionTimer::Counter(), compute much was the overslept from this cycle and discount on the next, but this is 
-    //mathematically equivalent to just do startTimeTicks += sleepTimeTicks
-    startTimeTicks += sleepTimeTicks;
+    uint64 newCounter = timeProvider->Counter();
+    lastTimeTicks += static_cast<uint64> (nCycles * sleepTimeTicksT); //timeProvider->Counter();
 
     ErrorManagement::ErrorType err;
+
+    counterAndTimer[0] += nCycles;
+    counterAndTimer[1] = counterAndTimer[0] * timerPeriodUsecTimeT;
+
+    float64 seconds = static_cast<float64> (newCounter) * (timeProvider->Period());
+    absoluteTime = static_cast<uint64> (lastTimeTicks / ticksPerUs);
+    uint64 microsecs = static_cast<uint64> (seconds * 1e6);
+    deltaTime = (microsecs - absoluteTime_1);
+    absoluteTime_1 = microsecs;
+
     if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
         err = !(synchSem.Post());
     }
-    counterAndTimer[0] += nCycles;
-    counterAndTimer[1] = counterAndTimer[0] * timerPeriodUsecTime;
-
+    //REPORT_ERROR(ErrorManagement::Information, "time = %! %! delta = %!", absoluteTime, nCycles, deltaTime);
     return err;
 }
 
@@ -357,6 +492,13 @@ uint32 LinuxTimer::GetStackSize() const {
 
 uint32 LinuxTimer::GetSleepPercentage() const {
     return sleepPercentage;
+}
+
+void LinuxTimer::Purge(ReferenceContainer &purgeList) {
+    if (rtApp.IsValid()) {
+        rtApp->Purge(purgeList);
+    }
+    ReferenceContainer::Purge(purgeList);
 }
 
 CLASS_REGISTER(LinuxTimer, "1.0")
