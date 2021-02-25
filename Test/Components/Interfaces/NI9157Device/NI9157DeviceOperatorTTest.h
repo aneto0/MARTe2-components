@@ -32,6 +32,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
 #include "DataSourceI.h"
 #include "GAMSchedulerI.h"
@@ -122,15 +123,15 @@ public:
 /*---------------------------------------------------------------------------*/
 static const uint32 nParams                   = 3;
 static const char8 * const firmwarePath       = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles";
-static const char8 * const multiIOFirmware[]  = {"RIO0", "NiFpga_NI9159_MultiIOSimplified.lvbitx", "1024E2A52B8A06451144CA194CBD81B3"};
-static const char8 * const u8Firmware[]       = {"RIO0", "NiFpga_NI9159_U8FifoLoop.lvbitx", "F61EE912789BA69AB9388C98C06307E8"};
-static const char8 * const i8Firmware[]       = {"RIO0", "NiFpga_NI9159_I8FifoLoop.lvbitx", "5A283FB9AF034F65871DE8FFE77F2DD0"};
-static const char8 * const u16Firmware[]      = {"RIO0", "NiFpga_NI9159_U16FifoLoop.lvbitx", "CDE04ED9C48BDC6C6A762870927EDCE4"};
-static const char8 * const i16Firmware[]      = {"RIO0", "NiFpga_NI9159_I16FifoLoop.lvbitx", "5495C30BD8A8438860BFC8DAC161088F"};
-static const char8 * const u32Firmware[]      = {"RIO0", "NiFpga_NI9159_U32FifoLoop.lvbitx", "FC05550126AD0B999EDBE8D000E69D91"};
-static const char8 * const i32Firmware[]      = {"RIO0", "NiFpga_NI9159_I32FifoLoop.lvbitx", "D7A8F3040B3B5F1D02B882E6016AB1AA"};
-static const char8 * const u64Firmware[]      = {"RIO0", "NiFpga_NI9159_U64FifoLoop.lvbitx", "52F330872695662BB3590B8B57820AB0"};
-static const char8 * const i64Firmware[]      = {"RIO0", "NiFpga_NI9159_I64FifoLoop.lvbitx", "8D17F6F9632E56982594198E5DCC4D69"};
+static const char8 * const multiIOFirmware[]  = {"RIO0", "NiFpga_NI9159_MultiIO.lvbitx", "0F35E2AEADD4F26805B88609AEAC9050"};
+static const char8 * const u8Firmware[]       = {"RIO0", "NiFpga_NI9159_U8FifoLoop.lvbitx", "E20FC0B821C53C12CDB1CF1CFFDE9E3F"};
+static const char8 * const i8Firmware[]       = {"RIO0", "NiFpga_NI9159_I8FifoLoop.lvbitx", "1D78B0D488445F8046D8AA7841CA7F92"};
+static const char8 * const u16Firmware[]      = {"RIO0", "NiFpga_NI9159_U16FifoLoop.lvbitx", "0682A8270DCB30912E3855297CA35C1A"};
+static const char8 * const i16Firmware[]      = {"RIO0", "NiFpga_NI9159_I16FifoLoop.lvbitx", "B2D0A5188F4DF27E5816FB536FECA87E"};
+static const char8 * const u32Firmware[]      = {"RIO0", "NiFpga_NI9159_U32FifoLoop.lvbitx", "E3BDC175B00D4F16FB994A1852CC695F"};
+static const char8 * const i32Firmware[]      = {"RIO0", "NiFpga_NI9159_I32FifoLoop.lvbitx", "3743493619F557D68357D4D088217E05"};
+static const char8 * const u64Firmware[]      = {"RIO0", "NiFpga_NI9159_U64FifoLoop.lvbitx", "D19D1491A3C597E9F3C0E56F06AA272C"};
+static const char8 * const i64Firmware[]      = {"RIO0", "NiFpga_NI9159_I64FifoLoop.lvbitx", "217E99FD109188EF37C2FCAED84AC82E"};
 
 static const char8 * const multiIoConfig = ""
     "+NiDevice = {"
@@ -157,6 +158,7 @@ static const char8 * const fifoLoopConfig = ""
     "    Open = 1"
     "    Configuration = {"
     "        ControlU32_cycle_ticks = 40000"
+  //  "        ControlU32_period = 40000"
     "    }"
     "}";
 
@@ -449,6 +451,9 @@ bool NI9157DeviceOperatorTTest<T>::TestNiWriteReadFifo(uint32 model,
                         ret = (niOperator.NiReadFifo(fifor, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
                         for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
                             ret = (datar[i] == (T) i);
+                            if(!ret){
+                               REPORT_ERROR_STATIC(ErrorManagement::FatalError, " Reading FIFO1_U8_R[%!]=%! != %!", (T)i, datar[i], (T)i);
+                            }
                         }
                     }
                 }

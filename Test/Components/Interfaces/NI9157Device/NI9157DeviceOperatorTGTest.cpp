@@ -533,10 +533,10 @@ TEST(NI9157DeviceOperatorTGTest,TestNiWriteReadFifo_U8) {
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
         if(testAll) {
-            ret &= test.TestNiWriteReadFifo(idx, "FIFOU8w", "FIFOU8r");
+            ret &= test.TestNiWriteReadFifo(idx, "FIFO0_U8_W", "FIFO1_U8_R");
         }
         else {
-            ret = test.TestNiWriteReadFifo(idx, "FIFOU8w", "FIFOU8r");
+            ret = test.TestNiWriteReadFifo(idx, "FIFO0_U8_W", "FIFO1_U8_R");
             if (ret) {
                 break;
             }
@@ -550,10 +550,10 @@ TEST(NI9157DeviceOperatorTGTest,TestNiWriteReadFifo_I8) {
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
         if(testAll) {
-            ret &= test.TestNiWriteReadFifo(idx, "FIFOI8w", "FIFOI8r");
+            ret &= test.TestNiWriteReadFifo(idx, "FIFO0_I8_W", "FIFO1_I8_R");
         }
         else {
-            ret = test.TestNiWriteReadFifo(idx, "FIFOI8w", "FIFOI8r");
+            ret = test.TestNiWriteReadFifo(idx, "FIFO0_I8_W", "FIFO1_I8_R");
             if (ret) {
                 break;
             }
@@ -567,10 +567,10 @@ TEST(NI9157DeviceOperatorTGTest,TestNiWriteReadFifo_U16) {
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
         if(testAll) {
-            ret &= test.TestNiWriteReadFifo(idx, "FIFOU16w", "FIFOU16r");
+            ret &= test.TestNiWriteReadFifo(idx, "FIFO0_U16_W", "FIFO1_U16_R");
         }
         else {
-            ret = test.TestNiWriteReadFifo(idx, "FIFOU16w", "FIFOU16r");
+            ret = test.TestNiWriteReadFifo(idx, "FIFO0_U16_W", "FIFO1_U16_R");
             if (ret) {
                 break;
             }
@@ -584,10 +584,10 @@ TEST(NI9157DeviceOperatorTGTest,TestNiWriteReadFifo_I16) {
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
         if(testAll) {
-            ret &= test.TestNiWriteReadFifo(idx, "FIFOI16w", "FIFOI16r");
+            ret &= test.TestNiWriteReadFifo(idx, "FIFO0_I16_W", "FIFO1_I16_R");
         }
         else {
-            ret = test.TestNiWriteReadFifo(idx, "FIFOI16w", "FIFOI16r");
+            ret = test.TestNiWriteReadFifo(idx, "FIFO0_I16_W", "FIFO1_I16_R");
             if (ret) {
                 break;
             }
@@ -601,10 +601,10 @@ TEST(NI9157DeviceOperatorTGTest,TestNiWriteReadFifo_U32) {
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
         if(testAll) {
-            ret &= test.TestNiWriteReadFifo(idx, "FIFOU32w", "FIFOU32r");
+            ret &= test.TestNiWriteReadFifo(idx, "FIFO0_U32_W", "FIFO1_U32_R");
         }
         else {
-            ret = test.TestNiWriteReadFifo(idx, "FIFOU32w", "FIFOU32r");
+            ret = test.TestNiWriteReadFifo(idx, "FIFO0_U32_W", "FIFO1_U32_R");
             if (ret) {
                 break;
             }
@@ -618,10 +618,10 @@ TEST(NI9157DeviceOperatorTGTest,TestNiWriteReadFifo_I32) {
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
         if(testAll) {
-            ret &= test.TestNiWriteReadFifo(idx, "FIFOI32w", "FIFOI32r");
+            ret &= test.TestNiWriteReadFifo(idx, "FIFO0_I32_W", "FIFO1_I32_R");
         }
         else {
-            ret = test.TestNiWriteReadFifo(idx, "FIFOI32w", "FIFOI32r");
+            ret = test.TestNiWriteReadFifo(idx, "FIFO0_I32_W", "FIFO1_I32_R");
             if (ret) {
                 break;
             }
@@ -635,10 +635,10 @@ TEST(NI9157DeviceOperatorTGTest,TestNiWriteReadFifo_U64) {
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
         if(testAll) {
-            ret &= test.TestNiWriteReadFifo(idx, "FIFOU64w", "FIFOU64r");
+            ret &= test.TestNiWriteReadFifo(idx, "FIFO0_U64_W", "FIFO1_U64_R");
         }
         else {
-            ret = test.TestNiWriteReadFifo(idx, "FIFOU64w", "FIFOU64r");
+            ret = test.TestNiWriteReadFifo(idx, "FIFO0_U64_W", "FIFO1_U64_R");
             if (ret) {
                 break;
             }
@@ -652,10 +652,10 @@ TEST(NI9157DeviceOperatorTGTest,TestNiWriteReadFifo_I64) {
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
         if(testAll) {
-            ret &= test.TestNiWriteReadFifo(idx, "FIFOI64w", "FIFOI64r");
+            ret &= test.TestNiWriteReadFifo(idx, "FIFO0_I64_W", "FIFO1_I64_R");
         }
         else {
-            ret = test.TestNiWriteReadFifo(idx, "FIFOI64w", "FIFOI64r");
+            ret = test.TestNiWriteReadFifo(idx, "FIFO0_I64_W", "FIFO1_I64_R");
             if (ret) {
                 break;
             }
