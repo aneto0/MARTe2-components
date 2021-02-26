@@ -242,6 +242,7 @@ NiFpga_Status NI9157Device::Open() {
     }
     return status;
 }
+
 NiFpga_Status NI9157Device::Run() {
     if (isRunning == 0u) {
         status = NiFpga_MergeStatus(&status, NiFpga_Run(session, 0u));
@@ -610,10 +611,6 @@ NiFpga_Session NI9157Device::GetSession() const {
     return session;
 }
 
-NiFpga_Status NI9157Device::ReleaseFifoElements(const uint32 fifo, const uint32 numberOfElements) {
-    return NiFpga_ReleaseFifoElements(session, static_cast<uint32_t> (fifo), static_cast<size_t> (numberOfElements));
-}
-
 ErrorManagement::ErrorType NI9157Device::CrioStart() {
     ErrorManagement::ErrorType ret;
     if (isOpened == 0u) {
@@ -637,7 +634,7 @@ ErrorManagement::ErrorType NI9157Device::WriteParam(StreamString varName, uint64
     ErrorManagement::ErrorType err;
     if (type == "bool") {
         uint32 varId;
-        bool rType = 0u;
+        bool rType = false;
         err = (FindResource(varName.Buffer(), rType, varId) != 0);
         if (err.ErrorsCleared()) {
             err = (NiFpga_WriteBool(session, varId, static_cast<NiFpga_Bool> (value)) != 0);
@@ -717,13 +714,14 @@ ErrorManagement::ErrorType NI9157Device::ReadParam(StreamString varName, uint64 
     ErrorManagement::ErrorType err;
     if (type == "bool") {
         uint32 varId;
-        bool rType = 0u;
+        bool rType = false;
+        err.SetError(0u);
         err = (FindResource(varName.Buffer(), rType, varId) != 0);
         if (err.ErrorsCleared()) {
-            err = (NiFpga_ReadBool(session, varId, static_cast<NiFpga_Bool*> (&value)) != 0);
+            err = (NiFpga_ReadBool(session, varId, reinterpret_cast<NiFpga_Bool*> (&value)) != 0);
         }
     }
-    if (type == "uint8") {
+    else if (type == "uint8") {
         uint32 varId;
         uint8 rType = 0u;
         err = (FindResource(varName.Buffer(), rType, varId) != 0);
@@ -757,7 +755,7 @@ ErrorManagement::ErrorType NI9157Device::ReadParam(StreamString varName, uint64 
     }
     else if (type == "int8") {
         uint32 varId;
-        int8 rType = 0u;
+        int8 rType = 0;
         err = (FindResource(varName.Buffer(), rType, varId) != 0);
         if (err.ErrorsCleared()) {
             err = (NiFpga_ReadI8(session, varId, reinterpret_cast<int8_t*> (&value)) != 0);
@@ -765,7 +763,7 @@ ErrorManagement::ErrorType NI9157Device::ReadParam(StreamString varName, uint64 
     }
     else if (type == "int16") {
         uint32 varId;
-        int16 rType = 0u;
+        int16 rType = 0;
         err = (FindResource(varName.Buffer(), rType, varId) != 0);
         if (err.ErrorsCleared()) {
             err = (NiFpga_ReadI16(session, varId, reinterpret_cast<int16_t*> (&value)) != 0);
@@ -773,7 +771,7 @@ ErrorManagement::ErrorType NI9157Device::ReadParam(StreamString varName, uint64 
     }
     else if (type == "int32") {
         uint32 varId;
-        int32 rType = 0u;
+        int32 rType = 0;
         err = (FindResource(varName.Buffer(), rType, varId) != 0);
         if (err.ErrorsCleared()) {
             err = (NiFpga_ReadI32(session, varId, reinterpret_cast<int32_t*> (&value)) != 0);
@@ -781,7 +779,7 @@ ErrorManagement::ErrorType NI9157Device::ReadParam(StreamString varName, uint64 
     }
     else if (type == "int64") {
         uint32 varId;
-        int64 rType = 0u;
+        int64 rType = 0;
         err = (FindResource(varName.Buffer(), rType, varId) != 0);
         if (err.ErrorsCleared()) {
             err = (NiFpga_ReadI64(session, varId, reinterpret_cast<int64_t*> (&value)) != 0);

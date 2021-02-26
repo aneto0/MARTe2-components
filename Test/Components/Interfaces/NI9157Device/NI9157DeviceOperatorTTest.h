@@ -123,8 +123,8 @@ public:
 /*---------------------------------------------------------------------------*/
 static const uint32 nParams                 = 3;
 static const char8 * const firmwarePath     = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles";
-static const char8 * const multiIOFirmware[]= {"RIO0", "NiFpga_NI9159_MultiIO.lvbitx", "0F35E2AEADD4F26805B88609AEAC9050"};
-static const char8 * const boolFirmware[]   = {"RIO0", "NiFpga_NI9159_BoolFifoLoop.lvbitx", ""};
+static const char8 * const multiIOFirmware[]= {"RIO0", "NiFpga_NI9159_MultiIO.lvbitx", "03AB279CA6C34216C3ABAADB90262282"};
+static const char8 * const boolFirmware[]   = {"RIO0", "NiFpga_NI9159_BoolFifoLoop.lvbitx", "4142897BDB5954CCE158C05C634F4D61"};
 static const char8 * const u8Firmware[]     = {"RIO0", "NiFpga_NI9159_U8FifoLoop.lvbitx", "E20FC0B821C53C12CDB1CF1CFFDE9E3F"};
 static const char8 * const i8Firmware[]     = {"RIO0", "NiFpga_NI9159_I8FifoLoop.lvbitx", "1D78B0D488445F8046D8AA7841CA7F92"};
 static const char8 * const u16Firmware[]    = {"RIO0", "NiFpga_NI9159_U16FifoLoop.lvbitx", "0682A8270DCB30912E3855297CA35C1A"};
@@ -135,11 +135,12 @@ static const char8 * const u64Firmware[]    = {"RIO0", "NiFpga_NI9159_U64FifoLoo
 static const char8 * const i64Firmware[]    = {"RIO0", "NiFpga_NI9159_I64FifoLoop.lvbitx", "217E99FD109188EF37C2FCAED84AC82E"};
 static const char8 * const multiIoConfig    = ""
     "+NiDevice = {"
-    "    Class = NI9157Device"
+    "    Class = NI9157DeviceTestIF"
     "    NiRioDeviceName = XptoDevice"
     "    NiRioGenFile = XptoPath"
     "    NiRioGenSignature = XptoSignature"
     "    Open = 0"
+    "    Run = 0"
     "    Configuration = {"
     "        ControlBool_stop = 0"
     "        ControlBool_use_dsfifo_data = 0"
@@ -148,7 +149,6 @@ static const char8 * const multiIoConfig    = ""
     "        ControlU64_packet_size = 1"
     "    }"
     "}";
-
 static const char8 * const fifoLoopConfig = ""
     "+NiDevice = {"
     "    Class = NI9157Device"

@@ -79,8 +79,8 @@ CLASS_REGISTER(NI9157DeviceTestIF, "1.0")
 
 static const uint32 nParams                 = 3;
 static const char8 * const firmwarePath     = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles";
-static const char8 * const multiIOFirmware[]= {"RIO0", "NiFpga_NI9159_MultiIO.lvbitx", "0F35E2AEADD4F26805B88609AEAC9050"};
-static const char8 * const boolFirmware[]   = {"RIO0", "NiFpga_NI9159_BoolFifoLoop.lvbitx", ""};
+static const char8 * const multiIOFirmware[]= {"RIO0", "NiFpga_NI9159_MultiIO.lvbitx", "03AB279CA6C34216C3ABAADB90262282"};
+static const char8 * const boolFirmware[]   = {"RIO0", "NiFpga_NI9159_BoolFifoLoop.lvbitx", "4142897BDB5954CCE158C05C634F4D61"};
 static const char8 * const u8Firmware[]     = {"RIO0", "NiFpga_NI9159_U8FifoLoop.lvbitx", "E20FC0B821C53C12CDB1CF1CFFDE9E3F"};
 static const char8 * const i8Firmware[]     = {"RIO0", "NiFpga_NI9159_I8FifoLoop.lvbitx", "1D78B0D488445F8046D8AA7841CA7F92"};
 static const char8 * const u16Firmware[]    = {"RIO0", "NiFpga_NI9159_U16FifoLoop.lvbitx", "0682A8270DCB30912E3855297CA35C1A"};
@@ -96,6 +96,7 @@ static const char8 * const multiIoConfig    = ""
     "    NiRioGenFile = XptoPath"
     "    NiRioGenSignature = XptoSignature"
     "    Open = 0"
+    "    Run = 0"
     "    Configuration = {"
     "        ControlBool_stop = 0"
     "        ControlBool_use_dsfifo_data = 0"
@@ -309,6 +310,8 @@ bool NI9157DeviceTest::TestInitialise_FalseNoGenFile(uint32 model) {
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
         ret &= cdb.Delete("NiRioGenFile");
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+	//ret &= cdb.Delete("Open");
+	//ret &= cdb.Delete("Run");
         ret &= cdb.MoveRelative("Configuration");
         // Change....
         ret &= cdb.MoveToRoot();
@@ -339,6 +342,8 @@ bool NI9157DeviceTest::TestInitialise_FalseNoGenSignature(uint32 model) {
         pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
         ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Delete("NiRioGenSignature");
+	ret &= cdb.Delete("Open");
+	ret &= cdb.Delete("Run");
         ret &= cdb.MoveRelative("Configuration");
         // Change....
         ret &= cdb.MoveToRoot();
@@ -370,6 +375,7 @@ bool NI9157DeviceTest::TestInitialise_FalseNoType(uint32 model) {
         ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.Write("Open", 1);
+        ret &= cdb.Write("Run", 1);
         ret &= cdb.MoveRelative("Configuration");
         ret &= cdb.Delete("ControlBool_stop");
         ret &= cdb.Write("Control_stop", 0);
@@ -414,6 +420,86 @@ bool NI9157DeviceTest::TestInitialise_FalseVariableNotFound(uint32 model) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
+    return ret;
+}
+
+bool NI9157DeviceTest::TestInitialise_OpenRun(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIoConfig;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.Write("Open", 1);
+        ret &= cdb.Write("Run", 1);
+        ret &= cdb.MoveRelative("Configuration");
+        // Change....
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+
+    ret &= interface->Reset() == 0;
+    ret &= interface->Close() == 0;
+
+    return ret;
+}
+
+bool NI9157DeviceTest::TestInitialise_NoOpenRun(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIoConfig;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+	ret &= cdb.Delete("Open");
+	ret &= cdb.Delete("Run");
+        ret &= cdb.MoveRelative("Configuration");
+        // Change....
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+
+    ret &= interface->Reset() != 0;
+    ret &= interface->Close() != 0;
 
     return ret;
 }
@@ -599,13 +685,17 @@ bool NI9157DeviceTest::TestCrioStartStop(uint32 model) {
         interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
         ret = interface.IsValid();
     }
+    ErrorManagement::ErrorType err;
     if (ret) {
-        ret = interface->CrioStart() == 0;
+        err = interface->CrioStart();
+        ret = err.ErrorsCleared();
     }
     if (ret) {
         ret = interface->IsRunning() == 1;
     }
     if (ret) {
+        uint32 contrDescriptor;
+        uint32 varDescriptor;
         uint64 typeU64 = 0;
         uint64 valueU64;
         ret = (interface->FindResource("IndU64", typeU64, varDescriptor) == 0);
@@ -615,7 +705,8 @@ bool NI9157DeviceTest::TestCrioStartStop(uint32 model) {
         ret &= (valueU64 == (uint64) 4);
     }
     if (ret) {
-        ret = interface->CrioStop() == 0;
+        err = interface->CrioStop();
+        ret = err.ErrorsCleared();
     }
 
     ret &= interface->Close() == 0;
@@ -756,13 +847,13 @@ bool NI9157DeviceTest::TestNiWriteRead(uint32 model) {
     uint32 contrDescriptor;
     uint32 varDescriptor;
     if (ret) {
-        bool typeBool = 0;
+        bool typeBool = false;
         bool valueBool;
         ret = (interface->FindResource("IndBool", typeBool, varDescriptor) == 0);
         ret &= (interface->FindResource("ContBool", typeBool, contrDescriptor) == 0);
         ret &= (interface->NiWrite(contrDescriptor, (bool) 1) == 0);
         ret &= (interface->NiRead(varDescriptor, valueBool) == 0);
-        ret &= (valueU8 == (bool) 1);
+        ret &= (valueBool == (bool) 1);
     }
     if (ret) {
         uint8 typeU8 = 0;
@@ -843,7 +934,7 @@ bool NI9157DeviceTest::TestNiWriteRead(uint32 model) {
     return ret;
 }
 
-bool NI9157DeviceTest::TestNiConfigureReleaseFifo(uint32 model) {
+bool NI9157DeviceTest::TestNiConfigureFifo(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
@@ -891,9 +982,6 @@ bool NI9157DeviceTest::TestNiConfigureReleaseFifo(uint32 model) {
             uint32 oldSize = 0;
             uint32 hostFifoSize = 20000;
             ret = (interface->NiConfigureFifo(varDescriptor, hostFifoSize, oldSize) == 0);
-            if (ret) {
-                ret = (interface->ReleaseFifoElements(varDescriptor, hostFifoSize) == 0);
-            }
         }
     }
 
@@ -1007,68 +1095,181 @@ bool NI9157DeviceTest::TestWriteReadParam(uint32 model) {
     if (ret) {
         ret = interface->IsRunning() == 1;
     }
+    ErrorManagement::ErrorType err;
+    StreamString paramName;
+    StreamString paramType;
     uint64 writeValue;
     uint64 readValue;
     if (ret) {
+        paramName.SetSize(0);
+        paramType.SetSize(0);
+        paramName = "ContBool";
+        paramType = "bool";
         writeValue = 1;
-        writeValue &= 0x0000000000000001;
-        ret = (interface->WriteParam("ContBool", writeValue, "bool") == 0);
-        ret &= (interface->ReadParam("IndBool", &readValue, "bool") == 0);
-        ret &= ((bool)(writeValue & 0x0000000000000001) == (bool)(readValue & 0x0000000000000001));
+        readValue = 0;
+        writeValue &= 1ull;
+        err = interface->WriteParam(paramName, writeValue, paramType);
+        ret = err.ErrorsCleared();
+        if (ret) {
+            paramName.SetSize(0);
+            paramName = "IndBool";
+            err = interface->ReadParam(paramName, readValue, paramType);
+            ret = err.ErrorsCleared();
+            ret &= ((bool)(writeValue & 1ull) == (bool)(readValue & 1ull));
+        }
     }
     if (ret) {
+        paramName.SetSize(0);
+        paramType.SetSize(0);
+        paramName = "ContU8";
+        paramType = "uint8";
         writeValue = 1;
-        ret = (interface->WriteParam("ContU8", writeValue, "uint8") == 0);
-        ret &= (interface->ReadParam("IndU8", &readValue, "uint8") == 0);
-        ret &= ((uint8)(writeValue) == (uint8)(readValue));
+        readValue = 0;
+        err = interface->WriteParam(paramName, writeValue, paramType);
+        ret = err.ErrorsCleared();
+        if (ret) {
+            paramName.SetSize(0);
+            paramName = "IndU8";
+            err = interface->ReadParam(paramName, readValue, paramType);
+            ret = err.ErrorsCleared();
+            ret &= ((uint8)(writeValue) == (uint8)(readValue));
+        }
     }
     if (ret) {
+        paramName.SetSize(0);
+        paramType.SetSize(0);
+        paramName = "ContU16";
+        paramType = "uint16";
         writeValue = 2;
-        ret = (interface->WriteParam("ContU16", writeValue, "uint16") == 0);
-        ret &= (interface->ReadParam("IndU16", &readValue, "uint16") == 0);
-        ret &= ((uint16)(writeValue) == (uint16)(readValue));
+        readValue = 0;
+        err = interface->WriteParam(paramName, writeValue, paramType);
+        ret = err.ErrorsCleared();
+        if (ret) {
+            paramName.SetSize(0);
+            paramName = "IndU16";
+            err = interface->ReadParam(paramName, readValue, paramType);
+            ret = err.ErrorsCleared();
+            ret &= ((uint16)(writeValue) == (uint16)(readValue));
+        }
     }
     if (ret) {
+        paramName.SetSize(0);
+        paramType.SetSize(0);
+        paramName = "ContU32";
+        paramType = "uint32";
         writeValue = 3;
-        ret = (interface->WriteParam("ContU32", writeValue, "uint32") == 0);
-        ret &= (interface->ReadParam("IndU32", &readValue, "uint32") == 0);
-        ret &= ((uint32)(writeValue) == (uint32)(readValue));
+        readValue = 0;
+        err = interface->WriteParam(paramName, writeValue, paramType);
+        ret = err.ErrorsCleared();
+        if (ret) {
+            paramName.SetSize(0);
+            paramName = "IndU32";
+            err = interface->ReadParam(paramName, readValue, paramType);
+            ret = err.ErrorsCleared();
+            ret &= ((uint32)(writeValue) == (uint32)(readValue));
+        }
     }
     if (ret) {
+        paramName.SetSize(0);
+        paramType.SetSize(0);
+        paramName = "ContU64";
+        paramType = "uint64";
         writeValue = 4;
-        ret = (interface->WriteParam("ContU64", writeValue, "uint64") == 0);
-        ret &= (interface->ReadParam("IndU64", &readValue, "uint64") == 0);
-        ret &= ((uint64)(writeValue) == (uint64)(readValue));
+        readValue = 0;
+        err = interface->WriteParam(paramName, writeValue, paramType);
+        ret = err.ErrorsCleared();
+        if (ret) {
+            paramName.SetSize(0);
+            paramName = "IndU64";
+            err = interface->ReadParam(paramName, readValue, paramType);
+            ret = err.ErrorsCleared();
+            ret &= ((uint64)(writeValue) == (uint64)(readValue));
+        }
     }
     if (ret) {
+        paramName.SetSize(0);
+        paramType.SetSize(0);
+        paramName = "ContI8";
+        paramType = "int8";
         writeValue = -1;
-        ret = (interface->WriteParam("ContI8", writeValue, "int8") == 0);
-        ret &= (interface->ReadParam("IndI8", &readValue, "int8") == 0);
-        ret &= ((int8)(writeValue) == (int8)(readValue));
+        readValue = 0;
+        err = interface->WriteParam(paramName, writeValue, paramType);
+        ret = err.ErrorsCleared();
+        if (ret) {
+            paramName.SetSize(0);
+            paramName = "IndI8";
+            err = interface->ReadParam(paramName, readValue, paramType);
+            ret = err.ErrorsCleared();
+            ret &= ((int8)(writeValue) == (int8)(readValue));
+        }
     }
     if (ret) {
+        paramName.SetSize(0);
+        paramType.SetSize(0);
+        paramName = "ContI16";
+        paramType = "int16";
         writeValue = -2;
-        ret = (interface->WriteParam("ContI16", writeValue, "int16") == 0);
-        ret &= (interface->ReadParam("IndI16", &readValue, "int16") == 0);
-        ret &= ((int16)(writeValue) == (int16)(readValue));
+        readValue = 0;
+        err = interface->WriteParam(paramName, writeValue, paramType);
+        ret = err.ErrorsCleared();
+        if (ret) {
+            paramName.SetSize(0);
+            paramName = "IndI16";
+            err = interface->ReadParam(paramName, readValue, paramType);
+            ret = err.ErrorsCleared();
+            ret &= ((int16)(writeValue) == (int16)(readValue));
+        }
     }
     if (ret) {
+        paramName.SetSize(0);
+        paramType.SetSize(0);
+        paramName = "ContI32";
+        paramType = "int32";
         writeValue = -3;
-        ret = (interface->WriteParam("ContI32", writeValue, "int32") == 0);
-        ret &= (interface->ReadParam("IndI32", &readValue, "int32") == 0);
-        ret &= ((int32)(writeValue) == (int32)(readValue));
+        readValue = 0;
+        err = interface->WriteParam(paramName, writeValue, paramType);
+        ret = err.ErrorsCleared();
+        if (ret) {
+            paramName.SetSize(0);
+            paramName = "IndI32";
+            err = interface->ReadParam(paramName, readValue, paramType);
+            ret = err.ErrorsCleared();
+            ret &= ((int32)(writeValue) == (int32)(readValue));
+        }
     }
     if (ret) {
+        paramName.SetSize(0);
+        paramType.SetSize(0);
+        paramName = "ContI64";
+        paramType = "int64";
         writeValue = -4;
-        ret = (interface->WriteParam("ContI64", writeValue, "int64") == 0);
-        ret &= (interface->ReadParam("IndI64", &readValue, "int64") == 0);
-        ret &= ((int64)(writeValue) == (int64)(readValue));
+        readValue = 0;
+        err = interface->WriteParam(paramName, writeValue, paramType);
+        ret = err.ErrorsCleared();
+        if (ret) {
+            paramName.SetSize(0);
+            paramName = "IndI64";
+            err = interface->ReadParam(paramName, readValue, paramType);
+            ret = err.ErrorsCleared();
+            ret &= ((int64)(writeValue) == (int64)(readValue));
+        }
     }
     if (ret) {
+        paramName.SetSize(0);
+        paramType.SetSize(0);
+        paramName = "ContI64";
+        paramType = "aType";
         writeValue = -4;
-        ret = (interface->WriteParam("ContI64", writeValue, "aType") != 0);
-        ret &= (interface->ReadParam("ContI64", &readValue, "aType") != 0);
-        ret &= ((int64)(writeValue) == (int64)(readValue));
+        readValue = 0;
+        err = interface->WriteParam(paramName, writeValue, paramType);
+        ret = !err.ErrorsCleared();
+        if (ret) {
+            paramName.SetSize(0);
+            paramName = "IndI64";
+            err = interface->ReadParam(paramName, readValue, paramType);
+            ret = !err.ErrorsCleared();
+            ret &= !((int64)(writeValue) == (int64)(readValue));
+        }
     }
 
     ret &= interface->Reset() == 0;
@@ -1126,7 +1327,7 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_Bool(uint32 model) {
                 bool dataw[numberOfElements];
                 bool datar[numberOfElements];
                 for (uint32 i = 0u; i < numberOfElements; i++) {
-                    dataw[i] = (bool) (i & 0x00000001);
+                    dataw[i] = (bool) (i & 1ull);
                 }
                 if (ret) {
                     ret = interface->Run() == 0;
@@ -1141,14 +1342,10 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_Bool(uint32 model) {
                         uint32 elementsRemaining = 0u;
                         ret = (interface->NiReadFifo(fifoBoolr, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
                         for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
-                            ret = (datar[i] == (bool) (i & 0x00000001));
+                            ret = (datar[i] == (bool) (i & 1ull));
                             if (!ret) {
-                                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Reading FIFO1_BOOL_R[%d]=%s != %s", i, datar[i] ? "true" : "false", (bool) (i & 0x00000001) ? "true" : "false");
+                                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Reading FIFO1_BOOL_R[%d]=%s != %s", i, datar[i] ? "true" : "false", (bool) (i & 1ull) ? "true" : "false");
                             }
-                        }
-                        if (ret) {
-                            ret = (interface->ReleaseFifoElements(fifoBoolr, numberOfElements) == 0);
-                            ret &= (interface->ReleaseFifoElements(fifoBoolr, numberOfElements) == 0);
                         }
                     }
                 }
@@ -1231,10 +1428,6 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_U8(uint32 model) {
                                 REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Reading FIFO1_U8_R[%d]=%u != %d", i, datar[i] ,i);
                             }
                         }
-                        if (ret) {
-                            ret = (interface->ReleaseFifoElements(fifoU8r, numberOfElements) == 0);
-                            ret &= (interface->ReleaseFifoElements(fifoU8w, numberOfElements) == 0);
-                        }
                     }
                 }
             }
@@ -1315,10 +1508,6 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_U16(uint32 model) {
                             if (!ret) {
                                 REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Reading FIFO1_U16_R[%d]=%u != %d", i, datar[i] ,i);
                             }
-                        }
-                        if (ret) {
-                            ret = (interface->ReleaseFifoElements(fifoU16r, numberOfElements) == 0);
-                            ret &= (interface->ReleaseFifoElements(fifoU16w, numberOfElements) == 0);
                         }
                     }
                 }
@@ -1401,10 +1590,6 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_U32(uint32 model) {
                                 REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Reading FIFO1_U32_R[%d]=%u != %d", i, datar[i] ,i);
                             }
                         }
-                        if (ret) {
-                            ret = (interface->ReleaseFifoElements(fifoU32r, numberOfElements) == 0);
-                            ret &= (interface->ReleaseFifoElements(fifoU32w, numberOfElements) == 0);
-                        }
                     }
                 }
             }
@@ -1485,10 +1670,6 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_U64(uint32 model) {
                             if (!ret) {
                                 REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Reading FIFO1_U64_R[%d]=%u != %d", i, datar[i] ,i);
                             }
-                        }
-                        if (ret) {
-                            ret = (interface->ReleaseFifoElements(fifoU64r, numberOfElements) == 0);
-                            ret &= (interface->ReleaseFifoElements(fifoU64w, numberOfElements) == 0);
                         }
                     }
                 }
@@ -1571,10 +1752,6 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_I8(uint32 model) {
                                 REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Reading FIFO1_I8_R[%d]=%u != %d", i, datar[i] ,i);
                             }
                         }
-                        if (ret) {
-                            ret = (interface->ReleaseFifoElements(fifoI8r, numberOfElements) == 0);
-                            ret &= (interface->ReleaseFifoElements(fifoI8w, numberOfElements) == 0);
-                        }
                     }
                 }
             }
@@ -1655,10 +1832,6 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_I16(uint32 model) {
                             if (!ret) {
                                 REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Reading FIFO1_I16_R[%d]=%u != %d", i, datar[i] ,i);
                             }
-                        }
-                        if (ret) {
-                            ret = (interface->ReleaseFifoElements(fifoI16r, numberOfElements) == 0);
-                            ret &= (interface->ReleaseFifoElements(fifoI16w, numberOfElements) == 0);
                         }
                     }
                 }
@@ -1741,10 +1914,6 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_I32(uint32 model) {
                                 REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Reading FIFO1_I32_R[%d]=%u != %d", i, datar[i] ,i);
                             }
                         }
-                        if (ret) {
-                            ret = (interface->ReleaseFifoElements(fifoI32r, numberOfElements) == 0);
-                            ret &= (interface->ReleaseFifoElements(fifoI32w, numberOfElements) == 0);
-                        }
                     }
                 }
             }
@@ -1825,10 +1994,6 @@ bool NI9157DeviceTest::TestNiWriteReadFifo_I64(uint32 model) {
                             if (!ret) {
                                 REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Reading FIFO1_I64_R[%d]=%u != %d", i, datar[i] ,i);
                             }
-                        }
-                        if (ret) {
-                            ret = (interface->ReleaseFifoElements(fifoI64r, numberOfElements) == 0);
-                            ret &= (interface->ReleaseFifoElements(fifoI64w, numberOfElements) == 0);
                         }
                     }
                 }

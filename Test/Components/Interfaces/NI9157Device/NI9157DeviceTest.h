@@ -111,6 +111,18 @@ public:
     bool TestInitialise_FalseVariableNotFound(uint32 model);
 
     /**
+     * @brief Tests the NI9157Device::Initialise method does not fail with set Open and Run variables.
+     * @param model the NI crate model being used.
+     */
+    bool TestInitialise_OpenRun(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::Initialise method does not fail without Open and Run variables.
+     * @param model the NI crate model being used.
+     */
+    bool TestInitialise_NoOpenRun(uint32 model);
+
+    /**
      * @brief Tests the NI9157Device::Open and NI9157Device::IsOpened
      * methods.
      * @param model the NI crate model being used.
@@ -150,11 +162,10 @@ public:
     bool TestNiWriteRead(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiConfigureFifo and NI9157Device::NiReleaseFifo
-     * methods.
+     * @brief Tests the NI9157Device::NiConfigureFifo method.
      * @param model the NI crate model being used.
      */
-    bool TestNiConfigureReleaseFifo(uint32 model);
+    bool TestNiConfigureFifo(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::NiStartFifo and NI9157Device::NiStopFifo

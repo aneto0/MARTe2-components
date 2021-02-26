@@ -744,15 +744,6 @@ public:
 
     /**
      * @brief TODO - WAS MISSING.
-     * @param[in] fifo TODO - WAS MISSING.
-     * @param[in] numberOfElements TODO - WAS MISSING.
-     * @return TODO - WAS MISSING.
-     */
-    NiFpga_Status ReleaseFifoElements(const uint32 fifo,
-                            const uint32 numberOfElements);
-
-    /**
-     * @brief TODO - WAS MISSING.
      * @return TODO - WAS MISSING.
      */
     ErrorManagement::ErrorType CrioStart();
