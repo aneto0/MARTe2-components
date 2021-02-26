@@ -132,6 +132,12 @@ public:
     bool TestGetSessionResetClose(uint32 model);
 
     /**
+     * @brief Tests the NI9157Device::CrioStart and NI9157Device::CrioStop methods.
+     * @param model the NI crate model being used.
+     */
+    bool TestCrioStartStop(uint32 model);
+
+    /**
      * @brief Tests the NI9157Device::FindResource method.
      * @param model the NI crate model being used.
      */
@@ -144,17 +150,32 @@ public:
     bool TestNiWriteRead(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiConfigureFifo method.
+     * @brief Tests the NI9157Device::NiConfigureFifo and NI9157Device::NiReleaseFifo
+     * methods.
      * @param model the NI crate model being used.
      */
-    bool TestNiConfigureFifo(uint32 model);
+    bool TestNiConfigureReleaseFifo(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::TestNiStartFifo and NI9157Device::NiStopFifo
+     * @brief Tests the NI9157Device::NiStartFifo and NI9157Device::NiStopFifo
      * methods.
      * @param model the NI crate model being used.
      */
     bool TestNiStartStopFifo(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::WriteParam and NI9157Device::ReadParam
+     * methods.
+     * @param model the NI crate model being used.
+     */
+    bool TestWriteReadParam(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
+     * methods with bool input type.
+     * @param model the NI crate model being used.
+     */
+    bool TestNiWriteReadFifo_Bool(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo

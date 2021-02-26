@@ -77,14 +77,12 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Please specify the NI-RIO Device name (NiRioDeviceName)");
         }
         if (ret) {
-
             ret = data.Read("NiRioGenFile", niRioGenFile);
             if (!ret) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Please specify the NI-RIO generated bit file (NiRioGenFile)");
             }
         }
         if (ret) {
-
             ret = data.Read("NiRioGenSignature", niRioGenSignature);
             if (!ret) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Please spacify the NI-RIO generated signature (NiRioGenSignature)");
@@ -103,7 +101,6 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
     }
     if (ret) {
         if (isOpened > 0u) {
-
             bool condition = true;
             uint32 cnt = 0u;
             while (condition) {
@@ -124,31 +121,24 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
                                 NiFpgaEx_ResourceType_ControlU16, NiFpgaEx_ResourceType_ControlI16, NiFpgaEx_ResourceType_ControlU32,
                                 NiFpgaEx_ResourceType_ControlI32, NiFpgaEx_ResourceType_ControlU64, NiFpgaEx_ResourceType_ControlI64 };
                     uint32 numberOfElements = data.GetNumberOfChildren();
-
                     uint32 indexStore = 0xFFFFFFFFu;
                     NI9157DeviceOperatorTI *configurator = NULL_PTR(NI9157DeviceOperatorTI *);
-
                     for (uint32 k = 0u; (k < numberOfElements) && (ret); k++) {
                         StreamString variable;
                         variable = data.GetChildName(k);
-
                         uint32 i = 0u;
                         bool found = false;
                         while ((suffixes[i] != NULL_PTR(const char8 *)) && (!found) && (ret)) {
                             const char8 *typeInName = StringHelper::SearchString(variable.Buffer(), suffixes[i]);
                             found = (typeInName != NULL_PTR(const char8*));
-
                             if (found) {
                                 uint32 begIndex = StringHelper::Length(suffixes[i]) + 1u;
                                 const char8 *varName = &typeInName[begIndex];
                                 StreamString operatorName = "NI9157Device";
-
                                 operatorName += suffixes[i];
-
                                 REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Try to config %s %s", operatorName.Buffer(), varName);
                                 CreateNI9157DeviceOperatorI *confCreator = NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperator(operatorName.Buffer());
                                 ret = (confCreator != NULL_PTR(CreateNI9157DeviceOperatorI *));
-
                                 if (ret) {
                                     if (i != indexStore) {
                                         if (configurator != NULL_PTR(NI9157DeviceOperatorTI *)) {
@@ -214,7 +204,6 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
                         ret = data.MoveToAncestor(1u);
                     }
                 }
-
                 if ((isRunning == 0u) && (run > 0u)) {
                     status = NiFpga_MergeStatus(&status, NiFpga_Run(session, 0u));
                     if (status == 0) {
@@ -249,7 +238,6 @@ NiFpga_Status NI9157Device::Open() {
         }
         else {
             REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "Failed open status=%d", static_cast<int32> (status));
-
         }
     }
     return status;
@@ -314,7 +302,6 @@ NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const int8
         status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoI8, &varDescriptor);
     }
     return status;
-
 }
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
@@ -332,7 +319,6 @@ NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const uint
         status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoU16, &varDescriptor);
     }
     return status;
-
 }
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
@@ -349,7 +335,6 @@ NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const int1
         status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoI16, &varDescriptor);
     }
     return status;
-
 }
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
@@ -366,7 +351,6 @@ NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const uint
         status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoU32, &varDescriptor);
     }
     return status;
-
 }
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
@@ -383,7 +367,6 @@ NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const int3
         status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoI32, &varDescriptor);
     }
     return status;
-
 }
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
@@ -417,7 +400,6 @@ NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const int6
         status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoI64, &varDescriptor);
     }
     return status;
-
 }
 
 NiFpga_Status NI9157Device::Reset() {
@@ -527,13 +509,11 @@ NiFpga_Status NI9157Device::NiConfigureFifo(const uint32 fifo, const uint32 requ
 }
 
 NiFpga_Status NI9157Device::NiStartFifo(const uint32 fifo) const {
-
     return NiFpga_StartFifo(session, static_cast<uint32_t> (fifo));
 }
 
 NiFpga_Status NI9157Device::NiStopFifo(const uint32 fifo) const {
     return NiFpga_StopFifo(session, static_cast<uint32_t> (fifo));
-
 }
 
 NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, bool * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &elementsRemaining) const {
@@ -578,9 +558,7 @@ NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, int64 * const data, co
 
 NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, uint64 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &elementsRemaining) const {
     /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    NiFpga_Status statusX = NiFpga_ReadFifoU64(session, static_cast<uint32_t> (fifo), reinterpret_cast<uint64_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&elementsRemaining));
-    NiFpga_ReleaseFifoElements(session, static_cast<uint32_t> (fifo), static_cast<size_t> (numberOfElements));
-    return statusX;
+    return NiFpga_ReadFifoU64(session, static_cast<uint32_t> (fifo), reinterpret_cast<uint64_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&elementsRemaining));;
 }
 
 NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo, const bool * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &emptyElementsRemaining) const {
@@ -657,7 +635,15 @@ ErrorManagement::ErrorType NI9157Device::CrioStop() {
 
 ErrorManagement::ErrorType NI9157Device::WriteParam(StreamString varName, uint64 value, StreamString type) {
     ErrorManagement::ErrorType err;
-    if (type == "uint8") {
+    if (type == "bool") {
+        uint32 varId;
+        bool rType = 0u;
+        err = (FindResource(varName.Buffer(), rType, varId) != 0);
+        if (err.ErrorsCleared()) {
+            err = (NiFpga_WriteBool(session, varId, static_cast<NiFpga_Bool> (value)) != 0);
+        }
+    }
+    else if (type == "uint8") {
         uint32 varId;
         uint8 rType = 0u;
         err = (FindResource(varName.Buffer(), rType, varId) != 0);
@@ -721,11 +707,22 @@ ErrorManagement::ErrorType NI9157Device::WriteParam(StreamString varName, uint64
             err = (NiFpga_WriteI64(session, varId, static_cast<int64_t> (value)) != 0);
         }
     }
+    else {
+        err.SetError(4u);
+    }
     return err;
 }
 
 ErrorManagement::ErrorType NI9157Device::ReadParam(StreamString varName, uint64 &value, StreamString type) {
     ErrorManagement::ErrorType err;
+    if (type == "bool") {
+        uint32 varId;
+        bool rType = 0u;
+        err = (FindResource(varName.Buffer(), rType, varId) != 0);
+        if (err.ErrorsCleared()) {
+            err = (NiFpga_ReadBool(session, varId, static_cast<NiFpga_Bool*> (&value)) != 0);
+        }
+    }
     if (type == "uint8") {
         uint32 varId;
         uint8 rType = 0u;
@@ -789,6 +786,9 @@ ErrorManagement::ErrorType NI9157Device::ReadParam(StreamString varName, uint64 
         if (err.ErrorsCleared()) {
             err = (NiFpga_ReadI64(session, varId, reinterpret_cast<int64_t*> (&value)) != 0);
         }
+    }
+    else {
+        err.SetError(4u);
     }
     return err;
 }

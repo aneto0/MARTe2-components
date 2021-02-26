@@ -243,6 +243,23 @@ TEST(NI9157DeviceGTest,TestGetSessionResetClose) {
     ASSERT_TRUE(ret);
 }
 
+TEST(NI9157DeviceGTest,TestCrioStartStop) {
+    NI9157DeviceTest test;
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestCrioStartStop(idx);
+        }
+        else {
+            ret = test.TestCrioStartStop(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
+}
+
 TEST(NI9157DeviceGTest,TestFindResource) {
     NI9157DeviceTest test;
     bool ret = true;
@@ -277,15 +294,15 @@ TEST(NI9157DeviceGTest,TestNiWriteRead) {
     ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestNiConfigureFifo) {
+TEST(NI9157DeviceGTest,TestNiConfigureReleaseFifo) {
     NI9157DeviceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
         if(testAll) {
-            ret &= test.TestNiConfigureFifo(idx);
+            ret &= test.TestNiConfigureReleaseFifo(idx);
         }
         else {
-            ret = test.TestNiConfigureFifo(idx);
+            ret = test.TestNiConfigureReleaseFifo(idx);
             if (ret) {
                 break;
             }
@@ -303,6 +320,40 @@ TEST(NI9157DeviceGTest,TestNiStartStopFifo) {
         }
         else {
             ret = test.TestNiStartStopFifo(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
+}
+
+TEST(NI9157DeviceGTest,TestWriteReadParam) {
+    NI9157DeviceTest test;
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestWriteReadParam(idx);
+        }
+        else {
+            ret = test.TestWriteReadParam(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
+}
+
+TEST(NI9157DeviceGTest,TestNiWriteReadFifo_Bool) {
+    NI9157DeviceTest test;
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestNiWriteReadFifo_Bool(idx);
+        }
+        else {
+            ret = test.TestNiWriteReadFifo_Bool(idx);
             if (ret) {
                 break;
             }

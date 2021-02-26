@@ -121,19 +121,19 @@ public:
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
-static const uint32 nParams                   = 3;
-static const char8 * const firmwarePath       = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles";
-static const char8 * const multiIOFirmware[]  = {"RIO0", "NiFpga_NI9159_MultiIO.lvbitx", "0F35E2AEADD4F26805B88609AEAC9050"};
-static const char8 * const u8Firmware[]       = {"RIO0", "NiFpga_NI9159_U8FifoLoop.lvbitx", "E20FC0B821C53C12CDB1CF1CFFDE9E3F"};
-static const char8 * const i8Firmware[]       = {"RIO0", "NiFpga_NI9159_I8FifoLoop.lvbitx", "1D78B0D488445F8046D8AA7841CA7F92"};
-static const char8 * const u16Firmware[]      = {"RIO0", "NiFpga_NI9159_U16FifoLoop.lvbitx", "0682A8270DCB30912E3855297CA35C1A"};
-static const char8 * const i16Firmware[]      = {"RIO0", "NiFpga_NI9159_I16FifoLoop.lvbitx", "B2D0A5188F4DF27E5816FB536FECA87E"};
-static const char8 * const u32Firmware[]      = {"RIO0", "NiFpga_NI9159_U32FifoLoop.lvbitx", "E3BDC175B00D4F16FB994A1852CC695F"};
-static const char8 * const i32Firmware[]      = {"RIO0", "NiFpga_NI9159_I32FifoLoop.lvbitx", "3743493619F557D68357D4D088217E05"};
-static const char8 * const u64Firmware[]      = {"RIO0", "NiFpga_NI9159_U64FifoLoop.lvbitx", "D19D1491A3C597E9F3C0E56F06AA272C"};
-static const char8 * const i64Firmware[]      = {"RIO0", "NiFpga_NI9159_I64FifoLoop.lvbitx", "217E99FD109188EF37C2FCAED84AC82E"};
-
-static const char8 * const multiIoConfig = ""
+static const uint32 nParams                 = 3;
+static const char8 * const firmwarePath     = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles";
+static const char8 * const multiIOFirmware[]= {"RIO0", "NiFpga_NI9159_MultiIO.lvbitx", "0F35E2AEADD4F26805B88609AEAC9050"};
+static const char8 * const boolFirmware[]   = {"RIO0", "NiFpga_NI9159_BoolFifoLoop.lvbitx", ""};
+static const char8 * const u8Firmware[]     = {"RIO0", "NiFpga_NI9159_U8FifoLoop.lvbitx", "E20FC0B821C53C12CDB1CF1CFFDE9E3F"};
+static const char8 * const i8Firmware[]     = {"RIO0", "NiFpga_NI9159_I8FifoLoop.lvbitx", "1D78B0D488445F8046D8AA7841CA7F92"};
+static const char8 * const u16Firmware[]    = {"RIO0", "NiFpga_NI9159_U16FifoLoop.lvbitx", "0682A8270DCB30912E3855297CA35C1A"};
+static const char8 * const i16Firmware[]    = {"RIO0", "NiFpga_NI9159_I16FifoLoop.lvbitx", "B2D0A5188F4DF27E5816FB536FECA87E"};
+static const char8 * const u32Firmware[]    = {"RIO0", "NiFpga_NI9159_U32FifoLoop.lvbitx", "E3BDC175B00D4F16FB994A1852CC695F"};
+static const char8 * const i32Firmware[]    = {"RIO0", "NiFpga_NI9159_I32FifoLoop.lvbitx", "3743493619F557D68357D4D088217E05"};
+static const char8 * const u64Firmware[]    = {"RIO0", "NiFpga_NI9159_U64FifoLoop.lvbitx", "D19D1491A3C597E9F3C0E56F06AA272C"};
+static const char8 * const i64Firmware[]    = {"RIO0", "NiFpga_NI9159_I64FifoLoop.lvbitx", "217E99FD109188EF37C2FCAED84AC82E"};
+static const char8 * const multiIoConfig    = ""
     "+NiDevice = {"
     "    Class = NI9157Device"
     "    NiRioDeviceName = XptoDevice"
@@ -158,7 +158,6 @@ static const char8 * const fifoLoopConfig = ""
     "    Open = 1"
     "    Configuration = {"
     "        ControlU32_cycle_ticks = 40000"
-  //  "        ControlU32_period = 40000"
     "    }"
     "}";
 
@@ -251,6 +250,8 @@ bool NI9157DeviceOperatorTTest<T>::TestFindResource(uint32 model,
         uint32 varDescriptor;
         ret = (niOperator.FindResource(resourceName, varDescriptor) == 0);
     }
+
+    ret &= interface->Reset() == 0;
     ret &= interface->Close() == 0;
 
     return ret;
@@ -321,6 +322,7 @@ bool NI9157DeviceOperatorTTest<T>::TestNiWriteRead(uint32 model,
             }
         }
     }
+
     ret &= interface->Reset() == 0;
     ret &= interface->Close() == 0;
 
@@ -461,6 +463,9 @@ bool NI9157DeviceOperatorTTest<T>::TestNiWriteReadFifo(uint32 model,
         }
     }
 
+    ret &= interface->Reset() == 0;
+    ret &= interface->Close() == 0;
+
     return ret;
 }
 
@@ -509,6 +514,8 @@ bool NI9157DeviceOperatorTTest<T>::TestGetNI9157Device(uint32 model) {
         NI9157DeviceOperatorT<T> niOperator(interface);
         ret = (niOperator.GetNI9157Device() == interface);
     }
+
+    ret &= interface->Reset() == 0;
     ret &= interface->Close() == 0;
 
     return ret;
