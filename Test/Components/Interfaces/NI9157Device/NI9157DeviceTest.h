@@ -128,30 +128,58 @@ public:
     bool TestInitialise_NoOpenRun(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Open and NI9157Device::IsOpened methods.
+     * @brief Tests the NI9157Device::Open method.
      * @param model the NI crate model being used.
      */
-    bool TestOpenIsOpened(uint32 model);
+    bool TestOpen(uint32 model);
+    
+	/**
+     * @brief Tests the NI9157Device::IsOpened method.
+     * @param model the NI crate model being used.
+     */
+    bool TestIsOpened(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Run and NI9157Device::IsRunning methods.
+     * @brief Tests the NI9157Device::Run method.
      * @param model the NI crate model being used.
      */
-    bool TestRunIsRunning(uint32 model);
+    bool TestRun(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::GetSession, NI9157Device::Reset
-     * and NI9157Device::Close methods.
+     * @brief Tests the NI9157Device::IsRunning method.
      * @param model the NI crate model being used.
      */
-    bool TestGetSessionResetClose(uint32 model);
+    bool TestIsRunning(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::CrioStart and NI9157Device::CrioStop 
-	 * methods.
+     * @brief Tests the NI9157Device::GetSession method.
      * @param model the NI crate model being used.
      */
-    bool TestCrioStartStop(uint32 model);
+    bool TestGetSession(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::Reset method.
+     * @param model the NI crate model being used.
+     */
+    bool TestReset(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::Close methods.
+     * @param model the NI crate model being used.
+     */
+    bool TestClose(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::CrioStart method.
+     * @param model the NI crate model being used.
+     */
+    bool TestCrioStart(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::CrioStop method.
+     * @param model the NI crate model being used.
+     */
+    bool TestCrioStop(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::FindResource method.
@@ -160,10 +188,16 @@ public:
     bool TestFindResource(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiWrite and NI9157Device::NiRead methods.
+     * @brief Tests the NI9157Device::NiWrite method.
      * @param model the NI crate model being used.
      */
-    bool TestNiWriteRead(uint32 model);
+    bool TestNiWrite(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::NiRead method.
+     * @param model the NI crate model being used.
+     */
+    bool TestNiRead(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::NiConfigureFifo method.
@@ -172,81 +206,136 @@ public:
     bool TestNiConfigureFifo(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiStartFifo and NI9157Device::NiStopFifo
-     * methods.
+     * @brief Tests the NI9157Device::NiStartFifo method.
      * @param model the NI crate model being used.
      */
-    bool TestNiStartStopFifo(uint32 model);
+    bool TestNiStartFifo(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::WriteParam and NI9157Device::ReadParam
-     * methods.
+     * @brief Tests the NI9157Device::NiStopFifo method.
      * @param model the NI crate model being used.
      */
-    bool TestWriteReadParam(uint32 model);
+    bool TestNiStopFifo(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
-     * methods with bool input type.
+     * @brief Tests the NI9157Device::WriteParam method.
      * @param model the NI crate model being used.
      */
-    bool TestNiWriteReadFifo_Bool(uint32 model);
+    bool TestWriteParam(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
-     * methods with uint8 input type.
+     * @brief Tests the NI9157Device::ReadParam method.
      * @param model the NI crate model being used.
      */
-    bool TestNiWriteReadFifo_U8(uint32 model);
+    bool TestReadParam(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
-     * methods with uint16 input type.
+     * @brief Tests the NI9157Device::NiWriteFifo method with bool input type.
      * @param model the NI crate model being used.
      */
-    bool TestNiWriteReadFifo_U16(uint32 model);
+    bool TestNiWriteFifo_Bool(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
-     * methods with uint32 input type.
+     * @brief Tests the NI9157Device::NiReadFifo method with bool input type.
      * @param model the NI crate model being used.
      */
-    bool TestNiWriteReadFifo_U32(uint32 model);
+    bool TestNiReadFifo_Bool(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
-     * methods with uint64 input type.
+     * @brief Tests the NI9157Device::NiWriteFifo method with uint8 input type.
      * @param model the NI crate model being used.
      */
-    bool TestNiWriteReadFifo_U64(uint32 model);
+    bool TestNiWriteFifo_U8(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
-     * methods with int8 input type.
+     * @brief Tests the NI9157Device::NiReadFifo method with uint8 input type.
      * @param model the NI crate model being used.
      */
-    bool TestNiWriteReadFifo_I8(uint32 model);
+    bool TestNiReadFifo_U8(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
-     * methods with int16 input type.
+     * @brief Tests the NI9157Device::NiWriteFifo method with uint16 input type.
      * @param model the NI crate model being used.
      */
-    bool TestNiWriteReadFifo_I16(uint32 model);
+    bool TestNiWriteFifo_U16(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
-     * methods with int32 input type.
+     * @brief Tests the NI9157Device::NiReadFifo method with uint16 input type.
      * @param model the NI crate model being used.
      */
-    bool TestNiWriteReadFifo_I32(uint32 model);
+    bool TestNiReadFifo_U16(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::NiWriteFifo and NI9157Device::NiReadFifo
-     * methods with int64 input type.
+     * @brief Tests the NI9157Device::NiWriteFifo method with uint32 input type.
      * @param model the NI crate model being used.
      */
-    bool TestNiWriteReadFifo_I64(uint32 model);
+    bool TestNiWriteFifo_U32(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with uint32 input type.
+     * @param model the NI crate model being used.
+     */
+    bool TestNiReadFifo_U32(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo method with uint64 input type.
+     * @param model the NI crate model being used.
+     */
+    bool TestNiWriteFifo_U64(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with uint64 input type.
+     * @param model the NI crate model being used.
+     */
+    bool TestNiReadFifo_U64(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo method with int8 input type.
+     * @param model the NI crate model being used.
+     */
+    bool TestNiWriteFifo_I8(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with int8 input type.
+     * @param model the NI crate model being used.
+     */
+    bool TestNiReadFifo_I8(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo method with int16 input type.
+     * @param model the NI crate model being used.
+     */
+    bool TestNiWriteFifo_I16(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with int16 input type.
+     * @param model the NI crate model being used.
+     */
+    bool TestNiReadFifo_I16(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo method with int32 input type.
+     * @param model the NI crate model being used.
+     */
+    bool TestNiWriteFifo_I32(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with int32 input type.
+     * @param model the NI crate model being used.
+     */
+    bool TestNiReadFifo_I32(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::NiWriteFifo method with int64 input type.
+     * @param model the NI crate model being used.
+     */
+    bool TestNiWriteFifo_I64(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::NiReadFifo method with int64 input type.
+     * @param model the NI crate model being used.
+     */
+    bool TestNiReadFifo_I64(uint32 model);
 
 };
 

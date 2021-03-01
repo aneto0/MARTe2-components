@@ -96,16 +96,26 @@ public:
                     const char8* resourceName);
 
     /**
-     * @brief Tests the NI9157DeviceOperatorT::NiWrite and NI9157DeviceOperatorT::NiRead
-     * methods
+     * @brief Tests the NI9157DeviceOperatorT::NiWrite method.
      */
-    bool TestNiWriteRead(uint32 model,
+    bool TestNiWrite(uint32 model,
+                    const char8 *writeVarName);
+
+    /**
+     * @brief Tests the NI9157DeviceOperatorT::NiRead method.
+     */
+    bool TestNiRead(uint32 model,
                     const char8 *writeVarName,
                     const char8 *readVarName);
 
     /**
-     * @brief Tests the NI9157DeviceOperatorT::NiWriteFifo and NI9157DeviceOperatorT::NiReadFifo
-     * methods
+     * @brief Tests the NI9157DeviceOperatorT::NiWriteFifo method.
+     */
+    bool TestNiWriteReadFifo(uint32 model,
+                        const char8 *writeVarName);
+
+    /**
+     * @brief Tests the NI9157DeviceOperatorT::NiReadFifo methods.
      */
     bool TestNiWriteReadFifo(uint32 model,
                         const char8 *writeVarName,
@@ -258,7 +268,71 @@ bool NI9157DeviceOperatorTTest<T>::TestFindResource(uint32 model,
 }
 
 template<typename T>
-bool NI9157DeviceOperatorTTest<T>::TestNiWriteRead(uint32 model,
+bool NI9157DeviceOperatorTTest<T>::TestNiWrite(uint32 model,
+                                            const char8 *writeVarName) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIoConfig;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveRelative("Configuration");
+        // Change....
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<NI9157Device> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+    if (ret) {
+        ret = interface->IsOpened() == 0;
+    }
+    if (ret) {
+        ret = interface->Open() == 0;
+    }
+    if (ret) {
+        ret = interface->IsOpened() == 1;
+    }
+    if (ret) {
+        ret = interface->Run() == 0;
+    }
+    if (ret) {
+        ret = interface->IsRunning() == 1;
+    }
+    if (ret) {
+        NI9157DeviceOperatorT<T> niOperator(interface);
+        uint32 contrDescriptor;
+        ret = (niOperator.FindResource(writeVarName, contrDescriptor) == 0);
+        if (ret) {
+            T writeVal = 1;
+            ret = (niOperator.NiWrite(contrDescriptor, &writeVal) == 0);
+        }
+    }
+
+    ret &= interface->Reset() == 0;
+    ret &= interface->Close() == 0;
+
+    return ret;
+}
+
+template<typename T>
+bool NI9157DeviceOperatorTTest<T>::TestNiRead(uint32 model,
                                             const char8 *writeVarName,
                                             const char8 *readVarName) {
 
@@ -310,8 +384,8 @@ bool NI9157DeviceOperatorTTest<T>::TestNiWriteRead(uint32 model,
         NI9157DeviceOperatorT<T> niOperator(interface);
         uint32 contrDescriptor;
         uint32 varDescriptor;
-        ret = (niOperator.FindResource(readVarName, varDescriptor) == 0);
-        ret &= (niOperator.FindResource(writeVarName, contrDescriptor) == 0);
+		ret = (niOperator.FindResource(writeVarName, contrDescriptor) == 0);
+        ret &= (niOperator.FindResource(readVarName, varDescriptor) == 0);
         if (ret) {
             T writeVal = 1;
             ret = (niOperator.NiWrite(contrDescriptor, &writeVal) == 0);
@@ -330,7 +404,139 @@ bool NI9157DeviceOperatorTTest<T>::TestNiWriteRead(uint32 model,
 }
 
 template<typename T>
-bool NI9157DeviceOperatorTTest<T>::TestNiWriteReadFifo(uint32 model,
+bool NI9157DeviceOperatorTTest<T>::TestNiWriteFifo(uint32 model,
+                                                  const char8 *writeVarName) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = fifoLoopConfig;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    if (ret) {
+        StreamString name = "";
+        StreamString pathAndFile = "";
+        StreamString signature = "";
+        ret = cdb.MoveAbsolute("+NiDevice");
+        if (ret) { 
+            if (typeid(T) == typeid(bool)) {
+                name.Printf("%s", boolFirmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, boolFirmware[nParams*model + 1]);
+                signature.Printf("%s", boolFirmware[nParams*model + 2]);
+                ret = true;
+            }
+            if (typeid(T) == typeid(uint8)) {
+                name.Printf("%s", u8Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, u8Firmware[nParams*model + 1]);
+                signature.Printf("%s", u8Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else if (typeid(T) == typeid(int8)) {
+                name.Printf("%s", i8Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, i8Firmware[nParams*model + 1]);
+                signature.Printf("%s", i8Firmware[nParams*model + 2]);
+                ret = true;
+ 	    }
+            else if (typeid(T) == typeid(uint16)) {
+                name.Printf("%s", u16Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, u16Firmware[nParams*model + 1]);
+                signature.Printf("%s", u16Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else if (typeid(T) == typeid(int16)) {
+                name.Printf("%s", i16Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, i16Firmware[nParams*model + 1]);
+                signature.Printf("%s", i16Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else if (typeid(T) == typeid(uint32)) {
+                name.Printf("%s", u32Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, u32Firmware[nParams*model + 1]);
+                signature.Printf("%s", u32Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else if (typeid(T) == typeid(int32)) {
+                name.Printf("%s", i32Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, i32Firmware[nParams*model + 1]);
+                signature.Printf("%s", i32Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else if (typeid(T) == typeid(uint64)) {
+                name.Printf("%s", u64Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, u64Firmware[nParams*model + 1]);
+                signature.Printf("%s", u64Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else if (typeid(T) == typeid(int64)) {
+                name.Printf("%s", i64Firmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, i64Firmware[nParams*model + 1]);
+                signature.Printf("%s", i64Firmware[nParams*model + 2]);
+                ret = true;
+            }
+            else {            
+                ret = false;
+            }
+        }
+        if (ret) {
+            ret = cdb.Write("NiRioDeviceName", name.Buffer());
+            ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+            ret &= cdb.Write("NiRioGenSignature", signature.Buffer());
+            ret &= cdb.MoveRelative("Configuration");
+            // Change....
+            ret &= cdb.MoveToRoot();
+        }
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT < NI9157Device > interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+    }
+    if (ret) {
+        ret = interface->IsOpened() == 1;
+    }
+    if (ret) {
+        NI9157DeviceOperatorT<T> niOperator(interface);
+        uint32 fifow;
+        uint32 fifor;
+        ret = (niOperator.FindResource(writeVarName, fifow) == 0);
+        if (ret) {
+            const uint32 numberOfElements = 1000;
+            uint32 oldSize = 0u;
+            ret = (interface->NiConfigureFifo(fifow, numberOfElements, oldSize) == 0);
+            if (ret) {
+                T dataw[numberOfElements];
+                for (uint32 i = 0u; i < numberOfElements; i++) {
+                    dataw[i] = (T) i;
+                }
+                if (ret) {
+                    ret = interface->Run() == 0;
+                }
+                if (ret) {
+                    ret = interface->IsRunning() == 1;
+                }
+                if (ret) {
+                    uint32 emptyElementsRemaining = 0u;
+                    ret = (niOperator.NiWriteFifo(fifow, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
+                }
+            }
+        }
+    }
+
+    ret &= interface->Reset() == 0;
+    ret &= interface->Close() == 0;
+
+    return ret;
+}
+
+template<typename T>
+bool NI9157DeviceOperatorTTest<T>::TestNiReadFifo(uint32 model,
                                                   const char8 *writeVarName,
                                                   const char8 *readVarName) {
 
