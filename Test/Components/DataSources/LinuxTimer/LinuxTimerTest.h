@@ -105,6 +105,16 @@ public:
      */
     bool TestExecute_RTThread();
 
+	/**
+	* @brief Tests the Execute method in the context of the real-time thread by using all the four signals
+	*/
+	bool TestExecute_RTThread_WithFour();
+
+	/**
+	* @brief Tests the Execute method exercising the phase section
+	*/
+	bool TestExecute_RTThread_WithPhase();
+
     /**
      * @brief Tests the PrepareNextState method.
      */
@@ -161,6 +171,16 @@ public:
     bool TestInitialise_False_StackSize();
 
     /**
+     * @brief Tests the Initialise method by explicitly specifying the Time Provider class
+     */
+    bool TestInitialise_ExplicitTimeProvider();
+
+    /**
+     * @brief Tests the Initialise method by explicitly specifying the Time Provider class but specifying an invalid Class for it
+     */
+    bool TestInitialise_False_ExplicitWrongTimeProvider();
+
+    /**
      * @brief Tests the TestGetCPUMask method.
      */
     bool TestGetCPUMask();
@@ -181,9 +201,9 @@ public:
     bool TestSetConfiguredDatabase_One_Signal_Per_GAM();
 
     /**
-     * @brief Tests the SetConfiguredDatabase method specifying more than two signals.
+     * @brief Tests the SetConfiguredDatabase method specifying more than four signals.
      */
-    bool TestSetConfiguredDatabase_False_MoreThan2Signals();
+    bool TestSetConfiguredDatabase_False_MoreThan4Signals();
 
     /**
      * @brief Tests the SetConfiguredDatabase method specifying with a first signal that has more than 32 bits.
@@ -214,6 +234,7 @@ public:
      * @brief Test the GetSleepPercentage method.
      */
     bool TestGetSleepPercentage();
+
 };
 
 /*---------------------------------------------------------------------------*/

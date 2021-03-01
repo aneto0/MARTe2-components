@@ -194,7 +194,7 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
         ok = (GetNumberOfSignals() >= 2u) && (GetNumberOfSignals() <= 4u);
     }
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "Exactly two signals shall be configured");
+        REPORT_ERROR(ErrorManagement::ParametersError, "Number of signal must be between 2 and");
     }
     if (ok) {
         ok = (GetSignalType(0u).numberOfBits == 32u);
@@ -386,6 +386,7 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
             }
         }
     }
+
     if (!ok) {
         if (!synchSem.Post()) {
             ok = false;
@@ -398,7 +399,8 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
             }
         }
     }
-    REPORT_ERROR(ErrorManagement::FatalError, "LinuxTimer::Prepared");
+
+    REPORT_ERROR(ok?ErrorManagement::Information:ErrorManagement::FatalError, "LinuxTimer::Prepared = %s", (ok?"true":"false"));
 
     return ok;
 }

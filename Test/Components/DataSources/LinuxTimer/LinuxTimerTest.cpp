@@ -30,6 +30,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
 #include "GAM.h"
 #include "GAMScheduler.h"
 #include "LinuxTimer.h"
@@ -165,6 +166,14 @@ const MARTe::char8 * const config1 = ""
         "                    DataSource = Timer"
         "                    Type = uint32"
         "                    Frequency = 1000"
+        "                }"
+        "                AbsoluteTime = {"
+        "                    DataSource = Timer"
+        "                    Type = uint64"
+        "                }"
+        "                DeltaTime = {"
+        "                    DataSource = Timer"
+        "                    Type = uint64"
         "                }"
         "            }"
         "        }"
@@ -378,7 +387,15 @@ const MARTe::char8 * const config4 = ""
         "                    DataSource = Timer"
         "                    Type = uint32"
         "                }"
-        "                Time2 = {"
+        "                AbsTime = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                }"
+        "                DeltaTime = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                }"
+        "                WrongSignal = {"
         "                    DataSource = Timer"
         "                    Type = uint32"
         "                }"
@@ -783,6 +800,217 @@ const MARTe::char8 * const config11 = ""
         "    }"
         "}";
 
+//Full 4 signal configuration for testing in the context of the real-time thread
+const MARTe::char8 * const config12 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = LinuxTimerTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                    Frequency = 1000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timer = {"
+        "            Class = LinuxTimer"
+        "            ExecutionMode = RealTimeThread"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+const MARTe::char8 * const config13 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = LinuxTimerTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                    Frequency = 1000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timer = {"
+        "            Class = LinuxTimer"
+        "            ExecutionMode = RealTimeThread"
+		"			 +TimeProvider = {"
+		"				 Class = HighResolutionTimeProvider"
+		"			 }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+const MARTe::char8 * const config14 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = LinuxTimerTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                    Frequency = 1000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timer = {"
+        "            Class = LinuxTimer"
+        "            ExecutionMode = RealTimeThread"
+		"			 +WrongTimeProvider = {"
+		"				 Class = RealTimeApplication"
+		"			 }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+const MARTe::char8 * const config15 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = LinuxTimerTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                    Frequency = 1000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timer = {"
+        "            Class = LinuxTimer"
+        "            ExecutionMode = RealTimeThread"
+		"			 Phase = 500000"
+		"			 +WrongTimeProvider = {"
+		"				 Class = RealTimeApplication"
+		"			 }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -876,6 +1104,71 @@ bool LinuxTimerTest::TestExecute_RTThread() {
     return TestIntegratedInApplication(config11);
 }
 
+bool LinuxTimerTest::TestExecute_RTThread_WithFour() {
+    return TestIntegratedInApplication(config12);
+}
+
+bool LinuxTimerTest::TestExecute_RTThread_WithPhase() {
+    return TestIntegratedInApplication(config15);
+}
+
+bool LinuxTimerTest::TestInitialise_ExplicitTimeProvider() {
+    using namespace MARTe;
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = config13;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+
+	return ok;
+}
+
+
+bool LinuxTimerTest::TestInitialise_False_ExplicitWrongTimeProvider() {
+    using namespace MARTe;
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = config14;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+
+	return !ok;
+}
+
 bool LinuxTimerTest::TestPrepareNextState() {
     using namespace MARTe;
 
@@ -915,10 +1208,15 @@ bool LinuxTimerTest::TestPrepareNextState() {
     }
     uint32 *counter;
     uint32 *timer;
+	uint64 *absoluteTime;
+	uint64 *deltaTime;
 
     if (ok) {
         linuxTimer->GetSignalMemoryBuffer(0, 0, (void *&) counter);
         linuxTimer->GetSignalMemoryBuffer(1, 0, (void *&) timer);
+		linuxTimer->GetSignalMemoryBuffer(2, 0, (void *&) absoluteTime);
+		linuxTimer->GetSignalMemoryBuffer(3, 0, (void *&) deltaTime);
+
         uint32 c = 0;
         ok = false;
         while (c < 500 && !ok) {
@@ -929,19 +1227,27 @@ bool LinuxTimerTest::TestPrepareNextState() {
             }
         }
     }
+	
     Sleep::MSec(1000);
     uint32 counterBefore = (*counter);
     uint32 timerBefore = (*timer);
+
+	//Let's sleep for a second
+	Sleep::MSec(1000);
+
     application->StopCurrentStateExecution();
 
     if (ok) {
         ok = (counterBefore > 1000) && (timerBefore > 1000000);
     }
+
     if (ok) {
         ok = application->PrepareNextState("State1");
     }
+
     if (ok) {
-        ok = (((*counter) < counterBefore) && ((*timer) < timerBefore));
+        //ok = (((*counter) < counterBefore) && ((*timer) < timerBefore));
+		ok = (((*counter) - counterBefore) >= 1000) && (((*timer) - timerBefore) >= 1000 * 1000);
     }
 
     god->Purge();
@@ -1067,7 +1373,7 @@ bool LinuxTimerTest::TestSetConfiguredDatabase_One_Signal_Per_GAM() {
     return TestIntegratedInApplication(config8, true, false);
 }
 
-bool LinuxTimerTest::TestSetConfiguredDatabase_False_MoreThan2Signals() {
+bool LinuxTimerTest::TestSetConfiguredDatabase_False_MoreThan4Signals() {
     return !TestIntegratedInApplication(config4);
 }
 

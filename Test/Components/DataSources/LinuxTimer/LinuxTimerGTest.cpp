@@ -106,6 +106,26 @@ TEST(LinuxTimerGTest, TestExecute_RTThread) {
     ASSERT_TRUE(test.TestExecute_RTThread());
 }
 
+TEST(LinuxTimerGTest, TestExecute_RTThread_WithFour) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestExecute_RTThread_WithFour());
+}
+
+TEST(LinuxTimerGTest, TestExecute_RTThread_WithPhase) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestExecute_RTThread_WithPhase());
+}
+
+TEST(LinuxTimerGTest, TestInitialise_ExplicitTimeProvider) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestInitialise_ExplicitTimeProvider());
+}
+
+TEST(LinuxTimerGTest, TestInitialise_False_ExplicitWrongTimeProvider) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestInitialise_False_ExplicitWrongTimeProvider());
+}
+
 TEST(LinuxTimerGTest, TestPrepareNextState) {
     LinuxTimerTest test;
     ASSERT_TRUE(test.TestPrepareNextState());
@@ -175,9 +195,9 @@ TEST(LinuxTimerGTest, TestSetConfiguredDatabase) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
-TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_MoreThan2Signals) {
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_MoreThan4Signals) {
     LinuxTimerTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThan2Signals());
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThan4Signals());
 }
 
 TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_No32BitsSignal1) {
