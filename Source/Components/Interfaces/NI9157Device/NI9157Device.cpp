@@ -63,8 +63,6 @@ NI9157Device::NI9157Device() :
 
 /*lint -e{1551} Possible exceptions trown in destructor are safely ignored*/
 NI9157Device::~NI9157Device() {
-    /* Close the session now that we're done with it. */
-    //NiFpga_MergeStatus(&status, NiFpga_Close(session, 0));
     REPORT_ERROR(ErrorManagement::Information, "Closing RIO Device");
     if (isOpened > 0u) {
         status = NiFpga_Reset(session);
