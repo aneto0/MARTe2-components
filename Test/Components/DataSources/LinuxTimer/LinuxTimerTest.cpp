@@ -826,7 +826,7 @@ bool LinuxTimerTest::TestGetSignalMemoryBuffer_False() {
     using namespace MARTe;
     LinuxTimer test;
     uint32 *ptr;
-    return !test.GetSignalMemoryBuffer(2, 0, (void *&) ptr);
+    return !test.GetSignalMemoryBuffer(4, 0, (void *&) ptr);
 }
 
 bool LinuxTimerTest::TestGetBrokerName() {
