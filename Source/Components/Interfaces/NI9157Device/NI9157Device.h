@@ -764,7 +764,7 @@ public:
 	 * the returned value.
      */
     ErrorManagement::ErrorType WriteParam(StreamString varName,
-                            uint64 value,
+                            const uint64 value,
                             StreamString type);
 
     /**

@@ -53,20 +53,24 @@ NI9157Device::NI9157Device() :
     status = 0;
     session = 0u;
     // Install message filter
-    ReferenceT < RegisteredMethodsMessageFilter > registeredMethodsMessageFilter("RegisteredMethodsMessageFilter");
-    registeredMethodsMessageFilter->SetDestination(this);
-    InstallMessageFilter( registeredMethodsMessageFilter);
+    ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT < RegisteredMethodsMessageFilter >(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    filter->SetDestination(this);
+    ErrorManagement::ErrorType err = MessageI::InstallMessageFilter(filter);
+    if (!err.ErrorsCleared()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to install the message filter");
+    }
 }
 
+/*lint -e{1551} Possible exceptions trown in destructor are safely ignored*/
 NI9157Device::~NI9157Device() {
     /* Close the session now that we're done with it. */
     //NiFpga_MergeStatus(&status, NiFpga_Close(session, 0));
-    REPORT_ERROR(ErrorManagement::Information, "Closing RIO Device ...");
+    REPORT_ERROR(ErrorManagement::Information, "Closing RIO Device");
     if (isOpened > 0u) {
         status = NiFpga_Reset(session);
         (void) NiFpga_Close(session, 0u);
     }
-    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "RIO Device closed %d", status);
+    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "RIO Device closed %d", static_cast<int32> (status));
 }
 
 bool NI9157Device::Initialise(StructuredDataI & data) {
@@ -225,7 +229,7 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
             }
         }
     }
-    REPORT_ERROR(ErrorManagement::Information, "Initialised returning %s with NI session=%d and status=%d", ret ? "true" : "false", (int32)session, (int32)status);
+    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Initialised returning %s with NI session=%d and status=%d", ret ? "true" : "false", static_cast<int32> (session), static_cast<int32> (status));
     return ret;
 }
 
@@ -409,7 +413,7 @@ NiFpga_Status NI9157Device::Reset() {
         REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "Failed reset status=%d", static_cast<int32> (status));
     }
     else {
-        isRunning = 0;
+        isRunning = 0u;
     }
     return status;
 }
@@ -559,7 +563,7 @@ NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, int64 * const data, co
 
 NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, uint64 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &elementsRemaining) const {
     /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_ReadFifoU64(session, static_cast<uint32_t> (fifo), reinterpret_cast<uint64_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&elementsRemaining));;
+    return NiFpga_ReadFifoU64(session, static_cast<uint32_t> (fifo), reinterpret_cast<uint64_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&elementsRemaining));
 }
 
 NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo, const bool * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &emptyElementsRemaining) const {
@@ -630,7 +634,8 @@ ErrorManagement::ErrorType NI9157Device::CrioStop() {
     return ret;
 }
 
-ErrorManagement::ErrorType NI9157Device::WriteParam(StreamString varName, uint64 value, StreamString type) {
+/*lint -e{9117} implicit conversion change of signedness is handled properly*/
+ErrorManagement::ErrorType NI9157Device::WriteParam(StreamString varName, const uint64 value, StreamString type) {
     ErrorManagement::ErrorType err;
     if (type == "bool") {
         uint32 varId;
@@ -710,6 +715,7 @@ ErrorManagement::ErrorType NI9157Device::WriteParam(StreamString varName, uint64
     return err;
 }
 
+/*lint -e{928} -e{740} pointer cast is safe since the types are compatible*/
 ErrorManagement::ErrorType NI9157Device::ReadParam(StreamString varName, uint64 &value, StreamString type) {
     ErrorManagement::ErrorType err;
     if (type == "bool") {
