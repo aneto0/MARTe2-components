@@ -127,12 +127,13 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
 
     if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
         if (ok) {
+            // TODO (WARNING) Change type to support more than 32 cpus
             uint32 cpuMaskIn;
             if (!data.Read("CPUMask", cpuMaskIn)) {
                 cpuMaskIn = 0xFFu;
                 REPORT_ERROR(ErrorManagement::Warning, "CPUMask not specified using: %d", cpuMaskIn);
             }
-            cpuMask = cpuMaskIn;
+            cpuMask = ProcessorType(cpuMaskIn);
         }
         if (ok) {
             if (!data.Read("StackSize", stackSize)) {
