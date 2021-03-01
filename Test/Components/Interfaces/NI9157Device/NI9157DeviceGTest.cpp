@@ -251,7 +251,7 @@ TEST(NI9157DeviceGTest,TestIsOpened) {
             ret &= test.TestIsOpened(idx);
         }
         else {
-            ret = test.TestOpened(idx);
+            ret = test.TestIsOpened(idx);
             if (ret) {
                 break;
             }

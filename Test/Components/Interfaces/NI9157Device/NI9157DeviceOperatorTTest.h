@@ -111,13 +111,13 @@ public:
     /**
      * @brief Tests the NI9157DeviceOperatorT::NiWriteFifo method.
      */
-    bool TestNiWriteReadFifo(uint32 model,
+    bool TestNiWriteFifo(uint32 model,
                         const char8 *writeVarName);
 
     /**
      * @brief Tests the NI9157DeviceOperatorT::NiReadFifo methods.
      */
-    bool TestNiWriteReadFifo(uint32 model,
+    bool TestNiReadFifo(uint32 model,
                         const char8 *writeVarName,
                         const char8 *readVarName);
 
@@ -426,7 +426,7 @@ bool NI9157DeviceOperatorTTest<T>::TestNiWriteFifo(uint32 model,
                 signature.Printf("%s", boolFirmware[nParams*model + 2]);
                 ret = true;
             }
-            if (typeid(T) == typeid(uint8)) {
+            else if (typeid(T) == typeid(uint8)) {
                 name.Printf("%s", u8Firmware[nParams*model + 0]);
                 pathAndFile.Printf("%s/%s", firmwarePath, u8Firmware[nParams*model + 1]);
                 signature.Printf("%s", u8Firmware[nParams*model + 2]);
@@ -504,27 +504,22 @@ bool NI9157DeviceOperatorTTest<T>::TestNiWriteFifo(uint32 model,
     if (ret) {
         NI9157DeviceOperatorT<T> niOperator(interface);
         uint32 fifow;
-        uint32 fifor;
         ret = (niOperator.FindResource(writeVarName, fifow) == 0);
         if (ret) {
             const uint32 numberOfElements = 1000;
-            uint32 oldSize = 0u;
-            ret = (interface->NiConfigureFifo(fifow, numberOfElements, oldSize) == 0);
+            T dataw[numberOfElements];
+            for (uint32 i = 0u; i < numberOfElements; i++) {
+                dataw[i] = (T) i;
+            }
             if (ret) {
-                T dataw[numberOfElements];
-                for (uint32 i = 0u; i < numberOfElements; i++) {
-                    dataw[i] = (T) i;
-                }
-                if (ret) {
-                    ret = interface->Run() == 0;
-                }
-                if (ret) {
-                    ret = interface->IsRunning() == 1;
-                }
-                if (ret) {
-                    uint32 emptyElementsRemaining = 0u;
-                    ret = (niOperator.NiWriteFifo(fifow, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
-                }
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            if (ret) {
+                uint32 emptyElementsRemaining = 0u;
+                ret = (niOperator.NiWriteFifo(fifow, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
             }
         }
     }
@@ -552,8 +547,14 @@ bool NI9157DeviceOperatorTTest<T>::TestNiReadFifo(uint32 model,
         StreamString pathAndFile = "";
         StreamString signature = "";
         ret = cdb.MoveAbsolute("+NiDevice");
-        if (ret) { 
-            if (typeid(T) == typeid(uint8)) {
+        if (ret) {
+            if (typeid(T) == typeid(bool)) {
+                name.Printf("%s", boolFirmware[nParams*model + 0]);
+                pathAndFile.Printf("%s/%s", firmwarePath, boolFirmware[nParams*model + 1]);
+                signature.Printf("%s", boolFirmware[nParams*model + 2]);
+                ret = true;
+            }
+            else if (typeid(T) == typeid(uint8)) {
                 name.Printf("%s", u8Firmware[nParams*model + 0]);
                 pathAndFile.Printf("%s/%s", firmwarePath, u8Firmware[nParams*model + 1]);
                 signature.Printf("%s", u8Firmware[nParams*model + 2]);

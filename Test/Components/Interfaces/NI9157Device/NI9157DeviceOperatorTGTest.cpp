@@ -262,7 +262,7 @@ TEST(NI9157DeviceOperatorTGTest,TestCopy_I64) {
 }
 
 TEST(NI9157DeviceOperatorTGTest,TestFindResource_Bool) {
-    NI9157DeviceOperatorTTest<uint8> test;
+    NI9157DeviceOperatorTTest<bool> test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
         if(testAll) {

@@ -1822,23 +1822,19 @@ bool NI9157DeviceTest::TestNiWriteFifo_Bool(uint32 model) {
         ret = (interface->FindResource("FIFO0_BOOL_W", typeBool, fifoBoolw) == 0);
         if (ret) {
             const uint32 numberOfElements = 1000;
-            uint32 oldSize = 0u;
-            ret = (interface->NiConfigureFifo(fifoBoolw, numberOfElements, oldSize) == 0);
+            bool dataw[numberOfElements];
+            for (uint32 i = 0u; i < numberOfElements; i++) {
+                dataw[i] = (bool) (i & 1ull);
+            }
             if (ret) {
-                bool dataw[numberOfElements];
-                for (uint32 i = 0u; i < numberOfElements; i++) {
-                    dataw[i] = (bool) (i & 1ull);
-                }
-                if (ret) {
-                    ret = interface->Run() == 0;
-                }
-                if (ret) {
-                    ret = interface->IsRunning() == 1;
-                }
-                if (ret) {
-                    uint32 emptyElementsRemaining = 0u;
-                    ret = (interface->NiWriteFifo(fifoBoolw, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
-                }
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            if (ret) {
+                uint32 emptyElementsRemaining = 0u;
+                ret = (interface->NiWriteFifo(fifoBoolw, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
             }
         }
     }
@@ -1970,23 +1966,19 @@ bool NI9157DeviceTest::TestNiWriteFifo_U8(uint32 model) {
         ret = (interface->FindResource("FIFO0_U8_W", typeU8, fifoU8w) == 0);
         if (ret) {
             const uint32 numberOfElements = 1000;
-            uint32 oldSize = 0u;
-            ret = (interface->NiConfigureFifo(fifoU8w, numberOfElements, oldSize) == 0);
+            uint8 dataw[numberOfElements];
+            for (uint32 i = 0u; i < numberOfElements; i++) {
+                dataw[i] = (i % 256);
+            }
             if (ret) {
-                uint8 dataw[numberOfElements];
-                for (uint32 i = 0u; i < numberOfElements; i++) {
-                    dataw[i] = (i % 256);
-                }
-                if (ret) {
-                    ret = interface->Run() == 0;
-                }
-                if (ret) {
-                    ret = interface->IsRunning() == 1;
-                }
-                if (ret) {
-                    uint32 emptyElementsRemaining = 0u;
-                    ret = (interface->NiWriteFifo(fifoU8w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
-                }
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            if (ret) {
+                uint32 emptyElementsRemaining = 0u;
+                ret = (interface->NiWriteFifo(fifoU8w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
             }
         }
     }
@@ -2118,23 +2110,19 @@ bool NI9157DeviceTest::TestNiWriteFifo_U16(uint32 model) {
         ret = (interface->FindResource("FIFO0_U16_W", typeU16, fifoU16w) == 0);
         if (ret) {
             const uint32 numberOfElements = 1000;
-            uint32 oldSize = 0u;
-            ret = (interface->NiConfigureFifo(fifoU16w, numberOfElements, oldSize) == 0);
+            uint16 dataw[numberOfElements];
+            for (uint32 i = 0u; i < numberOfElements; i++) {
+                dataw[i] = i;
+            }
             if (ret) {
-                uint16 dataw[numberOfElements];
-                for (uint32 i = 0u; i < numberOfElements; i++) {
-                    dataw[i] = i;
-                }
-                if (ret) {
-                    ret = interface->Run() == 0;
-                }
-                if (ret) {
-                    ret = interface->IsRunning() == 1;
-                }
-                if (ret) {
-                    uint32 emptyElementsRemaining = 0u;
-                    ret = (interface->NiWriteFifo(fifoU16w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
-                }
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            if (ret) {
+                uint32 emptyElementsRemaining = 0u;
+                ret = (interface->NiWriteFifo(fifoU16w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
             }
         }
     }
@@ -2266,23 +2254,19 @@ bool NI9157DeviceTest::TestNiWriteFifo_U32(uint32 model) {
         ret = (interface->FindResource("FIFO0_U32_W", typeU32, fifoU32w) == 0);
         if (ret) {
             const uint32 numberOfElements = 1000;
-            uint32 oldSize = 0u;
-            ret = (interface->NiConfigureFifo(fifoU32w, numberOfElements, oldSize) == 0);
+            uint32 dataw[numberOfElements];
+            for (uint32 i = 0u; i < numberOfElements; i++) {
+                dataw[i] = i;
+            }
             if (ret) {
-                uint32 dataw[numberOfElements];
-                for (uint32 i = 0u; i < numberOfElements; i++) {
-                    dataw[i] = i;
-                }
-                if (ret) {
-                    ret = interface->Run() == 0;
-                }
-                if (ret) {
-                    ret = interface->IsRunning() == 1;
-                }
-                if (ret) {
-                    uint32 emptyElementsRemaining = 0u;
-                    ret = (interface->NiWriteFifo(fifoU32w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
-                }
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            if (ret) {
+                uint32 emptyElementsRemaining = 0u;
+                ret = (interface->NiWriteFifo(fifoU32w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
             }
         }
     }
@@ -2414,23 +2398,19 @@ bool NI9157DeviceTest::TestNiWriteFifo_U64(uint32 model) {
         ret = (interface->FindResource("FIFO0_U64_W", typeU64, fifoU64w) == 0);
         if (ret) {
             const uint32 numberOfElements = 1000;
-            uint32 oldSize = 0u;
-            ret = (interface->NiConfigureFifo(fifoU64w, numberOfElements, oldSize) == 0);
+            uint64 dataw[numberOfElements];
+            for (uint32 i = 0u; i < numberOfElements; i++) {
+                dataw[i] = i;
+            }
             if (ret) {
-                uint64 dataw[numberOfElements];
-                for (uint32 i = 0u; i < numberOfElements; i++) {
-                    dataw[i] = i;
-                }
-                if (ret) {
-                    ret = interface->Run() == 0;
-                }
-                if (ret) {
-                    ret = interface->IsRunning() == 1;
-                }
-                if (ret) {
-                    uint32 emptyElementsRemaining = 0u;
-                    ret = (interface->NiWriteFifo(fifoU64w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
-                }
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            if (ret) {
+                uint32 emptyElementsRemaining = 0u;
+                ret = (interface->NiWriteFifo(fifoU64w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
             }
         }
     }
@@ -2559,40 +2539,22 @@ bool NI9157DeviceTest::TestNiWriteFifo_I8(uint32 model) {
     if (ret) {
         int8 typeI8 = 0;
         uint32 fifoI8w;
-        uint32 fifoI8r;
         ret = (interface->FindResource("FIFO0_I8_W", typeI8, fifoI8w) == 0);
-        ret &= (interface->FindResource("FIFO1_I8_R", typeI8, fifoI8r) == 0);
         if (ret) {
             const uint32 numberOfElements = 1000;
-            uint32 oldSize = 0u;
-            ret = (interface->NiConfigureFifo(fifoI8w, numberOfElements, oldSize) == 0);
-            ret &= (interface->NiConfigureFifo(fifoI8r, numberOfElements, oldSize) == 0);
+            int8 dataw[numberOfElements];
+            for (uint32 i = 0u; i < numberOfElements; i++) {
+                dataw[i] = (i % 256)-128;
+            }
             if (ret) {
-                int8 dataw[numberOfElements];
-                int8 datar[numberOfElements];
-                for (uint32 i = 0u; i < numberOfElements; i++) {
-                    dataw[i] = (i % 256)-128;
-                }
-                if (ret) {
-                    ret = interface->Run() == 0;
-                }
-                if (ret) {
-                    ret = interface->IsRunning() == 1;
-                }
-                if (ret) {
-                    uint32 emptyElementsRemaining = 0u;
-                    ret = (interface->NiWriteFifo(fifoI8w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
-                    if (ret) {
-                        uint32 elementsRemaining = 0u;
-                        ret = (interface->NiReadFifo(fifoI8r, datar, numberOfElements, 0xffffffff, elementsRemaining) == 0);
-                        for (uint32 i = 0u; (i < numberOfElements) && (ret); i++) {
-                            ret = (datar[i] == ((int32)i % 256)-128);
-                            if (!ret) {
-                                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Reading FIFO1_I8_R[%d]=%u != %d", i, datar[i] ,i);
-                            }
-                        }
-                    }
-                }
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            if (ret) {
+                uint32 emptyElementsRemaining = 0u;
+                ret = (interface->NiWriteFifo(fifoI8w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
             }
         }
     }
@@ -2724,23 +2686,19 @@ bool NI9157DeviceTest::TestNiWriteFifo_I16(uint32 model) {
         ret = (interface->FindResource("FIFO0_I16_W", typeI16, fifoI16w) == 0);
         if (ret) {
             const uint32 numberOfElements = 1000;
-            uint32 oldSize = 0u;
-            ret = (interface->NiConfigureFifo(fifoI16w, numberOfElements, oldSize) == 0);
+            int16 dataw[numberOfElements];
+            for (uint32 i = 0u; i < numberOfElements; i++) {
+                dataw[i] = i;
+            }
             if (ret) {
-                int16 dataw[numberOfElements];
-                for (uint32 i = 0u; i < numberOfElements; i++) {
-                    dataw[i] = i;
-                }
-                if (ret) {
-                    ret = interface->Run() == 0;
-                }
-                if (ret) {
-                    ret = interface->IsRunning() == 1;
-                }
-                if (ret) {
-                    uint32 emptyElementsRemaining = 0u;
-                    ret = (interface->NiWriteFifo(fifoI16w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
-                }
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            if (ret) {
+                uint32 emptyElementsRemaining = 0u;
+                ret = (interface->NiWriteFifo(fifoI16w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
             }
         }
     }
@@ -2872,23 +2830,19 @@ bool NI9157DeviceTest::TestNiWriteFifo_I32(uint32 model) {
         ret = (interface->FindResource("FIFO0_I32_W", typeI32, fifoI32w) == 0);
         if (ret) {
             const uint32 numberOfElements = 1000;
-            uint32 oldSize = 0u;
-            ret = (interface->NiConfigureFifo(fifoI32w, numberOfElements, oldSize) == 0);
+            int32 dataw[numberOfElements];
+            for (uint32 i = 0u; i < numberOfElements; i++) {
+                dataw[i] = i ;
+            }
             if (ret) {
-                int32 dataw[numberOfElements];
-                for (uint32 i = 0u; i < numberOfElements; i++) {
-                    dataw[i] = i ;
-                }
-                if (ret) {
-                    ret = interface->Run() == 0;
-                }
-                if (ret) {
-                    ret = interface->IsRunning() == 1;
-                }
-                if (ret) {
-                    uint32 emptyElementsRemaining = 0u;
-                    ret = (interface->NiWriteFifo(fifoI32w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
-                }
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            if (ret) {
+                uint32 emptyElementsRemaining = 0u;
+                ret = (interface->NiWriteFifo(fifoI32w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
             }
         }
     }
@@ -3020,23 +2974,19 @@ bool NI9157DeviceTest::TestNiWriteFifo_I64(uint32 model) {
         ret = (interface->FindResource("FIFO0_I64_W", typeI64, fifoI64w) == 0);
         if (ret) {
             const uint32 numberOfElements = 1000;
-            uint32 oldSize = 0u;
-            ret = (interface->NiConfigureFifo(fifoI64w, numberOfElements, oldSize) == 0);
+            int64 dataw[numberOfElements];
+            for (uint32 i = 0u; i < numberOfElements; i++) {
+                dataw[i] = i;
+            }
             if (ret) {
-                int64 dataw[numberOfElements];
-                for (uint32 i = 0u; i < numberOfElements; i++) {
-                    dataw[i] = i;
-                }
-                if (ret) {
-                    ret = interface->Run() == 0;
-                }
-                if (ret) {
-                    ret = interface->IsRunning() == 1;
-                }
-                if (ret) {
-                    uint32 emptyElementsRemaining = 0u;
-                    ret = (interface->NiWriteFifo(fifoI64w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
-                }
+                ret = interface->Run() == 0;
+            }
+            if (ret) {
+                ret = interface->IsRunning() == 1;
+            }
+            if (ret) {
+                uint32 emptyElementsRemaining = 0u;
+                ret = (interface->NiWriteFifo(fifoI64w, dataw, numberOfElements, 0xffffffff, emptyElementsRemaining) == 0);
             }
         }
     }
