@@ -310,8 +310,6 @@ bool NI9157DeviceTest::TestInitialise_FalseNoGenFile(uint32 model) {
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
         ret &= cdb.Delete("NiRioGenFile");
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
-	//ret &= cdb.Delete("Open");
-	//ret &= cdb.Delete("Run");
         ret &= cdb.MoveRelative("Configuration");
         // Change....
         ret &= cdb.MoveToRoot();
@@ -342,8 +340,8 @@ bool NI9157DeviceTest::TestInitialise_FalseNoGenSignature(uint32 model) {
         pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
         ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Delete("NiRioGenSignature");
-	ret &= cdb.Delete("Open");
-	ret &= cdb.Delete("Run");
+		ret &= cdb.Delete("Open");
+		ret &= cdb.Delete("Run");
         ret &= cdb.MoveRelative("Configuration");
         // Change....
         ret &= cdb.MoveToRoot();
@@ -480,8 +478,8 @@ bool NI9157DeviceTest::TestInitialise_NoOpenRun(uint32 model) {
         pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
         ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
-	ret &= cdb.Delete("Open");
-	ret &= cdb.Delete("Run");
+		ret &= cdb.Delete("Open");
+		ret &= cdb.Delete("Run");
         ret &= cdb.MoveRelative("Configuration");
         // Change....
         ret &= cdb.MoveToRoot();

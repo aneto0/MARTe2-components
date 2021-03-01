@@ -41,11 +41,9 @@
 namespace MARTe{
 
 CreateNI9157DeviceOperatorI::CreateNI9157DeviceOperatorI() {
-
 }
 
 CreateNI9157DeviceOperatorI::~CreateNI9157DeviceOperatorI() {
-
 }
 
 }

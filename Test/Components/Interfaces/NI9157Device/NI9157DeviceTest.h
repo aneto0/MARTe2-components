@@ -79,59 +79,62 @@ public:
     bool TestInitialiseRandomConfig(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method that fails if NiRioDeviceName is not specified.
+     * @brief Tests the NI9157Device::Initialise method that fails if 
+	 * NiRioDeviceName is not specified.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_FalseNoDeviceName(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method that fails if NiRioGenFile is not specified.
+     * @brief Tests the NI9157Device::Initialise method that fails if
+	 * NiRioGenFile is not specified.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_FalseNoGenFile(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method that fails if NiRioGenSignature is not specified.
+     * @brief Tests the NI9157Device::Initialise method that fails if 
+	 * NiRioGenSignature is not specified.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_FalseNoGenSignature(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method that fails if the type id is not found in the variable
-     * to be initialised.
+     * @brief Tests the NI9157Device::Initialise method that fails if
+	 * the type id is not found in the variable to be initialised.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_FalseNoType(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method that fails if the type id is not found in the variable
-     * is not found in the Labview project.
+     * @brief Tests the NI9157Device::Initialise method that fails if the type
+	 * id is not found in the variable is not found in the Labview project.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_FalseVariableNotFound(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method does not fail with set Open and Run variables.
+     * @brief Tests the NI9157Device::Initialise method does not fail with Open
+	 * and Run parameters set.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_OpenRun(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method does not fail without Open and Run variables.
+     * @brief Tests the NI9157Device::Initialise method does not fail without
+	 * Open and Run parameters set.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_NoOpenRun(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Open and NI9157Device::IsOpened
-     * methods.
+     * @brief Tests the NI9157Device::Open and NI9157Device::IsOpened methods.
      * @param model the NI crate model being used.
      */
     bool TestOpenIsOpened(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Run  and NI9157Device::IsRunning
-     * methods.
+     * @brief Tests the NI9157Device::Run and NI9157Device::IsRunning methods.
      * @param model the NI crate model being used.
      */
     bool TestRunIsRunning(uint32 model);
@@ -144,7 +147,8 @@ public:
     bool TestGetSessionResetClose(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::CrioStart and NI9157Device::CrioStop methods.
+     * @brief Tests the NI9157Device::CrioStart and NI9157Device::CrioStop 
+	 * methods.
      * @param model the NI crate model being used.
      */
     bool TestCrioStartStop(uint32 model);

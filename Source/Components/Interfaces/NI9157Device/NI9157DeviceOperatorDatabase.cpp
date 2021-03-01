@@ -40,6 +40,7 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+	
 namespace NI9157DeviceOperatorDatabase {
 
 /**

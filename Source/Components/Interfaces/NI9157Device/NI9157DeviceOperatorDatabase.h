@@ -101,7 +101,6 @@ NI9157DeviceOperatorTI *GetNI9157DeviceOperator(const char8 * const niDevId, Ref
  * @warning The NI9157DeviceOperatorT pointer returned has to be freed when it is not used anymore.
  */
 NI9157DeviceOperatorTI *GetNI9157DeviceOperator(const TypeDescriptor &td, ReferenceT<NI9157Device> niDev);
-
 }
 
 }

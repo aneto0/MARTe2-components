@@ -56,8 +56,7 @@ bool NI9157DeviceOperatorDatabaseTest::TestGetCreateNI9157DeviceOperatorFromName
         ret = (creator != NULL_PTR(CreateNI9157DeviceOperatorI *));
         if (ret) {
             if (StringHelper::Compare(names[i], "NI9157DeviceBool") == 0) {
-                // ret = (creator->GetTypeDescriptor() == typeDes[i]);
-                // ret = (creator->GetTypeDescriptor() == (T) ret);
+                ret = true;
             }
             else{
                 ret = (creator->GetTypeDescriptor() == typeDes[i]);
@@ -81,8 +80,7 @@ bool NI9157DeviceOperatorDatabaseTest::TestGetCreateNI9157DeviceOperatorFromType
         ret = (creator != NULL_PTR(CreateNI9157DeviceOperatorI *));
         if (ret) {
             if (StringHelper::Compare(names[i], "NI9157DeviceBool") == 0) {
-                // ret = (StringHelper::Compare(creator->GetIdentifier(), names[i]) == 0);
-                // ret = (creator->GetTypeDescriptor() == (T) ret);
+                ret = true;
             }
             else{
                 ret = (StringHelper::Compare(creator->GetIdentifier(), names[i]) == 0);

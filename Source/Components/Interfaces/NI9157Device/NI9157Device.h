@@ -54,32 +54,25 @@ namespace MARTe {
  * +NiDevice = {
  *     Class = NI9157Device
  *     NiRioDeviceName = RIO0
- *     NiRioGenFile = "/home/codac-dev/MARTe2Project/ECRUSDN/ThirdPartyLibs/NI_9157/Test2/NiFpga_TestGTD0001.lvbitx"
+ *     NiRioGenFile = "/path/to/the/NiRio/Gen/file/NiFpga_firmware.lvbitx"
  *     NiRioGenSignature = "CCF43684FE70CCDB4E23B1D2DF50940C"
- *     Open = 1 //specifies if the device must be opened or not. If 0, the following configuration block has no meaning
+ *     Open = 1 // specifies if the device must be opened or not. If 0, the Configuration block has no meaning.
+ *              // Open = 0 is assumed if this parameter is not set.
+ *     Run = 0  // specifies if the device should be set into run mode after being opened.
+ *              // Run = 0 is assumed if this parameter is not set.
  *     Configuration = {
- *         U8_options = 2
- *         U8_options2 = 2
  *         Bool_stop = 0
- *         Bool_stop2 = 0
- *         Bool_use_RT_MXI = 1
+ *         Bool_use_dsfifo_data = 0
  *         Bool_use_counter = 1
- *         U16_maxV = 5
- *         U16_DacResolution = 16383
- *         U32_cycleTimeDAC_ticks = 1
  *         U32_cycle_ticks = 200
- *         U32_tcn_cycle_phase = 10000
- *         U32_tcn_period_ticks = 40000
- *         I32_Timeout = 0
  *         U64_packet_size = 1
- *         U64_end_frame = 0xFFFFFFFFFFFFFFFF
  *     }
  * }
  * </pre>
  * Where:
  * - NiRioDeviceName: the name of the device that appears in "/dev" after connecting the MXI cable.
  * - NiRioGenFile: the bitstream file exported by Labview.
- * - NiRioGenSignature: a code that can be found in the Labview exported header file.
+ * - NiRioGenSignature: a code that can be found in the Labview exported header file (or by opening the bitstream file as text).
  * - In the Configuration block, it is possible to automatically initialise the Labview exported variables. Their names can be found in the
  * Labview exported header file. Make sure that the variable names contain the variable types (Bool, U8, I8, U16, I16, U32, I32, U64, I64).
  */
@@ -743,33 +736,47 @@ public:
     NiFpga_Session GetSession() const;
 
     /**
-     * @brief TODO - WAS MISSING.
-     * @return TODO - WAS MISSING.
+     * @brief Starts the Compact-RIO.
+	 * @details Calls the NI9157Device::Open method if the device is not opened and then the
+	 * NI9157Device::Run method if the former call was successfull.
+     * @return No errors if the two calls were successfull. Use the ErrorsCleared method to
+	 * check the returned value.
      */
     ErrorManagement::ErrorType CrioStart();
 
     /**
-     * @brief TODO - WAS MISSING.
-     * @return TODO - WAS MISSING.
+     * @brief Stops the Compact-RIO.
+	 * @details Calls the NI9157Device::Reset method if the device is running.
+     * @return No errors if the call was successfull. Use the ErrorsCleared method to check
+	 * the returned value.
      */
     ErrorManagement::ErrorType CrioStop();
 
     /**
-     * @brief TODO - WAS MISSING.
-     * @param[in] varName TODO - WAS MISSING.
-     * @param[in] value TODO - WAS MISSING.
-     * @param[in] type TODO - WAS MISSING.
-     * @return TODO - WAS MISSING.
+     * @brief Writes a parameter to a Compact-RIO FPGA resource.
+	 * @details If the parameter type is recognized, the method calls the NI9157Device::FindResource
+	 * method and, if successfull, calls the NI9157Device::NiFpga_Write<type>.
+     * @param[in] varName the name of the FPGA resource to write at.
+     * @param[in] value the value to write to the FPGA resource.
+     * @param[in] type the type to be used ("bool", "uint8", "uint16", "uint32", "uint64", "int8",
+	 * "int16", "int32" or "int64").
+     * @return No errors if the call was successfull. Use the ErrorsCleared method to check
+	 * the returned value.
      */
     ErrorManagement::ErrorType WriteParam(StreamString varName,
                             uint64 value,
                             StreamString type);
+
     /**
-     * @brief TODO - WAS MISSING.
-     * @param[in] varName TODO - WAS MISSING.
-     * @param[out] value TODO - WAS MISSING.
-     * @param[in] type TODO - WAS MISSING.
-     * @return TODO - WAS MISSING.
+     * @brief Reads a parameter from a cRIO FPGA resource.
+	 * @details If the parameter type is recognized, the method calls the NI9157Device::FindResource
+	 * method and, if successfull, calls the NI9157Device::NiFpga_Read<type>.
+     * @param[in] varName the name of the FPGA resource to read from.
+     * @param[in] value the value read from the FPGA resource.
+     * @param[in] type the type to be used ("bool", "uint8", "uint16", "uint32", "uint64", "int8",
+	 * "int16", "int32" or "int64").
+     * @return No errors if the call was successfull. Use the ErrorsCleared method to check
+	 * the returned value.
      */
     ErrorManagement::ErrorType ReadParam(StreamString varName,
                             uint64 &value,
