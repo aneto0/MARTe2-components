@@ -59,7 +59,7 @@ const uint32 MAX_PHASE = 1000000u;
 namespace MARTe {
 LinuxTimer::LinuxTimer() :
     DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
-    lastTimeTicks = 0u;
+    startTimeTicks = 0u;
     sleepTimeTicks[0] = 0u;
     sleepTimeTicks[1] = 0u;
     timerPeriodUsecTime[0] = 0u;
@@ -414,41 +414,38 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
     timerPeriodUsecTimeT = timerPeriodUsecTime[appIndex];
     sleepTimeTicksT = sleepTimeTicks[appIndex];
 
-    if (lastTimeTicks == 0u) {
-        lastTimeTicks = timeProvider->Counter();
-        float64 seconds0 = static_cast<float64> (timeProvider->Counter()) * (timeProvider->Period());
-        absoluteTime_1 = static_cast<uint64> (seconds0 * 1e6);
-        if (phase < MAX_PHASE) {
-            //try to synchronize on the second
-            uint64 overSec = (absoluteTime_1 % MAX_PHASE);
-            absoluteTime_1 += (phase - overSec);
-            float64 secondsT = static_cast<float64> (absoluteTime_1) / 1e6;
-            lastTimeTicks = static_cast<uint64> (secondsT * timeProvider->Frequency());
-        }
-    }
+	if(startTimeTicks == 0u) {
+		startTimeTicks = timeProvider->Counter();
+		float64 seconds0 = static_cast<float64>(startTimeTicks) * (timeProvider->Period());
+		absoluteTime_1 = static_cast<uint64>(seconds0 * 1e6);
+		if(phase < MAX_PHASE) {
+			//Try to synchronize on the second
+			uint64 overSec = (absoluteTime_1 % MAX_PHASE);
+			absoluteTime_1 += (phase - overSec);
+			float64 secondsT = static_cast<float64> (absoluteTime_1) / 1e6;
+			startTimeTicks = static_cast<uint64> (secondsT * timeProvider->Frequency());
+		}
+	}
 
-    uint64 startTicks = timeProvider->Counter();
-    //cannot be
-    while (startTicks <= lastTimeTicks) {
-        startTicks = timeProvider->Counter();
-    }
+	uint64 cycleEndTicks = timeProvider->Counter();
 
-    //If we lose cycle, rephase to a multiple of the period.
+    //If we lose cycle (i.e. if startTimeTicks < N * cycleEndTicks), rephase to a multiple of the period
     uint32 nCycles = 0u;
 
-    while (lastTimeTicks < startTicks) {
-        lastTimeTicks += sleepTimeTicksT;
-        nCycles++;
-    }
-    lastTimeTicks -= sleepTimeTicksT;
+	while(startTimeTicks < cycleEndTicks) {
+		startTimeTicks += sleepTimeTicksT;
+		nCycles++;
+	}
 
-    //Sleep until the next period. Cannot be < 0 due to while(lastTimeTicks < startTicks) above
-    uint64 sleepTicksCorrection = (startTicks - lastTimeTicks);
-    uint64 deltaTicks = sleepTimeTicksT - sleepTicksCorrection;
+	startTimeTicks -= sleepTimeTicksT;
+	
+	//Sleep until the next period. Cannot be < 0 due to while(startTimeTicks < startTicks) above
+	uint64 deltaTicks = sleepTimeTicksT + startTimeTicks;
+	deltaTicks -= cycleEndTicks;
 
     if (sleepNature == Busy) {
         if (sleepPercentage == 0u) {
-            timeProvider->BusySleep(startTicks, deltaTicks);
+            timeProvider->BusySleep(cycleEndTicks, deltaTicks);
         }
         else {
             float32 totalSleepTime = static_cast<float32> (static_cast<float64> (deltaTicks) * timeProvider->Period());
@@ -462,15 +459,14 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
         Sleep::NoMore(sleepTime);
     }
     uint64 newCounter = timeProvider->Counter();
-    lastTimeTicks += static_cast<uint64> (nCycles * sleepTimeTicksT); //timeProvider->Counter();
+	startTimeTicks += sleepTimeTicksT;
 
     ErrorManagement::ErrorType err;
 
     counterAndTimer[0] += nCycles;
     counterAndTimer[1] = counterAndTimer[0] * timerPeriodUsecTimeT;
-
     float64 seconds = static_cast<float64> (newCounter) * (timeProvider->Period());
-    absoluteTime = static_cast<uint64> (lastTimeTicks / ticksPerUs);
+    absoluteTime = static_cast<uint64> (startTimeTicks / ticksPerUs);
     uint64 microsecs = static_cast<uint64> (seconds * 1e6);
     deltaTime = (microsecs - absoluteTime_1);
     absoluteTime_1 = microsecs;

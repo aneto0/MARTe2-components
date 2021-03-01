@@ -225,10 +225,10 @@ private:
      */
     SingleThreadService executor;
 
-    /**
-     * HighResolutionTimer::Counter() value after the last Sleep.
-     */
-    uint64 lastTimeTicks;
+	/**
+	*  Number of ticks at the start of the cycle
+	*/
+	uint64 startTimeTicks;
 
     /**
      * Sleeping period in units of ticks.
