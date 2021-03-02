@@ -234,7 +234,7 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
                                             const char8 * const nextStateName) {
 
     bool ret = true;
-    // bool prepare = false;
+    bool prepare = false;
     uint32 numberOfReadWriteCurrent = 0u;
     uint32 numberOfReadWriteNext = 0u;
     uint32 numberOfProducersCurrentState = 0u;
@@ -267,11 +267,12 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
         numberOfReadWriteCurrent += numberOfConsumersCurrentState;
         numberOfReadWriteNext += numberOfConsumersNextState;
     }
-    // prepare = (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) ||
-    //             (numberOfReadWriteNext ==  numberOfReadWriteCurrent) ||
-    //             (numberOfReadWriteNext != 0u && numberOfReadWriteCurrent != 0u);
-    if (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) {
-    // if (prepare) {
+    prepare = (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) ||
+                 (numberOfReadWriteNext ==  numberOfReadWriteCurrent) ||
+                 (numberOfReadWriteNext != 0u && numberOfReadWriteCurrent != 0u);
+
+    //if ((numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) || ( nextStateName == currentStateName)) {
+    if (prepare) {
         for (uint32 i = 0u; (i < numberOfSignals); i++) {
             //get the type and create the device accordingly
             /*lint -e{613} NULL pointer checked*/
@@ -330,10 +331,10 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
             }
         }
     }
-    else {
-        ret = false;
-    }
-    // REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "NI9157MxiDataSource::Prepared %s", prepare ? "true" : "false");
+    //else {
+        //ret = false;
+    //}
+    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157MxiDataSource::Prepared %s", prepare ? "true" : "false");
 
     return ret;
 }
@@ -354,7 +355,7 @@ const char8* NI9157MxiDataSource::GetBrokerName(StructuredDataI& data,
             freq = -1.F;
         }
         if ((trigger > 0u) || (freq >= 0.F)) {
-            if(direction == OutputSignal) {
+            if(direction == OutputSignals) {
                 brokerName = "MemoryMapSynchronisedOutputBroker";
             }
             else {
@@ -362,7 +363,7 @@ const char8* NI9157MxiDataSource::GetBrokerName(StructuredDataI& data,
             }
         }
         else{
-            if(direction == OutputSignal) {
+            if(direction == OutputSignals) {
                 brokerName = "MemoryMapOutputBroker";
             }
             else {
@@ -505,7 +506,7 @@ ErrorManagement::ErrorType NI9157MxiDataSource::AsyncWrite(StreamString varName,
     NiFpga_Status status;
     REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::AsyncWrite");
 
-    if (GetSignalIndex(i, varName.BufferReference()) {
+    if (GetSignalIndex(i, varName.BufferReference())) {
         REPORT_ERROR(ErrorManagement::Information, "Writing %s %!", varName.Buffer(), varValue);
         /*lint -e{613} NULL pointer checked*/
         status = niDevice[i]->NiWrite(varId[i], reinterpret_cast<void*>(&varValue));
