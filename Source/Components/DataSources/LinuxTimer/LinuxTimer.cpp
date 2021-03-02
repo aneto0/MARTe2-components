@@ -172,19 +172,30 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
 
     if (ok) {
 		/* TODO There should be only one  */
-        for (uint32 i = 0u; i < Size(); i++) {
-            timeProvider = Get(i);
-            if (timeProvider.IsValid()) {
-                break;
-            }
-        }
+		ok = (Size() < 2);
+		if (!ok) {
+			REPORT_ERROR(ErrorManagement::ParametersError, "Number of pluggable time providers can be 0 (Default) or 1 (Customized and specified)");
+		}
+	}
 
-        if (!timeProvider.IsValid()) {
-            timeProvider = ReferenceT<HighResolutionTimeProvider> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
-        }
-        ticksPerUs = (timeProvider->Frequency() / 1e6);
-    }
+	if (ok) {
+		if(Size() == 0) {
+			REPORT_ERROR(ErrorManagement::Information, "No timer provider specified. Falling back to HighResolutionTimeProvider");
+			timeProvider = ReferenceT<HighResolutionTimeProvider> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
+		}
+		else {
+			timeProvider = Get(0);
+			ok = timeProvider.IsValid();
+			if (!ok) {
+				REPORT_ERROR(ErrorManagement::ParametersError, "Invalid timer provider was specified");
+			}
+		}
+	}
 
+	if(ok) {
+	    ticksPerUs = (timeProvider->Frequency() / 1e6);
+	}
+    
     return ok;
 }
 
@@ -387,11 +398,9 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
                 timerPeriodUsecTime[nextIndex] = static_cast<uint32> (periodUsec);
                 sleepTimeTicks[nextIndex] = static_cast<uint64> (sleepTimeT);
 				
-				//Act as we already slept
-				//startTimeTicks = sleepTimeTicks[nextIndex];
+				//Act as we already slept, to avoid unnecessary idling on state changes
+				startTimeTicks = timeProvider->Counter() + sleepTimeTicks[nextIndex];
 
-                //absoluteTime = timeProvider->Counter();
-                //lastTimeTicks = 0u;
                 if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
                     if (executor.GetStatus() == EmbeddedThreadI::OffState) {
                         ok = executor.Start();
