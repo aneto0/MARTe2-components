@@ -171,7 +171,7 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
     }
 
     if (ok) {
-
+		/* TODO There should be only one  */
         for (uint32 i = 0u; i < Size(); i++) {
             timeProvider = Get(i);
             if (timeProvider.IsValid()) {
