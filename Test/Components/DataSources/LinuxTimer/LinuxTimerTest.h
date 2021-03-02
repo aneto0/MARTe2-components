@@ -210,6 +210,16 @@ public:
      */
     bool TestSetConfiguredDatabase_False_No32BitsSignal1();
 
+	/**
+	* @brief Tests the SetConfiguredDatabase method specifying a wrong attributes third signal
+	*/
+	bool TestSetConfiguredDatabase_False_InvalidSignal3();
+
+	/**
+	* @brief Tests the SetConfiguredDatabase method specifying a wrong attributes fourth signal
+	*/
+	bool TestSetConfiguredDatabase_False_InvalidSignal4();
+
     /**
      * @brief Tests the SetConfiguredDatabase method specifying with a first signal that is not (Un)SignedInteged.
      */

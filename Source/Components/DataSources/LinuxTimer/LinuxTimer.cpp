@@ -226,6 +226,19 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall SignedInteger or UnsignedInteger type");
         }
     }
+	if(GetNumberOfSignals() > 2u) {
+		ok = (GetSignalType(2u).numberOfBits == 64u) && (GetSignalType(2u).type == UnsignedInteger);
+		if (!ok) {
+			REPORT_ERROR(ErrorManagement::ParametersError, "The third signal must be a 64 bit unsigned integer");
+		}
+	}
+	if(GetNumberOfSignals() > 3u) {
+		ok = (GetSignalType(3u).numberOfBits == 64u) && (GetSignalType(3u).type == UnsignedInteger);
+		if (!ok) {
+			REPORT_ERROR(ErrorManagement::ParametersError, "The fourth signal must be a 64 bit unsigned integer");
+		}
+	}
+
     if (ok) {
         ReferenceContainer result;
         ReferenceContainerFilterReferences filter(1u, ReferenceContainerFilterMode::PATH, this);

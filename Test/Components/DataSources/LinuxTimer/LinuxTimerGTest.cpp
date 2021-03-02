@@ -210,6 +210,16 @@ TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_No32BitsSignal2) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_No32BitsSignal2());
 }
 
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_InvalidSignal3) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_InvalidSignal3());
+}
+
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_InvalidSignal4) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_InvalidSignal4());
+}
+
 TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_NoFrequencySet) {
     LinuxTimerTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NoFrequencySet());
