@@ -51,7 +51,7 @@ NI9157MxiDataSource::NI9157MxiDataSource() :
         MemoryDataSourceI(),
         MessageI() {
 
-    // TODO Auto-generated constructor stub
+    blockIfNotRunning = 0u;
     numberOfPacketsInFifo = 0u;
     niDevice = NULL_PTR(NI9157DeviceOperatorTI **);
     runNi = 0u;
@@ -63,14 +63,13 @@ NI9157MxiDataSource::NI9157MxiDataSource() :
     useInitialPattern = NULL_PTR(uint8 *);
     resetInitialPattern = NULL_PTR(uint8 *);
 
-    blockIfNotRunning = 0u;
+    //Install message filter
     ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT < RegisteredMethodsMessageFilter > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
     if (!ret.ErrorsCleared()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filter");
     }
-
 }
 
 NI9157MxiDataSource::~NI9157MxiDataSource() {
@@ -106,15 +105,18 @@ NI9157MxiDataSource::~NI9157MxiDataSource() {
     if (resetInitialPattern != NULL_PTR(uint8 *)) {
         delete[] resetInitialPattern;
     }
-    //REPORT_ERROR(ErrorManagement::Information, "MXI closed");
+    /*lint -e{1551} possible thrown exception non critical*/
+    REPORT_ERROR(ErrorManagement::Information, "MXI Device closed");
 }
 
 bool NI9157MxiDataSource::Initialise(StructuredDataI & data) {
 
-    bool ret = MemoryDataSourceI::Initialise(data);
+    bool ret = false;
+    StreamString devicePath;
+    REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::Initialise");
 
+    ret = MemoryDataSourceI::Initialise(data);
     if (ret) {
-        StreamString devicePath;
         ret = data.Read("NI9157DevicePath", devicePath);
         if (ret) {
             niDeviceBoard = ObjectRegistryDatabase::Instance()->Find(devicePath.Buffer());
@@ -145,8 +147,11 @@ bool NI9157MxiDataSource::Initialise(StructuredDataI & data) {
 }
 
 bool NI9157MxiDataSource::SetConfiguredDatabase(StructuredDataI & data) {
-    bool ret = DataSourceI::SetConfiguredDatabase(data);
+    
+    bool ret = false;
+    REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::SetConfiguredDatabase");
 
+    ret = DataSourceI::SetConfiguredDatabase(data);
     if (ret) {
         niDevice = new NI9157DeviceOperatorTI*[numberOfSignals];
         varId = new uint32[numberOfSignals];
@@ -159,13 +164,11 @@ bool NI9157MxiDataSource::SetConfiguredDatabase(StructuredDataI & data) {
         initialPatterns = new uint64[numberOfSignals];
         useInitialPattern = new uint8[numberOfSignals];
         resetInitialPattern = new uint8[numberOfSignals];
-
         //Look for all the "PacketMemberSizes". Each signal is potentially a packet
         for (uint32 i = 0u; (i < numberOfSignals) && (ret); i++) {
-            initialPatterns[i] = 0;
+            initialPatterns[i] = 0u;
             useInitialPattern[i] = 0u;
             resetInitialPattern[i] = 0u;
-
             StreamString signalName;
             ret = GetSignalName(i, signalName);
             bool found = false;
@@ -183,12 +186,10 @@ bool NI9157MxiDataSource::SetConfiguredDatabase(StructuredDataI & data) {
                 }
             }
         }
-
         for (uint32 i = 0u; (i < numberOfSignals) && (ret); i++) {
             signalFlag[i] = 0u;
             StreamString varName;
             ret = GetSignalName(i, varName);
-
             if (ret) {
                 //treat the special case of bool
                 CreateNI9157DeviceOperatorI *creator = NULL_PTR(CreateNI9157DeviceOperatorI *);
@@ -230,13 +231,25 @@ bool NI9157MxiDataSource::SetConfiguredDatabase(StructuredDataI & data) {
 
 /*lint -e{715} currentStateName and nextStateName are not referenced*/
 bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
-                                           const char8 * const nextStateName) {
+                                            const char8 * const nextStateName) {
+
+    bool ret = true;
+    // bool prepare = false;
     uint32 numberOfReadWriteCurrent = 0u;
     uint32 numberOfReadWriteNext = 0u;
+    uint32 numberOfProducersCurrentState = 0u;
+    uint32 numberOfProducersNextState = 0u;
+    uint32 numberOfConsumersCurrentState = 0u;
+    uint32 numberOfConsumersNextState = 0u;
+    NiFpga_Status status;
+    uint32 numberOfConsumers = 0u;
+    uint32 numberOfProducers = 0u;
+    uint8 numberOfDimensions = 0u;
+    uint32 oldSize = 0u;
+    uint32 fifoSize = 0u;
+    REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::PrepareNextState");
 
     for (uint32 i = 0u; i < numberOfSignals; i++) {
-        uint32 numberOfProducersCurrentState;
-        uint32 numberOfProducersNextState;
         if (!GetSignalNumberOfProducers(i, currentStateName, numberOfProducersCurrentState)) {
             numberOfProducersCurrentState = 0u;
         }
@@ -245,9 +258,7 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
         }
         numberOfReadWriteCurrent += numberOfProducersCurrentState;
         numberOfReadWriteNext += numberOfProducersNextState;
-        uint32 numberOfConsumersCurrentState;
-        uint32 numberOfConsumersNextState;
-        if (!GetSignalNumberOfConsumers(i, currentStateName, numberOfConsumersNextState)) {
+        if (!GetSignalNumberOfConsumers(i, currentStateName, numberOfConsumersCurrentState)) {
             numberOfConsumersCurrentState = 0u;
         }
         if (!GetSignalNumberOfConsumers(i, nextStateName, numberOfConsumersNextState)) {
@@ -256,26 +267,22 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
         numberOfReadWriteCurrent += numberOfConsumersCurrentState;
         numberOfReadWriteNext += numberOfConsumersNextState;
     }
-
-    bool ret = true;
-
+    // prepare = (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) ||
+    //             (numberOfReadWriteNext ==  numberOfReadWriteCurrent) ||
+    //             (numberOfReadWriteNext != 0u && numberOfReadWriteCurrent != 0u);
     if (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) {
-        NiFpga_Status status;
+    // if (prepare) {
         for (uint32 i = 0u; (i < numberOfSignals); i++) {
-
             //get the type and create the device accordingly
             /*lint -e{613} NULL pointer checked*/
             signalFlag[i] = 0u;
-            uint32 numberOfConsumers = 0u;
             if (!GetSignalNumberOfConsumers(i, nextStateName, numberOfConsumers)) {
                 numberOfConsumers = 0u;
             }
-
             if (numberOfConsumers > 0u) {
                 /*lint -e{613} NULL pointer checked*/
                 signalFlag[i] |= 1u;
             }
-            uint32 numberOfProducers = 0u;
             if (!GetSignalNumberOfProducers(i, nextStateName, numberOfProducers)) {
                 numberOfProducers = 0u;
             }
@@ -283,8 +290,6 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
                 /*lint -e{613} NULL pointer checked*/
                 signalFlag[i] |= 2u;
             }
-
-            uint8 numberOfDimensions = 0u;
             ret = GetSignalNumberOfDimensions(i, numberOfDimensions);
             if (ret) {
                 /*lint -e{613} NULL pointer checked*/
@@ -293,28 +298,23 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
                     signalFlag[i] |= 4u;
                 }
             }
-
             if (ret) {
                 ret = GetSignalNumberOfElements(i, numberOfElements[i]);
                 if (ret) {
-                    uint8 numberOfDimensions = 0u;
                     ret = GetSignalNumberOfDimensions(i, numberOfDimensions);
                     if (ret) {
                         if (numberOfDimensions > 0u) {
-                            //need to configure the number of elements in the fifo
-                            uint32 oldSize = 0u;
                             /*lint -e{613} NULL pointer checked*/
-                            uint32 fifoSize = (numberOfElements[i] * numberOfPacketsInFifo);
-                            NiFpga_Status status = niDeviceBoard->NiConfigureFifo(varId[i], fifoSize, oldSize);
+                            fifoSize = (numberOfElements[i] * numberOfPacketsInFifo);
+                            status = niDeviceBoard->NiConfigureFifo(varId[i], fifoSize, oldSize);
                             ret = (status == 0);
                             if (!ret) {
-                                REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Failed to configure host FIFO size to %d, status=%d", fifoSize, status);
+                                REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Failed to configure host FIFO size to %d with status %d", fifoSize, static_cast<int32> (status));
                             }
                         }
                     }
                 }
             }
-
         }
         if (ret) {
             for (uint32 i = 0u; i < numberOfSignals; i++) {
@@ -325,51 +325,45 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
                 status = niDeviceBoard->Run();
                 ret = (status == 0);
                 if (!ret) {
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Failed to Run the application, status=%d", status);
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Failed to Run the application, status=%d", static_cast<int32> (status));
                 }
             }
         }
     }
-    REPORT_ERROR(ErrorManagement::FatalError, "NI9157MxiDataSource::Prepared");
+    else {
+        ret = false;
+    }
+    // REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "NI9157MxiDataSource::Prepared %s", prepare ? "true" : "false");
 
     return ret;
 }
 
 const char8* NI9157MxiDataSource::GetBrokerName(StructuredDataI& data,
-                                                const SignalDirection direction) {
+                                            const SignalDirection direction) {
+
     const char8 *brokerName = NULL_PTR(const char8 *);
-    if (direction == OutputSignals) {
-        uint32 trigger = 0u;
+    uint32 trigger = 0u;
+    float32 freq = -1.F;
+    REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::GetBrokerName");
+
+    if (direction == OutputSignals || direction == InputSignals) {
         if (!data.Read("Trigger", trigger)) {
             trigger = 0u;
         }
-        float32 freq = -1.F;
         if (!data.Read("Frequency", freq)) {
             freq = -1.F;
         }
-
         if ((trigger > 0u) || (freq >= 0.F)) {
-            brokerName = "MemoryMapSynchronisedOutputBroker";
-        }
-        else {
-            brokerName = "MemoryMapOutputBroker";
-        }
-    }
-    else {
-        if (direction == InputSignals) {
-
-            uint32 trigger = 0u;
-            if (!data.Read("Trigger", trigger)) {
-                trigger = 0u;
+            if(direction == OutputSignal) {
+                brokerName = "MemoryMapSynchronisedOutputBroker";
             }
-
-            float32 freq = -1.F;
-            if (!data.Read("Frequency", freq)) {
-                freq = -1.F;
-            }
-
-            if ((trigger > 0u) || (freq >= 0.F)) {
+            else {
                 brokerName = "MemoryMapSynchronisedInputBroker";
+            }
+        }
+        else{
+            if(direction == OutputSignal) {
+                brokerName = "MemoryMapOutputBroker";
             }
             else {
                 brokerName = "MemoryMapInputBroker";
@@ -381,7 +375,7 @@ const char8* NI9157MxiDataSource::GetBrokerName(StructuredDataI& data,
 }
 
 bool NI9157MxiDataSource::Synchronise() {
-    //read or write on crio when calling this
+
     bool ret = true;
     
     if (blockIfNotRunning > 0u) {
@@ -389,7 +383,6 @@ bool NI9157MxiDataSource::Synchronise() {
             Sleep::MSec(10u);
         }
     }
-
     for (uint32 i = 0u; (i < numberOfSignals) && (ret) && (niDeviceBoard->IsRunning()); i++) {
         /*lint -e{613} NULL pointer checked*/
         if ((signalFlag[i] & 0x1u) != 0u) {
@@ -483,62 +476,75 @@ bool NI9157MxiDataSource::Synchronise() {
 }
 
 ErrorManagement::ErrorType NI9157MxiDataSource::AsyncRead(StreamString varName,
-                                                          uint64 &varValue) {
+                                            uint64 &varValue) {
+
+    ErrorManagement::ErrorType ret;
     uint32 i = 0u;
-    ErrorManagement::ErrorType ret = GetSignalIndex(i, varName.BufferReference());
+    NiFpga_Status status;
+    REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::AsyncRead");
 
-    REPORT_ERROR(ErrorManagement::Information, "Reading %s", varName.Buffer());
-
-    if (static_cast<bool>(ret)) {
+    if (GetSignalIndex(i, varName.BufferReference())) {
+        REPORT_ERROR(ErrorManagement::Information, "Reading %s", varName.Buffer());
         /*lint -e{613} NULL pointer checked*/
-        NiFpga_Status status = niDevice[i]->NiRead(varId[i], reinterpret_cast<void*>(&varValue));
+        status = niDevice[i]->NiRead(varId[i], reinterpret_cast<void*>(&varValue));
         ret.fatalError = static_cast<bool>(status != 0);
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not find %s", varName.Buffer());
+        ret.fatalError = true;
     }
 
     return ret;
 }
 
 ErrorManagement::ErrorType NI9157MxiDataSource::AsyncWrite(StreamString varName,
-                                                           uint64 varValue) {
+                                            uint64 varValue) {
+                                                               
+    ErrorManagement::ErrorType ret;
     uint32 i = 0u;
-    ErrorManagement::ErrorType ret = GetSignalIndex(i, varName.BufferReference());
+    NiFpga_Status status;
+    REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::AsyncWrite");
 
-    REPORT_ERROR(ErrorManagement::Information, "Writing %s %!", varName.Buffer(), varValue);
-    if (static_cast<bool>(ret)) {
+    if (GetSignalIndex(i, varName.BufferReference()) {
+        REPORT_ERROR(ErrorManagement::Information, "Writing %s %!", varName.Buffer(), varValue);
         /*lint -e{613} NULL pointer checked*/
-        NiFpga_Status status = niDevice[i]->NiWrite(varId[i], reinterpret_cast<void*>(&varValue));
+        status = niDevice[i]->NiWrite(varId[i], reinterpret_cast<void*>(&varValue));
         ret.fatalError = static_cast<bool>(status != 0);
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not find %s", varName.Buffer());
+        ret.fatalError = true;
     }
 
     return ret;
 }
 
 ErrorManagement::ErrorType NI9157MxiDataSource::Reset() {
-    NiFpga_Status status;
+
     ErrorManagement::ErrorType err;
+    uint8 numberOfDimensions = 0u;
+    uint32 oldSize = 0u;
+    uint32 fifoSize = 0u;
+    NiFpga_Status status;
     REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::Reset");
 
     for (uint32 i = 0u; (i < numberOfSignals); i++) {
         err = !GetSignalNumberOfElements(i, numberOfElements[i]);
         if (err.ErrorsCleared()) {
-            uint8 numberOfDimensions = 0u;
             err = !GetSignalNumberOfDimensions(i, numberOfDimensions);
             if (err.ErrorsCleared()) {
                 if (numberOfDimensions > 0u) {
-                    //need to configure the number of elements in the fifo
-                    uint32 oldSize = 0u;
                     /*lint -e{613} NULL pointer checked*/
-                    uint32 fifoSize = (numberOfElements[i] * numberOfPacketsInFifo);
-                    NiFpga_Status status = niDeviceBoard->NiConfigureFifo(varId[i], fifoSize, oldSize);
+                    fifoSize = (numberOfElements[i] * numberOfPacketsInFifo);
+                    status = niDeviceBoard->NiConfigureFifo(varId[i], fifoSize, oldSize);
                     err = (status != 0);
                     if (!err.ErrorsCleared()) {
-                        REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Failed to configure host FIFO size to %d, status=%d", fifoSize, status);
+                        REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Failed to configure host FIFO size to %d with status %d", fifoSize, static_cast<int32> (status));
                     }
                 }
             }
         }
     }
-
     if (err.ErrorsCleared()) {
         for (uint32 i = 0u; i < numberOfSignals; i++) {
             useInitialPattern[i] = resetInitialPattern[i];

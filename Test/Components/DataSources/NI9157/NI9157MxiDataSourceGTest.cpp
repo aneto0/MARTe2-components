@@ -50,76 +50,72 @@ TEST(NI9157MxiDataSourceGTest,TestInitialise) {
     ASSERT_TRUE(test.TestInitialise());
 }
 
-TEST(NI9157MxiDataSourceGTest,TestInitialise_DefaultRunNi) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestInitialise_DefaultRunNi());
-}
+// TEST(NI9157MxiDataSourceGTest,TestInitialise_DefaultRunNi) {
+//     NI9157MxiDataSourceTest test;
+//     ASSERT_TRUE(test.TestInitialise_DefaultRunNi());
+// }
+
 TEST(NI9157MxiDataSourceGTest,TestInitialise_False_NoNiDev) {
     NI9157MxiDataSourceTest test;
     ASSERT_TRUE(test.TestInitialise_False_NoNiDev());
 }
 
-TEST(NI9157MxiDataSourceGTest,TestInitialise_False_InvalidNiDevPath) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestInitialise_False_InvalidNiDevPath());
-}
+// TEST(NI9157MxiDataSourceGTest,TestInitialise_False_InvalidNiDevPath) {
+//     NI9157MxiDataSourceTest test;
+//     ASSERT_TRUE(test.TestInitialise_False_InvalidNiDevPath());
+// }
 
-TEST(NI9157MxiDataSourceGTest,TestGetBrokerName) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestGetBrokerName());
-}
+// TEST(NI9157MxiDataSourceGTest,TestSetConfiguredDatabase) {
+//     NI9157MxiDataSourceTest test;
+//     ASSERT_TRUE(test.TestSetConfiguredDatabase());
+// }
 
-TEST(NI9157MxiDataSourceGTest,TestSetConfiguredDatabase) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase());
-}
+// TEST(NI9157MxiDataSourceGTest,TestSetConfiguredDatabase_False_InvalidLabviewVar) {
+//     NI9157MxiDataSourceTest test;
+//     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_InvalidLabviewVar());
+// }
 
-TEST(NI9157MxiDataSourceGTest,TestSetConfiguredDatabase_False_InvalidLabviewVar) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_InvalidLabviewVar());
-}
+// TEST(NI9157MxiDataSourceGTest,TestSetConfiguredDatabase_False_InvalidType) {
+//     NI9157MxiDataSourceTest test;
+//     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_InvalidType());
+// }
 
-TEST(NI9157MxiDataSourceGTest,TestSetConfiguredDatabase_False_InvalidType) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_InvalidType());
-}
+// TEST(NI9157MxiDataSourceGTest,TestGetBrokerName) {
+//     NI9157MxiDataSourceTest test;
+//     ASSERT_TRUE(test.TestGetBrokerName());
+// }
 
-TEST(NI9157MxiDataSourceGTest,TestPrepareNextState) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestPrepareNextState());
-}
+// TEST(NI9157MxiDataSourceGTest,TestPrepareNextState) {
+//     NI9157MxiDataSourceTest test;
+//     ASSERT_TRUE(test.TestPrepareNextState());
+// }
 
-TEST(NI9157MxiDataSourceGTest,TestSynchronise) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestSynchronise());
-}
+// TEST(NI9157MxiDataSourceGTest,TestSynchronise) {
+//     NI9157MxiDataSourceTest test;
+//     ASSERT_TRUE(test.TestSynchronise());
+// }
 
-TEST(NI9157MxiDataSourceGTest,TestAsyncRead) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestAsyncRead());
-}
+// TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope) {
+//     NI9157MxiDataSourceTest test;
+//     ASSERT_TRUE(test.TestSynchronise_Oscilloscope());
+// }
 
-TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestSynchronise_Oscilloscope());
-}
+// TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope_OutputFIFO) {
+//     NI9157MxiDataSourceTest test;
+//     ASSERT_TRUE(test.TestSynchronise_Oscilloscope_OutputFIFO());
+// }
 
-TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope_OutputFIFO) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestSynchronise_Oscilloscope_OutputFIFO());
-}
+// TEST(NI9157MxiDataSourceGTest,TestAsyncRead) {
+//     NI9157MxiDataSourceTest test;
+//     ASSERT_TRUE(test.TestAsyncRead());
+// }
 
-/*TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope_2MHz) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestSynchronise_Oscilloscope_2MHz());
-}*/
+// TEST(NI9157MxiDataSourceGTest,TestAsyncWrite) {
+//     NI9157MxiDataSourceTest test;
+//     ASSERT_TRUE(test.TestAsyncWrite());
+// }
 
-/*TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope_OutputFIFO_2MHz) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestSynchronise_Oscilloscope_OutputFIFO_2MHz());
-}*/
-
-TEST(NI9157MxiDataSourceGTest,TestAsyncWrite) {
-    NI9157MxiDataSourceTest test;
-    ASSERT_TRUE(test.TestAsyncWrite());
-}
+// TEST(NI9157MxiDataSourceGTest,TestReset) {
+//     NI9157MxiDataSourceTest test;
+//     ASSERT_TRUE(test.TestReset());
+// }

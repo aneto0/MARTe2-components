@@ -120,7 +120,7 @@ public:
      *   (direction == OutputSignals).\n
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
-                                       const SignalDirection direction);
+                                            const SignalDirection direction);
 
     /**
      * @see MemoryDataSourceI::PrepareNextState
@@ -128,7 +128,7 @@ public:
      * Then, if RunNi == 1, starts the NI-9157 device.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
-                                  const char8 * const nextStateName);
+                                            const char8 * const nextStateName);
 
     /**
      * @see MemoryDataSourceI::SetConfiguredDatabase
@@ -143,19 +143,25 @@ public:
     virtual bool Synchronise();
 
     /**
-     * @brief This method allows to read from a Labview exported indicator. It can be called within a MARTe message.
+     * @brief Asynchronous read for indicators.
+     * @details This method allows to read from a Labview exported indicator.
+     * It can be called within a MARTe message.
      */
     ErrorManagement::ErrorType AsyncRead(StreamString varName,
-                                         uint64 &varValue);
+                                            uint64 &varValue);
 
     /**
-     * @brief This method allows to write to a Labview exported control. It can be called within a MARTe message.
+     * @brief Asynchronous write for controls.
+     * @details This method allows to write to a Labview exported control.
+     * It can be called within a MARTe message.
      */
     ErrorManagement::ErrorType AsyncWrite(StreamString varName,
-                                          uint64 varValue);
+                                            uint64 varValue);
 
     /**
-     * @brief TODO - WAS MISSING.
+     * @brief Reset the device.
+     * @details This method resets the numberOfElements, the numberOfDimensions 
+     * and calls the Run method is RunNi is set. It can be called within a MARTe message.
      */
     ErrorManagement::ErrorType Reset();
 
@@ -197,22 +203,22 @@ protected:
     uint32 *numberOfElements;
 
     /**
-     * TODO - WAS MISSING.
+     * Holds the initial pattern read from the configuration.
      */
     uint64 *initialPatterns;
 
     /**
-     * TODO - WAS MISSING.
+     * Reset the initial partten for each selected signal.
      */
     uint8 *resetInitialPattern;
 
     /**
-     * TODO - WAS MISSING.
+     * Use the initial partten for each selected signal.
      */
     uint8 *useInitialPattern;
 
     /**
-     * TODO - WAS MISSING.
+     * If (blockIfNotRunning > 0), blocks the NI9157MxiDataSource::GetBrokerName call if the device is not running.
      */
     uint8 blockIfNotRunning;
 
