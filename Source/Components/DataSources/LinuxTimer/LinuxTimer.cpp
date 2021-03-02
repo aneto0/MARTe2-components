@@ -388,7 +388,7 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
                 sleepTimeTicks[nextIndex] = static_cast<uint64> (sleepTimeT);
 				
 				//Act as we already slept
-				startTimeTicks = sleepTimeTicks[nextIndex];
+				//startTimeTicks = sleepTimeTicks[nextIndex];
 
                 //absoluteTime = timeProvider->Counter();
                 //lastTimeTicks = 0u;
