@@ -386,6 +386,10 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
                 float64 sleepTimeT = (static_cast<float64> (timeProvider->Frequency()) / frequency);
                 timerPeriodUsecTime[nextIndex] = static_cast<uint32> (periodUsec);
                 sleepTimeTicks[nextIndex] = static_cast<uint64> (sleepTimeT);
+				
+				//Act as we already slept
+				startTimeTicks = sleepTimeTicks[nextIndex];
+
                 //absoluteTime = timeProvider->Counter();
                 //lastTimeTicks = 0u;
                 if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
