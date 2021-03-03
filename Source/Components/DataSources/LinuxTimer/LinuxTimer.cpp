@@ -175,38 +175,39 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
     }
 
     if (ok) {
-		ok = (Size() < 2);
-		if (!ok) {
-			REPORT_ERROR(ErrorManagement::ParametersError, "Number of pluggable time providers can be 0 (Default) or 1 (Customized and specified)");
-			REPORT_ERROR(ErrorManagement::ParametersError, "%d providers where specified instead", Size());
-		}
+	ok = (Size() < 2u);
+	if (!ok) {
+	    REPORT_ERROR(ErrorManagement::ParametersError, "Number of pluggable time providers can be 0 (Default) or 1 (Customized and specified)");
+	    REPORT_ERROR(ErrorManagement::ParametersError, "%d providers where specified instead", Size());
 	}
+    }
 
-	if (ok) {
-		if(Size() == 0) {
-			REPORT_ERROR(ErrorManagement::Information, "No timer provider specified. Falling back to HighResolutionTimeProvider");
-			timeProvider = ReferenceT<HighResolutionTimeProvider> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
-		}
-		else {
-			timeProvider = Get(0);
-			ok = timeProvider.IsValid();
-			if (!ok) {
-				REPORT_ERROR(ErrorManagement::ParametersError, "Invalid timer provider was specified");
-			}
-		}
+    if (ok) {
+	if(Size() == 0u) {
+            REPORT_ERROR(ErrorManagement::Information, "No timer provider specified. Falling back to HighResolutionTimeProvider");
+	     timeProvider = ReferenceT<HighResolutionTimeProvider> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
 	}
-
-	if(ok) {
-	    ticksPerUs = (timeProvider->Frequency() / 1e6);
+	else {
+	    timeProvider = Get(0u);
+	    ok = timeProvider.IsValid();
+	    if (!ok) {
+	         REPORT_ERROR(ErrorManagement::ParametersError, "Invalid timer provider was specified");
+	    }
 	}
+    }
+    if(ok) {
+    	ticksPerUs = (static_cast<float64>(timeProvider->Frequency()) / 1.0e6);
+    }
     
     return ok;
 }
 
 bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
+    uint32 tempNumOfSignals = GetNumberOfSignals();
+
     if (ok) {
-        ok = (GetNumberOfSignals() >= 2u) && (GetNumberOfSignals() <= 4u);
+        ok = (tempNumOfSignals >= 2u) && (tempNumOfSignals <= 4u);
     }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Number of signal must be between 2 and");
@@ -241,22 +242,25 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall SignedInteger or UnsignedInteger type");
         }
     }
-	if(GetNumberOfSignals() > 2u) {
-		ok = (GetSignalType(2u).numberOfBits == 64u) && (GetSignalType(2u).type == UnsignedInteger);
-		if (!ok) {
-			REPORT_ERROR(ErrorManagement::ParametersError, "The third signal must be a 64 bit unsigned integer");
-		}
+    
+    if(tempNumOfSignals > 2u) {
+	uint16 tempNumOfBits = GetSignalType(2u).numberOfBits;
+	
+	ok = ((GetSignalType(2u).type == UnsignedInteger) && (tempNumOfBits == 64u));
+	if (!ok) {
+    	    REPORT_ERROR(ErrorManagement::ParametersError, "The third signal must be a 64 bit unsigned integer");
 	}
-	if(GetNumberOfSignals() > 3u) {
-		ok = (GetSignalType(3u).numberOfBits == 64u) && (GetSignalType(3u).type == UnsignedInteger);
-		if (!ok) {
-			REPORT_ERROR(ErrorManagement::ParametersError, "The fourth signal must be a 64 bit unsigned integer");
-		}
+    }
+    if(tempNumOfSignals > 3u) {
+	uint16 tempNumOfBits = GetSignalType(3u).numberOfBits;
+	ok = ((GetSignalType(3u).type == UnsignedInteger) && (tempNumOfBits == 64u));
+	if (!ok) {
+    	    REPORT_ERROR(ErrorManagement::ParametersError, "The fourth signal must be a 64 bit unsigned integer");
 	}
-
+    }
     if (ok) {
         ReferenceContainer result;
-        ReferenceContainerFilterReferences filter(1u, ReferenceContainerFilterMode::PATH, this);
+        ReferenceContainerFilterReferences filter(1, ReferenceContainerFilterMode::PATH, this);
         ObjectRegistryDatabase::Instance()->ReferenceContainer::Find(result, filter);
         rtApp = result.Get(0u);
         ok = rtApp.IsValid();
@@ -297,12 +301,12 @@ const char8* LinuxTimer::GetBrokerName(StructuredDataI& data,
                                        const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8 *);
     if (direction == InputSignals) {
-        float32 frequency = 0.F;
+        float32 tempFrequency = 0.F;
         if (!data.Read("Frequency", frequency)) {
-            frequency = -1.F;
+            tempFrequency = -1.F;
         }
 
-        if (frequency > 0.F) {
+        if (tempFrequency > 0.F) {
             brokerName = "MemoryMapSynchronisedInputBroker";
             synchronising = true;
         }
@@ -335,14 +339,15 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
     bool ok = true;
     uint32 numberOfTotalConsumers = 0u;
 
-    float32 frequency = -1.0F;
+    float32 tempFrequency = -1.0F;
 
-    uint8 nextIndex = rtApp->GetIndex();
+    uint32 nextIndex = rtApp->GetIndex();
     nextIndex++;
     nextIndex &= 0x1u;
 
     bool notConsumed = true;
-    for (uint32 i = 0u; (i < numberOfSignals) && ok; i++) {
+    for (uint32 idx = 0u; (idx < numberOfSignals) && ok; idx++) {
+	uint32 i = idx;
         uint32 numberOfProducersNextState;
         if (!GetSignalNumberOfProducers(i, nextStateName, numberOfProducersNextState)) {
             numberOfProducersNextState = 0u;
@@ -367,20 +372,22 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
             for (uint32 j = 0u; (j < numberOfConsumers) && ok; j++) {
                 StreamString consumerName;
                 ok = GetSignalConsumerName(i, nextStateName, j, consumerName);
-                uint32 functionIdx;
+                uint32 functionIdx = 0u;
                 if (ok) {
                     ok = GetFunctionIndex(functionIdx, consumerName.Buffer());
                 }
-                uint32 nOfFunSignals = 0u;
-                ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunSignals);
-                for (uint32 k = 0u; (k < nOfFunSignals) && ok; k++) {
-                    float32 freqRead = -1.;
-                    ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, k, freqRead);
-                    if (freqRead >= 0.) {
-                        frequency = freqRead;
-                        REPORT_ERROR(ErrorManagement::Information, "Frequency = %!", frequency);
+		if (ok) {
+                    uint32 nOfFunSignals = 0u;
+                    ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunSignals);
+                    for (uint32 k = 0u; (k < nOfFunSignals) && ok; k++) {
+                        float32 freqRead = -1.0F;
+                        ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, k, freqRead);
+                        if (freqRead >= 0.F) {
+                            tempFrequency = freqRead;
+                            REPORT_ERROR(ErrorManagement::Information, "Frequency = %!", tempFrequency);
+                        }
                     }
-                }
+		}
             }
         }
         else {
@@ -396,13 +403,13 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
 			startTimeTicks = 0u;
         }
         if (numberOfTotalConsumers > 0u) {
-            ok = (frequency >= 0.);
+            ok = (tempFrequency >= 0.F);
 
             if (ok) {
-                REPORT_ERROR(ErrorManagement::Information, "The timer will be set using a frequency of %f Hz", frequency);
+                REPORT_ERROR(ErrorManagement::Information, "The timer will be set using a frequency of %f Hz", tempFrequency);
 
-                float64 periodUsec = (1e6 / frequency);
-                float64 sleepTimeT = (static_cast<float64> (timeProvider->Frequency()) / frequency);
+                float64 periodUsec = (1.0e6 / tempFrequency);
+                float64 sleepTimeT = (static_cast<float64> (timeProvider->Frequency()) / tempFrequency);
                 timerPeriodUsecTime[nextIndex] = static_cast<uint32> (periodUsec);
                 sleepTimeTicks[nextIndex] = static_cast<uint64> (sleepTimeT);
 				
@@ -445,7 +452,7 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the method sleeps for the given period irrespectively of the input info.*/
 ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
 
-    uint8 appIndex = rtApp->GetIndex();
+    uint32 appIndex = rtApp->GetIndex();
     appIndex %= 0x1u;
 
     uint64 sleepTimeTicksT;
@@ -453,34 +460,34 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
     timerPeriodUsecTimeT = timerPeriodUsecTime[appIndex];
     sleepTimeTicksT = sleepTimeTicks[appIndex];
 
-	if(startTimeTicks == 0u) {
-		startTimeTicks = timeProvider->Counter();
-		float64 seconds0 = static_cast<float64>(startTimeTicks) * (timeProvider->Period());
-		absoluteTime_1 = static_cast<uint64>(seconds0 * 1e6);
-		if(phase < MAX_PHASE) {
-			//Try to synchronize on the second
-			uint64 overSec = (absoluteTime_1 % MAX_PHASE);
-			absoluteTime_1 += (phase - overSec);
-			float64 secondsT = static_cast<float64> (absoluteTime_1) / 1e6;
-			startTimeTicks = static_cast<uint64> (secondsT * timeProvider->Frequency());
-		}
+    if(startTimeTicks == 0u) {
+        startTimeTicks = timeProvider->Counter();
+        float64 seconds0 = static_cast<float64>(startTimeTicks) * (timeProvider->Period());
+        absoluteTime_1 = static_cast<uint64>(seconds0) * static_cast<uint64>(1e6);
+        if(phase < MAX_PHASE) {
+    	    //Try to synchronize on the second
+	    uint64 overSec = (absoluteTime_1 % MAX_PHASE);
+	    absoluteTime_1 += (phase - overSec);
+	    float64 secondsT = static_cast<float64> (absoluteTime_1) / 1e6;
+	    startTimeTicks = static_cast<uint64> (secondsT) * static_cast<uint64>(timeProvider->Frequency());
 	}
+    }
 
-	uint64 cycleEndTicks = timeProvider->Counter();
+    uint64 cycleEndTicks = timeProvider->Counter();
 
     //If we lose cycle (i.e. if startTimeTicks < N * cycleEndTicks), rephase to a multiple of the period
     uint32 nCycles = 0u;
 
-	while(startTimeTicks < cycleEndTicks) {
-		startTimeTicks += sleepTimeTicksT;
-		nCycles++;
-	}
+    while(startTimeTicks < cycleEndTicks) {
+	startTimeTicks += sleepTimeTicksT;
+	nCycles++;
+    }
 
-	startTimeTicks -= sleepTimeTicksT;
+    startTimeTicks -= sleepTimeTicksT;
 	
-	//Sleep until the next period. Cannot be < 0 due to while(startTimeTicks < startTicks) above
-	uint64 deltaTicks = sleepTimeTicksT + startTimeTicks;
-	deltaTicks -= cycleEndTicks;
+    //Sleep until the next period. Cannot be < 0 due to while(startTimeTicks < startTicks) above
+    uint64 deltaTicks = sleepTimeTicksT + startTimeTicks;
+    deltaTicks -= cycleEndTicks;
 
     if (sleepNature == Busy) {
         if (sleepPercentage == 0u) {
@@ -505,8 +512,8 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
     counterAndTimer[0] += nCycles;
     counterAndTimer[1] = counterAndTimer[0] * timerPeriodUsecTimeT;
     float64 seconds = static_cast<float64> (newCounter) * (timeProvider->Period());
-    absoluteTime = static_cast<uint64> (startTimeTicks / ticksPerUs);
-    uint64 microsecs = static_cast<uint64> (seconds * 1e6);
+    absoluteTime = static_cast<uint64> (startTimeTicks) / static_cast<uint64>(ticksPerUs);
+    uint64 microsecs = static_cast<uint64> (seconds) * static_cast<uint64>(1e6);
     deltaTime = (microsecs - absoluteTime_1);
     absoluteTime_1 = microsecs;
 

@@ -108,6 +108,7 @@ EventConditionTrigger.cpp
 FileReader.cpp
 FileWriter.cpp
 FilterGAM.cpp
+HighResolutionTimeProvider.cpp
 HistogramComparator.cpp
 HistogramComparatorT.h
 HistogramGAM.cpp
@@ -159,6 +160,7 @@ StatisticsGAM.cpp
 StatisticsHelperT.h
 SysLogger.cpp
 TimeCorrectionGAM.cpp
+TimeProvider.cpp
 TriggerOnChangeGAM.cpp
 Types.h
 Waveform.cpp

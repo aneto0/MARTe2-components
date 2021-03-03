@@ -41,14 +41,10 @@
 
 namespace MARTe {
 
-HighResolutionTimeProvider::HighResolutionTimeProvider() {
-    // Auto-generated constructor stub for HighResolutionTimeProvider
-    // TODO Verify if manual additions are needed
+HighResolutionTimeProvider::HighResolutionTimeProvider() : TimeProvider() {
 }
 
 HighResolutionTimeProvider::~HighResolutionTimeProvider() {
-    // Auto-generated destructor stub for HighResolutionTimeProvider
-    // TODO Verify if manual additions are needed
 }
 
 uint64 HighResolutionTimeProvider::Counter() {
@@ -63,11 +59,12 @@ uint64 HighResolutionTimeProvider::Frequency() {
     return HighResolutionTimer::Frequency();
 }
 
-void HighResolutionTimeProvider::BusySleep(uint64 start,
-                                           uint64 delta) {
+void HighResolutionTimeProvider::BusySleep(const uint64 start,
+                                           const uint64 delta) {
 
-    while ((HighResolutionTimer::Counter() - start) < delta)
+    while ((HighResolutionTimer::Counter() - start) < delta) {
         ;
+	}
 }
 
 CLASS_REGISTER(HighResolutionTimeProvider, "1.0")

@@ -80,7 +80,7 @@ public:
 	* @param[in] start Starting count
 	* @param[in] delta Number of ticks to busy sleep
 	*/
-    virtual void BusySleep(uint64 start, uint64 delta);
+    virtual void BusySleep(const uint64 start, const uint64 delta);
 
 };
 

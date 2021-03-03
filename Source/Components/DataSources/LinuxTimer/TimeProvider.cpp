@@ -41,14 +41,10 @@
 
 namespace MARTe{
 
-TimeProvider::TimeProvider() {
-    // Auto-generated constructor stub for TimeProvider
-    // TODO Verify if manual additions are needed
-}
+	TimeProvider::TimeProvider() : Object() {
+	}
 
-TimeProvider::~TimeProvider() {
-    // Auto-generated destructor stub for TimeProvider
-    // TODO Verify if manual additions are needed
-}
+	TimeProvider::~TimeProvider() {
+	}
 
 }

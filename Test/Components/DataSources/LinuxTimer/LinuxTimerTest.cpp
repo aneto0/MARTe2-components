@@ -1250,6 +1250,9 @@ bool LinuxTimerTest::TestGetBrokerName() {
     LinuxTimer test;
     ConfigurationDatabase config;
     StreamString brokerName = test.GetBrokerName(config, OutputSignals);
+
+	REPORT_ERROR_STATIC(ErrorManagement::Information, "Detected %s as broker name", brokerName.Buffer());
+
     bool ok = (brokerName == "");
     if (ok) {
         brokerName = test.GetBrokerName(config, InputSignals);
