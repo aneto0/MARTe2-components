@@ -240,6 +240,11 @@ public:
      */
     bool TestSetConfiguredDatabase_False_NoFrequencySet();
 
+	/**
+	* @brief Tests the SetConfiguredDatabase with more than one pluggable time provider
+	*/
+	bool TestSetConfiguredDatabase_False_MoreThan1Provider();
+
     /**
      * @brief Test the GetSleepPercentage method.
      */

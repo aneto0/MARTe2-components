@@ -2,7 +2,7 @@
  * @file TimeProvider.h
  * @brief Header file for class TimeProvider
  * @date 31 ott 2019
- * @author p
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -37,6 +37,7 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
+
 /**
 * @brief Interface for TimeProvider plugins on the Linux Timer DataSource
 */

@@ -31,26 +31,30 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
+#include "HighResolutionTimeProvider.h"
 #include "LinuxTimer.h"
 #include "MemoryMapSynchronisedInputBroker.h"
-#include "HighResolutionTimeProvider.h"
-#include "ReferenceContainerFilterReferences.h"
 #include "ObjectRegistryDatabase.h"
+#include "ReferenceContainerFilterReferences.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-/**
- * Execute in the context of the real-time thread.
- */
-const uint32 LINUX_TIMER_EXEC_MODE_RTTHREAD = 1u;
-/**
- * Execute in the context of a spawned thread.
- */
-const uint32 LINUX_TIMER_EXEC_MODE_SPAWNED = 2u;
+	/**
+	 * @brief Execute in the context of the real-time thread.
+	 */
+	const uint32 LINUX_TIMER_EXEC_MODE_RTTHREAD = 1u;
 
-const uint32 MAX_PHASE = 1000000u;
+	/**
+	 * @brief Execute in the context of a spawned thread.
+	 */
+	const uint32 LINUX_TIMER_EXEC_MODE_SPAWNED = 2u;
+
+	/**
+	* @brief Maximum phase of the signal (default)
+	*/
+	const uint32 MAX_PHASE = 1000000u;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -171,10 +175,10 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
     }
 
     if (ok) {
-		/* TODO There should be only one  */
 		ok = (Size() < 2);
 		if (!ok) {
 			REPORT_ERROR(ErrorManagement::ParametersError, "Number of pluggable time providers can be 0 (Default) or 1 (Customized and specified)");
+			REPORT_ERROR(ErrorManagement::ParametersError, "%d providers where specified instead", Size());
 		}
 	}
 
@@ -343,7 +347,9 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
         if (!GetSignalNumberOfProducers(i, nextStateName, numberOfProducersNextState)) {
             numberOfProducersNextState = 0u;
         }
+
         ok = (numberOfProducersNextState == 0u);
+
         if (ok) {
             uint32 numberOfConsumers;
             if (!GetSignalNumberOfConsumers(i, currentStateName, numberOfConsumers)) {
@@ -386,6 +392,8 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
         if (notConsumed) {
             counterAndTimer[0] = 0u;
             counterAndTimer[1] = 0u;
+
+			startTimeTicks = 0u;
         }
         if (numberOfTotalConsumers > 0u) {
             ok = (frequency >= 0.);
@@ -399,8 +407,11 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
                 sleepTimeTicks[nextIndex] = static_cast<uint64> (sleepTimeT);
 				
 				//Act as we already slept, to avoid unnecessary idling on state changes
-				startTimeTicks = timeProvider->Counter() + sleepTimeTicks[nextIndex];
-
+				//But only if the startTimeTicks was touched (only on first change)
+//				if(startTimeTicks != 0u) {
+//					startTimeTicks = timeProvider->Counter() + sleepTimeTicks[nextIndex];
+//				}
+				
                 if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
                     if (executor.GetStatus() == EmbeddedThreadI::OffState) {
                         ok = executor.Start();

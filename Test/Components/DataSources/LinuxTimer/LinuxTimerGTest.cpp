@@ -240,6 +240,11 @@ TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_IntegerSignal2) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_IntegerSignal2());
 }
 
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_MoreThan1Provider) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThan1Provider());
+}
+
 TEST(LinuxTimerGTest, TestGetSleepPercentage) {
     LinuxTimerTest test;
     ASSERT_TRUE(test.TestGetSleepPercentage());

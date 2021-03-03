@@ -2,7 +2,7 @@
  * @file HighResolutionTimeProvider.h
  * @brief Header file for class HighResolutionTimeProvider
  * @date 31 ott 2019
- * @author pc
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -37,21 +37,49 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe{
+/**
+* @brief Default plugin which provides time to the LinuxTimer DataSource.
+		 Relies on underlying HighResolutionTimer Counter() / Period() and Frequency 
+	     primitives and implements the sleep as a busy spin based on them.	
+*/
 class HighResolutionTimeProvider: public TimeProvider {
 public:
 
     CLASS_REGISTER_DECLARATION()
-
+	
+	/**
+	* @brief Default constructor
+	*/
     HighResolutionTimeProvider();
 
+	/**
+	* @brief Destructor
+	*/
     virtual ~HighResolutionTimeProvider();
 
+	/**
+	* @brief Returns the value of the internal ticks counter
+	* @return The elapsed ticks in the internal counter
+	*/
     virtual uint64 Counter();
 
+	/**
+	* @brief Returns the value of the period for the internal provider
+	* @return The provider period expressed in s
+	*/
     virtual float64 Period();
 
+	/**
+	* @brief Returns the value of the frequency for the internal provider
+	* @return The provider frequency expressed in Hz
+	*/
     virtual uint64 Frequency();
 
+	/**
+	* @brief Sleeps using a busy wait, starting from an internal counter value, until the count elapses a delta ticks
+	* @param[in] start Starting count
+	* @param[in] delta Number of ticks to busy sleep
+	*/
     virtual void BusySleep(uint64 start, uint64 delta);
 
 };

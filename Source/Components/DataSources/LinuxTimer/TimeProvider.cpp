@@ -2,7 +2,7 @@
  * @file TimeProvider.cpp
  * @brief Source file for class TimeProvider
  * @date 31 ott 2019
- * @author pc
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

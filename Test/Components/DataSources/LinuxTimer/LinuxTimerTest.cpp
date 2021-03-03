@@ -177,6 +177,16 @@ const MARTe::char8 * const config1 = ""
         "                }"
         "            }"
         "        }"
+		"		 +GAMB = {"
+		"		 	Class = ConstantGAM"
+		"			OutputSignals = {"
+		"				Signal1 = {"
+		"					DataSource = LoggerSink"
+		"					Type = uint32"
+		"					Default = 1"
+		"				}"
+		"			}"
+		"        }"
         "    }"
         "    +Data = {"
         "        Class = ReferenceContainer"
@@ -184,6 +194,9 @@ const MARTe::char8 * const config1 = ""
         "        +Timer = {"
         "            Class = LinuxTimer"
         "        }"
+		"		 +LoggerSink = {"
+		"			 Class = LoggerDataSource"
+		"		 }"
         "        +Timings = {"
         "            Class = TimingDataSource"
         "        }"
@@ -197,6 +210,16 @@ const MARTe::char8 * const config1 = ""
         "                +Thread1 = {"
         "                    Class = RealTimeThread"
         "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "        +State2 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMB}"
         "                }"
         "            }"
         "        }"
@@ -1120,6 +1143,62 @@ const MARTe::char8 * const config17 = ""
         "    }"
         "}";
 
+const MARTe::char8 * const config18 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = LinuxTimerTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                    Frequency = 1000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timer = {"
+        "            Class = LinuxTimer"
+        "            ExecutionMode = RealTimeThread"
+		"			 +TheGoodOne = {"
+		"				 Class = HighResolutionTimeProvider"
+		"			 }"
+		"			 +TheOneInExcess = {"
+		"				 Class = HighResolutionTimeProvider"
+		"			 }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -1278,6 +1357,34 @@ bool LinuxTimerTest::TestInitialise_False_ExplicitWrongTimeProvider() {
 	return !ok;
 }
 
+bool LinuxTimerTest::TestSetConfiguredDatabase_False_MoreThan1Provider() {
+    using namespace MARTe;
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = config18;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+
+	return !ok;
+}
+
 bool LinuxTimerTest::TestPrepareNextState() {
     using namespace MARTe;
 
@@ -1341,9 +1448,14 @@ bool LinuxTimerTest::TestPrepareNextState() {
     uint32 counterBefore = (*counter);
     uint32 timerBefore = (*timer);
 
-	//Let's sleep for a second
-	Sleep::MSec(1000);
+	if (ok) {
+        ok = application->PrepareNextState("State2");
+    }
+    if (ok) {
+        application->StartNextStateExecution();
+    }
 
+	Sleep::MSec(10);
     application->StopCurrentStateExecution();
 
     if (ok) {
@@ -1355,8 +1467,8 @@ bool LinuxTimerTest::TestPrepareNextState() {
     }
 
     if (ok) {
-        //ok = (((*counter) < counterBefore) && ((*timer) < timerBefore));
-		ok = (((*counter) - counterBefore) >= 1000) && (((*timer) - timerBefore) >= 1000 * 1000);
+		//We are checking that the state change is resetting the counter and the timer
+        ok = (((*counter) < counterBefore) && ((*timer) < timerBefore));
     }
 
     god->Purge();
