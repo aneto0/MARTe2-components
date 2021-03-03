@@ -267,6 +267,7 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
         numberOfReadWriteCurrent += numberOfConsumersCurrentState;
         numberOfReadWriteNext += numberOfConsumersNextState;
     }
+    //Needs reviewing
     prepare = (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) ||
                  (numberOfReadWriteNext ==  numberOfReadWriteCurrent) ||
                  (numberOfReadWriteNext != 0u && numberOfReadWriteCurrent != 0u);
@@ -331,9 +332,7 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
             }
         }
     }
-    //else {
-        //ret = false;
-    //}
+
     REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157MxiDataSource::Prepared %s", prepare ? "true" : "false");
 
     return ret;

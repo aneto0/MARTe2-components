@@ -104,16 +104,7 @@ bool NI9157MxiDataSourceTestDS::PrepareNextState(const char8 * const currentStat
                                                    const char8 * const nextStateName) {
 
     bool ret = false;
-
     ret = NI9157MxiDataSource::PrepareNextState(currentStateName, nextStateName);
-    // if (ret) {
-    //     AsyncWrite("options", 0);
-    //     AsyncWrite("options2", 0);
-    //     AsyncWrite("options", 1);
-    //     AsyncWrite("options2", 1);
-    //     AsyncWrite("options", 1);
-    //     AsyncWrite("options2", 1);
-    // }
 
     return ret;
 }
@@ -185,12 +176,17 @@ void *NI9157MxiDataSourceTestGAM2::GetOutputMemoryBuffer() {
 
 CLASS_REGISTER(NI9157MxiDataSourceTestGAM2, "1.0")
 
+static uint32 model = 0u;
+
+static const uint32 nParams                 = 3u;
+static const char8 * const firmwarePath     = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles";
+static const char8 * const multiIOFirmware[]= {"RIO0", "NiFpga_NI9159_MultiIO.lvbitx", "03AB279CA6C34216C3ABAADB90262282"};
 static const char8 * const multiIOConfig0 = ""
     "+NiDevice = {"
     "    Class = NI9157Device"
-    "    NiRioDeviceName = RIO0"
-    "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
-    "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
+    "    NiRioDeviceName = XptoDevice"
+    "    NiRioGenFile = XptoPath"
+    "    NiRioGenSignature = XptoSignature"
     "    Open = 1"
     "    Configuration = {"
     "        ControlBool_stop = 0"
@@ -206,12 +202,30 @@ static const char8 * const multiIOConfig0 = ""
     "        Class = ReferenceContainer"
     "        +GAMA = {"
     "            Class = NI9157MxiDataSourceTestGAM1"
+    "            InputSignals = {"
+    "                FIFO1_U64_R = {"
+    "                    DataSource = Drv1"
+    "                    Type = uint64"
+    "                    Frequency = 0"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 10000"
+    "                }"
+    "                ticks_counter = {"
+    "                    DataSource = Drv1"
+    "                    Type = uint32"
+    "                }"
+    "            }"
     "            OutputSignals = {"
-    "               options = {"
-    "                   DataSource = Drv1"
-    "                   Type = uint8"
-    "                   Frequency = 0"
-    "               }"
+    "                FIFO0_U64_W = {"
+    "                    DataSource = Drv1"
+    "                    Type = uint64"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 10000"
+    "                }"
+    "                sample_value = {"
+    "                    DataSource = Drv1"
+    "                    Type = uint16"
+    "                }"
     "            }"
     "        }"
     "    }"
@@ -219,6 +233,7 @@ static const char8 * const multiIOConfig0 = ""
     "        Class = ReferenceContainer"
     "        +Drv1 = {"
     "            Class = NI9157MxiDataSourceTestDS"
+    "            NI9157DevicePath = NiDevice"
     "            RunNi = 1"
     "        }"
     "        +Timings = {"
@@ -244,6 +259,488 @@ static const char8 * const multiIOConfig0 = ""
     "    }"
     "}";
 
+static const char8 * const multiIOConfig1 = ""
+    "+NiDevice = {"
+    "    Class = NI9157Device"
+    "    NiRioDeviceName = XptoDevice"
+    "    NiRioGenFile = XptoPath"
+    "    NiRioGenSignature = XptoSignature"
+    "    Open = 1"
+    "    Configuration = {"
+    "        ControlBool_stop = 0"
+    "        ControlBool_use_dsfifo_data = 0"
+    "        ControlBool_use_counter = 1"
+    "        ControlU32_cycle_ticks = 200"
+    "        ControlU64_packet_size = 1"
+    "    }"
+    "}"
+    "$Application1 = {"
+    "    Class = RealTimeApplication"
+    "    +Functions = {"
+    "        Class = ReferenceContainer"
+    "        +GAMA = {"
+    "            Class = NI9157MxiDataSourceTestGAM1"
+    "            InputSignals = {"
+    "                FIFO1_U64_R = {"
+    "                    DataSource = Drv1"
+    "                    Type = uint64"
+    "                    Frequency = 0"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 10000"
+    "                }"
+    "                ticks_counter = {"
+    "                    DataSource = Drv1"
+    "                    Type = uint32"
+    "                }"
+    "            }"
+    "            OutputSignals = {"
+    "                FIFO0_U64_W = {"
+    "                    DataSource = Drv1"
+    "                    Type = uint64"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 10000"
+    "                }"
+    "                sample_value = {"
+    "                    DataSource = Drv1"
+    "                    Type = uint16"
+    "                }"
+    "            }"
+    "        }"
+    "        +GAMB = {"
+    "            Class = NI9157MxiDataSourceTestGAM2"
+    "            InputSignals = {"
+    "               FIFO1_U64_R = {"
+    "                   DataSource = Drv1"
+    "                   Type = uint64"
+    "                   Samples = 1"
+    "                   NumberOfDimensions = 1"
+    "                   NumberOfElements = 10000"
+    "                   PacketMemberSizes = {8, 8, 4, 4, 4, 4, 2, 2, 2, 1, 1}"
+    "               }"
+    "            }"
+    "            OutputSignals = {"
+    "                Signal0_U64_PacketCounter = {"
+    "                    Type = uint64"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal1_U64 = {"
+    "                    Type = uint64"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal2_U32 = {"
+    "                    Type = uint32"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal3_U32 = {"
+    "                    Type = uint32"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal4_U32 = {"
+    "                    Type = uint32"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal5_U32 = {"
+    "                    Type = uint32"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal6_U16 = {"
+    "                    Type = uint16"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal7_U16 = {"
+    "                    Type = uint16"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal8_U16 = {"
+    "                    Type = uint16"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal9_U8 = {"
+    "                    Type = uint8"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal10_U8 = {"
+    "                    Type = uint8"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "            }"
+    "        }"
+    "    }"
+    "    +Data = {"
+    "        Class = ReferenceContainer"
+    "        +DDB = {"
+    "            Class = GAMDataSource"
+    "        }"
+    "        +Drv1 = {"
+    "            Class = NI9157MxiDataSourceTestDS"
+    "            NI9157DevicePath = NiDevice"
+    "            RunNi = 1"
+    "        }"
+    "        +Timings = {"
+    "            Class = TimingDataSource"
+    "        }"
+    "    }"
+    "    +States = {"
+    "        Class = ReferenceContainer"
+    "        +State1 = {"
+    "            Class = RealTimeState"
+    "            +Threads = {"
+    "                Class = ReferenceContainer"
+    "                +Thread1 = {"
+    "                    Class = RealTimeThread"
+    "                    Functions = {GAMA GAMB}"
+    "                }"
+    "            }"
+    "        }"
+    "    }"
+    "    +Scheduler = {"
+    "        Class = GAMScheduler"
+    "        TimingDataSource = Timings"
+    "    }"
+    "}";
+
+static const char8 * const multiIOConfig2 = ""
+    "+NiDevice = {"
+    "    Class = NI9157Device"
+    "    NiRioDeviceName = XptoDevice"
+    "    NiRioGenFile = XptoPath"
+    "    NiRioGenSignature = XptoSignature"
+    "    Open = 1"
+    "    Configuration = {"
+    "        ControlBool_stop = 0"
+    "        ControlBool_use_dsfifo_data = 0"
+    "        ControlBool_use_counter = 1"
+    "        ControlU32_cycle_ticks = 200"
+    "        ControlU64_packet_size = 1"
+    "    }"
+    "}"
+    "$Application1 = {"
+    "    Class = RealTimeApplication"
+    "    +Functions = {"
+    "        Class = ReferenceContainer"
+    "        +GAMA = {"
+    "            Class = NI9157MxiDataSourceTestGAM2"
+    "            InputSignals = {"
+    "               FIFO1_U64_R = {"
+    "                   DataSource = Drv1"
+    "                   Type = uint64"
+    "                   Samples = 1"
+    "                   Frequency = 1"
+    "                   NumberOfDimensions = 1"
+    "                   NumberOfElements = 10000"
+    "                   PacketMemberSizes = {8, 8, 4, 4, 4, 4, 2, 2, 2, 1, 1}"
+    "               }"
+    "            }"
+    "            OutputSignals = {"
+    "                Signal0_U64_PacketCounter = {"
+    "                    Type = uint64"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal1_U64 = {"
+    "                    Type = uint64"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal2_U32 = {"
+    "                    Type = uint32"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal3_U32 = {"
+    "                    Type = uint32"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal4_U32 = {"
+    "                    Type = uint32"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal5_U32 = {"
+    "                    Type = uint32"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal6_U16 = {"
+    "                    Type = uint16"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal7_U16 = {"
+    "                    Type = uint16"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal8_U16 = {"
+    "                    Type = uint16"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal9_U8 = {"
+    "                    Type = uint8"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal10_U8 = {"
+    "                    Type = uint8"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "            }"
+    "        }"
+    "        +GAMB = {"
+    "            Class = IOGAM"
+    "            InputSignals = {"
+    "                Signal6_U16 = {"
+    "                    DataSource = DDB"
+    "                    Type = uint16"
+    "                    Ranges = {{1000, 1000}}"
+    "                }"
+    "            }"
+    "            OutputSignals = {"
+    "                sample_value = {"
+    "                    DataSource = Drv1"
+    "                    Type = uint16"
+    "                }"
+    "            }"
+    "        }"
+    "    }"
+    "    +Data = {"
+    "        Class = ReferenceContainer"
+    "        +DDB = {"
+    "            Class = GAMDataSource"
+    "        }"
+    "        +Drv1 = {"
+    "            Class = NI9157MxiDataSourceTestDS"
+    "            RunNi = 1"
+    "            NI9157DevicePath = NiDevice"
+    "            Signals = {"
+    "                ticks_counter = {"
+    "                    Type = uint32"
+    "                }"
+    "                sample_value = {"
+    "                    Type = uint16"
+    "                }"
+    "            }"
+    "        }"
+    "        +Timings = {"
+    "            Class = TimingDataSource"
+    "        }"
+    "    }"
+    "    +States = {"
+    "        Class = ReferenceContainer"
+    "        +State1 = {"
+    "            Class = RealTimeState"
+    "            +Threads = {"
+    "                Class = ReferenceContainer"
+    "                +Thread1 = {"
+    "                    Class = RealTimeThread"
+    "                    Functions = {GAMA GAMB}"
+    "                }"
+    "            }"
+    "        }"
+    "    }"
+    "    +Scheduler = {"
+    "        Class = GAMScheduler"
+    "        TimingDataSource = Timings"
+    "    }"
+    "}";
+
+static const char8 * const multiIOConfig3 = ""
+    "+NiDevice = {"
+    "    Class = NI9157Device"
+    "    NiRioDeviceName = XptoDevice"
+    "    NiRioGenFile = XptoPath"
+    "    NiRioGenSignature = XptoSignature"
+    "    Open = 1"
+    "    Configuration = {"
+    "        ControlBool_stop = 0"
+    "        ControlBool_use_dsfifo_data = 1"
+    "        ControlBool_use_counter = 1"
+    "        ControlU32_cycle_ticks = 200"
+    "        ControlU64_packet_size = 1"
+    "    }"
+    "}"
+    "$Application1 = {"
+    "    Class = RealTimeApplication"
+    "    +Functions = {"
+    "        Class = ReferenceContainer"
+    "        +GAMA = {"
+    "            Class = NI9157MxiDataSourceTestGAM2"
+    "            InputSignals = {"
+    "               FIFO1_U64_R = {"
+    "                   DataSource = Drv1"
+    "                   Type = uint64"
+    "                   Samples = 1"
+    "                   Frequency = 1"
+    "                   NumberOfDimensions = 1"
+    "                   NumberOfElements = 10000"
+    "                   PacketMemberSizes = {8, 8, 4, 4, 4, 4, 2, 2, 2, 1, 1}"
+    "               }"
+    "            }"
+    "            OutputSignals = {"
+    "                Signal0_U64_PacketCounter = {"
+    "                    Type = uint64"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal1_U64 = {"
+    "                    Type = uint64"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal2_U32 = {"
+    "                    Type = uint32"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal3_U32 = {"
+    "                    Type = uint32"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal4_U32 = {"
+    "                    Type = uint32"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal5_U32 = {"
+    "                    Type = uint32"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal6_U16 = {"
+    "                    Type = uint16"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal7_U16 = {"
+    "                    Type = uint16"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal8_U16 = {"
+    "                    Type = uint16"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal9_U8 = {"
+    "                    Type = uint8"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "                Signal10_U8 = {"
+    "                    Type = uint8"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    DataSource = DDB"
+    "                }"
+    "            }"
+    "        }"
+    "        +GAMB = {"
+    "            Class = IOGAM"
+    "            InputSignals = {"
+    "                Signal0_U64_PacketCounter = {"
+    "                    DataSource = DDB"
+    "                    Type = uint64"
+    "                    Ranges = {{0, 1999}}"
+    "                }"
+    "            }"
+    "            OutputSignals = {"
+    "                FIFO0_U64_W = {"
+    "                    DataSource = Drv1"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 2000"
+    "                    Type = uint64"
+    "                }"
+    "            }"
+    "        }"
+    "    }"
+    "    +Data = {"
+    "        Class = ReferenceContainer"
+    "        +DDB = {"
+    "            Class = GAMDataSource"
+    "        }"
+    "        +Drv1 = {"
+    "            Class = NI9157MxiDataSourceTestDS"
+    "            RunNi = 1"
+    "            NI9157DevicePath = NiDevice"
+    "            Signals = {"
+    "                ticks_counter = {"
+    "                    Type = uint32"
+    "                }"
+    "                sample_value = {"
+    "                    Type = uint16"
+    "                }"
+    "            }"
+    "        }"
+    "        +Timings = {"
+    "            Class = TimingDataSource"
+    "        }"
+    "    }"
+    "    +States = {"
+    "        Class = ReferenceContainer"
+    "        +State1 = {"
+    "            Class = RealTimeState"
+    "            +Threads = {"
+    "                Class = ReferenceContainer"
+    "                +Thread1 = {"
+    "                    Class = RealTimeThread"
+    "                    Functions = {GAMA GAMB}"
+    "                }"
+    "            }"
+    "        }"
+    "    }"
+    "    +Scheduler = {"
+    "        Class = GAMScheduler"
+    "        TimingDataSource = Timings"
+    "    }"
+    "}";
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -251,33 +748,33 @@ static const char8 * const multiIOConfig0 = ""
 /**
  * Helper function to setup a MARTe execution environment
  */
-static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config) {
+// static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config) {
 
-    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-    ConfigurationDatabase cdb;
-    StreamString configStream = config;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+//     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+//     ConfigurationDatabase cdb;
+//     StreamString configStream = config;
+//     configStream.Seek(0);
+//     StandardParser parser(configStream, cdb);
+//     bool ok = parser.Parse();
+//     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
-    if (ok) {
-        god->Purge();
-        ok = god->Initialise(cdb);
-    }
+//     if (ok) {
+//         god->Purge();
+//         ok = god->Initialise(cdb);
+//     }
 
-    ReferenceT<RealTimeApplication> application;
+//     ReferenceT<RealTimeApplication> application;
 
-    if (ok) {
-        application = god->Find("Application1");
-        ok = application.IsValid();
-    }
-    if (ok) {
-        ok = application->ConfigureApplication();
-    }
+//     if (ok) {
+//         application = god->Find("Application1");
+//         ok = application.IsValid();
+//     }
+//     if (ok) {
+//         ok = application->ConfigureApplication();
+//     }
 
-    return ok;
-}
+//     return ok;
+// }
 
 NI9157MxiDataSourceTest::NI9157MxiDataSourceTest() {
 }
@@ -303,13 +800,13 @@ bool NI9157MxiDataSourceTest::TestConstructor() {
 
 bool NI9157MxiDataSourceTest::TestInitialise() {
 
-    static const char8 * const config = ""
-             "+NiDevice = {"
-             "    Class = NI9157Device"
-             "    NiRioDeviceName = RIO0"
-             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
-             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
-             "    Open = 1"
+    /*static const char8 * const config = ""
+            "+NiDevice = {"
+            "    Class = NI9157Device"
+            "    NiRioDeviceName = RIO0"
+            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
+            "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
+            "    Open = 1"
 	        "    Configuration = {"
 	        "        ControlBool_stop = 0"
 	        "        ControlBool_use_dsfifo_data = 0"
@@ -317,62 +814,88 @@ bool NI9157MxiDataSourceTest::TestInitialise() {
 	        "        ControlU32_cycle_ticks = 200"
 	        "        ControlU64_packet_size = 1"
 	        "    }"
-             "}"
-             "$Application1 = {"
-             "    Class = RealTimeApplication"
-             "    +Functions = {"
-             "        Class = ReferenceContainer"
-             "        +GAMA = {"
-             "            Class = NI9157MxiDataSourceTestGAM1"
-             "            OutputSignals = {"
-             "               options = {"
-             "                   DataSource = Drv1"
-             "                   Type = uint8"
-             "                   Frequency = 0"
-             "               }"
-             "            }"
-             "        }"
-             "    }"
-             "    +Data = {"
-             "        Class = ReferenceContainer"
-             "        +Drv1 = {"
-             "            Class = NI9157MxiDataSourceTestDS"
-             "            NI9157DevicePath = NiDevice"
-             "            RunNi = 1"
-             "        }"
-             "        +Timings = {"
-             "            Class = TimingDataSource"
-             "        }"
-             "    }"
-             "    +States = {"
-             "        Class = ReferenceContainer"
-             "        +State1 = {"
-             "            Class = RealTimeState"
-             "            +Threads = {"
-             "                Class = ReferenceContainer"
-             "                +Thread1 = {"
-             "                    Class = RealTimeThread"
-             "                    Functions = {GAMA}"
-             "                }"
-             "            }"
-             "        }"
-             "    }"
-             "    +Scheduler = {"
-             "        Class = GAMScheduler"
-             "        TimingDataSource = Timings"
-             "    }"
-             "}";
+            "}"
+            "$Application1 = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = NI9157MxiDataSourceTestGAM1"
+            "            InputSignals = {"
+            "                FIFO1_U64_R = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    Frequency = 0"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
+            "                }"
+            "                ticks_counter = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint32"
+            "                }"
+            "            }"
+            "            OutputSignals = {"
+            "                FIFO0_U64_W = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
+            "                }"
+            "                sample_value = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint16"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        +Drv1 = {"
+            "            Class = NI9157MxiDataSourceTestDS"
+            "            NI9157DevicePath = NiDevice"
+            "            RunNi = 1"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMA}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";*/
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream =  multiIOConfig0;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-
-    //ADD SPECIFIC CONFIGS
-
     if (ret) {
         god->Purge();
         ret = god->Initialise(cdb);
@@ -387,27 +910,27 @@ bool NI9157MxiDataSourceTest::TestInitialise() {
         ReferenceT<NI9157Device> x = dataSource->GetNiDeviceBoard();
         ret &= x.IsValid();
     }
-    ObjectRegistryDatabase::Instance()->Purge();
 
+    ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
 bool NI9157MxiDataSourceTest::TestInitialise_DefaultRunNi() {
 
-    static const char8 * const config = ""
+    /*static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
             "    Open = 1"
-    "    Configuration = {"
-    "        ControlBool_stop = 0"
-    "        ControlBool_use_dsfifo_data = 0"
-    "        ControlBool_use_counter = 1"
-    "        ControlU32_cycle_ticks = 200"
-    "        ControlU64_packet_size = 1"
-    "    }"
+            "    Configuration = {"
+            "        ControlBool_stop = 0"
+            "        ControlBool_use_dsfifo_data = 0"
+            "        ControlBool_use_counter = 1"
+            "        ControlU32_cycle_ticks = 200"
+            "        ControlU64_packet_size = 1"
+            "    }"
             "}"
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -415,12 +938,30 @@ bool NI9157MxiDataSourceTest::TestInitialise_DefaultRunNi() {
             "        Class = ReferenceContainer"
             "        +GAMA = {"
             "            Class = NI9157MxiDataSourceTestGAM1"
+            "            InputSignals = {"
+            "                FIFO1_U64_R = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    Frequency = 0"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
+            "                }"
+            "                ticks_counter = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint32"
+            "                }"
+            "            }"
             "            OutputSignals = {"
-            "               options = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint8"
-            "                   Frequency = 0"
-            "               }"
+            "                FIFO0_U64_W = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
+            "                }"
+            "                sample_value = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint16"
+            "                }"
             "            }"
             "        }"
             "    }"
@@ -451,18 +992,31 @@ bool NI9157MxiDataSourceTest::TestInitialise_DefaultRunNi() {
             "        Class = GAMScheduler"
             "        TimingDataSource = Timings"
             "    }"
-            "}";
+            "}";*/
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig0;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("Application1.Data.Drv1");
+        ret &= cdb.Delete("RunNi");
+        ret &= cdb.MoveToRoot();       
+    }
+
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-
-    //ADD SPECIFIC CONFIGS
-
     if (ret) {
         god->Purge();
         ret = god->Initialise(cdb);
@@ -477,106 +1031,27 @@ bool NI9157MxiDataSourceTest::TestInitialise_DefaultRunNi() {
         ReferenceT<NI9157Device> x = dataSource->GetNiDeviceBoard();
         ret &= x.IsValid();
     }
-    ObjectRegistryDatabase::Instance()->Purge();
 
+    ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
 bool NI9157MxiDataSourceTest::TestInitialise_False_NoNiDev() {
 
-     static const char8 * const config = ""
-             "+NiDevice = {"
-             "    Class = NI9157Device"
-             "    NiRioDeviceName = RIO0"
-             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
-             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
-             "    Open = 1"
-    "    Configuration = {"
-    "        ControlBool_stop = 0"
-    "        ControlBool_use_dsfifo_data = 0"
-    "        ControlBool_use_counter = 1"
-    "        ControlU32_cycle_ticks = 200"
-    "        ControlU64_packet_size = 1"
-    "    }"
-             "}"
-             "$Application1 = {"
-             "    Class = RealTimeApplication"
-             "    +Functions = {"
-             "        Class = ReferenceContainer"
-             "        +GAMA = {"
-             "            Class = NI9157MxiDataSourceTestGAM1"
-             "            OutputSignals = {"
-             "               options = {"
-             "                   DataSource = Drv1"
-             "                   Type = uint8"
-             "                   Frequency = 0"
-             "               }"
-             "            }"
-             "        }"
-             "    }"
-             "    +Data = {"
-             "        Class = ReferenceContainer"
-             "        +Drv1 = {"
-             "            Class = NI9157MxiDataSourceTestDS"
-             "            RunNi = 1"
-             "        }"
-             "        +Timings = {"
-             "            Class = TimingDataSource"
-             "        }"
-             "    }"
-             "    +States = {"
-             "        Class = ReferenceContainer"
-             "        +State1 = {"
-             "            Class = RealTimeState"
-             "            +Threads = {"
-             "                Class = ReferenceContainer"
-             "                +Thread1 = {"
-             "                    Class = RealTimeThread"
-             "                    Functions = {GAMA}"
-             "                }"
-             "            }"
-             "        }"
-             "    }"
-             "    +Scheduler = {"
-             "        Class = GAMScheduler"
-             "        TimingDataSource = Timings"
-             "    }"
-             "}";
-
-    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-    ConfigurationDatabase cdb;
-    StreamString configStream = config;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ret = parser.Parse();
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-
-    if (ret) {
-        god->Purge();
-        ret = !god->Initialise(cdb);
-    }
-
-    ObjectRegistryDatabase::Instance()->Purge();
-    return ret;
-}
-
-
-bool NI9157MxiDataSourceTest::TestInitialise_False_InvalidNiDevPath(){
-
-    static const char8 * const config = ""
+    /*static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
             "    Open = 1"
-    "    Configuration = {"
-    "        ControlBool_stop = 0"
-    "        ControlBool_use_dsfifo_data = 0"
-    "        ControlBool_use_counter = 1"
-    "        ControlU32_cycle_ticks = 200"
-    "        ControlU64_packet_size = 1"
-    "    }"
+            "    Configuration = {"
+            "        ControlBool_stop = 0"
+            "        ControlBool_use_dsfifo_data = 0"
+            "        ControlBool_use_counter = 1"
+            "        ControlU32_cycle_ticks = 200"
+            "        ControlU64_packet_size = 1"
+            "    }"
             "}"
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -584,12 +1059,30 @@ bool NI9157MxiDataSourceTest::TestInitialise_False_InvalidNiDevPath(){
             "        Class = ReferenceContainer"
             "        +GAMA = {"
             "            Class = NI9157MxiDataSourceTestGAM1"
+            "            InputSignals = {"
+            "                FIFO1_U64_R = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    Frequency = 0"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
+            "                }"
+            "                ticks_counter = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint32"
+            "                }"
+            "            }"
             "            OutputSignals = {"
-            "               options = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint8"
-            "                   Frequency = 0"
-            "               }"
+            "                FIFO0_U64_W = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
+            "                }"
+            "                sample_value = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint16"
+            "                }"
             "            }"
             "        }"
             "    }"
@@ -597,7 +1090,6 @@ bool NI9157MxiDataSourceTest::TestInitialise_False_InvalidNiDevPath(){
             "        Class = ReferenceContainer"
             "        +Drv1 = {"
             "            Class = NI9157MxiDataSourceTestDS"
-            "            NI9157DevicePath = Invalid"
             "            RunNi = 1"
             "        }"
             "        +Timings = {"
@@ -621,16 +1113,143 @@ bool NI9157MxiDataSourceTest::TestInitialise_False_InvalidNiDevPath(){
             "        Class = GAMScheduler"
             "        TimingDataSource = Timings"
             "    }"
-            "}";
+            "}";*/
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig0;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
 
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }   
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.Data.Drv1");
+        ret &= cdb.Delete("NI9157DevicePath");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = !god->Initialise(cdb);
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
+
+bool NI9157MxiDataSourceTest::TestInitialise_False_InvalidNiDevPath(){
+
+    /*static const char8 * const config = ""
+            "+NiDevice = {"
+            "    Class = NI9157Device"
+            "    NiRioDeviceName = RIO0"
+            "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
+            "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
+            "    Open = 1"
+            "    Configuration = {"
+            "        ControlBool_stop = 0"
+            "        ControlBool_use_dsfifo_data = 0"
+            "        ControlBool_use_counter = 1"
+            "        ControlU32_cycle_ticks = 200"
+            "        ControlU64_packet_size = 1"
+            "    }"
+            "}"
+            "$Application1 = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = NI9157MxiDataSourceTestGAM1"
+            "            InputSignals = {"
+            "                FIFO1_U64_R = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    Frequency = 0"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
+            "                }"
+            "                ticks_counter = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint32"
+            "                }"
+            "            }"
+            "            OutputSignals = {"
+            "                FIFO0_U64_W = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
+            "                }"
+            "                sample_value = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint16"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        +Drv1 = {"
+            "            Class = NI9157MxiDataSourceTestDS"
+            "            NI9157DevicePath = somePath"
+            "            RunNi = 1"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMA}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";*/
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig0;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }    
+    if (ret) {
+        ret = cdb.MoveAbsolute("Application1.Data.Drv1");
+        ret &= cdb.Write("NI9157DevicePath", "SomePath");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
@@ -720,20 +1339,20 @@ bool NI9157MxiDataSourceTest::TestGetBrokerName() {
 
 bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase() {
 
-    static const char8 * const config = ""
+    /*static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
             "    Open = 1"
-    "    Configuration = {"
-    "        ControlBool_stop = 0"
-    "        ControlBool_use_dsfifo_data = 0"
-    "        ControlBool_use_counter = 1"
-    "        ControlU32_cycle_ticks = 200"
-    "        ControlU64_packet_size = 1"
-    "    }"
+            "    Configuration = {"
+            "        ControlBool_stop = 0"
+            "        ControlBool_use_dsfifo_data = 0"
+            "        ControlBool_use_counter = 1"
+            "        ControlU32_cycle_ticks = 200"
+            "        ControlU64_packet_size = 1"
+            "    }"
             "}"
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -743,33 +1362,28 @@ bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase() {
             "            Class = NI9157MxiDataSourceTestGAM1"
             "            InputSignals = {"
             "                FIFO1_U64_R = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    Frequency = 0"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                ticks_counter = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint32"
+            "                    DataSource = Drv1"
+            "                    Type = uint32"
             "                }"
             "            }"
             "            OutputSignals = {"
-            //"               options = {"
-            //"                   DataSource = Drv1"
-            //"                   Type = uint8"
-            //"               }"
             "                FIFO0_U64_W = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            //"                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                sample_value = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint16"
-            "               }"
+            "                    DataSource = Drv1"
+            "                    Type = uint16"
+            "                }"
             "            }"
             "        }"
             "    }"
@@ -801,12 +1415,40 @@ bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase() {
             "        Class = GAMScheduler"
             "        TimingDataSource = Timings"
             "    }"
-            "}";
+            "}";*/
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    //bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig0;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }  
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -826,38 +1468,31 @@ bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase() {
         ret &= x0 != NULL;
         NI9157DeviceOperatorT<uint32>* x1 = dynamic_cast<NI9157DeviceOperatorT<uint32>*>(operators[1]);
         ret &= x1 != NULL;
-        //NI9157DeviceOperatorT<uint8>* x2 = dynamic_cast<NI9157DeviceOperatorT<uint8>*>(operators[2]);
-        //ret &= x2 != NULL;
-        //NI9157DeviceOperatorT<uint16>* x3 = dynamic_cast<NI9157DeviceOperatorT<uint16>*>(operators[3]);
-        //ret &= x3 != NULL;
         NI9157DeviceOperatorT<uint64>* x2 = dynamic_cast<NI9157DeviceOperatorT<uint64>*>(operators[2]);
         ret &= x2 != NULL;
         NI9157DeviceOperatorT<uint16>* x3 = dynamic_cast<NI9157DeviceOperatorT<uint16>*>(operators[3]);
         ret &= x3 != NULL;
     }
     if (ret) {
-        //uint32 descriptors[] = { 1, 0x810C, 0x819A, 0x816A };
-        //uint32 nElementsTest[] = { 10000, 1, 1, 1 };
         uint32 descriptors[] = { 0, 0x8130, 1, 0x8136 };
         uint32 nElementsTest[] = { 10000, 1, 10000, 1 };
         uint32 * ids = dataSource->GetVarId();
         uint32 * nElements = dataSource->GetNumberOfElements();
         uint8 * signalFlags = dataSource->GetSignalFlag();
         uint32 numberOfSignals = dataSource->GetNumberOfSignals();
-        ret = numberOfSignals == 4;
-        //ret = numberOfSignals == 3;
+        ret = (numberOfSignals == 4);
         for (uint32 i = 0u; (i < numberOfSignals) && (ret); i++) {
             ret = ids[i] == descriptors[i];
             if (ret) {
                 ret = (nElements[i] == nElementsTest[i]);
                 if(!ret){
-                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed1 at %d, %d %d", i, nElements[i], nElementsTest[i]);
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at Element[%u] with %u != %u", i,  nElements[i], nElementsTest[i]);
                 }
             }
             if (ret) {
                 ret = (signalFlags[i] == 0);
                 if(!ret){
-                   REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed2 at %d, %d", i, signalFlags[i]);
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at SignalFlag[%u] with %u != 0", i, static_cast<uint32> (signalFlags[i]));
                 }
             }
         }
@@ -872,20 +1507,20 @@ bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase() {
 
 bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase_False_InvalidLabviewVar() {
 
-    static const char8 * const config = ""
+    /*static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
             "    Open = 1"
-    "    Configuration = {"
-    "        ControlBool_stop = 0"
-    "        ControlBool_use_dsfifo_data = 0"
-    "        ControlBool_use_counter = 1"
-    "        ControlU32_cycle_ticks = 200"
-    "        ControlU64_packet_size = 1"
-    "    }"
+            "    Configuration = {"
+            "        ControlBool_stop = 0"
+            "        ControlBool_use_dsfifo_data = 0"
+            "        ControlBool_use_counter = 1"
+            "        ControlU32_cycle_ticks = 200"
+            "        ControlU64_packet_size = 1"
+            "    }"
             "}"
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -895,32 +1530,27 @@ bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase_False_InvalidLabviewVar(
             "            Class = NI9157MxiDataSourceTestGAM1"
             "            InputSignals = {"
             "                SomeFIFO = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    Frequency = 0"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                ticks_counter = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint32"
+            "                    DataSource = Drv1"
+            "                    Type = uint32"
             "                }"
             "            }"
             "            OutputSignals = {"
-            //"               options = {"
-            //"                   DataSource = Drv1"
-            //"                   Type = uint8"
-            //"               }"
             "                FIFO0_U64_W = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            //"                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                sample_value = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint16"
+            "                    DataSource = Drv1"
+            "                    Type = uint16"
             "               }"
             "            }"
             "        }"
@@ -953,29 +1583,71 @@ bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase_False_InvalidLabviewVar(
             "        Class = GAMScheduler"
             "        TimingDataSource = Timings"
             "    }"
-            "}";
+            "}";*/
 
-    bool ret = !InitialiseMemoryMapInputBrokerEnviroment(config);
+    // bool ret = !InitialiseMemoryMapInputBrokerEnviroment(config);
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig0;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("Application1.Functions.GAMA.InputSignals");
+        ret &= cdb.CreateRelative("SomeFIFO");
+        ret &= ConfigurationDatabase tempNode = cdb;
+        ret &= cdb.MoveToAncestor(1u);
+        ret &= cdb.MoveRelative("FIFO1_U64_R");
+        ret &= cdb.Copy(tempNode);
+        ret &= cdb.MoveToAncestor(1u);
+        ret &= cdb.Delete("FIFO1_U64_R");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->!Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
 bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase_False_InvalidType() {
 
-    static const char8 * const config = ""
+    /*static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
             "    Open = 1"
-    "    Configuration = {"
-    "        ControlBool_stop = 0"
-    "        ControlBool_use_dsfifo_data = 0"
-    "        ControlBool_use_counter = 1"
-    "        ControlU32_cycle_ticks = 200"
-    "        ControlU64_packet_size = 1"
-    "    }"
+            "    Configuration = {"
+            "        ControlBool_stop = 0"
+            "        ControlBool_use_dsfifo_data = 0"
+            "        ControlBool_use_counter = 1"
+            "        ControlU32_cycle_ticks = 200"
+            "        ControlU64_packet_size = 1"
+            "    }"
             "}"
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -985,33 +1657,28 @@ bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase_False_InvalidType() {
             "            Class = NI9157MxiDataSourceTestGAM1"
             "            InputSignals = {"
             "                FIFO1_U64_R = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    Frequency = 0"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                ticks_counter = {"
-            "                   DataSource = Drv1"
-            "                   Type = float32"
+            "                    DataSource = Drv1"
+            "                    Type = float32"
             "                }"
             "            }"
             "            OutputSignals = {"
-            //"               options = {"
-            //"                   DataSource = Drv1"
-            //"                   Type = uint8"
-            //"               }"
             "                FIFO0_U64_W = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            //"                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                sample_value = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint16"
-            "               }"
+            "                    DataSource = Drv1"
+            "                    Type = uint16"
+            "                }"
             "            }"
             "        }"
             "    }"
@@ -1043,29 +1710,65 @@ bool NI9157MxiDataSourceTest::TestSetConfiguredDatabase_False_InvalidType() {
             "        Class = GAMScheduler"
             "        TimingDataSource = Timings"
             "    }"
-            "}";
+            "}";*/
 
-    bool ret = !InitialiseMemoryMapInputBrokerEnviroment(config);
+    //bool ret = !InitialiseMemoryMapInputBrokerEnviroment(config);
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig0;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("Application1.Functions.GAMA.InputSignals.ticks_counter");
+        ret &= cdb.Write("Type", "float32");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->!Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
 bool NI9157MxiDataSourceTest::TestPrepareNextState() {
 
-    static const char8 * const config = ""
+    /*static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
             "    Open = 1"
-    "    Configuration = {"
-    "        ControlBool_stop = 0"
-    "        ControlBool_use_dsfifo_data = 0"
-    "        ControlBool_use_counter = 1"
-    "        ControlU32_cycle_ticks = 200"
-    "        ControlU64_packet_size = 1"
-    "    }"
+            "    Configuration = {"
+            "        ControlBool_stop = 0"
+            "        ControlBool_use_dsfifo_data = 0"
+            "        ControlBool_use_counter = 1"
+            "        ControlU32_cycle_ticks = 200"
+            "        ControlU64_packet_size = 1"
+            "    }"
             "}"
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -1075,33 +1778,28 @@ bool NI9157MxiDataSourceTest::TestPrepareNextState() {
             "            Class = NI9157MxiDataSourceTestGAM1"
             "            InputSignals = {"
             "                FIFO1_U64_R = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    Frequency = 0"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                ticks_counter = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint32"
+            "                    DataSource = Drv1"
+            "                    Type = uint32"
             "                }"
             "            }"
             "            OutputSignals = {"
-            //"               options = {"
-            //"                   DataSource = Drv1"
-            //"                   Type = uint8"
-            //"               }"
             "                FIFO0_U64_W = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            //"                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                sample_value = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint16"
-            "               }"
+            "                    DataSource = Drv1"
+            "                    Type = uint16"
+            "                }"
             "            }"
             "        }"
             "    }"
@@ -1133,24 +1831,49 @@ bool NI9157MxiDataSourceTest::TestPrepareNextState() {
             "        Class = GAMScheduler"
             "        TimingDataSource = Timings"
             "    }"
-            "}";
+            "}";*/
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    // bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
-//Inserir o Reset
     if (ret) {
         ErrorManagement::ErrorType err;
         err = dataSource->Reset();
         ret = err.ErrorsCleared();
     }
-
     if (ret) {
         ReferenceT<NI9157Device> x = dataSource->GetNiDeviceBoard();
         ret = x.IsValid();
@@ -1167,8 +1890,6 @@ bool NI9157MxiDataSourceTest::TestPrepareNextState() {
         ret &= x3 != NULL;
     }
     if (ret) {
-        //uint32 descriptors[] = { 1, 0x810C, 0x819A, 0x816A };
-        //uint32 nElementsTest[] = { 10000, 1, 1, 1 };
         uint32 descriptors[] = { 0, 0x8130, 1, 0x8136 };
         uint32 nElementsTest[] = { 10000, 1, 10000, 1 };
         uint32 * ids = dataSource->GetVarId();
@@ -1180,9 +1901,15 @@ bool NI9157MxiDataSourceTest::TestPrepareNextState() {
             ret = ids[i] == descriptors[i];
             if (ret) {
                 ret = (nElements[i] == nElementsTest[i]);
+                if(!ret){
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at Element[%u] with %u != %u", i,  nElements[i], nElementsTest[i]);
+                }
             }
             if (ret) {
                 ret = (signalFlags[i] == 0);
+                if(!ret){
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at SignalFlag[%u] with %u != 0", i, static_cast<uint32> (signalFlags[i]));
+                }
             }
         }
     }
@@ -1207,20 +1934,20 @@ bool NI9157MxiDataSourceTest::TestPrepareNextState() {
 
 bool NI9157MxiDataSourceTest::TestSynchronise() {
 
-    static const char8 * const config = ""
+    /*static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
             "    Open = 1"
-    "    Configuration = {"
-    "        ControlBool_stop = 0"
-    "        ControlBool_use_dsfifo_data = 0"
-    "        ControlBool_use_counter = 1"
-    "        ControlU32_cycle_ticks = 200"
-    "        ControlU64_packet_size = 1"
-    "    }"
+            "    Configuration = {"
+            "        ControlBool_stop = 0"
+            "        ControlBool_use_dsfifo_data = 0"
+            "        ControlBool_use_counter = 1"
+            "        ControlU32_cycle_ticks = 200"
+            "        ControlU64_packet_size = 1"
+            "    }"
             "}"
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -1230,28 +1957,28 @@ bool NI9157MxiDataSourceTest::TestSynchronise() {
             "            Class = NI9157MxiDataSourceTestGAM1"
             "            InputSignals = {"
             "                FIFO1_U64_R = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    Frequency = 0"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                ticks_counter = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint32"
+            "                    DataSource = Drv1"
+            "                    Type = uint32"
             "                }"
             "            }"
             "            OutputSignals = {"
             "                FIFO0_U64_W = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                sample_value = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint16"
-            "               }"
+            "                    DataSource = Drv1"
+            "                    Type = uint16"
+            "                }"
             "            }"
             "        }"
             "        +GAMB = {"
@@ -1397,12 +2124,40 @@ bool NI9157MxiDataSourceTest::TestSynchronise() {
             "        Class = GAMScheduler"
             "        TimingDataSource = Timings"
             "    }"
-            "}";
+            "}";*/
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    // bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -1412,31 +2167,23 @@ bool NI9157MxiDataSourceTest::TestSynchronise() {
         err = dataSource->Reset();
         ret = err.ErrorsCleared();
     }
-
-//XPTO
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
     }
-
     ReferenceT < NI9157MxiDataSourceTestGAM1 > gam1;
-
     if (ret) {
         gam1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam1.IsValid();
     }
-
     ReferenceT < NI9157MxiDataSourceTestGAM2 > gam2;
-
     if (ret) {
         gam2 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMB");
         ret = gam2.IsValid();
     }
-
     ReferenceT < MemoryMapSynchronisedInputBroker > brokerSync;
     ReferenceT < MemoryMapInputBroker > brokerIn1;
     ReferenceT < MemoryMapOutputBroker > brokerOut1;
     ReferenceT < MemoryMapInputBroker > brokerIn2;
-
     if (ret) {
         ReferenceContainer inputBrokers1, outputBrokers1, inputBrokers2;
         ret = gam1->GetInputBrokers(inputBrokers1);
@@ -1476,16 +2223,12 @@ bool NI9157MxiDataSourceTest::TestSynchronise() {
         //400000 = 200 ticks * 2000 packets (cycle_ticks = 200 ticks if for 200kHz)
         uint32 expectedDeltaTick = 400000;
         for (uint32 i = 0u; (i < nReads) && (ret); i++) {
-
             brokerSync->Execute();
-
             brokerIn1->Execute();
             gam1->Execute();
             brokerOut1->Execute();
-
             brokerIn2->Execute();
             gam2->Execute();
-
             if (i > beginMxiIndex) {
                 uint32 deltaTick = (*mem1 - storeTick);
                 ret = ((deltaTick - expectedDeltaTick) < tol) || ((deltaTick - expectedDeltaTick) > -tol);
@@ -1509,20 +2252,20 @@ bool NI9157MxiDataSourceTest::TestSynchronise() {
 
 bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope() {
 
-    static const char8 * const config = ""
+    /*static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
             "    Open = 1"
-    "    Configuration = {"
-    "        ControlBool_stop = 0"
-    "        ControlBool_use_dsfifo_data = 0"
-    "        ControlBool_use_counter = 1"
-    "        ControlU32_cycle_ticks = 200"
-    "        ControlU64_packet_size = 1"
-    "    }"
+            "    Configuration = {"
+            "        ControlBool_stop = 0"
+            "        ControlBool_use_dsfifo_data = 0"
+            "        ControlBool_use_counter = 1"
+            "        ControlU32_cycle_ticks = 200"
+            "        ControlU64_packet_size = 1"
+            "    }"
             "}"
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -1644,16 +2387,16 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope() {
             "            Class = IOGAM"
             "            InputSignals = {"
             "                GY1_MHVPS_Current = {"
-            "                   DataSource = DDB"
-            "                   Type = uint16"
-            "                   Ranges = {{1000, 1000}}"
+            "                    DataSource = DDB"
+            "                    Type = uint16"
+            "                    Ranges = {{1000, 1000}}"
             "                }"
             "            }"
             "            OutputSignals = {"
-            "               sample_value = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint16"
-            "               }"
+            "                sample_value = {"
+            "                    DataSource = Drv1"
+            "                    Type = uint16"
+            "                }"
             "            }"
             "        }"
             "    }"
@@ -1667,10 +2410,10 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope() {
             "            RunNi = 1"
             "            NI9157DevicePath = NiDevice"
             "            Signals = {"
-            "               ticks_counter = {"
-            "                   Type = uint32"
-            "               }"
-            "               sample_value = {"
+            "                ticks_counter = {"
+            "                    Type = uint32"
+            "                }"
+            "                sample_value = {"
             "                    Type = uint16"
             "                }"
             "            }"
@@ -1696,12 +2439,40 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope() {
             "        Class = GAMScheduler"
             "        TimingDataSource = Timings"
             "    }"
-            "}";
+            "}";*/
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    // bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig2;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -1709,26 +2480,20 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope() {
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
     }
-
     ReferenceT < NI9157MxiDataSourceTestGAM2 > gam1;
-
     if (ret) {
         gam1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam1.IsValid();
     }
-
     ReferenceT<IOGAM> gam2;
-
     if (ret) {
         gam2 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMB");
         ret = gam2.IsValid();
     }
-
     ReferenceT < MemoryMapSynchronisedInputBroker > brokerSync;
     ReferenceT < MemoryMapOutputBroker > brokerOut1;
     ReferenceT < MemoryMapInputBroker > brokerIn2;
     ReferenceT < MemoryMapOutputBroker > brokerOut2;
-
     if (ret) {
         ReferenceContainer inputBrokers1, outputBrokers1, inputBrokers2, outputBrokers2;
         ret = gam1->GetInputBrokers(inputBrokers1);
@@ -1762,16 +2527,12 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope() {
         uint64 *mem = (uint64 *) gam1->GetOutputMemoryBuffer();
         uint32 nReads = 1000;
         for (uint32 i = 0u; (i < nReads) && (ret); i++) {
-
             brokerSync->Execute();
-
             gam1->Execute();
             brokerOut1->Execute();
-
             brokerIn2->Execute();
             gam2->Execute();
             brokerOut2->Execute();
-
             if (ret) {
                 ret = (mem[0] == ((2000 * i) + 1));
                 if (!ret) {
@@ -1787,7 +2548,7 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope() {
 
 bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_OutputFIFO() {
 
-    static const char8 * const config = ""
+    /*static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
             "    NiRioDeviceName = RIO0"
@@ -1994,13 +2755,41 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_OutputFIFO() {
             "        Class = GAMScheduler"
             "        TimingDataSource = Timings"
             "    }"
-            "}";
+            "}";*/
 
-    Sleep::Sec(1);
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    // Sleep::Sec(1);
+    // bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream =  multiIOConfig3;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -2008,26 +2797,20 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_OutputFIFO() {
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
     }
-
     ReferenceT < NI9157MxiDataSourceTestGAM2 > gam1;
-
     if (ret) {
         gam1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam1.IsValid();
     }
-
     ReferenceT<IOGAM> gam2;
-
     if (ret) {
         gam2 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMB");
         ret = gam2.IsValid();
     }
-
     ReferenceT < MemoryMapSynchronisedInputBroker > brokerSync;
     ReferenceT < MemoryMapOutputBroker > brokerOut1;
     ReferenceT < MemoryMapInputBroker > brokerIn2;
     ReferenceT < MemoryMapOutputBroker > brokerOut2;
-
     if (ret) {
         ReferenceContainer inputBrokers1, outputBrokers1, inputBrokers2, outputBrokers2;
         ret = gam1->GetInputBrokers(inputBrokers1);
@@ -2057,24 +2840,19 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_OutputFIFO() {
             ret = brokerOut2.IsValid();
         }
     }
-
     if (ret) {
         uint64 *mem = (uint64 *) gam1->GetOutputMemoryBuffer();
         uint32 nReads = 1000;
         for (uint32 i = 0u; (i < nReads) && (ret); i++) {
-
             brokerSync->Execute();
-
             gam1->Execute();
             brokerOut1->Execute();
-
             brokerIn2->Execute();
             gam2->Execute();
             brokerOut2->Execute();
-
             if (ret) {
                 ret = (mem[0] == ((2000 * i) + 1));
-                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error at mem[%u]=%u\n", i, static_cast<uint32> (mem[0]));
+                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error at mem[%u]=%u != %u", i, static_cast<uint32>(mem[0]), ((2000 * i) + 1));
                 if (!ret) {
                     //REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error at mem[%d]=%lld\n", i, mem[0]);
                 }
@@ -2088,20 +2866,20 @@ bool NI9157MxiDataSourceTest::TestSynchronise_Oscilloscope_OutputFIFO() {
 
 bool NI9157MxiDataSourceTest::TestAsyncRead() {
 
-    static const char8 * const config = ""
+    /*static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
             "    Open = 1"
-    "    Configuration = {"
-    "        ControlBool_stop = 0"
-    "        ControlBool_use_dsfifo_data = 0"
-    "        ControlBool_use_counter = 1"
-    "        ControlU32_cycle_ticks = 200"
-    "        ControlU64_packet_size = 1"
-    "    }"
+            "    Configuration = {"
+            "        ControlBool_stop = 0"
+            "        ControlBool_use_dsfifo_data = 0"
+            "        ControlBool_use_counter = 1"
+            "        ControlU32_cycle_ticks = 200"
+            "        ControlU64_packet_size = 1"
+            "    }"
             "}"
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -2111,29 +2889,28 @@ bool NI9157MxiDataSourceTest::TestAsyncRead() {
             "            Class = NI9157MxiDataSourceTestGAM1"
             "            InputSignals = {"
             "                FIFO1_U64_R = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    Frequency = 0"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                ticks_counter = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint32"
+            "                    DataSource = Drv1"
+            "                    Type = uint32"
             "                }"
             "            }"
             "            OutputSignals = {"
             "                FIFO0_U64_W = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            //"                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                sample_value = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint16"
-            "               }"
+            "                    DataSource = Drv1"
+            "                    Type = uint16"
+            "                }"
             "            }"
             "        }"
             "    }"
@@ -2144,10 +2921,10 @@ bool NI9157MxiDataSourceTest::TestAsyncRead() {
             "            RunNi = 1"
             "            NI9157DevicePath = NiDevice"
             "            Signals = {"
-            "               ticks_counter = {"
-            "                   Type = uint32"
-            "               }"
-            "               sample_value = {"
+            "                ticks_counter = {"
+            "                    Type = uint32"
+            "                }"
+            "                sample_value = {"
             "                    Type = uint16"
             "                }"
             "            }"
@@ -2173,12 +2950,53 @@ bool NI9157MxiDataSourceTest::TestAsyncRead() {
             "        Class = GAMScheduler"
             "        TimingDataSource = Timings"
             "    }"
-            "}";
+            "}";*/
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    // bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream =  multiIOConfig0;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("Application1.Data.Drv1");
+        ret &= cdb.CreateRelative("Signals");
+        ret &= cdb.MoveRelative("Signals");
+        ret &= cdb.CreateRelative("ticks_counter");
+        ret &= cdb.MoveRelative("ticks_counter");
+        ret &= cdb.Write("Type", "uint32");
+        ret &= cdb.MoveToAncestor(1u);
+        ret &= cdb.CreateRelative("sample_value");
+        ret &= cdb.MoveRelative("sample_value");
+        ret &= cdb.Write("Type", "uint16");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -2191,14 +3009,12 @@ bool NI9157MxiDataSourceTest::TestAsyncRead() {
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
     }
-
     uint32 nReads = 30;
     uint32 deltaExpected = 40000;
     uint32 tol = 5000;
     uint32 store;
     StreamString varName = "ticks_counter";
     uint64 varValue = 0u;
-
     for (uint32 i = 0u; (i < nReads) && (ret); i++) {
         ret = dataSource->AsyncRead(varName, varValue);
         if (i > 0u) {
@@ -2215,20 +3031,20 @@ bool NI9157MxiDataSourceTest::TestAsyncRead() {
 
 bool NI9157MxiDataSourceTest::TestAsyncWrite() {
 
-    static const char8 * const config = ""
+    /*static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
             "    Open = 1"
-    "    Configuration = {"
-    "        ControlBool_stop = 0"
-    "        ControlBool_use_dsfifo_data = 0"
-    "        ControlBool_use_counter = 1"
-    "        ControlU32_cycle_ticks = 200"
-    "        ControlU64_packet_size = 1"
-    "    }"
+            "    Configuration = {"
+            "        ControlBool_stop = 0"
+            "        ControlBool_use_dsfifo_data = 0"
+            "        ControlBool_use_counter = 1"
+            "        ControlU32_cycle_ticks = 200"
+            "        ControlU64_packet_size = 1"
+            "    }"
             "}"
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -2238,29 +3054,28 @@ bool NI9157MxiDataSourceTest::TestAsyncWrite() {
             "            Class = NI9157MxiDataSourceTestGAM1"
             "            InputSignals = {"
             "                FIFO1_U64_R = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    Frequency = 0"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                ticks_counter = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint32"
+            "                    DataSource = Drv1"
+            "                    Type = uint32"
             "                }"
             "            }"
             "            OutputSignals = {"
             "                FIFO0_U64_W = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            //"                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                sample_value = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint16"
-            "               }"
+            "                    DataSource = Drv1"
+            "                    Type = uint16"
+            "                }"
             "            }"
             "        }"
             "    }"
@@ -2271,10 +3086,10 @@ bool NI9157MxiDataSourceTest::TestAsyncWrite() {
             "            RunNi = 1"
             "            NI9157DevicePath = NiDevice"
             "            Signals = {"
-            "               ticks_counter = {"
-            "                   Type = uint32"
-            "               }"
-            "               sample_value = {"
+            "                ticks_counter = {"
+            "                    Type = uint32"
+            "                }"
+            "                sample_value = {"
             "                    Type = uint16"
             "                }"
             "            }"
@@ -2300,12 +3115,53 @@ bool NI9157MxiDataSourceTest::TestAsyncWrite() {
             "        Class = GAMScheduler"
             "        TimingDataSource = Timings"
             "    }"
-            "}";
+            "}";*/
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    // bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig0;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("Application1.Data.Drv1");
+        ret &= cdb.CreateRelative("Signals");
+        ret &= cdb.MoveRelative("Signals");
+        ret &= cdb.CreateRelative("ticks_counter");
+        ret &= cdb.MoveRelative("ticks_counter");
+        ret &= cdb.Write("Type", "uint32");
+        ret &= cdb.MoveToAncestor(1u);
+        ret &= cdb.CreateRelative("sample_value");
+        ret &= cdb.MoveRelative("sample_value");
+        ret &= cdb.Write("Type", "uint16");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -2317,11 +3173,9 @@ bool NI9157MxiDataSourceTest::TestAsyncWrite() {
     }
     const uint32 nPoints = 1000;
     float32 mem[nPoints];
-
     for (uint32 i = 0u; i < nPoints; i++) {
         mem[i] = sin(i * (2 * M_PI / nPoints));
     }
-
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
     }
@@ -2331,7 +3185,6 @@ bool NI9157MxiDataSourceTest::TestAsyncWrite() {
             for (uint32 i = 0u; (i < nPoints) && ret; i++) {
                 StreamString varName = "sample_value";
                 uint32 varValue = (uint32)((mem[i] + 2.5) * (16383 / 5));
-                //see on the oscilloscope
                 ret = dataSource->AsyncWrite(varName, varValue);
                 Sleep::Sec(1e-3);
             }
@@ -2344,20 +3197,20 @@ bool NI9157MxiDataSourceTest::TestAsyncWrite() {
 
 bool NI9157MxiDataSourceTest::TestReset() {
 
-    static const char8 * const config = ""
+    /*static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
             "    NiRioDeviceName = RIO0"
             "    NiRioGenFile = \"Test/Components/Interfaces/NI9157Device/TestLabviewFiles/NiFpga_NI9159_MultiIO.lvbitx\""
             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
             "    Open = 1"
-    "    Configuration = {"
-    "        ControlBool_stop = 0"
-    "        ControlBool_use_dsfifo_data = 0"
-    "        ControlBool_use_counter = 1"
-    "        ControlU32_cycle_ticks = 200"
-    "        ControlU64_packet_size = 1"
-    "    }"
+            "    Configuration = {"
+            "        ControlBool_stop = 0"
+            "        ControlBool_use_dsfifo_data = 0"
+            "        ControlBool_use_counter = 1"
+            "        ControlU32_cycle_ticks = 200"
+            "        ControlU64_packet_size = 1"
+            "    }"
             "}"
             "$Application1 = {"
             "    Class = RealTimeApplication"
@@ -2367,33 +3220,28 @@ bool NI9157MxiDataSourceTest::TestReset() {
             "            Class = NI9157MxiDataSourceTestGAM1"
             "            InputSignals = {"
             "                FIFO1_U64_R = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    Frequency = 0"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                ticks_counter = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint32"
+            "                    DataSource = Drv1"
+            "                    Type = uint32"
             "                }"
             "            }"
             "            OutputSignals = {"
-            //"               options = {"
-            //"                   DataSource = Drv1"
-            //"                   Type = uint8"
-            //"               }"
             "                FIFO0_U64_W = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            //"                   Frequency = 0"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
+            "                    DataSource = Drv1"
+            "                    Type = uint64"
+            "                    NumberOfDimensions = 1"
+            "                    NumberOfElements = 10000"
             "                }"
             "                sample_value = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint16"
-            "               }"
+            "                    DataSource = Drv1"
+            "                    Type = uint16"
+            "                }"
             "            }"
             "        }"
             "    }"
@@ -2425,12 +3273,40 @@ bool NI9157MxiDataSourceTest::TestReset() {
             "        Class = GAMScheduler"
             "        TimingDataSource = Timings"
             "    }"
-            "}";
+            "}";*/
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    // bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig0;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
     ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -2467,7 +3343,7 @@ bool NI9157MxiDataSourceTest::TestReset() {
             if (ret) {
                 ret = (nElements[i] == nElementsTest[i]);
                 if(!ret){
-                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at %d, %d %d", i, nElements[i], nElementsTest[i]);
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at Element[%u] with %u != %u", i,  nElements[i], nElementsTest[i]);
                 }
             }
         }
@@ -2477,7 +3353,6 @@ bool NI9157MxiDataSourceTest::TestReset() {
     }
 
     ObjectRegistryDatabase::Instance()->Purge();
-
     return ret;
 }
 
