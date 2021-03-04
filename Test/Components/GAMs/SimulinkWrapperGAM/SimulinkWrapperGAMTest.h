@@ -317,13 +317,13 @@ public:
      *        Type != uint8 for a struct signal.
      */
     bool TestSetup_Failed_WrongDatatypeWithStructSignals();
-    
+#ifdef ROW_MAJOR_ND_FEATURE    
     /**
      * @brief Tests the correct actualisation of parameters in a model
      *        using row-major data orientation.
      */
     bool TestParameterActualisation_RowMajorModel();
-    
+#endif /* ROW_MAJOR_ND_FEATURE */ 
     /**
      * @brief Tests the correct actualisation of parameters in a model
      *        using column-major data orientation.

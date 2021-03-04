@@ -27,7 +27,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -218,7 +217,7 @@ public:
     SimulinkGAMGTestEnvironment() {
         
         // Start MATLAB engine synchronously
-        matlabPtr = matlab::engine::startMATLAB();
+	matlabPtr = matlab::engine::startMATLAB({u"-nojvm", u"-nodisplay", u"-softwareopengl"});
         
         SetupTestEnvironment(matlabPtr);
     }
@@ -2305,6 +2304,8 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongDatatypeWithStructSignals() {
     return !ok;
 }
 
+#ifdef ROW_MAJOR_ND_FEATURE
+
 bool SimulinkWrapperGAMTest::TestParameterActualisation_RowMajorModel() {
     
     // Notice that model has to be row-major, otherwise raw memory
@@ -2426,6 +2427,8 @@ bool SimulinkWrapperGAMTest::TestParameterActualisation_RowMajorModel() {
     
     return ok;
 }
+
+#endif /* ROW_MAJOR_ND_FEATURE */
 
 bool SimulinkWrapperGAMTest::TestParameterActualisation_ColumnMajorModel() {
     

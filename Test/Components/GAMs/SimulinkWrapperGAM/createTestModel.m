@@ -621,7 +621,9 @@ end
 %% arranging block layout
 % alternatively to setting the position of each block, the system can be
 % arranged automatically
-Simulink.BlockDiagram.arrangeSystem(model_name);
+if ~verLessThan('matlab', '9.5')
+    Simulink.BlockDiagram.arrangeSystem(model_name);
+end
 
 %% code generation
 % name of each option is available by right-clicking on the option name
@@ -687,7 +689,9 @@ end
 set_param(model_name, 'IncludeMdlTerminateFcn', 0);
 set_param(model_name, 'CombineSignalStateStructs', 1);
 
-set_param(model_name, 'ArrayLayout', dataOrientation);
+if ~verLessThan('matlab', '9.5')
+    set_param(model_name, 'ArrayLayout', dataOrientation);
+end
 
 % Templates
 set_param(model_name, 'GenerateSampleERTMain', 0);
