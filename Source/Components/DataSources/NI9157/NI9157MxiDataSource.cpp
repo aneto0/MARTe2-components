@@ -195,8 +195,12 @@ bool NI9157MxiDataSource::SetConfiguredDatabase(StructuredDataI & data) {
                 CreateNI9157DeviceOperatorI *creator = NULL_PTR(CreateNI9157DeviceOperatorI *);
                 const char8 *typeInName = StringHelper::SearchString(varName.Buffer(), "Bool");
                 if (typeInName != NULL) {
-                    uint32 begIndex = 5u;
-                    varName = &typeInName[begIndex];
+                    uint32 begIndex = 0u;
+                    StreamString tempVarName = &typeInName[begIndex];
+                    if (StringHelper::SearchString(varName.Buffer(), "Bool_") != NULL) {
+                        begIndex = 5u;
+                        varName = &typeInName[begIndex];
+                    }
                     creator = NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperator("NI9157DeviceBool");
                 }
                 else {
@@ -267,7 +271,7 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
         numberOfReadWriteCurrent += numberOfConsumersCurrentState;
         numberOfReadWriteNext += numberOfConsumersNextState;
     }
-    //Needs reviewing
+    //TODO - Needs clean
     prepare = (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) ||
                  (numberOfReadWriteNext ==  numberOfReadWriteCurrent) ||
                  (numberOfReadWriteNext != 0u && numberOfReadWriteCurrent != 0u);
@@ -414,6 +418,7 @@ bool NI9157MxiDataSource::Synchronise() {
                     int32 status = niDevice[i]->NiRead(varId[i], &pattern);
                     ret = (status == 0);
                     if (ret) {
+                        //REPORT_ERROR(ErrorManagement::FatalError,"A %u B %u ", pattern, initialPatterns[i] );
                         if (niDevice[i]->Compare(reinterpret_cast<uint8*>(&pattern), reinterpret_cast<uint8*>(&initialPatterns[i])) == 0) {
                             useInitialPattern[i] = 0u;
                         }

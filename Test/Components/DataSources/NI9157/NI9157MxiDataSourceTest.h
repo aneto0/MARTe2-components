@@ -128,6 +128,12 @@ public:
     bool TestSynchronise_Oscilloscope_OutputFIFO();
 
     /**
+     * @brief Tests the NI9157MxiDataSource::Synchronise using initial patterns.
+     */
+    bool TestSynchronise_InitialPatterns();
+
+    bool TestSynchronise_BlockIfNotrunning();
+    /**
      * @brief Tests the NI9157MxiDataSource::AsyncRead method.
      */
     bool TestAsyncRead();

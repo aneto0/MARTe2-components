@@ -95,15 +95,25 @@ TEST(NI9157MxiDataSourceGTest,TestSynchronise) {
     ASSERT_TRUE(test.TestSynchronise());
 }
 
- TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope) {
-     NI9157MxiDataSourceTest test;
-     ASSERT_TRUE(test.TestSynchronise_Oscilloscope());
- }
+TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope) {
+    NI9157MxiDataSourceTest test;
+    ASSERT_TRUE(test.TestSynchronise_Oscilloscope());
+}
 
- TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope_OutputFIFO) {
-     NI9157MxiDataSourceTest test;
-     ASSERT_TRUE(test.TestSynchronise_Oscilloscope_OutputFIFO());
- }
+TEST(NI9157MxiDataSourceGTest,TestSynchronise_Oscilloscope_OutputFIFO) {
+    NI9157MxiDataSourceTest test;
+    ASSERT_TRUE(test.TestSynchronise_Oscilloscope_OutputFIFO());
+}
+
+TEST(NI9157MxiDataSourceGTest,TestSynchronise_InitialPatterns) {
+    NI9157MxiDataSourceTest test;
+    ASSERT_TRUE(test.TestSynchronise_InitialPatterns());
+}
+
+TEST(NI9157MxiDataSourceGTest,TestSynchronise_BlockIfNotrunning) {
+    NI9157MxiDataSourceTest test;
+    ASSERT_TRUE(test.TestSynchronise_BlockIfNotrunning());
+}
 
 TEST(NI9157MxiDataSourceGTest,TestAsyncRead) {
     NI9157MxiDataSourceTest test;
