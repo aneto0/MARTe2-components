@@ -190,27 +190,27 @@ public:
 protected:
 
     /**
-     * The reference to the NI9157Device
+     * The reference to the NI9157Device.
      */
     ReferenceT<NI9157Device> niDeviceBoard;
 
     /**
-     * The NI9157Device operator
+     * The NI9157Device operator.
      */
     NI9157DeviceOperatorTI **niDevice;
 
     /**
-     * The number of packets in the host-side FIFOs
+     * The number of packets in the host-side FIFOs.
      */
     uint32 numberOfPacketsInFifo;
 
     /**
-     * Holds the descriptors of the Labview exported variabled for each signal
+     * Holds the descriptors of the Labview exported variabled for each signal.
      */
     uint32 *varId;
 
     /**
-     * If the device has to be started by this data source
+     * If the device has to be started by this data source.
      */
     uint8 runNi;
 

@@ -136,7 +136,7 @@ public:
      * @brief Tests the NI9157MxiDataSource::Synchronise using BlockIfNotRunning.
      */
     bool TestSynchronise_BlockIfNotRunning(uint32 model);
-s
+
     /**
      * @brief Tests the NI9157MxiDataSource::AsyncRead method.
      */

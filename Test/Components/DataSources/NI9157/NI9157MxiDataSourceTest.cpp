@@ -26,7 +26,6 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 #include <math.h>
-#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -49,6 +48,7 @@
 #include "ObjectRegistryDatabase.h" 
 #include "RealTimeApplication.h" 
 #include "StandardParser.h"
+#include "Threads.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -181,6 +181,7 @@ static uint32 model = 0u;
 static const uint32 nParams                 = 3u;
 static const char8 * const firmwarePath     = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles";
 static const char8 * const multiIOFirmware[]= {"RIO0", "NiFpga_NI9159_MultiIO.lvbitx", "03AB279CA6C34216C3ABAADB90262282"};
+
 static const char8 * const multiIOConfig0 = ""
     "+NiDevice = {"
     "    Class = NI9157Device"
@@ -315,7 +316,7 @@ static const char8 * const multiIOConfig1 = ""
     "                   Samples = 1"
     "                   NumberOfDimensions = 1"
     "                   NumberOfElements = 10000"
-    "                   PacketMemberSizes = {8, 8, 4, 4, 4, 4, 2, 2, 2, 1, 1}"
+    "                   PacketMemberSizes = {8, 8, 8, 8, 8}"
     "               }"
     "            }"
     "            OutputSignals = {"
@@ -331,56 +332,20 @@ static const char8 * const multiIOConfig1 = ""
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
-    "                Signal2_U32 = {"
-    "                    Type = uint32"
+    "                Signal2_U64 = {"
+    "                    Type = uint64"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
-    "                Signal3_U32 = {"
-    "                    Type = uint32"
+    "                Signal3_U64 = {"
+    "                    Type = uint64"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
-    "                Signal4_U32 = {"
-    "                    Type = uint32"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal5_U32 = {"
-    "                    Type = uint32"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal6_U16 = {"
-    "                    Type = uint16"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal7_U16 = {"
-    "                    Type = uint16"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal8_U16 = {"
-    "                    Type = uint16"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal9_U8 = {"
-    "                    Type = uint8"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal10_U8 = {"
-    "                    Type = uint8"
+    "                Signal4_U64 = {"
+    "                    Type = uint64"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
@@ -450,7 +415,7 @@ static const char8 * const multiIOConfig2 = ""
     "                   Frequency = 1"
     "                   NumberOfDimensions = 1"
     "                   NumberOfElements = 10000"
-    "                   PacketMemberSizes = {8, 8, 4, 4, 4, 4, 2, 2, 2, 1, 1}"
+    "                   PacketMemberSizes = {8, 8, 8, 8, 4, 2, 2}"
     "               }"
     "            }"
     "            OutputSignals = {"
@@ -466,14 +431,14 @@ static const char8 * const multiIOConfig2 = ""
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
-    "                Signal2_U32 = {"
-    "                    Type = uint32"
+    "                Signal2_U64 = {"
+    "                    Type = uint64"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
-    "                Signal3_U32 = {"
-    "                    Type = uint32"
+    "                Signal3_U64 = {"
+    "                    Type = uint64"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
@@ -484,38 +449,14 @@ static const char8 * const multiIOConfig2 = ""
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
-    "                Signal5_U32 = {"
-    "                    Type = uint32"
+    "                Signal5_U16 = {"
+    "                    Type = uint16"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
     "                Signal6_U16 = {"
     "                    Type = uint16"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal7_U16 = {"
-    "                    Type = uint16"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal8_U16 = {"
-    "                    Type = uint16"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal9_U8 = {"
-    "                    Type = uint8"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal10_U8 = {"
-    "                    Type = uint8"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
@@ -528,7 +469,7 @@ static const char8 * const multiIOConfig2 = ""
     "                Signal6_U16 = {"
     "                    DataSource = DDB"
     "                    Type = uint16"
-    "                    Ranges = {{1000, 1000}}"
+    "                    Ranges = {{0, 0}}"
     "                }"
     "            }"
     "            OutputSignals = {"
@@ -549,9 +490,6 @@ static const char8 * const multiIOConfig2 = ""
     "            RunNi = 1"
     "            NI9157DevicePath = NiDevice"
     "            Signals = {"
-    "                ticks_counter = {"
-    "                    Type = uint32"
-    "                }"
     "                sample_value = {"
     "                    Type = uint16"
     "                }"
@@ -609,7 +547,7 @@ static const char8 * const multiIOConfig3 = ""
     "                   Frequency = 1"
     "                   NumberOfDimensions = 1"
     "                   NumberOfElements = 10000"
-    "                   PacketMemberSizes = {8, 8, 4, 4, 4, 4, 2, 2, 2, 1, 1}"
+    "                   PacketMemberSizes = {8, 8, 8, 8, 4, 2, 2}"
     "               }"
     "            }"
     "            OutputSignals = {"
@@ -625,14 +563,14 @@ static const char8 * const multiIOConfig3 = ""
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
-    "                Signal2_U32 = {"
-    "                    Type = uint32"
+    "                Signal2_U64 = {"
+    "                    Type = uint64"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
-    "                Signal3_U32 = {"
-    "                    Type = uint32"
+    "                Signal3_U64 = {"
+    "                    Type = uint64"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
@@ -643,38 +581,14 @@ static const char8 * const multiIOConfig3 = ""
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
-    "                Signal5_U32 = {"
-    "                    Type = uint32"
+    "                Signal5_U16 = {"
+    "                    Type = uint16"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
     "                Signal6_U16 = {"
     "                    Type = uint16"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal7_U16 = {"
-    "                    Type = uint16"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal8_U16 = {"
-    "                    Type = uint16"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal9_U8 = {"
-    "                    Type = uint8"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal10_U8 = {"
-    "                    Type = uint8"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
@@ -687,14 +601,14 @@ static const char8 * const multiIOConfig3 = ""
     "                Signal0_U64_PacketCounter = {"
     "                    DataSource = DDB"
     "                    Type = uint64"
-    "                    Ranges = {{0, 1999}}"
+    "                    Ranges = {{0, 999}}"
     "                }"
     "            }"
     "            OutputSignals = {"
     "                FIFO0_U64_W = {"
     "                    DataSource = Drv1"
     "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
+    "                    NumberOfElements = 1000"
     "                    Type = uint64"
     "                }"
     "            }"
@@ -710,11 +624,10 @@ static const char8 * const multiIOConfig3 = ""
     "            RunNi = 1"
     "            NI9157DevicePath = NiDevice"
     "            Signals = {"
-    "                ticks_counter = {"
-    "                    Type = uint32"
-    "                }"
-    "                sample_value = {"
-    "                    Type = uint16"
+    "                FIFO0_U64_W = {"
+    "                    Type = uint64"
+    "                    NumberOfDimensions = 1"
+    "                    NumberOfElements = 1000"
     "                }"
     "            }"
     "        }"
@@ -770,7 +683,7 @@ static const char8 * const multiIOConfig4 = ""
     "                   Frequency = 1"
     "                   NumberOfDimensions = 1"
     "                   NumberOfElements = 10000"
-    "                   PacketMemberSizes = {8, 8, 4, 4, 4, 4, 2, 2, 2, 1, 1}"
+    "                   PacketMemberSizes = {8, 8, 8, 8, 4, 2, 2}"
     "               }"
     "            }"
     "            OutputSignals = {"
@@ -786,14 +699,14 @@ static const char8 * const multiIOConfig4 = ""
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
-    "                Signal2_U32 = {"
-    "                    Type = uint32"
+    "                Signal2_U64 = {"
+    "                    Type = uint64"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
-    "                Signal3_U32 = {"
-    "                    Type = uint32"
+    "                Signal3_U64 = {"
+    "                    Type = uint64"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
@@ -804,38 +717,14 @@ static const char8 * const multiIOConfig4 = ""
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
-    "                Signal5_U32 = {"
-    "                    Type = uint32"
+    "                Signal5_U16 = {"
+    "                    Type = uint16"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
     "                }"
     "                Signal6_U16 = {"
     "                    Type = uint16"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal7_U16 = {"
-    "                    Type = uint16"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal8_U16 = {"
-    "                    Type = uint16"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal9_U8 = {"
-    "                    Type = uint8"
-    "                    NumberOfDimensions = 1"
-    "                    NumberOfElements = 2000"
-    "                    DataSource = DDB"
-    "                }"
-    "                Signal10_U8 = {"
-    "                    Type = uint8"
     "                    NumberOfDimensions = 1"
     "                    NumberOfElements = 2000"
     "                    DataSource = DDB"
@@ -894,13 +783,13 @@ static const char8 * const multiIOConfig4 = ""
     "        +GAME = {"
     "            Class = IOGAM"
     "            InputSignals = {"
-    "                IndBool = {"
+    "                ControlBool_IndBool = {"
     "                    DataSource = Drv1"
     "                    Type = uint8"
     "                }"
     "            }"
     "            OutputSignals = {"
-    "                ContBool = {"
+    "                ControlBool_ContBool = {"
     "                    DataSource = Drv1"
     "                    Type = uint8"
     "                }"
@@ -935,10 +824,10 @@ static const char8 * const multiIOConfig4 = ""
     "                ContU32 = {"
     "                    Type = uint32"
     "                }"
-    "                IndBool = {"
+    "                ControlBool_IndBool = {"
     "                    Type = uint8"
     "                }"
-    "                ContBool = {"
+    "                ControlBool_ContBool = {"
     "                    Type = uint8"
     "                }"
     "            }"
@@ -1146,177 +1035,6 @@ bool NI9157MxiDataSourceTest::TestInitialise_False_InvalidNiDevPath(uint32 model
 
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
-}
-
-bool NI9157MxiDataSourceTest::TestSynchronise_InitialPatterns(uint32 model) {
-
-    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-    ConfigurationDatabase cdb;
-    StreamString configStream =  multiIOConfig4;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ret = parser.Parse();
-
-    StreamString pathAndFile = "";
-    if (ret) {
-        ret = cdb.MoveAbsolute("+NiDevice");
-        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
-        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
-        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
-        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
-        ret &= cdb.MoveToRoot();
-    }  
-    if (ret) {
-        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.Signals.FIFO1_U64_R");
-        ret &= cdb.Write("InitialPattern", 1);
-        ret &= cdb.MoveToRoot();
-        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1.Signals.IndU32");
-        ret &= cdb.Write("InitialPattern", 0);
-        ret &= cdb.MoveToRoot();
-        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.Signals.FIFO0_U64_W");
-        ret &= cdb.Write("InitialPattern", 1);
-        ret &= cdb.MoveToRoot();
-        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.Signals.ContU32");
-        ret &= cdb.Write("InitialPattern", 1);
-        ret &= cdb.MoveToRoot();
-        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.Signals.IndBool");
-        ret &= cdb.Write("InitialPattern", 0);
-        ret &= cdb.MoveToRoot();
-        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.Signals.ContBool");
-        ret &= cdb.Write("InitialPattern", 0);
-        ret &= cdb.MoveToRoot();
-    }
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-    if (ret) {
-        god->Purge();
-        ret = god->Initialise(cdb);
-    }
-    ReferenceT<RealTimeApplication> application;
-    if (ret) {
-        application = god->Find("Application1");
-        ret = application.IsValid();
-    }
-    if (ret) {
-        ret = application->ConfigureApplication();
-    }
-    ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
-    if (ret) {
-        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
-        ret = dataSource.IsValid();
-    }
-    if (ret) {
-        ret = dataSource->PrepareNextState("State1", "State1");
-    }
-    ReferenceT < NI9157MxiDataSourceTestGAM2 > gam1;
-    if (ret) {
-        gam1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
-        ret = gam1.IsValid();
-    }
-    ReferenceT<IOGAM> gam2;
-    if (ret) {
-        gam2 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMB");
-        ret = gam2.IsValid();
-    }
-    ReferenceT<IOGAM> gam3;
-    if (ret) {
-        gam3 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMC");
-        ret = gam3.IsValid();
-    }
-    ReferenceT<IOGAM> gam4;
-    if (ret) {
-        gam4 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMD");
-        ret = gam4.IsValid();
-    }
-    ReferenceT < MemoryMapSynchronisedInputBroker > brokerSync;
-    ReferenceT < MemoryMapOutputBroker > brokerOut1;
-    ReferenceT < MemoryMapInputBroker > brokerIn2;
-    ReferenceT < MemoryMapOutputBroker > brokerOut2;
-    ReferenceT < MemoryMapInputBroker > brokerIn3;
-    ReferenceT < MemoryMapOutputBroker > brokerOut3;
-    ReferenceT < MemoryMapInputBroker > brokerIn4;
-    ReferenceT < MemoryMapOutputBroker > brokerOut4;
-    if (ret) {
-        ReferenceContainer inputBrokers1, outputBrokers1, inputBrokers2, outputBrokers2,
-                           inputBrokers3, outputBrokers3, inputBrokers4, outputBrokers4;
-        ret = gam1->GetInputBrokers(inputBrokers1);
-        if (ret) {
-            ret = gam1->GetOutputBrokers(outputBrokers1);
-        }
-        if (ret) {
-            ret = gam2->GetInputBrokers(inputBrokers2);
-        }
-        if (ret) {
-            ret = gam2->GetOutputBrokers(outputBrokers2);
-        }
-        if (ret) {
-            ret = gam3->GetInputBrokers(inputBrokers3);
-        }
-        if (ret) {
-            ret = gam3->GetOutputBrokers(outputBrokers3);
-        }
-        if (ret) {
-            ret = gam4->GetInputBrokers(inputBrokers4);
-        }
-        if (ret) {
-            ret = gam4->GetOutputBrokers(outputBrokers4);
-        }
-        if (ret) {
-            brokerSync = inputBrokers1.Get(0);
-            ret = brokerSync.IsValid();
-        }
-        if (ret) {
-            brokerOut1 = outputBrokers1.Get(0);
-            ret = brokerOut1.IsValid();
-        }
-        if (ret) {
-            brokerIn2 = inputBrokers2.Get(0);
-            ret = brokerIn2.IsValid();
-        }
-        if (ret) {
-            brokerOut2 = outputBrokers2.Get(0);
-            ret = brokerOut2.IsValid();
-        }
-        if (ret) {
-            brokerIn3 = inputBrokers3.Get(0);
-            ret = brokerIn3.IsValid();
-        }
-        if (ret) {
-            brokerOut3 = outputBrokers3.Get(0);
-            ret = brokerOut3.IsValid();
-        }
-        if (ret) {
-            brokerIn4 = inputBrokers4.Get(0);
-            ret = brokerIn4.IsValid();
-        }
-        if (ret) {
-            brokerOut4 = outputBrokers4.Get(0);
-            ret = brokerOut4.IsValid();
-        }
-    }
-
-    if (ret) {
-        brokerSync->Execute();
-        // brokerSync->Execute();
-        //gam1->Execute();
-        //brokerOut1->Execute();
-        //brokerIn2->Execute();
-        //gam2->Execute();
-        //brokerOut2->Execute();
-        //brokerIn3->Execute();
-        //gam3->Execute();
-        //brokerOut3->Execute();
-        //brokerIn4->Execute();
-        //gam4->Execute();
-        //brokerOut4->Execute();
-    }
-    
-    ObjectRegistryDatabase::Instance()->Purge();
-    return ret;
-}
-
-bool NI9157MxiDataSourceTest::TestSynchronise_BlockIfNotRunning (uint32 model) {
-	//TODO
-   return true;
 }
 
 bool NI9157MxiDataSourceTest::TestGetBrokerName() {
@@ -1694,13 +1412,7 @@ bool NI9157MxiDataSourceTest::TestSynchronise(uint32 model) {
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveToRoot();
     }
-//EXPERIMENTAL
-    /*if (ret) {
-        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
-        //ret &= cdb.Write("RunNi", 0);
-        ret &= cdb.Write("BlockIfNotRunning", 1);
-        ret &= cdb.MoveToRoot();       
-    }*/
+
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
@@ -2008,13 +1720,272 @@ bool NI9157MxiDataSourceTest::TestSynchronise_FIFOs(uint32 model) {
             brokerOut2->Execute();
             if (ret) {
                 ret = (mem[0] == ((2000 * i) + 1));
-                //REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error at mem[%u]=%u != %u", i, static_cast<uint32>(mem[0]), ((2000 * i) + 1));
                 if (!ret) {
-                    //REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error at mem[%d]=%lld\n", i, mem[0]);
                     REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error at mem[%u]=%u != %u", i, static_cast<uint32>(mem[0]), ((2000 * i) + 1));
                 }
             }
         }
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
+
+bool NI9157MxiDataSourceTest::TestSynchronise_InitialPatterns(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream =  multiIOConfig4;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }  
+    if (ret) {
+        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.Signals.FIFO1_U64_R");
+        ret &= cdb.Write("InitialPattern", 1);
+        ret &= cdb.MoveToRoot();
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1.Signals.IndU32");
+        ret &= cdb.Write("InitialPattern", 0);
+        ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.Signals.FIFO0_U64_W");
+        ret &= cdb.Write("InitialPattern", 1);
+        ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.Signals.ContU32");
+        ret &= cdb.Write("InitialPattern", 1);
+        ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.Signals.ControlBool_IndBool");
+        ret &= cdb.Write("InitialPattern", 0);
+        ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.Signals.ControlBool_ContBool");
+        ret &= cdb.Write("InitialPattern", 0);
+        ret &= cdb.MoveToRoot();
+    }
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->Reset();
+        ret = err.ErrorsCleared();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    ReferenceT < NI9157MxiDataSourceTestGAM2 > gam1;
+    if (ret) {
+        gam1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
+        ret = gam1.IsValid();
+    }
+    ReferenceT< IOGAM > gam2;
+    if (ret) {
+        gam2 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMB");
+        ret = gam2.IsValid();
+    }
+    ReferenceT< IOGAM > gam3;
+    if (ret) {
+        gam3 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMC");
+        ret = gam3.IsValid();
+    }
+    ReferenceT< IOGAM > gam4;
+    if (ret) {
+        gam4 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMD");
+        ret = gam4.IsValid();
+    }
+    ReferenceT < MemoryMapSynchronisedInputBroker > brokerSync;
+    ReferenceT < MemoryMapOutputBroker > brokerOut1;
+    ReferenceT < MemoryMapInputBroker > brokerIn2;
+    ReferenceT < MemoryMapOutputBroker > brokerOut2;
+    ReferenceT < MemoryMapInputBroker > brokerIn3;
+    ReferenceT < MemoryMapOutputBroker > brokerOut3;
+    ReferenceT < MemoryMapInputBroker > brokerIn4;
+    ReferenceT < MemoryMapOutputBroker > brokerOut4;
+    ReferenceContainer inputBrokers1, outputBrokers1;
+    ReferenceContainer inputBrokers2, outputBrokers2;
+    ReferenceContainer inputBrokers3, outputBrokers3;
+    ReferenceContainer inputBrokers4, outputBrokers4;
+    if (ret) {
+        ret = gam1->GetInputBrokers(inputBrokers1);
+        if (ret) {
+            ret = gam1->GetOutputBrokers(outputBrokers1);
+        }
+        if (ret) {
+            ret = gam2->GetInputBrokers(inputBrokers2);
+        }
+        if (ret) {
+            ret = gam2->GetOutputBrokers(outputBrokers2);
+        }
+        if (ret) {
+            ret = gam3->GetInputBrokers(inputBrokers3);
+        }
+        if (ret) {
+            ret = gam3->GetOutputBrokers(outputBrokers3);
+        }
+        if (ret) {
+            ret = gam4->GetInputBrokers(inputBrokers4);
+        }
+        if (ret) {
+            ret = gam4->GetOutputBrokers(outputBrokers4);
+        }
+        if (ret) {
+            brokerSync = inputBrokers1.Get(0);
+            ret = brokerSync.IsValid();
+        }
+        if (ret) {
+            brokerOut1 = outputBrokers1.Get(0);
+            ret = brokerOut1.IsValid();
+        }
+        if (ret) {
+            brokerIn2 = inputBrokers2.Get(0);
+            ret = brokerIn2.IsValid();
+        }
+        if (ret) {
+            brokerOut2 = outputBrokers2.Get(0);
+            ret = brokerOut2.IsValid();
+        }
+        if (ret) {
+            brokerIn3 = inputBrokers3.Get(0);
+            ret = brokerIn3.IsValid();
+        }
+        if (ret) {
+            brokerOut3 = outputBrokers3.Get(0);
+            ret = brokerOut3.IsValid();
+        }
+        if (ret) {
+            brokerIn4 = inputBrokers4.Get(0);
+            ret = brokerIn4.IsValid();
+        }
+        if (ret) {
+            brokerOut4 = outputBrokers4.Get(0);
+            ret = brokerOut4.IsValid();
+        }
+    }
+
+    if (ret) {
+        brokerSync->Execute();
+    }
+    
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
+
+static void NI9157DeviceRunCallback(const void * const params) {
+    
+    ReferenceT<NI9157Device> interface;
+    bool ret = false;
+
+    interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+    ret = interface.IsValid();
+    if (ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::Information, "NI9157DeviceRunCallback: Waiting 2s to call Run()...");
+        Sleep::MSec(2000);
+        ret = (interface->Run() == 0);
+        if (ret) {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "NI9157DeviceRunCallback: NiDevice->Run()");
+        }
+    }
+}
+
+bool NI9157MxiDataSourceTest::TestSynchronise_BlockIfNotRunning (uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream =  multiIOConfig0;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Write("RunNi", 0);
+        ret &= cdb.Write("BlockIfNotRunning", 1);
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT<NI9157MxiDataSourceTestDS> dataSource;
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->Reset();
+        ret = err.ErrorsCleared();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    ReferenceT < NI9157MxiDataSourceTestGAM1 > gam1;
+    if (ret) {
+        gam1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
+        ret = gam1.IsValid();
+    }
+    ReferenceT < MemoryMapSynchronisedInputBroker > brokerSync;
+    ReferenceT < MemoryMapOutputBroker > brokerOut1;
+    ReferenceContainer inputBrokers1, outputBrokers1;
+    if (ret) {
+        ret = gam1->GetInputBrokers(inputBrokers1);
+        if (ret) {
+            ret = gam1->GetOutputBrokers(outputBrokers1);
+        }
+        if (ret) {
+            brokerSync = inputBrokers1.Get(0);
+            ret = brokerSync.IsValid();
+        }
+        if (ret) {
+            brokerOut1 = outputBrokers1.Get(0);
+            ret = brokerOut1.IsValid();
+        }
+    }
+    if (ret) {
+        ThreadIdentifier tid = Threads::BeginThread(NI9157DeviceRunCallback);
+        brokerSync->Execute();
+        Threads::Kill(tid);
     }
 
     ObjectRegistryDatabase::Instance()->Purge();
@@ -2026,7 +1997,6 @@ bool NI9157MxiDataSourceTest::TestAsyncRead(uint32 model) {
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
     StreamString configStream =  multiIOConfig0;
-    //StreamString configStream =  config;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
@@ -2085,7 +2055,7 @@ bool NI9157MxiDataSourceTest::TestAsyncRead(uint32 model) {
     ret &= !dataSource->AsyncRead("someVariable", varValue);
 
     ObjectRegistryDatabase::Instance()->Purge();
-    return true;
+    return ret;
 }
 
 bool NI9157MxiDataSourceTest::TestAsyncWrite(uint32 model) {

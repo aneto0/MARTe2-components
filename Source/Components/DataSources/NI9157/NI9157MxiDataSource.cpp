@@ -111,7 +111,7 @@ NI9157MxiDataSource::~NI9157MxiDataSource() {
 
 bool NI9157MxiDataSource::Initialise(StructuredDataI & data) {
 
-    bool ret = false;
+    bool ret;
     StreamString devicePath;
     REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::Initialise");
 
@@ -148,7 +148,7 @@ bool NI9157MxiDataSource::Initialise(StructuredDataI & data) {
 
 bool NI9157MxiDataSource::SetConfiguredDatabase(StructuredDataI & data) {
     
-    bool ret = false;
+    bool ret;
     REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::SetConfiguredDatabase");
 
     ret = DataSourceI::SetConfiguredDatabase(data);
@@ -195,10 +195,8 @@ bool NI9157MxiDataSource::SetConfiguredDatabase(StructuredDataI & data) {
                 CreateNI9157DeviceOperatorI *creator = NULL_PTR(CreateNI9157DeviceOperatorI *);
                 const char8 *typeInName = StringHelper::SearchString(varName.Buffer(), "Bool");
                 if (typeInName != NULL) {
-                    uint32 begIndex = 0u;
-                    StreamString tempVarName = &typeInName[begIndex];
                     if (StringHelper::SearchString(varName.Buffer(), "Bool_") != NULL) {
-                        begIndex = 5u;
+                        uint32 begIndex = 5u;
                         varName = &typeInName[begIndex];
                     }
                     creator = NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperator("NI9157DeviceBool");
@@ -237,8 +235,8 @@ bool NI9157MxiDataSource::SetConfiguredDatabase(StructuredDataI & data) {
 bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
                                             const char8 * const nextStateName) {
 
-    bool ret = true;
-    bool prepare = false;
+    bool prepare;
+    bool ret = false;
     uint32 numberOfReadWriteCurrent = 0u;
     uint32 numberOfReadWriteNext = 0u;
     uint32 numberOfProducersCurrentState = 0u;
@@ -271,10 +269,9 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
         numberOfReadWriteCurrent += numberOfConsumersCurrentState;
         numberOfReadWriteNext += numberOfConsumersNextState;
     }
-    //TODO
-    //prepare = (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) || ( nextStateName == currentStateName);
+    /*lint -e{9113} -e{9131} known dependence*/
     prepare = (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) ||
-            (numberOfReadWriteNext == numberOfReadWriteCurrent && numberOfReadWriteCurrent >= 0u);
+            (numberOfReadWriteNext == numberOfReadWriteCurrent && numberOfReadWriteCurrent > 0u);
     if (prepare) {
         for (uint32 i = 0u; (i < numberOfSignals); i++) {
             //get the type and create the device accordingly
@@ -303,13 +300,16 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
                 }
             }
             if (ret) {
+                /*lint -e{613} NULL pointer checked*/
                 ret = GetSignalNumberOfElements(i, numberOfElements[i]);
                 if (ret) {
+                    /*lint -e{613} NULL pointer checked*/
                     ret = GetSignalNumberOfDimensions(i, numberOfDimensions);
                     if (ret) {
                         if (numberOfDimensions > 0u) {
                             /*lint -e{613} NULL pointer checked*/
                             fifoSize = (numberOfElements[i] * numberOfPacketsInFifo);
+                            /*lint -e{613} NULL pointer checked*/
                             status = niDeviceBoard->NiConfigureFifo(varId[i], fifoSize, oldSize);
                             ret = (status == 0);
                             if (!ret) {
@@ -321,6 +321,7 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
             }
         }
         if (ret) {
+            /*lint -e{613} NULL pointer checked*/
             for (uint32 i = 0u; i < numberOfSignals; i++) {
                 useInitialPattern[i] = resetInitialPattern[i];
             }
@@ -347,8 +348,8 @@ const char8* NI9157MxiDataSource::GetBrokerName(StructuredDataI& data,
     uint32 trigger = 0u;
     float32 freq = -1.F;
     REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::GetBrokerName");
-
-    if (direction == OutputSignals || direction == InputSignals) {
+    /*lint -e{9113} -e{9131} known dependence, non-postfix expression used with logical operator*/
+    if ((direction == OutputSignals) || (direction == InputSignals)) {
         if (!data.Read("Trigger", trigger)) {
             trigger = 0u;
         }
@@ -381,11 +382,12 @@ bool NI9157MxiDataSource::Synchronise() {
     bool ret = true;
     
     if (blockIfNotRunning > 0u) {
-        while (!niDeviceBoard->IsRunning()) {
+        while (niDeviceBoard->IsRunning() == 0u) {
             Sleep::MSec(10u);
         }
     }
-    for (uint32 i = 0u; (i < numberOfSignals) && (ret) && (niDeviceBoard->IsRunning()); i++) {
+    /*lint -e{9007} accounted for side effects on right hand of logical operator*/
+    for (uint32 i = 0u; (i < numberOfSignals) && (ret) && (niDeviceBoard->IsRunning() != 0u); i++) {
         /*lint -e{613} NULL pointer checked*/
         if ((signalFlag[i] & 0x1u) != 0u) {
             /*lint -e{613} NULL pointer checked*/
@@ -393,20 +395,21 @@ bool NI9157MxiDataSource::Synchronise() {
                 uint32 elementsRemaining = 0u;
                 if (useInitialPattern[i] > 0u) {
                     uint64 pattern;
-                    int32 status = niDevice[i]->NiReadFifo(varId[i], &pattern, 1, 0xFFFFFFFFu, elementsRemaining);
+                    int32 status = niDevice[i]->NiReadFifo(varId[i], &pattern, 1u, 0xFFFFFFFFu, elementsRemaining);
                     ret = (status == 0);
                     if (ret) {
+                        /*lint -e{928} known recasting from pointer to pointer*/
                         if (niDevice[i]->Compare(reinterpret_cast<uint8*>(&pattern), reinterpret_cast<uint8*>(&initialPatterns[i])) == 0) {
                             useInitialPattern[i] = 0u;
                         }
                     }
                 }
                 if (useInitialPattern[i] == 0u) {
-                /*lint -e{613} NULL pointer checked*/
-                int32 status = niDevice[i]->NiReadFifo(varId[i], &memory[signalOffsets[i]], numberOfElements[i], 0xFFFFFFFFu, elementsRemaining);
-                ret = (status == 0);
+                    /*lint -e{613} NULL pointer checked*/
+                    int32 status = niDevice[i]->NiReadFifo(varId[i], &memory[signalOffsets[i]], numberOfElements[i], 0xFFFFFFFFu, elementsRemaining);
+                    ret = (status == 0);
                     if (!ret) {
-                        REPORT_ERROR(ErrorManagement::FatalError, "Failed Ni9155Device FIFO read. Status = %d", status);
+                        REPORT_ERROR(ErrorManagement::FatalError, "Failed Ni9155Device FIFO read. Status = %d", static_cast<int32> (status));
                     }
                 }
             }
@@ -416,6 +419,7 @@ bool NI9157MxiDataSource::Synchronise() {
                     int32 status = niDevice[i]->NiRead(varId[i], &pattern);
                     ret = (status == 0);
                     if (ret) {
+                        /*lint -e{928} known recasting from pointer to pointer*/
                         if (niDevice[i]->Compare(reinterpret_cast<uint8*>(&pattern), reinterpret_cast<uint8*>(&initialPatterns[i])) == 0) {
                             useInitialPattern[i] = 0u;
                         }
@@ -425,7 +429,7 @@ bool NI9157MxiDataSource::Synchronise() {
                     int32 status = niDevice[i]->NiRead(varId[i], &memory[signalOffsets[i]]);
                     ret = (status == 0);
                     if (!ret) {
-                        REPORT_ERROR(ErrorManagement::FatalError, "Failed Ni9155Device read. Status = %d", status);
+                        REPORT_ERROR(ErrorManagement::FatalError, "Failed Ni9155Device read. Status = %d", static_cast<int32> (status));
                     }
                 }
             }
@@ -449,7 +453,7 @@ bool NI9157MxiDataSource::Synchronise() {
                         int32 status = niDevice[i]->NiWriteFifo(varId[i], &memory[signalOffsets[i]], numberOfElements[i], 0xFFFFFFFFu, emptyElementsRemaining);
                         ret = (status == 0);
                         if (!ret) {
-                            REPORT_ERROR(ErrorManagement::FatalError, "Failed Ni9155Device FIFO write. Status = %d", status);
+                            REPORT_ERROR(ErrorManagement::FatalError, "Failed Ni9155Device FIFO write. Status = %d", static_cast<int32> (status));
                         }
                     }
                 }
@@ -458,7 +462,7 @@ bool NI9157MxiDataSource::Synchronise() {
                         int32 status = niDevice[i]->NiWrite(varId[i], &initialPatterns[i]);
                         ret = (status == 0);
                         if (ret) {
-                            useInitialPattern[i] = 0;
+                            useInitialPattern[i] = 0u;
                         }
                     }
                     if (useInitialPattern[i] == 0u) {
@@ -466,7 +470,7 @@ bool NI9157MxiDataSource::Synchronise() {
                         int32 status = niDevice[i]->NiWrite(varId[i], &memory[signalOffsets[i]]);
                         ret = (status == 0);
                         if (!ret) {
-                            REPORT_ERROR(ErrorManagement::FatalError, "Failed Ni9155Device write. Status = %d", status);
+                            REPORT_ERROR(ErrorManagement::FatalError, "Failed Ni9155Device write. Status = %d", static_cast<int32> (status));
                         }
                     }
                 }
@@ -531,13 +535,16 @@ ErrorManagement::ErrorType NI9157MxiDataSource::Reset() {
     REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::Reset");
 
     for (uint32 i = 0u; (i < numberOfSignals); i++) {
+        /*lint -e{613} NULL pointer checked*/
         err = !GetSignalNumberOfElements(i, numberOfElements[i]);
         if (err.ErrorsCleared()) {
+            /*lint -e{613} NULL pointer checked*/
             err = !GetSignalNumberOfDimensions(i, numberOfDimensions);
             if (err.ErrorsCleared()) {
                 if (numberOfDimensions > 0u) {
                     /*lint -e{613} NULL pointer checked*/
                     fifoSize = (numberOfElements[i] * numberOfPacketsInFifo);
+                    /*lint -e{613} NULL pointer checked*/
                     status = niDeviceBoard->NiConfigureFifo(varId[i], fifoSize, oldSize);
                     err = (status != 0);
                     if (!err.ErrorsCleared()) {
@@ -549,6 +556,7 @@ ErrorManagement::ErrorType NI9157MxiDataSource::Reset() {
     }
     if (err.ErrorsCleared()) {
         for (uint32 i = 0u; i < numberOfSignals; i++) {
+            /*lint -e{613} NULL pointer checked*/
             useInitialPattern[i] = resetInitialPattern[i];
         }
         if (runNi == 1u) {
@@ -556,7 +564,7 @@ ErrorManagement::ErrorType NI9157MxiDataSource::Reset() {
             status = niDeviceBoard->Run();
             err = (status != 0);
             if (!err.ErrorsCleared()) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Failed to Run the application, status=%d", status);
+                REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Failed to Run the application, status=%d", static_cast<int32> (status));
             }
         }
     }
