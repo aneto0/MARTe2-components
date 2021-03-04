@@ -208,7 +208,7 @@ public:
     uint32 GetSleepPercentage() const;
 
 	/**
-	* @copydoc
+	* @brief Purges the DataSource
 	*/
     virtual void Purge(ReferenceContainer &purgeList);
 
