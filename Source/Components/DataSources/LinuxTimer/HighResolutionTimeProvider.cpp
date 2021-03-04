@@ -1,7 +1,7 @@
 /**
  * @file HighResolutionTimeProvider.cpp
  * @brief Source file for class HighResolutionTimeProvider
- * @date 31 ott 2019
+ * @date 31/10/2019
  * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
