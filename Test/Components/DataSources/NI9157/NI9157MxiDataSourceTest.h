@@ -65,25 +65,25 @@ public:
     /**
      * @brief Tests the NI9157MxiDataSource::Initialise method.
      */
-    bool TestInitialise();
+    bool TestInitialise(uint32 model);
 
     /**
      * @brief Tests the NI9157MxiDataSource::Initialise method with the
 	 * default Run parameter.
      */
-    bool TestInitialise_DefaultRunNi();
+    bool TestInitialise_DefaultRunNi(uint32 model);
 
     /**
      * @brief Tests the NI9157MxiDataSource::Initialise method that returns
 	 * false if the path is not specified.
      */
-    bool TestInitialise_False_NoNiDev();
+    bool TestInitialise_False_NoNiDev(uint32 model);
 
     /**
      * @brief Tests the NI9157MxiDataSource::Initialise method that returns
 	 * false if the path is invalid.
      */
-    bool TestInitialise_False_InvalidNiDevPath();
+    bool TestInitialise_False_InvalidNiDevPath(uint32 model);
 
     /**
      * @brief Tests the NI9157MxiDataSource::GetBrokerName method.
@@ -93,60 +93,64 @@ public:
     /**
      * @brief Tests the PrepareNextState method
      */
-    bool TestPrepareNextState();
+    bool TestPrepareNextState(uint32 model);
 
     /**
      * @brief Tests the NI9157MxiDataSource::SetConfiguredDatabase method.
      */
-    bool TestSetConfiguredDatabase();
+    bool TestSetConfiguredDatabase(uint32 model);
 
     /**
      * @brief Tests the NI9157MxiDataSource::SetConfiguredDatabase method with
 	 * an invalid variable.
      */
-    bool TestSetConfiguredDatabase_False_InvalidLabviewVar();
+    bool TestSetConfiguredDatabase_False_InvalidLabviewVar(uint32 model);
 
     /**
      * @brief Tests the NI9157MxiDataSource::SetConfiguredDatabase method with
 	 * an invalid type.
      */
-    bool TestSetConfiguredDatabase_False_InvalidType();
+    bool TestSetConfiguredDatabase_False_InvalidType(uint32 model);
 
     /**
      * @brief Tests the NI9157MxiDataSource::Synchronise method.
      */
-    bool TestSynchronise();
+    bool TestSynchronise(uint32 model);
 
     /**
-     * @brief Tests the NI9157MxiDataSource::Synchronise method using ....
+     * @brief Tests the NI9157MxiDataSource::Synchronise method for IO vars.
      */
-    bool TestSynchronise_Oscilloscope();
+    bool TestSynchronise_Variables(uint32 model);
 
     /**
-     * @brief Tests the NI9157MxiDataSource::Synchronise method using ....
+     * @brief Tests the NI9157MxiDataSource::Synchronise method for IO FIFOs.
      */
-    bool TestSynchronise_Oscilloscope_OutputFIFO();
+    bool TestSynchronise_FIFOs(uint32 model);
 
     /**
      * @brief Tests the NI9157MxiDataSource::Synchronise using initial patterns.
      */
-    bool TestSynchronise_InitialPatterns();
+    bool TestSynchronise_InitialPatterns(uint32 model);
 
-    bool TestSynchronise_BlockIfNotrunning();
+    /**
+     * @brief Tests the NI9157MxiDataSource::Synchronise using BlockIfNotRunning.
+     */
+    bool TestSynchronise_BlockIfNotRunning(uint32 model);
+s
     /**
      * @brief Tests the NI9157MxiDataSource::AsyncRead method.
      */
-    bool TestAsyncRead();
+    bool TestAsyncRead(uint32 model);
 
     /**
      * @brief Tests the NI9157MxiDataSource::AsyncWrite method.
      */
-    bool TestAsyncWrite();
+    bool TestAsyncWrite(uint32 model);
 
     /**
      * @brief Test the NI9157MxiDataSource::Reset method.
      */
-    bool TestReset();
+    bool TestReset(uint32 model);
 
 };
 

@@ -191,7 +191,7 @@ bool NI9157MxiDataSource::SetConfiguredDatabase(StructuredDataI & data) {
             StreamString varName;
             ret = GetSignalName(i, varName);
             if (ret) {
-                //treat the special case of bool
+                //treat the special case of bool, and for (i) varBool_<varName> or (ii) <varNameBool>
                 CreateNI9157DeviceOperatorI *creator = NULL_PTR(CreateNI9157DeviceOperatorI *);
                 const char8 *typeInName = StringHelper::SearchString(varName.Buffer(), "Bool");
                 if (typeInName != NULL) {
@@ -271,12 +271,10 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
         numberOfReadWriteCurrent += numberOfConsumersCurrentState;
         numberOfReadWriteNext += numberOfConsumersNextState;
     }
-    //TODO - Needs clean
+    //TODO
+    //prepare = (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) || ( nextStateName == currentStateName);
     prepare = (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) ||
-                 (numberOfReadWriteNext ==  numberOfReadWriteCurrent) ||
-                 (numberOfReadWriteNext != 0u && numberOfReadWriteCurrent != 0u);
-
-    //if ((numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) || ( nextStateName == currentStateName)) {
+            (numberOfReadWriteNext == numberOfReadWriteCurrent && numberOfReadWriteCurrent >= 0u);
     if (prepare) {
         for (uint32 i = 0u; (i < numberOfSignals); i++) {
             //get the type and create the device accordingly
@@ -418,7 +416,6 @@ bool NI9157MxiDataSource::Synchronise() {
                     int32 status = niDevice[i]->NiRead(varId[i], &pattern);
                     ret = (status == 0);
                     if (ret) {
-                        //REPORT_ERROR(ErrorManagement::FatalError,"A %u B %u ", pattern, initialPatterns[i] );
                         if (niDevice[i]->Compare(reinterpret_cast<uint8*>(&pattern), reinterpret_cast<uint8*>(&initialPatterns[i])) == 0) {
                             useInitialPattern[i] = 0u;
                         }
