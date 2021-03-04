@@ -299,10 +299,12 @@ bool LinuxTimer::GetSignalMemoryBuffer(const uint32 signalIdx,
 
 const char8* LinuxTimer::GetBrokerName(StructuredDataI& data,
                                        const SignalDirection direction) {
+
     const char8 *brokerName = NULL_PTR(const char8 *);
+
     if (direction == InputSignals) {
         float32 tempFrequency = 0.F;
-        if (!data.Read("Frequency", frequency)) {
+        if (!data.Read("Frequency", tempFrequency)) {
             tempFrequency = -1.F;
         }
 
