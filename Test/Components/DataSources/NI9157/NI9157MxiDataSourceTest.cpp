@@ -30,8 +30,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "ConfigurationDatabase.h"
 #include "AdvancedErrorManagement.h"
+#include "ConfigurationDatabase.h"
 #include "DataSourceI.h"
 #include "GAMSchedulerI.h"
 #include "IOGAM.h"
@@ -45,8 +45,8 @@
 #include "MemoryMapSynchronisedMultiBufferOutputBroker.h"
 #include "MemoryMapSynchronisedOutputBroker.h"
 #include "NI9157MxiDataSourceTest.h"
-#include "ObjectRegistryDatabase.h" 
-#include "RealTimeApplication.h" 
+#include "ObjectRegistryDatabase.h"
+#include "RealTimeApplication.h"
 #include "StandardParser.h"
 #include "Threads.h"
 
