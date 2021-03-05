@@ -412,7 +412,7 @@ private:
     /**
      * The asynchronous triggered broker that provides the interface between the GAMs and the output file.
      */
-    MemoryMapAsyncTriggerOutputBroker *brokerAsyncTrigger;
+    ReferenceT<MemoryMapBroker> brokerAsync;
 
     /**
      * The message to send if the file is successfully opened.
