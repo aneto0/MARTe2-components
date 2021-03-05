@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  LinuxTimerTest.x
+OBJSX +=  TimeProviderTest.x HighResolutionTimeProviderTest.x LinuxTimerTest.x
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..

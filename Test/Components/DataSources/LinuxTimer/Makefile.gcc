@@ -27,6 +27,6 @@
 
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-OBJSX = LinuxTimerGTest.x
+OBJSX = LinuxTimerGTest.x HighResolutionTimeProviderGTest.x
 
 include Makefile.inc
