@@ -19,6 +19,7 @@ hasInputs            = true;
 hasOutputs           = true;
 hasStructSignals     = false;
 hasStructInputs      = false;
+hasEnums             = false;
 dataOrientation      = 'Column-major';   isRowMajor = 0;
 useType              = 0;
 
@@ -52,9 +53,9 @@ while ~isempty(varargin)
             
         case 'hasStructSignals'
             hasStructSignals = varargin{2};
-        
-        case 'hasStructInputs'
-            hasStructInputs = varargin{2};
+                       
+        case 'hasEnums'
+            hasEnums = varargin{2};
             
         case 'dataOrientation'
             dataOrientation = varargin{2};
@@ -72,11 +73,15 @@ while ~isempty(varargin)
     varargin(1:2) = [];
 end
 
+if ((hasStructSignals == true) && (hasInputs == true))
+    hasStructInputs = true;
+end
+
 % warning: the model name is limited to 20 characters
 model_name = ['testMdl' int2str(modelComplexity)  int2str(hasAllocFcn)     int2str(hasGetmmiFcn) ...
-                          int2str(hasTunableParams) int2str(hasStructParams) int2str(hasStructArrayParams) ...
-                          int2str(hasInputs)        int2str(hasOutputs)      int2str(hasStructSignals) ...
-                          int2str(useType)          int2str(isRowMajor)      int2str(hasStructInputs) ...
+                        int2str(hasTunableParams) int2str(hasStructParams) int2str(hasStructArrayParams) ...
+                        int2str(hasInputs)        int2str(hasOutputs)      int2str(hasStructSignals) ...
+                        int2str(isRowMajor)       int2str(hasEnums)        int2str(useType) ...
              ];
 
 model_compiled = false;
@@ -137,6 +142,17 @@ if hasStructArrayParams == true
     
 end
 
+if hasEnums == true
+    Simulink.defineIntEnumType('TestEnum', ... 
+        {'Off', 'On'}, ...
+        [0    ; 1   ], ... 
+        'StorageType' , 'int32');
+    
+    if hasTunableParams == true
+        evalin('base', 'EnumParam = TestEnum.Off;');
+    end
+end
+
 %% creating a new model
 
 % delete model if it already exists
@@ -177,7 +193,7 @@ if modelComplexity >= 3
 end
 
 % input ports
-helper_input_gen(model_name, hasInputs, hasStructInputs, modelComplexity, hasTunableParams, hasStructParams);
+helper_input_gen(model_name, hasInputs, hasStructInputs, modelComplexity, hasTunableParams, hasStructParams, hasEnums);
 
 % output ports
 if hasOutputs == true
@@ -187,7 +203,11 @@ if hasOutputs == true
     
     add_block('simulink/Sinks/Out1',  [model_name '/Out2_ScalarUint32']);
     set_param([model_name '/Out2_ScalarUint32'], 'IconDisplay',    'Signal name');
-    set_param([model_name '/Out2_ScalarUint32'], 'OutDataTypeStr', 'uint32');
+    if hasEnums == false
+        set_param([model_name '/Out2_ScalarUint32'], 'OutDataTypeStr', 'uint32');
+    else
+        set_param([model_name '/Out2_ScalarUint32'], 'OutDataTypeStr', 'Enum:TestEnum');
+    end
     
     if modelComplexity >= 2
         add_block('simulink/Sinks/Out1',  [model_name '/Out3_VectorDouble']);
@@ -486,6 +506,11 @@ end
 
 add_line(model_name, 'In1_ScalarDouble/1', 'Gain1/1');
 add_line(model_name, 'Gain1/1',            'Out1_ScalarDouble/1');
+if hasEnums == true
+    % gain block does not support enums
+    delete_block([model_name '/Gain2']);
+    add_block('simulink/Signal Attributes/Signal Specification', [model_name '/Gain2' ]);
+end
 add_line(model_name, 'In2_ScalarUint32/1', 'Gain2/1');
 add_line(model_name, 'Gain2/1',            'Out2_ScalarUint32/1');
 
@@ -544,11 +569,19 @@ end
 %% signal naming
 
 % name the signals
-name_input_signal([model_name '/Out1_ScalarDouble'], 1, 'Out1_ScalarDouble');
-name_input_signal([model_name '/Out2_ScalarUint32'], 1, 'Out2_ScalarUint32');
+if (hasInputs == false) && (hasOutputs == true)
+    name_output_signal([model_name '/In1_ScalarDouble'], 1, 'In1_ScalarDouble');
+    name_output_signal([model_name '/In2_ScalarUint32'], 1, 'In2_ScalarUint32');
 
-name_output_signal([model_name '/In1_ScalarDouble'], 1, 'In1_ScalarDouble');
-name_output_signal([model_name '/In2_ScalarUint32'], 1, 'In2_ScalarUint32');
+    name_input_signal([model_name '/Out1_ScalarDouble'], 1, 'Out1_ScalarDouble');
+    name_input_signal([model_name '/Out2_ScalarUint32'], 1, 'Out2_ScalarUint32');
+else
+    name_input_signal([model_name '/Out1_ScalarDouble'], 1, 'Out1_ScalarDouble');
+    name_input_signal([model_name '/Out2_ScalarUint32'], 1, 'Out2_ScalarUint32');
+    
+    name_output_signal([model_name '/In1_ScalarDouble'], 1, 'In1_ScalarDouble');
+    name_output_signal([model_name '/In2_ScalarUint32'], 1, 'In2_ScalarUint32');
+end
 
 if hasStructSignals == true
     name_input_signal([model_name '/Out20_NonVirtualBus'], 1, 'Out20_NonVirtualBus');
@@ -588,7 +621,9 @@ end
 %% arranging block layout
 % alternatively to setting the position of each block, the system can be
 % arranged automatically
-Simulink.BlockDiagram.arrangeSystem(model_name);
+if ~verLessThan('matlab', '9.5')
+    Simulink.BlockDiagram.arrangeSystem(model_name);
+end
 
 %% code generation
 % name of each option is available by right-clicking on the option name
@@ -654,7 +689,9 @@ end
 set_param(model_name, 'IncludeMdlTerminateFcn', 0);
 set_param(model_name, 'CombineSignalStateStructs', 1);
 
-set_param(model_name, 'ArrayLayout', dataOrientation);
+if ~verLessThan('matlab', '9.5')
+    set_param(model_name, 'ArrayLayout', dataOrientation);
+end
 
 % Templates
 set_param(model_name, 'GenerateSampleERTMain', 0);
@@ -691,7 +728,7 @@ end   % function
 %Helper functions, just to keep main code flow tidy, block-structured and
 %easier to focus on
 
-function helper_input_gen_WithInputs(model_name, modelComplexity)
+function helper_input_gen_WithInputs(model_name, modelComplexity, hasEnums)
 
   add_block('simulink/Sources/In1', [model_name '/In1_ScalarDouble']);
     set_param([model_name '/In1_ScalarDouble'], 'IconDisplay',    'Signal name');
@@ -699,7 +736,11 @@ function helper_input_gen_WithInputs(model_name, modelComplexity)
     
     add_block('simulink/Sources/In1', [model_name '/In2_ScalarUint32' ]);
     set_param([model_name '/In2_ScalarUint32'],  'IconDisplay',    'Signal name');
-    set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'uint32');
+    if hasEnums == false
+        set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'uint32');
+    else
+        set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'Enum:TestEnum');
+    end
     
     if modelComplexity >= 2
         add_block('simulink/Sources/In1', [model_name '/In3_VectorDouble' ], ...
@@ -747,15 +788,24 @@ function helper_input_gen_WithInputs(model_name, modelComplexity)
 
 end
 
-function helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableParams, hasStructParams)
+function helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableParams, hasStructParams, hasEnums)
 
     add_block('simulink/Sources/Constant', [model_name '/In1_ScalarDouble']);
     set_param([model_name '/In1_ScalarDouble'], 'Value',          '1');
     set_param([model_name '/In1_ScalarDouble'], 'OutDataTypeStr', 'double');
     
     add_block('simulink/Sources/Constant', [model_name '/In2_ScalarUint32']);
-    set_param([model_name '/In2_ScalarUint32'], 'Value',          '1');
-    set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'uint32');
+    if hasEnums == false
+        set_param([model_name '/In2_ScalarUint32'], 'Value',          '1');
+        set_param([model_name '/In2_ScalarUint32'], 'OutDataTypeStr', 'uint32');
+    else
+        set_param([model_name '/In2_ScalarUint32'], 'OutDataTypeStr', 'Enum:TestEnum');
+        if hasTunableParams == true
+            set_param([model_name '/In2_ScalarUint32'], 'Value',          'EnumParam');
+        else
+            set_param([model_name '/In2_ScalarUint32'], 'Value',          'TestEnum.On');
+        end
+    end
     
     if (modelComplexity >= 2)
         add_block('simulink/Sources/Constant', [model_name '/In3_VectorDouble']);
@@ -937,16 +987,16 @@ function helper_input_gen_WithStructInputs(model_name, modelComplexity)
     end
 end
 
-function helper_input_gen(modelName, withInputs, withStructs, modelComplexity, hasTunableParams, hasStructParams)
+function helper_input_gen(modelName, withInputs, withStructs, modelComplexity, hasTunableParams, hasStructParams, hasEnums)
 
     if withInputs == true
        if withStructs == true
            helper_input_gen_WithStructInputs(modelName, modelComplexity);
        else
-           helper_input_gen_WithInputs(modelName, modelComplexity);
+           helper_input_gen_WithInputs(modelName, modelComplexity, hasEnums);
        end
     else
-        helper_input_gen_WithoutInputs(modelName, modelComplexity, hasTunableParams, hasStructParams);
+        helper_input_gen_WithoutInputs(modelName, modelComplexity, hasTunableParams, hasStructParams, hasEnums);
     end
 
 end

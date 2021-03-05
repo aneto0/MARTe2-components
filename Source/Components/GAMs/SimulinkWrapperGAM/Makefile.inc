@@ -38,6 +38,20 @@ CPPFLAGS += -O1
 CPPFLAGS += -DHOST_CAPI_BUILD -DMATLAB_MEX_FILE
 CFLAGS += -DHOST_CAPI_BUILD -DMATLAB_MEX_FILE
 
+# Add row-major support for 3D matrices only if available (from version 2018b onwards)
+ROW_MAJOR_ND_FEATURE = $(shell if grep -qr rtwCAPI_MATRIX_ROW_MAJOR_ND $$MATLAB_DIR/rtw/c/src; then echo 0; else echo 1; fi)
+ifeq "$(ROW_MAJOR_ND_FEATURE)" "0"
+CFLAGS += -DROW_MAJOR_ND_FEATURE
+CPPFLAGS += -DROW_MAJOR_ND_FEATURE
+endif
+
+# Add enum support only if available (from version 2019a onwards)
+ENUM_FEATURE = $(shell if grep -qr rtwCAPI_GetDataEnumStorageType $$MATLAB_DIR/rtw/c/src; then echo 0; else echo 1; fi)
+ifeq "$(ENUM_FEATURE)" "0"
+CFLAGS += -DENUM_FEATURE
+CPPFLAGS += -DENUM_FEATURE
+endif
+
 INCLUDES += -I.
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
@@ -57,7 +71,7 @@ INCLUDES += -I$(MATLAB_DIR)/simulink/include/
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/SimulinkWrapperGAM$(LIBEXT) \
 	$(BUILD_DIR)/SimulinkWrapperGAM$(DLLEXT)
-	    echo  $(OBJS)
+	    echo  $(OBJS) $(ENUM_SUPPORT)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 

@@ -34,7 +34,6 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
 #include "ConfigurationDatabase.h"
 #include "GAM.h"
 #include "LoadableLibrary.h"
@@ -46,7 +45,6 @@
 /*---------------------------------------------------------------------------*/
 /*                            C-API interface                                */
 /*---------------------------------------------------------------------------*/
-
 #include "rtw_modelmap.h"
 
 /*---------------------------------------------------------------------------*/
@@ -90,6 +88,8 @@ namespace MARTe {
  *          installation directory.
  * 
  * @warning The GAM is tested with MATLAB(r) version 2018a or higher.
+ * 
+ * @warning Enumerations are supported with version 2019a or higher.
  * 
  * 
  * 
@@ -173,8 +173,9 @@ namespace MARTe {
  *      for details.
  * - **Optional nodes**:
  *    - *Verbosity*: the amount of information that shall be printed
- *      during GAM initialisation. Minimum value: 0, maximum value: 2,
- *      default value: 0
+ *      during GAM initialisation. `0` prints errors only, `1` prints errors,
+ *      warnings and basic information, `2` prints errors, warnings and additional
+ *      information. Minimum value: 0, maximum value: 2, default value: 0
  *    - *SkipInvalidTunableParams*: can be 0 or 1. When set to 0, the 
  *      GAM execution will stop if the actualisation of one parameter
  *      fails (see [Model parameters](#model-parameters) section
@@ -190,7 +191,7 @@ namespace MARTe {
  *    - *EnforceModelSignalCoverage*: Ensures that every port of the Simulink model
  *      is connected to the GAM, eventually preventing the GAM startup.
  *      Setting this option to `0` means that some of the model output signals
- *      can be omitted in the configuration file.
+ *      can be omitted in the configuration file and their value will not be stored.
  *      Valid only when `NonVirtualBusMode == "Structured"`.
  *      Default value: `1`.
  *    - *Parameters*: local list of parameters. See
@@ -307,6 +308,30 @@ namespace MARTe {
  * This is required since in the standard MARTe2 configuration language
  * the dot is a reserved character. 
  * 
+ * 
+ * Enumeration parameters
+ * ----------------------------------------------------------------------------
+ * 
+ * The model can contain enumeration parameters, that is, enum fields can be
+ * used as block parameters. For example, a `Constant` block can have its
+ * value set to `enumParam` where `enumParam` can be `MyEnum.On` or `MyEnum.Off`.
+ * `MyEnum` shall be an enumeration defined in the model.
+ * 
+ * In this case the actualisation value of the parameter specified
+ * in the `Parameters` node or in the external parameter source must be an integer
+ * of the same type as the underlying type of the model enumeration:
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Parameters = {
+ *     enumParam = (int16) 1
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
+ * @warning While the model enumeration can assume a limited set of values (e.g.
+ *          `1` or `0` for `MyEnum.On` and `MyEnum.Off`) no check is performed
+ *          on the actualisation value specified in the configuration file
+ *          or from an external parameter source to verify that the value is within
+ *          the model enumeration range.
  * 
  * Actualisation mechanism
  * ----------------------------------------------------------------------------
@@ -543,6 +568,33 @@ namespace MARTe {
  * }
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * 
+ * Enumeration signals
+ * ----------------------------------------------------------------------------
+ * 
+ * The model can contain enumeration signals, that is, enum fields can be
+ * used as input or output values. For example, an `Outport` block can have its
+ * value set to `MyEnum.On` or `MyEnum.Off` where `MyEnum` is an enumeration
+ * defined in the model.
+ * 
+ * In this case the signal configuration in the configuration file must declare
+ * the signal to be of integer type (and of the same type as the underlying type
+ * of the model enumeration):
+ * 
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * OutputSignals = {
+ *     enumSignal = {
+ *         Type               = int16
+ *         NumberOfDimensions = 0
+ *         NumberOfElements   = 1
+ *         DataSource = DDB1
+ *     }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
+ * @warning While the model enumeration can assume a limited set of values (e.g.
+ *          `1` or `0` for `MyEnum.On` and `MyEnum.Off`) no check is performed
+ *          on the signal value to verify that the value is within
+ *          the model enumeration range.
  * 
  * 
  * Model configuration                                   {#model-configuration}

@@ -27,7 +27,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -218,7 +217,7 @@ public:
     SimulinkGAMGTestEnvironment() {
         
         // Start MATLAB engine synchronously
-        matlabPtr = matlab::engine::startMATLAB();
+	matlabPtr = matlab::engine::startMATLAB({u"-nojvm", u"-nodisplay", u"-softwareopengl"});
         
         SetupTestEnvironment(matlabPtr);
     }
@@ -1329,17 +1328,11 @@ bool SimulinkWrapperGAMTest::TestSetup_WithStructSignals() {
     
     StreamString inputSignals = ""
         "InputSignals = { "
-        "    In1_ScalarDouble  = {"
+        "    In1_Structured  = {"
         "        DataSource = Drv1"
-        "        Type = float64"
-        "        NumberOfElements = 1"
-        "        NumberOfDimensions = 0"
-        "    }"
-        "    In2_ScalarUint32  = {"
-        "        DataSource = Drv1"
-        "        Type = uint32"
-        "        NumberOfElements = 1"
-        "        NumberOfDimensions = 0"
+        "        Type = uint8"
+        "        NumberOfElements = 16"
+        "        NumberOfDimensions = 1"
         "    }"
         "}";
 
@@ -2311,6 +2304,8 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongDatatypeWithStructSignals() {
     return !ok;
 }
 
+#ifdef ROW_MAJOR_ND_FEATURE
+
 bool SimulinkWrapperGAMTest::TestParameterActualisation_RowMajorModel() {
     
     // Notice that model has to be row-major, otherwise raw memory
@@ -2432,6 +2427,8 @@ bool SimulinkWrapperGAMTest::TestParameterActualisation_RowMajorModel() {
     
     return ok;
 }
+
+#endif /* ROW_MAJOR_ND_FEATURE */
 
 bool SimulinkWrapperGAMTest::TestParameterActualisation_ColumnMajorModel() {
     
@@ -3378,7 +3375,7 @@ bool SimulinkWrapperGAMTest::TestPrintAlgoInfo() {
 
 bool SimulinkWrapperGAMTest::Test_StructuredSignals() {
 
-    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'hasStructInputs', true);";
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true);";
 
     StreamString skipUnlinkedParams = "1";
 
@@ -3441,7 +3438,7 @@ bool SimulinkWrapperGAMTest::Test_StructuredSignals() {
 
 bool SimulinkWrapperGAMTest::TestExecute_WithStructuredSignals() {
 
-    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasStructInputs', true, 'hasInputs', true);";
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true);";
 
     StreamString skipUnlinkedParams = "1";
 
@@ -3608,7 +3605,7 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructuredSignals() {
 }
 
 bool SimulinkWrapperGAMTest::Test_StructuredSignals_Failed() {
-    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasStructInputs', true, 'hasInputs', true);";
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true);";
 
     StreamString skipUnlinkedParams = "1";
 
@@ -3666,10 +3663,10 @@ bool SimulinkWrapperGAMTest::Test_MultiMixedSignalsTranspose(bool transpose) {
     StreamString scriptCall;
 
     if(transpose) {
-        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'hasStructInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Column-major');";
+        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Column-major');";
     }
     else {
-        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'hasStructInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Row-major');";
+        scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'modelComplexity', 3, 'dataOrientation', 'Row-major');";
     }
 
 
@@ -4298,3 +4295,301 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParametersFromExternalSource
     return ok;
 }
 
+#ifdef ENUM_FEATURE
+
+bool SimulinkWrapperGAMTest::TestSetup_WithOutputEnumSignals() {
+
+    StreamString scriptCall = "createTestModel('hasEnums', true, 'hasInputs', false);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = "";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = int32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "}";
+
+    StreamString parameters = "";
+
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, NULL, false, false);
+
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_WithOutputEnumSignals_FailedWrongType() {
+
+    StreamString scriptCall = "createTestModel('hasEnums', true, 'hasInputs', false);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = "";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = int16"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "}";
+
+    StreamString parameters = "";
+
+    // Test setup
+    bool ok = !TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, NULL, false, false);
+
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_WithEnumSignals() {
+
+    StreamString scriptCall = "createTestModel('hasEnums', true);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "In1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "In2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = int32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = int32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "}";
+
+    StreamString parameters = "";
+
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, NULL, false, false);
+
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_WithEnumParameters() {
+
+    StreamString scriptCall = "createTestModel('hasEnums', true, 'hasInputs', false, 'hasTunableParams', true);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = "";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "Out1_ScalarDouble = {"
+        "    DataSource = DDB1"
+        "    Type = float64"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "Out2_ScalarUint32  = {"
+        "    DataSource = DDB1"
+        "    Type = int32"
+        "    NumberOfElements = 1"
+        "    NumberOfDimensions = 0"
+        "}"
+        "}";
+
+    StreamString parameters = ""
+        "EnumParam = (int32) 1";
+
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, NULL, false, false);
+
+    return ok;
+}
+
+bool SimulinkWrapperGAMTest::TestExecute_WithEnumSignals() {
+
+    StreamString scriptCall = "createTestModel('hasEnums', true);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "    In1_ScalarDouble  = { "
+        "        DataSource = Drv1"
+        "        Type = float64"
+        "        NumberOfElements = 1"
+        "        NumberOfDimensions = 0"
+        "    }"
+        "    In2_ScalarUint32  = { "
+        "        DataSource = Drv1"
+        "        Type = int32"
+        "        NumberOfElements = 1"
+        "        NumberOfDimensions = 0"
+        "    }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble = {"
+        "        DataSource = DDB1"
+        "        Type = float64"
+        "        NumberOfElements = 1"
+        "        NumberOfDimensions = 0"
+        "    }"
+        "    Out2_ScalarUint32 = {"
+        "        DataSource = DDB1"
+        "        Type = int32"
+        "        NumberOfElements = 1"
+        "        NumberOfDimensions = 0"
+        "    }"
+        "}";
+
+    StreamString inputValues = ""
+        "In1_ScalarDouble = (float64) 3.141592653 "
+        "In2_ScalarUint32 = (int32)   0";
+        
+    StreamString expectedOutputValues = ""
+        "Out1_ScalarDouble = (float64) 3.141592653 "
+        "Out2_ScalarUint32 = (int32)   0";
+
+    StreamString parameters = "";
+
+    ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, ord, false, false);
+
+    ConfigurationDatabase cdb;
+    if (ok) {
+        inputValues.Seek(0u);
+        StandardParser parser(inputValues, cdb);
+        ok = parser.Parse();
+    }
+    
+    ConfigurationDatabase outCdb;
+    if (ok) {
+        expectedOutputValues.Seek(0u);
+        StandardParser parser(expectedOutputValues, outCdb);
+        ok = parser.Parse();
+    }
+
+    if (ok) {
+        ReferenceT<SimulinkWrapperGAMHelper> gam = ord->Find("Test.Functions.GAM1");
+
+        ok = gam.IsValid();
+
+        // Copy inputValues to the GAM input signal memory
+        if (ok) {
+
+            for (uint32 signalIdx = 0u; (signalIdx < gam->GetNumberOfInputSignals()) && ok ; signalIdx++) {
+
+                StreamString signalName;
+                ok = gam->GetSignalName(InputSignals, signalIdx, signalName);
+
+
+                AnyType arrayDescription = cdb.GetType(signalName.Buffer());
+                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
+
+                //
+                uint32 memoryAllocationSize = 0u;
+                switch (arrayDescription.GetNumberOfDimensions()) {
+
+                    case 0u:
+                        memoryAllocationSize = arrayDescription.GetByteSize();
+                        break;
+
+                    case 1u:
+                        memoryAllocationSize = arrayDescription.GetByteSize() * arrayDescription.GetNumberOfElements(0u);
+                        break;
+
+                    case 2u:
+                        memoryAllocationSize = arrayDescription.GetByteSize() * arrayDescription.GetNumberOfElements(0u) * arrayDescription.GetNumberOfElements(1u);
+                        break;
+                }
+                if (ok) {
+                    ok = MemoryOperationsHelper::Copy(gam->GetInputSignalMemoryTest(signalIdx), arrayDescription.GetDataPointer(), memoryAllocationSize);
+                }
+            }
+
+            ok = gam->Execute();
+        }
+
+        if (ok) {
+            SimulinkPort *inputPort = gam->GetPort(0);
+            SimulinkSignal* in1 = inputPort->carriedSignals[0];
+            SimulinkSignal* in2 = inputPort->carriedSignals[1];
+
+            AnyType adIn1 = cdb.GetType(in1->fullName.Buffer());
+            AnyType adIn2 = cdb.GetType(in2->fullName.Buffer());
+
+            ok =    adIn1.GetDataPointer() != NULL_PTR(void *) &&
+                    adIn2.GetDataPointer() != NULL_PTR(void *);
+
+            if(ok) {
+                ok =    (SafeMath::IsEqual<float64>( *( (float64*) in1->address), *( (float64*) adIn2.GetDataPointer() ) ) ) &&
+                        (SafeMath::IsEqual<int32>  ( *( (int32*)   in2->address), *( (int32*)   adIn2.GetDataPointer() ) ) );
+            }
+            else {
+                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Wrong data pointers");
+            }
+        }
+        
+        if (ok) {
+            SimulinkPort *outputPort = gam->GetPort(3);
+            SimulinkSignal* out1 = outputPort->carriedSignals[0];
+            SimulinkSignal* out2 = outputPort->carriedSignals[1];
+
+            AnyType adOut1 = outCdb.GetType(out1->fullName.Buffer());
+            AnyType adOut2 = outCdb.GetType(out2->fullName.Buffer());
+
+            ok =    adOut1.GetDataPointer() != NULL_PTR(void *) &&
+                    adOut2.GetDataPointer() != NULL_PTR(void *);
+
+            if(ok) {
+                ok =    (SafeMath::IsEqual<float64>( *( (float64*) out1->address), *( (float64*) adOut1.GetDataPointer() ) ) ) &&
+                        (SafeMath::IsEqual<int32>  ( *( (int32*)   out2->address), *( (int32*)   adOut2.GetDataPointer() ) ) );
+            }
+        }
+    }
+    
+    if (ok) {
+        ord->Purge();
+    }
+    
+    return ok;
+}
+
+#endif

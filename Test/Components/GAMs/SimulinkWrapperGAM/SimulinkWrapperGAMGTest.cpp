@@ -238,10 +238,14 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongDatatypeWithStructSignals) {
     ASSERT_TRUE(test.TestSetup_Failed_WrongDatatypeWithStructSignals());
 }
 
+#ifdef ROW_MAJOR_ND_FEATURE
+
 TEST(SimulinkWrapperGAMGTest, TestParameterActualisation_RowMajorModel) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestParameterActualisation_RowMajorModel());
 }
+
+#endif /* ROW_MAJOR_ND_FEATURE  */
 
 TEST(SimulinkWrapperGAMGTest, TestParameterActualisation_ColumnMajorModel) {
     SimulinkWrapperGAMTest test;
@@ -293,10 +297,14 @@ TEST(SimulinkWrapperGAMGTest, Test_MultiMixedSignalsTranspose) {
     ASSERT_TRUE(test.Test_MultiMixedSignalsTranspose(true));
 }
 
+#ifdef ROW_MAJOR_ND_FEATURE
+
 TEST(SimulinkWrapperGAMGTest, Test_MultiMixedSignalsNorm) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.Test_MultiMixedSignalsTranspose(false));
 }
+
+#endif /* ROW_MAJOR_ND_FEATURE */
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithNotFoundParameterAndProcessUnlinked_Failed) {
     SimulinkWrapperGAMTest test;
@@ -317,6 +325,33 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_StructTunableParametersFromExternalSourc
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_StructTunableParametersFromExternalSource_Failed());
 }
+
+#ifdef ENUM_FEATURE
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithOutputEnumSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithOutputEnumSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithEnumSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithEnumSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithEnumParameters) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithEnumParameters());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithOutputEnumSignals_FailedWrongType) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithOutputEnumSignals_FailedWrongType());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_WithEnumSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_WithEnumSignals());
+}
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
