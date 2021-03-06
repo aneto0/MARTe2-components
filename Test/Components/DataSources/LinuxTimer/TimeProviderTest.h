@@ -36,52 +36,53 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+
 /**
  * @brief Tests the TimeProvider methods providing stubs for other plugin implementations
  */
 class TimeProviderTest {
-	public:
+    public:
 
-		/**
-		 * @brief Tests the constructor.
-		 */
-		TimeProviderTest();
+        /**
+         * @brief Constructor for the test.
+         */
+        TimeProviderTest();
 
+        /**
+         * @brief Destructor for the test.
+         */
+        ~TimeProviderTest();
 
-		/**
-		 * @brief Tests the destructor.
-		 */
-		~TimeProviderTest();
+        /**
+         * @brief Tests the constructor.
+         */
+        virtual bool TestConstructor();
 
-		/**
-		 * @brief Tests the constructor.
-		 */
-		virtual bool TestConstructor();
+        /**
+        * @brief Tests the internal counter
+        */
+        virtual bool TestCounter();
 
-		/**
-		* @brief Tests the internal counter
-		*/
-		virtual bool TestCounter();
+        /**
+        * @brief Tests the period
+        */
+        virtual bool TestPeriod();
 
-		/**
-		* @brief Tests the period
-		*/
-		virtual bool TestPeriod();
+        /**
+        * @brief Tests the frequency
+        */
+        virtual bool TestFrequency();
 
-		/**
-		* @brief Tests the frequency
-		*/
-		virtual bool TestFrequency();
+        /**
+        * @brief Tests the busy sleeping feature
+        */
+        virtual bool TestBusySleep();
 
-		/**
-		* @brief Tests the busy sleeping feature
-		*/
-		virtual bool TestBusySleep();
-
-	protected:
-		MARTe::TimeProvider* timeProvider;
+    protected:
+        MARTe::TimeProvider* timeProvider;
 
 };
+
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

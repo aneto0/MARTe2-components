@@ -38,13 +38,15 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-
-/*---------------------------------------------------------------------------*/
-/*                           Static definitions                              */
-/*---------------------------------------------------------------------------*/
 HighResolutionTimeProviderTest::HighResolutionTimeProviderTest() : TimeProviderTest(){
-	timeProvider = new MARTe::HighResolutionTimeProvider();
+    timeProvider = new MARTe::HighResolutionTimeProvider();
 }
 
 HighResolutionTimeProviderTest::~HighResolutionTimeProviderTest() {
 }
+
+
+/*---------------------------------------------------------------------------*/
+/*                           Static definitions                              */
+/*---------------------------------------------------------------------------*/
+

@@ -36,13 +36,14 @@
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
+
 /**
  * @brief Tests the TimeProvider methods providing stubs for other plugin implementations
  */
 class HighResolutionTimeProviderTest : public TimeProviderTest {
-	public:
-		HighResolutionTimeProviderTest();
-		~HighResolutionTimeProviderTest();
+    public:
+        HighResolutionTimeProviderTest();
+        ~HighResolutionTimeProviderTest();
 };
 
 /*---------------------------------------------------------------------------*/

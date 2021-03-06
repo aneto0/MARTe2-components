@@ -1,6 +1,6 @@
 /**
  * @file TimeProviderTest.cpp
- * @brief Source file for class HighResolutionTimeProviderTest
+ * @brief Source file for class TimeProviderTest
  * @date 05/03/2021
  * @author Andre Neto
  *
@@ -39,96 +39,88 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
+using namespace MARTe;
 
 TimeProviderTest::TimeProviderTest() {
-	timeProvider = NULL;
+    timeProvider = NULL;
 }
 
 TimeProviderTest::~TimeProviderTest() {
-	if(timeProvider != NULL) {
-		delete timeProvider;	
-	}
+    if(timeProvider != NULL) {
+        delete timeProvider;	
+    }
 }
 
-
 bool TimeProviderTest::TestConstructor() {
-	return true;
+    return true;
 }
 
 bool TimeProviderTest::TestCounter() {
-	using namespace MARTe;
+    bool ok = (timeProvider != NULL);
 
-	bool ok = (timeProvider != NULL);
+    if(ok) {
+        uint64 counterAtStart = timeProvider->Counter();
+        Sleep::Sec(1);
+        uint64 counterAtEnd = timeProvider->Counter();
+        ok = (counterAtStart < counterAtEnd);
+    }
 
-	if(ok) {
-		uint64 counterAtStart = timeProvider->Counter();
-		Sleep::Sec(1);
-		uint64 counterAtEnd = timeProvider->Counter();
-		ok = (counterAtStart < counterAtEnd);
-	}
-
-	return ok;
+    return ok;
 }
 
 bool TimeProviderTest::TestPeriod() {
-	using namespace MARTe;
+    bool ok = (timeProvider != NULL);
+    
+    if(ok) {
+        ok = (timeProvider->Period() != 0);
+        if(!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Period is == 0");
+        }
+    }
 
-	bool ok = (timeProvider != NULL);
-	
-	if(ok) {
-		ok = (timeProvider->Period() != 0);
-		if(!ok) {
-			REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Period is == 0");
-		}
-	}
-
-	if(ok) {
-		ok = (timeProvider->Period() == (1.0 / timeProvider->Frequency()));
-		if(!ok) {
-			REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Period value is not equivalent to the inverse of the frequency");
-		}
-	}
-	return ok;
+    if(ok) {
+        ok = (timeProvider->Period() == (1.0 / timeProvider->Frequency()));
+        if(!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Period value is not equivalent to the inverse of the frequency");
+        }
+    }
+    return ok;
 }
 
 bool TimeProviderTest::TestFrequency() {
-	using namespace MARTe;
+    bool ok = (timeProvider != NULL);
 
-	bool ok = (timeProvider != NULL);
+    if(ok) {
+        ok = (timeProvider->Frequency() != 0);
+        if(!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Frequency is == 0");
+        }
+    }
 
-	if(ok) {
-		ok = (timeProvider->Frequency() != 0);
-		if(!ok) {
-			REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Frequency is == 0");
-		}
-	}
+    if(ok) {
+        ok = (timeProvider->Frequency() == (1.0 / timeProvider->Period()));
+        if(!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Frequency value is not equivalent to the inverse of the period");
+        }
+    }
 
-	if(ok) {
-		ok = (timeProvider->Frequency() == (1.0 / timeProvider->Period()));
-		if(!ok) {
-			REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Frequency value is not equivalent to the inverse of the period");
-		}
-	}
-
-	return ok;
+    return ok;
 }
 
 bool TimeProviderTest::TestBusySleep() {
-	using namespace MARTe;
+    bool ok = (timeProvider != NULL);
 
-	bool ok = (timeProvider != NULL);
+    if(ok) {
+        uint64 startTime = timeProvider->Counter();
+        uint64 deltaTime = 1000;
+        timeProvider->BusySleep(startTime, deltaTime);
+        uint64 endTime = timeProvider->Counter();
 
-	if(ok) {
-		uint64 startTime = timeProvider->Counter();
-		uint64 deltaTime = 1000;
-		timeProvider->BusySleep(startTime, deltaTime);
-		uint64 endTime = timeProvider->Counter();
+        ok = ((endTime - startTime) >= deltaTime);
+        REPORT_ERROR_STATIC(ErrorManagement::Information, "Busy sleep tolerance after 1k delta %d", (endTime - startTime));
+    }
 
-		ok = ((endTime - startTime) >= deltaTime);
-		REPORT_ERROR_STATIC(ErrorManagement::Information, "Busy sleep tolerance after 1k delta %d", (endTime - startTime));
-	}
-
-	return ok;
+    return ok;
 }
 
 
