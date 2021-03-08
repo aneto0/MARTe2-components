@@ -28,6 +28,7 @@ include Makefile.inc
 
 LIBRARIES_STATIC=MemoryGate/cov/MemoryGate$(LIBEXT)
 LIBRARIES_STATIC+=SysLogger/cov/SysLogger$(LIBEXT)
+LIBRARIES_STATIC+=TCNTimeProvider/cov/TCNTimeProvider$(LIBEXT)
 
 
 ifdef CODAC_ROOT
