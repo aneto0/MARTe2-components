@@ -38,6 +38,16 @@
 
 namespace MARTe {
 
+const uint8 TCNTIMEPROVIDER_DEFAULT_POLL = 0u;
+const uint64 TCNTIMEPROVIDER_DEFAULT_FREQUENCY = 1000000000ull;
+
+typedef enum {
+    TcnTimeProvider_NoPollLegacyMode,
+    TcnTimeProvider_PollLegacyMode,
+    TcnTimeProvider_WaitUntilMode,
+    TcnTimeProvider_WaitUntilHRMode
+}TcnTimeProviderOperationMode;
+
 class TcnTimeProvider: public TimeProvider {
 public:
     CLASS_REGISTER_DECLARATION()
@@ -58,7 +68,8 @@ public:
                            uint64 delta);
 
 private:
-    uint8 tcnPoll;
+    TcnTimeProviderOperationMode operationMode;
+    uint64 tcnFrequency;
 };
 
 }
