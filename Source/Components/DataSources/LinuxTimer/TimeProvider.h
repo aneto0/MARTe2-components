@@ -44,39 +44,39 @@ namespace MARTe {
 class TimeProvider: public Object {
 public:
 
-	/**
-	* @brief Default constructor
-	*/
+    /**
+    * @brief Default constructor
+    */
     TimeProvider();
 
-	/**
-	* @brief Destructor
-	*/
+    /**
+    * @brief Destructor
+    */
     virtual ~TimeProvider();
 
-	/**
-	* @brief Returns the actual ticks count referred from the internal source
-	* @return The actual ticks value
-	*/
+    /**
+    * @brief Returns the actual ticks count referred from the internal source
+    * @return The actual ticks value
+    */
     virtual uint64 Counter() = 0;
 
-	/**
-	* @brief Returns the actual period once every ticks occurs
-	* @return The actual period between ticks
-	*/
+    /**
+    * @brief Returns the actual period once every ticks occurs
+    * @return The actual period between ticks
+    */
     virtual float64 Period() = 0;
 
-	/**
-	* @brief Returns the actual frequency, referred as inverse of the interval between two periods
-	* @return The actual tick frequency
-	*/
+    /**
+    * @brief Returns the actual frequency, referred as inverse of the interval between two periods
+    * @return The actual tick frequency
+    */
     virtual uint64 Frequency() = 0;
 
-	/**
-	* @brief Busy sleeps for an amount of time
-	* @param[in] start Tick start
-	* @param[in] delta Amount of ticks to busy slee
-	*/
+    /**
+    * @brief Busy sleeps for an amount of time
+    * @param[in] start Tick start
+    * @param[in] delta Amount of ticks to busy slee
+    */
     virtual void BusySleep(const uint64 start, const uint64 delta) = 0;
 };
 

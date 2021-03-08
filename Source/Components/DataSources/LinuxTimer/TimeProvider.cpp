@@ -41,10 +41,10 @@
 
 namespace MARTe{
 
-	TimeProvider::TimeProvider() : Object() {
-	}
+    TimeProvider::TimeProvider() : Object() {
+    }
 
-	TimeProvider::~TimeProvider() {
-	}
+    TimeProvider::~TimeProvider() {
+    }
 
 }

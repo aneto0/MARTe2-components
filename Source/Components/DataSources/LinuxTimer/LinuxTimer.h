@@ -57,13 +57,13 @@ namespace MARTe {
  *     SleepNature = Busy|Default//If SleepNature is not specified then Default is set
  *     SleepPercentage = 0 //Only meaningful if SleepNature = Busy. The percentage of time to sleep using the OS sleep.
  *     ExecutionMode = IndependentThread //Optional. If not set ExecutionMode = IndependentThread. If ExecutionMode == IndependentThread a thread is spawned to generate the time events. ExecutionMode == RealTimeThread the time is generated in the context of the real-time thread.
- *	   Phase = 1 //Optional, sets the phase of the timing generation, defaults to MAX_PHASE = 1000000u
+ *     Phase = 1 //Optional, sets the phase of the timing generation, defaults to MAX_PHASE = 1000000u
  *     CPUMask = 0x8 //Optional and only relevant if ExecutionMode=IndependentThread
- *	   +TimeProvider = { //Optional, if omitted defaults to HighResolutionTimeProvider
- *		   //Can be any of the implementing types for the TimeProvider interface
- *		   //Please refer to the TimeProvider.h header for implementation details
- *		   Class = HighResolutionTimeProvider
- *	   }
+ *     +TimeProvider = { //Optional, if omitted defaults to HighResolutionTimeProvider
+ *         //Can be any of the implementing types for the TimeProvider interface
+ *         //Please refer to the TimeProvider.h header for implementation details
+ *         Class = HighResolutionTimeProvider
+ *     }
  *     Signals = {
  *         Counter = {
  *             Type = uint32 //int32 also supported
@@ -72,12 +72,12 @@ namespace MARTe {
  *             Type = uint32 //int32 also supported
  *             Frequency = 1000
  *         }
- *		   AbsoluteTime = { //Optional, can be omitted
- *			   Type = uint64 //Only type supported
- *		   }
- *		   DeltaTime = { //Optional, can be omitted
- *			   Type = uint64 //Only type supported
- *		   }
+ *           AbsoluteTime = { //Optional, can be omitted
+ *               Type = uint64 //Only type supported
+ *           }
+ *           DeltaTime = { //Optional, can be omitted
+ *               Type = uint64 //Only type supported
+ *           }
  *     }
  * }
  * </pre>
@@ -157,7 +157,7 @@ public:
      * +Timer = {
      *     Class = LinuxTimer
      *     SleepNature = Busy|Default//If SleepNature is not specified then Default is set
-	 *     Phase = 1000000u
+     *     Phase = 1000000u
      *     Signals = {
      *         Counter = {
      *             Type = uint32 //int32 also supported
@@ -166,12 +166,12 @@ public:
      *             Type = uint32 //int32 also supported
      *             Frequency = 1000
      *         }
-	 *		   AbsoluteTime = { //Optional
-	 *			   Type = uint64 //Only uint64 supported
-	 *		   }
-	 *		   DeltaTime = { //Optional
-	 *			   Type = uint64 //Only uint64 supported
-	 *		   }
+     *           AbsoluteTime = { //Optional
+     *               Type = uint64 //Only uint64 supported
+     *           }
+     *           DeltaTime = { //Optional
+     *               Type = uint64 //Only uint64 supported
+     *           }
      *     }
      * }
      * If the SleepNature=Busy a Sleep::Busy will be used to wait for the 1/Frequency period to elapse, otherwise
@@ -207,9 +207,9 @@ public:
      */
     uint32 GetSleepPercentage() const;
 
-	/**
-	* @brief Purges the DataSource
-	*/
+    /**
+    * @brief Purges the DataSource
+    */
     virtual void Purge(ReferenceContainer &purgeList);
 
 private:
@@ -246,10 +246,10 @@ private:
      */
     SingleThreadService executor;
 
-	/**
-	*  @brief Number of ticks at the start of the cycle
-	*/
-	uint64 startTimeTicks;
+    /**
+    *  @brief Number of ticks at the start of the cycle
+    */
+    uint64 startTimeTicks;
 
     /**
      * @brief Sleeping period in units of ticks.
@@ -293,7 +293,7 @@ private:
 
     /**
      * @brief The absolute time
-     */	
+     */    
     uint64 absoluteTime;
 
     /**
