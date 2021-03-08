@@ -30,6 +30,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
 #include "DataSourceI.h"
 #include "GAMSchedulerI.h"
@@ -2484,20 +2485,6 @@ bool NI9157CircularFifoReaderTest::TestDriverRead() {
             "    NiRioGenSignature = \"03AB279CA6C34216C3ABAADB90262282\""
             "    Open = 1"
             "    Configuration = {"
-            // "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            // "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            // "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            // "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            // "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            // "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            // "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            // "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            // "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            // "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            // "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            // "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            // "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            // "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
             "        ControlBool_stop = 0"
             "        ControlBool_use_dsfifo_data = 0"
             "        ControlBool_use_counter = 1"
@@ -2512,109 +2499,43 @@ bool NI9157CircularFifoReaderTest::TestDriverRead() {
             "        +GAMA = {"
             "            Class = NI9157CircularFifoReaderTestGAM2"
             "            InputSignals = {"
-            "               Signal1 = {"
+            "               FIFO1_U64_R = {"
             "                   DataSource = Drv1"
             "                   Type = uint64"
             "                   Samples = 1"
             "                   NumberOfDimensions = 1"
             "                   NumberOfElements = 10000"
             "                   Frequency = 1000"
-            "                   PacketMemberSizes = {8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 1, 1, 2}"
+            "                   PacketMemberSizes = {8, 8, 8, 8, 8}"
             "               }"
             "            }"
             "            OutputSignals = {"
-            "                PacketCounter = {"
+            "                Signal0_U64_PacketCounter = {"
             "                    Type = uint64"
             "                    NumberOfDimensions = 1"
             "                    NumberOfElements = 2000"
             "                    DataSource = DDB"
             "                }"
-            "                MHVPS_Voltage = {"
-            "                    Type = uint16"
+            "                Signal1_U64 = {"
+            "                    Type = uint64"
             "                    NumberOfDimensions = 1"
             "                    NumberOfElements = 2000"
             "                    DataSource = DDB"
             "                }"
-            "                GY1_MHVPS_Current = {"
-            "                    Type = uint16"
+            "                Signal2_U64 = {"
+            "                    Type = uint64"
             "                    NumberOfDimensions = 1"
             "                    NumberOfElements = 2000"
             "                    DataSource = DDB"
             "                }"
-            "                GY2_MHVPS_Current = {"
-            "                    Type = uint16"
+            "                Signal3_U64 = {"
+            "                    Type = uint64"
             "                    NumberOfDimensions = 1"
             "                    NumberOfElements = 2000"
             "                    DataSource = DDB"
             "                }"
-            "                GY1_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                AI = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Alasm = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                InternalErrors = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                D0 = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                State = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Reserved = {"
-            "                    Type = uint16"
+            "                Signal4_U64 = {"
+            "                    Type = uint64"
             "                    NumberOfDimensions = 1"
             "                    NumberOfElements = 2000"
             "                    DataSource = DDB"
@@ -2633,7 +2554,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead() {
             "            NumberOfBuffers = 80"
             "            CheckFrame = 1"
             "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
+            "            CpuMask = 0x1"
             "            FifoName = \"FIFO1_U64_R\""
             "            RunNi = 1"
             "            +Checker = {"
@@ -2673,7 +2594,6 @@ bool NI9157CircularFifoReaderTest::TestDriverRead() {
 
     ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
     ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -2685,37 +2605,56 @@ bool NI9157CircularFifoReaderTest::TestDriverRead() {
     if (ret) {
         ret = dataSource->GetNiDeviceOperator() != NULL;
     }
-
-    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
-
+    ReferenceContainer inputBrokers;
     if (ret) {
-        ReferenceContainer inputBrokers;
         ret = gam->GetInputBrokers(inputBrokers);
-        if (ret) {
-            brokerSync = inputBrokers.Get(0);
-            ret = brokerSync.IsValid();
-        }
-        if (ret) {
-            ret = dataSource->PrepareNextState("State1", "State1");
-        }
-
-        uint32 numberOfReads = 2;
+    }
+    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    if (ret) {
+        uint32 numberOfReads = 2u;
+        uint32 numberOfValues = 2000u;
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
         uint64 counterStore = 0ull;
-    
         for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
             brokerSync->Execute();
             gam->Execute();
-            for (uint32 j = 0u; (j < 2000) && (ret); j++) {
-                if (i * 2000 + j > 0) {
-                    ret = ((mem[j] - counterStore) == 1);
+            for (uint32 j = 0u; (j < numberOfValues) && (ret); j++) {
+                //printf("mem[%d,%d] %u %llu\n", i, j, i * 2000 + j, mem[j]);
+                //if (i * 2000 + j > 0) {
+                if (j > 0) { 
+                    ret = ((mem[j] - counterStore) == 1u);
+                    if (!ret) {
+                        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at mem[%u]=%u != mem[%u]=%u + 1", j , static_cast<uint32>(mem[j]), j-1, static_cast<uint32>(counterStore));                        
+                    }
                 }
                 counterStore = mem[j];
             }
         }
+        Sleep::MSec(100);        
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret &= err.ErrorsCleared();
         Sleep::MSec(100);
-        ObjectRegistryDatabase::Instance()->Purge();
     }
+
+    ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
@@ -2973,7 +2912,16 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AllSignals() {
         if (ret) {
             ret = dataSource->PrepareNextState("State1", "State1");
         }
-
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
         uint32 numberOfReads = 5;
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
         uint64* tsMem = &mem[10000];
@@ -3002,6 +2950,13 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AllSignals() {
                 counterStore = mem[j];
             }
         }
+        Sleep::MSec(100);
+
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
         Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
@@ -3189,13 +3144,19 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AcquiredFromCounter() {
             "            NumberOfPacketsInFIFO = 20"
             "            CpuMask = 8"
             "            FifoName = \"FIFO1_U64_R\""
+            //"            RunNi = 1"
+            "            NumOfFrameForSync = 2"
             "            RunNi = 1"
+            "            CounterStep = 2000"
+            "            CheckCounterAfterNSteps = 2000"
+            "            AcquireFromCounter = 1"
+            "            FirstPacketCounter = 1"
             "            +Checker = {"
             "                Class = NI9157::CounterChecker"
             "                NumOfFrameForSync = 2"
             "                CounterStep = 2000"
             "                CheckCounterAfterNSteps = 2000"
-            "                AcquireFromCounter = 8001"
+            "                AcquireFromCounter = 1"    //8001
             "                FirstPacketCounter = 1"
             "                SampleSize = 8"
             "            }"
@@ -3257,7 +3218,16 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AcquiredFromCounter() {
         if (ret) {
             ret = dataSource->PrepareNextState("State1", "State1");
         }
-
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
         uint32 numberOfReads = 2;
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
         uint64* tsMem = &mem[10000];
@@ -3273,6 +3243,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AcquiredFromCounter() {
             gam->Execute();
             if (i > 0) {
                 uint32 delta = (uint32)((*tsMem - tsStore) * HighResolutionTimer::Period() * 1e6);
+                //printf("delta %u \n", delta);
                 ret = (((int32)(delta - expectedDeltaTs)) < tol) || (((int32)(delta - expectedDeltaTs)) > -tol);
             }
             for (uint32 j = 0u; (j < 3u) && (ret); j++) {
@@ -3280,13 +3251,22 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AcquiredFromCounter() {
             }
             tsStore = *tsMem;
             for (uint32 j = 0u; (j < 2000) && (ret); j++) {
-                if ((i * 2000 + j) > 0) {
+                //printf("mem %u = %u\n", j, static_cast<uint32>(mem[j]));
+                //if ((i * 2000 + j) > 0) {
+                if (j > 0) {
                     ret = ((mem[j] - counterStore) == 1);
-                    ret = (mem[j] > 8000);
+                    //ret = (mem[j] > 8000);
                 }
                 counterStore = mem[j];
             }
         }
+        Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+
         Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
@@ -3527,7 +3507,19 @@ bool NI9157CircularFifoReaderTest::TestDriverReadCompleteCycle() {
         if (ret) {
             ret = dataSource->PrepareNextState("State1", "State1");
         }
-
+Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
         uint32 numberOfReads = 200;
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
         uint64 storeCounter = 0ull;
@@ -3545,6 +3537,13 @@ bool NI9157CircularFifoReaderTest::TestDriverReadCompleteCycle() {
             storeCounter = mem[0];
         }
         Sleep::MSec(100);
+
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
     return ret;
@@ -3794,10 +3793,22 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_Resync() {
             ret = broker.IsValid();
         }
         if (ret) {
-            dataSource->Anticipate(1);
+            //dataSource->Anticipate(1);
             ret = dataSource->PrepareNextState("State1", "State1");
         }
-
+Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
         uint32 numberOfReads = 2;
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
         uint64* tsMem = &mem[10000];
@@ -3809,13 +3820,20 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_Resync() {
             gam->Execute();
             if (i == 1u) {
                 printf("ErrorCheck[%d]=%d\n", i, errCheckMem[0]);
-                ret = (errCheckMem[0] == 8);
+                //ret = (errCheckMem[0] == 8);
+                ret = (errCheckMem[0] == 0);
             }
             else {
                 ret = (errCheckMem[0] == 0);
             }
         }
-        Sleep::MSec(100);
+Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
     return ret;
@@ -4035,7 +4053,20 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_NoCheckCounter() {
         if (ret) {
             ret = dataSource->PrepareNextState("State1", "State1");
         }
-
+Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
+Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
         uint32 numberOfReads = 200;
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
         uint64 counterStore = 0ull;
@@ -4052,6 +4083,13 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_NoCheckCounter() {
             counterStore = mem[0];
         }
         Sleep::MSec(100);
+Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
     return ret;
@@ -4282,6 +4320,21 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_CheckAfterNPackets() {
             ret = dataSource->PrepareNextState("State1", "State1");
         }
 
+Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
+Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
+
         uint32 numberOfReads = 200;
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
         uint64 counterStore = 0ull;
@@ -4298,6 +4351,13 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_CheckAfterNPackets() {
 
         }
         Sleep::MSec(100);
+Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
     return ret;
@@ -4427,6 +4487,21 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_InternalInterleaved() {
         ret = dataSource->PrepareNextState("State1", "State1");
     }
 
+Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
+Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
+
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
     if (ret) {
         ReferenceContainer inputBrokers;
@@ -4456,7 +4531,13 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_InternalInterleaved() {
             }
             storeCounter = mem[0];
         }
-        Sleep::MSec(100);
+ Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+Sleep::MSec(100);
         ObjectRegistryDatabase::Instance()->Purge();
     }
     return ret;

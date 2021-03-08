@@ -249,7 +249,10 @@ bool NI9157CircularFifoReader::PrepareNextState(const char8 * const currentState
         numberOfReadWriteCurrent += numberOfConsumersCurrentState;
         numberOfReadWriteNext += numberOfConsumersNextState;
     }
-    if (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) {
+    REPORT_ERROR(ErrorManagement::FatalError, "numberOfReadWriteNext %u", numberOfReadWriteNext);
+    REPORT_ERROR(ErrorManagement::FatalError, "numberOfReadWriteCurrent %u", numberOfReadWriteCurrent);
+    //if (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) {
+    if ((numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) || (numberOfReadWriteNext == numberOfReadWriteCurrent && numberOfReadWriteCurrent > 0u)){
         eventSem.Post();
         for (uint32 i = 0u; (i < numberOfSignals); i++) {
             currentBuffer[i] = 0u;
@@ -280,7 +283,7 @@ bool NI9157CircularFifoReader::PrepareNextState(const char8 * const currentState
             }
         }
     }
-
+    REPORT_ERROR(ErrorManagement::FatalError, "PING PONG.");
     return ret;
 }
 
