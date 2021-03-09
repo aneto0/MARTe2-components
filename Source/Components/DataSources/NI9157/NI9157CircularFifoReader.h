@@ -65,6 +65,8 @@ namespace MARTe {
  *     FifoName = "NiFpga_TestGTD0001_TargetToHostFifoU64_FIFO" //the name of the FIFO variable
  *     NumOfFrameForSync = 2 //the number of packets to be used if the synchronisation is lost with the device (checking the packet counter). Default 2.
  *     RunNi = 1 //if the NI9157Device has to be started by this data source
+ *     Timeout = 0xFFFFFFFFu //The miliseconds timeout used by the NiFifoRead method calls within the DriverRead method.
+ *     NonBlockSleepT = 0.F //if 0.F, no NiFifoReader call is repeated within the same DriverRead method call. if >0.F, corresponds to the sleep time in seconds between NiReadFifo calls within DriverRead.
  *     CounterStep = 2000 //the gap between two consecutive packet counters (default 1)
  *     CheckCounterAfterNSteps = 2000 //when the counter must be checked. It must be multiple of CounterStep (default is equal to CounterStep).
  *     FirstPacketCounter = 1 //the first packet counter that should be acquired from the device.
@@ -93,6 +95,8 @@ public:
      *   totalReadSize = 0u;\n
      *   middleBuffer = NULL_PTR(uint8 *);\n
      *   runNi = 0u;\n
+     *   acqTimeout = 0xFFFFFFFFu;\n
+     *   nonBlockSleepT = 0.F;\n
      *   packetCounter = 1u;\n
      *   acquireFromCounter = 0u;\n
      *   nextPacketCheck = 1u;\n
@@ -134,7 +138,7 @@ public:
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
     /**
-     * @brief Configures the number of packets in the host-side FIFO and launchs the internal thread.
+     * @brief Configures the number of packets in the host-side FIFO and launches the internal thread.
      * @see CircularBufferThreadInputDataSource::PrepareNextState
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
@@ -142,6 +146,8 @@ public:
 
     /**
      * @brief The Synchronise method.
+     * @details Calls the CircularBufferThreadInputDataSource Synchronise method.
+     * @see CircularBufferThreadInputDataSource::Synchronise
      */
     virtual bool Synchronise();
 
@@ -163,11 +169,13 @@ public:
 
     /**
      * @brief The StopAcquisition method.
+     * @details If the thread is running, this thread attempts to stop it.
      */
     virtual ErrorManagement::ErrorType StopAcquisition();
 
     /**
-     * @brief The StartAcquisition method.
+     * @brief The StartAcquisition method. 
+     * @details Configures the FIFO and strats the thread.
      */
     virtual ErrorManagement::ErrorType StartAcquisition();
 
@@ -209,7 +217,7 @@ protected:
     uint32 totalReadSize;
 
     /**
-     * A buffer used to acquire data and for eventual re-synchronisations
+     * A buffer used to acquire data and for eventual re-synchronisation
      */
     uint8* middleBuffer;
 
@@ -234,22 +242,22 @@ protected:
     StreamString fifoName;
 
     /**
-     * TODO - WAS MISSING.
+     * The samples frame checker.
      */
     ReferenceT<SampleChecker> checker;
 
     /**
-     * TODO - WAS MISSING.
+     * The timeout used in the NiReadFifo calls of DriverRead in milliseconds.
      */
     uint32 acqTimeout;
 
     /**
-     * TODO - WAS MISSING.
+     * The semaphore used in the Synchronise method.
      */
     EventSem eventSem;
 
     /**
-     * TODO - WAS MISSING.
+     * The sleep time between NiReadFifo calls within DriverRead in seconds.
      */
     float32 nonBlockSleepT;
     

@@ -41,8 +41,10 @@ using namespace MARTe;
 
 /**
  * @brief Tests the NI9157MxiDataSource methods
- * @details Compile into the folder TestLabviewFiles and be sure that in the configuration streams of the tests the variable NiDevice.NiRioGenFile points to this
- * folder. Export also the environment variable NI9157_PROJ_DIR to the folder when the dynamic library is created after the compilation.
+ * @details Compile into the folder TestLabviewFiles and be sure that in the
+ * configuration streams of the tests the variable NiDevice.NiRioGenFile points
+ * to this folder. Export also the environment variable NI9157_PROJ_DIR to the
+ * folder when the dynamic library is created after the compilation.
  */
 class NI9157MxiDataSourceTest {
 public:

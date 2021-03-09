@@ -36,6 +36,16 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+/**
+ * The number of devices to be test. Must match firmware config paths.
+ */
+static uint32 nDevices = 1;
+
+/**
+ * Test for all devices (true) or until one matches the firmware config paths
+ * (false).
+ */
+static bool testAll = false;
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -45,142 +55,529 @@ TEST(NI9157CircularFifoReaderGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(NI9157CircularFifoReaderGTest,TestInitialise) {
+TEST(NI9157MxiDataSourceGTest,TestInitialise) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise(idx);
+        }
+        else {
+            ret = test.TestInitialise(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_DefaultRunNi) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_DefaultRunNi());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_DefaultRunNi(idx);
+        }
+        else {
+            ret = test.TestInitialise_DefaultRunNi(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_DefaultNumberOfPacketsInFIFO) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_DefaultNumberOfPacketsInFIFO());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_DefaultNumberOfPacketsInFIFO(idx);
+        }
+        else {
+            ret = test.TestInitialise_DefaultNumberOfPacketsInFIFO(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_DefaultAcquiredFromPacket) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_DefaultAcquiredFromPacket());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_DefaultAcquiredFromPacket(idx);
+        }
+        else {
+            ret = test.TestInitialise_DefaultAcquiredFromPacket(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_DefaultCheckCounterAfterNPackets) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_DefaultCheckCounterAfterNPackets());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_DefaultCheckCounterAfterNPackets(idx);
+        }
+        else {
+            ret = test.TestInitialise_DefaultCheckCounterAfterNPackets(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_DefaultCheckPacketCounter) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_DefaultCheckPacketCounter());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_DefaultCheckPacketCounter(idx);
+        }
+        else {
+            ret = test.TestInitialise_DefaultCheckPacketCounter(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_DefaultCounterStep) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_DefaultCounterStep());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_DefaultCounterStep(idx);
+        }
+        else {
+            ret = test.TestInitialise_DefaultCounterStep(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_DefaultNFrameForSync) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_DefaultNFrameForSync());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_DefaultNFrameForSync(idx);
+        }
+        else {
+            ret = test.TestInitialise_DefaultNFrameForSync(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_False_NFrameForSyncEqualTo1) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NFrameForSyncEqualTo1());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_False_NFrameForSyncEqualTo1(idx);
+        }
+        else {
+            ret = test.TestInitialise_False_NFrameForSyncEqualTo1(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_False_CounterStepZero) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_CounterStepZero());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_False_CounterStepZero(idx);
+        }
+        else {
+            ret = test.TestInitialise_False_CounterStepZero(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_False_CheckAfterNotDivideCounterStep) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_CheckAfterNotDivideCounterStep());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_False_CheckAfterNotDivideCounterStep(idx);
+        }
+        else {
+            ret = test.TestInitialise_False_CheckAfterNotDivideCounterStep(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_False_CounterStepNotDivideAcquireFromCounterDifference) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_CounterStepNotDivideAcquireFromCounterDifference());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_False_CounterStepNotDivideAcquireFromCounterDifference(idx);
+        }
+        else {
+            ret = test.TestInitialise_False_CounterStepNotDivideAcquireFromCounterDifference(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_False_NoFifoName) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoFifoName());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_False_NoFifoName(idx);
+        }
+        else {
+            ret = test.TestInitialise_False_NoFifoName(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_False_NoNI9157Device) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoNI9157Device());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_False_NoNI9157Device(idx);
+        }
+        else {
+            ret = test.TestInitialise_False_NoNI9157Device(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestInitialise_False_Invalidi9157Device) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestInitialise_False_Invalidi9157Device());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestInitialise_False_Invalidi9157Device(idx);
+        }
+        else {
+            ret = test.TestInitialise_False_Invalidi9157Device(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestSetConfiguredDatabase) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestSetConfiguredDatabase(idx);
+        }
+        else {
+            ret = test.TestSetConfiguredDatabase(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestSetConfiguredDatabase_False_MoreThanOneChannel) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneChannel());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestSetConfiguredDatabase_False_MoreThanOneChannel(idx);
+        }
+        else {
+            ret = test.TestSetConfiguredDatabase_False_MoreThanOneChannel(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestSetConfiguredDatabase_False_NiDevOperatorNotFound) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NiDevOperatorNotFound());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestSetConfiguredDatabase_False_NiDevOperatorNotFound(idx);
+        }
+        else {
+            ret = test.TestSetConfiguredDatabase_False_NiDevOperatorNotFound(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestSetConfiguredDatabase_False_InvalidFifoName) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_InvalidFifoName());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestSetConfiguredDatabase_False_InvalidFifoName(idx);
+        }
+        else {
+            ret = test.TestSetConfiguredDatabase_False_InvalidFifoName(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestPrepareNextState) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestPrepareNextState());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestPrepareNextState(idx);
+        }
+        else {
+            ret = test.TestPrepareNextState(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
+}
+
+TEST(NI9157CircularFifoReaderGTest,TestStopAcquisition) {
+    NI9157CircularFifoReaderTest test;
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestStopAcquisition(idx);
+        }
+        else {
+            ret = test.TestStopAcquisition(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
+}
+
+TEST(NI9157CircularFifoReaderGTest,TestStartAcquisition) {
+    NI9157CircularFifoReaderTest test;
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestStartAcquisition(idx);
+        }
+        else {
+            ret = test.TestStartAcquisition(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
+}
+
+TEST(NI9157CircularFifoReaderGTest,TestSynchronise) {
+    NI9157CircularFifoReaderTest test;
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestSynchronise(idx);
+        }
+        else {
+            ret = test.TestSynchronise(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestDriverRead) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestDriverRead());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestDriverRead(idx);
+        }
+        else {
+            ret = test.TestDriverRead(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestDriverRead_AllSignals) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestDriverRead_AllSignals());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestDriverRead_AllSignals(idx);
+        }
+        else {
+            ret = test.TestDriverRead_AllSignals(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestDriverRead_AcquiredFromCounter) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestDriverRead_AcquiredFromCounter());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestDriverRead_AcquiredFromCounter(idx);
+        }
+        else {
+            ret = test.TestDriverRead_AcquiredFromCounter(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestDriverReadCompleteCycle) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestDriverReadCompleteCycle());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestDriverReadCompleteCycle(idx);
+        }
+        else {
+            ret = test.TestDriverReadCompleteCycle(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestDriverRead_Resync) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestDriverRead_Resync());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestDriverRead_Resync(idx);
+        }
+        else {
+            ret = test.TestDriverRead_Resync(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestDriverRead_NoCheckCounter) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestDriverRead_NoCheckCounter());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestDriverRead_NoCheckCounter(idx);
+        }
+        else {
+            ret = test.TestDriverRead_NoCheckCounter(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestDriverRead_CheckAfterNPackets) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestDriverRead_CheckAfterNPackets());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestDriverRead_CheckAfterNPackets(idx);
+        }
+        else {
+            ret = test.TestDriverRead_CheckAfterNPackets(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157CircularFifoReaderGTest,TestDriverRead_InternalInterleaved) {
     NI9157CircularFifoReaderTest test;
-    ASSERT_TRUE(test.TestDriverRead_InternalInterleaved());
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAll) {
+            ret &= test.TestDriverRead_InternalInterleaved(idx);
+        }
+        else {
+            ret = test.TestDriverRead_InternalInterleaved(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
 }

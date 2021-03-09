@@ -41,170 +41,213 @@ using namespace MARTe;
 
 /**
  * @brief Tests the NI9157CircularFifoReader methods
- * @details Compile into the folder TestLabviewFiles and be sure that in the configuration streams of the tests the variable NiDevice.NiRioGenFile points to this
- * folder. Export also the environment variable NI9157_PROJ_DIR to the folder when the dynamic library is created after the compilation.
+ * @details Compile into the folder TestLabviewFiles and be sure that in the
+ * configuration streams of the tests the variable NiDevice.NiRioGenFile points
+ * to this folder. Export also the environment variable NI9157_PROJ_DIR to the
+ * folder when the dynamic library is created after the compilation.
  */
 class NI9157CircularFifoReaderTest {
 public:
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     NI9157CircularFifoReaderTest();
 
     /**
-     * @brief Destructor
+     * @brief Destructor.
      */
     virtual ~NI9157CircularFifoReaderTest();
 
     /**
-     * @brief Tests thw constructor
+     * @brief Tests the constructor.
      */
     bool TestConstructor();
 
     /**
-     * @brief Tests the Initialise method
+     * @brief Tests the Initialise method.
      */
-    bool TestInitialise();
+    bool TestInitialise(uint32 model);
 
     /**
-     * @brief Tests the Initialise method with the default RunNi parameter
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * with the default RunNi parameter.
      */
-    bool TestInitialise_DefaultRunNi();
+    bool TestInitialise_DefaultRunNi(uint32 model);
 
     /**
-     * @brief Tests the Initialise method with the default NumberOfPacketsInFIFO parameter
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * with the default NumberOfPacketsInFIFO parameter.
      */
-    bool TestInitialise_DefaultNumberOfPacketsInFIFO();
+    bool TestInitialise_DefaultNumberOfPacketsInFIFO(uint32 model);
 
     /**
-     * @brief Tests the Initialise method with the default AcquiredFromPacket parameter
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * with the default AcquiredFromPacket parameter.
      */
-    bool TestInitialise_DefaultAcquiredFromPacket();
+    bool TestInitialise_DefaultAcquiredFromPacket(uint32 model);
 
     /**
-     * @brief Tests the Initialise method with the default CheckPacketCounter parameter
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * with the default CheckPacketCounter parameter.
      */
-    bool TestInitialise_DefaultCheckPacketCounter();
+    bool TestInitialise_DefaultCheckPacketCounter(uint32 model);
 
     /**
-     * @brief Tests the Initialise method with the default CheckCounterAfterNPackets parameter
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * with the default CheckCounterAfterNPackets parameter.
      */
-    bool TestInitialise_DefaultCheckCounterAfterNPackets();
+    bool TestInitialise_DefaultCheckCounterAfterNPackets(uint32 model);
 
     /**
-     * @brief Tests the Initialise method with the default CounterStep parameter
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * with the default CounterStep parameter.
      */
-    bool TestInitialise_DefaultCounterStep();
+    bool TestInitialise_DefaultCounterStep(uint32 model);
 
     /**
-     * @brief Tests the Initialise method with the default NFrameForSync parameter
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * with the default NFrameForSync parameter.
      */
-    bool TestInitialise_DefaultNFrameForSync();
+    bool TestInitialise_DefaultNFrameForSync(uint32 model);
 
     /**
-     * @brief Tests the Initialise method that return false if CounterStep equal to 0
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * that return false if CounterStep equal to 0.
      */
-    bool TestInitialise_False_CounterStepZero();
+    bool TestInitialise_False_CounterStepZero(uint32 model);
 
     /**
-     * @brief Tests the Initialise method that return false with the default NFrameForSync parameter equal to 1
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * that return false with the default NFrameForSync parameter equal to 1.
      */
-    bool TestInitialise_False_NFrameForSyncEqualTo1();
+    bool TestInitialise_False_NFrameForSyncEqualTo1(uint32 model);
 
     /**
-     * @brief Tests the Initialise method that return false with the CheckCounterAfterNSteps
-     * does not divide CounterStep
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * that return false with the CheckCounterAfterNSteps does not divide
+     * CounterStep.
      */
-    bool TestInitialise_False_CheckAfterNotDivideCounterStep();
+    bool TestInitialise_False_CheckAfterNotDivideCounterStep(uint32 model);
 
     /**
-     * @brief Tests the Initialise method that return false if CounterStep
-     * does not divide AcquireFromCounter-FirstCounter
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * that return false if CounterStep does not divide 
+     * AcquireFromCounter-FirstCounter.
      */
-    bool TestInitialise_False_CounterStepNotDivideAcquireFromCounterDifference();
+    bool TestInitialise_False_CounterStepNotDivideAcquireFromCounterDifference(uint32 model);
 
     /**
-     * @brief Tests the Initialise method that returns false if the FIFO variable name is not specified
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * that returns false if the FIFO variable name is not specified.
      */
-    bool TestInitialise_False_NoFifoName();
+    bool TestInitialise_False_NoFifoName(uint32 model);
 
     /**
-     * @brief Tests the Initialise method that returns false if the NI9157Device path is not specified
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * that returns false if the NI9157Device path is not specified.
      */
-    bool TestInitialise_False_NoNI9157Device();
+    bool TestInitialise_False_NoNI9157Device(uint32 model);
 
     /**
-     * @brief Tests the Initialise method that returns false if the NI9157Device path is invalid
+     * @brief Tests the NI9157CircularFifoReaderTest::Initialise method
+     * that returns false if the NI9157Devicepath is invalid.
      */
-    bool TestInitialise_False_Invalidi9157Device();
+    bool TestInitialise_False_Invalidi9157Device(uint32 model);
 
     /**
-     * @brief Tests the SetConfiguredDatabase method
+     * @brief Tests the NI9157CircularFifoReaderTest::SetConfiguredDatabase
+     * method.
      */
-    bool TestSetConfiguredDatabase();
+    bool TestSetConfiguredDatabase(uint32 model);
 
     /**
-     * @brief Tests the SetConfiguredDatabase method that returns fale if more than one channel is specified
+     * @brief Tests the NI9157CircularFifoReaderTest::SetConfiguredDatabase
+     * method that returns false if more than one channel is specified.
      */
-    bool TestSetConfiguredDatabase_False_MoreThanOneChannel();
+    bool TestSetConfiguredDatabase_False_MoreThanOneChannel(uint32 model);
 
     /**
-     * @brief Tests the SetConfiguredDatabase method that returns false if the NI9157 operator cannot be found (unsupported type)
+     * @brief Tests the NI9157CircularFifoReaderTest::SetConfiguredDatabase
+     * method that returns false if the NI9157 operator cannot be found
+     * (unsupported type).
      */
-    bool TestSetConfiguredDatabase_False_NiDevOperatorNotFound();
+    bool TestSetConfiguredDatabase_False_NiDevOperatorNotFound(uint32 model);
 
     /**
-     * @brief Tests the SetConfiguredDatabase method that returns false if the FIFO variable name is not valid
+     * @brief Tests the NI9157CircularFifoReaderTest::SetConfiguredDatabase
+     * method that returns false if the FIFO variable name is not valid.
      */
-    bool TestSetConfiguredDatabase_False_InvalidFifoName();
+    bool TestSetConfiguredDatabase_False_InvalidFifoName(uint32 model);
 
     /**
-     * @brief Tests the PrepareNextState method
+     * @brief Tests the NI9157CircularFifoReaderTest::PrepareNextState
+     * method.
      */
-    bool TestPrepareNextState();
+    bool TestPrepareNextState(uint32 model);
 
     /**
-     * @brief Tests the DriverRead method
+     * @brief Test the NI9157CircularFifoReaderTest::StopAcquisition method.
      */
-    bool TestDriverRead();
+    bool TestStopAcquisition(uint32 model);
 
     /**
-     * @brief Tests the DriverRead method with all the allowed signals
+     * @brief Test the NI9157CircularFifoReaderTest::StartAcquisition method.
      */
-    bool TestDriverRead_AllSignals();
+    bool TestStartAcquisition(uint32 model);
 
     /**
-     * @brief Tests the DriverRead method defining AcquiredFromCounter>1
+     * @brief Test the NI9157CircularFifoReaderTest::Synchronise method.
      */
-    bool TestDriverRead_AcquiredFromCounter();
+    bool TestSynchronise(uint32 model);
 
     /**
-     * @brief Tests the DriverRead method performing the complete application cycle
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method.
      */
-    bool TestDriverReadCompleteCycle();
+    bool TestDriverRead(uint32 model);
 
     /**
-     * @brief Tests the DriverRead method when the synchronisation fails and the re-sync
-     * procedure must be executed
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method
+     * with all the allowed signals.
      */
-    bool TestDriverRead_Resync();
+    bool TestDriverRead_AllSignals(uint32 model);
 
     /**
-     * @brief Tests the DriverRead method without doing packet counter control
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method
+     * defining AcquiredFromCounter > 1.
      */
-    bool TestDriverRead_NoCheckCounter();
+    bool TestDriverRead_AcquiredFromCounter(uint32 model);
 
     /**
-     * @brief Tests the DriverRead method with CheckAfterNPackets greater than CounterStep
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method
+     * performing the complete application cycle.
      */
-    bool TestDriverRead_CheckAfterNPackets();
+    bool TestDriverReadCompleteCycle(uint32 model);
 
     /**
-     * @brief Tests the DriverRead method doing the de-interleaving operation in the
-     * internal thread. The acquiring frequency has been set to 2MHz (instead of 200KHz of the other tests)
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method
+     * when the synchronisation fails and the re-sync procedure must be
+     * executed.
      */
-    bool TestDriverRead_InternalInterleaved();
+    bool TestDriverRead_Resync(uint32 model);
+
+    /**
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method
+     * without doing packet counter control.
+     */
+    bool TestDriverRead_NoCheckCounter(uint32 model);
+
+    /**
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method
+     * with CheckAfterNPackets greater than CounterStep.
+     */
+    bool TestDriverRead_CheckAfterNPackets(uint32 model);
+
+    /**
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method
+     * doing the de-interleaving operation in the internal thread.
+     */
+    bool TestDriverRead_InternalInterleaved(uint32 model);
 
 };
 

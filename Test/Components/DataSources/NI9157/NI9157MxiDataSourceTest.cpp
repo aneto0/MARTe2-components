@@ -176,8 +176,6 @@ void *NI9157MxiDataSourceTestGAM2::GetOutputMemoryBuffer() {
 
 CLASS_REGISTER(NI9157MxiDataSourceTestGAM2, "1.0")
 
-static uint32 model = 0u;
-
 static const uint32 nParams                 = 3u;
 static const char8 * const firmwarePath     = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles";
 static const char8 * const multiIOFirmware[]= {"RIO0", "NiFpga_NI9159_MultiIO.lvbitx", "03AB279CA6C34216C3ABAADB90262282"};
