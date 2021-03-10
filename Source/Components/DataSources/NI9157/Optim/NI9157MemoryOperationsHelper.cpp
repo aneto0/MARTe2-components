@@ -39,12 +39,17 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+/*lint -e{9141} -e{714} known global declaration*/
 void NI9157MemoryOperationsHelper::InterleavedToFlat(MARTe::uint8 * const originSource, MARTe::uint8 * const originDest, const MARTe::uint32 beginIndex, const MARTe::uint32 * const packetMemberSize, const MARTe::uint32 packetByteSize,
                                                      const MARTe::uint32 numberOfPacketMembers, const MARTe::uint32 numberOfSamples) {
+    /*lint -e{714} symbol refrenced*/
     MARTe::MemoryOperationsHelper::InterleavedToFlat(originSource, originDest, beginIndex, packetMemberSize, packetByteSize, numberOfPacketMembers, numberOfSamples);
 }
 
+/*lint -e{9141} -e{714} known global declaration*/
 void NI9157MemoryOperationsHelper::FlatToInterleaved(MARTe::uint8 * const originSource, MARTe::uint8 * const originDest, const MARTe::uint32 beginIndex, const MARTe::uint32 * const packetMemberSize, const MARTe::uint32 packetByteSize,
                                                      const MARTe::uint32 numberOfPacketMembers, const MARTe::uint32 numberOfSamples) {
+    /*lint -e{714} symbol refrenced*/
     MARTe::MemoryOperationsHelper::FlatToInterleaved(originSource, originDest, beginIndex, packetMemberSize, packetByteSize, numberOfPacketMembers, numberOfSamples);
 }
+

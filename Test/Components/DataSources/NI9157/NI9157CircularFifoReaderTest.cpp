@@ -16,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
  * the class NI9157CircularFifoReaderTest (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
@@ -80,6 +80,7 @@ public:
                                   const char8 * const nextStateName);
 
 protected:
+
     uint8 anticipateFpgaRun;
 
 };
@@ -221,7 +222,7 @@ static const uint32 nParams                 = 3u;
 static const char8 * const firmwarePath     = "Test/Components/Interfaces/NI9157Device/TestLabviewFiles";
 static const char8 * const multiIOFirmware[]= {"RIO0", "NiFpga_NI9159_MultiIO.lvbitx", "03AB279CA6C34216C3ABAADB90262282"};
 
-static const char8 * const multiIOConfig0 = "";
+static const char8 * const multiIOConfig0 = ""
     "+NiDevice = {"
     "    Class = NI9157Device"
     "    NiRioDeviceName = XptoDevice"
@@ -242,7 +243,6 @@ static const char8 * const multiIOConfig0 = "";
     "        Class = ReferenceContainer"
     "        +GAMA = {"
     "            Class = NI9157CircularFifoReaderTestGAM1"
-    // "            TcnTimeStamp = {"
     "            InputSignals = {"
     "               Signal1 = {"
     "                   DataSource = Drv1"
@@ -549,7 +549,7 @@ static const char8 * const multiIOConfig2 = ""
 /**
  * Helper function to setup a MARTe execution environment
  */
-static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config) {
+/*static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
@@ -575,7 +575,7 @@ static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config)
     }
 
     return ok;
-}
+}*/
 
 NI9157CircularFifoReaderTest::NI9157CircularFifoReaderTest() {
 }
@@ -590,10 +590,10 @@ bool NI9157CircularFifoReaderTest::TestConstructor() {
     bool ret = (dataSource.GetCheckPacketCounter() == 0u);
     ret &= (dataSource.GetNFrameForSync() == 1u);
     ret &= (dataSource.GetSampleByteSize() == 0u);
-    ret &= (dataSource.GetNiDeviceOperator() == NULL_PTR(NI9157CircularFifoReaderTestDS *));
+    ret &= (dataSource.GetNiDeviceOperator() == NULL_PTR(NI9157DeviceOperatorTI *));
     ret &= (dataSource.GetFifoDev() == 0u);
     ret &= (dataSource.GetTotalReadSize() == 0u);
-    ret &= (dataSource.GetMiddleBuffer() == NULL_PTR(NI9157CircularFifoReaderTestDS *));
+    ret &= (dataSource.GetMiddleBuffer() == NULL_PTR(uint8 *));
     ret &= (dataSource.GetRunNi() == 0u);
     ret &= (dataSource.GetNumberOfPacketsInFIFO() == 10u);
 
@@ -821,8 +821,8 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultRunNi(uint32 model) {
         ret = dataSource.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNFrameForSync() == 3);
-        ret &= (dataSource->GetRunNi() == 0);
+        ret = (dataSource->GetNFrameForSync() == 3u);
+        ret &= (dataSource->GetRunNi() == 0u);
         ret &= (dataSource->GetNumberOfPacketsInFIFO() == 20u);
     }
 
@@ -1272,12 +1272,7 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCheckCounterAfterNPacke
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
         ret &= cdb.MoveToRoot();
     }
-    if (ret) {
-        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
-        ret &= cdb.Delete("CheckFrame");
-        ret &= cdb.MoveToRoot();
-    }
-
+  
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
@@ -2383,9 +2378,8 @@ bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase(uint32 model) {
         ret &= cdb.MoveToRoot();
     }
     if (ret) {
-        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
         ret &= cdb.Write("NumOfFrameForSync", 2);
-        ret &= cdb.Delete("AcquireFromCounter");
         ret &= cdb.MoveToRoot();
     }
 
@@ -2408,7 +2402,7 @@ bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase(uint32 model) {
         ret = dataSource.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157CircularFifoReaderTestDS *));
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
 
     ObjectRegistryDatabase::Instance()->Purge();
@@ -2537,7 +2531,7 @@ bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_MoreThanOneCh
     }
 
     ObjectRegistryDatabase::Instance()->Purge();
-    return ret;
+    return !ret;
 }
 
 bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_NiDevOperatorNotFound(uint32 model) {
@@ -2653,7 +2647,7 @@ bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_NiDevOperator
     }
 
     ObjectRegistryDatabase::Instance()->Purge();
-    return ret;
+    return !ret;
 }
 
 bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_InvalidFifoName(uint32 model) {
@@ -2769,12 +2763,12 @@ bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_InvalidFifoNa
     }
 
     ObjectRegistryDatabase::Instance()->Purge();
-    return ret;
+    return !ret;
 }
 
 bool NI9157CircularFifoReaderTest::TestPrepareNextState(uint32 model) {
 
-/*    static const char8 * const config = ""
+    static const char8 * const config = ""
             "+NiDevice = {"
             "    Class = NI9157Device"
             "    NiRioDeviceName = RIO0"
@@ -2847,17 +2841,18 @@ bool NI9157CircularFifoReaderTest::TestPrepareNextState(uint32 model) {
             "        Class = GAMScheduler"
             "        TimingDataSource = Timings"
             "    }"
-            "}";*/
+            "}";
 
     // bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = multiIOConfig0;
+    StreamString configStream = config;
+    //StreamString configStream = multiIOConfig0;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ret = parser.Parse();
 
-    StreamString pathAndFile = "";
+    /*StreamString pathAndFile = "";
     if (ret) {
         ret = cdb.MoveAbsolute("+NiDevice");
         ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
@@ -2876,7 +2871,7 @@ bool NI9157CircularFifoReaderTest::TestPrepareNextState(uint32 model) {
         ret &= cdb.Write("NumOfFrameForSync", 2);
         ret &= cdb.Delete("AcquireFromCounter");
         ret &= cdb.MoveToRoot();
-    }
+    }*/
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
@@ -2897,7 +2892,7 @@ bool NI9157CircularFifoReaderTest::TestPrepareNextState(uint32 model) {
         ret = dataSource.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157CircularFifoReaderTestDS *));
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(MARTe::NI9157DeviceOperatorTI *));
     }
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
@@ -2957,7 +2952,7 @@ bool NI9157CircularFifoReaderTest::TestStopAcquisition(uint32 model) {
         ret = dataSource.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157CircularFifoReaderTestDS *));
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(MARTe::NI9157DeviceOperatorTI *));
     }
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
@@ -3023,7 +3018,7 @@ bool NI9157CircularFifoReaderTest::TestStartAcquisition(uint32 model) {
         ret = dataSource.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157CircularFifoReaderTestDS *));
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
@@ -3095,7 +3090,7 @@ bool NI9157CircularFifoReaderTest::TestSynchronise(uint32 model) {
         ret = gam.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157CircularFifoReaderTestDS *));
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
     ReferenceContainer inputBrokers;
     if (ret) {
@@ -3292,7 +3287,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead(uint32 model) {
         ret = gam.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157CircularFifoReaderTestDS *));
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
     ReferenceContainer inputBrokers;
     if (ret) {
@@ -3595,7 +3590,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AllSignals(uint32 model) {
         ret = gam.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157CircularFifoReaderTestDS *));
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
     ReferenceT < MemoryMapMultiBufferInputBroker > broker;
@@ -3916,7 +3911,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AcquiredFromCounter(uint32 mod
         ret = gam.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157CircularFifoReaderTestDS *));
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
     ReferenceT < MemoryMapMultiBufferInputBroker > broker;
@@ -4192,7 +4187,7 @@ bool NI9157CircularFifoReaderTest::TestDriverReadCompleteCycle(uint32 model) {
     }
     if (ret) {
         ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
-        ret &= cdb.Write("sleepInMutexSec", 1e-9);
+        ret &= cdb.Write("sleepInMutexSec", "1e-9");
         ret &= cdb.MoveToRoot();
         ret &= cdb.MoveAbsolute("$Application1.+States.+State1.+Threads.+Thread1");
         ret &= cdb.Write("RunOnCpu", 1);
@@ -4223,7 +4218,7 @@ bool NI9157CircularFifoReaderTest::TestDriverReadCompleteCycle(uint32 model) {
         ret = gam.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157CircularFifoReaderTestDS *));
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
     ReferenceT < MemoryMapOutputBroker > outBroker;
@@ -4533,7 +4528,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_Resync(uint32 model) {
         ret = gam.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157CircularFifoReaderTestDS *));
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
     ReferenceT < MemoryMapMultiBufferInputBroker > broker;
@@ -4812,7 +4807,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_NoCheckCounter(uint32 model) {
         ret = gam.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157CircularFifoReaderTestDS *));
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
     ReferenceContainer inputBrokers;
@@ -5048,6 +5043,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_CheckAfterNPackets(uint32 mode
     // bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
+    //StreamString configStream = config;
     StreamString configStream = multiIOConfig1;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
@@ -5092,7 +5088,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_CheckAfterNPackets(uint32 mode
         ret = gam.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157CircularFifoReaderTestDS *));
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
     ReferenceContainer inputBrokers;
@@ -5112,7 +5108,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_CheckAfterNPackets(uint32 mode
         err = dataSource->StopAcquisition();
         ret = err.ErrorsCleared();
     }
-    Sleep::MSec(100);
+    Sleep::MSec(100); 
     if (ret) {
         ErrorManagement::ErrorType err;
         err = dataSource->StartAcquisition();
@@ -5236,6 +5232,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_InternalInterleaved(uint32 mod
     // bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
+    //StreamString configStream = config;
     StreamString configStream = multiIOConfig0;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
@@ -5252,31 +5249,38 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_InternalInterleaved(uint32 mod
     }
     if (ret) {
         ret = cdb.MoveAbsolute("$Application1.+Functions.+GAMA.InputSignals.Signal1");
-        ret &= cdb.Write("NumberOfDimensions", 1);
-        ret &= cdb.Write("NumberOfElements", 10000);
-        ret &= cdb.Write("Frequency", 1000);
+        ret &= cdb.Write("NumberOfDimensions", "1");
+        ret &= cdb.Write("NumberOfElements", "10000");
+        ret &= cdb.Write("Frequency", "1000");
         ret &= cdb.MoveToRoot();
         ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1");
-        ret &= cdb.Write("NumberOfPacketsInFIFO", 5);
-        ret &= cdb.Write("SleepInMutexSec", 1e-9);
+        //ret &= cdb.Write("CpuMask", "16");
+        ret &= cdb.Write("NumberOfPacketsInFIFO", "5");
+        ret &= cdb.Write("SleepInMutexSec", "1e-9");
         ret &= cdb.MoveRelative("+Checker");
-        ret &= cdb.Write("AcquireFromCounter", 1);
-        ret &= cdb.Delete("FirstPacketCounter");
+        ret &= cdb.Write("NumOfFrameForSync", "2");
+        ret &= cdb.Write("AcquireFromCounter", "1");
+        ret &= cdb.Write("FirstPacketCounter", "1");
         ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1");
         ret &= cdb.CreateRelative("Signals");
-        ret &= cdb.MoveRelative("Signals");
         ret &= cdb.CreateRelative("Signal1");
-        ret &= cdb.MoveRelative("Signal1");
         ret &= cdb.Write("DataSource", "Drv1");
         ret &= cdb.Write("Type", "uint64");
-        ret &= cdb.Write("NumberOfDimensions", 1);
-        ret &= cdb.Write("NumberOfElements", 10000);
-        ret &= cdb.Write("PacketMemberSizes", "{8, 8, 8, 8, 8}");
+        ret &= cdb.Write("NumberOfDimensions", "1");
+        ret &= cdb.Write("NumberOfElements", "10000");
+        const char * packetMemberSizesArray [] = {"8", "8", "8", "8", "8"};
+        //const char * packetMemberSizesArray [] = {"8", "2", "2", "2", "2", "2", "2", "2", "2", "2", "2", "4", "4", "1", "1", "2"};
+        ret &= cdb.Write("PacketMemberSizes", packetMemberSizesArray);
         ret &= cdb.MoveToRoot();
         ret &= cdb.MoveAbsolute("$Application1.+States.+State1.+Threads.+Thread1");
-        ret &= cdb.Write("RunOnCpu", 1);
+        ret &= cdb.Write("RunOnCpu", "1");
         ret &= cdb.MoveToRoot();
     }
+
+    //StreamString temp;
+    //temp.Printf("%s",cdb);
+    //printf("%s\n",temp.Buffer());
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
@@ -5302,7 +5306,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_InternalInterleaved(uint32 mod
         ret = gam.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157CircularFifoReaderTestDS *));
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
     ReferenceContainer inputBrokers;
@@ -5353,7 +5357,7 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_InternalInterleaved(uint32 mod
         err = dataSource->StopAcquisition();
         ret &= err.ErrorsCleared();
     }
-    
+   
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }

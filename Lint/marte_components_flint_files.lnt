@@ -43,6 +43,7 @@
 -i./Source/Components/DataSources/NI6259/
 -i./Source/Components/DataSources/NI6368/
 -i./Source/Components/DataSources/NI9157/
+-i./Source/Components/DataSources/NI9157/Optim/
 -i./Source/Components/DataSources/RealTimeThreadAsyncBridge/
 -i./Source/Components/DataSources/RealTimeThreadSynchronisation/
 -i./Source/Components/DataSources/SDN/
@@ -78,6 +79,7 @@ BaseLib2WrapperMessageFilter.cpp
 ConstantGAM.cpp
 ConversionGAM.cpp
 ConversionHelper.cpp
+CounterChecker.cpp
 CreateNI9157DeviceOperator.cpp
 CreateNI9157DeviceOperatorI.cpp
 CRCGAM.cpp
@@ -117,6 +119,7 @@ LinkDataSource.cpp
 LinuxTimer.cpp
 LoggerDataSource.cpp
 LoggerBroker.cpp
+MarkerBitChecker.cpp
 MathExpressionGAM.cpp
 MDSStructuredDataI.cpp
 MDSReader.cpp
@@ -134,17 +137,19 @@ NI6368ADC.cpp
 NI6368ADCInputBroker.cpp
 NI6368DAC.cpp
 NI6368DIO.cpp
-NI9157Device.cpp
 NI9157CircularFifoReader.cpp
+NI9157Device.cpp
 NI9157DeviceOperatorDatabase.cpp
 NI9157DeviceOperatorT.cpp
 NI9157DeviceOperatorTI.cpp
+NI9157MemoryOperationsHelper.cpp
 NI9157MxiDataSource.cpp
 Platform.cpp
 PIDGAM.cpp
 RealTimeThreadAsyncBridge.cpp
 RealTimeThreadSynchBroker.cpp
 RealTimeThreadSynchronisation.cpp
+SampleChecker.cpp
 Sigblock.cpp
 SigblockDoubleBuffer.cpp
 Signal.h

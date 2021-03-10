@@ -114,6 +114,7 @@ bool CounterChecker::Initialise(StructuredDataI &data) {
     return ret;
 }
 
+/*lint -e{952} -e{578} parameter 'sample' not declared as const*/
 bool CounterChecker::Check(uint8 *sample,
                            bool &write) {
 
@@ -144,6 +145,7 @@ bool CounterChecker::Check(uint8 *sample,
     return ret;
 }
 
+/*lint -e{952} -e{578} parameter 'sample' not declared as const*/
 bool CounterChecker::Synchronise(uint8 *frames,
                                  uint32 sizeToRead,
                                  uint32 &idx,
@@ -158,7 +160,7 @@ bool CounterChecker::Synchronise(uint8 *frames,
         //try all the elements and compare them with the relative
         //ones in the other frames
         candidate = 0ull;
-        /*lint -e{340} -e{927} -e{826} -e{740} Allowed cast from pointer to pointer*/
+        /*lint -e{340} -e{534} -e{927} -e{928} -e{826} -e{740} Allowed cast from pointer to pointer*/
         MemoryOperationsHelper::Copy(reinterpret_cast<uint8*>(&candidate), reinterpret_cast<uint8*>(&frames[idx]), sampleSize);
         syncCnt = 1u;
         for (uint32 j = 1u; (j < nFrameForSync) && (syncCnt < nFrameForSync); j++) {
@@ -204,7 +206,8 @@ bool CounterChecker::Synchronise(uint8 *frames,
         }
     }
     else {
-        REPORT_ERROR(ErrorManagement::FatalError, "Failed Sync %d %d", *reinterpret_cast<uint64*>(&(frames[0])), packetCounter);
+        /*lint -e{927} -e{826} Allowed cast from pointer to pointer*/
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed Sync %llu %u", *reinterpret_cast<uint64*>(&(frames[0])), packetCounter);
     }
 
     return ret;

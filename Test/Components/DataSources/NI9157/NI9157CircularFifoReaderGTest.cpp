@@ -55,7 +55,7 @@ TEST(NI9157CircularFifoReaderGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(NI9157MxiDataSourceGTest,TestInitialise) {
+TEST(NI9157CircularFifoReaderGTest,TestInitialise) {
     NI9157CircularFifoReaderTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
@@ -394,7 +394,7 @@ TEST(NI9157CircularFifoReaderGTest,TestPrepareNextState) {
     }
     ASSERT_TRUE(ret);
 }
-
+ 
 TEST(NI9157CircularFifoReaderGTest,TestStopAcquisition) {
     NI9157CircularFifoReaderTest test;
     bool ret = true;

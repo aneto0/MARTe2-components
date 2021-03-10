@@ -42,9 +42,11 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-MarkerBitChecker::MarkerBitChecker() {
+MarkerBitChecker::MarkerBitChecker() :
+        SampleChecker() {
     // Auto-generated constructor stub for MarkerBitChecker
     // TODO Verify if manual additions are needed
+
     resetBitMask = 0ull;
     bitMask = 0ull;
 }
@@ -83,21 +85,24 @@ bool MarkerBitChecker::Initialise(StructuredDataI &data) {
     return ret;
 }
 
+/*lint -e{952} -e{578} parameter 'sample' not declared as const*/
 bool MarkerBitChecker::Check(uint8 *sample,
                              bool &write) {
     write = true;
     uint64 temp = 0ull;
-    MemoryOperationsHelper::Copy(&temp, sample, sampleSize);
-    bool ret = ((temp & bitMask) != 0ull);
-
+    bool ret = MemoryOperationsHelper::Copy(&temp, sample, sampleSize);
+    if (ret) {
+        ret = ((temp & bitMask) != 0ull);
+    }
     if (ret) {
         temp &= ~(resetBitMask);
-        MemoryOperationsHelper::Copy(sample, &temp, sampleSize);
+        ret = MemoryOperationsHelper::Copy(sample, &temp, sampleSize);
     }
 
     return ret;
 }
 
+/*lint -e{952} -e{578} parameters 'frames' and 'sizeToRead' not declared as const*/
 bool MarkerBitChecker::Synchronise(uint8 *frames,
                                    uint32 sizeToRead,
                                    uint32 &idx,
