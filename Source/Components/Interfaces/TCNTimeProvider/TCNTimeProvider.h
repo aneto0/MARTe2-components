@@ -43,17 +43,18 @@ const uint64 TCNTIMEPROVIDER_DEFAULT_FREQUENCY = 1000000000ull;
 const uint32 TCNTIMEPROVIDER_DEFAULT_TOLERANCE = 1000u;
 
 typedef enum {
-    TcnTimeProvider_NoPollLegacyMode,
-    TcnTimeProvider_PollLegacyMode,
-    TcnTimeProvider_WaitUntilMode,
-    TcnTimeProvider_WaitUntilHRMode
-}TcnTimeProviderOperationMode;
+    TCNTimeProvider_NoPollLegacyMode,
+    TCNTimeProvider_PollLegacyMode,
+    TCNTimeProvider_WaitUntilMode,
+    TCNTimeProvider_WaitUntilHRMode,
+    
+}TCNTimeProviderOperationMode;
 
-class TcnTimeProvider: public TimeProvider {
+class TCNTimeProvider: public TimeProvider {
 public:
     CLASS_REGISTER_DECLARATION()
 
-    TcnTimeProvider();
+    TCNTimeProvider();
 
     virtual ~TcnTimeProvider();
 
@@ -69,7 +70,7 @@ public:
                            uint64 delta);
 
 private:
-    TcnTimeProviderOperationMode operationMode;
+    TCNTimeProviderOperationMode operationMode;
     uint64 tcnFrequency;
     uint32 tolerance;
 };

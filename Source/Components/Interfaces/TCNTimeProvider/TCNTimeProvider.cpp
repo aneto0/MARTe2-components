@@ -45,16 +45,16 @@
 
 namespace MARTe {
 
-TcnTimeProvider::TcnTimeProvider() {
+TCNTimeProvider::TcnTimeProvider() {
     tcnFrequency = 0u;
 }
 
-TcnTimeProvider::~TcnTimeProvider() {
+TCNTimeProvider::~TcnTimeProvider() {
     // Auto-generated destructor stub for TcnTimeProvider
     // TODO Verify if manual additions are needed
 }
 
-bool TcnTimeProvider::Initialise(StructuredDataI &data) {
+bool TCNTimeProvider::Initialise(StructuredDataI &data) {
     bool ret = Object::Initialise(data);
     
     if (ret) {
@@ -189,21 +189,21 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
 }
 
 
-uint64 TcnTimeProvider::Counter() {
+uint64 TCNTimeProvider::Counter() {
     uint64 tcnTime;
     tcn_get_time((hpn_timestamp_t*) (&tcnTime));
     return tcnTime;
 }
 
-float64 TcnTimeProvider::Period() {
+float64 TCNTimeProvider::Period() {
     return (1.0 / Frequency());
 }
 
-uint64 TcnTimeProvider::Frequency() {
+uint64 TCNTimeProvider::Frequency() {
     return tcnFrequency;
 }
 
-void TcnTimeProvider::BusySleep(uint64 start, uint64 delta) {
+void TCNTimeProvider::BusySleep(uint64 start, uint64 delta) {
 
     switch(operationMode) {
         case TcnTimeProvider_NoPollLegacyMode: {
@@ -240,6 +240,6 @@ void TcnTimeProvider::BusySleep(uint64 start, uint64 delta) {
     }
 }
 
-CLASS_REGISTER(TcnTimeProvider, "1.0")
+CLASS_REGISTER(TCNTimeProvider, "1.0")
 
 }
