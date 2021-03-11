@@ -140,7 +140,7 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
             }
             else {
                 StreamString tempOperationMode;
-                if(data.Read("OperationMode", tempOperationMode) {
+                if(data.Read("OperationMode", tempOperationMode)) {
                     if(tempOperationMode == "NoPollLegacyMode") {
                         REPORT_ERROR(ErrorManagement::Information, "No Poll legacy mode selected");
                         operationMode = TcnTimeProvider_NoPollLegacyMode;
