@@ -55,7 +55,7 @@ public:
 
     TCNTimeProvider();
 
-    virtual ~TcnTimeProvider();
+    virtual ~TCNTimeProvider();
 
     virtual bool Initialise(StructuredDataI &data);
 
