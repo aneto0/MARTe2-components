@@ -99,7 +99,7 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
                     case TCN_SUCCESS:
                         REPORT_ERROR(ErrorManagement::Information, "tcn_init successful!");
                         break;
-                    case EACCESS:
+                    case EACCES:
                         REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, configuration settings missing or invalid (EACCESS)");
                         ret = false;
                         break;
@@ -229,7 +229,8 @@ void TcnTimeProvider::BusySleep(uint64 start, uint64 delta) {
         }
         case TcnTimeProvider_WaitUntilHRMode: {
             hpn_timestamp_t waitUntilDeltaHR = (hpn_timestamp_t)(start + delta);
-            tcn_wait_until_hr(waitUntilDeltaHR, tolerance);
+            hpn_timestamp_t wakeUpTime = 0u;
+            tcn_wait_until_hr(waitUntilDeltaHR, &wakeUpTime, tolerance);
             break;
         }
         default: {
