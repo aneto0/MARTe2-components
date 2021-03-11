@@ -46,7 +46,7 @@
 namespace MARTe {
 
 TcnTimeProvider::TcnTimeProvider() {
-    frequency = 0u;
+    tcnFrequency = 0u;
 }
 
 TcnTimeProvider::~TcnTimeProvider() {
