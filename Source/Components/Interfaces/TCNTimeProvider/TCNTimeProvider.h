@@ -50,30 +50,28 @@ typedef enum {
 }TCNTimeProviderOperationMode;
 
 class TCNTimeProvider: public TimeProvider {
-public:
-    CLASS_REGISTER_DECLARATION()
+    public:
+        CLASS_REGISTER_DECLARATION()
 
-    TCNTimeProvider();
+        TCNTimeProvider();
 
-    virtual ~TCNTimeProvider();
+        virtual ~TCNTimeProvider();
 
-    virtual bool Initialise(StructuredDataI &data);
+        virtual bool Initialise(StructuredDataI &data);
 
-    virtual uint64 Counter();
+        virtual uint64 Counter();
 
-    virtual float64 Period();
+        virtual float64 Period();
 
-    virtual uint64 Frequency();
+        virtual uint64 Frequency();
 
-    virtual void BusySleep(uint64 start,
-                           uint64 delta);
+        virtual void BusySleep(uint64 start, uint64 delta);
 
-private:
-    TCNTimeProviderOperationMode operationMode;
-    uint64 tcnFrequency;
-    uint32 tolerance;
-};
-
+    private:
+        TCNTimeProviderOperationMode operationMode;
+        uint64 tcnFrequency;
+        uint32 tolerance;
+    };
 }
 
 /*---------------------------------------------------------------------------*/
