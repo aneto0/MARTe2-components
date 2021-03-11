@@ -53,6 +53,11 @@ EPICSPVA = "1"
 endif
 endif
 
+ifdef CODAC_ROOT
+SPB += TCNTimeProvider.x
+LIBRARIES_STATIC+=$(BUILD_DIR)/TCNTimeProvider/TCNTimeProvider$(LIBEXT)
+endif
+
 ifdef EPICSPVA
 SPB+=EPICSPVA.x
 endif
@@ -65,7 +70,6 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 LIBRARIES_STATIC=$(BUILD_DIR)/MemoryGate/MemoryGate$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/SysLogger/SysLogger$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/TCNTimeProvider/TCNTimeProvider$(LIBEXT)
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI9157Device/NI9157Device$(LIBEXT)
