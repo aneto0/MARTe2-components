@@ -161,13 +161,19 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
                         REPORT_ERROR(ErrorManagement::ParametersError, "An invalid operation mode was specified [%s]", tempOperationMode);
                         ret = false;
                     }
+                    if(!data.Read("Tolerance", tempTolerance)) {
+                        tolerance = TCNTIMEPROVIDER_DEFAULT_TOLERANCE;
+                        REPORT_ERROR(ErrorManagement::Information, "Tolerance parameter omitted, defaulting to %d", tolerance);
+                    }
+                    else {
+                        tolerance = tempTolerance;
+                        REPORT_ERROR(ErrorManagement::Information, "Tolerance set to %d", tolerance;
+                    }
                 }
                 else {
                     REPORT_ERROR(ErrorManagement::Information, "No TcnPoll and no OperationMode parameter found, defaulting to Legacy NoPoll mode (TcnPoll = 0)");
                     operationMode = TcnTimeProvider_NoPollLegacyMode;
                 }
-                tcnPoll = TCNTIMEPROVIDER_DEFAULT_POLL;
-                REPORT_ERROR(ErrorManagement::Information, "Missing TcnPoll parameter, defaulting to TcnPoll = %d", tcnPoll);
             }
         }
         
@@ -213,8 +219,12 @@ void TcnTimeProvider::BusySleep(uint64 start, uint64 delta) {
             }
             break;
         case TcnTimeProvider_WaitUntilMode:
+            hpn_timestamp_t waitUntilDelta = (hpn_timestamp_t)(start + delta);
+            tcn_wait_until(waitUntilDelta, tolerance);
             break;
         case TcnTimeProvider_WaitUntilHRMode:
+            hpn_timestamp_t waitUntilDeltaHR = (hpn_timestamp_t)(start + delta);
+            tcn_wait_until_hr(waitUntilDeltaHR, tolerance);
             break;
         default:
             //Here only for linting purposes. operationMode is always fully defined
