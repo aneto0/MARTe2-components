@@ -124,7 +124,7 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
             }
         }
         if(!ret) {
-            REPORT_ERROR(ErrorManagement::Fatal, "Missing TcnDevice configuration parameter");
+            REPORT_ERROR(ErrorManagement::FatalError, "Missing TcnDevice configuration parameter");
         }
 
         if(ret) {
@@ -167,7 +167,7 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
                     }
                     else {
                         tolerance = tempTolerance;
-                        REPORT_ERROR(ErrorManagement::Information, "Tolerance set to %d", tolerance;
+                        REPORT_ERROR(ErrorManagement::Information, "Tolerance set to %d", tolerance);
                     }
                 }
                 else {
