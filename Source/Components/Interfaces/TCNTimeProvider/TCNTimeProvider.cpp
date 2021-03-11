@@ -131,10 +131,10 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
             if (data.Read("TcnPoll", tcnPoll)) {
                 REPORT_ERROR(ErrorManagement::Information, "TcnPoll parameter is set to %d [Legacy Configuration Mode]", tcnPoll);
                 if(tcnPoll == 0) {
-                    operationMode = TcnTimeProvider_NoPollLegacyMode;                
+                    operationMode = TCNTimeProvider_NoPollLegacyMode;                
                 }
                 else {
-                    operationMode = TcnTimeProvider_PollLegacyMode;
+                    operationMode = TCNTimeProvider_PollLegacyMode;
                 }
             }
             else {
@@ -142,19 +142,19 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                 if(data.Read("OperationMode", tempOperationMode)) {
                     if(tempOperationMode == "NoPollLegacyMode") {
                         REPORT_ERROR(ErrorManagement::Information, "No Poll legacy mode selected");
-                        operationMode = TcnTimeProvider_NoPollLegacyMode;
+                        operationMode = TCNTimeProvider_NoPollLegacyMode;
                     }
                     else if(tempOperationMode == "PollLegacyMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Poll legacy mode selected");
-                        operationMode = TcnTimeProvider_PollLegacyMode;
+                        operationMode = TCNTimeProvider_PollLegacyMode;
                     }
                     else if(tempOperationMode == "WaitUntilMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Wait until mode selected");
-                        operationMode = TcnTimeProvider_WaitUntilMode;
+                        operationMode = TCNTimeProvider_WaitUntilMode;
                     }
                     else if(tempOperationMode == "WaitUntilHRMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Wait until with high resolution counter mode selected");
-                        operationMode = TcnTimeProvider_WaitUntilHRMode;
+                        operationMode = TCNTimeProvider_WaitUntilHRMode;
                     }
                     else {
                         REPORT_ERROR(ErrorManagement::ParametersError, "An invalid operation mode was specified [%s]", tempOperationMode);
@@ -173,7 +173,7 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                 }
                 else {
                     REPORT_ERROR(ErrorManagement::Information, "No TcnPoll and no OperationMode parameter found, defaulting to Legacy NoPoll mode (TcnPoll = 0)");
-                    operationMode = TcnTimeProvider_NoPollLegacyMode;
+                    operationMode = TCNTimeProvider_NoPollLegacyMode;
                 }
             }
         }
@@ -206,7 +206,7 @@ uint64 TCNTimeProvider::Frequency() {
 void TCNTimeProvider::BusySleep(uint64 start, uint64 delta) {
 
     switch(operationMode) {
-        case TcnTimeProvider_NoPollLegacyMode: {
+        case TCNTimeProvider_NoPollLegacyMode: {
             uint64 startTicks = static_cast<uint64>((start) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
             uint64 deltaTicks = static_cast<uint64>((delta) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
             while ((HighResolutionTimer::Counter() - startTicks) < deltaTicks) {
@@ -214,7 +214,7 @@ void TCNTimeProvider::BusySleep(uint64 start, uint64 delta) {
             }
             break;
         }
-        case TcnTimeProvider_PollLegacyMode: {
+        case TCNTimeProvider_PollLegacyMode: {
             uint64 startTicks = start;
             uint64 deltaTicks = delta;
             while ((Counter() - startTicks) < deltaTicks) {
@@ -222,12 +222,12 @@ void TCNTimeProvider::BusySleep(uint64 start, uint64 delta) {
             }
             break;
         }
-        case TcnTimeProvider_WaitUntilMode: {
+        case TCNTimeProvider_WaitUntilMode: {
             hpn_timestamp_t waitUntilDelta = (hpn_timestamp_t)(start + delta);
             tcn_wait_until(waitUntilDelta, tolerance);
             break;
         }
-        case TcnTimeProvider_WaitUntilHRMode: {
+        case TCNTimeProvider_WaitUntilHRMode: {
             hpn_timestamp_t waitUntilDeltaHR = (hpn_timestamp_t)(start + delta);
             hpn_timestamp_t wakeUpTime = 0u;
             tcn_wait_until_hr(waitUntilDeltaHR, &wakeUpTime, tolerance);
