@@ -231,7 +231,7 @@ void TcnTimeProvider::BusySleep(uint64 start, uint64 delta) {
             hpn_timestamp_t waitUntilDeltaHR = (hpn_timestamp_t)(start + delta);
             tcn_wait_until_hr(waitUntilDeltaHR, tolerance);
             break;
-        {
+        }
         default: {
             //Here only for linting purposes. operationMode is always fully defined
             break;
