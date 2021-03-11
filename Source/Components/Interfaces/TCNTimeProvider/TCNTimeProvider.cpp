@@ -178,15 +178,17 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
             }
         }
         
-        if(ret) {
-            if (!data.Read("TcnFrequency", tcnFrequency)) {
-                tcnFrequency = TCNTIMEPROVIDER_DEFAULT_FREQUENCY;
-                REPORT_ERROR(ErrorManagement::Information, "Missing TcnFrequency parameter, defaulting to TcnFrequency = %d", tcnFrequency);
+            if(ret) {
+                if (!data.Read("TcnFrequency", tcnFrequency)) {
+                    tcnFrequency = TCNTIMEPROVIDER_DEFAULT_FREQUENCY;
+                    REPORT_ERROR(ErrorManagement::Information, "Missing TcnFrequency parameter, defaulting to TcnFrequency = %d", tcnFrequency);
+                }
             }
         }
     }
     return ret;
 }
+
 
 uint64 TcnTimeProvider::Counter() {
     uint64 tcnTime;
