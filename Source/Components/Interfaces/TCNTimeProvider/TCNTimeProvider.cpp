@@ -206,31 +206,36 @@ uint64 TcnTimeProvider::Frequency() {
 void TcnTimeProvider::BusySleep(uint64 start, uint64 delta) {
 
     switch(operationMode) {
-        case TcnTimeProvider_NoPollLegacyMode:
+        case TcnTimeProvider_NoPollLegacyMode: {
             uint64 startTicks = static_cast<uint64>((start) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
             uint64 deltaTicks = static_cast<uint64>((delta) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
             while ((HighResolutionTimer::Counter() - startTicks) < deltaTicks) {
                 ;
             }
             break;
-        case TcnTimeProvider_PollLegacyMode:
+        }
+        case TcnTimeProvider_PollLegacyMode: {
             uint64 startTicks = start;
             uint64 deltaTicks = delta;
             while ((Counter() - startTicks) < deltaTicks) {
                 ;
             }
             break;
-        case TcnTimeProvider_WaitUntilMode:
+        }
+        case TcnTimeProvider_WaitUntilMode: {
             hpn_timestamp_t waitUntilDelta = (hpn_timestamp_t)(start + delta);
             tcn_wait_until(waitUntilDelta, tolerance);
             break;
-        case TcnTimeProvider_WaitUntilHRMode:
+        }
+        case TcnTimeProvider_WaitUntilHRMode: {
             hpn_timestamp_t waitUntilDeltaHR = (hpn_timestamp_t)(start + delta);
             tcn_wait_until_hr(waitUntilDeltaHR, tolerance);
             break;
-        default:
+        {
+        default: {
             //Here only for linting purposes. operationMode is always fully defined
             break;
+        }
     }
 }
 
