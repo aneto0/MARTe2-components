@@ -22,7 +22,7 @@
  */
 
 #ifndef SOURCE_COMPONENTS_DATASOURCES_LINUXTIMER_TCNTIMEPROVIDER_H_
-#define 		SOURCE_COMPONENTS_DATASOURCES_LINUXTIMER_TCNTIMEPROVIDER_H_
+#define SOURCE_COMPONENTS_DATASOURCES_LINUXTIMER_TCNTIMEPROVIDER_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */

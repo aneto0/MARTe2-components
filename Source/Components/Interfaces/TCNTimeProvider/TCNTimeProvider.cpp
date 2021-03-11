@@ -45,11 +45,11 @@
 
 namespace MARTe {
 
-TCNTimeProvider::TcnTimeProvider() {
+TCNTimeProvider::TCNTimeProvider() {
     tcnFrequency = 0u;
 }
 
-TCNTimeProvider::~TcnTimeProvider() {
+TCNTimeProvider::~TCNTimeProvider() {
     // Auto-generated destructor stub for TcnTimeProvider
     // TODO Verify if manual additions are needed
 }
