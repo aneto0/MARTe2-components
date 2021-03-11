@@ -46,8 +46,7 @@ typedef enum {
     TCNTimeProvider_NoPollLegacyMode,
     TCNTimeProvider_PollLegacyMode,
     TCNTimeProvider_WaitUntilMode,
-    TCNTimeProvider_WaitUntilHRMode,
-    
+    TCNTimeProvider_WaitUntilHRMode
 }TCNTimeProviderOperationMode;
 
 class TCNTimeProvider: public TimeProvider {
