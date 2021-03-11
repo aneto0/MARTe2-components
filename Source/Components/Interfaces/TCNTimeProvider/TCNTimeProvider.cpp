@@ -46,7 +46,6 @@
 namespace MARTe {
 
 TcnTimeProvider::TcnTimeProvider() {
-    tcnPoll = 0u;
     frequency = 0u;
 }
 
@@ -161,6 +160,8 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
                         REPORT_ERROR(ErrorManagement::ParametersError, "An invalid operation mode was specified [%s]", tempOperationMode);
                         ret = false;
                     }
+                    uint32 tempTolerance = 0u;
+
                     if(!data.Read("Tolerance", tempTolerance)) {
                         tolerance = TCNTIMEPROVIDER_DEFAULT_TOLERANCE;
                         REPORT_ERROR(ErrorManagement::Information, "Tolerance parameter omitted, defaulting to %d", tolerance);
