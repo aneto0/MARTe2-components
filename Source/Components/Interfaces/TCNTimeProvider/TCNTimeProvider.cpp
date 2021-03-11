@@ -91,7 +91,7 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
                     REPORT_ERROR(ErrorManagement::ParametersError, "tcn_register_device failed, returned an unknown error (%d)", tcnRetVal);
                     ret = false;
                     break;
-            
+            }
             
             if (ret) {
                 tcnRetVal = tcn_init();
@@ -178,11 +178,10 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
             }
         }
         
-            if(ret) {
-                if (!data.Read("TcnFrequency", tcnFrequency)) {
-                    tcnFrequency = TCNTIMEPROVIDER_DEFAULT_FREQUENCY;
-                    REPORT_ERROR(ErrorManagement::Information, "Missing TcnFrequency parameter, defaulting to TcnFrequency = %d", tcnFrequency);
-                }
+        if(ret) {
+            if (!data.Read("TcnFrequency", tcnFrequency)) {
+                tcnFrequency = TCNTIMEPROVIDER_DEFAULT_FREQUENCY;
+                REPORT_ERROR(ErrorManagement::Information, "Missing TcnFrequency parameter, defaulting to TcnFrequency = %d", tcnFrequency);
             }
         }
     }
