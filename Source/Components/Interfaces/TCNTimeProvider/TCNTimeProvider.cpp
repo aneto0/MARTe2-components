@@ -251,7 +251,7 @@ void TCNTimeProvider::SleepHRBSP(uint64 start, uint64 delta) {
 }
 
 void TCNTimeProvider::BusySleep(uint64 start, uint64 delta) {
-    CALL_MEMBER_FUN(this, BusySleepProvider)(start, delta);
+    (this->*BusySleepProvider)(start, delta);    
 }
 
 CLASS_REGISTER(TCNTimeProvider, "1.0")
