@@ -130,6 +130,16 @@ TEST(FileReaderGTest,TestInitialise_Warning_InterpolationPeriod) {
     ASSERT_TRUE(test.TestInitialise_Warning_InterpolationPeriod());
 }
 
+TEST(FileReaderGTest,TestInitialise_Preload_no) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestInitialise_Preload_no());
+}
+
+TEST(FileReaderGTest,TestInitialise_Preload_yes_NoMaxSize) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestInitialise_Preload_yes_NoMaxSize());
+}
+
 TEST(FileReaderGTest,TestSetConfiguredDatabase) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
@@ -295,9 +305,19 @@ TEST(FileReaderGTest,TestEOF_CSV) {
     ASSERT_TRUE(test.TestEOF_CSV());
 }
 
+TEST(FileReaderGTest,TestEOF_CSV_Preload) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_CSV_Preload());
+}
+
 TEST(FileReaderGTest,TestEOF_Binary) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestEOF_Binary());
+}
+
+TEST(FileReaderGTest,TestEOF_Binary_Preload) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Binary_Preload());
 }
 
 TEST(FileReaderGTest,TestEOF_Rewind_CSV) {
@@ -305,9 +325,19 @@ TEST(FileReaderGTest,TestEOF_Rewind_CSV) {
     ASSERT_TRUE(test.TestEOF_Rewind_CSV());
 }
 
+TEST(FileReaderGTest,TestEOF_Rewind_CSV_Preload) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Rewind_CSV_Preload());
+}
+
 TEST(FileReaderGTest,TestEOF_Rewind_Binary) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestEOF_Rewind_Binary());
+}
+
+TEST(FileReaderGTest,TestEOF_Rewind_Binary_Preload) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Rewind_Binary_Preload());
 }
 
 TEST(FileReaderGTest,TestEOF_Last_CSV) {
@@ -315,9 +345,19 @@ TEST(FileReaderGTest,TestEOF_Last_CSV) {
     ASSERT_TRUE(test.TestEOF_Last_CSV());
 }
 
+TEST(FileReaderGTest,TestEOF_Last_CSV_Preload) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Last_CSV_Preload());
+}
+
 TEST(FileReaderGTest,TestEOF_Last_Binary) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestEOF_Last_Binary());
+}
+
+TEST(FileReaderGTest,TestEOF_Last_Binary_Preload) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Last_Binary_Preload());
 }
 
 TEST(FileReaderGTest,TestEOF_Error_CSV) {
@@ -325,8 +365,18 @@ TEST(FileReaderGTest,TestEOF_Error_CSV) {
     ASSERT_TRUE(test.TestEOF_Error_CSV());
 }
 
+TEST(FileReaderGTest,TestEOF_Error_CSV_Preload) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Error_CSV_Preload());
+}
+
 TEST(FileReaderGTest,TestEOF_Error_Binary) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestEOF_Error_Binary());
+}
+
+TEST(FileReaderGTest,TestEOF_Error_Binary_Preload) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Error_Binary_Preload());
 }
 

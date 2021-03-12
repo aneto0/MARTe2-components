@@ -202,6 +202,16 @@ public:
     bool TestInitialise_Warning_InterpolationPeriod();
 
     /**
+     * @brief Tests the Initialise method with Preaload = "no".
+     */
+    bool TestInitialise_Preload_no();
+
+    /**
+     * @brief Tests the Initialise method with Preaload = "yes" MaxFileByteSize not specified.
+     */
+    bool TestInitialise_Preload_yes_NoMaxSize();
+
+    /**
      * @brief Tests the SetConfiguredDatabase.
      */
     bool TestSetConfiguredDatabase();
@@ -297,9 +307,19 @@ public:
     bool TestEOF_CSV();
 
     /**
+     * @brief Tests the EOF for the CVS files with the default behaviour (Rewind) using preload.
+     */
+    bool TestEOF_CSV_Preload();
+
+    /**
      * @brief Tests the EOF for binary files with the default behaviour (Rewind).
      */
     bool TestEOF_Binary();
+
+    /**
+     * @brief Tests the EOF for binary files with the default behaviour (Rewind) using preload.
+     */
+    bool TestEOF_Binary_Preload();
 
     /**
      * @brief Tests the EOF for the CVS files with the Rewind behaviour.
@@ -307,9 +327,19 @@ public:
     bool TestEOF_Rewind_CSV();
 
     /**
+     * @brief Tests the EOF for the CVS files with the Rewind behaviour using prelaod.
+     */
+    bool TestEOF_Rewind_CSV_Preload();
+
+    /**
      * @brief Tests the EOF for binary files with the Rewind behaviour.
      */
     bool TestEOF_Rewind_Binary();
+
+    /**
+     * @brief Tests the EOF for binary files with the Rewind behaviour using prelaod.
+     */
+    bool TestEOF_Rewind_Binary_Preload();
 
     /**
      * @brief Tests the EOF for the CVS files with the Last behaviour.
@@ -317,9 +347,19 @@ public:
     bool TestEOF_Last_CSV();
 
     /**
+     * @brief Tests the EOF for the CVS files with the Last behaviour using preload.
+     */
+    bool TestEOF_Last_CSV_Preload();
+
+    /**
      * @brief Tests the EOF for binary files with the Last behaviour.
      */
     bool TestEOF_Last_Binary();
+
+    /**
+     * @brief Tests the EOF for binary files with the Last behaviour using preload.
+     */
+    bool TestEOF_Last_Binary_Preload();
 
     /**
      * @brief Tests the EOF for the CVS files with the Error behaviour.
@@ -327,9 +367,19 @@ public:
     bool TestEOF_Error_CSV();
 
     /**
+     * @brief Tests the EOF for the CVS files with the Error behaviour using preload.
+     */
+    bool TestEOF_Error_CSV_Preload();
+
+    /**
      * @brief Tests the EOF for binary files with the Error behaviour.
      */
     bool TestEOF_Error_Binary();
+
+    /**
+     * @brief Tests the EOF for binary files with the Error behaviour using preload..
+     */
+    bool TestEOF_Error_Binary_Preload();
 };
 
 /*---------------------------------------------------------------------------*/
