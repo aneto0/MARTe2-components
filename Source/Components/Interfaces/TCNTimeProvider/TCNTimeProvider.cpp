@@ -250,7 +250,7 @@ void TCNTimeProvider::SleepBSP(uint64 start, uint64 delta) {
 void TCNTimeProvider::SleepHRBSP(uint64 start, uint64 delta) {
 }
 
-void TCNTimeProvider::TCNTimeProvider::BusySleep(uint64 start, uint64 delta) {
+void TCNTimeProvider::BusySleep(uint64 start, uint64 delta) {
     BusySleepProvider(start, delta);
 }
 
