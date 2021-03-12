@@ -55,7 +55,6 @@ endif
 
 ifdef CODAC_ROOT
 SPB += TCNTimeProvider.x
-LIBRARIES_STATIC+=$(BUILD_DIR)/TCNTimeProvider/TCNTimeProvider$(LIBEXT)
 endif
 
 ifdef EPICSPVA
@@ -73,6 +72,7 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/SysLogger/SysLogger$(LIBEXT)
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI9157Device/NI9157Device$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/TCNTimeProvider/TCNTimeProvider$(LIBEXT)
 endif
 
 ifdef EFDA_MARTe_DIR
