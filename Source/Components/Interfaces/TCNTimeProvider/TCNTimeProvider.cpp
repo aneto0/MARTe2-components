@@ -158,7 +158,7 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                     else if(tempOperationMode == "WaitUntilHRMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Wait until with high resolution counter mode selected");
                         operationMode = TCNTimeProvider_WaitUntilHRMode;
-                        BusySleepProvider = &TCNTimeProvider::WaitUntilHR;
+                        BusySleepProvider = &TCNTimeProvider::WaitUntilHRBSP;
                     }
                     else if(tempOperationMode == "SleepMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Sleep mode selected");
