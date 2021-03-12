@@ -24,6 +24,8 @@
 #ifndef SOURCE_COMPONENTS_DATASOURCES_LINUXTIMER_TCNTIMEPROVIDER_H_
 #define SOURCE_COMPONENTS_DATASOURCES_LINUXTIMER_TCNTIMEPROVIDER_H_
 
+#define CALL_MEMBER_FUN(object, ptrToMemberFun)  ((object).*(ptrToMemberFun))
+
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
