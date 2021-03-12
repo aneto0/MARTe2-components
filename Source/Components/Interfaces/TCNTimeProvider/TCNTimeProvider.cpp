@@ -239,6 +239,7 @@ void TCNTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
         ;
     }
     int64 tempError = HighResolutionTimer::Counter() - (startTicks + deltaTicks);
+    printf("TempError %lld\r\n", tempError);
     cumulativeError += tempError;
     lastCallError = tempError;
 }
