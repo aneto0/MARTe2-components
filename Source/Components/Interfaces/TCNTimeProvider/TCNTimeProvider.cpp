@@ -143,18 +143,32 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                     if(tempOperationMode == "NoPollLegacyMode") {
                         REPORT_ERROR(ErrorManagement::Information, "No Poll legacy mode selected");
                         operationMode = TCNTimeProvider_NoPollLegacyMode;
+                        BusySleepProvider = &NoPollBSP;
                     }
                     else if(tempOperationMode == "PollLegacyMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Poll legacy mode selected");
                         operationMode = TCNTimeProvider_PollLegacyMode;
+                        BusySleepProvider = &PollBSP;
                     }
                     else if(tempOperationMode == "WaitUntilMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Wait until mode selected");
                         operationMode = TCNTimeProvider_WaitUntilMode;
+                        BusySleepProvider = &WaitUntilBSP;
                     }
                     else if(tempOperationMode == "WaitUntilHRMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Wait until with high resolution counter mode selected");
                         operationMode = TCNTimeProvider_WaitUntilHRMode;
+                        BusySleepProvider = &WaitUntilHR;
+                    }
+                    else if(tempOperationMode == "SleepMode") {
+                        REPORT_ERROR(ErrorManagement::Information, "Sleep mode selected");
+                        operationMode = TCNTimeProvider_SleepMode;
+                        BusySleepProvider = &SleepBSP;
+                    }
+                    else if(tempOperationMode == "SleepHRMode") {
+                        REPORT_ERROR(ErrorManagement::Information, "Sleep with high resolution counter mode selected");
+                        operationMode = TCNTimeProvider_SleepHRMode;
+                        BusySleepProvider = &SleepHRBSP;
                     }
                     else {
                         REPORT_ERROR(ErrorManagement::ParametersError, "An invalid operation mode was specified [%s]", tempOperationMode);
@@ -203,41 +217,41 @@ uint64 TCNTimeProvider::Frequency() {
     return tcnFrequency;
 }
 
-void TCNTimeProvider::BusySleep(uint64 start, uint64 delta) {
-
-    switch(operationMode) {
-        case TCNTimeProvider_NoPollLegacyMode: {
-            uint64 startTicks = static_cast<uint64>((start) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
-            uint64 deltaTicks = static_cast<uint64>((delta) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
-            while ((HighResolutionTimer::Counter() - startTicks) < deltaTicks) {
-                ;
-            }
-            break;
-        }
-        case TCNTimeProvider_PollLegacyMode: {
-            uint64 startTicks = start;
-            uint64 deltaTicks = delta;
-            while ((Counter() - startTicks) < deltaTicks) {
-                ;
-            }
-            break;
-        }
-        case TCNTimeProvider_WaitUntilMode: {
-            hpn_timestamp_t waitUntilDelta = (hpn_timestamp_t)(start + delta);
-            tcn_wait_until(waitUntilDelta, tolerance);
-            break;
-        }
-        case TCNTimeProvider_WaitUntilHRMode: {
-            hpn_timestamp_t waitUntilDeltaHR = (hpn_timestamp_t)(start + delta);
-            hpn_timestamp_t wakeUpTime = 0u;
-            tcn_wait_until_hr(waitUntilDeltaHR, &wakeUpTime, tolerance);
-            break;
-        }
-        default: {
-            //Here only for linting purposes. operationMode is always fully defined
-            break;
-        }
+void NoPollBSP(uint64 start, uint64 delta) {
+    uint64 startTicks = static_cast<uint64>((start) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
+    uint64 deltaTicks = static_cast<uint64>((delta) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
+    while ((HighResolutionTimer::Counter() - startTicks) < deltaTicks) {
+        ;
     }
+}
+
+void PollBSP(uint64 start, uint64 delta) {
+    uint64 startTicks = start;
+    uint64 deltaTicks = delta;
+    while ((Counter() - startTicks) < deltaTicks) {
+        ;
+    }
+}
+
+void WaitUntilBSP(uint64 start, uint64 delta) {
+    hpn_timestamp_t waitUntilDelta = (hpn_timestamp_t)(start + delta);
+    tcn_wait_until(waitUntilDelta, tolerance);
+}
+
+void WaitUntilHRBSP(uint64 start, uint64 delta) {
+    hpn_timestamp_t waitUntilDeltaHR = (hpn_timestamp_t)(start + delta);
+    hpn_timestamp_t wakeUpTime = 0u;
+    tcn_wait_until_hr(waitUntilDeltaHR, &wakeUpTime, tolerance);
+}
+
+void SleepBSP(uint64 start, uint64 delta) {
+}
+
+void SleepHRBSP(uint64 start, uint64 delta) {
+}
+
+void TCNTimeProvider::BusySleep(uint64 start, uint64 delta) {
+    BusySleepProvider(start, delta);
 }
 
 CLASS_REGISTER(TCNTimeProvider, "1.0")

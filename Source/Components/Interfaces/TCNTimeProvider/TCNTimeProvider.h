@@ -46,7 +46,9 @@ typedef enum {
     TCNTimeProvider_NoPollLegacyMode,
     TCNTimeProvider_PollLegacyMode,
     TCNTimeProvider_WaitUntilMode,
-    TCNTimeProvider_WaitUntilHRMode
+    TCNTimeProvider_WaitUntilHRMode,
+    TCNTimeProvider_SleepMode,
+    TCNTimeProvider_SleepHRMode
 }TCNTimeProviderOperationMode;
 
 class TCNTimeProvider: public TimeProvider {
@@ -71,6 +73,14 @@ class TCNTimeProvider: public TimeProvider {
         TCNTimeProviderOperationMode operationMode;
         uint64 tcnFrequency;
         uint32 tolerance;
+        void (*BusySleepProvider)(uint64, uint64);
+
+        void NoPollBSP(uint64 start, uint64 delta);
+        void PollBSP(uint64 start, uint64 delta);
+        void WaitUntilBSP(uint64 start, uint64 delta);
+        void WaitUntilHRBSP(uint64 start, uint64 delta);
+        void SleepBSP(uint64 start, uint64 delta);
+        void SleepHRBSP(uint64 start, uint64 delta);
     };
 }
 
