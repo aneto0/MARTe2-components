@@ -26,6 +26,7 @@
 /*---------------------------------------------------------------------------*/
 #include <tcn.h>
 #include <errno.h>
+#include <stdio.h>
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -52,6 +53,7 @@ TCNTimeProvider::TCNTimeProvider() {
 
 TCNTimeProvider::~TCNTimeProvider() {
     REPORT_ERROR(ErrorManagement::Information, "TCNTimeProvider disposed, cumulative error was %d [%d on last call]", cumulativeError, lastCallError);
+    printf("Disposal %lld %lld\r\n", cumulativeError, lastCallError);
 }
 
 bool TCNTimeProvider::Initialise(StructuredDataI &data) {
