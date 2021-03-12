@@ -280,7 +280,11 @@ void TCNTimeProvider::SleepHRBSP(uint64 start, uint64 delta) {
 }
 
 void TCNTimeProvider::BusySleep(uint64 start, uint64 delta) {
+<<<<<<< HEAD
     (this->*BusySleepProvider)(start, delta);
+=======
+    (this->*BusySleepProvider)(start, delta);    
+>>>>>>> 9b744298e830fdc7c2b7c412f882bed2dbc96d7b
 }
 
 CLASS_REGISTER(TCNTimeProvider, "1.0")
