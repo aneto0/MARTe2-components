@@ -73,7 +73,7 @@ class TCNTimeProvider: public TimeProvider {
         TCNTimeProviderOperationMode operationMode;
         uint64 tcnFrequency;
         uint32 tolerance;
-        void (*BusySleepProvider)(uint64, uint64);
+        void (TCNTimeProvider::*BusySleepProvider)(uint64, uint64);
 
         void NoPollBSP(uint64 start, uint64 delta);
         void PollBSP(uint64 start, uint64 delta);
