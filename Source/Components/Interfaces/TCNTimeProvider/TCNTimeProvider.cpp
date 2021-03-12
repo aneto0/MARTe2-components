@@ -183,6 +183,7 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                 else {
                     REPORT_ERROR(ErrorManagement::Information, "No TcnPoll and no OperationMode parameter found, defaulting to Legacy NoPoll mode (TcnPoll = 0)");
                     operationMode = TCNTimeProvider_NoPollLegacyMode;
+                    BusySleepProvider = &TCNTimeProvider::NoPollBSP;
                 }
             }
         }
