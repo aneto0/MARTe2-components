@@ -47,11 +47,12 @@ namespace MARTe {
 
 TCNTimeProvider::TCNTimeProvider() {
     tcnFrequency = 0u;
+    cumulativeError = 0u;
+    lastCallError = 0u;
 }
 
 TCNTimeProvider::~TCNTimeProvider() {
-    // Auto-generated destructor stub for TcnTimeProvider
-    // TODO Verify if manual additions are needed
+    REPORT_ERROR(ErrorManagement::Information, "TCNTimeProvider disposed, cumulative error was %d [%d on last call]", cumulativeError, lastCallError);
 }
 
 bool TCNTimeProvider::Initialise(StructuredDataI &data) {
@@ -223,6 +224,9 @@ void TCNTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
     while ((HighResolutionTimer::Counter() - startTicks) < deltaTicks) {
         ;
     }
+    uint64 tempError = HighResolutionTimer::Counter() - (startTicks + deltaTicks);
+    cumulativeError += tempError;
+    lastCallError = tempError;
 }
 
 void TCNTimeProvider::PollBSP(uint64 start, uint64 delta) {
@@ -231,27 +235,52 @@ void TCNTimeProvider::PollBSP(uint64 start, uint64 delta) {
     while ((Counter() - startTicks) < deltaTicks) {
         ;
     }
+
+    uint64 tempError = Counter() - (start + delta);
+    cumulativeError += tempError;
+    lastCallError = tempError;
 }
 
 void TCNTimeProvider::WaitUntilBSP(uint64 start, uint64 delta) {
     hpn_timestamp_t waitUntilDelta = (hpn_timestamp_t)(start + delta);
-    tcn_wait_until(waitUntilDelta, tolerance);
+    int32 sleepResult = tcn_wait_until(waitUntilDelta, tolerance);
+    if(sleepResult != TCN_SUCCESS) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Sleep providing function tcn_wait_until failing with error %d", sleepResult);
+    }
 }
 
 void TCNTimeProvider::WaitUntilHRBSP(uint64 start, uint64 delta) {
     hpn_timestamp_t waitUntilDeltaHR = (hpn_timestamp_t)(start + delta);
     hpn_timestamp_t wakeUpTime = 0u;
-    tcn_wait_until_hr(waitUntilDeltaHR, &wakeUpTime, tolerance);
+
+    int32 sleepResult = (int32)tcn_wait_until_hr(waitUntilDeltaHR, &wakeUpTime, tolerance);
+    if(sleepResult != TCN_SUCCESS) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Sleep providing function tcn_sleep failing with error %d", sleepResult);
+    }
+    uint64 tempError = (wakeUpTime - waitUntilDeltaHR);
+    cumulativeError += tempError;
+    lastCallError = tempError;
 }
 
 void TCNTimeProvider::SleepBSP(uint64 start, uint64 delta) {
+    int32 sleepResult = (int32)tcn_sleep((hpn_timestamp_t)delta);
+    if(sleepResult != TCN_SUCCESS) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Sleep providing function tcn_sleep failing with error %d", sleepResult);
+    }
 }
 
 void TCNTimeProvider::SleepHRBSP(uint64 start, uint64 delta) {
+    hpn_timestamp_t error = 0u;
+    int32 sleepResult = (int32)tcn_sleep_hr((hpn_timestamp_t)delta, &error, tolerance);
+    if(sleepResult != TCN_SUCCESS) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Sleep providing function tcn_sleep_hr failing with error %d", sleepResult);
+    }
+    cumulativeError += error;
+    lastCallError = error;
 }
 
 void TCNTimeProvider::BusySleep(uint64 start, uint64 delta) {
-    CALL_MEMBER_FUN(this, BusySleepProvider)(start, delta);
+    (this->*BusySleepProvider)(start, delta);
 }
 
 CLASS_REGISTER(TCNTimeProvider, "1.0")

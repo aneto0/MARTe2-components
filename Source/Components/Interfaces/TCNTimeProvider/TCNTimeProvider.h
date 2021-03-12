@@ -75,6 +75,9 @@ class TCNTimeProvider: public TimeProvider {
         TCNTimeProviderOperationMode operationMode;
         uint64 tcnFrequency;
         uint32 tolerance;
+        uint64 cumulativeError;
+        uint64 lastCallError;
+
         void (TCNTimeProvider::*BusySleepProvider)(uint64, uint64);
 
         void NoPollBSP(uint64 start, uint64 delta);
