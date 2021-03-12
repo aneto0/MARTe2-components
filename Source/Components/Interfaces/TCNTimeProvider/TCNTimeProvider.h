@@ -72,7 +72,6 @@ class TCNTimeProvider: public TimeProvider {
         virtual void BusySleep(uint64 start, uint64 delta);
 
     private:
-        TCNTimeProviderOperationMode operationMode;
         uint64 tcnFrequency;
         uint32 tolerance;
         uint64 cumulativeError;

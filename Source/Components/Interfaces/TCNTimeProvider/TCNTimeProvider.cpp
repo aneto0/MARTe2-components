@@ -132,10 +132,10 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
             if (data.Read("TcnPoll", tcnPoll)) {
                 REPORT_ERROR(ErrorManagement::Information, "TcnPoll parameter is set to %d [Legacy Configuration Mode]", tcnPoll);
                 if(tcnPoll == 0) {
-                    operationMode = TCNTimeProvider_NoPollLegacyMode;                
+                    BusySleepProvider = &TCNTimeProvider::NoPollBSP;
                 }
                 else {
-                    operationMode = TCNTimeProvider_PollLegacyMode;
+                    BusySleepProvider = &TCNTimeProvider::PollBSP;
                 }
             }
             else {
@@ -143,32 +143,26 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                 if(data.Read("OperationMode", tempOperationMode)) {
                     if(tempOperationMode == "NoPollLegacyMode") {
                         REPORT_ERROR(ErrorManagement::Information, "No Poll legacy mode selected");
-                        operationMode = TCNTimeProvider_NoPollLegacyMode;
                         BusySleepProvider = &TCNTimeProvider::NoPollBSP;
                     }
                     else if(tempOperationMode == "PollLegacyMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Poll legacy mode selected");
-                        operationMode = TCNTimeProvider_PollLegacyMode;
                         BusySleepProvider = &TCNTimeProvider::PollBSP;
                     }
                     else if(tempOperationMode == "WaitUntilMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Wait until mode selected");
-                        operationMode = TCNTimeProvider_WaitUntilMode;
                         BusySleepProvider = &TCNTimeProvider::WaitUntilBSP;
                     }
                     else if(tempOperationMode == "WaitUntilHRMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Wait until with high resolution counter mode selected");
-                        operationMode = TCNTimeProvider_WaitUntilHRMode;
                         BusySleepProvider = &TCNTimeProvider::WaitUntilHRBSP;
                     }
                     else if(tempOperationMode == "SleepMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Sleep mode selected");
-                        operationMode = TCNTimeProvider_SleepMode;
                         BusySleepProvider = &TCNTimeProvider::SleepBSP;
                     }
                     else if(tempOperationMode == "SleepHRMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Sleep with high resolution counter mode selected");
-                        operationMode = TCNTimeProvider_SleepHRMode;
                         BusySleepProvider = &TCNTimeProvider::SleepHRBSP;
                     }
                     else {
