@@ -368,8 +368,8 @@ bool FileReader::Initialise(StructuredDataI &data) {
                 else {
                     if (allData.maxDataFileByteSize > maxAllowedSizeFile) {
                         allData.maxDataFileByteSize = maxAllowedSizeFile;
-                        REPORT_ERROR(ErrorManagement::ParametersError, "MaxFileByteSize allowed is %u GB. Using default %u GB", maxAllowedSizeFile/1000000000,
-                                     maxAllowedSizeFile/1000000000);
+                        REPORT_ERROR(ErrorManagement::ParametersError, "MaxFileByteSize allowed is %u GB. Using default %u GB", maxAllowedSizeFile/1000000000u,
+                                     maxAllowedSizeFile/1000000000u);
                     }
                 }
             }
@@ -584,7 +584,6 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
 
     //Allocate memory
     if (ok) {
-        uint32 aux = sizeof(osulong);
         dataSourceMemory = reinterpret_cast<char8*>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfBinaryBytes));
         if (preload) { //Get the size of the file and allocate memory
             if (fileFormat == FILE_FORMAT_BINARY) {
