@@ -107,6 +107,11 @@ public:
     bool TestSynchronise_CSV_Interpolation();
 
     /**
+     * @brief Tests the Synchronise method with csv files, interpolation and preload.
+     */
+    bool TestSynchronise_CSV_Interpolation_Preload();
+
+    /**
      * @brief Tests the Synchronise method with binary files.
      */
     bool TestSynchronise_Binary();
@@ -115,6 +120,11 @@ public:
      * @brief Tests the Synchronise method with binary files and interpolation.
      */
     bool TestSynchronise_Binary_Interpolation();
+
+    /**
+     * @brief Tests the Synchronise method with binary files, interpolation and preload.
+     */
+    bool TestSynchronise_Binary_Interpolation_Preload();
 
     /**
      * @brief Tests the Synchronise method using the Frequency parameter.
@@ -222,6 +232,21 @@ public:
     bool TestSetConfiguredDatabase_False_NumberOfSamples();
 
     /**
+     * @brief Tests the SetConfiguredDatabase wrong file size.
+     */
+    bool TestSetConfiguredDatabase_WrongFileSize_CSV();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase wrong file size.
+     */
+    bool TestSetConfiguredDatabase_WrongFileSize_Bin();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase wrong file size.
+     */
+    bool TestSetConfiguredDatabase_MaxSizeSmallerThanFileSize();
+
+    /**
      * @brief Tests the SetConfiguredDatabase with more than one function interacting with the FileReader.
      */
     bool TestSetConfiguredDatabase_False_MoreThanOneFunction();
@@ -292,6 +317,11 @@ public:
     bool TestRuntimeErrorMessage_Fail();
 
     /**
+     * @brief Tests that the runtime error successfully warns that the runtime error message could not be sent
+     */
+    bool TestRuntimeErrorMessage_Fail_Preload();
+
+    /**
      * @brief Tests that an Invalid message name is correctly captured.
      */
     bool TestInvalidMessageName();
@@ -300,6 +330,11 @@ public:
      * @brief Tests that an Invalid message type is correctly captured.
      */
     bool TestInvalidMessageType();
+
+    /**
+     * @brief Tests that an Invalid message type is correctly captured.
+     */
+    bool TestInvalidMessageType_Preload();
 
     /**
      * @brief Tests the EOF for the CVS files with the default behaviour (Rewind).

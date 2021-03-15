@@ -150,6 +150,21 @@ TEST(FileReaderGTest,TestSetConfiguredDatabase_False_NumberOfSamples) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NumberOfSamples());
 }
 
+TEST(FileReaderGTest,TestSetConfiguredDatabase_WrongFileSize_CSV) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_WrongFileSize_CSV());
+}
+
+TEST(FileReaderGTest,TestSetConfiguredDatabase_WrongFileSize_Bin) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_WrongFileSize_Bin());
+}
+
+TEST(FileReaderGTest,TestSetConfiguredDatabase_MaxSizeSmallerThanFileSize) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_MaxSizeSmallerThanFileSize());
+}
+
 TEST(FileReaderGTest,TestSetConfiguredDatabase_False_MoreThanOneFunction) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneFunction());
@@ -210,6 +225,11 @@ TEST(FileReaderGTest,TestSynchronise_Binary_Interpolation) {
     ASSERT_TRUE(test.TestSynchronise_Binary_Interpolation());
 }
 
+TEST(FileReaderGTest,TestSynchronise_Binary_Interpolation_Preload) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise_Binary_Interpolation_Preload());
+}
+
 TEST(FileReaderGTest,TestSynchronise_CSV) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestSynchronise_CSV());
@@ -228,6 +248,11 @@ TEST(FileReaderGTest,TestSynchronise_CSV_Comma) {
 TEST(FileReaderGTest,TestSynchronise_CSV_Interpolation) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestSynchronise_CSV_Interpolation());
+}
+
+TEST(FileReaderGTest,TestSynchronise_CSV_Interpolation_Preload) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSynchronise_CSV_Interpolation_Preload());
 }
 
 TEST(FileReaderGTest,TestSynchronise_Frequency) {
@@ -290,6 +315,11 @@ TEST(FileReaderGTest,TestRuntimeErrorMessage_Fail) {
     ASSERT_TRUE(test.TestRuntimeErrorMessage_Fail());
 }
 
+TEST(FileReaderGTest,TestRuntimeErrorMessage_Fail_Preload) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestRuntimeErrorMessage_Fail_Preload());
+}
+
 TEST(FileReaderGTest,TestInvalidMessageName) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestInvalidMessageName());
@@ -298,6 +328,11 @@ TEST(FileReaderGTest,TestInvalidMessageName) {
 TEST(FileReaderGTest,TestInvalidMessageType) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestInvalidMessageType());
+}
+
+TEST(FileReaderGTest,TestInvalidMessageType_Preload) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestInvalidMessageType_Preload());
 }
 
 TEST(FileReaderGTest,TestEOF_CSV) {

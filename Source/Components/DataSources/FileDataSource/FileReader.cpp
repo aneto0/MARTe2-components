@@ -580,6 +580,17 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
                 headerSize *= GetNumberOfSignals();
                 headerSize += static_cast<uint32>(sizeof(uint32));
                 allData.dataFileByteSize = inputFile.Size() - static_cast<uint64>(headerSize);
+                if (ok) { //check file size is multiple of numberOfBinaryBytes
+                    uint64 aux = allData.dataFileByteSize / numberOfBinaryBytes;
+                    uint64 aux2 = aux * numberOfBinaryBytes;
+                    ok = aux2 == allData.dataFileByteSize;
+                    if (!ok) {
+                        REPORT_ERROR(
+                                ErrorManagement::InitialisationError,
+                                "The total data file size is not a multiple of the data to read each cycle. allData.dataFileByteSize = %u, data to read for each cycle = %u ",
+                                allData.dataFileByteSize, numberOfBinaryBytes);
+                    }
+                }
             }
             else { //Get the size of data CSV format
                 inputFile.Seek(0u);
@@ -589,7 +600,7 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
                 uint64 countLines = 0u;
                 while (ok && !endFile) {
                     ok = inputFile.GetLine(headerline);
-                    if (!ok) {
+                    if (!ok) {//Should not fail (if the file is not corrupted) since the end of the file is checked before calling GetLine
                         REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading line in CSV format");
                     }
                     countLines++;
@@ -605,17 +616,6 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
                     REPORT_ERROR(ErrorManagement::InitialisationError,
                                  "%u = dataFileByteSize > maxDataFileByteSize = %u. Increase the MaxDataFileByteSize (if the PC allows it) or use smaller file",
                                  allData.dataFileByteSize, allData.maxDataFileByteSize);
-                }
-            }
-            if (ok) {
-                uint64 aux = allData.dataFileByteSize / numberOfBinaryBytes;
-                uint64 aux2 = aux * numberOfBinaryBytes;
-                ok = aux2 == allData.dataFileByteSize;
-                if (!ok) {
-                    REPORT_ERROR(
-                            ErrorManagement::InitialisationError,
-                            "The total data file size is not a multiple of the data to read each cycle. allData.dataFileByteSize = %u, data to read for each cycle = %u ",
-                            allData.dataFileByteSize, numberOfBinaryBytes);
                 }
             }
             if (ok) { //allocate allData buffer
