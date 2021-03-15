@@ -42,6 +42,9 @@
 namespace MARTe {
 
     HighResolutionTimeProvider::HighResolutionTimeProvider() : TimeProvider() {
+        yieldSleepPercentage = 0u;        
+        operationMode = HighResolutionTime_BusyMode;
+        SleepProvidingFunction = &HighResolutionTimeProvider::BusySleep;
     }
 
     HighResolutionTimeProvider::~HighResolutionTimeProvider() {
@@ -59,12 +62,34 @@ namespace MARTe {
         return HighResolutionTimer::Frequency();
     }
 
-    bool HighResolutionTimeProvider::Sleep(const uint64 start, const uint64 delta) {
+    bool HighResolutionTimeProvider::BusySleep(const uint64 start, const uint64 delta) {
         while ((HighResolutionTimer::Counter() - start) < delta) {
             ;
         }
         //As long the HRT is based on the internals, there should be no way of failing
         return true;
     }
+
+    bool HighResolutionTimeProvider::SemiBusy(const uint64 start, const uint64 delta) {
+        float64 totalSleepTime = static_cast<float32> (static_cast<float64> (delta) * Period());
+        uint8 busyPercentage = (100u - yieldSleepPercentage);
+        float64 busyTime = totalSleepTime * (static_cast<float32> (busyPercentage) / 100.F);
+        Sleep::SemiBusy(totalSleepTime, busyTime);
+        
+        //As long the HRT is based on the internals, there should be no way of failing
+        return true;
+    }
+
+    bool HighResolutionTimeProvider::NoMore(const uint64 start, const uint64 delta) {
+        Sleep::NoMore(delta * Period());
+
+        //As long the HRT is based on the internals, there should be no way of failing
+        return true;
+    }
+
+    bool HighResolutionTimeProvider::Sleep(const uint64 start, const uint64 delta) {
+        return (this->*SleepProvidingFunction)(start, delta);  
+    }
+
     CLASS_REGISTER(HighResolutionTimeProvider, "1.0")
 }

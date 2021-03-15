@@ -113,7 +113,7 @@ class TCNTimeProvider: public TimeProvider {
         * @param[in] start Ticks to start sleeping
         * @param[in] delta Amount of ticks to sleep
         */
-        virtual void BusySleep(uint64 start, uint64 delta);
+        virtual void Sleep(uint64 start, uint64 delta);
 
     private:
         /**

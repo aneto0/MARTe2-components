@@ -37,11 +37,19 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe{
-/**
-* @brief Default plugin which provides time to the LinuxTimer DataSource.
-         Relies on underlying HighResolutionTimer Counter() / Period() and Frequency 
-         primitives and implements the sleep as a busy spin based on them.    
-*/
+    
+    typedef enum {
+        HighResolutionTime_BusyMode,
+        HighResolutionTime_SemiBusyMode,
+        HighResolutionTime_NoMoreMode,
+        HighResolutionTime_AtLeastMode
+    }HighResolutionTimeProviderOperationMode;
+
+    /**
+    * @brief Default plugin which provides time to the LinuxTimer DataSource.
+             Relies on underlying HighResolutionTimer Counter() / Period() and Frequency 
+             primitives and implements the sleep as a busy spin based on them.    
+    */
     class HighResolutionTimeProvider: public TimeProvider {
         public:
     
@@ -81,6 +89,37 @@ namespace MARTe{
             * @param[in] delta Number of ticks to busy sleep
             */
             virtual bool Sleep(const uint64 start, const uint64 delta);
+
+        private:
+            /**
+            * @brief Holds the percentage to sleep by yielding the cpu
+            */
+            uint8 yieldSleepPercentage;
+
+            /**
+            * @brief Pointer to the specific sleep strategy implementation
+            */
+            bool (HighResolutionTimeProvider::*SleepProvidingFunction)(uint64, uint64);
+            
+            /**
+            * @brief Holds the current provider operation mode
+            */
+            HighResolutionTimeProviderOperationMode operationMode;
+
+            /**
+            * @brief Low level function to provide busy sleep
+            */
+            bool BusySleep(const uint64 start, const uint64 delta);
+
+            /**
+            * @brief Sleep yielding cpu for an amount and busy spinning for the remaining
+            */
+            bool SemiBusy(const uint64 start, const uint64 delta);
+
+            /**
+            * @brief Sleeps no more than the requested time
+            */
+            bool NoMore(const uint64 start, const uint64 delta);
 
     };
 }
