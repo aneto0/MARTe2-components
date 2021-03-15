@@ -130,8 +130,8 @@ const char8* FileReader::GetBrokerName(StructuredDataI &data,
 }
 
 bool FileReader::GetInputBrokers(ReferenceContainer &inputBrokers,
-                                 const char8 *const functionName,
-                                 void *const gamMemPtr) {
+                                 const char8 * const functionName,
+                                 void * const gamMemPtr) {
     bool ok = true;
     if (interpolate) {
         ReferenceT<MemoryMapInterpolatedInputBroker> brokerNew("MemoryMapInterpolatedInputBroker");
@@ -166,8 +166,8 @@ bool FileReader::GetInputBrokers(ReferenceContainer &inputBrokers,
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: OutputBrokers are not supported. Function returns false irrespectively of the parameters.*/
 bool FileReader::GetOutputBrokers(ReferenceContainer &outputBrokers,
-                                  const char8 *const functionName,
-                                  void *const gamMemPtr) {
+                                  const char8 * const functionName,
+                                  void * const gamMemPtr) {
     return false;
 }
 
@@ -240,7 +240,7 @@ bool FileReader::Synchronise() {
             }
             else {
                 if (!lockAtLast) {
-                    MemoryOperationsHelper::Copy(dataSourceMemory, &(allData.internalBuffer[allData.interalBufferIdx]), numberOfBinaryBytes);
+                    ok = MemoryOperationsHelper::Copy(dataSourceMemory, &(allData.internalBuffer[allData.interalBufferIdx]), numberOfBinaryBytes);
                     allData.interalBufferIdx = allData.interalBufferIdx + numberOfBinaryBytes;
 
                 }
@@ -314,8 +314,8 @@ bool FileReader::Synchronise() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool FileReader::PrepareNextState(const char8 *const currentStateName,
-                                  const char8 *const nextStateName) {
+bool FileReader::PrepareNextState(const char8 * const currentStateName,
+                                  const char8 * const nextStateName) {
     return true;
 }
 
@@ -362,7 +362,7 @@ bool FileReader::Initialise(StructuredDataI &data) {
             if (preloadStr == "yes") {
                 preload = true;
                 if (!data.Read("MaxFileByteSize", allData.maxDataFileByteSize)) {
-                    allData.maxDataFileByteSize = 1e9; //1 GByte
+                    allData.maxDataFileByteSize = 1000000000u; //1 GByte
                 }
             }
             else {
@@ -516,6 +516,12 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
             ok = GetSignalByteSize(n, nBytes);
             numberOfBinaryBytes += nBytes;
         }
+        if (ok) {
+            ok = numberOfBinaryBytes == 0u;
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfBinaryBytes = 0. The number of input signal bytes sizes should be positive");
+            }
+        }
     }
     //Only one and one GAM allowed to interact with this DataSourceI
     if (ok) {
@@ -580,27 +586,29 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
                 headerSize *= GetNumberOfSignals();
                 headerSize += static_cast<uint32>(sizeof(uint32));
                 allData.dataFileByteSize = inputFile.Size() - static_cast<uint64>(headerSize);
-                if (ok) { //check file size is multiple of numberOfBinaryBytes
-                    uint64 aux = allData.dataFileByteSize / numberOfBinaryBytes;
-                    uint64 aux2 = aux * numberOfBinaryBytes;
-                    ok = aux2 == allData.dataFileByteSize;
-                    if (!ok) {
-                        REPORT_ERROR(
-                                ErrorManagement::InitialisationError,
-                                "The total data file size is not a multiple of the data to read each cycle. allData.dataFileByteSize = %u, data to read for each cycle = %u ",
-                                allData.dataFileByteSize, numberOfBinaryBytes);
-                    }
+                //check file size is multiple of numberOfBinaryBytes
+                //lint -e{414} Possible division by 0. numberOfBinaryBytes is different from 0 due to ok is true.
+                uint64 aux = allData.dataFileByteSize / numberOfBinaryBytes;
+                uint64 aux2 = aux * numberOfBinaryBytes;
+                ok = aux2 == allData.dataFileByteSize;
+                if (!ok) {
+                    REPORT_ERROR(
+                            ErrorManagement::InitialisationError,
+                            "The total data file size is not a multiple of the data to read each cycle. allData.dataFileByteSize = %u, data to read for each cycle = %u ",
+                            allData.dataFileByteSize, numberOfBinaryBytes);
                 }
             }
             else { //Get the size of data CSV format
-                inputFile.Seek(0u);
+                ok = inputFile.Seek(0LLU);
                 StreamString headerline;
                 bool endFile = false;
-                ok = inputFile.GetLine(headerline); //Skip header
+                if (ok) {
+                    ok = inputFile.GetLine(headerline); //Skip header
+                }
                 uint64 countLines = 0u;
-                while (ok && !endFile) {
+                while (ok && (!endFile)) {
                     ok = inputFile.GetLine(headerline);
-                    if (!ok) {//Should not fail (if the file is not corrupted) since the end of the file is checked before calling GetLine
+                    if (!ok) { //Should not fail (if the file is not corrupted) since the end of the file is checked before calling GetLine
                         REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading line in CSV format");
                     }
                     countLines++;
@@ -650,13 +658,14 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
     }
     if (ok && preload) { //Read all the file
         if (fileFormat == FILE_FORMAT_BINARY) {
-            inputFile.Seek(inputFile.Size() - allData.dataFileByteSize);
+            ok = inputFile.Seek(inputFile.Size() - allData.dataFileByteSize);
             uint64 remainingDataToRead = allData.dataFileByteSize;
             uint32 sizeRead;
             uint32 sizeToRead;
             while ((remainingDataToRead > 0u) && ok) {
-                if (remainingDataToRead > 2e9) {
-                    sizeToRead = 2e9;
+                uint32 auxMax = 2000000000u;
+                if (remainingDataToRead > auxMax) {
+                    sizeToRead = auxMax;
                     sizeRead = sizeToRead;
                 }
                 else {
@@ -680,16 +689,20 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
             }
         }
         else { //FILE_FORMAT_CSV
-            inputFile.Seek(0u);
+            ok = inputFile.Seek(0LLU);
             StreamString headerline;
             bool endFile = false;
-            ok = inputFile.GetLine(headerline); //Skip header
-            while (ok && !endFile) {
+            if (ok) {
+                ok = inputFile.GetLine(headerline); //Skip header
+            }
+            while (ok && (!endFile)) {
                 ok = ReadLineCSVFormat();
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading line in CSV format");
                 }
-                MemoryOperationsHelper::Copy(&(allData.internalBuffer[allData.interalBufferIdx]), dataSourceMemory, numberOfBinaryBytes);
+                if (ok) {
+                    ok = MemoryOperationsHelper::Copy(&(allData.internalBuffer[allData.interalBufferIdx]), dataSourceMemory, numberOfBinaryBytes);
+                }
                 endFile = inputFile.Position() == inputFile.Size();
                 allData.interalBufferIdx = allData.interalBufferIdx + numberOfBinaryBytes;
             }
