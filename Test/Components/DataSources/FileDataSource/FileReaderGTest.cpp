@@ -140,9 +140,19 @@ TEST(FileReaderGTest,TestInitialise_Preload_yes_NoMaxSize) {
     ASSERT_TRUE(test.TestInitialise_Preload_yes_NoMaxSize());
 }
 
+TEST(FileReaderGTest,TestInitialise_Preload_yes_MaxSizeToLarge) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestInitialise_Preload_yes_MaxSizeToLarge());
+}
+
 TEST(FileReaderGTest,TestSetConfiguredDatabase) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
+}
+
+TEST(FileReaderGTest,TestSetConfiguradDatabase_InputSignalSize0) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestSetConfiguradDatabase_InputSignalSize0());
 }
 
 TEST(FileReaderGTest,TestSetConfiguredDatabase_False_NumberOfSamples) {
@@ -348,6 +358,11 @@ TEST(FileReaderGTest,TestEOF_CSV_Preload) {
 TEST(FileReaderGTest,TestEOF_Binary) {
     FileReaderTest test;
     ASSERT_TRUE(test.TestEOF_Binary());
+}
+
+TEST(FileReaderGTest,TestEOF_Binary_JumboFile) {
+    FileReaderTest test;
+    ASSERT_TRUE(test.TestEOF_Binary_JumboFile());
 }
 
 TEST(FileReaderGTest,TestEOF_Binary_Preload) {

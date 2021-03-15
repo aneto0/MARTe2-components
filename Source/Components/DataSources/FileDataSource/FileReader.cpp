@@ -130,8 +130,8 @@ const char8* FileReader::GetBrokerName(StructuredDataI &data,
 }
 
 bool FileReader::GetInputBrokers(ReferenceContainer &inputBrokers,
-                                 const char8 * const functionName,
-                                 void * const gamMemPtr) {
+                                 const char8 *const functionName,
+                                 void *const gamMemPtr) {
     bool ok = true;
     if (interpolate) {
         ReferenceT<MemoryMapInterpolatedInputBroker> brokerNew("MemoryMapInterpolatedInputBroker");
@@ -166,8 +166,8 @@ bool FileReader::GetInputBrokers(ReferenceContainer &inputBrokers,
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: OutputBrokers are not supported. Function returns false irrespectively of the parameters.*/
 bool FileReader::GetOutputBrokers(ReferenceContainer &outputBrokers,
-                                  const char8 * const functionName,
-                                  void * const gamMemPtr) {
+                                  const char8 *const functionName,
+                                  void *const gamMemPtr) {
     return false;
 }
 
@@ -314,8 +314,8 @@ bool FileReader::Synchronise() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool FileReader::PrepareNextState(const char8 * const currentStateName,
-                                  const char8 * const nextStateName) {
+bool FileReader::PrepareNextState(const char8 *const currentStateName,
+                                  const char8 *const nextStateName) {
     return true;
 }
 
@@ -360,9 +360,17 @@ bool FileReader::Initialise(StructuredDataI &data) {
         }
         else {
             if (preloadStr == "yes") {
+                const uint32 maxAllowedSizeFile = 4000000000u;
                 preload = true;
                 if (!data.Read("MaxFileByteSize", allData.maxDataFileByteSize)) {
-                    allData.maxDataFileByteSize = 1000000000u; //1 GByte
+                    allData.maxDataFileByteSize = maxAllowedSizeFile; //4 GByte
+                }
+                else {
+                    if (allData.maxDataFileByteSize > maxAllowedSizeFile) {
+                        allData.maxDataFileByteSize = maxAllowedSizeFile;
+                        REPORT_ERROR(ErrorManagement::ParametersError, "MaxFileByteSize allowed is %u GB. Using default %u GB", maxAllowedSizeFile/1000000000,
+                                     maxAllowedSizeFile/1000000000);
+                    }
                 }
             }
             else {
@@ -517,7 +525,7 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
             numberOfBinaryBytes += nBytes;
         }
         if (ok) {
-            ok = numberOfBinaryBytes == 0u;
+            ok = numberOfBinaryBytes != 0u;
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfBinaryBytes = 0. The number of input signal bytes sizes should be positive");
             }
@@ -576,6 +584,7 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
 
     //Allocate memory
     if (ok) {
+        uint32 aux = sizeof(osulong);
         dataSourceMemory = reinterpret_cast<char8*>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfBinaryBytes));
         if (preload) { //Get the size of the file and allocate memory
             if (fileFormat == FILE_FORMAT_BINARY) {
@@ -627,7 +636,8 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
                 }
             }
             if (ok) { //allocate allData buffer
-                allData.internalBuffer = reinterpret_cast<char8*>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(allData.dataFileByteSize));
+                allData.internalBuffer = reinterpret_cast<char8*>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(
+                        static_cast<uint32>(allData.dataFileByteSize)));
             }
         }
     }
@@ -663,7 +673,7 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
             uint32 sizeRead;
             uint32 sizeToRead;
             while ((remainingDataToRead > 0u) && ok) {
-                uint32 auxMax = 2000000000u;
+                uint32 auxMax = 500000000u;
                 if (remainingDataToRead > auxMax) {
                     sizeToRead = auxMax;
                     sizeRead = sizeToRead;

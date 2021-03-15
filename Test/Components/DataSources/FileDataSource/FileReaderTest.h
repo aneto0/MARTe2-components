@@ -222,9 +222,19 @@ public:
     bool TestInitialise_Preload_yes_NoMaxSize();
 
     /**
+     * @brief Tests the Initialise method with Preaload = "yes" MaxFileByteSize not specified.
+     */
+    bool TestInitialise_Preload_yes_MaxSizeToLarge();
+
+    /**
      * @brief Tests the SetConfiguredDatabase.
      */
     bool TestSetConfiguredDatabase();
+
+    /**
+     * @brief Test SetConfiguredDatabase on error.
+     */
+    bool TestSetConfiguradDatabase_InputSignalSize0();
 
     /**
      * @brief Tests the SetConfiguredDatabase with more than one sample.
@@ -350,6 +360,11 @@ public:
      * @brief Tests the EOF for binary files with the default behaviour (Rewind).
      */
     bool TestEOF_Binary();
+
+    /**
+     * @brief Tests the EOF for binary files with the default behaviour (Rewind). The file size is 2.1 GB
+     */
+    bool TestEOF_Binary_JumboFile();
 
     /**
      * @brief Tests the EOF for binary files with the default behaviour (Rewind) using preload.

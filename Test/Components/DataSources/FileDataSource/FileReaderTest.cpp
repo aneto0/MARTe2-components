@@ -473,6 +473,60 @@ static void GenerateFile3(const MARTe::char8 *const filename) {
     }
     f.Flush();
     f.Close();
+    if (signals != NULL_PTR(FRTSignalToVerify**)) {
+        for (uint32 i = 0; i < signalToVerifyNumberOfSamples; i++) {
+            if (signals[i] != NULL_PTR(FRTSignalToVerify*)) {
+                delete signals[i];
+                signals[i] = NULL_PTR(FRTSignalToVerify*);
+            }
+        }
+        delete[] signals;
+        signals = NULL_PTR(FRTSignalToVerify**);
+    }
+}
+
+static void GenerateJumboFile(const MARTe::char8 *const filename) {
+    using namespace MARTe;
+    uint32 signalToVerifyNumberOfElements[] = { 1 };
+
+    const uint32 N_OF_SIGNALS = 1;
+
+    const char8 *signalNames[N_OF_SIGNALS] = { "SignalUInt8" };
+    const TypeDescriptor signalTypes[N_OF_SIGNALS] = { UnsignedInteger8Bit };
+
+    uint32 signalToVerifyNumberOfSamples = 3u;
+    uint32 i;
+
+    const uint32 SIGNAL_NAME_SIZE = 32;
+    File f;
+    bool ok = f.Open(filename, BasicFile::ACCESS_MODE_W | BasicFile::FLAG_CREAT);
+
+    if (ok) {
+        uint32 writeSize = sizeof(uint32);
+        f.Write(reinterpret_cast<const char8*>(&N_OF_SIGNALS), writeSize);
+        uint32 n;
+//Write the header
+        for (n = 0u; n < N_OF_SIGNALS; n++) {
+            writeSize = sizeof(uint16);
+            f.Write(reinterpret_cast<const char8*>(&signalTypes[n].all), writeSize);
+            char8 signalName32[SIGNAL_NAME_SIZE];
+            MemoryOperationsHelper::Set(&signalName32[0], '\0', SIGNAL_NAME_SIZE);
+            MemoryOperationsHelper::Copy(&signalName32[0], signalNames[n], StringHelper::Length(signalNames[n]));
+            writeSize = SIGNAL_NAME_SIZE;
+            f.Write(reinterpret_cast<const char8*>(&signalName32[0]), writeSize);
+
+            writeSize = sizeof(uint32);
+            f.Write(reinterpret_cast<const char8*>(&signalToVerifyNumberOfElements[n]), writeSize);
+        }
+    }
+//write data
+    uint32 size = 510000000;
+    char8 *data = new char8[size]; //0.51 GB
+    MemoryOperationsHelper::Set(data, 1, size);
+    f.Write(data, size);
+    f.Flush();
+    f.Close();
+    delete[] data;
 }
 
 static void DeleteTestFile(const MARTe::char8 *const filename) {
@@ -651,7 +705,7 @@ static void GenerateCSVFile(const MARTe::char8 *const filename,
     if (ok) {
         uint32 n;
         f.Printf("%s", "#");
-        //Write the header
+//Write the header
         for (n = 0u; n < N_OF_SIGNALS; n++) {
             if (n != 0u) {
                 f.Printf("%s", csvSeparator);
@@ -711,7 +765,7 @@ static void GenerateBinaryFile(const MARTe::char8 *const filename,
         uint32 writeSize = sizeof(uint32);
         f.Write(reinterpret_cast<const char8*>(&N_OF_SIGNALS), writeSize);
         uint32 n;
-        //Write the header
+//Write the header
         for (n = 0u; n < N_OF_SIGNALS; n++) {
             writeSize = sizeof(uint16);
             f.Write(reinterpret_cast<const char8*>(&signalTypes[n].all), writeSize);
@@ -3493,10 +3547,55 @@ bool FileReaderTest::TestInitialise_Preload_yes_NoMaxSize() {
     return ok;
 }
 
+bool FileReaderTest::TestInitialise_Preload_yes_MaxSizeToLarge() {
+    using namespace MARTe;
+    FileReader test;
+    ConfigurationDatabase cdb;
+    const char8 *const filename = "FileReaderTest_TestInitialise.csv";
+    GenerateFile(filename);
+    cdb.Write("Filename", filename);
+    cdb.Write("Interpolate", "no");
+    cdb.Write("Preload", "yes");
+    cdb.Write("CSVSeparator", ";");
+    cdb.Write("FileFormat", "csv");
+    uint64 maxSize = 5e9;
+    cdb.Write("MaxFileByteSize", maxSize);
+    cdb.MoveToRoot();
+    bool ok = test.Initialise(cdb);
+    DeleteTestFile(filename);
+    return ok;
+}
+
 bool FileReaderTest::TestSetConfiguredDatabase() {
     using namespace MARTe;
     uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
     return TestIntegratedExecution(config1, false, &numberOfElements[0], ";");
+}
+
+bool FileReaderTest::TestSetConfiguradDatabase_InputSignalSize0() {
+    using namespace MARTe;
+    FileReader ds;
+    ConfigurationDatabase cfgInitialise;
+    ConfigurationDatabase cfgSet;
+    StreamString fileName = "test.bin";
+    cfgInitialise.Write("FileFormat", "binary");
+    cfgInitialise.Write("Filename", fileName.Buffer());
+    cfgInitialise.Write("Interpolate", "no");
+    cfgInitialise.Write("EOF", "Rewind");
+    GenerateFile3(fileName.Buffer());
+    bool ok = ds.Initialise(cfgInitialise);
+    cfgSet.CreateAbsolute("Signals");
+    cfgSet.CreateRelative("0");
+    cfgSet.Write("NodeName", "Header1");
+    cfgSet.Write("QualifiedName", "Header1LL");
+    cfgSet.Write("ByteSize", 0);
+    cfgSet.MoveToAncestor(1);
+    cfgSet.MoveToRoot();
+    if (ok) {
+        ok = !ds.SetConfiguredDatabase(cfgSet);
+    }
+    DeleteTestFile(fileName.Buffer());
+    return ok;
 }
 
 bool FileReaderTest::TestSetConfiguredDatabase_False_NumberOfSamples() {
@@ -3701,7 +3800,7 @@ bool FileReaderTest::TestRuntimeErrorMessage_Fail() {
     for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
         delete signals[i];
     }
-    delete signals;
+    delete[] signals;
     DeleteTestFile(filename);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
@@ -3794,6 +3893,49 @@ bool FileReaderTest::TestEOF_Binary() {
     using namespace MARTe;
     uint32 numberOfElements[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
     return TestIntegratedExecution(config1, false, &numberOfElements[0], ";", true, false, false);
+}
+
+bool FileReaderTest::TestEOF_Binary_JumboFile() {
+    using namespace MARTe;
+    FileReader ds;
+    ConfigurationDatabase cfgInitialise;
+    ConfigurationDatabase cfgSet;
+    StreamString fileName = "test.bin";
+    cfgInitialise.Write("FileFormat", "binary");
+    cfgInitialise.Write("Preload", "yes");
+    uint64 auxSize = 1000000000;
+    cfgInitialise.Write("MaxFileByteSize", auxSize);
+    cfgInitialise.Write("Filename", fileName.Buffer());
+    cfgInitialise.Write("Interpolate", "no");
+    cfgInitialise.Write("EOF", "Rewind");
+    GenerateJumboFile(fileName.Buffer());
+    bool ok = ds.Initialise(cfgInitialise);
+    cfgSet.CreateAbsolute("Signals");
+    cfgSet.CreateRelative("0");
+    cfgSet.Write("NodeName", "SignalUInt8");
+    cfgSet.Write("QualifiedName", "SignalUInt8");
+    cfgSet.Write("ByteSize", 510000000);
+///////////////
+// Functions //
+///////////////
+    cfgSet.CreateAbsolute("Functions");
+    cfgSet.CreateRelative("0");
+    cfgSet.Write("QualifiedName", "SignalUInt8");
+    cfgSet.CreateRelative("InputSignals");
+    cfgSet.CreateRelative("0");
+    cfgSet.Write("Samples", 1);
+    cfgSet.Write("Broker", "MemoryMapSynchronisedInputBroker");
+    cfgSet.Write("GAMMemoryOffset", 0);
+//    uint32 byteOffset[1][2] = { { 0, 48 * 1 } };
+//    ok &= cfgSet.Write("ByteOffset", byteOffset);
+    cfgSet.MoveToAncestor(1u);
+    cfgSet.Write("ByteOffset", 48 * 3 + 10 + 5 + 4);
+    cfgSet.MoveToRoot();
+    if (ok) {
+        ok = ds.SetConfiguredDatabase(cfgSet);
+    }
+    DeleteTestFile(fileName.Buffer());
+    return ok;
 }
 
 bool FileReaderTest::TestEOF_Binary_Preload() {
