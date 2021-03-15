@@ -493,7 +493,7 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
 
     if (sleepNature == Busy) {
         if (sleepPercentage == 0u) {
-            timeProvider->BusySleep(cycleEndTicks, deltaTicks);
+            timeProvider->Sleep(cycleEndTicks, deltaTicks);
         }
         else {
             float32 totalSleepTime = static_cast<float32> (static_cast<float64> (deltaTicks) * timeProvider->Period());

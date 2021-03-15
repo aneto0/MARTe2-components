@@ -62,9 +62,9 @@ TEST(HighResolutionTimeProviderGTest,TestFrequency) {
     ASSERT_TRUE(test.TestFrequency());
 }
 
-TEST(HighResolutionTimeProviderGTest,TestBusySleep) {
+TEST(HighResolutionTimeProviderGTest,TestSleep) {
     HighResolutionTimeProviderTest test;
-    ASSERT_TRUE(test.TestBusySleep());
+    ASSERT_TRUE(test.TestSleep());
 }
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

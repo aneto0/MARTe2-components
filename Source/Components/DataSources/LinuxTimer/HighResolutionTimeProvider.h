@@ -64,14 +64,14 @@ namespace MARTe{
             virtual uint64 Counter();
 
             /**
-            * @brief Returns the value of the period for the internal provider
-            * @return The provider period expressed in s
+            * @brief Returns the actual period once every ticks occurs
+            * @return The actual period between ticks
             */
             virtual float64 Period();
 
             /**
-            * @brief Returns the value of the frequency for the internal provider
-            * @return The provider frequency expressed in Hz
+            * @brief Returns the actual cpu clock frequency, which in turn becomes the tick rate
+            * @return The cpu clock frequency
             */
             virtual uint64 Frequency();
 
@@ -80,7 +80,8 @@ namespace MARTe{
             * @param[in] start Starting count
             * @param[in] delta Number of ticks to busy sleep
             */
-            virtual void BusySleep(const uint64 start, const uint64 delta);
+            virtual bool Sleep(const uint64 start, const uint64 delta);
+
     };
 }
 /*---------------------------------------------------------------------------*/

@@ -107,13 +107,13 @@ bool TimeProviderTest::TestFrequency() {
     return ok;
 }
 
-bool TimeProviderTest::TestBusySleep() {
+bool TimeProviderTest::TestSleep() {
     bool ok = (timeProvider != NULL);
 
     if(ok) {
         uint64 startTime = timeProvider->Counter();
         uint64 deltaTime = 1000;
-        timeProvider->BusySleep(startTime, deltaTime);
+        timeProvider->Sleep(startTime, deltaTime);
         uint64 endTime = timeProvider->Counter();
 
         ok = ((endTime - startTime) >= deltaTime);

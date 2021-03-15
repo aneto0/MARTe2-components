@@ -59,10 +59,12 @@ namespace MARTe {
         return HighResolutionTimer::Frequency();
     }
 
-    void HighResolutionTimeProvider::BusySleep(const uint64 start, const uint64 delta) {
+    bool HighResolutionTimeProvider::Sleep(const uint64 start, const uint64 delta) {
         while ((HighResolutionTimer::Counter() - start) < delta) {
             ;
         }
+        //As long the HRT is based on the internals, there should be no way of failing
+        return true;
     }
     CLASS_REGISTER(HighResolutionTimeProvider, "1.0")
 }

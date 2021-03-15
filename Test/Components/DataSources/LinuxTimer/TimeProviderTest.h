@@ -76,7 +76,7 @@ class TimeProviderTest {
         /**
         * @brief Tests the busy sleeping feature
         */
-        virtual bool TestBusySleep();
+        virtual bool TestSleep();
 
     protected:
         MARTe::TimeProvider* timeProvider;
