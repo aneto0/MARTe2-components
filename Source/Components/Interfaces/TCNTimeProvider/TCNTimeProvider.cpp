@@ -316,8 +316,10 @@ void TCNTimeProvider::SleepHRBSP(uint64 start, uint64 delta) {
     lastCallError = error;
 }
 
-void TCNTimeProvider::BusySleep(uint64 start, uint64 delta) {
-    (this->*BusySleepProvider)(start, delta);    
+bool TCNTimeProvider::Sleep(uint64 start, uint64 delta) {
+    (this->*BusySleepProvider)(start, delta);
+
+     return true;
 }
 
 CLASS_REGISTER(TCNTimeProvider, "1.0")
