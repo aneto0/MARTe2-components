@@ -41,8 +41,7 @@ namespace MARTe{
     typedef enum {
         HighResolutionTime_BusyMode,
         HighResolutionTime_SemiBusyMode,
-        HighResolutionTime_NoMoreMode,
-        HighResolutionTime_AtLeastMode
+        HighResolutionTime_NoMoreMode
     }HighResolutionTimeProviderOperationMode;
 
     /**
@@ -64,6 +63,11 @@ namespace MARTe{
             * @brief Destructor
             */
             virtual ~HighResolutionTimeProvider();
+
+            /**
+            * @brief MARTe2 object initialisation
+            */
+            virtual bool Initialise(StructuredDataI &data);
 
             /**
             * @brief Returns the value of the internal ticks counter
@@ -120,6 +124,12 @@ namespace MARTe{
             * @brief Sleeps no more than the requested time
             */
             bool NoMore(const uint64 start, const uint64 delta);
+
+            /**
+            * @brief Null delegate as dummy for initial configuration, to avoid erratic default behaviour.
+            * Essentially it does nothing, only fails.
+            */
+            bool NullDelegate(const uint64 start, const uint64 delta);
 
     };
 }

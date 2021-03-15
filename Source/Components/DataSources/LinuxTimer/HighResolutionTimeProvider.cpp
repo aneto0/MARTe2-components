@@ -29,8 +29,11 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
+#include "AdvancedErrorManagement.h"
 #include "HighResolutionTimeProvider.h"
 #include "HighResolutionTimer.h"
+#include "StreamString.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -44,10 +47,57 @@ namespace MARTe {
     HighResolutionTimeProvider::HighResolutionTimeProvider() : TimeProvider() {
         yieldSleepPercentage = 0u;        
         operationMode = HighResolutionTime_BusyMode;
-        SleepProvidingFunction = &HighResolutionTimeProvider::BusySleep;
+        SleepProvidingFunction = &HighResolutionTimeProvider::NullDelegate;
     }
 
     HighResolutionTimeProvider::~HighResolutionTimeProvider() {
+    }
+
+    bool HighResolutionTimeProvider::Initialise(StructuredDataI &data) {
+        bool returnValue = Object::Initialise(data);
+        
+        StreamString tempSleepNature;
+        uint8 tempSleepPercentage = 0u;
+
+        if(data.Read("SleepNature", tempSleepNature)) {
+            if(tempSleepNature == "Busy") {
+                if(data.Read("SleepPercentage", tempSleepPercentage)) {
+                    if(tempSleepPercentage <= 100u) {
+                        yieldSleepPercentage = tempSleepPercentage;
+                        operationMode = HighResolutionTime_SemiBusyMode;
+                        SleepProvidingFunction = &HighResolutionTimeProvider::SemiBusy;
+                        REPORT_ERROR(ErrorManagement::Information, "Sleep percentage was specified (%d %)", yieldSleepPercentage);
+                        REPORT_ERROR(ErrorManagement::Information, "SemiBusy delegate selected");
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Sleep percentage cannot be > 100");
+                        returnValue = false;
+                    }
+                }
+                else {
+                    operationMode = HighResolutionTime_BusyMode;
+                    SleepProvidingFunction = &HighResolutionTimeProvider::BusySleep;
+                    REPORT_ERROR(ErrorManagement::Information, "Sleep percentage parameter not specified, 0 assumed");
+                    REPORT_ERROR(ErrorManagement::Information, "BusySleep delegate selected");
+                }                
+            }
+            else if(tempSleepNature == "Default") {
+                operationMode = HighResolutionTime_NoMoreMode;
+                SleepProvidingFunction = &HighResolutionTimeProvider::NoMore;
+                REPORT_ERROR(ErrorManagement::Information, "Default sleep nature selected (Sleep::NoMore mode)");
+                REPORT_ERROR(ErrorManagement::Information, "NoMore delegate selected");
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Specified sleep nature [%s] is not valid", tempSleepNature.Buffer());
+                returnValue = false;
+            }
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::Information, "Sleep nature was not specified, falling back to default (Sleep::NoMore mode)");
+            operationMode = HighResolutionTime_BusyMode;
+        }
+    
+        return returnValue;    
     }
 
     uint64 HighResolutionTimeProvider::Counter() {
@@ -89,6 +139,12 @@ namespace MARTe {
 
     bool HighResolutionTimeProvider::Sleep(const uint64 start, const uint64 delta) {
         return (this->*SleepProvidingFunction)(start, delta);  
+    }
+
+    bool HighResolutionTimeProvider::NullDelegate(const uint64 start, const uint64 delta) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Call to the null delegate with %d start and %d delta.", start, delta);
+        REPORT_ERROR(ErrorManagement::FatalError, "Reached uninitialized portion of the code");
+        return false;
     }
 
     CLASS_REGISTER(HighResolutionTimeProvider, "1.0")

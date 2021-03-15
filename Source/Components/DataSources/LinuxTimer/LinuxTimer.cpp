@@ -105,9 +105,15 @@ bool LinuxTimer::AllocateMemory() {
 bool LinuxTimer::Initialise(StructuredDataI& data) {
     bool ok = DataSourceI::Initialise(data);
     StreamString sleepNatureStr;
+    ConfigurationDatabase slaveCDB;
+
     if (!data.Read("SleepNature", sleepNatureStr)) {
         REPORT_ERROR(ErrorManagement::Information, "SleepNature was not set. Using Default.");
         sleepNatureStr = "Default";
+        slaveCDB.Write("SleepNature", "Default");
+    }
+    else {
+        slaveCDB.Write("SleepNature", sleepNatureStr.Buffer());
     }
     if (!data.Read("Phase", phase)) {
         phase = MAX_PHASE;
@@ -125,12 +131,15 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
         if (sleepPercentage > 100u) {
             sleepPercentage = 100u;
         }
+        slaveCDB.Write("SleepPercentage", sleepPercentage);
     }
     else {
         REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported SleepNature.");
         ok = false;
     }
+
     StreamString executionModeStr;
+
     if (!data.Read("ExecutionMode", executionModeStr)) {
         executionModeStr = "IndependentThread";
         REPORT_ERROR(ErrorManagement::Warning, "ExecutionMode not specified using: %s", executionModeStr.Buffer());
@@ -175,25 +184,27 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
     }
 
     if (ok) {
-    ok = (Size() < 2u);
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "Number of pluggable time providers can be 0 (Default) or 1 (Customized and specified)");
-        REPORT_ERROR(ErrorManagement::ParametersError, "%d providers where specified instead", Size());
-    }
+        ok = (Size() < 2u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Number of pluggable time providers can be 0 (Default) or 1 (Customized and specified)");
+            REPORT_ERROR(ErrorManagement::ParametersError, "%d providers where specified instead", Size());
+        }
     }
 
     if (ok) {
-    if(Size() == 0u) {
+        if(Size() == 0u) {
             REPORT_ERROR(ErrorManagement::Information, "No timer provider specified. Falling back to HighResolutionTimeProvider");
-         timeProvider = ReferenceT<HighResolutionTimeProvider> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
-    }
-    else {
-        timeProvider = Get(0u);
-        ok = timeProvider.IsValid();
-        if (!ok) {
-             REPORT_ERROR(ErrorManagement::ParametersError, "Invalid timer provider was specified");
+            timeProvider = ReferenceT<HighResolutionTimeProvider> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
+            timeProvider->SetName("HighResolutionTimeProvider"); 
+            timeProvider->Initialise(slaveCDB);
         }
-    }
+        else {
+            timeProvider = Get(0u);
+            ok = timeProvider.IsValid();
+            if (!ok) {
+                 REPORT_ERROR(ErrorManagement::ParametersError, "Invalid timer provider was specified");
+            }
+        }
     }
     if(ok) {
         ticksPerUs = (static_cast<float64>(timeProvider->Frequency()) / 1.0e6);
@@ -491,21 +502,24 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
     uint64 deltaTicks = sleepTimeTicksT + startTimeTicks;
     deltaTicks -= cycleEndTicks;
 
-    if (sleepNature == Busy) {
-        if (sleepPercentage == 0u) {
-            timeProvider->Sleep(cycleEndTicks, deltaTicks);
-        }
-        else {
-            float32 totalSleepTime = static_cast<float32> (static_cast<float64> (deltaTicks) * timeProvider->Period());
-            uint32 busyPercentage = (100u - sleepPercentage);
-            float32 busyTime = totalSleepTime * (static_cast<float32> (busyPercentage) / 100.F);
-            Sleep::SemiBusy(totalSleepTime, busyTime);
-        }
-    }
-    else {
-        float32 sleepTime = static_cast<float32> (static_cast<float64> (deltaTicks) * timeProvider->Period());
-        Sleep::NoMore(sleepTime);
-    }
+    timeProvider->Sleep(cycleEndTicks, deltaTicks);
+
+//    if (sleepNature == Busy) {
+//        if (sleepPercentage == 0u) {
+//            timeProvider->Sleep(cycleEndTicks, deltaTicks);
+//        }
+//        else {
+//            float32 totalSleepTime = static_cast<float32> (static_cast<float64> (deltaTicks) * timeProvider->Period());
+//            uint32 busyPercentage = (100u - sleepPercentage);
+//            float32 busyTime = totalSleepTime * (static_cast<float32> (busyPercentage) / 100.F);
+//            Sleep::SemiBusy(totalSleepTime, busyTime);
+//        }
+//    }
+//    else {
+//        float32 sleepTime = static_cast<float32> (static_cast<float64> (deltaTicks) * timeProvider->Period());
+//        Sleep::NoMore(sleepTime);
+//    }
+
     uint64 newCounter = timeProvider->Counter();
     startTimeTicks += sleepTimeTicksT;
 
