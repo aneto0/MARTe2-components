@@ -47,13 +47,10 @@ namespace MARTe {
 
 TCNTimeProvider::TCNTimeProvider() {
     tcnFrequency = 0u;
-    cumulativeError = 0;
-    lastCallError = 0;
 }
 
 TCNTimeProvider::~TCNTimeProvider() {
-    REPORT_ERROR(ErrorManagement::Information, "TCNTimeProvider disposed, cumulative error was %d [%d on last call]", cumulativeError, lastCallError);
-    printf("Disposal %lld %lld\r\n", cumulativeError, lastCallError);
+    REPORT_ERROR(ErrorManagement::Information, "TCNTimeProvider disposed");
 }
 
 bool TCNTimeProvider::Initialise(StructuredDataI &data) {
@@ -187,27 +184,6 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                 }
             }
         }
-        
-        if(ret) {
-            if (!data.Read("TcnFrequency", tcnFrequency)) {
-                tcnFrequency = TCNTIMEPROVIDER_DEFAULT_FREQUENCY;
-                REPORT_ERROR(ErrorManagement::Information, "Missing TcnFrequency parameter, defaulting to TcnFrequency = %d", tcnFrequency);
-            }
-        }
-
-        if(ret) {
-            if (!data.Read("ClosedLoopMode", closedLoopMode)) {
-                REPORT_ERROR(ErrorManagement::Information, "Missing closed loop mode setting, defaulting to off");
-            }
-            else {
-                if(closedLoopMode == 0) {
-                    REPORT_ERROR(ErrorManagement::Information, "Closed loop mode explicitly disabled from configuration file");
-                }
-                else {
-                    REPORT_ERROR(ErrorManagement::Information, "Closed loop mode enabled");
-                }
-            }
-        }
     }
     return ret;
 }
@@ -242,16 +218,9 @@ bool TCNTimeProvider::NullDelegate(uint64 start, uint64 delta) {
 }
 
 bool TCNTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
-    if(closedLoopMode != 0) {
-        deltaTicks -= lastCallError;
-    }
-
     while ((HighResolutionTimer::Counter() - start) < delta) {
         ;
     }
-    int64 tempError = HighResolutionTimer::Counter() - (start + delta);
-    cumulativeError += tempError;
-    lastCallError = tempError;
 
     //Since it relies on internal HRT, we can assume no failure
     return true;
@@ -262,10 +231,6 @@ bool TCNTimeProvider::PollBSP(uint64 start, uint64 delta) {
         
     uint64 tempCounter = 0u;
 
-    if(closedLoopMode != 0) {
-        deltaTicks -= lastCallError;
-    }
-
     tempCounter = Counter();
 
     while ((tempCounter != 0u) && ((Counter() - start) < delta)) {
@@ -275,12 +240,6 @@ bool TCNTimeProvider::PollBSP(uint64 start, uint64 delta) {
     if(tempCounter == 0u) {
         REPORT_ERROR(ErrorManagement::FatalError, "Poll function failed due to 0 counter");
         retVal = false;
-    }
-
-    if(retVal) {
-        uint64 tempError = Counter() - (start + delta);
-        cumulativeError += tempError;
-        lastCallError = tempError;
     }
 
     return retVal;
@@ -304,10 +263,6 @@ bool TCNTimeProvider::WaitUntilHRBSP(uint64 start, uint64 delta) {
 
     uint64 tempDelta = delta;
 
-    if(closedLoopMode != 0) {
-        tempDelta -= lastCallError;
-    }
-
     hpn_timestamp_t waitUntilDeltaHR = (hpn_timestamp_t)(start + tempDelta);
     hpn_timestamp_t wakeUpTime = 0u;
 
@@ -316,9 +271,6 @@ bool TCNTimeProvider::WaitUntilHRBSP(uint64 start, uint64 delta) {
         REPORT_ERROR(ErrorManagement::FatalError, "Sleep providing function tcn_sleep failing with error %d", sleepResult);
         retVal = false;
     }
-    int64 tempError = (wakeUpTime - waitUntilDeltaHR);
-    cumulativeError += tempError;
-    lastCallError = tempError;
     
     return retVal;
 }
@@ -326,10 +278,6 @@ bool TCNTimeProvider::WaitUntilHRBSP(uint64 start, uint64 delta) {
 bool TCNTimeProvider::SleepBSP(uint64 start, uint64 delta) {
     bool retVal = true;
     hpn_timestamp_t tempDelta = static_cast<hpn_timestamp_t>(delta);
-
-    if(closedLoopMode != 0) {
-        tempDelta -= lastCallError;
-    }
 
     int32 sleepResult = static_cast<int32>(tcn_sleep(tempDelta));
     if(sleepResult != TCN_SUCCESS) {
@@ -344,19 +292,12 @@ bool TCNTimeProvider::SleepHRBSP(uint64 start, uint64 delta) {
     bool retVal = true;
 
     hpn_timestamp_t error = 0u;
-    hpn_timestamp_t tempDelta = delta;
-
-    if(closedLoopMode != 0) {
-        tempDelta -= lastCallError;
-    }
 
     int32 sleepResult = static_cast<int32>(tcn_sleep_hr(static_cast<hpn_timestamp_t>(delta), &error, tolerance));
     if(sleepResult != TCN_SUCCESS) {
         REPORT_ERROR(ErrorManagement::FatalError, "Sleep providing function tcn_sleep_hr failing with error %d", sleepResult);
         retVal = false;
     }
-    cumulativeError += error;
-    lastCallError = error;
 
     return retVal;
 }

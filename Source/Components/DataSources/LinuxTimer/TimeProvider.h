@@ -55,20 +55,20 @@ class TimeProvider: public Object {
         virtual ~TimeProvider();
 
         /**
-        * @brief Returns the actual ticks count referred from the internal source
-        * @return The actual ticks value
+        * @brief Returns the actual ticks count, as elapsed nanoseconds
+        * @return The actual elapsed nanoseconds from the source
         */
         virtual uint64 Counter() = 0;
 
         /**
-        * @brief Returns the actual period once every ticks occurs
-        * @return The actual period between ticks
+        * @brief Returns the actual period expressed in nanoseconds between ticks of the internal source
+        * @return The actual period between ticks, expressed in nanoseconds
         */
         virtual float64 Period() = 0;
 
         /**
-        * @brief Returns the actual cpu clock frequency, which in turn becomes the tick rate
-        * @return The cpu clock frequency
+        * @brief Returns the actual cpu clock frequency in Hz
+        * @return The cpu clock frequency expressed in Hz
         */
         virtual uint64 Frequency() = 0;
 
