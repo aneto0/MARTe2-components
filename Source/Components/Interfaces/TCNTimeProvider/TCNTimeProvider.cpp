@@ -155,6 +155,8 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                 if(data.Read("OperationMode", tempOperationMode)) {
                     if(tempOperationMode == "NoPollLegacyMode") {
                         REPORT_ERROR(ErrorManagement::Information, "No Poll legacy mode selected");
+                        tcnFrequency = HighResolutionTimer::Frequency();
+                        REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
                         BusySleepProvider = &TCNTimeProvider::NoPollBSP;
                     }
                     else if(tempOperationMode == "PollLegacyMode") {
