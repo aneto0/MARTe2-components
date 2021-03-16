@@ -144,37 +144,43 @@ class TCNTimeProvider: public TimeProvider {
         /**
         * @brief Pointer to the specific sleep strategy implementation
         */
-        void (TCNTimeProvider::*BusySleepProvider)(uint64, uint64);
+        bool (TCNTimeProvider::*BusySleepProvider)(uint64, uint64);
+
+        /**
+        * @brief Null delegate as dummy for initial configuration, to avoid erratic default behaviour.
+        * Essentially it does nothing, only fails.
+        */
+        bool NullDelegate(uint64 start, uint64 delta);
 
         /**
         * @brief Uses the HighResolutionTimer as source for the sleep, assuming the driver correction happens transparently.
         */
-        void NoPollBSP(uint64 start, uint64 delta);
+        bool NoPollBSP(uint64 start, uint64 delta);
 
         /**
         * @brief Polls the Counter() method to compute the sleep duration and wakeup instant
         */
-        void PollBSP(uint64 start, uint64 delta);
+        bool PollBSP(uint64 start, uint64 delta);
 
         /**
         * @brief Uses the TCN wait until method to sleep (Refer to tcn_wait_until docs)
         */
-        void WaitUntilBSP(uint64 start, uint64 delta);
+        bool WaitUntilBSP(uint64 start, uint64 delta);
 
         /**
         * @brief Uses the TCN wait until with high resolution method to sleep (Refer to tcn_wait_until_hr docs)
         */
-        void WaitUntilHRBSP(uint64 start, uint64 delta);
+        bool WaitUntilHRBSP(uint64 start, uint64 delta);
 
         /**
         * @brief Uses the TCN native sleep (POSIX style) method to sleep (Refer to tcn_sleep docs)
         */
-        void SleepBSP(uint64 start, uint64 delta);
+        bool SleepBSP(uint64 start, uint64 delta);
 
         /**
         * @brief Uses the TCN native sleep (POSIX style) with high resolution method to sleep (Refer to tcn_sleep docs)
         */
-        void SleepHRBSP(uint64 start, uint64 delta);
+        bool SleepHRBSP(uint64 start, uint64 delta);
     };
 }
 

@@ -106,11 +106,6 @@ namespace MARTe{
             bool (HighResolutionTimeProvider::*SleepProvidingFunction)(uint64, uint64);
             
             /**
-            * @brief Holds the current provider operation mode
-            */
-            HighResolutionTimeProviderOperationMode operationMode;
-
-            /**
             * @brief Low level function to provide busy sleep
             */
             bool BusySleep(const uint64 start, const uint64 delta);

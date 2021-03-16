@@ -46,7 +46,6 @@ namespace MARTe {
 
     HighResolutionTimeProvider::HighResolutionTimeProvider() : TimeProvider() {
         yieldSleepPercentage = 0u;        
-        operationMode = HighResolutionTime_BusyMode;
         SleepProvidingFunction = &HighResolutionTimeProvider::NullDelegate;
     }
 
@@ -64,7 +63,6 @@ namespace MARTe {
                 if(data.Read("SleepPercentage", tempSleepPercentage)) {
                     if(tempSleepPercentage <= 100u) {
                         yieldSleepPercentage = tempSleepPercentage;
-                        operationMode = HighResolutionTime_SemiBusyMode;
                         SleepProvidingFunction = &HighResolutionTimeProvider::SemiBusy;
                         REPORT_ERROR(ErrorManagement::Information, "Sleep percentage was specified (%d %)", yieldSleepPercentage);
                         REPORT_ERROR(ErrorManagement::Information, "SemiBusy delegate selected");
@@ -75,14 +73,12 @@ namespace MARTe {
                     }
                 }
                 else {
-                    operationMode = HighResolutionTime_BusyMode;
                     SleepProvidingFunction = &HighResolutionTimeProvider::BusySleep;
                     REPORT_ERROR(ErrorManagement::Information, "Sleep percentage parameter not specified, 0 assumed");
                     REPORT_ERROR(ErrorManagement::Information, "BusySleep delegate selected");
                 }                
             }
             else if(tempSleepNature == "Default") {
-                operationMode = HighResolutionTime_NoMoreMode;
                 SleepProvidingFunction = &HighResolutionTimeProvider::NoMore;
                 REPORT_ERROR(ErrorManagement::Information, "Default sleep nature selected (Sleep::NoMore mode)");
                 REPORT_ERROR(ErrorManagement::Information, "NoMore delegate selected");
@@ -93,8 +89,8 @@ namespace MARTe {
             }
         }
         else {
+            SleepProvidingFunction = &HighResolutionTimeProvider::NoMore;
             REPORT_ERROR(ErrorManagement::Information, "Sleep nature was not specified, falling back to default (Sleep::NoMore mode)");
-            operationMode = HighResolutionTime_BusyMode;
         }
     
         return returnValue;    

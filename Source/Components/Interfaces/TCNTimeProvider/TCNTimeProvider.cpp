@@ -69,23 +69,23 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                 case TCN_SUCCESS:
                     REPORT_ERROR(ErrorManagement::Information, "tcn_register_device succeeded! Registered @ %s", tcnDevice.Buffer());
                     break;
-                case ENOENT:
+                case -ENOENT:
                     REPORT_ERROR(ErrorManagement::ParametersError, "tcn_register_device failed, configuration file does not exists (ENOENT)");           
                     ret = false;
                     break;
-                case ENODEV:
+                case -ENODEV:
                     REPORT_ERROR(ErrorManagement::ParametersError, "tcn_register_device failed, device has not been recognized (ENODEV)");
                     ret = false;
                     break;
-                case ENOKEY:
+                case -ENOKEY:
                     REPORT_ERROR(ErrorManagement::ParametersError, "tcn_register_device failed, parsing error (ENOKEY)");
                     ret = false;
                     break;
-                case EPERM:
+                case -EPERM:
                     REPORT_ERROR(ErrorManagement::ParametersError, "tcn_register_device failed, error creating parser (EPERM)");
                     ret = false;
                     break;
-                case EBUSY:
+                case -EBUSY:
                     REPORT_ERROR(ErrorManagement::ParametersError, "tcn_register_device failed, another concurrent init/reg or device already initialized (EBUSY)");
                     ret = false;
                     break;
@@ -101,19 +101,19 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                     case TCN_SUCCESS:
                         REPORT_ERROR(ErrorManagement::Information, "tcn_init successful!");
                         break;
-                    case EACCES:
+                    case -EACCES:
                         REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, configuration settings missing or invalid (EACCESS)");
                         ret = false;
                         break;
-                    case ENOSYS:
+                    case -ENOSYS:
                         REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, function not implemented by the tcn plugin (ENOSYS)");
                         ret = false;
                         break;
-                    case ENODEV:
+                    case -ENODEV:
                         REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, invalid tcn device (ENODEV)");
                         ret = false;
                         break;
-                    case ENODATA:
+                    case -ENODATA:
                         REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, timescale conversion table is missing or invalid (ENODATA)");
                         ret = false;
                         break;
@@ -212,10 +212,15 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
     return ret;
 }
 
-
 uint64 TCNTimeProvider::Counter() {
-    uint64 tcnTime;
-    tcn_get_time((hpn_timestamp_t*) (&tcnTime));
+    uint64 tcnTime = 0u;
+    int32 retVal = static_cast<int32>(tcn_get_time(static_cast<hpn_timestamp_t*>(&tcnTime)));
+
+    if(retVal != TCN_SUCCESS) {
+        tcnTime = 0u;
+        REPORT_ERROR(ErrorManagement::FatalError, "Counter() [tcn_get_time] is failing with error %d", retVal);
+    }
+
     return tcnTime;
 }
 
@@ -227,7 +232,13 @@ uint64 TCNTimeProvider::Frequency() {
     return tcnFrequency;
 }
 
-void TCNTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
+bool NullDelegate(uint64 start, uint64 delta) {
+    REPORT_ERROR(ErrorManagement::FatalError, "Call to the null delegate with %d start and %d delta.", start, delta);
+    REPORT_ERROR(ErrorManagement::FatalError, "Reached uninitialized portion of the code");
+    return false;
+}
+
+bool TCNTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
     uint64 startTicks = static_cast<uint64>((start) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
     uint64 deltaTicks = static_cast<uint64>((delta) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
     
@@ -241,34 +252,58 @@ void TCNTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
     int64 tempError = HighResolutionTimer::Counter() - (startTicks + deltaTicks);
     cumulativeError += tempError;
     lastCallError = tempError;
+
+    //Since it relies on internal HRT, we can assume no failure
+    return true;
 }
 
-void TCNTimeProvider::PollBSP(uint64 start, uint64 delta) {
+bool TCNTimeProvider::PollBSP(uint64 start, uint64 delta) {
+    bool retVal = true;    
+        
     uint64 startTicks = start;
     uint64 deltaTicks = delta;
+    uint64 tempCounter = 0u;
 
     if(closedLoopMode != 0) {
         deltaTicks -= lastCallError;
     }
 
-    while ((Counter() - startTicks) < deltaTicks) {
-        ;
+    tempCounter = Counter();
+
+    while ((tempCounter != 0u) && ((Counter() - startTicks) < deltaTicks)) {
+        tempCounter = Counter();
     }
 
-    uint64 tempError = Counter() - (startTicks + deltaTicks);
-    cumulativeError += tempError;
-    lastCallError = tempError;
+    if(tempCounter == 0u) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Poll function failed due to 0 counter");
+        retVal = false;
+    }
+
+    if(retVal) {
+        uint64 tempError = Counter() - (startTicks + deltaTicks);
+        cumulativeError += tempError;
+        lastCallError = tempError;
+    }
+
+    return retVal;
 }
 
-void TCNTimeProvider::WaitUntilBSP(uint64 start, uint64 delta) {
-    hpn_timestamp_t waitUntilDelta = (hpn_timestamp_t)(start + delta);
+bool TCNTimeProvider::WaitUntilBSP(uint64 start, uint64 delta) {
+    bool retVal = true;
+
+    hpn_timestamp_t waitUntilDelta = static_cast<hpn_timestamp_t>(start + delta);
     int32 sleepResult = tcn_wait_until(waitUntilDelta, tolerance);
     if(sleepResult != TCN_SUCCESS) {
         REPORT_ERROR(ErrorManagement::FatalError, "Sleep providing function tcn_wait_until failing with error %d", sleepResult);
+        retVal = false;
     }
+
+    return retVal;
 }
 
-void TCNTimeProvider::WaitUntilHRBSP(uint64 start, uint64 delta) {
+bool TCNTimeProvider::WaitUntilHRBSP(uint64 start, uint64 delta) {
+    bool retVal = true;
+
     uint64 tempDelta = delta;
 
     if(closedLoopMode != 0) {
@@ -278,29 +313,38 @@ void TCNTimeProvider::WaitUntilHRBSP(uint64 start, uint64 delta) {
     hpn_timestamp_t waitUntilDeltaHR = (hpn_timestamp_t)(start + tempDelta);
     hpn_timestamp_t wakeUpTime = 0u;
 
-    int32 sleepResult = (int32)tcn_wait_until_hr(waitUntilDeltaHR, &wakeUpTime, tolerance);
+    int32 sleepResult = static_cast<int32>(tcn_wait_until_hr(waitUntilDeltaHR, &wakeUpTime, tolerance));
     if(sleepResult != TCN_SUCCESS) {
         REPORT_ERROR(ErrorManagement::FatalError, "Sleep providing function tcn_sleep failing with error %d", sleepResult);
+        retVal = false;
     }
     int64 tempError = (wakeUpTime - waitUntilDeltaHR);
     cumulativeError += tempError;
     lastCallError = tempError;
+    
+    return retVal;
 }
 
-void TCNTimeProvider::SleepBSP(uint64 start, uint64 delta) {
-    hpn_timestamp_t tempDelta = (hpn_timestamp_t)delta;
+bool TCNTimeProvider::SleepBSP(uint64 start, uint64 delta) {
+    bool retVal = true;
+    hpn_timestamp_t tempDelta = static_cast<hpn_timestamp_t>(delta);
 
     if(closedLoopMode != 0) {
         tempDelta -= lastCallError;
     }
 
-    int32 sleepResult = (int32)tcn_sleep(tempDelta);
+    int32 sleepResult = static_cast<int32>(tcn_sleep(tempDelta));
     if(sleepResult != TCN_SUCCESS) {
         REPORT_ERROR(ErrorManagement::FatalError, "Sleep providing function tcn_sleep failing with error %d", sleepResult);
+        retVal = false;
     }
+
+    return retVal;
 }
 
-void TCNTimeProvider::SleepHRBSP(uint64 start, uint64 delta) {
+bool TCNTimeProvider::SleepHRBSP(uint64 start, uint64 delta) {
+    bool retVal = true;
+
     hpn_timestamp_t error = 0u;
     hpn_timestamp_t tempDelta = delta;
 
@@ -308,18 +352,19 @@ void TCNTimeProvider::SleepHRBSP(uint64 start, uint64 delta) {
         tempDelta -= lastCallError;
     }
 
-    int32 sleepResult = (int32)tcn_sleep_hr((hpn_timestamp_t)delta, &error, tolerance);
+    int32 sleepResult = static_cast<int32>(tcn_sleep_hr(static_cast<hpn_timestamp_t>(delta), &error, tolerance));
     if(sleepResult != TCN_SUCCESS) {
         REPORT_ERROR(ErrorManagement::FatalError, "Sleep providing function tcn_sleep_hr failing with error %d", sleepResult);
+        retVal = false;
     }
     cumulativeError += error;
     lastCallError = error;
+
+    return retVal;
 }
 
 bool TCNTimeProvider::Sleep(uint64 start, uint64 delta) {
-    (this->*BusySleepProvider)(start, delta);
-
-     return true;
+    return (this->*BusySleepProvider)(start, delta);
 }
 
 CLASS_REGISTER(TCNTimeProvider, "1.0")
