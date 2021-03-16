@@ -92,6 +92,9 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                     break;
             }
         }
+        else {
+            REPORT_ERROR(ErrorManagement::Information, "Missing TcnDevice parameter");
+        }
             
         if (ret) {
             tcnRetVal = tcn_init();
@@ -121,9 +124,17 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                     break;
             }
         }
-       
-        if(!ret) {
-            REPORT_ERROR(ErrorManagement::FatalError, "Missing TcnDevice configuration parameter");
+
+        if(ret) {
+            uint64 tempTcnFrequency = 0u;
+            if(data.Read("TcnFrequency", tempTcnFrequency)) {
+                tcnFrequency = tempTcnFrequency;
+                REPORT_ERROR(ErrorManagement::Information, "TcnFrequency manually set to %d", tcnFrequency);
+            }
+            else {
+                tcnFrequency = TCNTIMEPROVIDER_DEFAULT_FREQUENCY;
+                REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter omitted, defaulting to %d", tcnFrequency);
+            }
         }
 
         if(ret) {
@@ -132,6 +143,8 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                 REPORT_ERROR(ErrorManagement::Information, "TcnPoll parameter is set to %d [Legacy Configuration Mode]", tcnPoll);
                 if(tcnPoll == 0) {
                     BusySleepProvider = &TCNTimeProvider::NoPollBSP;
+                    tcnFrequency = HighResolutionTimer::Frequency();
+                    REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
                 }
                 else {
                     BusySleepProvider = &TCNTimeProvider::PollBSP;
@@ -172,7 +185,7 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
 
                     if(!data.Read("Tolerance", tempTolerance)) {
                         tolerance = TCNTIMEPROVIDER_DEFAULT_TOLERANCE;
-                        REPORT_ERROR(ErrorManagement::Information, "Tolerance parameter omitted, defaulting to %d", tolerance);
+                        REPORT_ERROR(ErrorManagement::Warning, "Tolerance parameter omitted, defaulting to %d", tolerance);
                     }
                     else {
                         tolerance = tempTolerance;
@@ -180,7 +193,7 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                     }
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::Information, "No TcnPoll and no OperationMode parameter found, defaulting to Legacy NoPoll mode (TcnPoll = 0)");
+                    REPORT_ERROR(ErrorManagement::Warning, "No TcnPoll and no OperationMode parameter found, defaulting to Legacy NoPoll mode (TcnPoll = 0)");
                     BusySleepProvider = &TCNTimeProvider::NoPollBSP;
                 }
             }
@@ -220,8 +233,6 @@ bool TCNTimeProvider::NullDelegate(uint64 start, uint64 delta) {
 }
 
 bool TCNTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
-        uint64 startTicks = static_cast<uint64>((start) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
-        uint64 deltaTicks = static_cast<uint64>((delta) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
 
     while ((HighResolutionTimer::Counter() - startTicks) < deltaTicks) {
         ;
