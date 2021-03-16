@@ -242,17 +242,14 @@ bool TCNTimeProvider::NullDelegate(uint64 start, uint64 delta) {
 }
 
 bool TCNTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
-    uint64 startTicks = static_cast<uint64>((start) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
-    uint64 deltaTicks = static_cast<uint64>((delta) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
-    
     if(closedLoopMode != 0) {
         deltaTicks -= lastCallError;
     }
 
-    while ((HighResolutionTimer::Counter() - startTicks) < deltaTicks) {
+    while ((HighResolutionTimer::Counter() - start) < delta) {
         ;
     }
-    int64 tempError = HighResolutionTimer::Counter() - (startTicks + deltaTicks);
+    int64 tempError = HighResolutionTimer::Counter() - (start + delta);
     cumulativeError += tempError;
     lastCallError = tempError;
 
@@ -263,8 +260,6 @@ bool TCNTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
 bool TCNTimeProvider::PollBSP(uint64 start, uint64 delta) {
     bool retVal = true;    
         
-    uint64 startTicks = start;
-    uint64 deltaTicks = delta;
     uint64 tempCounter = 0u;
 
     if(closedLoopMode != 0) {
@@ -273,7 +268,7 @@ bool TCNTimeProvider::PollBSP(uint64 start, uint64 delta) {
 
     tempCounter = Counter();
 
-    while ((tempCounter != 0u) && ((Counter() - startTicks) < deltaTicks)) {
+    while ((tempCounter != 0u) && ((Counter() - start) < delta)) {
         tempCounter = Counter();
     }
 
@@ -283,7 +278,7 @@ bool TCNTimeProvider::PollBSP(uint64 start, uint64 delta) {
     }
 
     if(retVal) {
-        uint64 tempError = Counter() - (startTicks + deltaTicks);
+        uint64 tempError = Counter() - (start + delta);
         cumulativeError += tempError;
         lastCallError = tempError;
     }

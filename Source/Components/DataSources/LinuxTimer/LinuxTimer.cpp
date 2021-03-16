@@ -479,10 +479,10 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
         absoluteTime_1 = static_cast<uint64>(seconds0) * static_cast<uint64>(1e6);
         if(phase < MAX_PHASE) {
             //Try to synchronize on the second
-        uint64 overSec = (absoluteTime_1 % MAX_PHASE);
-        absoluteTime_1 += (phase - overSec);
-        float64 secondsT = static_cast<float64> (absoluteTime_1) / 1e6;
-        startTimeTicks = static_cast<uint64> (secondsT) * static_cast<uint64>(timeProvider->Frequency());
+            uint64 overSec = (absoluteTime_1 % MAX_PHASE);
+            absoluteTime_1 += (phase - overSec);
+            float64 secondsT = static_cast<float64> (absoluteTime_1) / 1e6;
+            startTimeTicks = static_cast<uint64> (secondsT) * static_cast<uint64>(timeProvider->Frequency());
         }
     }
 
