@@ -214,13 +214,16 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
 
 uint64 TCNTimeProvider::Counter() {
     uint64 tcnTime = 0u;
-    int32 retVal = static_cast<int32>(tcn_get_time(static_cast<hpn_timestamp_t*>(&tcnTime)));
+    uint32 tempTCNTime = 0u;
+
+    int32 retVal = static_cast<int32>(tcn_get_time(static_cast<hpn_timestamp_t*>(&tempTCNTime)));
 
     if(retVal != TCN_SUCCESS) {
-        tcnTime = 0u;
+        tempTCNTime = 0u;
         REPORT_ERROR(ErrorManagement::FatalError, "Counter() [tcn_get_time] is failing with error %d", retVal);
     }
 
+    tcnTime = static_cast<uint64>(tempTCNTime);
     return tcnTime;
 }
 
