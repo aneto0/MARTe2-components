@@ -46,7 +46,7 @@
 namespace MARTe {
 
 TCNTimeProvider::TCNTimeProvider() {
-    tcnFrequency = 0u;
+    tcnFrequency = TCNTIMEPROVIDER_DEFAULT_FREQUENCY;
 }
 
 TCNTimeProvider::~TCNTimeProvider() {
@@ -201,9 +201,6 @@ uint64 TCNTimeProvider::Counter() {
     }
 
     tcnTime = static_cast<uint64>(tempTCNTime);
-    printf("TCN %lld\r\n", tempTCNTime);
-
-    REPORT_ERROR(ErrorManagement::Information, "COUNTER() called, value %d", tcnTime);
 
     return tcnTime;
 }
