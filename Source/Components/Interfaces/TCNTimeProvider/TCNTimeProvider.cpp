@@ -214,9 +214,9 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
 
 uint64 TCNTimeProvider::Counter() {
     uint64 tcnTime = 0u;
-    uint32 tempTCNTime = 0u;
+    hpn_timestamp_t tempTCNTime = 0u;
 
-    int32 retVal = static_cast<int32>(tcn_get_time(static_cast<hpn_timestamp_t*>(&tempTCNTime)));
+    int32 retVal = static_cast<int32>(tcn_get_time(&tempTCNTime));
 
     if(retVal != TCN_SUCCESS) {
         tempTCNTime = 0u;
