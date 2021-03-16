@@ -194,6 +194,8 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                 }
                 else {
                     REPORT_ERROR(ErrorManagement::Warning, "No TcnPoll and no OperationMode parameter found, defaulting to Legacy NoPoll mode (TcnPoll = 0)");
+                    tcnFrequency = HighResolutionTimer::Frequency();
+                    REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
                     BusySleepProvider = &TCNTimeProvider::NoPollBSP;
                 }
             }
@@ -219,7 +221,7 @@ uint64 TCNTimeProvider::Counter() {
 }
 
 float64 TCNTimeProvider::Period() {
-    return (1.0 / Frequency());
+    return (1.0 / tcnFrequency);
 }
 
 uint64 TCNTimeProvider::Frequency() {
