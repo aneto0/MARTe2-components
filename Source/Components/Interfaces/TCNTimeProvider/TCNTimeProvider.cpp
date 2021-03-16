@@ -232,7 +232,7 @@ uint64 TCNTimeProvider::Frequency() {
     return tcnFrequency;
 }
 
-bool NullDelegate(uint64 start, uint64 delta) {
+bool TCNTimeProvider::NullDelegate(uint64 start, uint64 delta) {
     REPORT_ERROR(ErrorManagement::FatalError, "Call to the null delegate with %d start and %d delta.", start, delta);
     REPORT_ERROR(ErrorManagement::FatalError, "Reached uninitialized portion of the code");
     return false;
