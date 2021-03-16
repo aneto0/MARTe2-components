@@ -218,6 +218,7 @@ bool TCNTimeProvider::NullDelegate(uint64 start, uint64 delta) {
 }
 
 bool TCNTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
+
     while ((HighResolutionTimer::Counter() - start) < delta) {
         ;
     }
