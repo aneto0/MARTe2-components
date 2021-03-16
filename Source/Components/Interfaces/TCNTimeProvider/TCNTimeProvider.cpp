@@ -200,9 +200,10 @@ uint64 TCNTimeProvider::Counter() {
         REPORT_ERROR(ErrorManagement::FatalError, "Counter() [tcn_get_time] is failing with error %d", retVal);
     }
 
-    REPORT_ERROR(ErrorManagement::Information, "COUNTER() called, value");
-
     tcnTime = static_cast<uint64>(tempTCNTime);
+
+    REPORT_ERROR(ErrorManagement::Information, "COUNTER() called, value %d", tcnTime);
+
     return tcnTime;
 }
 
