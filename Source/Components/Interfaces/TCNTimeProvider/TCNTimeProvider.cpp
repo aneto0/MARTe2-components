@@ -91,36 +91,37 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                     ret = false;
                     break;
             }
+        }
             
-            if (ret) {
-                tcnRetVal = tcn_init();
-                switch(tcnRetVal) {
-                    case TCN_SUCCESS:
-                        REPORT_ERROR(ErrorManagement::Information, "tcn_init successful!");
-                        break;
-                    case -EACCES:
-                        REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, configuration settings missing or invalid (EACCESS)");
-                        ret = false;
-                        break;
-                    case -ENOSYS:
-                        REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, function not implemented by the tcn plugin (ENOSYS)");
-                        ret = false;
-                        break;
-                    case -ENODEV:
-                        REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, invalid tcn device (ENODEV)");
-                        ret = false;
-                        break;
-                    case -ENODATA:
-                        REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, timescale conversion table is missing or invalid (ENODATA)");
-                        ret = false;
-                        break;
-                    default:
-                        REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, device specific error code (%d)", tcnRetVal);
-                        ret = false;
-                        break;
-                }
+        if (ret) {
+            tcnRetVal = tcn_init();
+            switch(tcnRetVal) {
+                case TCN_SUCCESS:
+                    REPORT_ERROR(ErrorManagement::Information, "tcn_init successful!");
+                    break;
+                case -EACCES:
+                    REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, configuration settings missing or invalid (EACCESS)");
+                    ret = false;
+                    break;
+                case -ENOSYS:
+                    REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, function not implemented by the tcn plugin (ENOSYS)");
+                    ret = false;
+                    break;
+                case -ENODEV:
+                    REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, invalid tcn device (ENODEV)");
+                    ret = false;
+                    break;
+                case -ENODATA:
+                    REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, timescale conversion table is missing or invalid (ENODATA)");
+                    ret = false;
+                    break;
+                default:
+                    REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, device specific error code (%d)", tcnRetVal);
+                    ret = false;
+                    break;
             }
         }
+       
         if(!ret) {
             REPORT_ERROR(ErrorManagement::FatalError, "Missing TcnDevice configuration parameter");
         }
@@ -198,6 +199,8 @@ uint64 TCNTimeProvider::Counter() {
         tempTCNTime = 0u;
         REPORT_ERROR(ErrorManagement::FatalError, "Counter() [tcn_get_time] is failing with error %d", retVal);
     }
+
+    REPORT_ERROR(ErrorManagement::Information, "COUNTER() called, value %d", tempTCNTime);
 
     tcnTime = static_cast<uint64>(tempTCNTime);
     return tcnTime;
