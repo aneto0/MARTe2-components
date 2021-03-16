@@ -218,6 +218,8 @@ bool TCNTimeProvider::NullDelegate(uint64 start, uint64 delta) {
 }
 
 bool TCNTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
+    REPORT_ERROR(ErrorManagement::Information, "Start %d and Delta %d", start, delta);
+
     while ((HighResolutionTimer::Counter() - start) < delta) {
         ;
     }
