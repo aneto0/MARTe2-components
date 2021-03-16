@@ -220,8 +220,10 @@ bool TCNTimeProvider::NullDelegate(uint64 start, uint64 delta) {
 }
 
 bool TCNTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
+        uint64 startTicks = static_cast<uint64>((start) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
+        uint64 deltaTicks = static_cast<uint64>((delta) * (static_cast<float64>(HighResolutionTimer::Frequency()) / 1e9));
 
-    while ((HighResolutionTimer::Counter() - start) < delta) {
+    while ((HighResolutionTimer::Counter() - startTicks) < deltaTicks) {
         ;
     }
 
