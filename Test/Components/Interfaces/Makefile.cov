@@ -33,6 +33,7 @@ LIBRARIES_STATIC+=SysLogger/cov/SysLoggerTest$(LIBEXT)
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=NI9157Device/cov/NI9157DeviceTest$(LIBEXT)
+LIBRARIES_STATIC+=TcnTimeProvider/cov/TcnTimeProviderTest$(LIBEXT)
 endif
 
 ifdef EFDA_MARTe_DIR
