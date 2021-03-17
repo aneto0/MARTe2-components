@@ -49,7 +49,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 
 INCLUDES += -I../../../../Source/Components/Interfaces/TcnTimeProvider
-INCLUDES += -I../../../../Source/Components/GAMs/IOGAM
+INCLUDES += -I../../../../Source/Components/DataSources/LinuxTimer
 
 all: $(OBJS) \
                 $(BUILD_DIR)/TcnTimeProviderTest$(LIBEXT)
