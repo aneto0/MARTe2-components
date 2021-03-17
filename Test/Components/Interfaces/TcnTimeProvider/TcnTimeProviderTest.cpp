@@ -29,6 +29,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
+#include "ConfigurationDatabase.h"
 #include "TcnTimeProviderTest.h"
 
 /*---------------------------------------------------------------------------*/
@@ -38,6 +39,9 @@
 
 TcnTimeProviderTest::TcnTimeProviderTest() : TimeProviderTest() {
     timeProvider = new MARTe::TcnTimeProvider();
+    ConfigurationDatabase cdb;
+    cdb.Write("TcnDevice", "/etc/opt/codac/tcn/tcn-default.xml");
+    timeProvider.Initialise(cdb);
 }
 
 TcnTimeProviderTest::~TcnTimeProviderTest() {
