@@ -45,7 +45,6 @@ TEST(TcnTimeProviderGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
-
 TEST(TcnTimeProviderGTest,TestCounter) {
     TcnTimeProviderTest test;
     ASSERT_TRUE(test.TestCounter());
@@ -64,4 +63,39 @@ TEST(TcnTimeProviderGTest,TestFrequency) {
 TEST(TcnTimeProviderGTest,TestSleep) {
     TcnTimeProviderTest test;
     ASSERT_TRUE(test.TestSleep());
+}
+
+TEST(TcnTimeProviderGTest, TestInitialise_NoPollLegacyMode) {
+    TcnTimeProviderTest test(true);
+    ASSERT_TRUE(test.TestInitialise_NoPollLegacyMode());
+}
+
+TEST(TcnTimeProviderGTest, TestInitialise_PollLegacyMode) {
+    TcnTimeProviderTest test(true);
+    ASSERT_TRUE(test.TestInitialise_PollLegacyMode());
+}
+
+TEST(TcnTimeProviderGTest, TestInitialise_WaitUntilMode) {
+    TcnTimeProviderTest test(true);
+    ASSERT_TRUE(test.TestInitialise_WaitUntilMode());
+}
+
+TEST(TcnTimeProviderGTest, TestInitialise_WaitUntilHRMode) {
+    TcnTimeProviderTest test(true);
+    ASSERT_TRUE(test.TestInitialise_WaitUntilHRMode());
+}
+
+TEST(TcnTimeProviderGTest, TestInitialise_SleepMode) {
+    TcnTimeProviderTest test(true);
+    ASSERT_TRUE(test.TestInitialise_SleepMode());
+}
+
+TEST(TcnTimeProviderGTest, TestInitialise_SleepHRMode) {
+    TcnTimeProviderTest test(true);
+    ASSERT_TRUE(test.TestInitialise_SleepHRMode());
+}
+
+TEST(TcnTimeProviderGTest, TestInitialise_InvalidMode_Fail) {
+    TcnTimeProviderTest test(true);
+    ASSERT_TRUE(test.TestInitialise_InvalidMode_Fail());
 }

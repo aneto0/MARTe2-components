@@ -29,6 +29,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
+#include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
 #include "TcnTimeProviderTest.h"
 
@@ -36,15 +37,100 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-
-TcnTimeProviderTest::TcnTimeProviderTest() : TimeProviderTest() {
+bool TcnTimeProviderTest::PreInitialise(bool noPreInit) {
+    bool retVal = true;
     timeProvider = new MARTe::TcnTimeProvider();
     ConfigurationDatabase cdb;
-    cdb.Write("TcnDevice", "/etc/opt/codac/tcn/tcn-default.xml");
-    timeProvider->Initialise(cdb);
+    retVal = cdb.Write("TcnDevice", "/etc/opt/codac/tcn/tcn-default.xml");
+
+    if(retVal && !noPreInit) {
+        retVal = timeProvider->Initialise(cdb);
+    }
+
+    return retVal; 
+}
+
+TcnTimeProviderTest(bool noPreInit) : TimeProviderTest() {
+    PreInitialise(noPreInit);
+}
+
+TcnTimeProviderTest::TcnTimeProviderTest() : TimeProviderTest() {
+    PreInitialise(false);   
 }
 
 TcnTimeProviderTest::~TcnTimeProviderTest() {
-
+    delete timeProvider;
 }
+
+bool TcnTimeProviderTest::TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode mode) {
+    timeProvider = new MARTe::TcnTimeProvider();
+    ConfigurationDatabase cdb;
+    StreamString operationModeString;
+    operationModeString.Seek(0);
+
+    switch(mode) {
+        case TcnTimeProviderTestInitialiseMode_NoPollLegacy:
+            operationModeString.Printf("NoPollLegacyMode");
+            break;
+        case TcnTimeProviderTestInitialiseMode_PollLegacyMode:
+            operationModeString.Printf("PollLegacyMode");
+            break;
+        case TcnTimeProviderTestInitialiseMode_WaitUntilMode:
+            operationModeString.Printf("WaitUntilMode");
+            break;
+        case TcnTimeProviderTestInitialiseMode_WaitUntilHRMode:
+            operationModeString.Printf("WaitUntilHRMode");
+            break;
+        case TcnTimeProviderTestInitialiseMode_SleepMode:
+            operationModeString.Printf("SleepMode");
+            break;
+        case TcnTimeProviderTestInitialiseMode_SleepHRMode:
+            operationModeString.Printf("SleepHRMode");
+            break;
+        case TcnTimeProviderTestInitialiseMode_InvalidMode:
+            operationModeString.Printf("InvalidMode");
+            break;
+    }
+
+    bool testCounterRes = TestCounter();
+    bool testPeriodRes = TestPeriod();
+    bool testFrequencyRes = TestFrequency();
+    bool testSleepRes = TestSleep();
+
+    REPORT_ERROR_STATIC(testCounterRes?ErrorManagement::Information:ErrorManagement::FatalError, "Counter [%s]", testCounterRes?"passed":"failed");
+    REPORT_ERROR_STATIC(testPeriodRes?ErrorManagement::Information:ErrorManagement::FatalError, "Period [%s]", testPeriodRes?"passed":"failed");
+    REPORT_ERROR_STATIC(testFrequencyRes?ErrorManagement::Information:ErrorManagement::FatalError, "Frequency [%s]", testFrequencyRes?"passed":"failed");
+    REPORT_ERROR_STATIC(testSleepRes?ErrorManagement::Information:ErrorManagement::FatalError, "Sleep [%s]", testSleepRes?"passed":"failed");
+
+    return testCounterRes && testPeriodRes && testFrequencyRes && testSleepRes;
+}
+
+bool TcnTimeProviderTest::TestInitialise_NoPollLegacyMode() {
+    return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_NoPollLegacyMode);
+}
+
+bool TcnTimeProviderTest::TestInitialise_PollLegacyMode() {
+    return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_PollLegacyMode);
+}
+
+bool TcnTimeProviderTest::TestInitialise_WaitUntilMode() {
+    return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_WaitUntilMode);
+}
+
+bool TcnTimeProviderTest::TestInitialise_WaitUntilHRMode() {
+    return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_WaitUntilHRMode);
+}
+
+bool TcnTimeProviderTest::TestInitialise_SleepMode() {
+    return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_SleepMode);
+}
+
+bool TcnTimeProviderTest::TestInitialise_SleepHRMode() {
+    return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_SleepHRMode);
+}
+
+bool TcnTimeProviderTest::TestInitialise_InvalidMode_Fail() {
+    return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_InvalidMode);
+}
+
 

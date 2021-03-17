@@ -42,10 +42,35 @@ using namespace MARTe;
 /**
  * @brief Test all the TcnTimeProvider methods
  */
+typedef enum {
+    TcnTimeProviderTestInitialiseMode_NoPollLegacy,
+    TcnTimeProviderTestInitialiseMode_PollLegacyMode,
+    TcnTimeProviderTestInitialiseMode_WaitUntilMode,
+    TcnTimeProviderTestInitialiseMode_WaitUntilHRMode,
+    TcnTimeProviderTestInitialiseMode_SleepMode,
+    TcnTimeProviderTestInitialiseMode_SleepHRMode,
+    TcnTimeProviderTestInitialiseMode_InvalidMode
+}TcnTimeProviderTestInitialiseMode;
+
 class TcnTimeProviderTest : public TimeProviderTest {
     public:
         TcnTimeProviderTest();
+        TcnTimeProviderTest(bool noPreinit);
+
         ~TcnTimeProviderTest();
+
+
+        bool TestInitialise_NoPollLegacyMode();
+        bool TestInitialise_PollLegacyMode();
+        bool TestInitialise_WaitUntilMode();
+        bool TestInitialise_WaitUntilHRMode();
+        bool TestInitialise_SleepMode();
+        bool TestInitialise_SleepHRMode();
+        bool TestInitialise_InvalidMode_Fail();
+
+    private:
+        bool PreInitialise();
+        bool TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode mode);
 };
 
 /*---------------------------------------------------------------------------*/
