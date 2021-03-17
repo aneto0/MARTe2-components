@@ -44,14 +44,6 @@ class HighResolutionTimeProviderTest : public TimeProviderTest {
     public:
         HighResolutionTimeProviderTest();
         ~HighResolutionTimeProviderTest();
-
-        TestInitialise_NoPollLegacyMode();
-        TestInitialise_PollLegacyMode();
-        TestInitialise_WaitUntilMode();
-        TestInitialise_WaitUntilHRMode();
-        TestInitialise_SleepMode();
-        TestInitialise_SleepHRMode();
-        TestInitialise_InvalidMode_Fail();
 };
 
 /*---------------------------------------------------------------------------*/
