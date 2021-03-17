@@ -39,13 +39,29 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+
 TEST(TcnTimeProviderGTest,TestConstructor) {
     TcnTimeProviderTest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(TcnTimeProviderGTest,TestInitialise) {
+
+TEST(TcnTimeProviderGTest,TestCounter) {
     TcnTimeProviderTest test;
-    ASSERT_TRUE(test.TestInitialise());
+    ASSERT_TRUE(test.TestCounter());
 }
 
+TEST(TcnTimeProviderGTest,TestPeriod) {
+    TcnTimeProviderTest test;
+    ASSERT_TRUE(test.TestPeriod());
+}
+
+TEST(TcnTimeProviderGTest,TestFrequency) {
+    TcnTimeProviderTest test;
+    ASSERT_TRUE(test.TestFrequency());
+}
+
+TEST(TcnTimeProviderGTest,TestSleep) {
+    TcnTimeProviderTest test;
+    ASSERT_TRUE(test.TestSleep());
+}

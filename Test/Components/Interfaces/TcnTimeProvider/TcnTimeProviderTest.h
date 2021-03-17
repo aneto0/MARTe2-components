@@ -41,29 +41,10 @@ using namespace MARTe;
 /**
  * @brief Test all the TcnTimeProvider methods
  */
-class TcnTimeProviderTest {
-public:
-
-    /**
-     * @brief Constructor
-     */
-    TcnTimeProviderTest();
-
-    /**
-     * @brief Destructor
-     */
-    virtual ~TcnTimeProviderTest();
-
-    /**
-     * @brief Tests the constructor
-     */
-    bool TestConstructor();
-
-    /**
-     * @brief Tests the Initialise method
-     */
-    bool TestInitialise();
-
+class TcnTimeProviderTest : public TimeProviderTest {
+    public:
+        TcnTimeProviderTest();
+        ~TcnTimeProviderTest();
 };
 
 /*---------------------------------------------------------------------------*/

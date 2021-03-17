@@ -37,17 +37,10 @@
 
 
 TcnTimeProviderTest::TcnTimeProviderTest() {
-
+    timeProvider = new MARTe::TcnTimeProviderTest();
 }
 
 TcnTimeProviderTest::~TcnTimeProviderTest() {
 
 }
 
-bool TcnTimeProviderTest::TestConstructor() {
-    return true;
-}
-
-bool TcnTimeProviderTest::TestInitialise() {
-    return true;
-}
