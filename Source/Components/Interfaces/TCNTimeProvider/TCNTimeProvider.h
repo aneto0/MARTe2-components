@@ -149,18 +149,18 @@ class TCNTimeProvider: public TimeProvider {
         /**
         * @brief HighResolutionTimer counter source
         */
-        uint64 TCNTimeProvider::HRTCounter();
+        uint64 HRTCounter();
 
         /**
         * @brief TCN counter source
         */
-        uint64 TCNTimeProvider::TCNCounter();
+        uint64 TCNCounter();
 
         /**
         * @brief Returns the value of the internal ticks counter
         * @return The elapsed ticks in the internal counter
         */
-        uint64 TCNTimeProvider::Counter();
+        uint64 Counter();
 
         /**
         * @brief Pointer to the specific counter strategy implementation
