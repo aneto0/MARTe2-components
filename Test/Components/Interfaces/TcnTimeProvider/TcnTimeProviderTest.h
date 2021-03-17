@@ -69,7 +69,7 @@ class TcnTimeProviderTest : public TimeProviderTest {
         bool TestInitialise_InvalidMode_Fail();
 
     private:
-        bool PreInitialise();
+        bool PreInitialise(bool noPreInit);
         bool TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode mode);
 };
 
