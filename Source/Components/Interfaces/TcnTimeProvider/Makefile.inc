@@ -48,8 +48,8 @@ INCLUDES += -I../../DataSources/LinuxTimer
 INCLUDES += -I$(CODAC_ROOT)/include
 
 all: $(OBJS)    \
-    $(BUILD_DIR)/TCNTimeProvider$(LIBEXT) \
-    $(BUILD_DIR)/TCNTimeProvider$(DLLEXT)
+    $(BUILD_DIR)/TcnTimeProvider$(LIBEXT) \
+    $(BUILD_DIR)/TcnTimeProvider$(DLLEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)
