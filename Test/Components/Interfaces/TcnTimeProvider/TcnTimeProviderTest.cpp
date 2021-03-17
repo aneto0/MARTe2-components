@@ -70,25 +70,25 @@ bool TcnTimeProviderTest::TestInitialise_ConfigurableMode(TcnTimeProviderTestIni
 
     switch(mode) {
         case TcnTimeProviderTestInitialiseMode_NoPollLegacy:
-            operationModeString.Printf("NoPollLegacyMode");
+            operationModeString.Printf("%s", "NoPollLegacyMode");
             break;
         case TcnTimeProviderTestInitialiseMode_PollLegacyMode:
-            operationModeString.Printf("PollLegacyMode");
+            operationModeString.Printf("%s", "PollLegacyMode");
             break;
         case TcnTimeProviderTestInitialiseMode_WaitUntilMode:
-            operationModeString.Printf("WaitUntilMode");
+            operationModeString.Printf("%s", "WaitUntilMode");
             break;
         case TcnTimeProviderTestInitialiseMode_WaitUntilHRMode:
-            operationModeString.Printf("WaitUntilHRMode");
+            operationModeString.Printf("%s", "WaitUntilHRMode");
             break;
         case TcnTimeProviderTestInitialiseMode_SleepMode:
-            operationModeString.Printf("SleepMode");
+            operationModeString.Printf("%s", "SleepMode");
             break;
         case TcnTimeProviderTestInitialiseMode_SleepHRMode:
-            operationModeString.Printf("SleepHRMode");
+            operationModeString.Printf("%s", "SleepHRMode");
             break;
         case TcnTimeProviderTestInitialiseMode_InvalidMode:
-            operationModeString.Printf("InvalidMode");
+            operationModeString.Printf("%s", "InvalidMode");
             break;
     }
 
