@@ -69,7 +69,7 @@ bool TcnTimeProviderTest::TestInitialise_ConfigurableMode(TcnTimeProviderTestIni
     operationModeString.Seek(0);
 
     switch(mode) {
-        case TcnTimeProviderTestInitialiseMode_NoPollLegacy:
+        case TcnTimeProviderTestInitialiseMode_NoPollLegacyMode:
             operationModeString.Printf("%s", "NoPollLegacyMode");
             break;
         case TcnTimeProviderTestInitialiseMode_PollLegacyMode:
