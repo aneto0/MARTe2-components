@@ -147,6 +147,27 @@ class TCNTimeProvider: public TimeProvider {
         bool (TCNTimeProvider::*BusySleepProvider)(uint64, uint64);
 
         /**
+        * @brief HighResolutionTimer counter source
+        */
+        uint64 TCNTimeProvider::HRTCounter();
+
+        /**
+        * @brief TCN counter source
+        */
+        uint64 TCNTimeProvider::TCNCounter();
+
+        /**
+        * @brief Returns the value of the internal ticks counter
+        * @return The elapsed ticks in the internal counter
+        */
+        uint64 TCNTimeProvider::Counter();
+
+        /**
+        * @brief Pointer to the specific counter strategy implementation
+        */
+        bool (TCNTimeProvider::*CounterProvider)();
+
+        /**
         * @brief Null delegate as dummy for initial configuration, to avoid erratic default behaviour.
         * Essentially it does nothing, only fails.
         */

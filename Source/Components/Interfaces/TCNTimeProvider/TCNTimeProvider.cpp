@@ -47,6 +47,7 @@ namespace MARTe {
 
 TCNTimeProvider::TCNTimeProvider() {
     tcnFrequency = TCNTIMEPROVIDER_DEFAULT_FREQUENCY;
+    CounterProvider = &TCNTimeProvider::TCNCounter;
 }
 
 TCNTimeProvider::~TCNTimeProvider() {
@@ -143,6 +144,7 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                 REPORT_ERROR(ErrorManagement::Information, "TcnPoll parameter is set to %d [Legacy Configuration Mode]", tcnPoll);
                 if(tcnPoll == 0) {
                     BusySleepProvider = &TCNTimeProvider::NoPollBSP;
+                    CounterProvider = &TCNTimeProvider::HRTCounter;
                     tcnFrequency = HighResolutionTimer::Frequency();
                     REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
                 }
@@ -154,10 +156,12 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                 StreamString tempOperationMode;
                 if(data.Read("OperationMode", tempOperationMode)) {
                     if(tempOperationMode == "NoPollLegacyMode") {
-                        REPORT_ERROR(ErrorManagement::Information, "No Poll legacy mode selected");
-                        tcnFrequency = HighResolutionTimer::Frequency();
-                        REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
                         BusySleepProvider = &TCNTimeProvider::NoPollBSP;
+                        CounterProvider = &TCNTimeProvider::HRTCounter;
+                        tcnFrequency = HighResolutionTimer::Frequency();
+
+                        REPORT_ERROR(ErrorManagement::Information, "No Poll legacy mode selected");
+                        REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
                     }
                     else if(tempOperationMode == "PollLegacyMode") {
                         REPORT_ERROR(ErrorManagement::Information, "Poll legacy mode selected");
@@ -195,10 +199,12 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
                     }
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::Warning, "No TcnPoll and no OperationMode parameter found, defaulting to Legacy NoPoll mode (TcnPoll = 0)");
-                    tcnFrequency = HighResolutionTimer::Frequency();
-                    REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
                     BusySleepProvider = &TCNTimeProvider::NoPollBSP;
+                    CounterProvider = &TCNTimeProvider::HRTCounter;
+                    tcnFrequency = HighResolutionTimer::Frequency();
+
+                    REPORT_ERROR(ErrorManagement::Warning, "No TcnPoll and no OperationMode parameter found, defaulting to Legacy NoPoll mode (TcnPoll = 0)");
+                    REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
                 }
             }
         }
@@ -206,7 +212,11 @@ bool TCNTimeProvider::Initialise(StructuredDataI &data) {
     return ret;
 }
 
-uint64 TCNTimeProvider::Counter() {
+uint64 TCNTimeProvider::HRTCounter() {
+    return HighResolutionTimer::Counter();
+}
+
+uint64 TCNTimeProvider::TCNCounter() {
     uint64 tcnTime = 0u;
     hpn_timestamp_t tempTCNTime = 0u;
 
@@ -220,6 +230,10 @@ uint64 TCNTimeProvider::Counter() {
     tcnTime = static_cast<uint64>(tempTCNTime);
 
     return tcnTime;
+}
+
+uint64 TCNTimeProvider::Counter() {
+    return (this->*CounterProvider)();
 }
 
 float64 TCNTimeProvider::Period() {
