@@ -24,7 +24,6 @@
 #ifndef SOURCE_COMPONENTS_DATASOURCES_LINUXTIMER_TCNTIMEPROVIDER_H_
 #define SOURCE_COMPONENTS_DATASOURCES_LINUXTIMER_TCNTIMEPROVIDER_H_
 
-#define CALL_MEMBER_FUN(object, ptrToMemberFun)  ((object).*(ptrToMemberFun))
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -41,34 +40,62 @@
 namespace MARTe {
 
 /**
-* @brief
-*/
-const uint8 TCNTIMEPROVIDER_DEFAULT_POLL = 0u;
-
-/**
-* @brief
+* @brief Default frequency for the TCN provider underlying peripheral
 */
 const uint64 TCNTIMEPROVIDER_DEFAULT_FREQUENCY = 1000000000ull;
 
 /**
-* @brief
+* @brief Default tolerance for the TCN provider High Resolution modes
 */
 const uint32 TCNTIMEPROVIDER_DEFAULT_TOLERANCE = 1000u;
 
 /**
-* @brief
-*/
-typedef enum {
-    TCNTimeProvider_NoPollLegacyMode,
-    TCNTimeProvider_PollLegacyMode,
-    TCNTimeProvider_WaitUntilMode,
-    TCNTimeProvider_WaitUntilHRMode,
-    TCNTimeProvider_SleepMode,
-    TCNTimeProvider_SleepHRMode
-}TCNTimeProviderOperationMode;
-
-/**
-* @brief
+* @brief An interface which implements the TimeProvider generic plugin interface to provide the base primitive for time and sleep source, backed by TCN.
+* @detail The interface has essentially two main methods, beside ancillary ones, which can be used to:
+* - Provide a source for a time-based incrementing counter;
+* - Provide a sleeping method.
+*
+* Provider supports several operating modes, which are backed by primitives found in tcn.h header.
+* For each of the supported modes, two factors are changing: one is the Counter() and the other the Sleep() behaviour.
+*
+* - NoPollLegacyMode:   Counter() = Falls back to HighResolutionTimer::Counter() for the source;
+*                       Sleep() = Spinning on the counter value to measure intervals;
+* - PollLegacyMode:     Counter() = Polls its own Counter() method which is backed by the tcn_get_time;
+*                       Sleep() = Spinning on the counter to measure intervals;
+* - WaitUntilMode:      Counter() = Polls its own Counter() method which is backed by the tcn_get_time;
+*                       Sleep() = Blocks current thread execution by relying on the backing tcn_wait_until function;
+* - WaitUntilHRMode:    Counter() = Polls its own Counter() method which is backed by the tcn_get_time;
+*                       Sleep() = Blocks current thread execution by relying on the backing tcn_wait_until_hr function;
+*                                 Backing function accepts a Tolerance parameter and returns the wakeup time to compute difference;
+* - SleepMode:          Counter() = Polls its own Counter() method which is backed by the tcn_get_time;
+*                       Sleep() = Uses the backing tcn_sleep function to achieve POSIX style sleep() using the sourcing peripheral;
+* - SleepHRMode:        Counter() = Polls its own Counter() method which is backed by the tcn_get_time;
+*                       Sleep() = Uses the backing tcn_sleep_hr function to achieve POSIX style sleep() using the sourcing peripheral;
+*                       Backing function accepts a Tolerance parameter and returns the difference between expected and effective sleep duration;
+* Period and frequency methods
+* They return the current provider Period and Frequency, which are bound to the p = 1/f relationship.
+*
+* Usage
+* The TcnTimeProvider plugin is generally configured inside the timer instance, as the LinuxTimer discovers and instantiates it as long as
+* the MARTe2 configuration file is parsed. The general structure is:
+* +Timer = {
+*        Class = LinuxTimer
+*        [...] Linux Timer specific configuration options [...]
+*        +TcnProvider = {
+            Class = TcnTimeProvider                             //Mandatory.
+            TcnDevice = "/path/to/tcndevice/configuration.xml"  //Mandatory, path to the xml configuration for the tcn provider
+            TcnPoll = 0|1                                       //Optional, parameter required for backward compatibility (Behaviour is 0 = NoPollLegacyMode | 1 = PollLegacyMode)
+                                                                //The TcnPoll parameter presence overrides OperationMode. If both are present, only TcnPoll is considered.
+            OperationMode = "[see above supported]"             //Optional, defaults to NoPollLegacyMode.
+            Tolerance = 1000                                    //Optional, value in us only valid for HR modes (see above), defaults to 1000us.
+*        }
+* }
+* 
+* Caveats
+* If the TCN initialisation fails, the DataSource immediately fails. Otherwise if an unsupported mode is selected, the Sleep function verbosely fails but the DataSource
+* may keep on running with the TCN library fallback implementation. Specific errors which may be produced from the TCN underlying library are propagated using either the
+* ERRNO naming (EACCES, ENOSYS, ENODEV, ENODATA, ENOENT, ENOKEY, EPERM, EBUSY). As the library brings also proprietary error codes, when they cannot be led back to their
+* standard binding they are printed as integer.
 */
 class TcnTimeProvider: public TimeProvider {
     public:
@@ -125,21 +152,6 @@ class TcnTimeProvider: public TimeProvider {
         * @brief Holds the provider allowable tolerance on the sleep duration
         */
         uint32 tolerance;
-
-        /**
-        * @brief Tells if the TCN plugin is working in closed loop mode
-        */
-        uint8 closedLoopMode;
-
-        /**
-        * @brief Holds the accumulated error among all the sleep calls
-        */
-        int64 cumulativeError;
-
-        /**
-        * @brief Holds the error derived from the last call
-        */
-        int64 lastCallError;
 
         /**
         * @brief Pointer to the specific sleep strategy implementation

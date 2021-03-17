@@ -61,6 +61,7 @@ namespace MARTe {
  *     CPUMask = 0x8 //Optional and only relevant if ExecutionMode=IndependentThread
  *     +TimeProvider = { //Optional, if omitted defaults to HighResolutionTimeProvider
  *         //Can be any of the implementing types for the TimeProvider interface
+           //Please refer to the specific time provider interface for configuration details
  *         //Please refer to the TimeProvider.h header for implementation details
  *         Class = HighResolutionTimeProvider
  *     }
