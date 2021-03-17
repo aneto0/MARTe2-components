@@ -54,7 +54,7 @@ endif
 endif
 
 ifdef CODAC_ROOT
-SPB+=TCNTimeProvider.x
+SPB+=TcnTimeProvider.x
 endif
 
 ifdef EPICSPVA
