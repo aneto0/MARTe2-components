@@ -43,6 +43,7 @@ HighResolutionTimeProviderTest::HighResolutionTimeProviderTest() : TimeProviderT
 }
 
 HighResolutionTimeProviderTest::~HighResolutionTimeProviderTest() {
+    delete timeProvider;
 }
 
 
