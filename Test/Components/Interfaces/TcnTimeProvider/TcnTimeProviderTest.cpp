@@ -50,7 +50,7 @@ bool TcnTimeProviderTest::PreInitialise(bool noPreInit) {
     return retVal; 
 }
 
-TcnTimeProviderTest(bool noPreInit) : TimeProviderTest() {
+TcnTimeProviderTest::TcnTimeProviderTest(bool noPreInit) : TimeProviderTest() {
     PreInitialise(noPreInit);
 }
 
