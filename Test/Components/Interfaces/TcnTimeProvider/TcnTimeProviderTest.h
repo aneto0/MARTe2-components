@@ -43,7 +43,7 @@ using namespace MARTe;
  * @brief Test all the TcnTimeProvider methods
  */
 typedef enum {
-    TcnTimeProviderTestInitialiseMode_NoPollLegacy,
+    TcnTimeProviderTestInitialiseMode_NoPollLegacyMode,
     TcnTimeProviderTestInitialiseMode_PollLegacyMode,
     TcnTimeProviderTestInitialiseMode_WaitUntilMode,
     TcnTimeProviderTestInitialiseMode_WaitUntilHRMode,
