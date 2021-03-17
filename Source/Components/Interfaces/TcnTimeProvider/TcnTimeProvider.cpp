@@ -50,7 +50,8 @@ TcnTimeProvider::TcnTimeProvider() {
 }
 
 TcnTimeProvider::~TcnTimeProvider() {
-    REPORT_ERROR(ErrorManagement::Information, "TCNTimeProvider disposed");
+    int32 retVal = tcn_finalize();
+    REPORT_ERROR(ErrorManagement::Information, "TCNTimeProvider disposed, tcn_finalize() returned %d", retVal);
 }
 
 bool TcnTimeProvider::Initialise(StructuredDataI &data) {
