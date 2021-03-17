@@ -29,24 +29,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "AdvancedErrorManagement.h"
-#include "ConfigurationDatabase.h"
-#include "DataSourceI.h"
-#include "EventSem.h"
-#include "GAMSchedulerI.h"
-#include "IOGAM.h"
-#include "MemoryDataSourceI.h"
-#include "MemoryGateTest.h"
-#include "MemoryMapInputBroker.h"
-#include "MemoryMapOutputBroker.h"
-#include "MemoryMapOutputBroker.h"
-#include "MemoryMapSynchronisedInputBroker.h"
-#include "MemoryMapSynchronisedOutputBroker.h"
-#include "MessageI.h"
-#include "ObjectRegistryDatabase.h"
-#include "RealTimeApplication.h"
-#include "StandardParser.h"
-#include "Threads.h"
+#include "TcnTimeProviderTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
