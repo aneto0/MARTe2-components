@@ -339,6 +339,6 @@ bool TcnTimeProvider::Sleep(uint64 start, uint64 delta) {
     return (this->*BusySleepProvider)(start, delta);
 }
 
-CLASS_REGISTER(TCNTimeProvider, "1.0")
+CLASS_REGISTER(TcnTimeProvider, "1.0")
 
 }
