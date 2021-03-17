@@ -165,7 +165,7 @@ class TCNTimeProvider: public TimeProvider {
         /**
         * @brief Pointer to the specific counter strategy implementation
         */
-        bool (TCNTimeProvider::*CounterProvider)();
+        uint64 (TCNTimeProvider::*CounterProvider)();
 
         /**
         * @brief Null delegate as dummy for initial configuration, to avoid erratic default behaviour.
