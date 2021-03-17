@@ -36,8 +36,8 @@
 /*---------------------------------------------------------------------------*/
 
 
-TcnTimeProviderTest::TcnTimeProviderTest() : TimeProviderTest(){
-    timeProvider = new MARTe::TcnTimeProviderTest();
+TcnTimeProviderTest::TcnTimeProviderTest() : TimeProviderTest() {
+    timeProvider = new MARTe::TcnTimeProvider();
 }
 
 TcnTimeProviderTest::~TcnTimeProviderTest() {
