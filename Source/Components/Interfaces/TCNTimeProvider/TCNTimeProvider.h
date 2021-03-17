@@ -157,12 +157,6 @@ class TCNTimeProvider: public TimeProvider {
         uint64 TCNCounter();
 
         /**
-        * @brief Returns the value of the internal ticks counter
-        * @return The elapsed ticks in the internal counter
-        */
-        uint64 Counter();
-
-        /**
         * @brief Pointer to the specific counter strategy implementation
         */
         uint64 (TCNTimeProvider::*CounterProvider)();
