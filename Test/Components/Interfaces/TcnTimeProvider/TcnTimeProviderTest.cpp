@@ -40,11 +40,11 @@
 bool TcnTimeProviderTest::PreInitialise(bool noPreInit) {
     bool retVal = true;
     timeProvider = new MARTe::TcnTimeProvider();
-    ConfigurationDatabase cdb;
-    retVal = cdb.Write("TcnDevice", "/etc/opt/codac/tcn/tcn-default.xml");
+
+    retVal = tcnCfg.Write("TcnDevice", "/etc/opt/codac/tcn/tcn-default.xml");
 
     if(retVal && !noPreInit) {
-        retVal = timeProvider->Initialise(cdb);
+        retVal = timeProvider->Initialise(tcnCfg);
     }
 
     return retVal; 
@@ -63,8 +63,7 @@ TcnTimeProviderTest::~TcnTimeProviderTest() {
 }
 
 bool TcnTimeProviderTest::TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode mode) {
-    timeProvider = new MARTe::TcnTimeProvider();
-    ConfigurationDatabase cdb;
+   
     StreamString operationModeString;
     operationModeString.Seek(0);
 
@@ -91,6 +90,10 @@ bool TcnTimeProviderTest::TestInitialise_ConfigurableMode(TcnTimeProviderTestIni
             operationModeString.Printf("%s", "InvalidMode");
             break;
     }
+
+    tcnCfg.Write("OperationMode", operationModeString.Buffer());
+
+    timeProvider->Initialise(tcnCfg);
 
     bool testCounterRes = TestCounter();
     bool testPeriodRes = TestPeriod();
