@@ -97,5 +97,26 @@ TEST(TcnTimeProviderGTest,TestInitialise_SleepHRMode) {
 
 TEST(TcnTimeProviderGTest,TestInitialise_InvalidMode_Fail) {
     TcnTimeProviderTest test(true);
-    ASSERT_TRUE(test.TestInitialise_InvalidMode_Fail());
+    ASSERT_FALSE(test.TestInitialise_InvalidMode_Fail());
+}        
+
+TEST(TcnTimeProviderGTest,TestInitialise_LegacyTcnPollTrue) {
+    TcnTimeProviderTest test(true);
+    ASSERT_FALSE(test.TestInitialise_LegacyTcnPollTrue());
 }
+
+TEST(TcnTimeProviderGTest,TestInitialise_LegacyTcnPollFalse) {
+    TcnTimeProviderTest test(true);
+    ASSERT_FALSE(test.TestInitialise_LegacyTcnPollFalse());
+}
+
+TEST(TcnTimeProviderGTest,TestInitialise_WithTolerance) {
+    TcnTimeProviderTest test(true);
+    ASSERT_FALSE(test.TestInitialise_WithTolerance());
+}
+
+TEST(TcnTimeProviderGTest,TestInitialise_WithInvalidTcnDevice_Fail) {
+    TcnTimeProviderTest test(true);
+    ASSERT_FALSE(test.TestInitialise_WithInvalidTcnDevice_Fail());
+}
+
