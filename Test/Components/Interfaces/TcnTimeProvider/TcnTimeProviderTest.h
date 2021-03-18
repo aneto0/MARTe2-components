@@ -44,6 +44,8 @@ using namespace MARTe;
  * @brief Test all the TcnTimeProvider methods
  */
 typedef enum {
+    TcnTimeProviderTestInitialiseMode_LegacyTcnPollTrue,
+    TcnTimeProviderTestInitialiseMode_LegacyTcnPollFalse,
     TcnTimeProviderTestInitialiseMode_NoPollLegacyMode,
     TcnTimeProviderTestInitialiseMode_PollLegacyMode,
     TcnTimeProviderTestInitialiseMode_WaitUntilMode,
@@ -67,6 +69,10 @@ class TcnTimeProviderTest : public TimeProviderTest {
         bool TestInitialise_SleepMode();
         bool TestInitialise_SleepHRMode();
         bool TestInitialise_InvalidMode_Fail();
+        bool TestInitialise_LegacyTcnPollTrue();
+        bool TestInitialise_LegacyTcnPollFalse();
+        bool TestInitialise_WithTolerance();
+        bool TestInitialise_WithInvalidTcnDevice_Fail();
 
     private:
         ConfigurationDatabase tcnCfg;
