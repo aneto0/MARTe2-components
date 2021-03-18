@@ -38,12 +38,6 @@
 
 namespace MARTe{
     
-    typedef enum {
-        HighResolutionTime_BusyMode,
-        HighResolutionTime_SemiBusyMode,
-        HighResolutionTime_NoMoreMode
-    }HighResolutionTimeProviderOperationMode;
-
     /**
     * @brief Default plugin which provides time to the LinuxTimer DataSource.
              Relies on underlying HighResolutionTimer Counter() / Period() and Frequency 
@@ -108,7 +102,7 @@ namespace MARTe{
             /**
             * @brief Low level function to provide busy sleep
             */
-            bool BusySleep(const uint64 start, const uint64 delta);
+            bool BusySleep(const uint64 start, const uint64 delta) const;
 
             /**
             * @brief Sleep yielding cpu for an amount and busy spinning for the remaining
@@ -118,13 +112,13 @@ namespace MARTe{
             /**
             * @brief Sleeps no more than the requested time
             */
-            bool NoMore(const uint64 start, const uint64 delta);
+            bool NoMore(const uint64 start, const uint64 delta) const;
 
             /**
             * @brief Null delegate as dummy for initial configuration, to avoid erratic default behaviour.
             * Essentially it does nothing, only fails.
             */
-            bool NullDelegate(const uint64 start, const uint64 delta);
+            bool NullDelegate(const uint64 start, const uint64 delta) const;
 
     };
 }

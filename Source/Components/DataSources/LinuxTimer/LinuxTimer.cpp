@@ -110,11 +110,12 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
     if (!data.Read("SleepNature", sleepNatureStr)) {
         REPORT_ERROR(ErrorManagement::Information, "SleepNature was not set. Using Default.");
         sleepNatureStr = "Default";
-        slaveCDB.Write("SleepNature", "Default");
+        ok = slaveCDB.Write("SleepNature", "Default");
     }
     else {
-        slaveCDB.Write("SleepNature", sleepNatureStr.Buffer());
+        ok = slaveCDB.Write("SleepNature", sleepNatureStr.Buffer());
     }
+
     if (!data.Read("Phase", phase)) {
         phase = MAX_PHASE;
     }
@@ -131,7 +132,7 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
         if (sleepPercentage > 100u) {
             sleepPercentage = 100u;
         }
-        slaveCDB.Write("SleepPercentage", sleepPercentage);
+        ok = slaveCDB.Write("SleepPercentage", sleepPercentage);
     }
     else {
         REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported SleepNature.");
@@ -195,8 +196,11 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
         if(Size() == 0u) {
             REPORT_ERROR(ErrorManagement::Information, "No timer provider specified. Falling back to HighResolutionTimeProvider");
             timeProvider = ReferenceT<HighResolutionTimeProvider> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
-            timeProvider->SetName("HighResolutionTimeProvider"); 
-            timeProvider->Initialise(slaveCDB);
+            timeProvider->SetName("HighResolutionTimeProvider");     
+            ok = timeProvider->Initialise(slaveCDB);
+            if(!ok) {
+                REPORT_ERROR(ErrorManagement::FatalError, "Failure to call the time provider initialise function");
+            }
         }
         else {
             timeProvider = Get(0u);
@@ -504,20 +508,24 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
     uint64 deltaTicks = sleepTimeTicksT + startTimeTicks;
     deltaTicks -= cycleEndTicks;
 
-    timeProvider->Sleep(cycleEndTicks, deltaTicks);
+    bool sleepResult = timeProvider->Sleep(cycleEndTicks, deltaTicks);
 
     uint64 newCounter = timeProvider->Counter();
     startTimeTicks += sleepTimeTicksT;
 
     ErrorManagement::ErrorType err;
-
-    counterAndTimer[0] += nCycles;
-    counterAndTimer[1] = counterAndTimer[0] * timerPeriodUsecTimeT;
-    float64 seconds = static_cast<float64> (newCounter) * (timeProvider->Period());
-    absoluteTime = static_cast<uint64> (startTimeTicks) / static_cast<uint64>(ticksPerUs);
-    uint64 microsecs = static_cast<uint64> (seconds) * static_cast<uint64>(1e6);
-    deltaTime = (microsecs - absoluteTime_1);
-    absoluteTime_1 = microsecs;
+    if (!sleepResult) {
+        err = ErrorManagement::FatalError;
+    }
+    else {
+        counterAndTimer[0] += nCycles;
+        counterAndTimer[1] = counterAndTimer[0] * timerPeriodUsecTimeT;
+        float64 seconds = static_cast<float64> (newCounter) * (timeProvider->Period());
+        absoluteTime = static_cast<uint64> (startTimeTicks) / static_cast<uint64>(ticksPerUs);
+        uint64 microsecs = static_cast<uint64> (seconds) * static_cast<uint64>(1e6);
+        deltaTime = (microsecs - absoluteTime_1);
+        absoluteTime_1 = microsecs;
+    }
 
     if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
         err = !(synchSem.Post());

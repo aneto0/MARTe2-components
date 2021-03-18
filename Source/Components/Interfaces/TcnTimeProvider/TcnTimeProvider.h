@@ -162,12 +162,12 @@ class TcnTimeProvider: public TimeProvider {
         * @brief HighResolutionTimer counter source
         * This is kept here due to legacy reasons (backward compatibility to support TcnPoll = 0)
         */
-        uint64 HRTCounter();
+        uint64 HRTCounter() const;
 
         /**
         * @brief TCN counter source
         */
-        uint64 TCNCounter();
+        uint64 TCNCounter() const;
 
         /**
         * @brief Pointer to the specific counter strategy implementation
@@ -178,37 +178,37 @@ class TcnTimeProvider: public TimeProvider {
         * @brief Null delegate as dummy for initial configuration, to avoid erratic default behaviour.
         * Essentially it does nothing, only fails.
         */
-        bool NullDelegate(uint64 start, uint64 delta);
+        bool NullDelegate(const uint64 start, const uint64 delta) const;
 
         /**
         * @brief Uses the HighResolutionTimer as source for the sleep, assuming the driver correction happens transparently.
         */
-        bool NoPollBSP(uint64 start, uint64 delta);
+        bool NoPollBSP(const uint64 start, const uint64 delta) const;
 
         /**
         * @brief Polls the Counter() method to compute the sleep duration and wakeup instant
         */
-        bool PollBSP(uint64 start, uint64 delta);
+        bool PollBSP(const uint64 start, const uint64 delta);
 
         /**
         * @brief Uses the TCN wait until method to sleep (Refer to tcn_wait_until docs)
         */
-        bool WaitUntilBSP(uint64 start, uint64 delta);
+        bool WaitUntilBSP(const uint64 start, const uint64 delta) const;
 
         /**
         * @brief Uses the TCN wait until with high resolution method to sleep (Refer to tcn_wait_until_hr docs)
         */
-        bool WaitUntilHRBSP(uint64 start, uint64 delta);
+        bool WaitUntilHRBSP(const uint64 start, const uint64 delta) const;
 
         /**
         * @brief Uses the TCN native sleep (POSIX style) method to sleep (Refer to tcn_sleep docs)
         */
-        bool SleepBSP(uint64 start, uint64 delta);
+        bool SleepBSP(const uint64 start, const uint64 delta) const;
 
         /**
         * @brief Uses the TCN native sleep (POSIX style) with high resolution method to sleep (Refer to tcn_sleep docs)
         */
-        bool SleepHRBSP(uint64 start, uint64 delta);
+        bool SleepHRBSP(const uint64 start, const uint64 delta) const;
     };
 }
 

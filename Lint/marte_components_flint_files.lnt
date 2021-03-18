@@ -70,6 +70,7 @@
 -i./Source/Components/Interfaces/MemoryGate/
 -i./Source/Components/Interfaces/NI9157Device/
 -i./Source/Components/Interfaces/SysLogger/
+-i./Source/Components/Interfaces/TcnTimeProvider/
 
 Atomic2.h
 BaseLib2GAM.cpp

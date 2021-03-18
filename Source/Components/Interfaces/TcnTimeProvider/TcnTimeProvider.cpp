@@ -44,13 +44,16 @@
 
 namespace MARTe {
 
-TcnTimeProvider::TcnTimeProvider() {
+TcnTimeProvider::TcnTimeProvider() : TimeProvider() {
     tcnFrequency = TCNTIMEPROVIDER_DEFAULT_FREQUENCY;
+    tolerance = TCNTIMEPROVIDER_DEFAULT_TOLERANCE;
     CounterProvider = &TcnTimeProvider::TCNCounter;
+    BusySleepProvider = &TcnTimeProvider::NullDelegate;
 }
 
 TcnTimeProvider::~TcnTimeProvider() {
     int32 retVal = tcn_finalize();
+    /*lint -e{1551} tcn_finalize is a C function and its return value is handled and shown */
     REPORT_ERROR(ErrorManagement::Information, "TCNTimeProvider disposed, tcn_finalize() returned %d", retVal);
 }
 
@@ -59,10 +62,10 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
     
     if (ret) {
         StreamString tcnDevice;
-        int tcnRetVal = 0;
+        int32 tcnRetVal = 0;
         ret = (data.Read("TcnDevice", tcnDevice));
         if (ret) {
-            tcnRetVal = tcn_register_device(tcnDevice.Buffer());
+            tcnRetVal = static_cast<int32>(tcn_register_device(tcnDevice.Buffer()));
             switch(tcnRetVal) {
                 case TCN_SUCCESS:
                     REPORT_ERROR(ErrorManagement::Information, "tcn_register_device succeeded! Registered @ %s", tcnDevice.Buffer());
@@ -104,24 +107,31 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
             }
             else {
                 StreamString errorString;
-                errorString.Seek(0);
+                ret = errorString.Seek(0ull);
+                if(!ret) {
+                    REPORT_ERROR(ErrorManagement::FatalError, "Failure in seek function inside errorString StreamString");
+                }
+                bool printfRetVal;
                 switch(tcnRetVal) {
                     case -EACCES:
-                        errorString.Printf("%s", "configuration settings missing or invalid (EACCESS)");
+                        printfRetVal = errorString.Printf("%s", "configuration settings missing or invalid (EACCESS)");
                         break;
                     case -ENOSYS:
-                        errorString.Printf("%s", "function not implemented by the tcn plugin (ENOSYS)");
+                        printfRetVal = errorString.Printf("%s", "function not implemented by the tcn plugin (ENOSYS)");
                         break;
                     case -ENODEV:
-                        errorString.Printf("%s", "invalid tcn device (ENODEV)");
+                        printfRetVal = errorString.Printf("%s", "invalid tcn device (ENODEV)");
                         break;
                     case -ENODATA:
-                        errorString.Printf("%s", "timescale conversion table is missing or invalid (ENODATA)");
+                        printfRetVal = errorString.Printf("%s", "timescale conversion table is missing or invalid (ENODATA)");
                         break;
                     default:
-                        errorString.Printf("%s (%d)", "device specific error code", tcnRetVal);
+                        printfRetVal = errorString.Printf("%s (%d)", "device specific error code", tcnRetVal);
                         break;
-                }                
+                }
+                if(!printfRetVal) {
+                    REPORT_ERROR(ErrorManagement::FatalError, "Printf on StringStream operation failed");
+                }
                 ret = false;
                 REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed due to %s", errorString.Buffer());
             }
@@ -145,7 +155,7 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
             uint8 tcnPoll = 0u;
             if (data.Read("TcnPoll", tcnPoll)) {
                 REPORT_ERROR(ErrorManagement::Information, "TcnPoll parameter is set to %d [Legacy Configuration Mode]", tcnPoll);
-                if(tcnPoll == 0) {
+                if(tcnPoll == 0u) {
                     BusySleepProvider = &TcnTimeProvider::NoPollBSP;
                     CounterProvider = &TcnTimeProvider::HRTCounter;
                     tcnFrequency = HighResolutionTimer::Frequency();
@@ -215,12 +225,12 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
     return ret;
 }
 
-uint64 TcnTimeProvider::HRTCounter() {
+uint64 TcnTimeProvider::HRTCounter() const {
     return HighResolutionTimer::Counter();
 }
 
-uint64 TcnTimeProvider::TCNCounter() {
-    uint64 tcnTime = 0u;
+uint64 TcnTimeProvider::TCNCounter() const {
+    uint64 tcnTime;
     hpn_timestamp_t tempTCNTime = 0u;
 
     int32 retVal = static_cast<int32>(tcn_get_time(&tempTCNTime));
@@ -248,13 +258,13 @@ uint64 TcnTimeProvider::Frequency() {
     return tcnFrequency;
 }
 
-bool TcnTimeProvider::NullDelegate(uint64 start, uint64 delta) {
+bool TcnTimeProvider::NullDelegate(const uint64 start, const uint64 delta) const {
     REPORT_ERROR(ErrorManagement::FatalError, "Call to the null delegate with %d start and %d delta.", start, delta);
     REPORT_ERROR(ErrorManagement::FatalError, "Reached uninitialized portion of the code");
     return false;
 }
 
-bool TcnTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
+bool TcnTimeProvider::NoPollBSP(const uint64 start, const uint64 delta) const {
 
     while ((HighResolutionTimer::Counter() - start) < delta) {
         ;
@@ -264,14 +274,12 @@ bool TcnTimeProvider::NoPollBSP(uint64 start, uint64 delta) {
     return true;
 }
 
-bool TcnTimeProvider::PollBSP(uint64 start, uint64 delta) {
+bool TcnTimeProvider::PollBSP(const uint64 start, const uint64 delta) {
     bool retVal = true;    
         
-    uint64 tempCounter = 0u;
+    uint64 tempCounter = Counter();
 
-    tempCounter = Counter();
-
-    while ((tempCounter != 0u) && ((Counter() - start) < delta)) {
+    while ((tempCounter != 0u) && ((tempCounter - start) < delta)) {
         tempCounter = Counter();
     }
 
@@ -283,7 +291,7 @@ bool TcnTimeProvider::PollBSP(uint64 start, uint64 delta) {
     return retVal;
 }
 
-bool TcnTimeProvider::WaitUntilBSP(uint64 start, uint64 delta) {
+bool TcnTimeProvider::WaitUntilBSP(const uint64 start, const uint64 delta) const {
     bool retVal = true;
 
     hpn_timestamp_t waitUntilDelta = static_cast<hpn_timestamp_t>(start + delta);
@@ -296,12 +304,12 @@ bool TcnTimeProvider::WaitUntilBSP(uint64 start, uint64 delta) {
     return retVal;
 }
 
-bool TcnTimeProvider::WaitUntilHRBSP(uint64 start, uint64 delta) {
+bool TcnTimeProvider::WaitUntilHRBSP(const uint64 start, const uint64 delta) const {
     bool retVal = true;
 
     uint64 tempDelta = delta;
 
-    hpn_timestamp_t waitUntilDeltaHR = (hpn_timestamp_t)(start + tempDelta);
+    hpn_timestamp_t waitUntilDeltaHR = static_cast<hpn_timestamp_t>(start + tempDelta);
     hpn_timestamp_t wakeUpTime = 0u;
 
     int32 sleepResult = static_cast<int32>(tcn_wait_until_hr(waitUntilDeltaHR, &wakeUpTime, tolerance));
@@ -313,7 +321,8 @@ bool TcnTimeProvider::WaitUntilHRBSP(uint64 start, uint64 delta) {
     return retVal;
 }
 
-bool TcnTimeProvider::SleepBSP(uint64 start, uint64 delta) {
+/*lint -e{715} start value is ignored because SleepBSP only considers delta difference for sleeping */
+bool TcnTimeProvider::SleepBSP(const uint64 start, const uint64 delta) const {
     bool retVal = true;
     hpn_timestamp_t tempDelta = static_cast<hpn_timestamp_t>(delta);
 
@@ -326,7 +335,8 @@ bool TcnTimeProvider::SleepBSP(uint64 start, uint64 delta) {
     return retVal;
 }
 
-bool TcnTimeProvider::SleepHRBSP(uint64 start, uint64 delta) {
+/*lint -e{715} start value is ignored because SleepHRBSP only considers delta difference for sleeping */
+bool TcnTimeProvider::SleepHRBSP(const uint64 start, const uint64 delta) const {
     bool retVal = true;
 
     hpn_timestamp_t error = 0u;
@@ -340,7 +350,7 @@ bool TcnTimeProvider::SleepHRBSP(uint64 start, uint64 delta) {
     return retVal;
 }
 
-bool TcnTimeProvider::Sleep(uint64 start, uint64 delta) {
+bool TcnTimeProvider::Sleep(const uint64 start, const uint64 delta) {
     return (this->*BusySleepProvider)(start, delta);
 }
 

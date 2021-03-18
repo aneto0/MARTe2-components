@@ -108,7 +108,7 @@ namespace MARTe {
         return HighResolutionTimer::Frequency();
     }
 
-    bool HighResolutionTimeProvider::BusySleep(const uint64 start, const uint64 delta) {
+    bool HighResolutionTimeProvider::BusySleep(const uint64 start, const uint64 delta) const {
         while ((HighResolutionTimer::Counter() - start) < delta) {
             ;
         }
@@ -127,7 +127,7 @@ namespace MARTe {
         return true;
     }
 
-    bool HighResolutionTimeProvider::NoMore(const uint64 start, const uint64 delta) {
+    bool HighResolutionTimeProvider::NoMore(const uint64 start, const uint64 delta) const {
         //We try to do the operation in full precision to decrease only in function call
         float64 fullResSec = static_cast<float64>(start) * static_cast<float64>(delta);
         
@@ -141,7 +141,7 @@ namespace MARTe {
         return (this->*SleepProvidingFunction)(start, delta);  
     }
 
-    bool HighResolutionTimeProvider::NullDelegate(const uint64 start, const uint64 delta) {
+    bool HighResolutionTimeProvider::NullDelegate(const uint64 start, const uint64 delta) const {
         REPORT_ERROR(ErrorManagement::FatalError, "Call to the null delegate with %d start and %d delta.", start, delta);
         REPORT_ERROR(ErrorManagement::FatalError, "Reached uninitialized portion of the code");
         return false;
