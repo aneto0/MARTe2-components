@@ -95,7 +95,7 @@ bool TcnTimeProviderTest::TestInitialise_ConfigurableMode(TcnTimeProviderTestIni
             tcnCfg.Write("TcnPoll", 1);
             skipOperationModeSet = true;
             break;
-        case TcnTimeProviderTestInitialiseMode_LegacyTcnPollTrue:
+        case TcnTimeProviderTestInitialiseMode_LegacyTcnPollFalse:
             tcnCfg.Write("TcnPoll", 0);
             skipOperationModeSet = true;
             break;
@@ -162,7 +162,7 @@ bool TcnTimeProviderTest::TestInitialise_WithTolerance() {
 }
 
 bool TcnTimeProviderTest::TestInitialise_WithInvalidTcnDevice_Fail() {
-    retVal = tcnCfg.Write("TcnDevice", "/path/to/invalid/file.xml");
+    tcnCfg.Write("TcnDevice", "/path/to/invalid/file.xml");
     return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_SleepMode);    
 }
 
