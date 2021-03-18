@@ -105,19 +105,24 @@ bool TcnTimeProviderTest::TestInitialise_ConfigurableMode(TcnTimeProviderTestIni
         tcnCfg.Write("OperationMode", operationModeString.Buffer());
     }
 
-    timeProvider->Initialise(tcnCfg);
+    bool retVal = timeProvider->Initialise(tcnCfg);
 
-    bool testCounterRes = TestCounter();
-    bool testPeriodRes = TestPeriod();
-    bool testFrequencyRes = TestFrequency();
-    bool testSleepRes = TestSleep();
+    if(retVal) {
+        bool testCounterRes = TestCounter();
+        bool testPeriodRes = TestPeriod();
+        bool testFrequencyRes = TestFrequency();
+        bool testSleepRes = TestSleep();
 
-    REPORT_ERROR_STATIC(testCounterRes?ErrorManagement::Information:ErrorManagement::FatalError, "Counter [%s]", testCounterRes?"passed":"failed");
-    REPORT_ERROR_STATIC(testPeriodRes?ErrorManagement::Information:ErrorManagement::FatalError, "Period [%s]", testPeriodRes?"passed":"failed");
-    REPORT_ERROR_STATIC(testFrequencyRes?ErrorManagement::Information:ErrorManagement::FatalError, "Frequency [%s]", testFrequencyRes?"passed":"failed");
-    REPORT_ERROR_STATIC(testSleepRes?ErrorManagement::Information:ErrorManagement::FatalError, "Sleep [%s]", testSleepRes?"passed":"failed");
+        REPORT_ERROR_STATIC(testCounterRes?ErrorManagement::Information:ErrorManagement::FatalError, "Counter [%s]", testCounterRes?"passed":"failed");
+        REPORT_ERROR_STATIC(testPeriodRes?ErrorManagement::Information:ErrorManagement::FatalError, "Period [%s]", testPeriodRes?"passed":"failed");
+        REPORT_ERROR_STATIC(testFrequencyRes?ErrorManagement::Information:ErrorManagement::FatalError, "Frequency [%s]", testFrequencyRes?"passed":"failed");
+        REPORT_ERROR_STATIC(testSleepRes?ErrorManagement::Information:ErrorManagement::FatalError, "Sleep [%s]", testSleepRes?"passed":"failed");
 
-    return testCounterRes && testPeriodRes && testFrequencyRes && testSleepRes;
+        retVal = testCounterRes && testPeriodRes && testFrequencyRes && testSleepRes;
+    }
+
+
+    return retVal;
 }
 
 bool TcnTimeProviderTest::TestInitialise_LegacyTcnPollTrue() {
