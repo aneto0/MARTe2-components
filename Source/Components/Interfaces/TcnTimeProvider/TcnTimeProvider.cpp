@@ -99,31 +99,34 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
             
         if (ret) {
             tcnRetVal = tcn_init();
-            switch(tcnRetVal) {
-                case TCN_SUCCESS:
-                    REPORT_ERROR(ErrorManagement::Information, "tcn_init successful!");
-                    break;
-                case -EACCES:
-                    REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, configuration settings missing or invalid (EACCESS)");
-                    ret = false;
-                    break;
-                case -ENOSYS:
-                    REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, function not implemented by the tcn plugin (ENOSYS)");
-                    ret = false;
-                    break;
-                case -ENODEV:
-                    REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, invalid tcn device (ENODEV)");
-                    ret = false;
-                    break;
-                case -ENODATA:
-                    REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, timescale conversion table is missing or invalid (ENODATA)");
-                    ret = false;
-                    break;
-                default:
-                    REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, device specific error code (%d)", tcnRetVal);
-                    ret = false;
-                    break;
+            if(tcnRetVal == TCN_SUCCESS) {
+                REPORT_ERROR(ErrorManagement::Information, "tcn_init successful!");
             }
+            else {
+                StreamString errorString;
+                errorString.Seek(0);
+                switch(tcnRetVal) {
+                    case -EACCES:
+                        errorString.Printf("%s", "configuration settings missing or invalid (EACCESS)");
+                        break;
+                    case -ENOSYS:
+                        errorString.Printf("%s", "function not implemented by the tcn plugin (ENOSYS)");
+                        break;
+                    case -ENODEV:
+                        errorString.Printf("%s", "invalid tcn device (ENODEV)");
+                        break;
+                    case -ENODATA:
+                        errorString.Printf("%s", "timescale conversion table is missing or invalid (ENODATA)");
+                        break;
+                    default:
+                        errorString.Printf("%s (%d)", "device specific error code", tcnRetVal);
+                        break;
+                }                
+                ret = false;
+                REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed due to %s", errorString.Buffer());
+            }
+
+
         }
 
         if(ret) {
