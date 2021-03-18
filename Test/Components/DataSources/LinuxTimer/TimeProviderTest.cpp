@@ -79,7 +79,7 @@ bool TimeProviderTest::TestPeriod() {
     }
 
     if(ok) {
-        ok = (timeProvider->Period() == (1.0 / timeProvider->Frequency()));
+        ok = (static_cast<float64>(timeProvider->Period()) == (1.0 / static_cast<float64>(timeProvider->Frequency())));
         if(!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Period value is not equivalent to the inverse of the frequency");
         }
