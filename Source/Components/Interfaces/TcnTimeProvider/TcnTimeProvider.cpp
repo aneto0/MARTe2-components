@@ -184,7 +184,7 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
                         BusySleepProvider = &TcnTimeProvider::SleepHRBSP;
                     }
                     else {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "An invalid operation mode was specified [%s]", tempOperationMode);
+                        REPORT_ERROR(ErrorManagement::ParametersError, "An invalid operation mode was specified [%s]", tempOperationMode.Buffer());
                         ret = false;
                     }
                     uint32 tempTolerance = 0u;
@@ -237,7 +237,7 @@ uint64 TcnTimeProvider::Counter() {
 }
 
 float64 TcnTimeProvider::Period() {
-    return (1.0 / tcnFrequency);
+    return (1.0 / static_cast<float64>(tcnFrequency));
 }
 
 uint64 TcnTimeProvider::Frequency() {
