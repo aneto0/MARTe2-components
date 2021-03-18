@@ -59,7 +59,7 @@ TcnTimeProviderTest::TcnTimeProviderTest() : TimeProviderTest() {
 }
 
 TcnTimeProviderTest::~TcnTimeProviderTest() {
-    delete timeProvider;
+
 }
 
 bool TcnTimeProviderTest::TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode mode) {
