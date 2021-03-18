@@ -130,11 +130,11 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
             uint64 tempTcnFrequency = 0u;
             if(data.Read("TcnFrequency", tempTcnFrequency)) {
                 tcnFrequency = tempTcnFrequency;
-                REPORT_ERROR(ErrorManagement::Information, "TcnFrequency manually set to %d", tcnFrequency);
+                REPORT_ERROR(ErrorManagement::Information, "TcnFrequency manually set to %d, period going to be %f", tcnFrequency, Period());
             }
             else {
                 tcnFrequency = TCNTIMEPROVIDER_DEFAULT_FREQUENCY;
-                REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter omitted, defaulting to %d", tcnFrequency);
+                REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter omitted, defaulting to %d, period going to be %f", tcnFrequency, Period());
             }
         }
 
