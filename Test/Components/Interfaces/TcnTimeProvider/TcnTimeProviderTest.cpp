@@ -172,7 +172,7 @@ bool TcnTimeProviderTest::TestInitialise_WithInvalidTcnDevice_Fail() {
 }
 
 bool TcnTimeProviderTest::TestInitialise_WithMissingTcnDevice_Fail() {
-    tcnCfg.Write("TcnDevice", NULL);
+    tcnCfg.Delete("TcnDevice");
     return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_SleepMode);    
 }
 
