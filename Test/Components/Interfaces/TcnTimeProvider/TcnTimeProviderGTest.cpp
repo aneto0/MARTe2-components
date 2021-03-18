@@ -107,7 +107,7 @@ TEST(TcnTimeProviderGTest,TestInitialise_LegacyTcnPollTrue) {
 
 TEST(TcnTimeProviderGTest,TestInitialise_LegacyTcnPollFalse) {
     TcnTimeProviderTest test(true);
-    ASSERT_FALSE(test.TestInitialise_LegacyTcnPollFalse());
+    ASSERT_TRUE(test.TestInitialise_LegacyTcnPollFalse());
 }
 
 TEST(TcnTimeProviderGTest,TestInitialise_WithTolerance) {
