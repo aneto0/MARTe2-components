@@ -237,7 +237,8 @@ uint64 TcnTimeProvider::Counter() {
 }
 
 float64 TcnTimeProvider::Period() {
-    return (1.0 / static_cast<float64>(tcnFrequency));
+    float64 retVal = 1.0 / static_cast<float64>(tcnFrequency);
+    return retVal;
 }
 
 uint64 TcnTimeProvider::Frequency() {
