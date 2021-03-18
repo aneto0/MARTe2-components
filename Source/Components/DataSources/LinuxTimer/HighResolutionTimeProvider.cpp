@@ -116,10 +116,11 @@ namespace MARTe {
         return true;
     }
 
+    /*lint -e{715} The start parameter is not used in semi-busy mode as it operates only in delta mode */
     bool HighResolutionTimeProvider::SemiBusy(const uint64 start, const uint64 delta) {
-        float64 totalSleepTime = static_cast<float32> (static_cast<float64> (delta) * Period());
+        float32 totalSleepTime = static_cast<float32> (static_cast<float32> (delta) * Period());
         uint8 busyPercentage = (100u - yieldSleepPercentage);
-        float64 busyTime = totalSleepTime * (static_cast<float32> (busyPercentage) / 100.F);
+        float32 busyTime = totalSleepTime * (static_cast<float32> (busyPercentage) / 100.F);
         Sleep::SemiBusy(totalSleepTime, busyTime);
         
         //As long the HRT is based on the internals, there should be no way of failing
@@ -127,7 +128,10 @@ namespace MARTe {
     }
 
     bool HighResolutionTimeProvider::NoMore(const uint64 start, const uint64 delta) {
-        Sleep::NoMore(delta * Period());
+        //We try to do the operation in full precision to decrease only in function call
+        float64 fullResSec = static_cast<float64>(start) * static_cast<float64>(delta);
+        
+        Sleep::NoMore(static_cast<float32>(fullResSec));
 
         //As long the HRT is based on the internals, there should be no way of failing
         return true;

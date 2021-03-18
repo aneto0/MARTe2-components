@@ -159,6 +159,7 @@ SSMGAM.h
 StatisticsGAM.cpp
 StatisticsHelperT.h
 SysLogger.cpp
+TcnTimeProvider.cpp
 TimeCorrectionGAM.cpp
 TimeProvider.cpp
 TriggerOnChangeGAM.cpp
