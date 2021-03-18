@@ -60,7 +60,6 @@ class TcnTimeProviderTest : public TimeProviderTest {
 
         ~TcnTimeProviderTest();
 
-
         bool TestInitialise_NoPollLegacyMode();
         bool TestInitialise_PollLegacyMode();
         bool TestInitialise_WaitUntilMode();

@@ -51,7 +51,7 @@ class TimeProviderTest {
         /**
          * @brief Destructor for the test.
          */
-        ~TimeProviderTest();
+        virtual ~TimeProviderTest();
 
         /**
          * @brief Tests the constructor.
