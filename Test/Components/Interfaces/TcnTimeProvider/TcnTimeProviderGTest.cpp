@@ -102,7 +102,7 @@ TEST(TcnTimeProviderGTest,TestInitialise_InvalidMode_Fail) {
 
 TEST(TcnTimeProviderGTest,TestInitialise_LegacyTcnPollTrue) {
     TcnTimeProviderTest test(true);
-    ASSERT_FALSE(test.TestInitialise_LegacyTcnPollTrue());
+    ASSERT_TRUE(test.TestInitialise_LegacyTcnPollTrue());
 }
 
 TEST(TcnTimeProviderGTest,TestInitialise_LegacyTcnPollFalse) {
@@ -112,7 +112,7 @@ TEST(TcnTimeProviderGTest,TestInitialise_LegacyTcnPollFalse) {
 
 TEST(TcnTimeProviderGTest,TestInitialise_WithTolerance) {
     TcnTimeProviderTest test(true);
-    ASSERT_FALSE(test.TestInitialise_WithTolerance());
+    ASSERT_TRUE(test.TestInitialise_WithTolerance());
 }
 
 TEST(TcnTimeProviderGTest,TestInitialise_WithInvalidTcnDevice_Fail) {
@@ -120,3 +120,7 @@ TEST(TcnTimeProviderGTest,TestInitialise_WithInvalidTcnDevice_Fail) {
     ASSERT_FALSE(test.TestInitialise_WithInvalidTcnDevice_Fail());
 }
 
+TEST(TcnTimeProviderGTest,TestInitialise_WithMissingTcnDevice_Fail) {
+    TcnTimeProviderTest test(true);
+    ASSERT_FALSE(test.TestInitialise_WithMissingTcnDevice_Fail());
+}

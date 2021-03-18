@@ -73,6 +73,7 @@ class TcnTimeProviderTest : public TimeProviderTest {
         bool TestInitialise_LegacyTcnPollFalse();
         bool TestInitialise_WithTolerance();
         bool TestInitialise_WithInvalidTcnDevice_Fail();
+        bool TestInitialise_WithMissingTcnDevice_Fail();
 
     private:
         ConfigurationDatabase tcnCfg;
