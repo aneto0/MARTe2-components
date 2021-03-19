@@ -97,12 +97,13 @@ bool EventConditionTrigger::Initialise(StructuredDataI &data) {
         }
     }
     if (ret) {
+        // TODO Change setting type to support more than 32 cpus 
         uint32 cpuMaskIn;
         if (!data.Read("CPUMask", cpuMaskIn)) {
             cpuMaskIn = 0xFFu;
             REPORT_ERROR(ErrorManagement::Warning, "CPUMask not specified using: %d", cpuMaskIn);
         }
-        cpuMask = cpuMaskIn;
+        cpuMask = ProcessorType(cpuMaskIn);
     }
     if (ret) {
         uint32 n;

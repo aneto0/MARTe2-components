@@ -54,7 +54,7 @@ FileWriter::FileWriter() :
     numberOfBuffers = 0u;
     dataSourceMemory = NULL_PTR(char8 *);
     offsets = NULL_PTR(uint32 *);
-    cpuMask = 0xFEu;
+    cpuMask = ProcessorType(0xFEu);
     stackSize = 0u;
     numberOfBinaryBytes = 0u;
     fileFormat = FILE_FORMAT_BINARY;
@@ -224,13 +224,14 @@ bool FileWriter::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
+        // TODO (WARNING) CHANGE FORMAT TO SUPPORT MORE THAN 32 cpus!
         uint32 cpuMaskIn;
         ok = data.Read("CPUMask", cpuMaskIn);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "CPUMask shall be specified");
         }
         else {
-            cpuMask = cpuMaskIn;
+            cpuMask = ProcessorType(cpuMaskIn);
         }
     }
     if (ok) {

@@ -14,3 +14,4 @@ VSCodeLcov.sh
 *.d
 depends*.*
 VSCodeLcov.sh
+.vscode

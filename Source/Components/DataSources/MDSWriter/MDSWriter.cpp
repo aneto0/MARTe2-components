@@ -56,7 +56,7 @@ MDSWriter::MDSWriter() :
     nodes = NULL_PTR(MDSWriterNode **);
     dataSourceMemory = NULL_PTR(char8 *);
     offsets = NULL_PTR(uint32 *);
-    cpuMask = 0xfu;
+    cpuMask = ProcessorType(0xfu);
     stackSize = 0u;
     tree = NULL_PTR(MDSplus::Tree *);
     treeName = "";
@@ -206,13 +206,14 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be > 0u");
     }
     if (ok) {
+        // TODO (WARNING) change CPUMask type to support more than 32 cpus
         uint32 cpuMaskIn;
         ok = data.Read("CPUMask", cpuMaskIn);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "CPUMask shall be specified");
         }
         else {
-            cpuMask = cpuMaskIn;
+            cpuMask = ProcessorType(cpuMaskIn);
         }
     }
     if (ok) {
