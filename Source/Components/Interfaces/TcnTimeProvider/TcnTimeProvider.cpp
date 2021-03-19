@@ -72,9 +72,7 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
             }
             else {
                 char8 tempErrorBuffer[255];
-                char8 *tempErrorBufferPtr;
-
-                tempErrorBufferPtr = static_cast<char8>(tcn_strerror_r(tcnRetVal, static_cast<char*>(&tempErrorBuffer[0]), 255));
+                const char8 *tempErrorBufferPtr = static_cast<char8>(tcn_strerror_r(tcnRetVal, static_cast<char*>(&tempErrorBuffer[0]), 255));
                 StreamString errorString(tempErrorBufferPtr);
                 REPORT_ERROR(ErrorManagement::FatalError, "%s", errorString.Buffer());
             }
