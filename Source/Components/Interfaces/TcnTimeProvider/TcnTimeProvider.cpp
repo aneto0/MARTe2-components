@@ -74,36 +74,7 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
                 char8 tempErrorBuffer[255];
                 const char8 *tempErrorBufferPtr = static_cast<const char8*>(tcn_strerror_r(tcnRetVal, static_cast<char*>(&tempErrorBuffer[0]), 255));
                 StreamString errorString(tempErrorBufferPtr);
-                REPORT_ERROR(ErrorManagement::FatalError, "%s", errorString.Buffer());
-            }
-            switch(tcnRetVal) {
-                case TCN_SUCCESS:
-                    
-                    break;
-                case -ENOENT:
-                    REPORT_ERROR(ErrorManagement::ParametersError, "tcn_register_device failed, configuration file does not exists (ENOENT)");           
-                    ret = false;
-                    break;
-                case -ENODEV:
-                    REPORT_ERROR(ErrorManagement::ParametersError, "tcn_register_device failed, device has not been recognized (ENODEV)");
-                    ret = false;
-                    break;
-                case -ENOKEY:
-                    REPORT_ERROR(ErrorManagement::ParametersError, "tcn_register_device failed, parsing error (ENOKEY)");
-                    ret = false;
-                    break;
-                case -EPERM:
-                    REPORT_ERROR(ErrorManagement::ParametersError, "tcn_register_device failed, error creating parser (EPERM)");
-                    ret = false;
-                    break;
-                case -EBUSY:
-                    REPORT_ERROR(ErrorManagement::ParametersError, "tcn_register_device failed, another concurrent init/reg or device already initialized (EBUSY)");
-                    ret = false;
-                    break;
-                default:
-                    REPORT_ERROR(ErrorManagement::ParametersError, "tcn_register_device failed, returned an unknown error (%d)", tcnRetVal);
-                    ret = false;
-                    break;
+                REPORT_ERROR(ErrorManagement::FatalError, "tcn_register_device failed, %s", errorString.Buffer());
             }
         }
         else {
@@ -121,29 +92,16 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
                 if(!ret) {
                     REPORT_ERROR(ErrorManagement::FatalError, "Failure in seek function inside errorString StreamString");
                 }
-                bool printfRetVal;
-                switch(tcnRetVal) {
-                    case -EACCES:
-                        printfRetVal = errorString.Printf("%s", "configuration settings missing or invalid (EACCESS)");
-                        break;
-                    case -ENOSYS:
-                        printfRetVal = errorString.Printf("%s", "function not implemented by the tcn plugin (ENOSYS)");
-                        break;
-                    case -ENODEV:
-                        printfRetVal = errorString.Printf("%s", "invalid tcn device (ENODEV)");
-                        break;
-                    case -ENODATA:
-                        printfRetVal = errorString.Printf("%s", "timescale conversion table is missing or invalid (ENODATA)");
-                        break;
-                    default:
-                        printfRetVal = errorString.Printf("%s (%d)", "device specific error code", tcnRetVal);
-                        break;
+                if(tcnRetVal == TCN_SUCCESS) {
+                    REPORT_ERROR(ErrorManagement::Information, "tcn_register_device succeeded! Registered @ %s", tcnDevice.Buffer());        
                 }
-                if(!printfRetVal) {
-                    REPORT_ERROR(ErrorManagement::FatalError, "Printf on StringStream operation failed");
+                else {
+                    char8 tempErrorBuffer[255];
+                    const char8 *tempErrorBufferPtr = static_cast<const char8*>(tcn_strerror_r(tcnRetVal, static_cast<char*>(&tempErrorBuffer[0]), 255));
+                    StreamString errorString(tempErrorBufferPtr);
+                    REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, %s", errorString.Buffer());
                 }
                 ret = false;
-                REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed due to %s", errorString.Buffer());
             }
         }
 
