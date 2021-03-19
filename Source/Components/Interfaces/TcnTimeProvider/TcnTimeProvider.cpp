@@ -325,7 +325,7 @@ bool TcnTimeProvider::WaitUntilHRBSP(const uint64 start, const uint64 delta) {
     return retVal;
 }
 
-/*lint -e{715} start value is ignored because SleepBSP only considers delta difference for sleeping */
+/*lint -e{715,1762} start value is ignored because SleepBSP only considers delta difference for sleeping */
 bool TcnTimeProvider::SleepBSP(const uint64 start, const uint64 delta) {
     bool retVal = true;
     hpn_timestamp_t tempDelta = static_cast<hpn_timestamp_t>(delta);
@@ -339,7 +339,7 @@ bool TcnTimeProvider::SleepBSP(const uint64 start, const uint64 delta) {
     return retVal;
 }
 
-/*lint -e{715} start value is ignored because SleepHRBSP only considers delta difference for sleeping */
+/*lint -e{715, 1762} start value is ignored because SleepHRBSP only considers delta difference for sleeping */
 bool TcnTimeProvider::SleepHRBSP(const uint64 start, const uint64 delta) {
     bool retVal = true;
 

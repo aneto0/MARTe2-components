@@ -108,6 +108,7 @@ namespace MARTe {
         return HighResolutionTimer::Frequency();
     }
 
+    /*lint -e{1762} The function is a generic delegate which needs to match other signatures No const ca be added*/
     bool HighResolutionTimeProvider::BusySleep(const uint64 start, const uint64 delta) {
         while ((HighResolutionTimer::Counter() - start) < delta) {
             ;
@@ -127,6 +128,7 @@ namespace MARTe {
         return true;
     }
 
+    /*lint -e{1762} The function is a generic delegate which needs to match other signatures No const ca be added*/
     bool HighResolutionTimeProvider::NoMore(const uint64 start, const uint64 delta) {
         //We try to do the operation in full precision to decrease only in function call
         float64 fullResSec = static_cast<float64>(start) * static_cast<float64>(delta);
@@ -141,6 +143,7 @@ namespace MARTe {
         return (this->*SleepProvidingFunction)(start, delta);  
     }
 
+    /*lint -e{1762} The function is a generic delegate which needs to match other signatures No const ca be added*/
     bool HighResolutionTimeProvider::NullDelegate(const uint64 start, const uint64 delta) {
         REPORT_ERROR(ErrorManagement::FatalError, "Call to the null delegate with %d start and %d delta.", start, delta);
         REPORT_ERROR(ErrorManagement::FatalError, "Reached uninitialized portion of the code");
