@@ -102,7 +102,7 @@ namespace MARTe{
             /**
             * @brief Low level function to provide busy sleep
             */
-            bool BusySleep(const uint64 start, const uint64 delta) const;
+            bool BusySleep(const uint64 start, const uint64 delta);
 
             /**
             * @brief Sleep yielding cpu for an amount and busy spinning for the remaining
@@ -112,13 +112,13 @@ namespace MARTe{
             /**
             * @brief Sleeps no more than the requested time
             */
-            bool NoMore(const uint64 start, const uint64 delta) const;
+            bool NoMore(const uint64 start, const uint64 delta);
 
             /**
             * @brief Null delegate as dummy for initial configuration, to avoid erratic default behaviour.
             * Essentially it does nothing, only fails.
             */
-            bool NullDelegate(const uint64 start, const uint64 delta) const;
+            bool NullDelegate(const uint64 start, const uint64 delta);
 
     };
 }
