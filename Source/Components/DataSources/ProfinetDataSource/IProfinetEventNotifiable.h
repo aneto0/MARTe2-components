@@ -48,7 +48,7 @@ namespace MARTe {
      */
     class IProfinetEventNotifiable {
         public:
-			virtual ~IProfinetEventNotifiable() {}
+            virtual ~IProfinetEventNotifiable() {}
             /**
              * @brief Notification entry point for the listener (implementer).
              * @param[in] eventType The type of event generated in the underlying level.
