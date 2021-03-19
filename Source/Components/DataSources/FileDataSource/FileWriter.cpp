@@ -662,7 +662,7 @@ ErrorManagement::ErrorType FileWriter::FlushFile() {
     else {
         ReferenceT<MemoryMapAsyncOutputBroker> brokerAsyncNoTrigger = brokerAsync;
         if (brokerAsyncNoTrigger.IsValid()) {
-            brokerAsyncNoTrigger->Flush();
+            ok = brokerAsyncNoTrigger->Flush();
         }
     }
     if (ok) {
