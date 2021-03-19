@@ -179,12 +179,12 @@ class TcnTimeProvider: public TimeProvider {
         * @brief Null delegate as dummy for initial configuration, to avoid erratic default behaviour.
         * Essentially it does nothing, only fails.
         */
-        bool NullDelegate(const uint64 start, const uint64 delta) const;
+        bool NullDelegate(const uint64 start, const uint64 delta);
 
         /**
         * @brief Uses the HighResolutionTimer as source for the sleep, assuming the driver correction happens transparently.
         */
-        bool NoPollBSP(const uint64 start, const uint64 delta) const;
+        bool NoPollBSP(const uint64 start, const uint64 delta);
 
         /**
         * @brief Polls the Counter() method to compute the sleep duration and wakeup instant
@@ -194,22 +194,22 @@ class TcnTimeProvider: public TimeProvider {
         /**
         * @brief Uses the TCN wait until method to sleep (Refer to tcn_wait_until docs)
         */
-        bool WaitUntilBSP(const uint64 start, const uint64 delta) const;
+        bool WaitUntilBSP(const uint64 start, const uint64 delta);
 
         /**
         * @brief Uses the TCN wait until with high resolution method to sleep (Refer to tcn_wait_until_hr docs)
         */
-        bool WaitUntilHRBSP(const uint64 start, const uint64 delta) const;
+        bool WaitUntilHRBSP(const uint64 start, const uint64 delta);
 
         /**
         * @brief Uses the TCN native sleep (POSIX style) method to sleep (Refer to tcn_sleep docs)
         */
-        bool SleepBSP(const uint64 start, const uint64 delta) const;
+        bool SleepBSP(const uint64 start, const uint64 delta);
 
         /**
         * @brief Uses the TCN native sleep (POSIX style) with high resolution method to sleep (Refer to tcn_sleep docs)
         */
-        bool SleepHRBSP(const uint64 start, const uint64 delta) const;
+        bool SleepHRBSP(const uint64 start, const uint64 delta);
     };
 }
 

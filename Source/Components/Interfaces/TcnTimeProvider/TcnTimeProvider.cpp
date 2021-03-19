@@ -136,8 +136,6 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
                 ret = false;
                 REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed due to %s", errorString.Buffer());
             }
-
-
         }
 
         if(ret) {
@@ -259,13 +257,13 @@ uint64 TcnTimeProvider::Frequency() {
     return tcnFrequency;
 }
 
-bool TcnTimeProvider::NullDelegate(const uint64 start, const uint64 delta) const {
+bool TcnTimeProvider::NullDelegate(const uint64 start, const uint64 delta) {
     REPORT_ERROR(ErrorManagement::FatalError, "Call to the null delegate with %d start and %d delta.", start, delta);
     REPORT_ERROR(ErrorManagement::FatalError, "Reached uninitialized portion of the code");
     return false;
 }
 
-bool TcnTimeProvider::NoPollBSP(const uint64 start, const uint64 delta) const {
+bool TcnTimeProvider::NoPollBSP(const uint64 start, const uint64 delta) {
 
     while ((HighResolutionTimer::Counter() - start) < delta) {
         ;
@@ -292,7 +290,7 @@ bool TcnTimeProvider::PollBSP(const uint64 start, const uint64 delta) {
     return retVal;
 }
 
-bool TcnTimeProvider::WaitUntilBSP(const uint64 start, const uint64 delta) const {
+bool TcnTimeProvider::WaitUntilBSP(const uint64 start, const uint64 delta) {
     bool retVal = true;
 
     hpn_timestamp_t waitUntilDelta = static_cast<hpn_timestamp_t>(start + delta);
@@ -305,7 +303,7 @@ bool TcnTimeProvider::WaitUntilBSP(const uint64 start, const uint64 delta) const
     return retVal;
 }
 
-bool TcnTimeProvider::WaitUntilHRBSP(const uint64 start, const uint64 delta) const {
+bool TcnTimeProvider::WaitUntilHRBSP(const uint64 start, const uint64 delta) {
     bool retVal = true;
 
     uint64 tempDelta = delta;
@@ -323,7 +321,7 @@ bool TcnTimeProvider::WaitUntilHRBSP(const uint64 start, const uint64 delta) con
 }
 
 /*lint -e{715} start value is ignored because SleepBSP only considers delta difference for sleeping */
-bool TcnTimeProvider::SleepBSP(const uint64 start, const uint64 delta) const {
+bool TcnTimeProvider::SleepBSP(const uint64 start, const uint64 delta) {
     bool retVal = true;
     hpn_timestamp_t tempDelta = static_cast<hpn_timestamp_t>(delta);
 
@@ -337,7 +335,7 @@ bool TcnTimeProvider::SleepBSP(const uint64 start, const uint64 delta) const {
 }
 
 /*lint -e{715} start value is ignored because SleepHRBSP only considers delta difference for sleeping */
-bool TcnTimeProvider::SleepHRBSP(const uint64 start, const uint64 delta) const {
+bool TcnTimeProvider::SleepHRBSP(const uint64 start, const uint64 delta) {
     bool retVal = true;
 
     hpn_timestamp_t error = 0u;
