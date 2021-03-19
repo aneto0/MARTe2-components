@@ -46,7 +46,7 @@ namespace MARTe {
      */
     class IOperationalSignalsEntryPoint {
         public:
-			virtual ~IOperationalSignalsEntryPoint() {}
+            virtual ~IOperationalSignalsEntryPoint() {}
 
             /**
              * @brief Informs the listener (implementer) that the LED signal is changed.
