@@ -47,7 +47,7 @@ namespace MARTe {
     class IMainThreadEntryPoint {
         public:
 
-			virtual ~IMainThreadEntryPoint() {}
+            virtual ~IMainThreadEntryPoint() {}
             /**
              * @brief Main thread entry-point.
              * @param[in] inputFlag The current status flag.
