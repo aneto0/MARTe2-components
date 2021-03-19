@@ -20,7 +20,16 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
+TARGET=cov
+
+OBJSX = ProfinetDataStructureGTest.x \
+    ProfinetDataSourceAdapterGTest.x \
+    ProfinetToMARTeLogAdapterGTest.x \
+    ProfinetDataSourceGTest.x
 
 include Makefile.inc
+

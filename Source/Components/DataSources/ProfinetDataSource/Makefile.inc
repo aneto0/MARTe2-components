@@ -22,49 +22,43 @@
 #
 #############################################################
 
-OBJSX=
-SPB =
+OBJSX=  ProfinetToMARTeLogAdapter.x \
+        MemoryMapSynchNMutexInputBroker.x \
+        MemoryMapSynchNMutexOutputBroker.x \
+        ProfinetTimerHelper.x \
+        ProfinetMainThreadHelper.x \
+        ProfinetDataSourceAdapter.x \
+        ProfinetDataSource.x
 
-PACKAGE=
-ROOT_DIR=../..
+PACKAGE=Components/DataSources
+
+ROOT_DIR=../../../../
+
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource/Makefile.detect
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
+INCLUDES += -I.
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
-# Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
-# Current assumption is prior installation of CODAC Core System on the build node
-ifdef CODAC_ROOT
-## DAN client API dependencies
-LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2
-## DAN HDF5 reader dependencies (test code)
-LIBRARIES += -ldan_base -ldan_archive -ldan_wrapper_srv -ldan_uda_reader_base -ldan_stream_reader_cpp
-CCS_LT_63 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -le 62 ]; then echo 1; else echo 0; fi)
-ifeq "$(CCS_LT_63)" "0"
-LIBRARIES += -ldan_data_srv
-endif
-endif
-
-ifdef SDN_CORE_LIBRARY_DIR
-LIBRARIES += -L$(SDN_CORE_LIBRARY_DIR) -lsdn-core -lxml2
-endif
-
-ifdef OPEN62541_LIB
-LIBRARIES_STATIC += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
-endif
-
-ifdef PROFINET_COMPILE
+INCLUDES += -I$(PROFINET_INCLUDE)
 LIBRARIES += -L$(PROFINET_LIBRARY) -losal -lprofinet
-endif
 
-all: $(OBJS) $(SUBPROJ)   \
-        $(BUILD_DIR)/MainGTest$(EXEEXT)
+all: $(OBJS)    \
+	$(BUILD_DIR)/ProfinetDataSource$(LIBEXT) \
+	$(BUILD_DIR)/ProfinetDataSource$(DLLEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

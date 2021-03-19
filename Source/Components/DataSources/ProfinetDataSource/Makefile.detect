@@ -1,0 +1,78 @@
+#############################################################
+#
+# Copyright 2015 F4E | European Joint Undertaking for ITER 
+#  and the Development of Fusion Energy ('Fusion for Energy')
+# 
+# Licensed under the EUPL, Version 1.1 or - as soon they 
+# will be approved by the European Commission - subsequent  
+# versions of the EUPL (the "Licence"); 
+# You may not use this work except in compliance with the 
+# Licence. 
+# You may obtain a copy of the Licence at: 
+#  
+# http://ec.europa.eu/idabc/eupl
+#
+# Unless required by applicable law or agreed to in 
+# writing, software distributed under the Licence is 
+# distributed on an "AS IS" basis, 
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+# express or implied. 
+# See the Licence for the specific language governing 
+# permissions and limitations under the Licence. 
+#
+#############################################################
+
+
+ifeq "$(PROFINET_DISABLE)" "true"
+
+$(info $(shell tput setaf 1)ProfinetDataSource is DISABLED.$(shell tput sgr0))
+
+else
+
+ifdef PROFINET_INCLUDE
+ifdef PROFINET_LIBRARY
+$(info $(shell tput setaf 2)ProfinetDataSource INCLUDE/LIBRARY files using environment paths:$(shell tput sgr0))
+PROFINET_COMPILE=true
+$(info $(shell tput setaf 2)PROFINET_INCLUDE=${PROFINET_INCLUDE}$(shell tput sgr0))
+$(info $(shell tput setaf 2)PROFINET_LIBRARY=${PROFINET_LIBRARY}$(shell tput sgr0))
+endif
+endif
+
+ifdef PROFINET_INCLUDE
+ifndef PROFINET_LIBRARY
+$(info $(shell tput setaf 1)ProfinetDataSource INCLUDE path is defined but LIBRARY is not:$(shell tput sgr0))
+$(info $(shell tput setaf 1)PROFINET_INCLUDE=${PROFINET_INCLUDE}$(shell tput sgr0))
+$(info $(shell tput setaf 1)PROFINET_LIBRARY=${PROFINET_LIBRARY}$(shell tput sgr0))
+endif
+endif
+
+ifndef PROFINET_INCLUDE
+ifdef PROFINET_LIBRARY
+$(info $(shell tput setaf 1)ProfinetDataSource LIBRARY path is defined but INCLUDE is not:$(shell tput sgr0))
+$(info $(shell tput setaf 1)PROFINET_INCLUDE=${PROFINET_INCLUDE}$(shell tput sgr0))
+$(info $(shell tput setaf 1)PROFINET_LIBRARY=${PROFINET_LIBRARY}$(shell tput sgr0))
+endif
+endif
+
+ifndef PROFINET_INCLUDE
+ifndef PROFINET_LIBRARY
+SCRIPT_PATH=$(shell pwd)/$(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource/libraryDetect.sh
+STATUS=$(shell . $(SCRIPT_PATH))
+ifeq "$(word 1,$(STATUS))" "true"
+$(info $(shell tput setaf 4)ProfinetDataSource INCLUDE/LIBRARY files found in default paths:$(shell tput sgr0))
+PROFINET_COMPILE=$(word 1,$(STATUS))
+PROFINET_INCLUDE=$(word 2,$(STATUS))
+$(info $(shell tput setaf 4)Setting PROFINET_INCLUDE=${PROFINET_INCLUDE}$(shell tput sgr0))
+PROFINET_LIBRARY=$(word 3,$(STATUS))
+$(info $(shell tput setaf 4)Setting PROFINET_LIBRARY=${PROFINET_LIBRARY}$(shell tput sgr0))
+else
+$(info $(shell tput setaf 3)ProfinetDataSource INCLUDE/LIBRARY files not found in default paths:$(shell tput sgr0))
+$(info $(shell tput setaf 3)PROFINET_INCLUDE=$(word 2,$(STATUS))$(shell tput sgr0))
+$(info $(shell tput setaf 3)PROFINET_LIBRARY=$(word 3,$(STATUS))$(shell tput sgr0))
+endif
+endif
+endif
+
+endif
+
+# $(shell sleep 2)

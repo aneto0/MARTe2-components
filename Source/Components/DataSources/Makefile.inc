@@ -32,6 +32,12 @@ SPB    = EpicsDataSource.x \
     RealTimeThreadAsyncBridge.x \
     RealTimeThreadSynchronisation.x
 
+ROOT_DIR=../../..
+include ProfinetDataSource/Makefile.detect
+
+ifdef PROFINET_COMPILE
+SPB    += ProfinetDataSource.x
+endif
 
 ifdef OPEN62541_INCLUDE
 SPB    += OPCUADataSource.x
@@ -107,6 +113,10 @@ endif
 
 ifdef OPEN62541_INCLUDE
 LIBRARIES_STATIC+=$(BUILD_DIR)/OPCUADataSource/OPCUADataSource$(LIBEXT)
+endif
+
+ifdef PROFINET_COMPILE
+LIBRARIES_STATIC+=$(BUILD_DIR)/ProfinetDataSource/ProfinetDataSource$(LIBEXT)
 endif
 
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.

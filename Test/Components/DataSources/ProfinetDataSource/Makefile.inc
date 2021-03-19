@@ -20,52 +20,51 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
 
-OBJSX=
-SPB =
-
-PACKAGE=
-ROOT_DIR=../..
+OBJSX +=  ProfinetDataStructureTest.x \
+    ProfinetDataSourceAdapterTest.x \
+    ProfinetToMARTeLogAdapterTest.x \
+	ProfinetDataSourceTest.x
+        
+PACKAGE=Components/DataSources
+ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource/Makefile.detect
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
+INCLUDES += -I$(MDSPLUS_DIR)/include/
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4StateMachine
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 
-# Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
-# Current assumption is prior installation of CODAC Core System on the build node
-ifdef CODAC_ROOT
-## DAN client API dependencies
-LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2
-## DAN HDF5 reader dependencies (test code)
-LIBRARIES += -ldan_base -ldan_archive -ldan_wrapper_srv -ldan_uda_reader_base -ldan_stream_reader_cpp
-CCS_LT_63 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -le 62 ]; then echo 1; else echo 0; fi)
-ifeq "$(CCS_LT_63)" "0"
-LIBRARIES += -ldan_data_srv
-endif
-endif
+INCLUDES += -I$(PROFINET_INCLUDE)
 
-ifdef SDN_CORE_LIBRARY_DIR
-LIBRARIES += -L$(SDN_CORE_LIBRARY_DIR) -lsdn-core -lxml2
-endif
+INCLUDES += -I$(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource
+INCLUDES += -I$(ROOT_DIR)/Source/Components/GAMs/IOGAM
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-ifdef OPEN62541_LIB
-LIBRARIES_STATIC += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
-endif
+LIBRARIES +=  -L$(PROFINET_LIBRARY) -losal -lprofinet
 
-ifdef PROFINET_COMPILE
-LIBRARIES += -L$(PROFINET_LIBRARY) -losal -lprofinet
-endif
-
-all: $(OBJS) $(SUBPROJ)   \
-        $(BUILD_DIR)/MainGTest$(EXEEXT)
-	echo  $(OBJS)
+all: $(OBJS) \
+	$(BUILD_DIR)/ProfinetDataSourceTest$(LIBEXT) \
+	$(BUILD_DIR)/ProfinetDataStructureTest$(LIBEXT)
+	echo $(OBJS)
 
 include depends.$(TARGET)
 
