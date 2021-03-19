@@ -67,9 +67,20 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
         ret = (data.Read("TcnDevice", tcnDevice));
         if (ret) {
             tcnRetVal = static_cast<int32>(tcn_register_device(tcnDevice.Buffer()));
+            if(tcnRetVal == TCN_SUCCESS) {
+                REPORT_ERROR(ErrorManagement::Information, "tcn_register_device succeeded! Registered @ %s", tcnDevice.Buffer());        
+            }
+            else {
+                char8 tempErrorBuffer[255];
+                char8 *tempErrorBufferPtr;
+
+                tempErrorBufferPtr = tcn_strerror_r(tcnRetVal, &tempErrorBuffer[0], 255);
+                StreamString errorString(tempErrorBufferPtr);
+                REPORT_ERROR(ErrorManagement::FatalError, "%s", errorString.Buffer());
+            }
             switch(tcnRetVal) {
                 case TCN_SUCCESS:
-                    REPORT_ERROR(ErrorManagement::Information, "tcn_register_device succeeded! Registered @ %s", tcnDevice.Buffer());
+                    
                     break;
                 case -ENOENT:
                     REPORT_ERROR(ErrorManagement::ParametersError, "tcn_register_device failed, configuration file does not exists (ENOENT)");           
