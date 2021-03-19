@@ -257,12 +257,14 @@ uint64 TcnTimeProvider::Frequency() {
     return tcnFrequency;
 }
 
+/*lint -e{1762} The function is a generic delegate which needs to match other signatures No const ca be added*/
 bool TcnTimeProvider::NullDelegate(const uint64 start, const uint64 delta) {
     REPORT_ERROR(ErrorManagement::FatalError, "Call to the null delegate with %d start and %d delta.", start, delta);
     REPORT_ERROR(ErrorManagement::FatalError, "Reached uninitialized portion of the code");
     return false;
 }
 
+/*lint -e{1762} The function is a generic delegate which needs to match other signatures No const ca be added*/
 bool TcnTimeProvider::NoPollBSP(const uint64 start, const uint64 delta) {
 
     while ((HighResolutionTimer::Counter() - start) < delta) {
@@ -273,6 +275,7 @@ bool TcnTimeProvider::NoPollBSP(const uint64 start, const uint64 delta) {
     return true;
 }
 
+/*lint -e{1762} The function is a generic delegate which needs to match other signatures No const ca be added*/
 bool TcnTimeProvider::PollBSP(const uint64 start, const uint64 delta) {
     bool retVal = true;    
         
@@ -290,6 +293,7 @@ bool TcnTimeProvider::PollBSP(const uint64 start, const uint64 delta) {
     return retVal;
 }
 
+/*lint -e{1762} The function is a generic delegate which needs to match other signatures No const ca be added*/
 bool TcnTimeProvider::WaitUntilBSP(const uint64 start, const uint64 delta) {
     bool retVal = true;
 
@@ -303,6 +307,7 @@ bool TcnTimeProvider::WaitUntilBSP(const uint64 start, const uint64 delta) {
     return retVal;
 }
 
+/*lint -e{1762} The function is a generic delegate which needs to match other signatures No const ca be added*/
 bool TcnTimeProvider::WaitUntilHRBSP(const uint64 start, const uint64 delta) {
     bool retVal = true;
 
