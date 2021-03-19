@@ -224,11 +224,11 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
     return ret;
 }
 
-uint64 TcnTimeProvider::HRTCounter() const {
+uint64 TcnTimeProvider::HRTCounter() {
     return HighResolutionTimer::Counter();
 }
 
-uint64 TcnTimeProvider::TCNCounter() const {
+uint64 TcnTimeProvider::TCNCounter() {
     uint64 tcnTime;
     hpn_timestamp_t tempTCNTime = 0u;
 
