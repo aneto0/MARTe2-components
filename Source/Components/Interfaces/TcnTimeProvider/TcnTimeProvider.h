@@ -163,17 +163,17 @@ class TcnTimeProvider: public TimeProvider {
         * @brief HighResolutionTimer counter source
         * This is kept here due to legacy reasons (backward compatibility to support TcnPoll = 0)
         */
-        uint64 HRTCounter();
+        uint64 HRTCounter() const;
 
         /**
         * @brief TCN counter source
         */
-        uint64 TCNCounter();
+        uint64 TCNCounter() const;
 
         /**
         * @brief Pointer to the specific counter strategy implementation
         */
-        uint64 (TcnTimeProvider::*CounterProvider)();
+        uint64 (TcnTimeProvider::*CounterProvider)() const;
 
         /**
         * @brief Null delegate as dummy for initial configuration, to avoid erratic default behaviour.
