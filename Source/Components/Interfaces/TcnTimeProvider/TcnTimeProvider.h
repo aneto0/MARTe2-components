@@ -52,7 +52,7 @@ const uint32 TCNTIMEPROVIDER_DEFAULT_TOLERANCE = 1000u;
 
 /**
 * @brief An interface which implements the TimeProvider generic plugin interface to provide the base primitive for time and sleep source, backed by TCN.
-* @detail The interface has essentially two main methods, beside ancillary ones, which can be used to:
+* @details The interface has essentially two main methods, beside ancillary ones, which can be used to:
 * - Provide a source for a time-based incrementing counter;
 * - Provide a sleeping method.
 *
