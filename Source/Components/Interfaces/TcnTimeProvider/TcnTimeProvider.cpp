@@ -1,8 +1,9 @@
 /**
  * @file TcnTimeProvider.cpp
  * @brief Source file for class TcnTimeProvider
- * @date 31 ott 2019
- * @author pc
+ * @date 31/10/2019
+ * @author Giuseppe Ferrò
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -24,15 +25,15 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <tcn.h>
 #include <errno.h>
+#include <tcn.h>
+
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
-#include "TcnTimeProvider.h"
 #include "AdvancedErrorManagement.h"
 #include "StreamString.h"
+#include "TcnTimeProvider.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

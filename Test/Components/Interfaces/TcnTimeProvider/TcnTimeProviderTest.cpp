@@ -1,8 +1,8 @@
 /**
- * @file MemoryGateTest.cpp
- * @brief Source file for class MemoryGateTest
- * @date 24/07/2018
- * @author Giuseppe Ferro
+ * @file TcnTimeProviderTest.cpp
+ * @brief Source file for class TcnTimeProviderTest
+ * @date 19/03/2021
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

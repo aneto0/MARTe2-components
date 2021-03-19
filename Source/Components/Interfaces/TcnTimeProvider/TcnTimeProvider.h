@@ -1,8 +1,9 @@
 /**
  * @file TcnTimeProvider.h
  * @brief Header file for class TcnTimeProvider
- * @date 31 ott 2019
- * @author pc
+ * @date 31/10/2019
+ * @author Giuseppe Ferrò
+ * @author Giuseppe Avon
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
