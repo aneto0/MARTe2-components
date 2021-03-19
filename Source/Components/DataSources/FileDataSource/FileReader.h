@@ -80,6 +80,8 @@ namespace MARTe {
  *     XAxisSignal = "Time" //Compulsory if Interpolate = "yes" and none of the signals interacting with this FileReader has Frequency > 0. Name of the signal containing the independent variable to generate the interpolation samples.
  *     InterpolationPeriod = 1000 //Compulsory if Interpolate = "yes" and none of the signals interacting with this FileReader has Frequency > 0. InterpolatedXAxisSignal += InterpolationPeriod. It will be read as an uint64.
  *     EOF = "Rewind" //Optional behaviour to have when reaching the end of the file. If not set EOF = "Rewind". Possible options are: "Error", "Rewind" and "Last". If "Rewind" the file will be read from the start; if "Error" an error will be issues when EOF is reached; if "Last" the last read values are sent.
+ *     Preload = "yes" //Optional. Default no. If set the file is load in memory when configuring.
+ *     MaxFileByteSize = 1000000 //Optional. Default 4 GB. The maximum data file size to be loaded in Bytes.
  *     //All the signals are automatically added against the information stored in the header of the input file (format described above).
  *     +Messages = { //Optional. If set a message will be fired every time one of the events below occur
  *         Class = ReferenceContainer
@@ -95,15 +97,14 @@ namespace MARTe {
  * </pre>
  */
 class FileReader: public DataSourceI, public MessageI {
-public:
-    CLASS_REGISTER_DECLARATION()
+public:CLASS_REGISTER_DECLARATION()
 
     /**
      * @brief Default constructor.
      * @details Initialises all the optional parameters as described in the class description.
      * Registers the RPC CloseFile callback function.
      */
-FileReader    ();
+    FileReader ();
 
     /**
      * @brief Destructor.
@@ -129,16 +130,16 @@ FileReader    ();
      *   SetConfiguredDatabase
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-            const uint32 bufferIdx,
-            void *&signalAddress);
+                                       const uint32 bufferIdx,
+                                       void *&signalAddress);
 
     /**
      * @brief See DataSourceI::GetBrokerName.
      * @details Only InputSignals are supported.
      * @return MemoryMapSynchronisedInputBroker if interpolate = false, MemoryMapInterpolatedInputBroker otherwise.
      */
-    virtual const char8 *GetBrokerName(StructuredDataI &data,
-            const SignalDirection direction);
+    virtual const char8* GetBrokerName(StructuredDataI &data,
+                                       const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
@@ -148,16 +149,16 @@ FileReader    ();
      *   GetNumberOfFunctions() == 1u
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
+                                 const char8 *const functionName,
+                                 void *const gamMemPtr);
 
     /**
      * @brief See DataSourceI::GetOutputBrokers.
      * @return false.
      */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
+                                  const char8 *const functionName,
+                                  void *const gamMemPtr);
 
     /**
      * @brief Reads into the buffer data the data from the specified file in the specified format.
@@ -169,14 +170,14 @@ FileReader    ();
      * @brief See DataSourceI::PrepareNextState. NOOP.
      * @return true.
      */
-    virtual bool PrepareNextState(const char8 * const currentStateName,
-            const char8 * const nextStateName);
+    virtual bool PrepareNextState(const char8 *const currentStateName,
+                                  const char8 *const nextStateName);
 
     /**
      * @brief Loads and verifies the configuration parameters detailed in the class description.
      * @return true if all the mandatory parameters are correctly specified and if the specified optional parameters have valid values.
      */
-    virtual bool Initialise(StructuredDataI & data);
+    virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @brief Final verification of all the parameters and opening of the file.
@@ -188,8 +189,7 @@ FileReader    ();
      * - At least one signal is set.
      * @return true if all the parameters are valid and if the file can be successfully opened.
      */
-    virtual bool SetConfiguredDatabase(StructuredDataI & data);
-
+    virtual bool SetConfiguredDatabase(StructuredDataI &data);
 
     /**
      * @brief Close the file. Function is registered as an RPC.
@@ -239,7 +239,6 @@ private:
      * @brief Copies the xAxis signal from the data source memory into the broker shared variable (xAxisSignal).
      */
     void ConvertXAxisSignal();
-
 
     /**
      * @brief Opens a new File, parses the header and registers the signals in the cdb.
@@ -366,11 +365,38 @@ private:
         EOFLast = 1
     };
 
-
     /**
      * The eof behaviour.
      */
     EOFBehaviour eofBehaviour;
+
+    bool preload;
+
+    struct preLoadedData {
+        /**
+         * maximum (configurable) data file size excluding the header!
+         */
+        uint64 maxDataFileByteSize;
+
+        /**
+         * The actual data file size excluding the header. It is the size of the internalBuffer
+         */
+        uint64 dataFileByteSize;
+
+        /**
+         * if the signal is pre loaded the data will be stored in this buffer
+         */
+        char8 *internalBuffer;
+
+        /**
+         * Indicated the data to be copied to the memoryDataSource
+         */
+        uint64 interalBufferIdx;
+    };
+
+    preLoadedData allData;
+
+    bool ReadLineCSVFormat();
 
 };
 }

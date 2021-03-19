@@ -107,6 +107,11 @@ public:
     bool TestSynchronise_CSV_Interpolation();
 
     /**
+     * @brief Tests the Synchronise method with csv files, interpolation and preload.
+     */
+    bool TestSynchronise_CSV_Interpolation_Preload();
+
+    /**
      * @brief Tests the Synchronise method with binary files.
      */
     bool TestSynchronise_Binary();
@@ -115,6 +120,11 @@ public:
      * @brief Tests the Synchronise method with binary files and interpolation.
      */
     bool TestSynchronise_Binary_Interpolation();
+
+    /**
+     * @brief Tests the Synchronise method with binary files, interpolation and preload.
+     */
+    bool TestSynchronise_Binary_Interpolation_Preload();
 
     /**
      * @brief Tests the Synchronise method using the Frequency parameter.
@@ -202,14 +212,49 @@ public:
     bool TestInitialise_Warning_InterpolationPeriod();
 
     /**
+     * @brief Tests the Initialise method with Preaload = "no".
+     */
+    bool TestInitialise_Preload_no();
+
+    /**
+     * @brief Tests the Initialise method with Preaload = "yes" MaxFileByteSize not specified.
+     */
+    bool TestInitialise_Preload_yes_NoMaxSize();
+
+    /**
+     * @brief Tests the Initialise method with Preaload = "yes" MaxFileByteSize not specified.
+     */
+    bool TestInitialise_Preload_yes_MaxSizeToLarge();
+
+    /**
      * @brief Tests the SetConfiguredDatabase.
      */
     bool TestSetConfiguredDatabase();
 
     /**
+     * @brief Test SetConfiguredDatabase on error.
+     */
+    bool TestSetConfiguradDatabase_InputSignalSize0();
+
+    /**
      * @brief Tests the SetConfiguredDatabase with more than one sample.
      */
     bool TestSetConfiguredDatabase_False_NumberOfSamples();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase wrong file size.
+     */
+    bool TestSetConfiguredDatabase_WrongFileSize_CSV();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase wrong file size.
+     */
+    bool TestSetConfiguredDatabase_WrongFileSize_Bin();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase wrong file size.
+     */
+    bool TestSetConfiguredDatabase_MaxSizeSmallerThanFileSize();
 
     /**
      * @brief Tests the SetConfiguredDatabase with more than one function interacting with the FileReader.
@@ -282,6 +327,11 @@ public:
     bool TestRuntimeErrorMessage_Fail();
 
     /**
+     * @brief Tests that the runtime error successfully warns that the runtime error message could not be sent
+     */
+    bool TestRuntimeErrorMessage_Fail_Preload();
+
+    /**
      * @brief Tests that an Invalid message name is correctly captured.
      */
     bool TestInvalidMessageName();
@@ -292,9 +342,19 @@ public:
     bool TestInvalidMessageType();
 
     /**
+     * @brief Tests that an Invalid message type is correctly captured.
+     */
+    bool TestInvalidMessageType_Preload();
+
+    /**
      * @brief Tests the EOF for the CVS files with the default behaviour (Rewind).
      */
     bool TestEOF_CSV();
+
+    /**
+     * @brief Tests the EOF for the CVS files with the default behaviour (Rewind) using preload.
+     */
+    bool TestEOF_CSV_Preload();
 
     /**
      * @brief Tests the EOF for binary files with the default behaviour (Rewind).
@@ -302,9 +362,24 @@ public:
     bool TestEOF_Binary();
 
     /**
+     * @brief Tests the EOF for binary files with the default behaviour (Rewind). The file size is 2.1 GB
+     */
+    bool TestEOF_Binary_JumboFile();
+
+    /**
+     * @brief Tests the EOF for binary files with the default behaviour (Rewind) using preload.
+     */
+    bool TestEOF_Binary_Preload();
+
+    /**
      * @brief Tests the EOF for the CVS files with the Rewind behaviour.
      */
     bool TestEOF_Rewind_CSV();
+
+    /**
+     * @brief Tests the EOF for the CVS files with the Rewind behaviour using prelaod.
+     */
+    bool TestEOF_Rewind_CSV_Preload();
 
     /**
      * @brief Tests the EOF for binary files with the Rewind behaviour.
@@ -312,9 +387,19 @@ public:
     bool TestEOF_Rewind_Binary();
 
     /**
+     * @brief Tests the EOF for binary files with the Rewind behaviour using prelaod.
+     */
+    bool TestEOF_Rewind_Binary_Preload();
+
+    /**
      * @brief Tests the EOF for the CVS files with the Last behaviour.
      */
     bool TestEOF_Last_CSV();
+
+    /**
+     * @brief Tests the EOF for the CVS files with the Last behaviour using preload.
+     */
+    bool TestEOF_Last_CSV_Preload();
 
     /**
      * @brief Tests the EOF for binary files with the Last behaviour.
@@ -322,14 +407,29 @@ public:
     bool TestEOF_Last_Binary();
 
     /**
+     * @brief Tests the EOF for binary files with the Last behaviour using preload.
+     */
+    bool TestEOF_Last_Binary_Preload();
+
+    /**
      * @brief Tests the EOF for the CVS files with the Error behaviour.
      */
     bool TestEOF_Error_CSV();
 
     /**
+     * @brief Tests the EOF for the CVS files with the Error behaviour using preload.
+     */
+    bool TestEOF_Error_CSV_Preload();
+
+    /**
      * @brief Tests the EOF for binary files with the Error behaviour.
      */
     bool TestEOF_Error_Binary();
+
+    /**
+     * @brief Tests the EOF for binary files with the Error behaviour using preload..
+     */
+    bool TestEOF_Error_Binary_Preload();
 };
 
 /*---------------------------------------------------------------------------*/
