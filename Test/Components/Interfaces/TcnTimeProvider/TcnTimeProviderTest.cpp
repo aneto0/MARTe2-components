@@ -176,3 +176,8 @@ bool TcnTimeProviderTest::TestInitialise_WithMissingTcnDevice_Fail() {
     return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_SleepMode);    
 }
 
+bool TcnTimeProviderTest::TestInitialise_WrongXmlPlugin_Fail() {
+    tcnCfg.Write("TcnDevice", "/home/codac-dev/VNAProjects/tcn-fail-1.xml");
+    return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_SleepMode); 
+}
+

@@ -124,3 +124,8 @@ TEST(TcnTimeProviderGTest,TestInitialise_WithMissingTcnDevice_Fail) {
     TcnTimeProviderTest test(true);
     ASSERT_FALSE(test.TestInitialise_WithMissingTcnDevice_Fail());
 }
+
+TEST(TcnTimeProviderGTest,TestInitialise_WrongXmlPlugin_Fail) {
+    TcnTimeProviderTest test(true);
+    ASSERT_FALSE(test.TestInitialise_WrongXmlPlugin_Fail());
+}
