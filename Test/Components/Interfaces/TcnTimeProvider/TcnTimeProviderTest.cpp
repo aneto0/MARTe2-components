@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class MemoryGateTest (public, protected, and private). Be aware that some 
+ * the class TcnTimeProviderTest (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -72,6 +72,7 @@ const MARTe::char8 * const configRunIntegrated = ""
         "            ExecutionMode = RealTimeThread"
 		"			 +TimeProvider = {"
 		"				 Class = TcnTimeProvider"
+        "                TcnDevice = \"/etc/opt/codac/tcn/tcn-default.xml\""
         "        }"
         "        +Timings = {"
         "            Class = TimingDataSource"
@@ -128,7 +129,9 @@ TcnProviderTestGAM    () : GAM() {
 
     MARTe::uint32 val2;
 };
+
 CLASS_REGISTER(TcnProviderTestGAM, "1.0")
+
 
 bool TcnTimeProviderTest::PreInitialise(bool noPreInit) {
     bool retVal = true;
