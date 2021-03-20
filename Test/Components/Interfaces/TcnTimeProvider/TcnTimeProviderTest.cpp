@@ -50,7 +50,7 @@ const MARTe::char8 * const configRunIntegrated = ""
         "    +Functions = {"
         "        Class = ReferenceContainer"
         "        +GAMA = {"
-        "            Class = LinuxTimerTestGAM"
+        "            Class = TcnProviderTestGAM"
         "            InputSignals = {"
         "                Counter = {"
         "                    DataSource = Timer"
@@ -96,16 +96,16 @@ const MARTe::char8 * const configRunIntegrated = ""
         "    }"
         "}";
 
-class LinuxTimerTestGAM: public MARTe::GAM {
+class TcnProviderTestGAM: public MARTe::GAM {
 public:
     CLASS_REGISTER_DECLARATION()
 
-LinuxTimerTestGAM    () : GAM() {
+TcnProviderTestGAM    () : GAM() {
         val1 = 0u;
         val2 = 0u;
     }
 
-    ~LinuxTimerTestGAM() {
+    ~TcnProviderTestGAM() {
 
     }
 
@@ -128,7 +128,7 @@ LinuxTimerTestGAM    () : GAM() {
 
     MARTe::uint32 val2;
 };
-CLASS_REGISTER(LinuxTimerTestGAM, "1.0")
+CLASS_REGISTER(TcnProviderTestGAM, "1.0")
 
 bool TcnTimeProviderTest::PreInitialise(bool noPreInit) {
     bool retVal = true;
@@ -306,7 +306,7 @@ bool TcnTimeProviderTest::TestRunIntegrated() {
     }
 
     ReferenceT<LinuxTimer> linuxTimer = application->Find("Data.Timer");
-    ReferenceT<LinuxTimerTestGAM> gama = application->Find("Functions.GAMA");
+    ReferenceT<TcnProviderTestGAM> gama = application->Find("Functions.GAMA");
     ok = linuxTimer.IsValid();
     if (ok) {
         ok = gama.IsValid();
