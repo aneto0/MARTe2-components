@@ -130,7 +130,3 @@ TEST(TcnTimeProviderGTest,TestInitialise_WrongXmlPlugin_Fail) {
     ASSERT_FALSE(test.TestInitialise_WrongXmlPlugin_Fail());
 }
 
-TEST(TcnTimeProviderGTest,TestRunIntegrated) {
-    TcnTimeProviderTest test(true);
-    ASSERT_FALSE(test.TestRunIntegrated());
-}
