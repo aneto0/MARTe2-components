@@ -87,11 +87,6 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
                 REPORT_ERROR(ErrorManagement::Information, "tcn_init successful!");
             }
             else {
-                StreamString errorString;
-                ret = errorString.Seek(0ull);
-                if(!ret) {
-                    REPORT_ERROR(ErrorManagement::FatalError, "Failure in seek function inside errorString StreamString");
-                }
                 if(tcnRetVal == TCN_SUCCESS) {
                     REPORT_ERROR(ErrorManagement::Information, "tcn_register_device succeeded! Registered @ %s", tcnDevice.Buffer());        
                 }
