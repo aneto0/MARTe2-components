@@ -36,7 +36,9 @@
 #include "LinuxTimer.h"
 #include "LinuxTimerTest.h"
 #include "MemoryOperationsHelper.h"
+#include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
+#include "StandardParser.h"
 #include "TcnTimeProviderTest.h"
 
 /*---------------------------------------------------------------------------*/
