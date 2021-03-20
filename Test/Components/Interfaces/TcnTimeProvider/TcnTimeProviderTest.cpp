@@ -31,6 +31,9 @@
 
 #include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
+#include "GAM.h"
+#include "GAMScheduler.h"
+#include "RealTimeApplication.h"
 #include "TcnTimeProviderTest.h"
 
 /*---------------------------------------------------------------------------*/
