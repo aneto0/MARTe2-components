@@ -33,6 +33,9 @@
 #include "ConfigurationDatabase.h"
 #include "GAM.h"
 #include "GAMScheduler.h"
+#include "LinuxTimer.h"
+#include "LinuxTimerTest.h"
+#include "MemoryOperationsHelper.h"
 #include "RealTimeApplication.h"
 #include "TcnTimeProviderTest.h"
 
