@@ -34,7 +34,6 @@
 #include "GAM.h"
 #include "GAMScheduler.h"
 #include "LinuxTimer.h"
-#include "LinuxTimerTest.h"
 #include "MemoryOperationsHelper.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
@@ -96,6 +95,40 @@ const MARTe::char8 * const configRunIntegrated = ""
         "        TimingDataSource = Timings"
         "    }"
         "}";
+
+class LinuxTimerTestGAM: public MARTe::GAM {
+public:
+    CLASS_REGISTER_DECLARATION()
+
+LinuxTimerTestGAM    () : GAM() {
+        val1 = 0u;
+        val2 = 0u;
+    }
+
+    ~LinuxTimerTestGAM() {
+
+    }
+
+    bool Execute() {
+        if(GetNumberOfInputSignals() > 0u) {
+            MARTe::MemoryOperationsHelper::Copy(&val1, GetInputSignalMemory(0u), sizeof(MARTe::uint32));
+        }
+        if(GetNumberOfInputSignals() > 1u) {
+            MARTe::MemoryOperationsHelper::Copy(&val2, GetInputSignalMemory(1u), sizeof(MARTe::uint32));
+        }
+
+        return true;
+    }
+
+    bool Setup() {
+        return true;
+    }
+
+    MARTe::uint32 val1;
+
+    MARTe::uint32 val2;
+};
+CLASS_REGISTER(LinuxTimerTestGAM, "1.0")
 
 bool TcnTimeProviderTest::PreInitialise(bool noPreInit) {
     bool retVal = true;
