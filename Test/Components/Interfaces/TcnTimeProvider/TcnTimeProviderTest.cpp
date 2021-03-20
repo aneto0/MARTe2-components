@@ -37,6 +37,58 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+const MARTe::char8 * const configRunIntegrated = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = LinuxTimerTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                    Frequency = 1000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timer = {"
+        "            Class = LinuxTimer"
+        "            ExecutionMode = RealTimeThread"
+		"			 +TimeProvider = {"
+		"				 Class = TcnTimeProvider"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 bool TcnTimeProviderTest::PreInitialise(bool noPreInit) {
     bool retVal = true;
     timeProvider = new MARTe::TcnTimeProvider();
@@ -179,5 +231,95 @@ bool TcnTimeProviderTest::TestInitialise_WithMissingTcnDevice_Fail() {
 bool TcnTimeProviderTest::TestInitialise_WrongXmlPlugin_Fail() {
     tcnCfg.Write("TcnDevice", "/home/codac-dev/VNAProjects/tcn-fail-1.xml");
     return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_SleepMode); 
+}
+
+bool TcnTimeProviderTest::TestRunIntegrated() {
+    using namespace MARTe;
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = configRunIntegrated;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    if (ok) {
+        application->StartNextStateExecution();
+    }
+
+    ReferenceT<LinuxTimer> linuxTimer = application->Find("Data.Timer");
+    ReferenceT<LinuxTimerTestGAM> gama = application->Find("Functions.GAMA");
+    ok = linuxTimer.IsValid();
+    if (ok) {
+        ok = gama.IsValid();
+    }
+    uint32 *counter;
+    uint32 *timer;
+	uint64 *absoluteTime;
+	uint64 *deltaTime;
+
+    if (ok) {
+        linuxTimer->GetSignalMemoryBuffer(0, 0, (void *&) counter);
+        linuxTimer->GetSignalMemoryBuffer(1, 0, (void *&) timer);
+		linuxTimer->GetSignalMemoryBuffer(2, 0, (void *&) absoluteTime);
+		linuxTimer->GetSignalMemoryBuffer(3, 0, (void *&) deltaTime);
+
+        uint32 c = 0;
+        ok = false;
+        while (c < 500 && !ok) {
+            ok = (((*counter) > 100) && ((*timer) > 100000) && (gama->val1 > 100) && (gama->val2 > 100000));
+            c++;
+            if (!ok) {
+                Sleep::MSec(10);
+            }
+        }
+    }
+	
+    Sleep::MSec(1000);
+    uint32 counterBefore = (*counter);
+    uint32 timerBefore = (*timer);
+
+	if (ok) {
+        ok = application->PrepareNextState("State2");
+    }
+    if (ok) {
+        application->StartNextStateExecution();
+    }
+
+	Sleep::MSec(10);
+    application->StopCurrentStateExecution();
+
+    if (ok) {
+        ok = (counterBefore > 1000) && (timerBefore > 1000000);
+    }
+
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+
+    if (ok) {
+		//We are checking that the state change is resetting the counter and the timer
+        ok = (((*counter) < counterBefore) && ((*timer) < timerBefore));
+    }
+
+    god->Purge();
+    return ok;
 }
 
