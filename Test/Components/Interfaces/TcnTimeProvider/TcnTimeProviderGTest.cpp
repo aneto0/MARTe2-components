@@ -130,3 +130,7 @@ TEST(TcnTimeProviderGTest,TestInitialise_WrongXmlPlugin_Fail) {
     ASSERT_FALSE(test.TestInitialise_WrongXmlPlugin_Fail());
 }
 
+TEST(TcnTimeProviderGTest,TestInitialise_WithFrequency) {
+    TcnTimeProviderTest test(true);
+    ASSERT_TRUE(test.TestInitialise_WithFrequency());
+}

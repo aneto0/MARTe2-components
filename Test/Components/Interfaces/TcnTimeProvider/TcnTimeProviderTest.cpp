@@ -183,3 +183,8 @@ bool TcnTimeProviderTest::TestInitialise_WrongXmlPlugin_Fail() {
     return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_SleepMode); 
 }
 
+bool TcnTimeProviderTest::TestInitialise_WithFrequency() {
+    tcnCfg.Write("TcnFrequency", 1000u);
+    return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_SleepMode); 
+}
+
