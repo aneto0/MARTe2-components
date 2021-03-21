@@ -75,6 +75,7 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
                 const char8 *tempErrorBufferPtr = static_cast<const char8*>(tcn_strerror_r(tcnRetVal, static_cast<char*>(&tempErrorBuffer[0]), 255));
                 StreamString errorString(tempErrorBufferPtr);
                 REPORT_ERROR(ErrorManagement::FatalError, "tcn_register_device failed, %s", errorString.Buffer());
+                ret = false;
             }
         }
         else {
@@ -84,18 +85,13 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
         if (ret) {
             tcnRetVal = tcn_init();
             if(tcnRetVal == TCN_SUCCESS) {
-                REPORT_ERROR(ErrorManagement::Information, "tcn_init successful!");
+                REPORT_ERROR(ErrorManagement::Information, "tcn_init successful!");            
             }
             else {
-                if(tcnRetVal == TCN_SUCCESS) {
-                    REPORT_ERROR(ErrorManagement::Information, "tcn_register_device succeeded! Registered @ %s", tcnDevice.Buffer());        
-                }
-                else {
-                    char8 tempErrorBuffer[255];
-                    const char8 *tempErrorBufferPtr = static_cast<const char8*>(tcn_strerror_r(tcnRetVal, static_cast<char*>(&tempErrorBuffer[0]), 255));
-                    StreamString errorString(tempErrorBufferPtr);
-                    REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, %s", errorString.Buffer());
-                }
+                char8 tempErrorBuffer[255];
+                const char8 *tempErrorBufferPtr = static_cast<const char8*>(tcn_strerror_r(tcnRetVal, static_cast<char*>(&tempErrorBuffer[0]), 255));
+                StreamString errorString(tempErrorBufferPtr);
+                REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, %s", errorString.Buffer());
                 ret = false;
             }
         }
