@@ -176,14 +176,15 @@ bool TcnTimeProvider::InnerInitialize(StructuredDataI &data) {
                 REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
             }
         }
-    }    
+    }
+    return ret;  
 }
 
 bool TcnTimeProvider::Initialise(StructuredDataI &data) {
     bool ret = Object::Initialise(data);
     
     if (ret) {
-        InnerInitialize(data);
+        ret = InnerInitialize(data);
     }
     return ret;
 }
