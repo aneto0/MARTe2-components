@@ -31,12 +31,52 @@
 
 #include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
+#include "GAM.h"
+#include "GAMScheduler.h"
 #include "LinuxTimer.h"
+#include "MemoryOperationsHelper.h"
+#include "ObjectRegistryDatabase.h"
+#include "RealTimeApplication.h"
+#include "StandardParser.h"
 #include "TcnTimeProviderTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+
+class TcnTimeProviderTestGAM: public MARTe::GAM {
+    public:
+        CLASS_REGISTER_DECLARATION()
+
+        TcnTimeProviderTestGAM    () : GAM() {
+            val1 = 0u;
+            val2 = 0u;
+        }
+
+        ~TcnTimeProviderTestGAM() {
+
+        }
+
+        bool Execute() {
+            if(GetNumberOfInputSignals() > 0u) {
+                MARTe::MemoryOperationsHelper::Copy(&val1, GetInputSignalMemory(0u), sizeof(MARTe::uint32));
+            }
+            if(GetNumberOfInputSignals() > 1u) {
+                MARTe::MemoryOperationsHelper::Copy(&val2, GetInputSignalMemory(1u), sizeof(MARTe::uint32));
+            }
+
+            return true;
+        }
+
+        bool Setup() {
+            return true;
+        }
+
+        MARTe::uint32 val1;
+        MARTe::uint32 val2;
+};
+
+CLASS_REGISTER(TcnTimeProviderTestGAM, "1.0")
 
 
 bool TcnTimeProviderTest::PreInitialise(bool noPreInit) {
@@ -123,7 +163,6 @@ bool TcnTimeProviderTest::TestInitialise_ConfigurableMode(TcnTimeProviderTestIni
         retVal = testCounterRes && testPeriodRes && testFrequencyRes && testSleepRes;
     }
 
-
     return retVal;
 }
 
@@ -188,4 +227,8 @@ bool TcnTimeProviderTest::TestInitialise_WithFrequency() {
     return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_SleepMode); 
 }
 
+bool TcnTimeProviderTest::TestIntegratedRun() {
+    
+    return true;
+}
 

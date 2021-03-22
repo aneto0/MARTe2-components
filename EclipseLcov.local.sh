@@ -13,6 +13,7 @@ lcov --capture --initial --directory . --no-external --output-file $OUTPUT_DIR/M
 
 #Execute the tests
 Test/GTest/cov/MainGTest.ex --gtest_filter=*LinuxTim*
+Test/GTest/cov/MainGTest.ex --gtest_filter=TcnTimeProvider*
 
 #Create test coverage data file
 lcov --capture --directory . --no-external --output-file $OUTPUT_DIR/MARTe2-components.coverage.info.tests
