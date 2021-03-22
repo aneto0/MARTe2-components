@@ -80,6 +80,16 @@ class TimeProvider: public Object {
         * @param[in] delta Amount of ticks to sleep for
         */
         virtual bool Sleep(const uint64 start, const uint64 delta) = 0;
+
+        /**
+        * @brief Offers a way to maintain backward compatibility to current functionalities which require settings
+        *        to be written in the parent container. As the current approach is to have specific configuration data
+        *        inside the plugin instance, this function offers an entry point to bring configuration data to the inner
+        *        plugin, without breaking things nor violating new interface and op design.
+        * @param[in] compatibilityData Structured data where configuration is ported down to the plugin.
+        * @return True if configuration operation succeeds. False otherwise.
+        */
+        virtual bool BackwardCompatibilityInit(StructuredDataI &compatibilityData) = 0;
     };
 }
 

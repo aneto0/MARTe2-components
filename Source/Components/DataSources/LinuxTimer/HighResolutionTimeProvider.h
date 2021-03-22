@@ -88,6 +88,15 @@ namespace MARTe{
             */
             virtual bool Sleep(const uint64 start, const uint64 delta);
 
+            /**
+            * @brief For full motivation of this method, see interface documentation. In this specific case, brings down
+            *        to the plugin, the HRT related configuration parameters which still reside in the Datasource, which now is only in charge
+            *        of the plugin instantiation.
+            * @param[in] compatibilityData Data which is injected from the plugin management DataSource
+            * @return True if configuration operation succeeds. False otherwise.
+            */
+            virtual bool BackwardCompatibilityInit(StructuredDataI &compatibilityData);
+
         private:
             /**
             * @brief Holds the percentage to sleep by yielding the cpu
@@ -119,6 +128,14 @@ namespace MARTe{
             * Essentially it does nothing, only fails.
             */
             bool NullDelegate(const uint64 start, const uint64 delta);
+
+            /**
+            * @brief Uniforms the configuration strategy for data coming both directly from the cfg or injected through
+            *        the backward compatibility method.
+            * @param[in] data Configuration data structure.
+            * @return True if configuration operation succeeds. False otherwise.
+            */
+            bool InnerInitialize(StructuredDataI &data);
 
     };
 }

@@ -192,12 +192,15 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
         }
     }
 
+    bool skipBackwardCompatibilityInjection = false;
+
     if (ok) {
         if(Size() == 0u) {
             REPORT_ERROR(ErrorManagement::Information, "No timer provider specified. Falling back to HighResolutionTimeProvider");
             timeProvider = ReferenceT<HighResolutionTimeProvider> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
             timeProvider->SetName("HighResolutionTimeProvider");     
             ok = timeProvider->Initialise(slaveCDB);
+            skipBackwardCompatibilityInjection = true;
             if(!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Failure to call the time provider initialise function");
             }
@@ -210,6 +213,19 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
             }
         }
     }
+
+    if(ok) {
+        if(!skipBackwardCompatibilityInjection) {
+            ok = timeProvider->BackwardCompatibilityInit(slaveCDB);
+            if(!ok) {
+                REPORT_ERROR(ErrorManagement::FatalError, "Error while injecting backward compatibility parameters to the plugin");
+            }
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::Information, "Backward compatibility parameters injection unnecessary");
+        }
+    }
+
     if(ok) {
         ticksPerUs = (static_cast<float64>(timeProvider->Frequency()) / 1.0e6);
     }
