@@ -59,6 +59,8 @@ TcnTimeProvider::~TcnTimeProvider() {
 }
 
 bool TcnTimeProvider::InnerInitialize(StructuredDataI &data) {
+
+    bool ret = true;
     StreamString tcnDevice;
     int32 tcnRetVal = 0;
     ret = (data.Read("TcnDevice", tcnDevice));
@@ -189,7 +191,7 @@ bool TcnTimeProvider::Initialise(StructuredDataI &data) {
 bool TcnTimeProvider::BackwardCompatibilityInit(StructuredDataI &compatibilityData) {
     REPORT_ERROR(ErrorManagement::Warning, "Backward compatibility mode requested, Timer injecting parameters. Looking for TcnPoll value overriding");
     uint8 tcnPoll = 0u;
-    if (data.Read("TcnPoll", tcnPoll)) {
+    if (compatibilityData.Read("TcnPoll", tcnPoll)) {
         REPORT_ERROR(ErrorManagement::Information, "TcnPoll parameter is set to %d [Legacy Configuration Mode]", tcnPoll);
         if(tcnPoll == 0u) {
             BusySleepProvider = &TcnTimeProvider::NoPollBSP;
@@ -204,6 +206,9 @@ bool TcnTimeProvider::BackwardCompatibilityInit(StructuredDataI &compatibilityDa
     else {
         REPORT_ERROR(ErrorManagement::Information, "Backward compatibility mode requested but no TcnPoll parameter found. No override took place.");
     }
+
+    //Backward compatibility has no way of failing.
+    return true;
 }
 
 uint64 TcnTimeProvider::HRTCounter() const {
