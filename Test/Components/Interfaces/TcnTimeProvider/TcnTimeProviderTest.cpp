@@ -44,6 +44,55 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+const MARTe::char8 * const configTestIntegrated = ""
+    "$Test = {"
+    "    Class = RealTimeApplication"
+    "    +Functions = {"
+    "        Class = ReferenceContainer"
+    "        +GAMA = {"
+    "            Class = TcnTimeProviderTestGAM"
+    "            InputSignals = {"
+    "                Counter = {"
+    "                    DataSource = Timer"
+    "                    Type = uint32"
+    "                }"
+    "                Time = {"
+    "                    DataSource = Timer"
+    "                    Type = uint32"
+    "                    Frequency = 1000"
+    "                }"
+    "            }"
+    "        }"
+    "    }"
+    "    +Data = {"
+    "        Class = ReferenceContainer"
+    "        DefaultDataSource = DDB1"
+    "        +Timer = {"
+    "            Class = LinuxTimer"
+    "        }"
+    "        +Timings = {"
+    "            Class = TimingDataSource"
+    "        }"
+    "    }"
+    "    +States = {"
+    "        Class = ReferenceContainer"
+    "        +State1 = {"
+    "            Class = RealTimeState"
+    "            +Threads = {"
+    "                Class = ReferenceContainer"
+    "                +Thread1 = {"
+    "                    Class = RealTimeThread"
+    "                    Functions = {GAMA}"
+    "                }"
+    "            }"
+    "        }"
+    "    }"
+    "    +Scheduler = {"
+    "        Class = GAMScheduler"
+    "        TimingDataSource = Timings"
+    "    }"
+    "}";
+
 class TcnTimeProviderTestGAM: public MARTe::GAM {
     public:
         CLASS_REGISTER_DECLARATION()
@@ -228,6 +277,12 @@ bool TcnTimeProviderTest::TestInitialise_WithFrequency() {
 }
 
 bool TcnTimeProviderTest::TestIntegratedRun() {
+    ConfigurationDatabase cdb;
+    StreamString configStream = configTestIntegrated;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
     
     return true;
 }
