@@ -18,8 +18,9 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class CreateNI9157DeviceOperatorTest (public, protected, and private). Be aware that some 
- * methods, such as those inline could be defined on the header file, instead.
+ * the class CreateNI9157DeviceOperatorTest (public, protected, and private).
+ * Be aware that some methods, such as those inline could be defined on the
+ * header file, instead.
  */
 
 /*---------------------------------------------------------------------------*/

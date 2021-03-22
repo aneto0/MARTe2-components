@@ -48,7 +48,7 @@ namespace MARTe {
  * with the same device.
  *
  * @details This class allows the user to perform the initial configuration of the NI-9157 FPGA directly within the MARTe configuration file.
- * The parameters to be configured match the names of the Labview project variables, but they have to be preceded by its type (Bool_, U8_, I8, U16_,
+ * The parameters to be configured match the names of the LabVIEW project variables, but they have to be preceded by its type (Bool_, U8_, I8, U16_,
  * I16_, U32_, I32_, U64_, I64_).
  * <pre>
  * +NiDevice = {
@@ -58,23 +58,25 @@ namespace MARTe {
  *     NiRioGenSignature = "CCF43684FE70CCDB4E23B1D2DF50940C"
  *     Open = 1 // specifies if the device must be opened or not. If 0, the Configuration block has no meaning.
  *              // Open = 0 is assumed if this parameter is not set.
+ *     Reset = 0// specifies if the device should be reseted after being opened.
+ *              // Run = 0 is assumed if this parameter is not set.
  *     Run = 0  // specifies if the device should be set into run mode after being opened.
  *              // Run = 0 is assumed if this parameter is not set.
  *     Configuration = {
- *         Bool_stop = 0
- *         Bool_use_dsfifo_data = 0
- *         Bool_use_counter = 1
- *         U32_cycle_ticks = 200
- *         U64_packet_size = 1
+ *         ConfigureBool_stop = 0
+ *         ConfigureBool_use_dsfifo_data = 0
+ *         ConfigureBool_use_counter = 1
+ *         ConfigureU32_cycle_ticks = 200
+ *         ConfigureU64_packet_size = 1
  *     }
  * }
  * </pre>
  * Where:
  * - NiRioDeviceName: the name of the device that appears in "/dev" after connecting the MXI cable.
- * - NiRioGenFile: the bitstream file exported by Labview.
- * - NiRioGenSignature: a code that can be found in the Labview exported header file (or by opening the bitstream file as text).
- * - In the Configuration block, it is possible to automatically initialise the Labview exported variables. Their names can be found in the
- * Labview exported header file. Make sure that the variable names contain the variable types (Bool, U8, I8, U16, I16, U32, I32, U64, I64).
+ * - NiRioGenFile: the bitstream file exported by LabVIEW.
+ * - NiRioGenSignature: a code that can be found in the LabVIEW exported header file (or by opening the bitstream file as text).
+ * - In the Configuration block, it is possible to automatically initialise the LabVIEW exported variables. Their names can be found in the
+ * LabVIEW exported header file. Make sure that the variable names contain the variable types (Bool, U8, I8, U16, I16, U32, I32, U64, I64).
  */
 class NI9157Device: public ReferenceContainer, public MessageI {
 public:
@@ -143,7 +145,7 @@ public:
 
     /**
      * @brief Finds a bool variable and returns its descriptor
-     * @param[in] varName the Labview variable name
+     * @param[in] varName the LabVIEW variable name
      * @param[in] type the value is not important, it is used to select the uint8 type
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
@@ -154,7 +156,7 @@ public:
 
     /**
      * @brief Finds a unsigned 8-bit variable and returns its descriptor
-     * @param[in] varName the Labview variable name
+     * @param[in] varName the LabVIEW variable name
      * @param[in] type the value is not important, it is used to select the uint8 type
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
@@ -165,7 +167,7 @@ public:
 
     /**
      * @brief Finds a signed 8-bit variable and returns its descriptor
-     * @param[in] varName the Labview variable name
+     * @param[in] varName the LabVIEW variable name
      * @param[in] type the value is not important, it is used to select the int8 type
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
@@ -176,7 +178,7 @@ public:
 
     /**
      * @brief Finds a unsigned 16-bit variable and returns its descriptor
-     * @param[in] varName the Labview variable name
+     * @param[in] varName the LabVIEW variable name
      * @param[in] type the value is not important, it is used to select the uint16 type
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
@@ -187,7 +189,7 @@ public:
 
     /**
      * @brief Finds a signed 16-bit variable and returns its descriptor
-     * @param[in] varName the Labview variable name
+     * @param[in] varName the LabVIEW variable name
      * @param[in] type the value is not important, it is used to select the int16 type
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
@@ -198,7 +200,7 @@ public:
 
     /**
      * @brief Finds a unsigned 32-bit variable and returns its descriptor
-     * @param[in] varName the Labview variable name
+     * @param[in] varName the LabVIEW variable name
      * @param[in] type the value is not important, it is used to select the uint32 type
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
@@ -209,7 +211,7 @@ public:
 
     /**
      * @brief Finds a signed 32-bit variable and returns its descriptor
-     * @param[in] varName the Labview variable name
+     * @param[in] varName the LabVIEW variable name
      * @param[in] type the value is not important, it is used to select the int32 type
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
@@ -220,7 +222,7 @@ public:
 
     /**
      * @brief Finds a unsigned 64-bit variable and returns its descriptor
-     * @param[in] varName the Labview variable name
+     * @param[in] varName the LabVIEW variable name
      * @param[in] type the value is not important, it is used to select the uint64 type
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
@@ -231,7 +233,7 @@ public:
 
     /**
      * @brief Finds a signed 64-bit variable and returns its descriptor
-     * @param[in] varName the Labview variable name
+     * @param[in] varName the LabVIEW variable name
      * @param[in] type the value is not important, it is used to select the int64 type
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
@@ -576,7 +578,7 @@ public:
                             uint32 &elementsRemaining) const;
 
     /**
-     * @brief Writes to a host-to-target FIFO of booleans.
+     * @brief Writes to a host-to-target FIFO of Booleans.
      * @param[in] fifo host-to-target FIFO to which to write
      * @param[in] data data to write
      * @param[in] numberOfElements number of elements to write
@@ -738,8 +740,8 @@ public:
     /**
      * @brief Starts the Compact-RIO.
 	 * @details Calls the NI9157Device::Open method if the device is not opened and then the
-	 * NI9157Device::Run method if the former call was successfull.
-     * @return No errors if the two calls were successfull. Use the ErrorsCleared method to
+	 * NI9157Device::Run method if the former call was successful.
+     * @return No errors if the two calls were successful. Use the ErrorsCleared method to
 	 * check the returned value.
      */
     ErrorManagement::ErrorType CrioStart();
@@ -747,7 +749,7 @@ public:
     /**
      * @brief Stops the Compact-RIO.
 	 * @details Calls the NI9157Device::Reset method if the device is running.
-     * @return No errors if the call was successfull. Use the ErrorsCleared method to check
+     * @return No errors if the call was successful. Use the ErrorsCleared method to check
 	 * the returned value.
      */
     ErrorManagement::ErrorType CrioStop();
@@ -755,12 +757,12 @@ public:
     /**
      * @brief Writes a parameter to a Compact-RIO FPGA resource.
 	 * @details If the parameter type is recognized, the method calls the NI9157Device::FindResource
-	 * method and, if successfull, calls the NI9157Device::NiFpga_Write<type>.
+	 * method and, if successful, calls the NI9157Device::NiFpga_Write<type>.
      * @param[in] varName the name of the FPGA resource to write at.
      * @param[in] value the value to write to the FPGA resource.
      * @param[in] type the type to be used ("bool", "uint8", "uint16", "uint32", "uint64", "int8",
 	 * "int16", "int32" or "int64").
-     * @return No errors if the call was successfull. Use the ErrorsCleared method to check
+     * @return No errors if the call was successful. Use the ErrorsCleared method to check
 	 * the returned value.
      */
     ErrorManagement::ErrorType WriteParam(StreamString varName,
@@ -770,12 +772,12 @@ public:
     /**
      * @brief Reads a parameter from a cRIO FPGA resource.
 	 * @details If the parameter type is recognized, the method calls the NI9157Device::FindResource
-	 * method and, if successfull, calls the NI9157Device::NiFpga_Read<type>.
+	 * method and, if successful, calls the NI9157Device::NiFpga_Read<type>.
      * @param[in] varName the name of the FPGA resource to read from.
      * @param[in] value the value read from the FPGA resource.
      * @param[in] type the type to be used ("bool", "uint8", "uint16", "uint32", "uint64", "int8",
 	 * "int16", "int32" or "int64").
-     * @return No errors if the call was successfull. Use the ErrorsCleared method to check
+     * @return No errors if the call was successful. Use the ErrorsCleared method to check
 	 * the returned value.
      */
     ErrorManagement::ErrorType ReadParam(StreamString varName,
@@ -810,12 +812,17 @@ protected:
     uint8 isRunning;
 
     /**
-     * Holds the path to the Labview generated header file.
+     * Specifies if the NI-9157 device should be reseted after opening.
+     */
+    uint8 reset;
+
+    /**
+     * Holds the path to the LabVIEW generated header file.
      */
     StreamString niRioGenFile;
 
     /**
-     * Holds the Labview program signature.
+     * Holds the LabVIEW program signature.
      */
     StreamString niRioGenSignature;
 

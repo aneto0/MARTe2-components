@@ -17,9 +17,10 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
- * @details This header file contains the declaration of the class CreateNI9157DeviceOperatorTest
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * @details This header file contains the declaration of the class 
+ * CreateNI9157DeviceOperatorTest with all of its public, protected and private
+ * members. It may also include definitions for inline methods which need to be
+ * visible to the compiler.
  */
 
 #ifndef CREATENI9157DEVICEOPERATORTEST_H_
@@ -41,44 +42,44 @@
 using namespace MARTe;
 
 /**
- * @brief Tests the CreateNI9157DeviceOperator methods
+ * @brief Tests the CreateNI9157DeviceOperator methods.
  */
 class CreateNI9157DeviceOperatorTest {
 public:
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     CreateNI9157DeviceOperatorTest();
 
     /**
-     * @brief Destructor
+     * @brief Destructor.
      */
     virtual ~CreateNI9157DeviceOperatorTest();
 
     /**
-     * @brief Tests the constructor
+     * @brief Tests the constructor.
      */
     bool TestConstructor();
 
     /**
-     * @brief Tests the destructor
+     * @brief Tests the destructor.
      */
     bool TestConstructorArgs();
 
     /**
-     * @brief Tests the CreateNI9157DeviceOperator::Create method
+     * @brief Tests the CreateNI9157DeviceOperator::Create method.
      */
     template<typename T>
     bool TestCreate(T type);
 
     /**
-     * @brief Tests the CreateNI9157DeviceOperator::GetIdentifier method
+     * @brief Tests the CreateNI9157DeviceOperator::GetIdentifier method.
      */
     bool TestGetIdentifier();
 
     /**
-     * @brief Tests the CreateNI9157DeviceOperator::GetTypeDescriptor method
+     * @brief Tests the CreateNI9157DeviceOperator::GetTypeDescriptor method.
      */
     bool TestGetTypeDescriptor();
 

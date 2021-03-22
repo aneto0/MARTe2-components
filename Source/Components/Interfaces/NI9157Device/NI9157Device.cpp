@@ -48,6 +48,7 @@ namespace MARTe {
 NI9157Device::NI9157Device() :
         ReferenceContainer(), MessageI() {
     isOpened = 0u;
+    reset = 0u;
     isRunning = 0u;
     run = 0u;
     status = 0;
@@ -56,19 +57,21 @@ NI9157Device::NI9157Device() :
     ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT < RegisteredMethodsMessageFilter >(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType err = MessageI::InstallMessageFilter(filter);
-    if (!err.ErrorsCleared()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Failed to install the message filter");
-    }
+    REPORT_ERROR(ErrorManagement::Information, "NI9157Device::NI9157Device InstallMessageFilter() returned %s", err.ErrorsCleared() ? "true" : "false");
 }
 
 /*lint -e{1551} Possible exceptions trown in destructor are safely ignored*/
 NI9157Device::~NI9157Device() {
-    REPORT_ERROR(ErrorManagement::Information, "Closing RIO Device");
+    REPORT_ERROR(ErrorManagement::Information, "NI9157Device::~NI9157Device Closing RIO Device");
     if (isOpened > 0u) {
         status = NiFpga_Reset(session);
-        (void) NiFpga_Close(session, 0u);
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157Device::~NI9157Device RIO Device reseted with status %d", static_cast<int32> (status));
+        status = NiFpga_Close(session, 0u);
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157Device::~NI9157Device RIO Device closed with status %d", static_cast<int32> (status));
     }
-    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "RIO Device closed %d", static_cast<int32> (status));
+    else{
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157Device::~NI9157Device RIO Device already closed %d", static_cast<int32> (status));
+    }
 }
 
 bool NI9157Device::Initialise(StructuredDataI & data) {
@@ -76,23 +79,28 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
     if (ret) {
         ret = data.Read("NiRioDeviceName", niRioDeviceName);
         if (!ret) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Please specify the NI-RIO Device name (NiRioDeviceName)");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "NI9157Device::Initialise Please specify the NI-RIO Device name (NiRioDeviceName)");
         }
         if (ret) {
             ret = data.Read("NiRioGenFile", niRioGenFile);
             if (!ret) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Please specify the NI-RIO generated bit file (NiRioGenFile)");
+                REPORT_ERROR(ErrorManagement::InitialisationError, "NI9157Device::Initialise Please specify the NI-RIO generated bit file (NiRioGenFile)");
             }
         }
         if (ret) {
             ret = data.Read("NiRioGenSignature", niRioGenSignature);
             if (!ret) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Please spacify the NI-RIO generated signature (NiRioGenSignature)");
+                REPORT_ERROR(ErrorManagement::InitialisationError, "NI9157Device::Initialise Please spacify the NI-RIO generated signature (NiRioGenSignature)");
             }
         }
         if (ret) {
             if (!data.Read("Open", isOpened)) {
                 isOpened = 0u;
+            }
+        }
+        if (ret) {
+            if (!data.Read("Reset", reset)) {
+                reset = 0u;
             }
         }
         if (ret) {
@@ -107,7 +115,7 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
             uint32 cnt = 0u;
             while (condition) {
                 if (isOpened == 1u) {
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Opening %s %s %s", niRioDeviceName.Buffer(), niRioGenSignature.Buffer(),
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157Device::Initialise Opening %s %s %s", niRioDeviceName.Buffer(), niRioGenSignature.Buffer(),
                                             niRioGenFile.Buffer());
                     /*lint -e{930} allow conversion from enum to int*/
                     status = NiFpga_Open(niRioGenFile.Buffer(), niRioGenSignature.Buffer(), niRioDeviceName.Buffer(),
@@ -115,6 +123,16 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
                     ret = (status == 0);
                     if (!ret) {
                         isOpened = 0u;
+                    }
+                    else {
+                        if (reset == 1u) {
+                            status = NiFpga_Reset(session);
+                            ret = (status == 0);
+                            REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "NI9157Device::Initialise Reset() with status=%d", static_cast<int32> (status));
+                            if (ret) {
+                                isRunning = 0u;
+                            }
+                        }
                     }
                 }
                 if (data.MoveRelative("Configuration")) {
@@ -138,7 +156,7 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
                                 const char8 *varName = &typeInName[begIndex];
                                 StreamString operatorName = "NI9157Device";
                                 operatorName += suffixes[i];
-                                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Try to config %s %s", operatorName.Buffer(), varName);
+                                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157Device::Initialise Trying to config %s %s", operatorName.Buffer(), varName);
                                 CreateNI9157DeviceOperatorI *confCreator = NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperator(operatorName.Buffer());
                                 ret = (confCreator != NULL_PTR(CreateNI9157DeviceOperatorI *));
                                 if (ret) {
@@ -165,28 +183,23 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
                                                 status = configurator->NiWrite(var, reinterpret_cast<uint8 *> (&value));
                                                 ret = (status == 0);
                                                 if (!ret) {
-                                                    REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "Failed writing %s=%d status=%d",
-                                                                            variable.Buffer(), value, static_cast<int32> (status));
+                                                    REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "NI9157Device::Initialise Failed writing %s=%d status=%d", variable.Buffer(), value, static_cast<int32> (status));
                                                 }
                                                 else {
-                                                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "%s=%d status=%d", variable.Buffer(), value,
-                                                                            static_cast<int32> (status));
+                                                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157Device::Initialise Variable %s=%d status=%d", variable.Buffer(), value, static_cast<int32> (status));
                                                 }
                                             }
                                         }
                                         else {
-                                            REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "NI variable %s not found status=%d",
-                                                                    variable.Buffer(), status);
+                                            REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "NI9157Device::Initialise NI variable %s not found status=%d", variable.Buffer(), static_cast<int32> (status));
                                         }
                                     }
                                     else {
-                                        REPORT_ERROR(ErrorManagement::InitialisationError, "Failed the creation of NI9157DeviceOperatorTI");
+                                        REPORT_ERROR(ErrorManagement::InitialisationError, "NI9157Device::Initialise Failed the creation of NI9157DeviceOperatorTI");
                                     }
-
                                 }
                                 else {
-                                    REPORT_ERROR(ErrorManagement::InitialisationError, "Failed the creation of CreateNI9157DeviceOperatorI from name %s",
-                                                 operatorName.Buffer());
+                                    REPORT_ERROR(ErrorManagement::InitialisationError, "NI9157Device::Initialise Failed the creation of CreateNI9157DeviceOperatorI from name %s", operatorName.Buffer());
                                 }
                             }
                             i++;
@@ -194,10 +207,9 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
                         if (ret) {
                             ret = (found);
                             if (!ret) {
-                                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Cannot retrieve the type from the variable name %s", variable.Buffer());
+                                REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "NI9157Device::Initialise Cannot retrieve the type from the variable name %s", variable.Buffer());
                             }
                         }
-
                     }
                     if (configurator != NULL_PTR(NI9157DeviceOperatorTI *)) {
                         delete configurator;
@@ -212,13 +224,13 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
                         isRunning = 1u;
                     }
                     else {
-                        REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "Failed run status=%d", static_cast<int32> (status));
+                        REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "NI9157Device::Initialise Failed Run() with status=%d", static_cast<int32> (status));
                         status = NiFpga_Reset(session);
                         (void) NiFpga_Close(session, 0u);
                     }
                 }
                 if (run > 0u) {
-                    condition = ((isRunning == 0u) || (cnt > 2u));
+                    condition = ((isRunning == 0u) && (cnt < 2u));
                 }
                 else {
                     condition = false;
@@ -227,7 +239,7 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
             }
         }
     }
-    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "Initialised returning %s with NI session=%d and status=%d", ret ? "true" : "false", static_cast<int32> (session), static_cast<int32> (status));
+    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157Device::Initialise returning %s with NI session=%d and status=%d", ret ? "true" : "false", static_cast<int32> (session), static_cast<int32> (status));
     return ret;
 }
 
@@ -239,7 +251,7 @@ NiFpga_Status NI9157Device::Open() {
             isOpened = 1u;
         }
         else {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "Failed open status=%d", static_cast<int32> (status));
+            REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "NI9157Device::Open Failed Open() with status=%d", static_cast<int32> (status));
         }
     }
     return status;
@@ -252,7 +264,7 @@ NiFpga_Status NI9157Device::Run() {
             isRunning = 1u;
         }
         else {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "Failed run status=%d", static_cast<int32> (status));
+            REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "NI9157Device::Run Failed Run() with status=%d", static_cast<int32> (status));
         }
     }
     return status;
@@ -260,155 +272,170 @@ NiFpga_Status NI9157Device::Run() {
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
 NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const bool type, uint32 &varDescriptor) { 
-//try all the types
-    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlBool, &varDescriptor);
+    //try all the types
+    NiFpgaEx_Resource resource;
+    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlBool, &resource);
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorBool, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorBool, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoBool, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoBool, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoBool, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoBool, &resource);
     }
+    varDescriptor = static_cast<uint32> (resource);
     return status;
 }
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
 NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const uint8 type, uint32 &varDescriptor) {
     //try all the types
-    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlU8, &varDescriptor);
+    NiFpgaEx_Resource resource;
+    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlU8, &resource);
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorU8, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorU8, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoU8, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoU8, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoU8, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoU8, &resource);
     }
+    varDescriptor = static_cast<uint32> (resource);
     return status;
 }
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
 NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const int8 type, uint32 &varDescriptor) {
-
-//try all the types
-    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlI8, &varDescriptor);
+    //try all the types
+    NiFpgaEx_Resource resource;
+    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlI8, &resource);
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorI8, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorI8, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoI8, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoI8, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoI8, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoI8, &resource);
     }
+    varDescriptor = static_cast<uint32> (resource);
     return status;
 }
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
 NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const uint16 type, uint32 &varDescriptor) {
-    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlU16, &varDescriptor);
     //try all the types
-    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlU16, &varDescriptor);
+    NiFpgaEx_Resource resource;
+    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlU16, &resource);
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorU16, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorU16, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoU16, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoU16, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoU16, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoU16, &resource);
     }
+    varDescriptor = static_cast<uint32> (resource);
     return status;
 }
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
 NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const int16 type, uint32 &varDescriptor) {
     //try all the types
-    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlI16, &varDescriptor);
+    NiFpgaEx_Resource resource;
+    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlI16, &resource);
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorI16, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorI16, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoI16, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoI16, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoI16, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoI16, &resource);
     }
+    varDescriptor = static_cast<uint32> (resource);
     return status;
 }
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
 NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const uint32 type, uint32 &varDescriptor) {
     //try all the types
-    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlU32, &varDescriptor);
+    NiFpgaEx_Resource resource;
+    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlU32, &resource);
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorU32, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorU32, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoU32, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoU32, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoU32, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoU32, &resource);
     }
+    varDescriptor = static_cast<uint32> (resource);
     return status;
 }
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
 NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const int32 type, uint32 &varDescriptor) {
     //try all the types
-    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlI32, &varDescriptor);
+    NiFpgaEx_Resource resource;
+    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlI32, &resource);
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorI32, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorI32, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoI32, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoI32, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoI32, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoI32, &resource);
     }
+    varDescriptor = static_cast<uint32> (resource);
     return status;
 }
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
 NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const uint64 type, uint32 &varDescriptor) {
-
     //try all the types
-    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlU64, &varDescriptor);
+    NiFpgaEx_Resource resource;
+    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlU64, &resource);
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorU64, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorU64, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoU64, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoU64, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoU64, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoU64, &resource);
     }
+    varDescriptor = static_cast<uint32> (resource);
     return status;
 }
 
 /*lint -e{715} the parameter type is not referenced but it is nevertheless used to override the function with templates*/
 NiFpga_Status NI9157Device::FindResource(const char8 * const varName, const int64 type, uint32 &varDescriptor) {
     //try all the types
-    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlI64, &varDescriptor);
+    NiFpgaEx_Resource resource;
+    status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_ControlI64, &resource);
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorI64, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_IndicatorI64, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoI64, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_TargetToHostFifoI64, &resource);
     }
     if (status != 0) {
-        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoI64, &varDescriptor);
+        status = NiFpgaEx_FindResource(session, varName, NiFpgaEx_ResourceType_HostToTargetFifoI64, &resource);
     }
+    varDescriptor = static_cast<uint32> (resource);
     return status;
 }
 
 NiFpga_Status NI9157Device::Reset() {
     status = NiFpga_Reset(session);
     if (status != 0) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "Failed reset status=%d", static_cast<int32> (status));
+        REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "NI9157Device::Reset Failed Reset() with status=%d", static_cast<int32> (status));
     }
     else {
         isRunning = 0u;
@@ -419,7 +446,7 @@ NiFpga_Status NI9157Device::Reset() {
 NiFpga_Status NI9157Device::Close() {
     status = NiFpga_Close(session, 0u);
     if (status != 0) {
-        REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "Failed close status=%d", static_cast<int32> (status));
+        REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "NI9157Device::Close Failed Close() with status=%d", static_cast<int32> (status));
     }
     else {
         isOpened = 0u;
@@ -507,8 +534,12 @@ NiFpga_Status NI9157Device::NiWrite(const uint32 control, const uint64 value) co
 }
 
 NiFpga_Status NI9157Device::NiConfigureFifo(const uint32 fifo, const uint32 requestedDepth, uint32 &actualDepth) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_ConfigureFifo2(session, static_cast<uint32_t> (fifo), static_cast<size_t> (requestedDepth), reinterpret_cast<size_t*> (&actualDepth));
+    NiFpga_Status localStatus;
+    size_t requestedDepthST = static_cast<size_t> (requestedDepth);
+    size_t actualDepthST = static_cast<size_t> (0u);
+    localStatus = NiFpga_ConfigureFifo2(session, static_cast<uint32_t> (fifo), static_cast<size_t> (requestedDepth), reinterpret_cast<size_t*> (&actualDepth));
+    actualDepth = static_cast<uint32> (actualDepthST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiStartFifo(const uint32 fifo) const {
@@ -520,93 +551,183 @@ NiFpga_Status NI9157Device::NiStopFifo(const uint32 fifo) const {
 }
 
 NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, bool * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &elementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_ReadFifoBool(session, static_cast<uint32_t> (fifo), reinterpret_cast<NiFpga_Bool *> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&elementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t elementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_ReadFifoBool(session, niFifo, reinterpret_cast<NiFpga_Bool *> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &elementsRemainingST);
+    elementsRemaining = static_cast<uint32> (elementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, int8 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &elementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_ReadFifoI8(session, static_cast<uint32_t> (fifo), reinterpret_cast<int8_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&elementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t elementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_ReadFifoI8(session, niFifo, reinterpret_cast<int8_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &elementsRemainingST);
+    elementsRemaining = static_cast<uint32> (elementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, uint8 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &elementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_ReadFifoU8(session, static_cast<uint32_t> (fifo), reinterpret_cast<uint8_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&elementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t elementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_ReadFifoU8(session, niFifo, reinterpret_cast<uint8_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &elementsRemainingST);
+    elementsRemaining = static_cast<uint32> (elementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, int16 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &elementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_ReadFifoI16(session, static_cast<uint32_t> (fifo), reinterpret_cast<int16_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&elementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t elementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_ReadFifoI16(session, niFifo, reinterpret_cast<int16_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &elementsRemainingST);
+    elementsRemaining = static_cast<uint32> (elementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, uint16 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &elementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_ReadFifoU16(session, static_cast<uint32_t> (fifo), reinterpret_cast<uint16_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&elementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t elementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_ReadFifoU16(session, niFifo, reinterpret_cast<uint16_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &elementsRemainingST);
+    elementsRemaining = static_cast<uint32> (elementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, int32 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &elementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_ReadFifoI32(session, static_cast<uint32_t> (fifo), reinterpret_cast<int32_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&elementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t elementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_ReadFifoI32(session, niFifo, reinterpret_cast<int32_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &elementsRemainingST);
+    elementsRemaining = static_cast<uint32> (elementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, uint32 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &elementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_ReadFifoU32(session, static_cast<uint32_t> (fifo), reinterpret_cast<uint32_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&elementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t elementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_ReadFifoU32(session, niFifo, reinterpret_cast<uint32_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &elementsRemainingST);
+    elementsRemaining = static_cast<uint32> (elementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, int64 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &elementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_ReadFifoI64(session, static_cast<uint32_t> (fifo), reinterpret_cast<int64_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&elementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t elementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_ReadFifoI64(session, niFifo, reinterpret_cast<int64_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &elementsRemainingST);
+    elementsRemaining = static_cast<uint32> (elementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo, uint64 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &elementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_ReadFifoU64(session, static_cast<uint32_t> (fifo), reinterpret_cast<uint64_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&elementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t elementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_ReadFifoU64(session, niFifo, reinterpret_cast<uint64_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &elementsRemainingST);
+    elementsRemaining = static_cast<uint32> (elementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo, const bool * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &emptyElementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_WriteFifoBool(session, static_cast<uint32_t> (fifo), reinterpret_cast<const NiFpga_Bool*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&emptyElementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t emptyElementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_WriteFifoBool(session, niFifo, reinterpret_cast<const NiFpga_Bool*> (data), numberOfElements, static_cast<uint32_t> (timeout), &emptyElementsRemainingST);
+    emptyElementsRemaining = static_cast<uint32> (emptyElementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo, const int8 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &emptyElementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_WriteFifoI8(session, static_cast<uint32_t> (fifo), reinterpret_cast<const int8_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&emptyElementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t emptyElementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_WriteFifoI8(session, niFifo, reinterpret_cast<const int8_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &emptyElementsRemainingST);
+    emptyElementsRemaining = static_cast<uint32> (emptyElementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo, const uint8 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &emptyElementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_WriteFifoU8(session, static_cast<uint32_t> (fifo), reinterpret_cast<const uint8_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&emptyElementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t emptyElementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_WriteFifoU8(session, niFifo, reinterpret_cast<const uint8_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &emptyElementsRemainingST);
+    emptyElementsRemaining = static_cast<uint32> (emptyElementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo, const int16 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &emptyElementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_WriteFifoI16(session, static_cast<uint32_t> (fifo), reinterpret_cast<const int16_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&emptyElementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t emptyElementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_WriteFifoI16(session, niFifo, reinterpret_cast<const int16_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &emptyElementsRemainingST);
+    emptyElementsRemaining = static_cast<uint32> (emptyElementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo, const uint16 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &emptyElementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_WriteFifoU16(session, static_cast<uint32_t> (fifo), reinterpret_cast<const uint16_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&emptyElementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t emptyElementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_WriteFifoU16(session, niFifo, reinterpret_cast<const uint16_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &emptyElementsRemainingST);
+    emptyElementsRemaining = static_cast<uint32> (emptyElementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo, const int32 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &emptyElementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_WriteFifoI32(session, static_cast<uint32_t> (fifo), reinterpret_cast<const int32_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&emptyElementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t emptyElementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_WriteFifoI32(session, niFifo, reinterpret_cast<const int32_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &emptyElementsRemainingST);
+    emptyElementsRemaining = static_cast<uint32> (emptyElementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo, const uint32 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &emptyElementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_WriteFifoU32(session, static_cast<uint32_t> (fifo), reinterpret_cast<const uint32_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&emptyElementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t emptyElementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_WriteFifoU32(session, niFifo, reinterpret_cast<const uint32_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &emptyElementsRemainingST);
+    emptyElementsRemaining = static_cast<uint32> (emptyElementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo, const int64 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &emptyElementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_WriteFifoI64(session, static_cast<uint32_t> (fifo), reinterpret_cast<const int64_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&emptyElementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t emptyElementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_WriteFifoI64(session, niFifo, reinterpret_cast<const int64_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &emptyElementsRemainingST);
+    emptyElementsRemaining = static_cast<uint32> (emptyElementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo, const uint64 * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &emptyElementsRemaining) const {
-    /*lint -e{826} -e{740} pointer cast is safe since the types are compatible*/
-    return NiFpga_WriteFifoU64(session, static_cast<uint32_t> (fifo), reinterpret_cast<const uint64_t*> (data), static_cast<size_t> (numberOfElements), static_cast<uint32_t> (timeout), reinterpret_cast<size_t*> (&emptyElementsRemaining));
+    NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
+    size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
+    size_t emptyElementsRemainingST = static_cast<size_t> (0u);
+    localStatus = NiFpga_WriteFifoU64(session, niFifo, reinterpret_cast<const uint64_t*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &emptyElementsRemainingST);
+    emptyElementsRemaining = static_cast<uint32> (emptyElementsRemainingST);
+    return localStatus;
 }
 
 NiFpga_Session NI9157Device::GetSession() const {

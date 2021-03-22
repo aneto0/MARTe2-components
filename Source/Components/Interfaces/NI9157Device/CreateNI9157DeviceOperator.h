@@ -17,9 +17,10 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
- * @details This header file contains the declaration of the class CreateNI9157DeviceOperator
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * @details This header file contains the declaration of the class 
+ * CreateNI9157DeviceOperator with all of its public, protected and private
+ * members. It may also include definitions for inline methods which need to be
+ * visible to the compiler.
  */
 
 #ifndef CREATENI9157DEVICEOPERATOR_H_
@@ -51,8 +52,8 @@ class CreateNI9157DeviceOperator: public CreateNI9157DeviceOperatorI {
 public:
 
     /**
-     * @brief Default constructor
-     * @see CreateNI9157DeviceOperatorI
+     * @brief Default constructor.
+     * @see CreateNI9157DeviceOperatorI.
      * @post
      *   identifier=NULL
      *   typeDes=InvalidType
@@ -69,34 +70,34 @@ public:
     CreateNI9157DeviceOperator(const char8 * const id);
 
     /**
-     * @brief Destructor
+     * @brief Destructor.
      */
     virtual ~CreateNI9157DeviceOperator();
 
     /**
-     * @see CreateNI9157DeviceOperatorI::Create
+     * @see CreateNI9157DeviceOperatorI::Create.
      */
     virtual NI9157DeviceOperatorTI *Create(ReferenceT<NI9157Device> niDev) const;
 
     /**
-     * @see CreateNI9157DeviceOperatorI::GetIdentifier
+     * @see CreateNI9157DeviceOperatorI::GetIdentifier.
      */
     virtual const char8 *GetIdentifier() const;
 
     /**
-     * @see CreateNI9157DeviceOperatorI::GetTypeDescriptor
+     * @see CreateNI9157DeviceOperatorI::GetTypeDescriptor.
      */
     virtual TypeDescriptor GetTypeDescriptor() const;
 
 private:
 
     /**
-     * The object name
+     * The object name.
      */
     const char8 *identifier;
 
     /**
-     * The associated type descriptor that depends on T
+     * The associated type descriptor that depends on T.
      */
     TypeDescriptor typeDes;
 

@@ -17,9 +17,10 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
- * @details This header file contains the declaration of the class NI9157DeviceOperatorDatabase
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * @details This header file contains the declaration of the class
+ * NI9157DeviceOperatorDatabase  with all of its public, protected and private
+ * members. It may also include definitions for inline methods which need to be
+ * visible to the compiler.
  */
 
 #ifndef NI9157DEVICEOPERATORDATABASE_H_
@@ -101,6 +102,7 @@ NI9157DeviceOperatorTI *GetNI9157DeviceOperator(const char8 * const niDevId, Ref
  * @warning The NI9157DeviceOperatorT pointer returned has to be freed when it is not used anymore.
  */
 NI9157DeviceOperatorTI *GetNI9157DeviceOperator(const TypeDescriptor &td, ReferenceT<NI9157Device> niDev);
+
 }
 
 }

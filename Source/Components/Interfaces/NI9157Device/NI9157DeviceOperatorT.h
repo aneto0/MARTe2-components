@@ -17,9 +17,10 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
- * @details This header file contains the declaration of the class NI9157DeviceOperatorT
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * @details This header file contains the declaration of the class
+ * NI9157DeviceOperatorT with all of its public, protected and private members.
+ * It may also include definitions for inline methods which need to be visible
+ * to the compiler.
  */
 
 #ifndef NI9157DEVICEOPERATORT_H_
@@ -42,6 +43,7 @@ namespace MARTe {
 /*lint -esym(9107, MARTe::NI9157DeviceOperatorT*) [MISRA C++ Rule 3-1-1]. Justification: Required for template implementation.
  * No code is actually being generated and the header files can be included in multiple unit files.*/
 template<typename T>
+
 /**
  * @brief A class to allow typed read and write operations from/to a NI-9157 device.
  * @details Depending on the template type, the methods NiRead, NiWrite, NiReadFifo, NiWriteFifo, overload the relative
@@ -51,82 +53,84 @@ class NI9157DeviceOperatorT: public NI9157DeviceOperatorTI {
 public:
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      * @post
      *   niDevice.IsValid() = false
      */
     NI9157DeviceOperatorT();
 
     /**
-     * @brief Constructor by reference to NI9157Device
+     * @brief Constructor by reference to NI9157Device.
      * @param[in] niDev a reference to the NI9157Device to be wrapped.
      */
     NI9157DeviceOperatorT(ReferenceT<NI9157Device> niDev);
 
     /**
-     * @brief Destructor
+     * @brief Destructor.
      */
     virtual ~NI9157DeviceOperatorT();
 
     /**
-     * @see NI9157DeviceOperatorTI::FindResource
+     * @see NI9157DeviceOperatorTI::FindResource.
      */
     virtual NiFpga_Status FindResource(const char8 * const varName, uint32 &varDescriptor) const;
 
     /**
-     * @see NI9157DeviceOperatorTI::NiRead
+     * @see NI9157DeviceOperatorTI::NiRead.
      * @details Typed read from the NI-9157 device depending on the template type.
      */
     virtual NiFpga_Status NiRead(const uint32 indicator, void * const value) const;
 
     /**
-     * @see NI9157DeviceOperatorTI::NiWrite
+     * @see NI9157DeviceOperatorTI::NiWrite.
      * @details Typed write to the NI-9157 device depending on the template type.
      */
     virtual NiFpga_Status NiWrite(const uint32 control, void * const value) const;
 
     /**
-     * @see NI9157DeviceOperatorTI::NiReadFifo
+     * @see NI9157DeviceOperatorTI::NiReadFifo.
      * @details Typed read from the NI-9157 FIFO depending on the template type.
      */
     virtual NiFpga_Status NiReadFifo(const uint32 fifo, void * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &elementsRemaining) const;
 
     /**
-     * @see NI9157DeviceOperatorTI::NiWriteFifo
+     * @see NI9157DeviceOperatorTI::NiWriteFifo.
      * @details Typed write to the NI-9157 FIFO depending on the template type.
      */
     virtual NiFpga_Status NiWriteFifo(const uint32 fifo, const void * const data, const uint32 numberOfElements, const uint32 timeout, uint32 &emptyElementsRemaining) const;
 
     /**
-     * @see NI9157DeviceOperatorTI::GetNI9157Device
+     * @see NI9157DeviceOperatorTI::GetNI9157Device.
      */
     virtual ReferenceT<NI9157Device> GetNI9157Device() const;
 
     /**
-     * @see NI9157DeviceOperatorTI::GetByteSize
+     * @see NI9157DeviceOperatorTI::GetByteSize.
      */
     virtual uint8 GetByteSize() const;
 
     /**
-     * @see NI9157DeviceOperatorTI::Compare
+     * @see NI9157DeviceOperatorTI::Compare.
      */
     virtual int32 Compare(const uint8* const a, const uint8* const b) const;
 
     /**
-     * @see NI9157DeviceOperatorTI::Copy
+     * @see NI9157DeviceOperatorTI::Copy.
      */
     virtual void Copy(uint8 * const dest, const uint8 * const source) const;
 
     /**
-     * @see NI9157DeviceOperatorTI::IsValid
+     * @see NI9157DeviceOperatorTI::IsValid.
      */
     virtual bool IsValid() const;
+
 private:
 
     /**
-     * The reference to the wrapped NI9157Device
+     * The reference to the wrapped NI9157Device.
      */
     ReferenceT<NI9157Device> niDevice;
+
 };
 
 }
@@ -149,7 +153,6 @@ NI9157DeviceOperatorT<T>::NI9157DeviceOperatorT(ReferenceT<NI9157Device> niDev) 
 
 template<typename T>
 NI9157DeviceOperatorT<T>::~NI9157DeviceOperatorT() {
-
 }
 
 template<typename T>

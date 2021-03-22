@@ -17,9 +17,10 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
- * @details This header file contains the declaration of the class NI9157DeviceTest
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * @details This header file contains the declaration of the class
+ * NI9157DeviceTest with all of its public, protected and private members. It
+ * may also include definitions for inline methods which need to be visible to
+ * the compiler.
  */
 
 #ifndef NI9157DEVICETEST_H_
@@ -114,25 +115,46 @@ public:
     bool TestInitialise_FalseVariableNotFound(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method does not fail with Open
-	 * and Run parameters set.
+     * @brief Tests the NI9157Device::Initialise method that fails with a device
+	 * that is not found when Open in set.
      * @param model the NI crate model being used.
      */
-    bool TestInitialise_OpenRun(uint32 model);
+    bool TestInitialise_FalseOpenFakeDevice(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::Initialise method does not fail with Open,
+     * Reset and Run parameters set.
+     * @param model the NI crate model being used.
+     */
+    bool TestInitialise_OpenResetRun(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::Initialise method does not fail without
-	 * Open and Run parameters set.
+	 * Open, Reset and Run parameters set.
      * @param model the NI crate model being used.
      */
-    bool TestInitialise_NoOpenRun(uint32 model);
+    bool TestInitialise_NoOpenResetRun(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::Initialise method that does not fail without
+	 * Configuration.
+     * @param model the NI crate model being used.
+     */
+    bool TestInitialise_FalseNoConfig(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::Open method.
      * @param model the NI crate model being used.
      */
     bool TestOpen(uint32 model);
-    
+
+    /**
+     * @brief Tests the NI9157Device::Open method that fails for a device that
+     * can not be found.
+     * @param model the NI crate model being used.
+     */
+    bool TestOpen_FalseParams(uint32 model);
+
 	/**
      * @brief Tests the NI9157Device::IsOpened method.
      * @param model the NI crate model being used.
@@ -144,6 +166,13 @@ public:
      * @param model the NI crate model being used.
      */
     bool TestRun(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::Run method thats fails for a device that
+     * can not be found.
+     * @param model the NI crate model being used.
+     */
+    bool TestRun_FalseParams(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::IsRunning method.

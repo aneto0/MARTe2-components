@@ -17,9 +17,10 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
- * @details This header file contains the declaration of the class NI9157DeviceOperatorDatabaseTest
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * @details This header file contains the declaration of the class
+ * NI9157DeviceOperatorDatabaseTest with all of its public, protected and
+ * private members. It may also include definitions for inline methods which
+ * need to be visible to the compiler.
  */
 
 #ifndef NI9157DEVICEOPERATORDATABASETEST_H_
@@ -84,12 +85,11 @@ public:
 template<typename T>
 bool NI9157DeviceOperatorDatabaseTest::TestGetNI9157DeviceOperatorFromName(const char8 *opName, T type) {
     ReferenceT<NI9157Device> niDev(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-
     NI9157DeviceOperatorTI *niOperator = NI9157DeviceOperatorDatabase::GetNI9157DeviceOperator(opName, niDev);
-    bool ret = niOperator != NULL;
+    bool ret = (niOperator != NULL);
 
     if (ret) {
-        ret = dynamic_cast<NI9157DeviceOperatorT<T>*>(niOperator) != NULL;
+        ret = (dynamic_cast<NI9157DeviceOperatorT<T>*>(niOperator) != NULL);
     }
     if (ret) {
         delete niOperator;
@@ -100,14 +100,12 @@ bool NI9157DeviceOperatorDatabaseTest::TestGetNI9157DeviceOperatorFromName(const
 
 template<typename T>
 bool NI9157DeviceOperatorDatabaseTest::TestGetNI9157DeviceOperatorFromTypeDes(TypeDescriptor opType, T type) {
-
     ReferenceT<NI9157Device> niDev(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-
     NI9157DeviceOperatorTI *niOperator = NI9157DeviceOperatorDatabase::GetNI9157DeviceOperator(opType, niDev);
-    bool ret = niOperator != NULL;
+    bool ret = (niOperator != NULL);
 
     if (ret) {
-        ret = dynamic_cast<NI9157DeviceOperatorT<T>*>(niOperator) != NULL;
+        ret = (dynamic_cast<NI9157DeviceOperatorT<T>*>(niOperator) != NULL);
     }
     if (ret) {
         delete niOperator;

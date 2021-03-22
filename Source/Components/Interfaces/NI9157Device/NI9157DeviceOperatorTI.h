@@ -17,9 +17,10 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
- * @details This header file contains the declaration of the class NI9157DeviceOperatorTI
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * @details This header file contains the declaration of the class
+ * NI9157DeviceOperatorTI with all of its public, protected and private
+ * members. It may also include definitions for inline methods which need to
+ * be visible to the compiler.
  */
 
 #ifndef NI9157DEVICEOPERATORTI_H_
@@ -44,8 +45,8 @@ namespace MARTe {
 
 /**
  * @brief Interface of NI9157DeviceOperatorT.
- * @brief This interface allows to the NI9157DeviceOperatorDatabase functions to return a pointer to the specific
- * NI9157DeviceOperatorT.
+ * @brief This interface allows to the NI9157DeviceOperatorDatabase functions to
+ * return a pointer to the specific NI9157DeviceOperatorT.
  */
 class NI9157DeviceOperatorTI {
 public:
@@ -61,17 +62,18 @@ public:
     virtual ~NI9157DeviceOperatorTI();
 
     /**
-     * @brief Find the resource identified by the \a varName
+     * @brief Find the resource identified by the \a varName.
      * @param[in] varName the name of the resource to find.
      * @param[out] varDescriptor the returned variable descriptor.
-     * @return the NiFpga_Status.
+     * @return The NiFpga_Status.
      */
     virtual NiFpga_Status FindResource(const char8 * const varName, uint32 &varDescriptor) const = 0;
 
     /**
      * @brief Reads from NI-9157 device.
-     * @param[in] indicator indicator or control from which to read
-     * @param[out] value outputs the value that was read
+     * @param[in] indicator indicator or control from which to read.
+     * @param[out] value outputs the value that was read.
+     * @return The NiFpga_Status.
      * @pre
      *   IsValid() == true
      */
@@ -79,8 +81,8 @@ public:
 
     /**
      * brief Writes to NI-9157 device.
-     * @param[in] control control or indicator to which to write
-     * @param[in] value value to write
+     * @param[in] control control or indicator to which to write.
+     * @param[in] value value to write.
      * @return status=0 if succeeds, status=[error_code] if fails.
      * @pre
      *   IsValid() == true
@@ -89,12 +91,12 @@ public:
 
     /**
      * @brief Reads from NI-9157 FIFO.
-     * @param[in] fifo target-to-host FIFO from which to read
-     * @param[out] data outputs the data that was read
-     * @param[in] numberOfElements number of elements to read
-     * @param[in] timeout timeout in milliseconds, or NiFpga_InfiniteTimeout
+     * @param[in] fifo target-to-host FIFO from which to read.
+     * @param[out] data outputs the data that was read.
+     * @param[in] numberOfElements number of elements to read.
+     * @param[in] timeout timeout in milliseconds, or \a NiFpga_InfiniteTimeout.
      * @param[out] elementsRemaining if non-NULL, outputs the number of elements
-     *                          remaining in the host memory part of the DMA FIFO
+     *                          remaining in the host memory part of the DMA FIFO.
      * @return status=0 if succeeds, status=[error_code] if fails.
      * @pre
      *   IsValid() == true
@@ -103,13 +105,13 @@ public:
 
     /**
      * @brief Writes on NI-9157 FIFO.
-     * @param[in] fifo host-to-target FIFO to which to write
-     * @param[in] data data to write
-     * @param[in] numberOfElements number of elements to write
-     * @param[in] timeout timeout in milliseconds, or NiFpga_InfiniteTimeout
+     * @param[in] fifo host-to-target FIFO to which to write.
+     * @param[in] data data to write.
+     * @param[in] numberOfElements number of elements to write.
+     * @param[in] timeout timeout in milliseconds, or \a NiFpga_InfiniteTimeout.
      * @param[out] emptyElementsRemaining if non-NULL, outputs the number of empty
      *                               elements remaining in the host memory part of
-     *                               the DMA FIFO
+     *                               the DMA FIFO.
      * @return status=0 if succeeds, status=[error_code] if fails.
      * @pre
      *   IsValid() == true
@@ -118,7 +120,7 @@ public:
 
     /**
      * @brief Retrieves the reference to the NI9157Device wrapped by this object.
-     * return The reference to the NI9157Device wrapped by this object.
+     * @return The reference to the NI9157Device wrapped by this object.
      */
     virtual ReferenceT<NI9157Device> GetNI9157Device() const =0;
 
@@ -134,7 +136,7 @@ public:
      * @param[in] b is a pointer to the second number.
      * @return 0 if the values are equal, 1 if a>b, -1 if a<b.
      * @pre
-     *   The pointers \a and \b must be valid and point to memories equal to sizeof(type)
+     *   The pointers \a and \b must be valid and point to memories equal to \a sizeof(type).
      */
     virtual int32 Compare(const uint8* const a, const uint8* const b) const =0;
 
@@ -143,7 +145,7 @@ public:
      * @param[in, out] dest is the pointer to the output memory.
      * @param[in] source is the pointer to the input memory.
      * @pre
-     *   The pointers \a dest and \a source must be valid and point to memories equal to sizeof(type)
+     *   The pointers \a dest and \a source must be valid and point to memories equal to \a sizeof(type).
      */
     virtual void Copy(uint8* const dest, const uint8* const source) const =0;
 
