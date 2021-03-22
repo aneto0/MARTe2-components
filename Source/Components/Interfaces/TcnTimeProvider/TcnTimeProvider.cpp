@@ -58,128 +58,152 @@ TcnTimeProvider::~TcnTimeProvider() {
     REPORT_ERROR(ErrorManagement::Information, "TCNTimeProvider disposed, tcn_finalize() returned %d", retVal);
 }
 
+bool TcnTimeProvider::InnerInitialize(StructuredDataI &data) {
+    StreamString tcnDevice;
+    int32 tcnRetVal = 0;
+    ret = (data.Read("TcnDevice", tcnDevice));
+    if (ret) {
+        tcnRetVal = static_cast<int32>(tcn_register_device(tcnDevice.Buffer()));
+        if(tcnRetVal == TCN_SUCCESS) {
+            REPORT_ERROR(ErrorManagement::Information, "tcn_register_device succeeded! Registered @ %s", tcnDevice.Buffer());        
+        }
+        else {
+            char8 tempErrorBuffer[255];
+            const char8 *tempErrorBufferPtr = static_cast<const char8*>(tcn_strerror_r(tcnRetVal, static_cast<char*>(&tempErrorBuffer[0]), 255));
+            StreamString errorString(tempErrorBufferPtr);
+            REPORT_ERROR(ErrorManagement::FatalError, "tcn_register_device failed, %s", errorString.Buffer());
+            ret = false;
+        }
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::Information, "Missing TcnDevice parameter");
+    }
+        
+    if (ret) {
+        tcnRetVal = tcn_init();
+        if(tcnRetVal == TCN_SUCCESS) {
+            REPORT_ERROR(ErrorManagement::Information, "tcn_init successful!");            
+        }
+        else {
+            char8 tempErrorBuffer[255];
+            const char8 *tempErrorBufferPtr = static_cast<const char8*>(tcn_strerror_r(tcnRetVal, static_cast<char*>(&tempErrorBuffer[0]), 255));
+            StreamString errorString(tempErrorBufferPtr);
+            REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, %s", errorString.Buffer());
+            ret = false;
+        }
+    }
+
+    if(ret) {
+        uint64 tempTcnFrequency = 0u;
+        if(data.Read("TcnFrequency", tempTcnFrequency)) {
+            tcnFrequency = tempTcnFrequency;
+            REPORT_ERROR(ErrorManagement::Information, "TcnFrequency manually set to %d, period going to be %f", tcnFrequency, Period());
+        }
+        else {
+            tcnFrequency = TCNTIMEPROVIDER_DEFAULT_FREQUENCY;
+            REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter omitted, defaulting to %d, period going to be %f", tcnFrequency, Period());
+        }
+    }
+
+    if(ret) {
+        uint8 tcnPoll = 0u;
+        if (data.Read("TcnPoll", tcnPoll)) {
+            REPORT_ERROR(ErrorManagement::Information, "TcnPoll parameter is set to %d [Legacy Configuration Mode]", tcnPoll);
+            if(tcnPoll == 0u) {
+                BusySleepProvider = &TcnTimeProvider::NoPollBSP;
+                CounterProvider = &TcnTimeProvider::HRTCounter;
+                tcnFrequency = HighResolutionTimer::Frequency();
+                REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
+            }
+            else {
+                BusySleepProvider = &TcnTimeProvider::PollBSP;
+            }
+        }
+        else {
+            StreamString tempOperationMode;
+            if(data.Read("OperationMode", tempOperationMode)) {
+                if(tempOperationMode == "NoPollLegacyMode") {
+                    BusySleepProvider = &TcnTimeProvider::NoPollBSP;
+                    CounterProvider = &TcnTimeProvider::HRTCounter;
+                    tcnFrequency = HighResolutionTimer::Frequency();
+
+                    REPORT_ERROR(ErrorManagement::Information, "No Poll legacy mode selected");
+                    REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
+                }
+                else if(tempOperationMode == "PollLegacyMode") {
+                    REPORT_ERROR(ErrorManagement::Information, "Poll legacy mode selected");
+                    BusySleepProvider = &TcnTimeProvider::PollBSP;
+                }
+                else if(tempOperationMode == "WaitUntilMode") {
+                    REPORT_ERROR(ErrorManagement::Information, "Wait until mode selected");
+                    BusySleepProvider = &TcnTimeProvider::WaitUntilBSP;
+                }
+                else if(tempOperationMode == "WaitUntilHRMode") {
+                    REPORT_ERROR(ErrorManagement::Information, "Wait until with high resolution counter mode selected");
+                    BusySleepProvider = &TcnTimeProvider::WaitUntilHRBSP;
+                }
+                else if(tempOperationMode == "SleepMode") {
+                    REPORT_ERROR(ErrorManagement::Information, "Sleep mode selected");
+                    BusySleepProvider = &TcnTimeProvider::SleepBSP;
+                }
+                else if(tempOperationMode == "SleepHRMode") {
+                    REPORT_ERROR(ErrorManagement::Information, "Sleep with high resolution counter mode selected");
+                    BusySleepProvider = &TcnTimeProvider::SleepHRBSP;
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "An invalid operation mode was specified [%s]", tempOperationMode.Buffer());
+                    ret = false;
+                }
+                uint32 tempTolerance = 0u;
+
+                if(!data.Read("Tolerance", tempTolerance)) {
+                    tolerance = TCNTIMEPROVIDER_DEFAULT_TOLERANCE;
+                    REPORT_ERROR(ErrorManagement::Warning, "Tolerance parameter omitted, defaulting to %d", tolerance);
+                }
+                else {
+                    tolerance = tempTolerance;
+                    REPORT_ERROR(ErrorManagement::Information, "Tolerance set to %d", tolerance);
+                }
+            }
+            else {
+                BusySleepProvider = &TcnTimeProvider::NoPollBSP;
+                CounterProvider = &TcnTimeProvider::HRTCounter;
+                tcnFrequency = HighResolutionTimer::Frequency();
+
+                REPORT_ERROR(ErrorManagement::Warning, "No TcnPoll and no OperationMode parameter found, defaulting to Legacy NoPoll mode (TcnPoll = 0)");
+                REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
+            }
+        }
+    }    
+}
+
 bool TcnTimeProvider::Initialise(StructuredDataI &data) {
     bool ret = Object::Initialise(data);
     
     if (ret) {
-        StreamString tcnDevice;
-        int32 tcnRetVal = 0;
-        ret = (data.Read("TcnDevice", tcnDevice));
-        if (ret) {
-            tcnRetVal = static_cast<int32>(tcn_register_device(tcnDevice.Buffer()));
-            if(tcnRetVal == TCN_SUCCESS) {
-                REPORT_ERROR(ErrorManagement::Information, "tcn_register_device succeeded! Registered @ %s", tcnDevice.Buffer());        
-            }
-            else {
-                char8 tempErrorBuffer[255];
-                const char8 *tempErrorBufferPtr = static_cast<const char8*>(tcn_strerror_r(tcnRetVal, static_cast<char*>(&tempErrorBuffer[0]), 255));
-                StreamString errorString(tempErrorBufferPtr);
-                REPORT_ERROR(ErrorManagement::FatalError, "tcn_register_device failed, %s", errorString.Buffer());
-                ret = false;
-            }
-        }
-        else {
-            REPORT_ERROR(ErrorManagement::Information, "Missing TcnDevice parameter");
-        }
-            
-        if (ret) {
-            tcnRetVal = tcn_init();
-            if(tcnRetVal == TCN_SUCCESS) {
-                REPORT_ERROR(ErrorManagement::Information, "tcn_init successful!");            
-            }
-            else {
-                char8 tempErrorBuffer[255];
-                const char8 *tempErrorBufferPtr = static_cast<const char8*>(tcn_strerror_r(tcnRetVal, static_cast<char*>(&tempErrorBuffer[0]), 255));
-                StreamString errorString(tempErrorBufferPtr);
-                REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, %s", errorString.Buffer());
-                ret = false;
-            }
-        }
-
-        if(ret) {
-            uint64 tempTcnFrequency = 0u;
-            if(data.Read("TcnFrequency", tempTcnFrequency)) {
-                tcnFrequency = tempTcnFrequency;
-                REPORT_ERROR(ErrorManagement::Information, "TcnFrequency manually set to %d, period going to be %f", tcnFrequency, Period());
-            }
-            else {
-                tcnFrequency = TCNTIMEPROVIDER_DEFAULT_FREQUENCY;
-                REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter omitted, defaulting to %d, period going to be %f", tcnFrequency, Period());
-            }
-        }
-
-        if(ret) {
-            uint8 tcnPoll = 0u;
-            if (data.Read("TcnPoll", tcnPoll)) {
-                REPORT_ERROR(ErrorManagement::Information, "TcnPoll parameter is set to %d [Legacy Configuration Mode]", tcnPoll);
-                if(tcnPoll == 0u) {
-                    BusySleepProvider = &TcnTimeProvider::NoPollBSP;
-                    CounterProvider = &TcnTimeProvider::HRTCounter;
-                    tcnFrequency = HighResolutionTimer::Frequency();
-                    REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
-                }
-                else {
-                    BusySleepProvider = &TcnTimeProvider::PollBSP;
-                }
-            }
-            else {
-                StreamString tempOperationMode;
-                if(data.Read("OperationMode", tempOperationMode)) {
-                    if(tempOperationMode == "NoPollLegacyMode") {
-                        BusySleepProvider = &TcnTimeProvider::NoPollBSP;
-                        CounterProvider = &TcnTimeProvider::HRTCounter;
-                        tcnFrequency = HighResolutionTimer::Frequency();
-
-                        REPORT_ERROR(ErrorManagement::Information, "No Poll legacy mode selected");
-                        REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
-                    }
-                    else if(tempOperationMode == "PollLegacyMode") {
-                        REPORT_ERROR(ErrorManagement::Information, "Poll legacy mode selected");
-                        BusySleepProvider = &TcnTimeProvider::PollBSP;
-                    }
-                    else if(tempOperationMode == "WaitUntilMode") {
-                        REPORT_ERROR(ErrorManagement::Information, "Wait until mode selected");
-                        BusySleepProvider = &TcnTimeProvider::WaitUntilBSP;
-                    }
-                    else if(tempOperationMode == "WaitUntilHRMode") {
-                        REPORT_ERROR(ErrorManagement::Information, "Wait until with high resolution counter mode selected");
-                        BusySleepProvider = &TcnTimeProvider::WaitUntilHRBSP;
-                    }
-                    else if(tempOperationMode == "SleepMode") {
-                        REPORT_ERROR(ErrorManagement::Information, "Sleep mode selected");
-                        BusySleepProvider = &TcnTimeProvider::SleepBSP;
-                    }
-                    else if(tempOperationMode == "SleepHRMode") {
-                        REPORT_ERROR(ErrorManagement::Information, "Sleep with high resolution counter mode selected");
-                        BusySleepProvider = &TcnTimeProvider::SleepHRBSP;
-                    }
-                    else {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "An invalid operation mode was specified [%s]", tempOperationMode.Buffer());
-                        ret = false;
-                    }
-                    uint32 tempTolerance = 0u;
-
-                    if(!data.Read("Tolerance", tempTolerance)) {
-                        tolerance = TCNTIMEPROVIDER_DEFAULT_TOLERANCE;
-                        REPORT_ERROR(ErrorManagement::Warning, "Tolerance parameter omitted, defaulting to %d", tolerance);
-                    }
-                    else {
-                        tolerance = tempTolerance;
-                        REPORT_ERROR(ErrorManagement::Information, "Tolerance set to %d", tolerance);
-                    }
-                }
-                else {
-                    BusySleepProvider = &TcnTimeProvider::NoPollBSP;
-                    CounterProvider = &TcnTimeProvider::HRTCounter;
-                    tcnFrequency = HighResolutionTimer::Frequency();
-
-                    REPORT_ERROR(ErrorManagement::Warning, "No TcnPoll and no OperationMode parameter found, defaulting to Legacy NoPoll mode (TcnPoll = 0)");
-                    REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
-                }
-            }
-        }
+        InnerInitialize(data);
     }
     return ret;
+}
+
+bool TcnTimeProvider::BackwardCompatibilityInit(StructuredDataI &compatibilityData) {
+    REPORT_ERROR(ErrorManagement::Warning, "Backward compatibility mode requested, Timer injecting parameters. Looking for TcnPoll value overriding");
+    uint8 tcnPoll = 0u;
+    if (data.Read("TcnPoll", tcnPoll)) {
+        REPORT_ERROR(ErrorManagement::Information, "TcnPoll parameter is set to %d [Legacy Configuration Mode]", tcnPoll);
+        if(tcnPoll == 0u) {
+            BusySleepProvider = &TcnTimeProvider::NoPollBSP;
+            CounterProvider = &TcnTimeProvider::HRTCounter;
+            tcnFrequency = HighResolutionTimer::Frequency();
+            REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter overridden by HighResolutionTimer internal value %d", tcnFrequency);
+        }
+        else {
+            BusySleepProvider = &TcnTimeProvider::PollBSP;
+        }
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::Information, "Backward compatibility mode requested but no TcnPoll parameter found. No override took place.");
+    }
 }
 
 uint64 TcnTimeProvider::HRTCounter() const {

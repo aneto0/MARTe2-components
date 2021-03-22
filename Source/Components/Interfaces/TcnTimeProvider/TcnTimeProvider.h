@@ -143,6 +143,15 @@ class TcnTimeProvider: public TimeProvider {
         */
         virtual bool Sleep(uint64 start, uint64 delta);
 
+        /**
+        * @brief For full motivation of this method, see interface documentation. In this specific case, brings down
+        *        to the plugin, the Tcn related configuration parameters which still reside in the Datasource, which now is only in charge
+        *        of the plugin instantiation. In particular, the TcnPoll parameter is brought to the plugin.
+        * @param[in] compatibilityData Data which is injected from the plugin management DataSource
+        * @return True if configuration operation succeeds. False otherwise.
+        */
+        virtual bool BackwardCompatibilityInit(StructuredDataI &compatibilityData);
+
     private:
         /**
         * @brief Holds the provider internal frequency, which in turn is used to compute the period
@@ -174,6 +183,8 @@ class TcnTimeProvider: public TimeProvider {
         * @brief Pointer to the specific counter strategy implementation
         */
         uint64 (TcnTimeProvider::*CounterProvider)() const;
+
+        bool InnerInitialize(StructuredDataI &data);
 
         /**
         * @brief Null delegate as dummy for initial configuration, to avoid erratic default behaviour.

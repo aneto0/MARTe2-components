@@ -192,6 +192,16 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
         }
     }
 
+    if(ok) {
+        uint8 tcnPollMode = 0u;
+        bool isLegacyCfg = data.Read("TcnPoll", tcnPollMode);
+        if(isLegacyCfg) {
+            REPORT_ERROR(ErrorManagement::Information, "TcnPoll legacy configuration parameter found, its value is %d", tcnPollMode);
+            REPORT_ERROR(ErrorManagement::Information, "TcnPoll value will be injected onto the TimeProvider");
+            slaveCDB.Write("TcnPoll", tcnPollMode);
+        }
+    }
+
     bool skipBackwardCompatibilityInjection = false;
 
     if (ok) {
@@ -214,6 +224,8 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
         }
     }
 
+    //Here we inject parameters into the Time Provider instance, only when the instance is automatically created from the cfg file
+    //A check is done in order to avoid double injection/init
     if(ok) {
         if(!skipBackwardCompatibilityInjection) {
             ok = timeProvider->BackwardCompatibilityInit(slaveCDB);

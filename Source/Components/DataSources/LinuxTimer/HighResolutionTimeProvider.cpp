@@ -130,7 +130,7 @@ namespace MARTe {
                     if(tempSleepPercentage <= 100u) {
                         yieldSleepPercentage = tempSleepPercentage;
                         SleepProvidingFunction = &HighResolutionTimeProvider::SemiBusy;
-                        REPORT_ERROR(ErrorManagement::Information, "Sleep percentage was specified (%d %)", yieldSleepPercentage);
+                        REPORT_ERROR(ErrorManagement::Information, "Sleep percentage was specified (%d)", yieldSleepPercentage);
                         REPORT_ERROR(ErrorManagement::Information, "SemiBusy delegate selected");
                     }
                     else {
