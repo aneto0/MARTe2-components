@@ -208,6 +208,12 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::Information, "TcnPoll legacy configuration parameter found, its value is %d", tcnPollMode);
             REPORT_ERROR(ErrorManagement::Information, "TcnPoll value will be injected onto the TimeProvider");
             slaveCDB.Write("TcnPoll", tcnPollMode);
+            uint64 tempTCNFrequency = 0u;
+            if(data.Read("TcnFrequency", tempTCNFrequency)) {
+                REPORT_ERROR(ErrorManagement::Information, "TcnFrequency legacy configuration parameter found, its value is %d", tempTCNFrequency);
+                REPORT_ERROR(ErrorManagement::Information, "TcnFrequency value will be injected onto the TimeProvider");
+                slaveCDB.Write("TcnFrequency", tempTCNFrequency);
+            }
         }
     }
 
@@ -259,10 +265,10 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
     uint32 tempNumOfSignals = GetNumberOfSignals();
 
     if (ok) {
-        ok = (tempNumOfSignals >= 2u) && (tempNumOfSignals <= 4u);
+        ok = (tempNumOfSignals >= 2u) && (tempNumOfSignals <= 5u);
     }
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "Number of signal must be between 2 and");
+        REPORT_ERROR(ErrorManagement::ParametersError, "Number of signal must be between 2 and 5");
     }
     if (ok) {
         ok = (GetSignalType(0u).numberOfBits == 32u);
@@ -311,6 +317,15 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The fourth signal must be a 64 bit unsigned integer");
         }
     }
+    
+    if(tempNumOfSignals > 4u) {
+        uint16 tempNumOfBits = GetSignalType(4u).numberOfBits;
+        ok = ((GetSignalType(4u).type == UnsignedInteger) && (tempNumOfBits == 8));
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The fourth signal must be a 8 bit unsigned integer");
+        }
+    }
+
     if (ok) {
         ReferenceContainer result;
         ReferenceContainerFilterReferences filter(1, ReferenceContainerFilterMode::PATH, this);

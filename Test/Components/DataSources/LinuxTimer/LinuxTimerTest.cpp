@@ -418,6 +418,10 @@ const MARTe::char8 * const config4 = ""
         "                    DataSource = Timer"
         "                    Type = uint32"
         "                }"
+        "                TrigRephase = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                }"
         "                WrongSignal = {"
         "                    DataSource = Timer"
         "                    Type = uint32"
@@ -841,6 +845,18 @@ const MARTe::char8 * const config12 = ""
         "                    Type = uint32"
         "                    Frequency = 1000"
         "                }"
+        "                AbsTime = {"
+        "                   DataSource = Timer"
+        "                   Type = uint64"
+        "                }"
+        "                DeltaTime = {"
+        "                    DataSource = Timer"
+        "                    Type = uint64"
+        "                }"
+        "                RephaseTrigger = {"
+        "                    DataSource = Timer"
+        "                    Type = uint8"
+        "                }"
         "            }"
         "        }"
         "    }"
@@ -1199,6 +1215,68 @@ const MARTe::char8 * const config18 = ""
         "    }"
         "}";
 
+const MARTe::char8 * const config19 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = LinuxTimerTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                    Frequency = 1000.0"
+        "                }"
+        "                Time = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                }"
+        "                AbsoluteTime = {"
+        "                    DataSource = Timer"
+        "                    Type = uint64"
+        "                }"
+        "                DeltaTime = {"
+        "                    DataSource = Timer"
+        "                    Type = int64"
+        "                }"
+        "                WrongTriggerRephase = {"
+        "                    DataSource = Timer"
+        "                    Type = int64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timer = {"
+        "            Class = LinuxTimer"
+        "            SleepNature = Default"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -1242,7 +1320,7 @@ bool LinuxTimerTest::TestGetSignalMemoryBuffer_False() {
     using namespace MARTe;
     LinuxTimer test;
     uint32 *ptr;
-    return !test.GetSignalMemoryBuffer(4, 0, (void *&) ptr);
+    return !test.GetSignalMemoryBuffer(5, 0, (void *&) ptr);
 }
 
 bool LinuxTimerTest::TestGetBrokerName() {
@@ -1295,7 +1373,7 @@ bool LinuxTimerTest::TestExecute_RTThread() {
     return TestIntegratedInApplication(config11);
 }
 
-bool LinuxTimerTest::TestExecute_RTThread_WithFour() {
+bool LinuxTimerTest::TestExecute_RTThread_WithFive() {
     return TestIntegratedInApplication(config12);
 }
 
@@ -1597,7 +1675,7 @@ bool LinuxTimerTest::TestSetConfiguredDatabase_One_Signal_Per_GAM() {
     return TestIntegratedInApplication(config8, true, false);
 }
 
-bool LinuxTimerTest::TestSetConfiguredDatabase_False_MoreThan4Signals() {
+bool LinuxTimerTest::TestSetConfiguredDatabase_False_MoreThan5Signals() {
     return !TestIntegratedInApplication(config4);
 }
 
@@ -1615,6 +1693,10 @@ bool LinuxTimerTest::TestSetConfiguredDatabase_False_InvalidSignal3() {
 
 bool LinuxTimerTest::TestSetConfiguredDatabase_False_InvalidSignal4() {
     return !TestIntegratedInApplication(config17);
+}
+
+bool LinuxTimerTest::TestSetConfiguredDatabase_False_InvalidSignal5() {
+    return !TestIntegratedInApplication(config19);
 }
 
 bool LinuxTimerTest::TestSetConfiguredDatabase_False_NoFrequencySet() {

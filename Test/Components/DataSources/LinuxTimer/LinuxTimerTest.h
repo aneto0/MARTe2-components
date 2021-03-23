@@ -107,9 +107,9 @@ public:
     bool TestExecute_RTThread();
 
 	/**
-	* @brief Tests the Execute method in the context of the real-time thread by using all the four signals
+	* @brief Tests the Execute method in the context of the real-time thread by using all the five signals
 	*/
-	bool TestExecute_RTThread_WithFour();
+	bool TestExecute_RTThread_WithFive();
 
 	/**
 	* @brief Tests the Execute method exercising the phase section
@@ -204,7 +204,7 @@ public:
     /**
      * @brief Tests the SetConfiguredDatabase method specifying more than four signals.
      */
-    bool TestSetConfiguredDatabase_False_MoreThan4Signals();
+    bool TestSetConfiguredDatabase_False_MoreThan5Signals();
 
     /**
      * @brief Tests the SetConfiguredDatabase method specifying with a first signal that has more than 32 bits.
@@ -220,6 +220,11 @@ public:
 	* @brief Tests the SetConfiguredDatabase method specifying a wrong attributes fourth signal
 	*/
 	bool TestSetConfiguredDatabase_False_InvalidSignal4();
+
+	/**
+	* @brief Tests the SetConfiguredDatabase method specifying a wrong attributes fifth signal
+	*/
+	bool TestSetConfiguredDatabase_False_InvalidSignal5();
 
     /**
      * @brief Tests the SetConfiguredDatabase method specifying with a first signal that is not (Un)SignedInteged.

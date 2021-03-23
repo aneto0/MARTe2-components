@@ -106,9 +106,9 @@ TEST(LinuxTimerGTest, TestExecute_RTThread) {
     ASSERT_TRUE(test.TestExecute_RTThread());
 }
 
-TEST(LinuxTimerGTest, TestExecute_RTThread_WithFour) {
+TEST(LinuxTimerGTest, TestExecute_RTThread_WithFive) {
     LinuxTimerTest test;
-    ASSERT_TRUE(test.TestExecute_RTThread_WithFour());
+    ASSERT_TRUE(test.TestExecute_RTThread_WithFive());
 }
 
 TEST(LinuxTimerGTest, TestExecute_RTThread_WithPhase) {
@@ -195,9 +195,9 @@ TEST(LinuxTimerGTest, TestSetConfiguredDatabase) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
 }
 
-TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_MoreThan4Signals) {
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_MoreThan5Signals) {
     LinuxTimerTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThan4Signals());
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThan5Signals());
 }
 
 TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_No32BitsSignal1) {
