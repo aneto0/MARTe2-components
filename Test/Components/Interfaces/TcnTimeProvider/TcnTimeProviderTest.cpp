@@ -276,7 +276,8 @@ bool TcnTimeProviderTest::TestInitialise_WithFrequency() {
     return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_SleepMode); 
 }
 
-bool TcnTimeProviderTest::TestIntegratedRun() {
+static bool TestIntegratedRun() {
+    using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = configTestIntegrated;
     configStream.Seek(0);
@@ -287,3 +288,6 @@ bool TcnTimeProviderTest::TestIntegratedRun() {
     return true;
 }
 
+bool TcnTimeProviderTest::TestIntegrated_WithTcnPoll() {
+    return TestIntegratedRun();
+}

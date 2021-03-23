@@ -134,3 +134,7 @@ TEST(TcnTimeProviderGTest,TestInitialise_WithFrequency) {
     TcnTimeProviderTest test(true);
     ASSERT_TRUE(test.TestInitialise_WithFrequency());
 }
+
+TEST(TcnTimeProviderGTest, TestIntegrated_WithTcnPoll) {
+    return TestIntegratedRun(); 
+}
