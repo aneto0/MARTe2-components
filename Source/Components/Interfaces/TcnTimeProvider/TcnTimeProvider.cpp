@@ -202,12 +202,20 @@ bool TcnTimeProvider::BackwardCompatibilityInit(StructuredDataI &compatibilityDa
         }
         else {
             BusySleepProvider = &TcnTimeProvider::PollBSP;
+            uint64 tempTCNFrequency = 0u;
+            if (compatibilityData.Read("TcnFrequency", tempTCNFrequency)) {
+                tcnFrequency = tempTCNFrequency;
+                REPORT_ERROR(ErrorManagement::Information, "TcnFrequency parameter is set to %d", tcnFrequency);
+            }
+            else {
+                tcnFrequency = TCNTIMEPROVIDER_DEFAULT_FREQUENCY;
+                REPORT_ERROR(ErrorManagement::Warning, "TcnFrequency parameter not injected, defaulting to %d", tcnFrequency);
+            }
         }
     }
     else {
         REPORT_ERROR(ErrorManagement::Information, "Backward compatibility mode requested but no TcnPoll parameter found. No override took place.");
     }
-
     //Backward compatibility has no way of failing.
     return true;
 }
