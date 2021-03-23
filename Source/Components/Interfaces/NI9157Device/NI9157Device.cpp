@@ -535,9 +535,10 @@ NiFpga_Status NI9157Device::NiWrite(const uint32 control, const uint64 value) co
 
 NiFpga_Status NI9157Device::NiConfigureFifo(const uint32 fifo, const uint32 requestedDepth, uint32 &actualDepth) const {
     NiFpga_Status localStatus;
+    NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
     size_t requestedDepthST = static_cast<size_t> (requestedDepth);
     size_t actualDepthST = static_cast<size_t> (0u);
-    localStatus = NiFpga_ConfigureFifo2(session, static_cast<uint32_t> (fifo), static_cast<size_t> (requestedDepth), reinterpret_cast<size_t*> (&actualDepth));
+    localStatus = NiFpga_ConfigureFifo2(session, niFifo, requestedDepthST, &actualDepthST);
     actualDepth = static_cast<uint32> (actualDepthST);
     return localStatus;
 }
@@ -645,7 +646,7 @@ NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo, const bool * const da
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource> (fifo);
     size_t numberOfElementsST = static_cast<size_t> (numberOfElements);
     size_t emptyElementsRemainingST = static_cast<size_t> (0u);
-    localStatus = NiFpga_WriteFifoBool(session, niFifo, reinterpret_cast<const NiFpga_Bool*> (data), numberOfElements, static_cast<uint32_t> (timeout), &emptyElementsRemainingST);
+    localStatus = NiFpga_WriteFifoBool(session, niFifo, reinterpret_cast<const NiFpga_Bool*> (data), numberOfElementsST, static_cast<uint32_t> (timeout), &emptyElementsRemainingST);
     emptyElementsRemaining = static_cast<uint32> (emptyElementsRemainingST);
     return localStatus;
 }
