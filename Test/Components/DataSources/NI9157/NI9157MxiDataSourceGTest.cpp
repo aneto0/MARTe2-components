@@ -37,17 +37,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-/**
- * The number of devices to be test. Must match firmware config paths.
- */
-static uint32 nDevices = 1;
-
-/**
- * Test for all devices (true) or until one matches the firmware config paths
- * (false).
- */
-static bool testAll = false;
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -60,7 +49,7 @@ TEST(NI9157MxiDataSourceGTest,TestInitialise) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestInitialise(idx);
         }
         else {
@@ -77,7 +66,7 @@ TEST(NI9157MxiDataSourceGTest,TestInitialise_DefaultRunNi) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestInitialise_DefaultRunNi(idx);
         }
         else {
@@ -94,7 +83,7 @@ TEST(NI9157MxiDataSourceGTest,TestInitialise_False_NoNiDev) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestInitialise_False_NoNiDev(idx);
         }
         else {
@@ -111,7 +100,7 @@ TEST(NI9157MxiDataSourceGTest,TestInitialise_False_InvalidNiDevPath) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestInitialise_False_InvalidNiDevPath(idx);
         }
         else {
@@ -128,7 +117,7 @@ TEST(NI9157MxiDataSourceGTest,TestSetConfiguredDatabase) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestSetConfiguredDatabase(idx);
         }
         else {
@@ -145,7 +134,7 @@ TEST(NI9157MxiDataSourceGTest,TestSetConfiguredDatabase_False_InvalidLabviewVar)
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestSetConfiguredDatabase_False_InvalidLabviewVar(idx);
         }
         else {
@@ -162,7 +151,7 @@ TEST(NI9157MxiDataSourceGTest,TestSetConfiguredDatabase_False_InvalidType) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestSetConfiguredDatabase_False_InvalidType(idx);
         }
         else {
@@ -184,7 +173,7 @@ TEST(NI9157MxiDataSourceGTest,TestPrepareNextState) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestPrepareNextState(idx);
         }
         else {
@@ -201,7 +190,7 @@ TEST(NI9157MxiDataSourceGTest,TestSynchronise) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestSynchronise(idx);
         }
         else {
@@ -218,7 +207,7 @@ TEST(NI9157MxiDataSourceGTest,TestSynchronise_Variables) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestSynchronise_Variables(idx);
         }
         else {
@@ -235,7 +224,7 @@ TEST(NI9157MxiDataSourceGTest,TestSynchronise_FIFOs) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestSynchronise_FIFOs(idx);
         }
         else {
@@ -252,7 +241,7 @@ TEST(NI9157MxiDataSourceGTest,TestSynchronise_InitialPatterns) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestSynchronise_InitialPatterns(idx);
         }
         else {
@@ -269,7 +258,7 @@ TEST(NI9157MxiDataSourceGTest,TestSynchronise_BlockIfNotRunning) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestSynchronise_BlockIfNotRunning(idx);
         }
         else {
@@ -286,7 +275,7 @@ TEST(NI9157MxiDataSourceGTest,TestAsyncRead) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestAsyncRead(idx);
         }
         else {
@@ -303,7 +292,7 @@ TEST(NI9157MxiDataSourceGTest,TestAsyncWrite) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestAsyncWrite(idx);
         }
         else {
@@ -320,7 +309,7 @@ TEST(NI9157MxiDataSourceGTest,TestReset) {
     NI9157MxiDataSourceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAll) {
+        if(testAllRetTrue) {
             ret &= test.TestReset(idx);
         }
         else {

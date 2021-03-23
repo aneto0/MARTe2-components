@@ -34,6 +34,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "CreateNI9157DeviceOperatorI.h"
+#include "NI9157DeviceOperatorDatabase.h"
 #include "GlobalObjectsDatabase.h"
 
 /*---------------------------------------------------------------------------*/
@@ -63,45 +64,21 @@ public:
     bool TestConstructor();
 
     /**
-     * @brief Tests the destructor.
+     * @brief Tests the Create method.
      */
-    bool TestConstructorArgs();
+    bool TestCreate();
 
     /**
-     * @brief Tests the CreateNI9157DeviceOperatorI::Create method.
-     */
-    template<typename T>
-    bool TestCreate(T type);
-
-    /**
-     * @brief Tests the CreateNI9157DeviceOperatorI::GetIdentifier method.
+     * @brief Tests the GetIdentifier method.
      */
     bool TestGetIdentifier();
 
     /**
-     * @brief Tests the CreateNI9157DeviceOperatorI::GetTypeDescriptor method.
+     * @brief Tests the TestGetTypeDescriptor method.
      */
     bool TestGetTypeDescriptor();
 
 };
-
-template<typename T>
-bool CreateNI9157DeviceOperatorITest::TestCreate(T type) {
-    CreateNI9157DeviceOperatorI<T> test("ciaoBella");
-    ReferenceT<NI9157Device> niDev(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-
-    NI9157DeviceOperatorTI *niOperator = test.Create(niDev);
-    bool ret = niOperator != NULL;
-
-    if (ret) {
-        ret = dynamic_cast<NI9157DeviceOperatorT<T>*>(niOperator) != NULL;
-    }
-    if (ret) {
-        delete niOperator;
-    }
-
-    return ret;
-}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */

@@ -29,18 +29,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "AdvancedErrorManagement.h"
-#include "ConfigurationDatabase.h"
-#include "DataSourceI.h"
-#include "GAMSchedulerI.h"
-#include "MemoryMapMultiBufferInputBroker.h"
-#include "MemoryMapMultiBufferOutputBroker.h"
-#include "MemoryMapSynchronisedMultiBufferInputBroker.h"
-#include "MemoryMapSynchronisedMultiBufferOutputBroker.h"
 #include "NI9157DeviceTest.h"
-#include "ObjectRegistryDatabase.h"
-#include "RealTimeApplication.h"
-#include "StandardParser.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -76,57 +65,6 @@ const char8 *NI9157DeviceTestIF::GetNiRioDeviceName() {
 }
 
 CLASS_REGISTER(NI9157DeviceTestIF, "1.0")
-
-static const uint32 nParams                 = 3;
-static const char8 * const firmwarePath     = "Test/Components/Interfaces/NI9157Device/TestLvFw";
-static const char8 * const multiIOFirmware[]= {"RIO0", "NiFpga_NI9157_MultiIO.lvbitx", "F14C2F2560ABDC0BF142DDAEF1716110",
-                                                "RIO1", "NiFpga_NI9159_MultiIO.lvbitx", "03AB279CA6C34216C3ABAADB90262282"};
-static const char8 * const boolFirmware[]   = {"RIO0", "NiFpga_NI9157_BoolFifoLoop.lvbitx", "3F31F91CF1327BF3DD74027A50C336AD",
-                                                "RIO1", "NiFpga_NI9159_BoolFifoLoop.lvbitx", "4142897BDB5954CCE158C05C634F4D61"};
-static const char8 * const u8Firmware[]     = {"RIO0", "NiFpga_NI9157_U8FifoLoop.lvbitx", "502481EC6C37AEF24346BB8F95834660",
-                                                "RIO1", "NiFpga_NI9159_U8FifoLoop.lvbitx", "E20FC0B821C53C12CDB1CF1CFFDE9E3F"};
-static const char8 * const i8Firmware[]     = {"RIO0", "NiFpga_NI9157_I8FifoLoop.lvbitx", "A0473A2546DC8CBF468B5FFCB9CE9AEA",
-                                                "RIO1", "NiFpga_NI9159_I8FifoLoop.lvbitx", "1D78B0D488445F8046D8AA7841CA7F92"};
-static const char8 * const u16Firmware[]    = {"RIO0", "NiFpga_NI9157_U16FifoLoop.lvbitx", "AA4F4EA580F600CF09332D65C1B52E43",
-                                                "RIO1", "NiFpga_NI9159_U16FifoLoop.lvbitx", "0682A8270DCB30912E3855297CA35C1A"};
-static const char8 * const i16Firmware[]    = {"RIO0", "NiFpga_NI9157_I16FifoLoop.lvbitx", "378C7F29D8675EE7E2002C55A95674E3",
-                                                "RIO1", "NiFpga_NI9159_I16FifoLoop.lvbitx", "B2D0A5188F4DF27E5816FB536FECA87E"};
-static const char8 * const u32Firmware[]    = {"RIO0", "NiFpga_NI9157_U32FifoLoop.lvbitx", "01507C2AD9112BBD9FA982D3AAB6322C",
-                                                "RIO1", "NiFpga_NI9159_U32FifoLoop.lvbitx", "E3BDC175B00D4F16FB994A1852CC695F"};
-static const char8 * const i32Firmware[]    = {"RIO0", "NiFpga_NI9157_I32FifoLoop.lvbitx", "62B58E0715D8A602D7334953AF5D7417",
-                                                "RIO1", "NiFpga_NI9159_I32FifoLoop.lvbitx", "3743493619F557D68357D4D088217E05"};
-static const char8 * const u64Firmware[]    = {"RIO0", "NiFpga_NI9157_U64FifoLoop.lvbitx", "2909691577F1F92DCB4EB278D5773B31",
-                                                "RIO1", "NiFpga_NI9159_U64FifoLoop.lvbitx", "D19D1491A3C597E9F3C0E56F06AA272C"};
-static const char8 * const i64Firmware[]    = {"RIO0", "NiFpga_NI9157_I64FifoLoop.lvbitx", "544FB3933331C70D8D4AE6B5C4A2ABFD",
-                                                "RIO1", "NiFpga_NI9159_I64FifoLoop.lvbitx", "217E99FD109188EF37C2FCAED84AC82E"};
-static const char8 * const multiIoConfig    = ""
-    "+NiDevice = {"
-    "    Class = NI9157DeviceTestIF"
-    "    NiRioDeviceName = XptoDevice"
-    "    NiRioGenFile = XptoPath"
-    "    NiRioGenSignature = XptoSignature"
-    "    Open = 0"
-    "    Reset = 0"
-    "    Run = 0"
-    "    Configuration = {"
-    "        ControlBool_stop = 0"
-    "        ControlBool_use_dsfifo_data = 0"
-    "        ControlBool_use_counter = 1"
-    "        ControlU32_cycle_ticks = 200"
-    "        ControlU64_packet_size = 1"
-    "    }"
-    "}";
-static const char8 * const fifoLoopConfig   = ""
-    "+NiDevice = {"
-    "    Class = NI9157DeviceTestIF"
-    "    NiRioDeviceName = XptoDevice"
-    "    NiRioGenFile = XptoPath"
-    "    NiRioGenSignature = XptoSignature"
-    "    Open = 1"
-    "    Configuration = {"
-    "        ControlU32_cycle_ticks = 40000"
-    "    }"
-    "}";
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

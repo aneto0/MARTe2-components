@@ -25,7 +25,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -66,12 +65,11 @@ NI9157MxiDataSource::NI9157MxiDataSource() :
     //Install message filter
     ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT < RegisteredMethodsMessageFilter > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
-    ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
-    if (!ret.ErrorsCleared()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filter");
-    }
+    ErrorManagement::ErrorType err = MessageI::InstallMessageFilter(filter);
+    REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::NI9157MxiDataSource InstallMessageFilter() returned %s", err.ErrorsCleared() ? "true" : "false");
 }
 
+/*lint -e{1551} possible thrown exception non critical*/
 NI9157MxiDataSource::~NI9157MxiDataSource() {
 
     if (niDevice != NULL_PTR(NI9157DeviceOperatorTI **)) {
@@ -105,8 +103,7 @@ NI9157MxiDataSource::~NI9157MxiDataSource() {
     if (resetInitialPattern != NULL_PTR(uint8 *)) {
         delete[] resetInitialPattern;
     }
-    /*lint -e{1551} possible thrown exception non critical*/
-    REPORT_ERROR(ErrorManagement::Information, "MXI Device closed");
+    REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::~NI9157MxiDataSource MXI Device closed.");
 }
 
 bool NI9157MxiDataSource::Initialise(StructuredDataI & data) {
@@ -122,11 +119,11 @@ bool NI9157MxiDataSource::Initialise(StructuredDataI & data) {
             niDeviceBoard = ObjectRegistryDatabase::Instance()->Find(devicePath.Buffer());
             ret = niDeviceBoard.IsValid();
             if (!ret) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "Cannot find the the NI-Dev at path %s", devicePath.Buffer());
+                REPORT_ERROR_PARAMETERS(ErrorManagement::InitialisationError, "NI9157MxiDataSource::Initialise Cannot find the the NI-Dev at path %s", devicePath.Buffer());
             }
         }
         else {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Please specify the NI-Dev path (NI9157DevicePath)");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "NI9157MxiDataSource::Initialise Please specify the NI-Dev path (NI9157DevicePath)");
         }
     }
     if (ret) {
@@ -209,21 +206,16 @@ bool NI9157MxiDataSource::SetConfiguredDatabase(StructuredDataI & data) {
                 if (ret) {
                     niDevice[i] = creator->Create(niDeviceBoard);
                     ret = (niDevice[i] != NULL_PTR(NI9157DeviceOperatorTI *));
-                    if (!ret) {
-                        REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Failed the creation of the NI9157DeviceOperatorTI for the signal %s",
-                                                varName.Buffer());
-                    }
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157MxiDataSource::SetConfiguredDatabase Creation of the NI9157DeviceOperatorTI for the signal %s returned ", varName.Buffer(), ret ? "true" : "false");
                 }
                 else {
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Cannot find the NI9157DeviceOperatorTI for the signal %s", varName.Buffer());
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "NI9157MxiDataSource::SetConfiguredDatabase Cannot find the NI9157DeviceOperatorTI for the signal %s", varName.Buffer());
                 }
             }
             if (ret) {
                 NiFpga_Status status = niDevice[i]->FindResource(varName.Buffer(), varId[i]);
                 ret = (status == 0);
-                if (!ret) {
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Cannot find the exported Labview variable %s, status=%d", varName.Buffer(), status);
-                }
+                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157MxiDataSource::SetConfiguredDatabase FindResource %s returned %s with status=%d", varName.Buffer(), ret ? "true" : "false" , status);
             }
         }
     }
@@ -312,9 +304,7 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
                             /*lint -e{613} NULL pointer checked*/
                             status = niDeviceBoard->NiConfigureFifo(varId[i], fifoSize, oldSize);
                             ret = (status == 0);
-                            if (!ret) {
-                                REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Failed to configure host FIFO size to %d with status %d", fifoSize, static_cast<int32> (status));
-                            }
+                            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157MxiDataSource::PrepareNextState NiConfigureFifo to size %d returned %s with status %d", fifoSize, ret ? "true" : "false" , static_cast<int32> (status));
                         }
                     }
                 }
@@ -329,14 +319,12 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
                 REPORT_ERROR(ErrorManagement::Information, "Running...");
                 status = niDeviceBoard->Run();
                 ret = (status == 0);
-                if (!ret) {
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Failed to Run the application, status=%d", static_cast<int32> (status));
-                }
+                REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "NI9157MxiDataSource::PrepareNextState Run returning %s with status=%d", ret ? "true" : "false", static_cast<int32> (status));
             }
         }
     }
 
-    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157MxiDataSource::Prepared %s", prepare ? "true" : "false");
+    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157MxiDataSource::PrepareNextState returning %s with prepare %s", ret ? "true" : "false", prepare ? "true" : "false");
 
     return ret;
 }
@@ -487,10 +475,10 @@ ErrorManagement::ErrorType NI9157MxiDataSource::AsyncRead(StreamString varName,
     ErrorManagement::ErrorType ret;
     uint32 i = 0u;
     NiFpga_Status status;
-    REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::AsyncRead");
+    //REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::AsyncRead");
 
     if (GetSignalIndex(i, varName.BufferReference())) {
-        REPORT_ERROR(ErrorManagement::Information, "Reading %s", varName.Buffer());
+        //REPORT_ERROR(ErrorManagement::Information, "Reading %s", varName.Buffer());
         /*lint -e{613} NULL pointer checked*/
         status = niDevice[i]->NiRead(varId[i], reinterpret_cast<void*>(&varValue));
         ret.fatalError = static_cast<bool>(status != 0);
@@ -509,10 +497,10 @@ ErrorManagement::ErrorType NI9157MxiDataSource::AsyncWrite(StreamString varName,
     ErrorManagement::ErrorType ret;
     uint32 i = 0u;
     NiFpga_Status status;
-    REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::AsyncWrite");
+    //REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::AsyncWrite");
 
     if (GetSignalIndex(i, varName.BufferReference())) {
-        REPORT_ERROR(ErrorManagement::Information, "Writing %s %!", varName.Buffer(), varValue);
+        //REPORT_ERROR(ErrorManagement::Information, "Writing %s %!", varName.Buffer(), varValue);
         /*lint -e{613} NULL pointer checked*/
         status = niDevice[i]->NiWrite(varId[i], reinterpret_cast<void*>(&varValue));
         ret.fatalError = static_cast<bool>(status != 0);
@@ -547,9 +535,7 @@ ErrorManagement::ErrorType NI9157MxiDataSource::Reset() {
                     /*lint -e{613} NULL pointer checked*/
                     status = niDeviceBoard->NiConfigureFifo(varId[i], fifoSize, oldSize);
                     err = (status != 0);
-                    if (!err.ErrorsCleared()) {
-                        REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Failed to configure host FIFO size to %d with status %d", fifoSize, static_cast<int32> (status));
-                    }
+                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157MxiDataSource::Reset NiConfigureFifo to size %d returned %s with status %d", fifoSize, err.ErrorsCleared() ? "true" : "false", static_cast<int32> (status));
                 }
             }
         }
@@ -563,9 +549,7 @@ ErrorManagement::ErrorType NI9157MxiDataSource::Reset() {
             REPORT_ERROR(ErrorManagement::Information, "Running...");
             status = niDeviceBoard->Run();
             err = (status != 0);
-            if (!err.ErrorsCleared()) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "Failed to Run the application, status=%d", static_cast<int32> (status));
-            }
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157MxiDataSource::Reset Run returned %s with status %d", err.ErrorsCleared() ? "true" : "false", static_cast<int32> (status));
         }
     }
 

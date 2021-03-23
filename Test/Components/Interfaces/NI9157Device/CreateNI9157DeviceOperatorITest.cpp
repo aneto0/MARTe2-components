@@ -16,7 +16,7 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
  * the class CreateNI9157DeviceOperatorITest (public, protected, and private).
  * Be aware that some methods, such as those inline could be defined on the
@@ -30,7 +30,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "CreateNI9157DeviceOperatorTest.h"
+#include "CreateNI9157DeviceOperatorITest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -39,32 +39,46 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-CreateNI9157DeviceOperatorTest::CreateNI9157DeviceOperatorTest() {
+CreateNI9157DeviceOperatorITest::CreateNI9157DeviceOperatorITest() {
 }
 
-CreateNI9157DeviceOperatorTest::~CreateNI9157DeviceOperatorTest() {
+CreateNI9157DeviceOperatorITest::~CreateNI9157DeviceOperatorITest() {
 }
 
-bool CreateNI9157DeviceOperatorTest::TestConstructor() {
-    CreateNI9157DeviceOperator<uint8> test;
-    bool ret = test.GetIdentifier() == NULL;
-    ret &= test.GetTypeDescriptor() == InvalidType;
-
+bool CreateNI9157DeviceOperatorITest::TestConstructor() {
+    CreateNI9157DeviceOperatorI *creator =  NULL_PTR(CreateNI9157DeviceOperatorI *);
+    creator = NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperator(UnsignedInteger8Bit);
+    bool ret = (creator != NULL_PTR(CreateNI9157DeviceOperatorI *));
     return ret;
 }
 
-bool CreateNI9157DeviceOperatorTest::TestConstructorArgs() {
-    CreateNI9157DeviceOperator<uint8> test("ciaoBella");
-    bool ret = StringHelper::Compare(test.GetIdentifier(), "ciaoBella") == 0;
-    ret &= test.GetTypeDescriptor() == UnsignedInteger8Bit;
-
+bool CreateNI9157DeviceOperatorITest::TestCreate() {
+    NI9157DeviceOperatorTI *niDeviceOperator = NULL_PTR(NI9157DeviceOperatorTI *);
+    CreateNI9157DeviceOperatorI *creator = NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperator(UnsignedInteger8Bit);
+    ReferenceT<NI9157Device> niDevice(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    bool ret = (creator != NULL_PTR(CreateNI9157DeviceOperatorI *));
+    if (ret) {
+        niDeviceOperator = creator->Create(niDevice);
+        ret = (niDeviceOperator != NULL_PTR(NI9157DeviceOperatorTI *));
+    }
+    if (niDeviceOperator != NULL_PTR(NI9157DeviceOperatorTI *)) {
+        delete niDeviceOperator;
+        niDeviceOperator = NULL_PTR(NI9157DeviceOperatorTI *);
+    }
     return ret;
 }
 
-bool CreateNI9157DeviceOperatorTest::TestGetIdentifier() {
-    return TestConstructorArgs();
+bool CreateNI9157DeviceOperatorITest::TestGetIdentifier() {
+    CreateNI9157DeviceOperatorI *creator = NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperator(UnsignedInteger8Bit);
+    bool ret = (creator != NULL_PTR(CreateNI9157DeviceOperatorI *));
+    if (ret) {
+        ret = (StringHelper::Compare(creator->GetIdentifier(), "NI9157DeviceU8") == 0);
+    }
+    return ret;
 }
 
-bool CreateNI9157DeviceOperatorTest::TestGetTypeDescriptor() {
-    return TestConstructorArgs();
+bool CreateNI9157DeviceOperatorITest::TestGetTypeDescriptor() {
+    CreateNI9157DeviceOperatorI *creator = NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperator(UnsignedInteger8Bit);
+    bool ret = (creator->GetTypeDescriptor() == UnsignedInteger8Bit);
+    return ret;
 }

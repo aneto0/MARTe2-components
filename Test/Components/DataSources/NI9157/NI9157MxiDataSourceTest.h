@@ -33,6 +33,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "NI9157MxiDataSource.h"
+#include "NI9157TestsAndFwSettings.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */

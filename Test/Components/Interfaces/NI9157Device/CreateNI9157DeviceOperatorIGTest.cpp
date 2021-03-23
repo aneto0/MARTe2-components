@@ -46,57 +46,9 @@ TEST(CreateNI9157DeviceOperatorIGTest,TestConstructor) {
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(CreateNI9157DeviceOperatorIGTest,TestConstructorArgs) {
+TEST(CreateNI9157DeviceOperatorIGTest,TestCreate) {
     CreateNI9157DeviceOperatorITest test;
-    ASSERT_TRUE(test.TestConstructorArgs());
-}
-
-TEST(CreateNI9157DeviceOperatorIGTest,TestCreate_U8) {
-    CreateNI9157DeviceOperatorITest test;
-    uint8 x=0;
-    ASSERT_TRUE(test.TestCreate(x));
-}
-
-TEST(CreateNI9157DeviceOperatorIGTest,TestCreate_I8) {
-    CreateNI9157DeviceOperatorITest test;
-    int8 x=0;
-    ASSERT_TRUE(test.TestCreate(x));
-}
-
-TEST(CreateNI9157DeviceOperatorIGTest,TestCreate_U16) {
-    CreateNI9157DeviceOperatorITest test;
-    uint16 x=0;
-    ASSERT_TRUE(test.TestCreate(x));
-}
-
-TEST(CreateNI9157DeviceOperatorIGTest,TestCreate_I16) {
-    CreateNI9157DeviceOperatorITest test;
-    int16 x=0;
-    ASSERT_TRUE(test.TestCreate(x));
-}
-
-TEST(CreateNI9157DeviceOperatorIGTest,TestCreate_U32) {
-    CreateNI9157DeviceOperatorITest test;
-    uint32 x=0;
-    ASSERT_TRUE(test.TestCreate(x));
-}
-
-TEST(CreateNI9157DeviceOperatorIGTest,TestCreate_I32) {
-    CreateNI9157DeviceOperatorITest test;
-    int32 x=0;
-    ASSERT_TRUE(test.TestCreate(x));
-}
-
-TEST(CreateNI9157DeviceOperatorIGTest,TestCreate_U64) {
-    CreateNI9157DeviceOperatorITest test;
-    uint64 x=0;
-    ASSERT_TRUE(test.TestCreate(x));
-}
-
-TEST(CreateNI9157DeviceOperatorIGTest,TestCreate_I64) {
-    CreateNI9157DeviceOperatorITest test;
-    int64 x=0;
-    ASSERT_TRUE(test.TestCreate(x));
+    ASSERT_TRUE(test.TestCreate());
 }
 
 TEST(CreateNI9157DeviceOperatorIGTest,TestGetIdentifier) {

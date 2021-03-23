@@ -26,12 +26,16 @@
 
 OBJSX +=  CreateNI9157DeviceOperatorTest.x \
     CreateNI9157DeviceOperatorGTest.x \
+    CreateNI9157DeviceOperatorITest.x \
+    CreateNI9157DeviceOperatorIGTest.x \
     NI9157DeviceTest.x \
     NI9157DeviceGTest.x \
     NI9157DeviceOperatorDatabaseTest.x \
     NI9157DeviceOperatorDatabaseGTest.x \
     NI9157DeviceOperatorTTest.x \
-    NI9157DeviceOperatorTGTest.x
+    NI9157DeviceOperatorTGTest.x \
+    NI9157DeviceOperatorTITest.x \
+    NI9157DeviceOperatorTIGTest.x
 
 PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..

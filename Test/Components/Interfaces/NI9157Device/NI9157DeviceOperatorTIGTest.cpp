@@ -38,1004 +38,116 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-/**
- * The number of devices to be test. Must match firmware config paths.
- */
-static uint32 nDevices = 2;
-
-/**
- * Test for all devices (true) or until one matches the firmware config paths
- * (false).
- */
-static bool testAllRetTrue = false;
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 TEST(NI9157DeviceOperatorTIGTest,TestConstructor) {
-    NI9157DeviceOperatorTITest<bool> test;
+    NI9157DeviceOperatorTITest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(NI9157DeviceOperatorTIGTest,TestGetByteSize_Bool) {
-    NI9157DeviceOperatorTITest<bool> test;
+TEST(NI9157DeviceOperatorTIGTest,TestIsValid) {
+    NI9157DeviceOperatorTITest test;
+    ASSERT_TRUE(test.TestIsValid());
+}
+
+TEST(NI9157DeviceOperatorTIGTest,TestGetByteSize) {
+    NI9157DeviceOperatorTITest test;
     ASSERT_TRUE(test.TestGetByteSize());
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestGetByteSize_U8) {
-    NI9157DeviceOperatorTITest<uint8> test;
-    ASSERT_TRUE(test.TestGetByteSize());
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestGetByteSize_I8) {
-    NI9157DeviceOperatorTITest<int8> test;
-    ASSERT_TRUE(test.TestGetByteSize());
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestGetByteSize_U16) {
-    NI9157DeviceOperatorTITest<uint16> test;
-    ASSERT_TRUE(test.TestGetByteSize());
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestGetByteSize_I16) {
-    NI9157DeviceOperatorTITest<int16> test;
-    ASSERT_TRUE(test.TestGetByteSize());
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestGetByteSize_U32) {
-    NI9157DeviceOperatorTITest<uint32> test;
-    ASSERT_TRUE(test.TestGetByteSize());
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestGetByteSize_I32) {
-    NI9157DeviceOperatorTITest<int32> test;
-    ASSERT_TRUE(test.TestGetByteSize());
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestGetByteSize_U64) {
-    NI9157DeviceOperatorTITest<uint64> test;
-    ASSERT_TRUE(test.TestGetByteSize());
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestGetByteSize_I64) {
-    NI9157DeviceOperatorTITest<int64> test;
-    ASSERT_TRUE(test.TestGetByteSize());
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_U8) {
-    NI9157DeviceOperatorTITest<uint8> test;
-    ASSERT_TRUE(test.TestCompare(0xff, 0xff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Minor_U8) {
-    NI9157DeviceOperatorTITest<uint8> test;
-    ASSERT_TRUE(test.TestCompare(1, 2));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Greater_U8) {
-    NI9157DeviceOperatorTITest<uint8> test;
-    ASSERT_TRUE(test.TestCompare(2, 1));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_I8) {
-    NI9157DeviceOperatorTITest<int8> test;
-    ASSERT_TRUE(test.TestCompare(0x7f, 0x7f));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Minor_I8) {
-    NI9157DeviceOperatorTITest<int8> test;
-    ASSERT_TRUE(test.TestCompare(-1, 2));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Greater_I8) {
-    NI9157DeviceOperatorTITest<int8> test;
-    ASSERT_TRUE(test.TestCompare(2, -1));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_U16) {
-    NI9157DeviceOperatorTITest<uint16> test;
-    ASSERT_TRUE(test.TestCompare(0xffff, 0xffff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Minor_U16) {
-    NI9157DeviceOperatorTITest<uint16> test;
-    ASSERT_TRUE(test.TestCompare(1, 2));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Greater_U16) {
-    NI9157DeviceOperatorTITest<uint16> test;
-    ASSERT_TRUE(test.TestCompare(2, 1));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_I16) {
-    NI9157DeviceOperatorTITest<int16> test;
-    ASSERT_TRUE(test.TestCompare(0x7fff, 0x7fff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Minor_I16) {
-    NI9157DeviceOperatorTITest<int16> test;
-    ASSERT_TRUE(test.TestCompare(-1, 2));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Greater_I16) {
-    NI9157DeviceOperatorTITest<int16> test;
-    ASSERT_TRUE(test.TestCompare(2, -1));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_U32) {
-    NI9157DeviceOperatorTITest<uint32> test;
-    ASSERT_TRUE(test.TestCompare(0xffffffff, 0xffffffff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Minor_U32) {
-    NI9157DeviceOperatorTITest<uint32> test;
-    ASSERT_TRUE(test.TestCompare(1, 2));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Greater_U32) {
-    NI9157DeviceOperatorTITest<uint32> test;
-    ASSERT_TRUE(test.TestCompare(2, 1));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_I32) {
-    NI9157DeviceOperatorTITest<int32> test;
-    ASSERT_TRUE(test.TestCompare(0x7fffffff, 0x7fffffff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Minor_I32) {
-    NI9157DeviceOperatorTITest<int32> test;
-    ASSERT_TRUE(test.TestCompare(-1, 2));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Greater_I32) {
-    NI9157DeviceOperatorTITest<int32> test;
-    ASSERT_TRUE(test.TestCompare(2, -1));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_U64) {
-    NI9157DeviceOperatorTITest<uint64> test;
-    ASSERT_TRUE(test.TestCompare(0xffffffffffffffff, 0xffffffffffffffff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Minor_U64) {
-    NI9157DeviceOperatorTITest<uint64> test;
-    ASSERT_TRUE(test.TestCompare(1, 2));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Greater_U64) {
-    NI9157DeviceOperatorTITest<uint64> test;
-    ASSERT_TRUE(test.TestCompare(2, 1));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_I64) {
-    NI9157DeviceOperatorTITest<int64> test;
-    ASSERT_TRUE(test.TestCompare(0x7fffffffffffffff, 0x7fffffffffffffff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Minor_I64) {
-    NI9157DeviceOperatorTITest<int64> test;
-    ASSERT_TRUE(test.TestCompare(-1, 2));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCompare_Greater_I64) {
-    NI9157DeviceOperatorTITest<int64> test;
-    ASSERT_TRUE(test.TestCompare(2, -1));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCopy_U8) {
-    NI9157DeviceOperatorTITest<uint8> test;
-    ASSERT_TRUE(test.TestCopy(0xff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCopy_I8) {
-    NI9157DeviceOperatorTITest<int8> test;
-    ASSERT_TRUE(test.TestCopy(0x7f));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCopy_U16) {
-    NI9157DeviceOperatorTITest<uint16> test;
-    ASSERT_TRUE(test.TestCopy(0xffff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCopy_I16) {
-    NI9157DeviceOperatorTITest<int16> test;
-    ASSERT_TRUE(test.TestCopy(0x7fff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCopy_U32) {
-    NI9157DeviceOperatorTITest<uint32> test;
-    ASSERT_TRUE(test.TestCopy(0xffffffff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCopy_I32) {
-    NI9157DeviceOperatorTITest<int32> test;
-    ASSERT_TRUE(test.TestCopy(0x7fffffff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCopy_U64) {
-    NI9157DeviceOperatorTITest<uint64> test;
-    ASSERT_TRUE(test.TestCopy(0xffffffffffffffff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestCopy_I64) {
-    NI9157DeviceOperatorTITest<int64> test;
-    ASSERT_TRUE(test.TestCopy(0x7fffffffffffffff));
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestFindResource_Bool) {
-    NI9157DeviceOperatorTITest<bool> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestFindResource(idx, "IndBool");
-        }
-        else {
-            ret = test.TestFindResource(idx, "IndBool");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestFindResource_U8) {
-    NI9157DeviceOperatorTITest<uint8> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestFindResource(idx, "IndU8");
-        }
-        else {
-            ret = test.TestFindResource(idx, "IndU8");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestFindResource_I8) {
-    NI9157DeviceOperatorTITest<int8> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestFindResource(idx, "IndI8");
-        }
-        else {
-            ret = test.TestFindResource(idx, "IndI8");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestFindResource_U16) {
-    NI9157DeviceOperatorTITest<uint16> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestFindResource(idx, "IndU16");
-        }
-        else {
-            ret = test.TestFindResource(idx, "IndU16");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestFindResource_I16) {
-    NI9157DeviceOperatorTITest<int16> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestFindResource(idx, "IndI16");
-        }
-        else {
-            ret = test.TestFindResource(idx, "IndI16");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestFindResource_U32) {
-    NI9157DeviceOperatorTITest<uint32> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestFindResource(idx, "IndU32");
-        }
-        else {
-            ret = test.TestFindResource(idx, "IndU32");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestFindResource_I32) {
-    NI9157DeviceOperatorTITest<int32> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestFindResource(idx, "IndI32");
-        }
-        else {
-            ret = test.TestFindResource(idx, "IndI32");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestFindResource_U64) {
-    NI9157DeviceOperatorTITest<uint64> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestFindResource(idx, "IndU64");
-        }
-        else {
-            ret = test.TestFindResource(idx, "IndU64");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestFindResource_I64) {
-    NI9157DeviceOperatorTITest<int64> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestFindResource(idx, "IndI64");
-        }
-        else {
-            ret = test.TestFindResource(idx, "IndI64");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWrite_Bool) {
-    NI9157DeviceOperatorTITest<bool> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWrite(idx, "ContBool");
-        }
-        else {
-            ret = test.TestNiWrite(idx, "ContBool");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiRead_Bool) {
-    NI9157DeviceOperatorTITest<bool> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiRead(idx, "ContBool", "IndBool");
-        }
-        else {
-            ret = test.TestNiRead(idx, "ContBool", "IndBool");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWrite_U8) {
-    NI9157DeviceOperatorTITest<uint8> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWrite(idx, "ContU8");
-        }
-        else {
-            ret = test.TestNiWrite(idx, "ContU8");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiRead_U8) {
-    NI9157DeviceOperatorTITest<uint8> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiRead(idx, "ContU8", "IndU8");
-        }
-        else {
-            ret = test.TestNiRead(idx, "ContU8", "IndU8");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWrite_U16) {
-    NI9157DeviceOperatorTITest<uint16> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWrite(idx, "ContU16");
-        }
-        else {
-            ret = test.TestNiWrite(idx, "ContU16");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiRead_U16) {
-    NI9157DeviceOperatorTITest<uint16> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiRead(idx, "ContU16", "IndU16");
-        }
-        else {
-            ret = test.TestNiRead(idx, "ContU16", "IndU16");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWrite_U32) {
-    NI9157DeviceOperatorTITest<uint32> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWrite(idx, "ContU32");
-        }
-        else {
-            ret = test.TestNiWrite(idx, "ContU32");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiRead_U32) {
-    NI9157DeviceOperatorTITest<uint32> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiRead(idx, "ContU32", "IndU32");
-        }
-        else {
-            ret = test.TestNiRead(idx, "ContU32", "IndU32");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWrite_U64) {
-    NI9157DeviceOperatorTITest<uint64> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWrite(idx, "ContU64");
-        }
-        else {
-            ret = test.TestNiWrite(idx, "ContU64");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiRead_U64) {
-    NI9157DeviceOperatorTITest<uint64> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiRead(idx, "ContU64", "IndU64");
-        }
-        else {
-            ret = test.TestNiRead(idx, "ContU64", "IndU64");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWrite_I8) {
-    NI9157DeviceOperatorTITest<int8> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWrite(idx, "ContI8");
-        }
-        else {
-            ret = test.TestNiWrite(idx, "ContI8");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiRead_I8) {
-    NI9157DeviceOperatorTITest<int8> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiRead(idx, "ContI8", "IndI8");
-        }
-        else {
-            ret = test.TestNiRead(idx, "ContI8", "IndI8");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWrite_I16) {
-    NI9157DeviceOperatorTITest<int16> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWrite(idx, "ContI16");
-        }
-        else {
-            ret = test.TestNiWrite(idx, "ContI16");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiRead_I16) {
-    NI9157DeviceOperatorTITest<int16> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiRead(idx, "ContI16", "IndI16");
-        }
-        else {
-            ret = test.TestNiRead(idx, "ContI16", "IndI16");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWrite_I32) {
-    NI9157DeviceOperatorTITest<int32> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWrite(idx, "ContI32");
-        }
-        else {
-            ret = test.TestNiWrite(idx, "ContI32");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiRead_I32) {
-    NI9157DeviceOperatorTITest<int32> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiRead(idx, "ContI32", "IndI32");
-        }
-        else {
-            ret = test.TestNiRead(idx, "ContI32", "IndI32");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWrite_I64) {
-    NI9157DeviceOperatorTITest<int64> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWrite(idx, "ContI64");
-        }
-        else {
-            ret = test.TestNiWrite(idx, "ContI64");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiRead_I64) {
-    NI9157DeviceOperatorTITest<int64> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiRead(idx, "ContI64", "IndI64");
-        }
-        else {
-            ret = test.TestNiRead(idx, "ContI64", "IndI64");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWriteFifo_Bool) {
-    NI9157DeviceOperatorTITest<bool> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWriteFifo(idx, "FIFO0_BOOL_W");
-        }
-        else {
-            ret = test.TestNiWriteFifo(idx, "FIFO0_BOOL_W");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiReadFifo_Bool) {
-    NI9157DeviceOperatorTITest<bool> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiReadFifo(idx, "FIFO0_BOOL_W", "FIFO1_BOOL_R");
-        }
-        else {
-            ret = test.TestNiReadFifo(idx, "FIFO0_BOOL_W", "FIFO1_BOOL_R");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWriteFifo_U8) {
-    NI9157DeviceOperatorTITest<uint8> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWriteFifo(idx, "FIFO0_U8_W");
-        }
-        else {
-            ret = test.TestNiWriteFifo(idx, "FIFO0_U8_W");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiReadFifo_U8) {
-    NI9157DeviceOperatorTITest<uint8> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiReadFifo(idx, "FIFO0_U8_W", "FIFO1_U8_R");
-        }
-        else {
-            ret = test.TestNiReadFifo(idx, "FIFO0_U8_W", "FIFO1_U8_R");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWriteFifo_I8) {
-    NI9157DeviceOperatorTITest<int8> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWriteFifo(idx, "FIFO0_I8_W");
-        }
-        else {
-            ret = test.TestNiWriteFifo(idx, "FIFO0_I8_W");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiReadFifo_I8) {
-    NI9157DeviceOperatorTITest<int8> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiReadFifo(idx, "FIFO0_I8_W", "FIFO1_I8_R");
-        }
-        else {
-            ret = test.TestNiReadFifo(idx, "FIFO0_I8_W", "FIFO1_I8_R");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWriteFifo_U16) {
-    NI9157DeviceOperatorTITest<uint16> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWriteFifo(idx, "FIFO0_U16_W");
-        }
-        else {
-            ret = test.TestNiWriteFifo(idx, "FIFO0_U16_W");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiReadFifo_U16) {
-    NI9157DeviceOperatorTITest<uint16> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiReadFifo(idx, "FIFO0_U16_W", "FIFO1_U16_R");
-        }
-        else {
-            ret = test.TestNiReadFifo(idx, "FIFO0_U16_W", "FIFO1_U16_R");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWriteFifo_I16) {
-    NI9157DeviceOperatorTITest<int16> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWriteFifo(idx, "FIFO0_I16_W");
-        }
-        else {
-            ret = test.TestNiWriteFifo(idx, "FIFO0_I16_W");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiReadFifo_I16) {
-    NI9157DeviceOperatorTITest<int16> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiReadFifo(idx, "FIFO0_I16_W", "FIFO1_I16_R");
-        }
-        else {
-            ret = test.TestNiReadFifo(idx, "FIFO0_I16_W", "FIFO1_I16_R");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWriteFifo_U32) {
-    NI9157DeviceOperatorTITest<uint32> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWriteFifo(idx, "FIFO0_U32_W");
-        }
-        else {
-            ret = test.TestNiWriteFifo(idx, "FIFO0_U32_W");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiReadFifo_U32) {
-    NI9157DeviceOperatorTITest<uint32> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiReadFifo(idx, "FIFO0_U32_W", "FIFO1_U32_R");
-        }
-        else {
-            ret = test.TestNiReadFifo(idx, "FIFO0_U32_W", "FIFO1_U32_R");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWriteFifo_I32) {
-    NI9157DeviceOperatorTITest<int32> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWriteFifo(idx, "FIFO0_I32_W");
-        }
-        else {
-            ret = test.TestNiWriteFifo(idx, "FIFO0_I32_W");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiReadFifo_I32) {
-    NI9157DeviceOperatorTITest<int32> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiReadFifo(idx, "FIFO0_I32_W", "FIFO1_I32_R");
-        }
-        else {
-            ret = test.TestNiReadFifo(idx, "FIFO0_I32_W", "FIFO1_I32_R");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWriteFifo_U64) {
-    NI9157DeviceOperatorTITest<uint64> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWriteFifo(idx, "FIFO0_U64_W");
-        }
-        else {
-            ret = test.TestNiWriteFifo(idx, "FIFO0_U64_W");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiReadFifo_U64) {
-    NI9157DeviceOperatorTITest<uint64> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiReadFifo(idx, "FIFO0_U64_W", "FIFO1_U64_R");
-        }
-        else {
-            ret = test.TestNiReadFifo(idx, "FIFO0_U64_W", "FIFO1_U64_R");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiWriteFifo_I64) {
-    NI9157DeviceOperatorTITest<int64> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiWriteFifo(idx, "FIFO0_I64_W");
-        }
-        else {
-            ret = test.TestNiWriteFifo(idx, "FIFO0_I64_W");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
-}
-
-TEST(NI9157DeviceOperatorTIGTest,TestNiReadFifo_I64) {
-    NI9157DeviceOperatorTITest<int64> test;
-    bool ret = true;
-    for (uint32 idx = 0; idx < nDevices; idx++) {
-        if(testAllRetTrue) {
-            ret &= test.TestNiReadFifo(idx, "FIFO0_I64_W", "FIFO1_I64_R");
-        }
-        else {
-            ret = test.TestNiReadFifo(idx, "FIFO0_I64_W", "FIFO1_I64_R");
-            if (ret) {
-                break;
-            }
-        }
-    }
-    ASSERT_TRUE(ret);
 }
 
 TEST(NI9157DeviceOperatorTIGTest,TestGetNI9157Device) {
-    NI9157DeviceOperatorTITest<int64> test;
+    NI9157DeviceOperatorTITest test;
+    ASSERT_TRUE(test.TestGetNI9157Device());
+}
+
+TEST(NI9157DeviceOperatorTIGTest,TestCompare) {
+    NI9157DeviceOperatorTITest test;
+    ASSERT_TRUE(test.TestCompare());
+}
+
+TEST(NI9157DeviceOperatorTIGTest,TestCopy) {
+    NI9157DeviceOperatorTITest test;
+    ASSERT_TRUE(test.TestCopy());
+}
+
+TEST(NI9157DeviceOperatorTIGTest,TestFindResource) {
+    NI9157DeviceOperatorTITest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
         if(testAllRetTrue) {
-            ret &= test.TestGetNI9157Device(idx);
+            ret &= test.TestFindResource(idx);
         }
         else {
-            ret = test.TestGetNI9157Device(idx);
+            ret = test.TestFindResource(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
+}
+
+TEST(NI9157DeviceOperatorTIGTest,TestNiWrite) {
+    NI9157DeviceOperatorTITest test;
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAllRetTrue) {
+            ret &= test.TestNiWrite(idx);
+        }
+        else {
+            ret = test.TestNiWrite(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
+}
+
+TEST(NI9157DeviceOperatorTIGTest,TestNiRead) {
+    NI9157DeviceOperatorTITest test;
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAllRetTrue) {
+            ret &= test.TestNiRead(idx);
+        }
+        else {
+            ret = test.TestNiRead(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
+}
+
+TEST(NI9157DeviceOperatorTIGTest,TestNiWriteFifo) {
+    NI9157DeviceOperatorTITest test;
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAllRetTrue) {
+            ret &= test.TestNiWriteFifo(idx);
+        }
+        else {
+            ret = test.TestNiWriteFifo(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
+}
+
+TEST(NI9157DeviceOperatorTIGTest,TestNiReadFifo) {
+    NI9157DeviceOperatorTITest test;
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAllRetTrue) {
+            ret &= test.TestNiReadFifo(idx);
+        }
+        else {
+            ret = test.TestNiReadFifo(idx);
             if (ret) {
                 break;
             }

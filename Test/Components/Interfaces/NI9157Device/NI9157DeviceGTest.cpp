@@ -37,17 +37,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-/**
- * The number of devices to be test. Must match firmware config paths.
- */
-static uint32 nDevices = 2;
-
-/**
- * Test for all devices (true) or until one matches the firmware config paths
- * (false).
- */
-static bool testAllRetTrue = false;
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
