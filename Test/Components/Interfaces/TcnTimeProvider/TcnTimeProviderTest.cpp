@@ -285,9 +285,47 @@ static bool TestIntegratedRun() {
 
     bool ok = parser.Parse();
     
-    return true;
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if(ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+
+    ReferenceT<RealTimeApplication> application;
+
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+
+    if (ok) {
+        application->StartNextStateExecution();
+    }
+
+    ReferenceT<LinuxTimer> linuxTimer = application->Find("Data.Timer");
+    ReferenceT<LinuxTimerTestGAM> gama = application->Find("Functions.GAMA");
+
+    if (ok) {
+        ok = linuxTimer.IsValid();
+    }
+
+    if (ok) {
+        ok = gama.IsValid();
+    }
+
+    return ok;
 }
 
 bool TcnTimeProviderTest::TestIntegrated_WithTcnPoll() {
     return TestIntegratedRun();
 }
+
