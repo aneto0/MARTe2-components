@@ -322,6 +322,35 @@ static bool TestIntegratedRun() {
         ok = gama.IsValid();
     }
 
+    if (ok) {
+        uint32 *counter;
+        uint32 *timer;
+        linuxTimer->GetSignalMemoryBuffer(0, 0, (void *&) counter);
+        linuxTimer->GetSignalMemoryBuffer(1, 0, (void *&) timer);
+        uint32 c = 0;
+        ok = false;
+        while (c < 500 && !ok) {
+            ok = (((*counter) > 10) && ((*timer) > 10000));
+            if (ok && checkVal1) {
+                ok = (gama->val1 > 10);
+            }
+            if (ok && checkVal2) {
+                ok = (gama->val2 > 10000);
+            }
+            c++;
+            if (!ok) {
+                Sleep::MSec(10);
+            }
+        }
+    }
+
+    if (ok) {
+        application->StopCurrentStateExecution();
+    }
+
+    god->Purge();
+
+
     return ok;
 }
 
