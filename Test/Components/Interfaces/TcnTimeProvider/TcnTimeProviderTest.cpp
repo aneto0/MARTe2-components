@@ -312,7 +312,7 @@ static bool TestIntegratedRun() {
     }
 
     ReferenceT<LinuxTimer> linuxTimer = application->Find("Data.Timer");
-    ReferenceT<LinuxTimerTestGAM> gama = application->Find("Functions.GAMA");
+    ReferenceT<TcnTimeProviderTestGAM> gama = application->Find("Functions.GAMA");
 
     if (ok) {
         ok = linuxTimer.IsValid();
