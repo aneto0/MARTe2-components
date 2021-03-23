@@ -44,7 +44,7 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-MARTe::char8 * configTestIntegrated = ""
+const MARTe::char8 * const configTestIntegrated = ""
     "$Test = {"
     "    Class = RealTimeApplication"
     "    +Functions = {"
@@ -280,7 +280,7 @@ bool TcnTimeProviderTest::TestInitialise_WithFrequency() {
     return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_SleepMode); 
 }
 
-static bool TestIntegratedRun(MARTe::char8 *configFile) {
+static bool TestIntegratedRun(const MARTe::char8 * const configFile) {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = configFile;
