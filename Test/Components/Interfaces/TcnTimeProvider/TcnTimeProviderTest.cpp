@@ -403,6 +403,10 @@ static bool TestIntegratedRun(const MARTe::char8 * const configFile) {
         }
     }
 
+    if(ok) {
+        Sleep::Sec(10);
+    }
+
     if (ok) {
         application->StopCurrentStateExecution();
     }
