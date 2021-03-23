@@ -318,6 +318,11 @@ private:
     uint32 phase;
 
     /**
+    * @brief Keeps old phase value
+    */
+    uint32 phaseBackup;
+
+    /**
      * @brief Frequency of the currentState and nextState
      */
     float32 frequency[2];
@@ -326,6 +331,10 @@ private:
      * @brief The RealTime application reference
      */
     ReferenceT<RealTimeApplication> rtApp;
+
+    uint8 trigRephase;
+
+    uint8 trigRephase_1;
 };
 }
 

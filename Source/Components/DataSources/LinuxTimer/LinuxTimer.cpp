@@ -80,6 +80,9 @@ LinuxTimer::LinuxTimer() :
     absoluteTime_1 = 0ull;
     ticksPerUs = 0.;
     phase = MAX_PHASE;
+    phaseBackup = phase;
+    trigRephase = 0u;
+    trigRephase_1 = 0u;
 
     if (!synchSem.Create()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
@@ -118,7 +121,13 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
 
     if (!data.Read("Phase", phase)) {
         phase = MAX_PHASE;
+        REPORT_ERROR(ErrorManagement::Information, "Phase was not configured, using default MAX value %d", phase);
     }
+    else {
+        REPORT_ERROR(ErrorManagement::Information, "Phase manually configured to %d", phase);
+    }
+
+    phaseBackup = phase;
 
     if (sleepNatureStr == "Default") {
         sleepNature = Default;
@@ -334,7 +343,9 @@ bool LinuxTimer::GetSignalMemoryBuffer(const uint32 signalIdx,
     else if (signalIdx == 3u) {
         signalAddress = &deltaTime;
     }
-
+    else if (signalIdx == 4u) {
+        signalAddress = &trigRephase;
+    }
     else {
         ok = false;
     }
@@ -448,6 +459,7 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
             counterAndTimer[1] = 0u;
 
             startTimeTicks = 0u;
+            phase = phaseBackup;
         }
         if (numberOfTotalConsumers > 0u) {
             ok = (tempFrequency >= 0.F);
@@ -507,6 +519,14 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
     timerPeriodUsecTimeT = timerPeriodUsecTime[appIndex];
     sleepTimeTicksT = sleepTimeTicks[appIndex];
 
+    if(trigRephase > trigRephase_1) {
+        float64 seconds0 = static_cast<float64>(timeProvider->Counter()) * (timeProvider->Period());
+        absoluteTime_1 = static_cast<uint64>(seconds0 * 1e6);
+        phase = (absoluteTime_1 % MAX_PHASE);
+        float64 secondsT = static_cast<float64>(absoluteTime_1) / 1e6;
+        lastTimeTicks = static_cast<uint64>(secondsT * timeProvider->Frequency());
+    }
+
     if(startTimeTicks == 0u) {
         startTimeTicks = timeProvider->Counter();
         float64 seconds0 = static_cast<float64>(startTimeTicks) * (timeProvider->Period());
@@ -553,6 +573,7 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
         uint64 microsecs = static_cast<uint64> (seconds) * static_cast<uint64>(1e6);
         deltaTime = (microsecs - absoluteTime_1);
         absoluteTime_1 = microsecs;
+        trigRephase_1 = trigRephase;
     }
 
     if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
