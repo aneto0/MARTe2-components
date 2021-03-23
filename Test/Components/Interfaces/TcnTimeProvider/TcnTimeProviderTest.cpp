@@ -384,6 +384,13 @@ static bool TestIntegratedRun(const MARTe::char8 * const configFile) {
     if (ok) {
         uint32 *counter;
         uint32 *timer;
+
+        uint32 startCounter = 0u;
+        uint32 startTimer = 0u;
+
+        uint32 endCounter = 0u;
+        uint32 endTimer = 0u;
+
         linuxTimer->GetSignalMemoryBuffer(0, 0, (void *&) counter);
         linuxTimer->GetSignalMemoryBuffer(1, 0, (void *&) timer);
         uint32 c = 0;
@@ -400,12 +407,17 @@ static bool TestIntegratedRun(const MARTe::char8 * const configFile) {
             if (!ok) {
                 Sleep::MSec(10);
             }
+            startCounter = *counter;
+            startTimer = *timer;
         }
     }
 
     if(ok) {
-        Sleep::Sec(10);
+        Sleep::Sec(5);
     }
+
+    endCounter = *counter;
+    endTimer = *timer;
 
     if (ok) {
         application->StopCurrentStateExecution();
@@ -413,6 +425,8 @@ static bool TestIntegratedRun(const MARTe::char8 * const configFile) {
 
     god->Purge();
 
+
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "Delta Counter %d, Delta Timer %d", endCounter - startCounter, endTimer - startTimer);
 
     return ok;
 }
