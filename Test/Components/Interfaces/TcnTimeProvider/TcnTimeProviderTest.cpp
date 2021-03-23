@@ -407,9 +407,9 @@ static bool TestIntegratedRun(const MARTe::char8 * const configFile) {
             if (!ok) {
                 Sleep::MSec(10);
             }
-            startCounter = *counter;
-            startTimer = *timer;
         }
+        startCounter = *counter;
+        startTimer = *timer;
     }
 
     if(ok) {
