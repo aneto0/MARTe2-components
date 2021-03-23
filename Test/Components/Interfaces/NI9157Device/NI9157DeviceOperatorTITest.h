@@ -35,20 +35,21 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
+#include "CreateNI9157DeviceOperatorI.h"
 #include "DataSourceI.h"
 #include "GAMSchedulerI.h"
+#include "GlobalObjectsDatabase.h"
 #include "MemoryMapMultiBufferInputBroker.h"
 #include "MemoryMapMultiBufferOutputBroker.h"
 #include "MemoryMapSynchronisedMultiBufferInputBroker.h"
 #include "MemoryMapSynchronisedMultiBufferOutputBroker.h"
+#include "NI9157DeviceOperatorDatabase.h"
 #include "NI9157DeviceOperatorTI.h"
 #include "NI9157DeviceTest.h"
+#include "NI9157DeviceTestsAndFwSettings.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
-#include "CreateNI9157DeviceOperatorI.h"
-#include "NI9157DeviceOperatorDatabase.h"
-#include "GlobalObjectsDatabase.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */

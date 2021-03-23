@@ -34,8 +34,8 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "CreateNI9157DeviceOperatorI.h"
-#include "NI9157DeviceOperatorDatabase.h"
 #include "GlobalObjectsDatabase.h"
+#include "NI9157DeviceOperatorDatabase.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */

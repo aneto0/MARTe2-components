@@ -43,10 +43,10 @@
 #include "MemoryMapSynchronisedMultiBufferOutputBroker.h"
 #include "NI9157DeviceOperatorT.h"
 #include "NI9157DeviceTest.h"
+#include "NI9157DeviceTestsAndFwSettings.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
-#include "NI9157DeviceTestsAndFwSettings.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */

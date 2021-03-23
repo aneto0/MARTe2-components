@@ -33,7 +33,6 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "NI9157Device.h"
 #include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
 #include "DataSourceI.h"
@@ -42,10 +41,11 @@
 #include "MemoryMapMultiBufferOutputBroker.h"
 #include "MemoryMapSynchronisedMultiBufferInputBroker.h"
 #include "MemoryMapSynchronisedMultiBufferOutputBroker.h"
+#include "NI9157Device.h"
+#include "NI9157DeviceTestsAndFwSettings.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
-#include "NI9157DeviceTestsAndFwSettings.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
