@@ -76,7 +76,8 @@ class TcnTimeProviderTest : public TimeProviderTest {
         bool TestInitialise_WithMissingTcnDevice_Fail();
         bool TestInitialise_WrongXmlPlugin_Fail();
         bool TestInitialise_WithFrequency();
-        bool TestIntegrated_WithTcnPoll();
+        bool TestIntegrated_WithTcnPollEnabled();
+        bool TestIntegrated_WithTcnPollDisabled();
 
     private:
         ConfigurationDatabase tcnCfg;
