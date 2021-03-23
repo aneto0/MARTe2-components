@@ -331,10 +331,10 @@ static bool TestIntegratedRun() {
         ok = false;
         while (c < 500 && !ok) {
             ok = (((*counter) > 10) && ((*timer) > 10000));
-            if (ok && checkVal1) {
+            if (ok) {
                 ok = (gama->val1 > 10);
             }
-            if (ok && checkVal2) {
+            if (ok) {
                 ok = (gama->val2 > 10000);
             }
             c++;
