@@ -135,7 +135,12 @@ TEST(TcnTimeProviderGTest,TestInitialise_WithFrequency) {
     ASSERT_TRUE(test.TestInitialise_WithFrequency());
 }
 
-TEST(TcnTimeProviderGTest, TestIntegrated_WithTcnPoll) {
+TEST(TcnTimeProviderGTest, TestIntegrated_WithTcnPollDisabled) {
     TcnTimeProviderTest test(true);
-    ASSERT_TRUE(test.TestIntegrated_WithTcnPoll());
+    ASSERT_TRUE(test.TestIntegrated_WithTcnPollDisabled());
+}
+
+TEST(TcnTimeProviderGTest, TestIntegrated_WithTcnPollEnabled) {
+    TcnTimeProviderTest test(true);
+    ASSERT_TRUE(test.TestIntegrated_WithTcnPollEnabled());
 }

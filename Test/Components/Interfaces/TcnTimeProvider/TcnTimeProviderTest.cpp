@@ -44,7 +44,7 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-const MARTe::char8 * const configTestIntegrated = ""
+const MARTe::char8 * const configTestIntegratedNoPoll = ""
     "$Test = {"
     "    Class = RealTimeApplication"
     "    +Functions = {"
@@ -70,6 +70,60 @@ const MARTe::char8 * const configTestIntegrated = ""
     "        +Timer = {"
     "            Class = LinuxTimer"
     "            TcnPoll = 0"
+    "            +TimeProvider = {"
+    "               Class = TcnTimeProvider"
+    "               TcnDevice = \"/etc/opt/codac/tcn/tcn-default.xml\""
+    "            }"
+    "        }"
+    "        +Timings = {"
+    "            Class = TimingDataSource"
+    "        }"
+    "    }"
+    "    +States = {"
+    "        Class = ReferenceContainer"
+    "        +State1 = {"
+    "            Class = RealTimeState"
+    "            +Threads = {"
+    "                Class = ReferenceContainer"
+    "                +Thread1 = {"
+    "                    Class = RealTimeThread"
+    "                    Functions = {GAMA}"
+    "                }"
+    "            }"
+    "        }"
+    "    }"
+    "    +Scheduler = {"
+    "        Class = GAMScheduler"
+    "        TimingDataSource = Timings"
+    "    }"
+    "}";
+
+const MARTe::char8 * const configTestIntegratedPoll = ""
+    "$Test = {"
+    "    Class = RealTimeApplication"
+    "    +Functions = {"
+    "        Class = ReferenceContainer"
+    "        +GAMA = {"
+    "            Class = TcnTimeProviderTestGAM"
+    "            InputSignals = {"
+    "                Counter = {"
+    "                    DataSource = Timer"
+    "                    Type = uint32"
+    "                }"
+    "                Time = {"
+    "                    DataSource = Timer"
+    "                    Type = uint32"
+    "                    Frequency = 1000"
+    "                }"
+    "            }"
+    "        }"
+    "    }"
+    "    +Data = {"
+    "        Class = ReferenceContainer"
+    "        DefaultDataSource = DDB1"
+    "        +Timer = {"
+    "            Class = LinuxTimer"
+    "            TcnPoll = 1"
     "            +TimeProvider = {"
     "               Class = TcnTimeProvider"
     "               TcnDevice = \"/etc/opt/codac/tcn/tcn-default.xml\""
@@ -359,7 +413,10 @@ static bool TestIntegratedRun(const MARTe::char8 * const configFile) {
     return ok;
 }
 
-bool TcnTimeProviderTest::TestIntegrated_WithTcnPoll() {
-    return TestIntegratedRun(configTestIntegrated);
+bool TcnTimeProviderTest::TestIntegrated_WithTcnPollDisabled() {
+    return TestIntegratedRun(configTestIntegratedNoPoll);
 }
 
+bool TcnTimeProviderTest::TestIntegrated_WithTcnPollEnabled() {
+    return TestIntegratedRun(configTestIntegratedPoll);
+}
