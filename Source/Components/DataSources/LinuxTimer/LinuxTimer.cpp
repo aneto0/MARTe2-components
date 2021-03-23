@@ -524,7 +524,7 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
         absoluteTime_1 = static_cast<uint64>(seconds0 * 1e6);
         phase = (absoluteTime_1 % MAX_PHASE);
         float64 secondsT = static_cast<float64>(absoluteTime_1) / 1e6;
-        lastTimeTicks = static_cast<uint64>(secondsT * timeProvider->Frequency());
+        startTimeTicks = static_cast<uint64>(secondsT * timeProvider->Frequency());
     }
 
     if(startTimeTicks == 0u) {
