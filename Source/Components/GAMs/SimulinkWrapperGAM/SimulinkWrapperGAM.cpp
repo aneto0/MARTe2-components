@@ -41,6 +41,7 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+/*lint -e{788} lint is confused with the enum types*/
 static MARTe::StreamString GetOrientationName(const rtwCAPI_Orientation  &ELEorientation)
 {
     MARTe::StreamString name;
@@ -194,6 +195,7 @@ static inline uint16 GetTypeSizeFromCTypeName(const char8* const cTypeNameIn) {
     return typeSizeOut;
 }
 
+/*lint -e{40} -e{9129} -e{30} -e{142} lint is confused with the enum types*/
 static inline StreamString GetMARTeTypeNameFromEnumeratedTypes(const uint8 slEnumTypeIn) {
     
     MARTe::StreamString MARTeTypeNameOut = "void";
