@@ -55,7 +55,7 @@ namespace MARTe {
     bool HighResolutionTimeProvider::Initialise(StructuredDataI &data) {
         bool returnValue = Object::Initialise(data);
         if(returnValue) {
-            InnerInitialize(data);
+            returnValue = InnerInitialize(data);
         }
         return returnValue;
     }
@@ -92,7 +92,7 @@ namespace MARTe {
         return true;
     }
 
-    /*lint -e{1762} The function is a generic delegate which needs to match other signatures No const ca be added*/
+    /*lint -e{715,1762} The function is a generic delegate which needs to match other signatures No const can be added. start is unused due to NoMore function nature */
     bool HighResolutionTimeProvider::NoMore(const uint64 start, const uint64 delta) {
         //We try to do the operation in full precision to decrease only in function call
         float64 fullResSec = static_cast<float64>(delta) * Period();
@@ -107,7 +107,7 @@ namespace MARTe {
         return (this->*SleepProvidingFunction)(start, delta);  
     }
 
-    /*lint -e{1762} The function is a generic delegate which needs to match other signatures No const ca be added*/
+    /*lint -e{715,1762} The function is a generic delegate which needs to match other signatures No const can be added. The null delegate has no function, this is why start and delta are ignored*/
     bool HighResolutionTimeProvider::NullDelegate(const uint64 start, const uint64 delta) {
         REPORT_ERROR(ErrorManagement::FatalError, "Call to the null delegate with %d start and %d delta.", start, delta);
         REPORT_ERROR(ErrorManagement::FatalError, "Reached uninitialized portion of the code");

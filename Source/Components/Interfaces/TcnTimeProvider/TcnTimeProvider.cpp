@@ -59,11 +59,9 @@ TcnTimeProvider::~TcnTimeProvider() {
 }
 
 bool TcnTimeProvider::InnerInitialize(StructuredDataI &data) {
-
-    bool ret = true;
     StreamString tcnDevice;
     int32 tcnRetVal = 0;
-    ret = (data.Read("TcnDevice", tcnDevice));
+    bool ret = (data.Read("TcnDevice", tcnDevice));
     if (ret) {
         tcnRetVal = static_cast<int32>(tcn_register_device(tcnDevice.Buffer()));
         if(tcnRetVal == TCN_SUCCESS) {
@@ -71,7 +69,7 @@ bool TcnTimeProvider::InnerInitialize(StructuredDataI &data) {
         }
         else {
             char8 tempErrorBuffer[255];
-            const char8 *tempErrorBufferPtr = static_cast<const char8*>(tcn_strerror_r(tcnRetVal, static_cast<char*>(&tempErrorBuffer[0]), 255));
+            const char8 *tempErrorBufferPtr = static_cast<const char8*>(tcn_strerror_r(static_cast<int32>(tcnRetVal), static_cast<char8*>(&tempErrorBuffer[0]), 255ul));
             StreamString errorString(tempErrorBufferPtr);
             REPORT_ERROR(ErrorManagement::FatalError, "tcn_register_device failed, %s", errorString.Buffer());
             ret = false;
@@ -88,7 +86,7 @@ bool TcnTimeProvider::InnerInitialize(StructuredDataI &data) {
         }
         else {
             char8 tempErrorBuffer[255];
-            const char8 *tempErrorBufferPtr = static_cast<const char8*>(tcn_strerror_r(tcnRetVal, static_cast<char*>(&tempErrorBuffer[0]), 255));
+            const char8 *tempErrorBufferPtr = static_cast<const char8*>(tcn_strerror_r(static_cast<int32>(tcnRetVal), static_cast<char8*>(&tempErrorBuffer[0]), 255ul));
             StreamString errorString(tempErrorBufferPtr);
             REPORT_ERROR(ErrorManagement::FatalError, "tcn_init failed, %s", errorString.Buffer());
             ret = false;

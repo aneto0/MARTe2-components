@@ -521,10 +521,10 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
 
     if(trigRephase > trigRephase_1) {
         float64 seconds0 = static_cast<float64>(timeProvider->Counter()) * (timeProvider->Period());
-        absoluteTime_1 = static_cast<uint64>(seconds0 * 1e6);
-        phase = (absoluteTime_1 % MAX_PHASE);
+        absoluteTime_1 = static_cast<uint64>(seconds0) * static_cast<uint64>(1e6);
+        phase = static_cast<uint32>(absoluteTime_1 % MAX_PHASE);
         float64 secondsT = static_cast<float64>(absoluteTime_1) / 1e6;
-        startTimeTicks = static_cast<uint64>(secondsT * timeProvider->Frequency());
+        startTimeTicks = static_cast<uint64>(secondsT) * static_cast<uint64>(timeProvider->Frequency());
     }
 
     if(startTimeTicks == 0u) {
@@ -536,7 +536,7 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo& info) {
             uint64 overSec = (absoluteTime_1 % MAX_PHASE);
             absoluteTime_1 += (phase - overSec);
             float64 secondsT = static_cast<float64> (absoluteTime_1) / 1e6;
-            startTimeTicks = static_cast<uint64> (secondsT) * static_cast<uint64>(timeProvider->Frequency());
+            startTimeTicks = static_cast<uint64>(secondsT) * static_cast<uint64>(timeProvider->Frequency());
         }
     }
 
