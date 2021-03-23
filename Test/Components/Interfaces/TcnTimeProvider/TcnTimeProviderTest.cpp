@@ -69,6 +69,10 @@ const MARTe::char8 * const configTestIntegrated = ""
     "        DefaultDataSource = DDB1"
     "        +Timer = {"
     "            Class = LinuxTimer"
+    "            TcnPoll = 0"
+    "            +TimeProvider = {"
+    "               TcnDevice = \"/etc/opt/codac/tcn/tcn-default.xml\""
+    "            }"
     "        }"
     "        +Timings = {"
     "            Class = TimingDataSource"
@@ -276,10 +280,10 @@ bool TcnTimeProviderTest::TestInitialise_WithFrequency() {
     return TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode_SleepMode); 
 }
 
-static bool TestIntegratedRun() {
+static bool TestIntegratedRun(const MARTe::char8 const configFile) {
     using namespace MARTe;
     ConfigurationDatabase cdb;
-    StreamString configStream = configTestIntegrated;
+    StreamString configStream = configFile;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
 
@@ -355,6 +359,6 @@ static bool TestIntegratedRun() {
 }
 
 bool TcnTimeProviderTest::TestIntegrated_WithTcnPoll() {
-    return TestIntegratedRun();
+    return TestIntegratedRun(configTestIntegrated);
 }
 
