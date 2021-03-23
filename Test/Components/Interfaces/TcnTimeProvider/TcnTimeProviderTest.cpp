@@ -381,15 +381,15 @@ static bool TestIntegratedRun(const MARTe::char8 * const configFile) {
         ok = gama.IsValid();
     }
 
+    uint32 startCounter = 0u;
+    uint32 startTimer = 0u;
+
+    uint32 endCounter = 0u;
+    uint32 endTimer = 0u;
+
     if (ok) {
         uint32 *counter;
         uint32 *timer;
-
-        uint32 startCounter = 0u;
-        uint32 startTimer = 0u;
-
-        uint32 endCounter = 0u;
-        uint32 endTimer = 0u;
 
         linuxTimer->GetSignalMemoryBuffer(0, 0, (void *&) counter);
         linuxTimer->GetSignalMemoryBuffer(1, 0, (void *&) timer);
