@@ -173,27 +173,27 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
 
         if(ok) {
             if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
-                if (ok) {
-                    uint32 cpuMaskIn;
-                    if (!data.Read("CPUMask", cpuMaskIn)) {
-                        cpuMaskIn = 0xFFu;
-                        REPORT_ERROR(ErrorManagement::Warning, "CPUMask not specified using: %d", cpuMaskIn);
-                    }
-                    cpuMask = cpuMaskIn;
-                }
-                if (ok) {
-                    if (!data.Read("StackSize", stackSize)) {
-                        stackSize = THREADS_DEFAULT_STACKSIZE;
-                        REPORT_ERROR(ErrorManagement::Warning, "StackSize not specified using: %d", stackSize);
-                    }
-                }
-                if (ok) {
-                    ok = (stackSize > 0u);
 
-                    if (!ok) {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
-                    }
+                uint32 cpuMaskIn;
+                if (!data.Read("CPUMask", cpuMaskIn)) {
+                    cpuMaskIn = 0xFFu;
+                    REPORT_ERROR(ErrorManagement::Warning, "CPUMask not specified using: %d", cpuMaskIn);
                 }
+                cpuMask = cpuMaskIn;
+
+
+                if (!data.Read("StackSize", stackSize)) {
+                    stackSize = THREADS_DEFAULT_STACKSIZE;
+                    REPORT_ERROR(ErrorManagement::Warning, "StackSize not specified using: %d", stackSize);
+                }
+
+
+                ok = (stackSize > 0u);
+
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
+                }
+
                 if (ok) {
                     executor.SetCPUMask(cpuMask);
                     executor.SetStackSize(stackSize);
@@ -215,12 +215,12 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
             if(isLegacyCfg) {
                 REPORT_ERROR(ErrorManagement::Information, "TcnPoll legacy configuration parameter found, its value is %d", tcnPollMode);
                 REPORT_ERROR(ErrorManagement::Information, "TcnPoll value will be injected onto the TimeProvider");
-                slaveCDB.Write("TcnPoll", tcnPollMode);
+                ok = slaveCDB.Write("TcnPoll", tcnPollMode);
                 uint64 tempTCNFrequency = 0u;
                 if(data.Read("TcnFrequency", tempTCNFrequency)) {
                     REPORT_ERROR(ErrorManagement::Information, "TcnFrequency legacy configuration parameter found, its value is %d", tempTCNFrequency);
                     REPORT_ERROR(ErrorManagement::Information, "TcnFrequency value will be injected onto the TimeProvider");
-                    slaveCDB.Write("TcnFrequency", tempTCNFrequency);
+                    ok = slaveCDB.Write("TcnFrequency", tempTCNFrequency);
                 }
             }
         }
@@ -250,7 +250,8 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
         //Here we inject parameters into the Time Provider instance, only when the instance is automatically created from the cfg file
         //A check is done in order to avoid double injection/init
         if(ok) {
-            if(!skipBackwardCompatibilityInjection && (slaveCDB.GetNumberOfChildren() != 0)) {
+            bool hasChildren = slaveCDB.GetNumberOfChildren() != 0u;
+            if(hasChildren && (!skipBackwardCompatibilityInjection)) {
                 REPORT_ERROR(ErrorManagement::Information, "Backward compatibility parameters injection preconditions met, injecting %d parameters", slaveCDB.GetNumberOfChildren());
                 ok = timeProvider->BackwardCompatibilityInit(slaveCDB);
                 if(!ok) {
@@ -333,7 +334,7 @@ bool LinuxTimer::SetConfiguredDatabase(StructuredDataI& data) {
     
     if(tempNumOfSignals > 4u) {
         uint16 tempNumOfBits = GetSignalType(4u).numberOfBits;
-        ok = ((GetSignalType(4u).type == UnsignedInteger) && (tempNumOfBits == 8));
+        ok = ((GetSignalType(4u).type == UnsignedInteger) && (tempNumOfBits == 8u));
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The fourth signal must be a 8 bit unsigned integer");
         }
