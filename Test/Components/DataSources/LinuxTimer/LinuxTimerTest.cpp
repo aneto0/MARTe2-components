@@ -111,8 +111,14 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
         application->StartNextStateExecution();
     }
 
-    ReferenceT<LinuxTimer> linuxTimer = application->Find("Data.Timer");
-    ReferenceT<LinuxTimerTestGAM> gama = application->Find("Functions.GAMA");
+    ReferenceT<LinuxTimer> linuxTimer; 
+    ReferenceT<LinuxTimerTestGAM> gama;
+    
+    if(ok) {
+        linuxTimer = application->Find("Data.Timer");
+        gama = application->Find("Functions.GAMA");
+    }
+
     if (ok) {
         ok = linuxTimer.IsValid();
     }
@@ -1659,14 +1665,14 @@ bool LinuxTimerTest::TestPrepareNextState() {
 
     ReferenceT<LinuxTimer> linuxTimer = application->Find("Data.Timer");
     ReferenceT<LinuxTimerTestGAM> gama = application->Find("Functions.GAMA");
-    ok = linuxTimer.IsValid();
-    if (ok) {
-        ok = gama.IsValid();
-    }
+    ok = linuxTimer.IsValid() && gama.IsValid();
+
     uint32 *counter;
     uint32 *timer;
 	uint64 *absoluteTime;
 	uint64 *deltaTime;
+    uint32 counterBefore;
+    uint32 timerBefore;
 
     if (ok) {
         linuxTimer->GetSignalMemoryBuffer(0, 0, (void *&) counter);
@@ -1685,9 +1691,11 @@ bool LinuxTimerTest::TestPrepareNextState() {
         }
     }
 	
-    Sleep::MSec(1000);
-    uint32 counterBefore = (*counter);
-    uint32 timerBefore = (*timer);
+    if(ok) {
+        Sleep::MSec(1000);
+        counterBefore = (*counter);
+        timerBefore = (*timer);
+    }
 
 	if (ok) {
         ok = application->PrepareNextState("State2");
@@ -1696,8 +1704,10 @@ bool LinuxTimerTest::TestPrepareNextState() {
         application->StartNextStateExecution();
     }
 
-	Sleep::MSec(10);
-    application->StopCurrentStateExecution();
+    if(ok) {
+	    Sleep::MSec(10);
+        ok = application->StopCurrentStateExecution();    
+    }
 
     if (ok) {
         ok = (counterBefore > 1000) && (timerBefore > 1000000);

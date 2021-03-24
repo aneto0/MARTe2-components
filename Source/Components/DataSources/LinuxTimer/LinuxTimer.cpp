@@ -110,153 +110,161 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
     StreamString sleepNatureStr;
     ConfigurationDatabase slaveCDB;
 
-    if (!data.Read("SleepNature", sleepNatureStr)) {
-        REPORT_ERROR(ErrorManagement::Information, "SleepNature was not set. Using Default.");
-        sleepNatureStr = "Default";
-        ok = slaveCDB.Write("SleepNature", "Default");
-    }
-    else {
-        ok = slaveCDB.Write("SleepNature", sleepNatureStr.Buffer());
-    }
-
-    if (!data.Read("Phase", phase)) {
-        phase = MAX_PHASE;
-        REPORT_ERROR(ErrorManagement::Information, "Phase was not configured, using default MAX value %d", phase);
-    }
-    else {
-        REPORT_ERROR(ErrorManagement::Information, "Phase manually configured to %d", phase);
-    }
-
-    phaseBackup = phase;
-
-    if (sleepNatureStr == "Default") {
-        sleepNature = Default;
-    }
-    else if (sleepNatureStr == "Busy") {
-        sleepNature = Busy;
-        if (!data.Read("SleepPercentage", sleepPercentage)) {
-            sleepPercentage = 0u;
-            REPORT_ERROR(ErrorManagement::Information, "SleepPercentage was not set. Using Default %d.", sleepPercentage);
-        }
-        if (sleepPercentage > 100u) {
-            sleepPercentage = 100u;
-        }
-        ok = slaveCDB.Write("SleepPercentage", sleepPercentage);
-    }
-    else {
-        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported SleepNature.");
-        ok = false;
-    }
-
-    StreamString executionModeStr;
-
-    if (!data.Read("ExecutionMode", executionModeStr)) {
-        executionModeStr = "IndependentThread";
-        REPORT_ERROR(ErrorManagement::Warning, "ExecutionMode not specified using: %s", executionModeStr.Buffer());
-    }
-    if (executionModeStr == "IndependentThread") {
-        executionMode = LINUX_TIMER_EXEC_MODE_SPAWNED;
-    }
-    else if (executionModeStr == "RealTimeThread") {
-        executionMode = LINUX_TIMER_EXEC_MODE_RTTHREAD;
-    }
-    else {
-        ok = false;
-        REPORT_ERROR(ErrorManagement::InitialisationError, "The Execution mode must be \"IndependentThread\" or \"RealTimeThread\"");
-    }
-
-    if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
-        if (ok) {
-            uint32 cpuMaskIn;
-            if (!data.Read("CPUMask", cpuMaskIn)) {
-                cpuMaskIn = 0xFFu;
-                REPORT_ERROR(ErrorManagement::Warning, "CPUMask not specified using: %d", cpuMaskIn);
-            }
-            cpuMask = cpuMaskIn;
-        }
-        if (ok) {
-            if (!data.Read("StackSize", stackSize)) {
-                stackSize = THREADS_DEFAULT_STACKSIZE;
-                REPORT_ERROR(ErrorManagement::Warning, "StackSize not specified using: %d", stackSize);
-            }
-        }
-        if (ok) {
-            ok = (stackSize > 0u);
-
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
-            }
-        }
-        if (ok) {
-            executor.SetCPUMask(cpuMask);
-            executor.SetStackSize(stackSize);
-        }
-    }
-
-    if (ok) {
-        ok = (Size() < 2u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Number of pluggable time providers can be 0 (Default) or 1 (Customized and specified)");
-            REPORT_ERROR(ErrorManagement::ParametersError, "%d providers where specified instead", Size());
-        }
-    }
-
     if(ok) {
-        uint8 tcnPollMode = 0u;
-        bool isLegacyCfg = data.Read("TcnPoll", tcnPollMode);
-        if(isLegacyCfg) {
-            REPORT_ERROR(ErrorManagement::Information, "TcnPoll legacy configuration parameter found, its value is %d", tcnPollMode);
-            REPORT_ERROR(ErrorManagement::Information, "TcnPoll value will be injected onto the TimeProvider");
-            slaveCDB.Write("TcnPoll", tcnPollMode);
-            uint64 tempTCNFrequency = 0u;
-            if(data.Read("TcnFrequency", tempTCNFrequency)) {
-                REPORT_ERROR(ErrorManagement::Information, "TcnFrequency legacy configuration parameter found, its value is %d", tempTCNFrequency);
-                REPORT_ERROR(ErrorManagement::Information, "TcnFrequency value will be injected onto the TimeProvider");
-                slaveCDB.Write("TcnFrequency", tempTCNFrequency);
-            }
-        }
-    }
-
-    bool skipBackwardCompatibilityInjection = false;
-
-    if (ok) {
-        if(Size() == 0u) {
-            REPORT_ERROR(ErrorManagement::Information, "No timer provider specified. Falling back to HighResolutionTimeProvider");
-            timeProvider = ReferenceT<HighResolutionTimeProvider> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
-            timeProvider->SetName("HighResolutionTimeProvider");     
-            ok = timeProvider->Initialise(slaveCDB);
-            skipBackwardCompatibilityInjection = true;
-            if(!ok) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Failure to call the time provider initialise function");
-            }
+        if (!data.Read("SleepNature", sleepNatureStr)) {
+            REPORT_ERROR(ErrorManagement::Information, "SleepNature was not set. Using Default.");
+            sleepNatureStr = "Default";
+            ok = slaveCDB.Write("SleepNature", "Default");
         }
         else {
-            timeProvider = Get(0u);
-            ok = timeProvider.IsValid();
-            if (!ok) {
-                 REPORT_ERROR(ErrorManagement::ParametersError, "Invalid timer provider was specified");
-            }
+            ok = slaveCDB.Write("SleepNature", sleepNatureStr.Buffer());
         }
-    }
 
-    //Here we inject parameters into the Time Provider instance, only when the instance is automatically created from the cfg file
-    //A check is done in order to avoid double injection/init
-    if(ok) {
-        if(!skipBackwardCompatibilityInjection) {
-            ok = timeProvider->BackwardCompatibilityInit(slaveCDB);
-            if(!ok) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Error while injecting backward compatibility parameters to the plugin");
-            }
+        if (!data.Read("Phase", phase)) {
+            phase = MAX_PHASE;
+            REPORT_ERROR(ErrorManagement::Information, "Phase was not configured, using default MAX value %d", phase);
         }
         else {
-            REPORT_ERROR(ErrorManagement::Information, "Backward compatibility parameters injection unnecessary");
+            REPORT_ERROR(ErrorManagement::Information, "Phase manually configured to %d", phase);
+        }
+        
+        if (ok) {
+            phaseBackup = phase;
+
+            if (sleepNatureStr == "Default") {
+                sleepNature = Default;
+            }
+            else if (sleepNatureStr == "Busy") {
+                sleepNature = Busy;
+                if (!data.Read("SleepPercentage", sleepPercentage)) {
+                    sleepPercentage = 0u;
+                    REPORT_ERROR(ErrorManagement::Information, "SleepPercentage was not set. Using Default %d.", sleepPercentage);
+                }
+                if (sleepPercentage > 100u) {
+                    sleepPercentage = 100u;
+                }
+                ok = slaveCDB.Write("SleepPercentage", sleepPercentage);
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported SleepNature.");
+                ok = false;
+            }    
+        }
+        
+        if(ok) {
+            StreamString executionModeStr;
+
+            if (!data.Read("ExecutionMode", executionModeStr)) {
+                executionModeStr = "IndependentThread";
+                REPORT_ERROR(ErrorManagement::Warning, "ExecutionMode not specified using: %s", executionModeStr.Buffer());
+            }
+            if (executionModeStr == "IndependentThread") {
+                executionMode = LINUX_TIMER_EXEC_MODE_SPAWNED;
+            }
+            else if (executionModeStr == "RealTimeThread") {
+                executionMode = LINUX_TIMER_EXEC_MODE_RTTHREAD;
+            }
+            else {
+                ok = false;
+                REPORT_ERROR(ErrorManagement::InitialisationError, "The Execution mode must be \"IndependentThread\" or \"RealTimeThread\"");
+            }
+        }
+
+        if(ok) {
+            if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
+                if (ok) {
+                    uint32 cpuMaskIn;
+                    if (!data.Read("CPUMask", cpuMaskIn)) {
+                        cpuMaskIn = 0xFFu;
+                        REPORT_ERROR(ErrorManagement::Warning, "CPUMask not specified using: %d", cpuMaskIn);
+                    }
+                    cpuMask = cpuMaskIn;
+                }
+                if (ok) {
+                    if (!data.Read("StackSize", stackSize)) {
+                        stackSize = THREADS_DEFAULT_STACKSIZE;
+                        REPORT_ERROR(ErrorManagement::Warning, "StackSize not specified using: %d", stackSize);
+                    }
+                }
+                if (ok) {
+                    ok = (stackSize > 0u);
+
+                    if (!ok) {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
+                    }
+                }
+                if (ok) {
+                    executor.SetCPUMask(cpuMask);
+                    executor.SetStackSize(stackSize);
+                }
+            }
+        }
+
+        if (ok) {
+            ok = (Size() < 2u);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Number of pluggable time providers can be 0 (Default) or 1 (Customized and specified)");
+                REPORT_ERROR(ErrorManagement::ParametersError, "%d providers where specified instead", Size());
+            }
+        }
+
+        if(ok) {
+            uint8 tcnPollMode = 0u;
+            bool isLegacyCfg = data.Read("TcnPoll", tcnPollMode);
+            if(isLegacyCfg) {
+                REPORT_ERROR(ErrorManagement::Information, "TcnPoll legacy configuration parameter found, its value is %d", tcnPollMode);
+                REPORT_ERROR(ErrorManagement::Information, "TcnPoll value will be injected onto the TimeProvider");
+                slaveCDB.Write("TcnPoll", tcnPollMode);
+                uint64 tempTCNFrequency = 0u;
+                if(data.Read("TcnFrequency", tempTCNFrequency)) {
+                    REPORT_ERROR(ErrorManagement::Information, "TcnFrequency legacy configuration parameter found, its value is %d", tempTCNFrequency);
+                    REPORT_ERROR(ErrorManagement::Information, "TcnFrequency value will be injected onto the TimeProvider");
+                    slaveCDB.Write("TcnFrequency", tempTCNFrequency);
+                }
+            }
+        }
+
+        bool skipBackwardCompatibilityInjection = false;
+
+        if (ok) {
+            if(Size() == 0u) {
+                REPORT_ERROR(ErrorManagement::Information, "No timer provider specified. Falling back to HighResolutionTimeProvider");
+                timeProvider = ReferenceT<HighResolutionTimeProvider> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
+                timeProvider->SetName("HighResolutionTimeProvider");     
+                ok = timeProvider->Initialise(slaveCDB);
+                skipBackwardCompatibilityInjection = true;
+                if(!ok) {
+                    REPORT_ERROR(ErrorManagement::FatalError, "Failure to call the time provider initialise function");
+                }
+            }
+            else {
+                timeProvider = Get(0u);
+                ok = timeProvider.IsValid();
+                if (!ok) {
+                     REPORT_ERROR(ErrorManagement::ParametersError, "Invalid timer provider was specified");
+                }
+            }
+        }
+
+        //Here we inject parameters into the Time Provider instance, only when the instance is automatically created from the cfg file
+        //A check is done in order to avoid double injection/init
+        if(ok) {
+            if(!skipBackwardCompatibilityInjection) {
+                ok = timeProvider->BackwardCompatibilityInit(slaveCDB);
+                if(!ok) {
+                    REPORT_ERROR(ErrorManagement::FatalError, "Error while injecting backward compatibility parameters to the plugin");
+                }
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::Information, "Backward compatibility parameters injection unnecessary");
+            }
+        }
+
+        if(ok) {
+            ticksPerUs = (static_cast<float64>(timeProvider->Frequency()) / 1.0e6);
         }
     }
-
-    if(ok) {
-        ticksPerUs = (static_cast<float64>(timeProvider->Frequency()) / 1.0e6);
-    }
-    
+   
     return ok;
 }
 
