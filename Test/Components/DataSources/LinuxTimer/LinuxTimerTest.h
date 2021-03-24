@@ -276,6 +276,11 @@ public:
     */
     bool TestSetConfiguredDatabase_PureBusySleep();
 
+    /**
+    * @brief Tests explicit HRT provider with parameter injection from LinuxTimer
+    */
+    bool TestSetConfiguredDatabase_WithBackwardCompatOnHRT();
+
 };
 
 /*---------------------------------------------------------------------------*/

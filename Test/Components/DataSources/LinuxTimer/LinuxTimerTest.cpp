@@ -1501,6 +1501,59 @@ const MARTe::char8 * const config33 = ""
         "    }"
         "}";
 
+const MARTe::char8 * const config34 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = LinuxTimerTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                    Frequency = 5.0"
+        "                }"
+        "                Time = {"
+        "                    DataSource = Timer"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timer = {"
+        "            Class = LinuxTimer"
+        "            SleepNature = Busy"
+        "            +TimeProvider = {"
+        "                Class = HighResolutionTimeProvider"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -1984,6 +2037,10 @@ bool LinuxTimerTest::TestSetConfiguredDatabase_ExplicitHRTWithMoreThan100Perc() 
 
 bool LinuxTimerTest::TestSetConfiguredDatabase_PureBusySleep() {
     return TestIntegratedInApplication(config33);
+}
+
+bool LinuxTimerTest::TestSetConfiguredDatabase_WithBackwardCompatOnHRT() {
+    return TestIntegratedInApplication(config34);
 }
 
 bool LinuxTimerTest::TestGetSleepPercentage() {

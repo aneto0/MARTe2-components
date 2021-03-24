@@ -270,6 +270,11 @@ TEST(LinuxTimerGTest, TestSetConfiguredDatabase_PureBusySleep) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_PureBusySleep());
 }
 
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_WithBackwardCompatOnHRT) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_WithBackwardCompatOnHRT());
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
