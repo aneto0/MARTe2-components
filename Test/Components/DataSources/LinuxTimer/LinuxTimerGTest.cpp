@@ -265,6 +265,10 @@ TEST(LinuxTimerGTest, TestSetConfiguredDatabase_ExplicitHRTWithMoreThan100Perc) 
     ASSERT_TRUE(test.TestSetConfiguredDatabase_ExplicitHRTWithMoreThan100Perc());
 }
 
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_PureBusySleep) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_PureBusySleep());
+}
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

@@ -271,6 +271,11 @@ public:
     */
     bool TestSetConfiguredDatabase_ExplicitHRTWithMoreThan100Perc();
 
+    /**
+    * @brief Tests explicit HRT provider pure busy sleep
+    */
+    bool TestSetConfiguredDatabase_PureBusySleep();
+
 };
 
 /*---------------------------------------------------------------------------*/
