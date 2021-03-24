@@ -128,7 +128,7 @@ namespace MARTe {
             if(tempSleepNature == "Busy") {
                 if(data.Read("SleepPercentage", tempSleepPercentage)) {
                     if(tempSleepPercentage > 100u) {
-                        REPORT_ERROR(ErrorManagement::Warning, "Adjusting sleep percentage from %d to 100", tempSleepPercentage);
+                        REPORT_ERROR(ErrorManagement::Warning, "Sleep percentage over 100. Auto-adjusting from %d to 100", tempSleepPercentage);
                         tempSleepPercentage = 100u;
                     }
                     yieldSleepPercentage = tempSleepPercentage;

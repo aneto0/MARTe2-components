@@ -249,6 +249,23 @@ TEST(LinuxTimerGTest, TestGetSleepPercentage) {
     LinuxTimerTest test;
     ASSERT_TRUE(test.TestGetSleepPercentage());
 }
+
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_UseBusySleepAndPercentage) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_UseBusySleepAndPercentage());
+}
+
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_False_InvalidSleepNature) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_InvalidSleepNature());
+}
+
+TEST(LinuxTimerGTest, TestSetConfiguredDatabase_ExplicitHRTWithMoreThan100Perc) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_ExplicitHRTWithMoreThan100Perc());
+}
+
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

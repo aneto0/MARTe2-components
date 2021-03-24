@@ -256,6 +256,21 @@ public:
      */
     bool TestGetSleepPercentage();
 
+    /**
+    * @brief Tests an explicit HRT provider with busy sleep and percentage
+    */
+    bool TestSetConfiguredDatabase_UseBusySleepAndPercentage();
+
+    /**
+    * @brief Tests an explicit HRT provider with an invalid sleep nature
+    */
+    bool TestSetConfiguredDatabase_False_InvalidSleepNature();
+
+    /**
+    * @brief Tests an explicit HRT provider with a sleep percentage over 100%
+    */
+    bool TestSetConfiguredDatabase_ExplicitHRTWithMoreThan100Perc();
+
 };
 
 /*---------------------------------------------------------------------------*/
