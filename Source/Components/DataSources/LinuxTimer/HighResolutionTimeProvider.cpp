@@ -57,6 +57,7 @@ namespace MARTe {
         if(returnValue) {
             returnValue = InnerInitialize(data);
         }
+        REPORT_ERROR(returnValue?ErrorManagement::Information:ErrorManagement::FatalError, "Inner initialization %s", returnValue?"succeeded":"failed");
         return returnValue;
     }
 

@@ -1711,12 +1711,24 @@ bool LinuxTimerTest::TestPrepareNextState() {
         application = god->Find("Test");
         ok = application.IsValid();
     }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failure, application is not valid");
+    }
+
     if (ok) {
         ok = application->ConfigureApplication();
     }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failure in configure application");
+    }
+
     if (ok) {
         ok = application->PrepareNextState("State1");
     }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failure in prepare State1");
+    }
+
     if (ok) {
         application->StartNextStateExecution();
     }
@@ -1725,11 +1737,19 @@ bool LinuxTimerTest::TestPrepareNextState() {
     ReferenceT<LinuxTimerTestGAM> gama; 
 
     if(ok) {
-        linuxTimer = application->Find("Functions.GAMA");
-        gama = application->Find("Data.Timer");
+        gama = application->Find("Functions.GAMA");
+        linuxTimer = application->Find("Data.Timer");
+    }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failure finding GAMA and Timer instances");
     }
 
     ok = linuxTimer.IsValid() && gama.IsValid();
+
+    if(!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "LinuxTimer and GAMA instances are not valid");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "GAMA :%s and Timer instance :%s", gama.IsValid()?"true":"false", linuxTimer.IsValid()?"true":"false");
+    }
 
     uint32 *counter;
     uint32 *timer;
@@ -1759,31 +1779,36 @@ bool LinuxTimerTest::TestPrepareNextState() {
         Sleep::MSec(1000);
         counterBefore = (*counter);
         timerBefore = (*timer);
-    }
-
-	if (ok) {
         ok = application->PrepareNextState("State2");
     }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failure in prepare State1");
+    }
+
     if (ok) {
         application->StartNextStateExecution();
-    }
-
-    if(ok) {
 	    Sleep::MSec(10);
-        ok = application->StopCurrentStateExecution();    
-    }
-
-    if (ok) {
+        application->StopCurrentStateExecution();    
         ok = (counterBefore > 1000) && (timerBefore > 1000000);
+    }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failure in prepare State2");
     }
 
     if (ok) {
         ok = application->PrepareNextState("State1");
     }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failure in prepare State1");
+    }
 
     if (ok) {
 		//We are checking that the state change is resetting the counter and the timer
         ok = (((*counter) < counterBefore) && ((*timer) < timerBefore));
+    }
+
+    if(!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failure in check timer rewinding");
     }
 
     god->Purge();

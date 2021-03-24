@@ -114,7 +114,7 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
         if (!data.Read("SleepNature", sleepNatureStr)) {
             REPORT_ERROR(ErrorManagement::Information, "SleepNature was not set. Using Default.");
             sleepNatureStr = "Default";
-            ok = slaveCDB.Write("SleepNature", "Default");
+            //ok = slaveCDB.Write("SleepNature", "Default");
         }
         else {
             ok = slaveCDB.Write("SleepNature", sleepNatureStr.Buffer());
@@ -158,6 +158,7 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
                 executionModeStr = "IndependentThread";
                 REPORT_ERROR(ErrorManagement::Warning, "ExecutionMode not specified using: %s", executionModeStr.Buffer());
             }
+
             if (executionModeStr == "IndependentThread") {
                 executionMode = LINUX_TIMER_EXEC_MODE_SPAWNED;
             }
@@ -230,7 +231,7 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
             if(Size() == 0u) {
                 REPORT_ERROR(ErrorManagement::Information, "No timer provider specified. Falling back to HighResolutionTimeProvider");
                 timeProvider = ReferenceT<HighResolutionTimeProvider> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
-                timeProvider->SetName("HighResolutionTimeProvider");     
+                timeProvider->SetName("DefaultHighResolutionTimeProvider");     
                 ok = timeProvider->Initialise(slaveCDB);
                 skipBackwardCompatibilityInjection = true;
                 if(!ok) {
@@ -249,7 +250,8 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
         //Here we inject parameters into the Time Provider instance, only when the instance is automatically created from the cfg file
         //A check is done in order to avoid double injection/init
         if(ok) {
-            if(!skipBackwardCompatibilityInjection) {
+            if(!skipBackwardCompatibilityInjection && (slaveCDB.GetNumberOfChildren() != 0)) {
+                REPORT_ERROR(ErrorManagement::Information, "Backward compatibility parameters injection preconditions met, injecting %d parameters", slaveCDB.GetNumberOfChildren());
                 ok = timeProvider->BackwardCompatibilityInit(slaveCDB);
                 if(!ok) {
                     REPORT_ERROR(ErrorManagement::FatalError, "Error while injecting backward compatibility parameters to the plugin");
@@ -263,6 +265,9 @@ bool LinuxTimer::Initialise(StructuredDataI& data) {
         if(ok) {
             ticksPerUs = (static_cast<float64>(timeProvider->Frequency()) / 1.0e6);
         }
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::FatalError, "Failure in inner initialize function");
     }
    
     return ok;
@@ -466,6 +471,7 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
                         if (freqRead >= 0.F) {
                             tempFrequency = freqRead;
                             REPORT_ERROR(ErrorManagement::Information, "Frequency = %!", tempFrequency);
+                            //TODO break loop on found freq
                         }
                     }
                 }
