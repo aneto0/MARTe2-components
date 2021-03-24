@@ -127,16 +127,14 @@ namespace MARTe {
         if(data.Read("SleepNature", tempSleepNature)) {
             if(tempSleepNature == "Busy") {
                 if(data.Read("SleepPercentage", tempSleepPercentage)) {
-                    if(tempSleepPercentage <= 100u) {
-                        yieldSleepPercentage = tempSleepPercentage;
-                        SleepProvidingFunction = &HighResolutionTimeProvider::SemiBusy;
-                        REPORT_ERROR(ErrorManagement::Information, "Sleep percentage was specified (%d)", yieldSleepPercentage);
-                        REPORT_ERROR(ErrorManagement::Information, "SemiBusy delegate selected");
+                    if(tempSleepPercentage > 100u) {
+                        REPORT_ERROR(ErrorManagement::Warning, "Adjusting sleep percentage from %d to 100", tempSleepPercentage);
+                        tempSleepPercentage = 100u;
                     }
-                    else {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Sleep percentage cannot be > 100");
-                        returnValue = false;
-                    }
+                    yieldSleepPercentage = tempSleepPercentage;
+                    SleepProvidingFunction = &HighResolutionTimeProvider::SemiBusy;
+                    REPORT_ERROR(ErrorManagement::Information, "Sleep percentage was specified (%d)", yieldSleepPercentage);
+                    REPORT_ERROR(ErrorManagement::Information, "SemiBusy delegate selected");
                 }
                 else {
                     SleepProvidingFunction = &HighResolutionTimeProvider::BusySleep;
