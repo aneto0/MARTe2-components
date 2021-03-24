@@ -147,6 +147,10 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
         }
     }
 
+    if(ok) {
+        Sleep::MSec(1000);
+    }
+
     if (ok) {
         application->StopCurrentStateExecution();
     }
@@ -1717,8 +1721,14 @@ bool LinuxTimerTest::TestPrepareNextState() {
         application->StartNextStateExecution();
     }
 
-    ReferenceT<LinuxTimer> linuxTimer = application->Find("Data.Timer");
-    ReferenceT<LinuxTimerTestGAM> gama = application->Find("Functions.GAMA");
+    ReferenceT<LinuxTimer> linuxTimer; 
+    ReferenceT<LinuxTimerTestGAM> gama; 
+
+    if(ok) {
+        linuxTimer = application->Find("Functions.GAMA");
+        gama = application->Find("Data.Timer");
+    }
+
     ok = linuxTimer.IsValid() && gama.IsValid();
 
     uint32 *counter;
