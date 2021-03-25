@@ -1,2 +1,0 @@
-g++ -W -Wall -O3 -funroll-all-loops -g3 -c InterleavedToFlat.cpp -o InterleavedToFlat.o
-

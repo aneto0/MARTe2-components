@@ -18,8 +18,9 @@
  * or implied. See the Licence permissions and limitations under the Licence.
  *
  * @details This source file contains the definition of all the methods for
- * the class NI9157CircularFifoReader (public, protected, and private). Be aware that some 
- * methods, such as those inline could be defined on the header file, instead.
+ * the class NI9157CircularFifoReader (public, protected, and private). Be 
+ * aware that some methods, such as those inline could be defined on the header
+ * file, instead.
  */
 
 /*---------------------------------------------------------------------------*/
@@ -63,15 +64,12 @@ NI9157CircularFifoReader::NI9157CircularFifoReader() :
     acqTimeout = 0xFFFFFFFFu;
     nonBlockSleepT = 0.F;
     if (eventSem.Create()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "NI9157CircularFifoReader::NI9157CircularFifoReader - Sucessfuly created EventSem");
+        REPORT_ERROR(ErrorManagement::FatalError, "NI9157CircularFifoReader::NI9157CircularFifoReader EventSem successfully created");
     }
     ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT<RegisteredMethodsMessageFilter> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
-    ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
-    if (!ret.ErrorsCleared()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "NI9157CircularFifoReader::NI9157CircularFifoReader - Failed to install the message filters");
-    }
-
+    ErrorManagement::ErrorType err = MessageI::InstallMessageFilter(filter);
+    REPORT_ERROR_PARAMETERS(err.ErrorsCleared() ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::NI9157CircularFifoReader Install Message Filter returned %s", err.ErrorsCleared() ? "true" : "false");
 }
 
 /*lint -e{1551} destructor needs to delete the devices*/
@@ -89,7 +87,6 @@ NI9157CircularFifoReader::~NI9157CircularFifoReader() {
 bool NI9157CircularFifoReader::Synchronise() {
 
     bool ret;
-
     ret = CircularBufferThreadInputDataSource::Synchronise();
     if (ret) {
         if (stop > 0) {
@@ -103,7 +100,7 @@ bool NI9157CircularFifoReader::Synchronise() {
 bool NI9157CircularFifoReader::Initialise(StructuredDataI &data) {
 
     bool ret;
-    REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::Initialise - Start"); 
+    REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::Initialise");
 
     ret = CircularBufferThreadInputDataSource::Initialise(data);
     if (ret) {
@@ -153,9 +150,7 @@ bool NI9157CircularFifoReader::Initialise(StructuredDataI &data) {
             if (ret) {
                 nFrameForSync = checker->GetNumberOfFramesToSync();
             }
-            else {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "NI9157CircularFifoReader::Initialise - CheckFrame=1 but SampleChecker is not defined");
-            }
+            REPORT_ERROR(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::Initialise CheckFrame=1 and SampleChecker is returing %s", ret ? "true" : "false");
         }
     }
 
@@ -165,13 +160,13 @@ bool NI9157CircularFifoReader::Initialise(StructuredDataI &data) {
 bool NI9157CircularFifoReader::SetConfiguredDatabase(StructuredDataI & data) {
 
     bool ret;
-    REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::SetConfiguredDatabase - Start");
+    REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::SetConfiguredDatabase");
 
     ret = CircularBufferThreadInputDataSource::SetConfiguredDatabase(data);
     if (ret) {
         ret = (numberOfChannels == 1u);
         if (!ret) {
-            REPORT_ERROR(ErrorManagement::FatalError, "NI9157CircularFifoReader::SetConfiguredDatabase - At least one signal must be defined (besides the InternalTimeStamp and ErrorCheck signals)");
+            REPORT_ERROR(ErrorManagement::FatalError, "NI9157CircularFifoReader::SetConfiguredDatabase At least one signal must be defined (besides the InternalTimeStamp and ErrorCheck signals)");
         }
     }
     //check that the signals byte size is multiple of sampleByteSize
@@ -181,10 +176,12 @@ bool NI9157CircularFifoReader::SetConfiguredDatabase(StructuredDataI & data) {
             if ((i != timeStampSignalIndex) && (i != errorCheckSignalIndex)) {
                 TypeDescriptor td = GetSignalType(i);
                 CreateNI9157DeviceOperatorI *creator = NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperator(td);
-                ret = (creator != NULL);
+                ret = (creator != NULL_PTR(CreateNI9157DeviceOperatorI *));
+                REPORT_ERROR(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::SetConfiguredDatabase GetCreateNI9157DeviceOperator returned %s", ret ? "true" : "false");
                 if (ret) {
                     niDeviceOperator = creator->Create(niDeviceBoard);
-                    ret = (niDeviceOperator != NULL);
+                    ret = (niDeviceOperator != NULL_PTR(NI9157DeviceOperatorTI *));
+                    REPORT_ERROR(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::SetConfiguredDatabase Create NiDevice operator returned %s", ret ? "true" : "false");
                     if (ret) {
                         sampleByteSize = niDeviceOperator->GetByteSize();
                         uint32 signalByteSize = 0u;
@@ -196,12 +193,6 @@ bool NI9157CircularFifoReader::SetConfiguredDatabase(StructuredDataI & data) {
                             break;
                         }
                     }
-                    else {
-                        REPORT_ERROR(ErrorManagement::FatalError, "NI9157CircularFifoReader::SetConfiguredDatabase - Failed creating the NiDevice operator");
-                    }
-                }
-                else {
-                    REPORT_ERROR(ErrorManagement::FatalError, "NI9157CircularFifoReader::SetConfiguredDatabase - Could not find the CreateNI9157DeviceOperator");
                 }
             }
         }
@@ -210,9 +201,7 @@ bool NI9157CircularFifoReader::SetConfiguredDatabase(StructuredDataI & data) {
         /*lint -e{613} NULL pointer checked.*/
         NiFpga_Status status = niDeviceOperator->FindResource(fifoName.Buffer(), fifoDev);
         ret = (status == 0);
-        if (!ret) {
-            REPORT_ERROR(ErrorManagement::FatalError, "NI9157CircularFifoReader::SetConfiguredDatabase - Failed to FindResource %s with status %d", fifoName.Buffer(), static_cast<int32>(status));
-        }
+        REPORT_ERROR(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::SetConfiguredDatabase FindResource %s returned %s with status %d", fifoName.Buffer(), ret ? "true" : "false", static_cast<int32>(status));
     }
 
     return ret;
@@ -231,7 +220,7 @@ bool NI9157CircularFifoReader::PrepareNextState(const char8 * const currentState
     uint32 oldSize = 0u;
     uint8 numberOfAttempts = 2u;
     ErrorManagement::ErrorType err;
-    REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::PrepareNextState - Start");
+    REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::PrepareNextState");
 
     for (uint32 i = 0u; i < numberOfSignals; i++) {
         if (!GetSignalNumberOfProducers(i, currentStateName, numberOfProducersCurrentState)) {
@@ -278,7 +267,7 @@ bool NI9157CircularFifoReader::PrepareNextState(const char8 * const currentState
     if (numberOfReadWriteNext == 0u) {
         if (executor.GetStatus() != EmbeddedThreadI::OffState) {
             for (uint32 i = 0u; i < numberOfAttempts; i++){
-                REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::PrepareNextState - Stopping attempt %u of %u", i+1u, numberOfAttempts);
+                REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::PrepareNextState Stopping attempt %u of %u", i+1u, numberOfAttempts);
                 err = (!executor.Stop());
                 if (ret) {
                     ret = err.ErrorsCleared();
@@ -290,7 +279,7 @@ bool NI9157CircularFifoReader::PrepareNextState(const char8 * const currentState
         }
     }
 
-    REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::PrepareNextState returning %s with prepare %s", ret ? "true" : "false", prepare ? "true" : "false");
+    REPORT_ERROR(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::PrepareNextState returning %s with prepare %s", ret ? "true" : "false", prepare ? "true" : "false");
     return ret;
 }
 
@@ -298,17 +287,15 @@ bool NI9157CircularFifoReader::PrepareNextState(const char8 * const currentState
 bool NI9157CircularFifoReader::DriverRead(char8 * const bufferToFill, uint32 &sizeToRead, const uint32 signalIdx) {
 
     bool ret = true;
-    bool writeMemory = true;
-    //REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::DriverRead - Start");
+    bool writeMemory = false;
+    //REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::DriverRead");
 
     if (runNi == 1u) {
-        REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::DriverRead - Calling Run on the NiDevice");
+        REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::DriverRead Calling Run on the NiDevice");
         NiFpga_Status status = niDeviceBoard->Run();
         ret = (status == 0);
-        if (!ret) {
-            REPORT_ERROR(ErrorManagement::FatalError, "NI9157CircularFifoReader::DriverRead - Failed to Run the application with status %d", static_cast<int32>(status));
-        }
         runNi = 0u;
+        REPORT_ERROR(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::DriverRead Run call returned %s with status %d", ret ? "true" : "false" , static_cast<int32>(status));
     }
     if (ret) {
         uint32 fifoRemaining = 0u;
@@ -325,10 +312,12 @@ bool NI9157CircularFifoReader::DriverRead(char8 * const bufferToFill, uint32 &si
         }
         ret = (status == 0);
         if (status == NiFpga_Status_FifoTimeout) {
-            uint32 index1 = (currentBuffer[errorCheckSignalIndex]);
-            uint32 errorMemIndex = (signalOffsets[errorCheckSignalIndex] + ((index1) * static_cast<uint32> (sizeof(uint32))));
-            /*lint -e{340} -e{927} -e{826} -e{740} Allowed cast from pointer to pointer*/
-            *reinterpret_cast<uint32*> (&(memory[errorMemIndex])) |= 4u;
+            if (errorCheckSignalIndex != 0xFFFFFFFFu) {
+                uint32 index1 = (currentBuffer[errorCheckSignalIndex]);
+                uint32 errorMemIndex = (signalOffsets[errorCheckSignalIndex] + ((index1) * static_cast<uint32> (sizeof(uint32))));
+                /*lint -e{340} -e{927} -e{826} -e{740} Allowed cast from pointer to pointer*/
+                *reinterpret_cast<uint32*> (&(memory[errorMemIndex])) |= 4u;
+            }
         }
     }
     //check the frame
@@ -337,7 +326,7 @@ bool NI9157CircularFifoReader::DriverRead(char8 * const bufferToFill, uint32 &si
         /*lint -e{613} NULL pointer checked*/
         bool ok = checker->Check(reinterpret_cast<uint8*> (&(middleBuffer[0])), writeMemory);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::FatalError, "NI9157CircularFifoReader::DriverRead - Checker returned false (failed to synchronise)");
+            REPORT_ERROR(ErrorManagement::FatalError, "NI9157CircularFifoReader::DriverRead Checker returned false (failed to synchronise)");
             //if the check fails
             if (errorCheckSignalIndex != 0xFFFFFFFFu) {
                 uint32 index1 = (currentBuffer[errorCheckSignalIndex]);
@@ -355,10 +344,12 @@ bool NI9157CircularFifoReader::DriverRead(char8 * const bufferToFill, uint32 &si
                     NiFpga_Status status = niDeviceOperator->NiReadFifo(fifoDev, &middleBuffer[index], (sizeToRead / sampleByteSize), acqTimeout, fifoRemaining);
                     ret = (status == 0);
                     if (status == NiFpga_Status_FifoTimeout) {
-                        uint32 index1 = (currentBuffer[errorCheckSignalIndex]);
-                        uint32 errorMemIndex = (signalOffsets[errorCheckSignalIndex] + ((index1) * static_cast<uint32> (sizeof(uint32))));
-                        /*lint -e{340} -e{927} -e{826} -e{740} Allowed cast from pointer to pointer*/
-                        *reinterpret_cast<uint32*> (&(memory[errorMemIndex])) |= 4u;
+                        if (errorCheckSignalIndex != 0xFFFFFFFFu) {
+                            uint32 index1 = (currentBuffer[errorCheckSignalIndex]);
+                            uint32 errorMemIndex = (signalOffsets[errorCheckSignalIndex] + ((index1) * static_cast<uint32> (sizeof(uint32))));
+                            /*lint -e{340} -e{927} -e{826} -e{740} Allowed cast from pointer to pointer*/
+                            *reinterpret_cast<uint32*> (&(memory[errorMemIndex])) |= 4u;
+                        }
                     }
                 }
                 if (ret) {
@@ -375,10 +366,12 @@ bool NI9157CircularFifoReader::DriverRead(char8 * const bufferToFill, uint32 &si
                         NiFpga_Status status = niDeviceOperator->NiReadFifo(fifoDev, &middleBuffer[sizeToMove], (idx / sampleByteSize), acqTimeout, fifoRemaining);
                         ret = (status == 0);
                         if (status == NiFpga_Status_FifoTimeout) {
-                            uint32 index1 = (currentBuffer[errorCheckSignalIndex]);
-                            uint32 errorMemIndex = (signalOffsets[errorCheckSignalIndex] + ((index1) * static_cast<uint32> (sizeof(uint32))));
-                            /*lint -e{340} -e{927} -e{826} -e{740} Allowed cast from pointer to pointer*/
-                            *reinterpret_cast<uint32*> (&(memory[errorMemIndex])) |= 4u;
+                            if (errorCheckSignalIndex != 0xFFFFFFFFu) {
+                                uint32 index1 = (currentBuffer[errorCheckSignalIndex]);
+                                uint32 errorMemIndex = (signalOffsets[errorCheckSignalIndex] + ((index1) * static_cast<uint32> (sizeof(uint32))));
+                                /*lint -e{340} -e{927} -e{826} -e{740} Allowed cast from pointer to pointer*/
+                                *reinterpret_cast<uint32*> (&(memory[errorMemIndex])) |= 4u;
+                            }
                         }
                         if (ret) {
                             uint32 index = sizeToRead * (nFrameForSync - 1u);
@@ -396,11 +389,7 @@ bool NI9157CircularFifoReader::DriverRead(char8 * const bufferToFill, uint32 &si
         if (writeMemory) {
             /*lint -e{613} NULL pointer checked*/
             (void) MemoryOperationsHelper::Copy(bufferToFill, &(middleBuffer[0]), sizeToRead);
-            if (numberOfInterleavedSamples[signalIdx] == 0u) {
-                /*lint -e{613} NULL pointer checked*/
-                (void) MemoryOperationsHelper::Copy(bufferToFill, &(middleBuffer[0]), sizeToRead);
-            }
-            else {
+            if (numberOfInterleavedSamples[signalIdx] > 0u) {
                 uint32 cnt = 0u;
                 for (uint32 x = 0u; x < signalIdx; x++) {
                     cnt += numberOfInterleavedSamples[x];
@@ -427,28 +416,28 @@ bool NI9157CircularFifoReader::DriverRead(char8 * const bufferToFill, uint32 &si
 ErrorManagement::ErrorType NI9157CircularFifoReader::StopAcquisition() {
 
     ErrorManagement::ErrorType err;
-    REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::StopAcquisition - Start");
+    REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::StopAcquisition");
     
     runNi = runNiOriginal;
     Atomic::Increment (&stop);
     uint8 numberOfAttempts = 2u;
     if (executor.GetStatus() != EmbeddedThreadI::OffState) {
         for (uint32 i = 0u; i < numberOfAttempts; i++){
-            REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::StopAcquisition - Attempt %u of %u", i+1u, numberOfAttempts);
+            REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::StopAcquisition Attempt %u of %u", i+1u, numberOfAttempts);
             err = (!executor.Stop());
             if (err.ErrorsCleared()) {
                 break;
             }
         }
     }
-    REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::StopAcquisition returning %s", err.ErrorsCleared() ? "true" : "false");
+    REPORT_ERROR(err.ErrorsCleared() ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::StopAcquisition returning %s", err.ErrorsCleared() ? "true" : "false");
     return err;
 }
 
 ErrorManagement::ErrorType NI9157CircularFifoReader::StartAcquisition() {
 
     ErrorManagement::ErrorType err;
-    REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::StartAcquisition - Start");
+    REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::StartAcquisition");
 
     for (uint32 i = 0u; (i < numberOfSignals); i++) {
         nBrokerOpPerSignalCounter[i] = nBrokerOpPerSignal[i];
@@ -464,7 +453,7 @@ ErrorManagement::ErrorType NI9157CircularFifoReader::StartAcquisition() {
     NiFpga_Status status = niDeviceBoard->NiConfigureFifo(fifoDev, hostFifoSize, oldSize);
     err = (status != 0);
     if (err.ErrorsCleared()) {
-        REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::StartAcquisition - FIFO configured");
+        REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::StartAcquisition FIFO configured");
         uint32 maxSize = (totalReadSize * nFrameForSync);
         (void) MemoryOperationsHelper::Set(middleBuffer, '\0', maxSize);
         stop = 0;
@@ -473,7 +462,7 @@ ErrorManagement::ErrorType NI9157CircularFifoReader::StartAcquisition() {
         if (executor.GetStatus() == EmbeddedThreadI::OffState) {
             err = (!executor.Start());
             if(err.ErrorsCleared()){
-                REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::StartAcquisition - Application started");
+                REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::StartAcquisition Application started");
             }
         }
     }
@@ -481,7 +470,7 @@ ErrorManagement::ErrorType NI9157CircularFifoReader::StartAcquisition() {
         err = (!eventSem.Post());
     }
 
-    REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::StartAcquisition returning %s", err.ErrorsCleared() ? "true" : "false");
+    REPORT_ERROR(err.ErrorsCleared() ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::StartAcquisition returning %s", err.ErrorsCleared() ? "true" : "false");
     return err;
 }
 

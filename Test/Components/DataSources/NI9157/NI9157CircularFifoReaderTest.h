@@ -17,9 +17,10 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
- * @details This header file contains the declaration of the class NI9157CircularFifoReaderTest
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * @details This header file contains the declaration of the class
+ * NI9157CircularFifoReaderTest with all of its public, protected and private
+ * members. It may also include definitions for inline methods which need to be
+ * visible to the compiler.
  */
 
 #ifndef NI9157CIRCULARFIFOREADERTEST_H_
@@ -32,7 +33,21 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
+#include "ConfigurationDatabase.h"
+#include "DataSourceI.h"
+#include "GAMSchedulerI.h"
+#include "Interleaved2FlatGAM.h"
+#include "MemoryMapMultiBufferInputBroker.h"
+#include "MemoryMapMultiBufferOutputBroker.h"
+#include "MemoryMapOutputBroker.h"
+#include "MemoryMapSynchronisedMultiBufferInputBroker.h"
+#include "MemoryMapSynchronisedMultiBufferOutputBroker.h"
 #include "NI9157CircularFifoReader.h"
+#include "NI9157TestsAndFwSettings.h"
+#include "ObjectRegistryDatabase.h"
+#include "RealTimeApplication.h"
+#include "StandardParser.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -187,6 +202,12 @@ public:
     bool TestPrepareNextState(uint32 model);
 
     /**
+     * @brief Tests the NI9157CircularFifoReaderTest::PrepareNextState
+     * method with two distinct states.
+     */
+    bool TestPrepareNextState_TwoStates(uint32 model);
+
+    /**
      * @brief Test the NI9157CircularFifoReaderTest::StopAcquisition method.
      */
     bool TestStopAcquisition(uint32 model);
@@ -200,6 +221,12 @@ public:
      * @brief Test the NI9157CircularFifoReaderTest::Synchronise method.
      */
     bool TestSynchronise(uint32 model);
+
+    /**
+     * @brief Test the NI9157CircularFifoReaderTest::Synchronise method 
+     * without a Start call.
+     */
+    bool TestSynchronise_NoStart(uint32 model);
 
     /**
      * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method.
@@ -248,6 +275,44 @@ public:
      * doing the de-interleaving operation in the internal thread.
      */
     bool TestDriverRead_InternalInterleaved(uint32 model);
+
+    /**
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method
+     * which results in a data reading error when CheckFrame is 0.
+     */
+    bool TestDriverRead_NoCheckFrame(uint32 model);
+
+    /**
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method
+     * with the NonBlockSleepT parameter set to 0.001.
+     */
+    bool TestDriverRead_SetNonBlockSleepT(uint32 model);
+
+    /**
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method
+     * forcing NiFpga_Status_FifoTimeout but without errorCheckSignalIndex
+     * from the Parent Class.
+     */
+    bool TestDriverRead_FifoTOutNoErrorChecker(uint32 model);
+
+    /**
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method
+     * forcing NiFpga_Status_FifoTimeout with errorCheckSignalIndex signal.
+     */
+    bool TestDriverRead_FifoTOutWithErrorChecker(uint32 model);
+
+    /**
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method
+     * with the HeaderSize > 0.
+     */
+    bool TestDriverRead_HeaderSize(uint32 model);
+
+    /**
+     * @brief Tests the NI9157CircularFifoReaderTest::DriverRead method
+     * with he HeaderSize > 0 and CheckFrame = 1.
+     */
+    bool TestDriverRead_HeaderSizeCheckFrame(uint32 model);
+    
 
 };
 
