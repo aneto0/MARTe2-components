@@ -466,13 +466,14 @@ bool LinuxTimer::PrepareNextState(const char8* const currentStateName,
                 if (ok) {
                     uint32 nOfFunSignals = 0u;
                     ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunSignals);
-                    for (uint32 k = 0u; (k < nOfFunSignals) && ok; k++) {
+                    bool foundFreq = false;
+                    for (uint32 k = 0u; (k < nOfFunSignals) && ok && (!foundFreq); k++) {
                         float32 freqRead = -1.0F;
                         ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, k, freqRead);
                         if (freqRead >= 0.F) {
                             tempFrequency = freqRead;
-                            REPORT_ERROR(ErrorManagement::Information, "Frequency = %!", tempFrequency);
-                            //TODO break loop on found freq
+                            foundFreq = true;
+                            REPORT_ERROR(ErrorManagement::Information, "Frequency found = %!", tempFrequency);
                         }
                     }
                 }
