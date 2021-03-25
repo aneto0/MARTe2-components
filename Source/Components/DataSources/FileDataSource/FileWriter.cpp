@@ -54,7 +54,7 @@ FileWriter::FileWriter() :
     numberOfBuffers = 0u;
     dataSourceMemory = NULL_PTR(char8 *);
     offsets = NULL_PTR(uint32 *);
-    cpuMask = 0xFEu;
+    cpuMask = ProcessorType(0xFEu);
     stackSize = 0u;
     numberOfBinaryBytes = 0u;
     fileFormat = FILE_FORMAT_BINARY;
@@ -64,7 +64,6 @@ FileWriter::FileWriter() :
     refreshContent = 0u;
     fullNotation =0u;
     signalsAnyType = NULL_PTR(AnyType *);
-    brokerAsyncTrigger = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
     filter = ReferenceT < RegisteredMethodsMessageFilter > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
@@ -73,7 +72,7 @@ FileWriter::FileWriter() :
     }
 }
 
-/*lint -e{1551} -e{1579} the destructor must guarantee that the memory is freed and the file is flushed and closed.. The brokerAsyncTrigger is freed by the ReferenceT */
+/*lint -e{1551} -e{1579} the destructor must guarantee that the memory is freed and the file is flushed and closed.. */
 FileWriter::~FileWriter() {
     if (FlushFile() != ErrorManagement::NoError) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the File");
@@ -139,18 +138,19 @@ bool FileWriter::GetOutputBrokers(ReferenceContainer& outputBrokers,
     bool ok = true;
     if (storeOnTrigger) {
         ReferenceT < MemoryMapAsyncTriggerOutputBroker > brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
-        brokerAsyncTrigger = brokerAsyncTriggerNew.operator ->();
         ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
                                                               numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
+            brokerAsync = brokerAsyncTriggerNew;
             ok = outputBrokers.Insert(brokerAsyncTriggerNew);
         }
     }
     else {
-        ReferenceT < MemoryMapAsyncOutputBroker > brokerAsync("MemoryMapAsyncOutputBroker");
-        ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
+        ReferenceT < MemoryMapAsyncOutputBroker > brokerAsyncNew("MemoryMapAsyncOutputBroker");
+        ok = brokerAsyncNew->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
         if (ok) {
-            ok = outputBrokers.Insert(brokerAsync);
+            brokerAsync = brokerAsyncNew;
+            ok = outputBrokers.Insert(brokerAsyncNew);
         }
     }
     return ok;
@@ -224,13 +224,14 @@ bool FileWriter::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
+        // TODO (WARNING) CHANGE FORMAT TO SUPPORT MORE THAN 32 cpus!
         uint32 cpuMaskIn;
         ok = data.Read("CPUMask", cpuMaskIn);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "CPUMask shall be specified");
         }
         else {
-            cpuMask = cpuMaskIn;
+            cpuMask = ProcessorType(cpuMaskIn);
         }
     }
     if (ok) {
@@ -655,14 +656,21 @@ ErrorManagement::ErrorType FileWriter::CloseFile() {
 
 ErrorManagement::ErrorType FileWriter::FlushFile() {
     bool ok = true;
-    //if (brokerAsyncTrigger != NULL_PTR(MemoryMapAsyncTriggerOutputBroker *)) {
-        // ok = brokerAsyncTrigger->FlushAllTriggers();
-    //}
-    //if (ok) {
+    ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger = brokerAsync;
+    if (brokerAsyncTrigger.IsValid()) {
+        ok = brokerAsyncTrigger->FlushAllTriggers();
+    }
+    else {
+        ReferenceT<MemoryMapAsyncOutputBroker> brokerAsyncNoTrigger = brokerAsync;
+        if (brokerAsyncNoTrigger.IsValid()) {
+            ok = brokerAsyncNoTrigger->Flush();
+        }
+    }
+    if (ok) {
         if (outputFile.IsOpen()) {
             ok = outputFile.Flush();
         }
-    //}
+    }
 
     ErrorManagement::ErrorType err(ok);
     return err;

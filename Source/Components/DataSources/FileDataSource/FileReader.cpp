@@ -47,39 +47,48 @@ static const int32 FILE_FORMAT_BINARY = 1;
 static const int32 FILE_FORMAT_CSV = 2;
 
 FileReader::FileReader() :
-        DataSourceI(), MessageI() {
-    dataSourceMemory = NULL_PTR(char8 *);
-    offsets = NULL_PTR(uint32 *);
+        DataSourceI(),
+        MessageI() {
+    dataSourceMemory = NULL_PTR(char8*);
+    offsets = NULL_PTR(uint32*);
     numberOfBinaryBytes = 0u;
     xAxisSignal = 0u;
     xAxisSignalIdx = 0u;
-    xAxisSignalPtr = NULL_PTR(uint64 *);
+    xAxisSignalPtr = NULL_PTR(uint64*);
     interpolationPeriod = 0u;
     xAxisSignalType = InvalidType;
     fileFormat = FILE_FORMAT_BINARY;
     filename = "";
     fatalFileError = false;
     interpolate = false;
-    interpolatedInputBroker = NULL_PTR(MemoryMapInterpolatedInputBroker *);
-    signalsAnyType = NULL_PTR(AnyType *);
+    interpolatedInputBroker = NULL_PTR(MemoryMapInterpolatedInputBroker*);
+    signalsAnyType = NULL_PTR(AnyType*);
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
     if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
     }
+    preload = false;
+    allData.dataFileByteSize = 0u;
+    allData.interalBufferIdx = 0u;
+    allData.internalBuffer = NULL_PTR(char8*);
+    allData.maxDataFileByteSize = 0u;
 }
 
 /*lint -e{1551} -e{1579} the destructor must guarantee that the memory is freed and the file is flushed and closed.. The brokerAsyncTrigger is freed by the ReferenceT */
 FileReader::~FileReader() {
-    if (dataSourceMemory != NULL_PTR(char8 *)) {
-        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(dataSourceMemory));
+    if (dataSourceMemory != NULL_PTR(char8*)) {
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void*&>(dataSourceMemory));
     }
-    if (offsets != NULL_PTR(uint32 *)) {
+    if (offsets != NULL_PTR(uint32*)) {
         delete[] offsets;
     }
-    if (signalsAnyType != NULL_PTR(AnyType *)) {
+    if (signalsAnyType != NULL_PTR(AnyType*)) {
         delete[] signalsAnyType;
+    }
+    if (allData.internalBuffer != NULL_PTR(char8*)) {
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void*&>(allData.internalBuffer));
     }
     (void) CloseFile();
 }
@@ -93,19 +102,22 @@ uint32 FileReader::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
-bool FileReader::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
-    bool ok = (dataSourceMemory != NULL_PTR(char8 *));
+bool FileReader::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                       const uint32 bufferIdx,
+                                       void *&signalAddress) {
+    bool ok = (dataSourceMemory != NULL_PTR(char8*));
     if (ok) {
         /*lint -e{613} dataSourceMemory cannot be NULL here*/
         char8 *memPtr = &dataSourceMemory[offsets[signalIdx]];
-        signalAddress = reinterpret_cast<void *&>(memPtr);
+        signalAddress = reinterpret_cast<void*&>(memPtr);
     }
     return ok;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction and on the storeOnTrigger property (which is load before).*/
-const char8* FileReader::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
-    const char8* brokerName = "";
+const char8* FileReader::GetBrokerName(StructuredDataI &data,
+                                       const SignalDirection direction) {
+    const char8 *brokerName = "";
     if (direction == InputSignals) {
         if (interpolate) {
             brokerName = "MemoryMapInterpolatedInputBroker";
@@ -117,7 +129,9 @@ const char8* FileReader::GetBrokerName(StructuredDataI& data, const SignalDirect
     return brokerName;
 }
 
-bool FileReader::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool FileReader::GetInputBrokers(ReferenceContainer &inputBrokers,
+                                 const char8 *const functionName,
+                                 void *const gamMemPtr) {
     bool ok = true;
     if (interpolate) {
         ReferenceT<MemoryMapInterpolatedInputBroker> brokerNew("MemoryMapInterpolatedInputBroker");
@@ -151,41 +165,43 @@ bool FileReader::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* 
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: OutputBrokers are not supported. Function returns false irrespectively of the parameters.*/
-bool FileReader::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool FileReader::GetOutputBrokers(ReferenceContainer &outputBrokers,
+                                  const char8 *const functionName,
+                                  void *const gamMemPtr) {
     return false;
 }
 
 /*lint -e{613} xAxisSignalPtr cannot be NULL as otherwise SetConfiguredDatabase would have failed.*/
 void FileReader::ConvertXAxisSignal() {
     if (xAxisSignalType == UnsignedInteger8Bit) {
-        xAxisSignal = static_cast<uint64>(*reinterpret_cast<uint8 *>(xAxisSignalPtr));
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<uint8*>(xAxisSignalPtr));
     }
     else if (xAxisSignalType == SignedInteger8Bit) {
-        xAxisSignal = static_cast<uint64>(*reinterpret_cast<int8 *>(xAxisSignalPtr));
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<int8*>(xAxisSignalPtr));
     }
     else if (xAxisSignalType == UnsignedInteger16Bit) {
-        xAxisSignal = static_cast<uint64>(*reinterpret_cast<uint16 *>(xAxisSignalPtr));
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<uint16*>(xAxisSignalPtr));
     }
     else if (xAxisSignalType == SignedInteger16Bit) {
-        xAxisSignal = static_cast<uint64>(*reinterpret_cast<int16 *>(xAxisSignalPtr));
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<int16*>(xAxisSignalPtr));
     }
     else if (xAxisSignalType == UnsignedInteger32Bit) {
-        xAxisSignal = static_cast<uint64>(*reinterpret_cast<uint32 *>(xAxisSignalPtr));
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<uint32*>(xAxisSignalPtr));
     }
     else if (xAxisSignalType == SignedInteger32Bit) {
-        xAxisSignal = static_cast<uint64>(*reinterpret_cast<int32 *>(xAxisSignalPtr));
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<int32*>(xAxisSignalPtr));
     }
     else if (xAxisSignalType == UnsignedInteger64Bit) {
-        xAxisSignal = *reinterpret_cast<uint64 *>(xAxisSignalPtr);
+        xAxisSignal = *reinterpret_cast<uint64*>(xAxisSignalPtr);
     }
     else if (xAxisSignalType == SignedInteger64Bit) {
-        xAxisSignal = static_cast<uint64>(*reinterpret_cast<int64 *>(xAxisSignalPtr));
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<int64*>(xAxisSignalPtr));
     }
     else if (xAxisSignalType == Float32Bit) {
-        xAxisSignal = static_cast<uint64>(*reinterpret_cast<float32 *>(xAxisSignalPtr));
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<float32*>(xAxisSignalPtr));
     }
     else if (xAxisSignalType == Float64Bit) {
-        xAxisSignal = static_cast<uint64>(*reinterpret_cast<float64 *>(xAxisSignalPtr));
+        xAxisSignal = static_cast<uint64>(*reinterpret_cast<float64*>(xAxisSignalPtr));
     }
     else {
         //Unreachable...
@@ -196,137 +212,94 @@ bool FileReader::Synchronise() {
     bool ok = !fatalFileError;
     if (ok) {
         bool lockAtLast = false;
-        if (inputFile.Position() == inputFile.Size()) {
-            if (eofBehaviour == EOFRewind) {
-                if (fileFormat == FILE_FORMAT_BINARY) {
-                    const uint32 SIGNAL_NAME_MAX_SIZE = 32u;
-                    uint32 headerSize = static_cast<uint32>(sizeof(uint16));
-                    headerSize += SIGNAL_NAME_MAX_SIZE;
-                    headerSize += static_cast<uint32>(sizeof(uint32));
-                    headerSize *= GetNumberOfSignals();
-                    headerSize += static_cast<uint32>(sizeof(uint32));
-                    ok = inputFile.Seek(0LLU);
-                    if (ok) {
-                        ok = inputFile.Seek(static_cast<uint64>(headerSize));
-                    }
+        if (preload) {
+            if (allData.interalBufferIdx == allData.dataFileByteSize) {
+                if (eofBehaviour == EOFRewind) { //move to the beginning
+                    allData.interalBufferIdx = 0u;
                 }
-                else {
-                    ok = inputFile.Seek(0LLU);
-                    if (ok) {
-                        StreamString header;
-                        //Skip the header
-                        ok = inputFile.GetLine(header);
-                    }
+                else if (eofBehaviour == EOFLast) {
+                    lockAtLast = true;
+                }
+                else { //End of data && eofBehaviour = EOFError
+                    fatalFileError = true;
+                    ok = false;
                 }
             }
-            else if (eofBehaviour == EOFLast) {
-                lockAtLast = true;
-            }
-            else {
-                //Unreachable by design.
-            }
-        }
-        if (!lockAtLast) {
-            if (fileFormat == FILE_FORMAT_BINARY) {
-                uint32 readSize = numberOfBinaryBytes;
-                ok = inputFile.Read(dataSourceMemory, readSize);
-                if (ok) {
-                    ok = (readSize == numberOfBinaryBytes);
-                }
-            }
-            else {
-                StreamString token;
-                char8 saveTerminator;
-                uint32 nSignals = GetNumberOfSignals();
-                uint32 signalIdx = 0u;
-                StreamString line;
-                ok = inputFile.GetLine(line);
-                if (ok) {
-                    ok = line.Seek(0LLU);
-                }
-                if (ok) {
-                    ok = line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
-                }
-                /*lint -e{613} signalsAnyType cannot be NULL as otherwise SetConfiguredDatabase would have failed.*/
-                while ((ok) && (signalIdx < nSignals)) {
-                    bool isString = (signalsAnyType[signalIdx].GetTypeDescriptor() == CharString);
-                    if (!isString) {
-                        isString = (signalsAnyType[signalIdx].GetTypeDescriptor() == Character8Bit);
-                    }
-                    if ((signalsAnyType[signalIdx].GetNumberOfDimensions() == 1u) && (!isString)) {
-                        uint32 nElements = signalsAnyType[signalIdx].GetNumberOfElements(0u);
-                        StreamString tokenArray;
-                        uint32 arrayIdx = 0u;
-                        void *signalAddress = signalsAnyType[signalIdx].GetDataPointer();
-                        char8 *signalAddressChr = reinterpret_cast<char8 *>(signalAddress);
-                        if (token[static_cast<uint32>(token.Size()) - 1u] != '}') {
-                            token += csvSeparator;
-                            ok = line.GetToken(token, "}", saveTerminator);
-                            if (ok) {
-                                token += saveTerminator;
-                            }
-                        }
-                        if (ok) {
-                            ok = token.Seek(0LLU);
-                        }
-                        if (ok) {
-                            ok = token.GetToken(tokenArray, "{},", saveTerminator);
-                        }
-                        while ((ok) && (arrayIdx < nElements)) {
-                            AnyType sourceStr(CharString, 0u, tokenArray.Buffer());
-                            uint32 byteSize = signalsAnyType[signalIdx].GetByteSize();
-                            uint32 arrayIdxByteSize = (arrayIdx * byteSize);
-                            AnyType destination(signalsAnyType[signalIdx].GetTypeDescriptor(), 0u, &signalAddressChr[arrayIdxByteSize]);
-                            ok = TypeConvert(destination, sourceStr);
-                            tokenArray = "";
-                            arrayIdx++;
-                            if (ok) {
-                                ok = token.GetToken(tokenArray, "{},", saveTerminator);
-                            }
-                        }
-                        ok = (arrayIdx == nElements);
-                        if (!ok) {
-                            StreamString signalName;
-                            (void) GetSignalName(signalIdx, signalName);
-                            REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of elements found in array of signal %s. [%s]", signalName.Buffer(), line.Buffer());
-                        }
-                    }
-                    else {
-                        if (!isString) {
-                            AnyType sourceStr(CharString, 0u, token.Buffer());
-                            ok = TypeConvert(signalsAnyType[signalIdx], sourceStr);
-                        }
-                        else {
-                            ok = StringHelper::CopyN(reinterpret_cast<char8 *>(signalsAnyType[signalIdx].GetDataPointer()), token.Buffer(), signalsAnyType[signalIdx].GetNumberOfElements(0u));
-                        }
-                    }
-                    signalIdx++;
-                    token = "";
-                    if (ok) {
-                        if (signalIdx != nSignals) {
-                            ok = line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
-                        }
-                    }
-                }
-                if (ok) {
-                    ok = (signalIdx == nSignals);
-                    if (!ok) {
-                        StreamString signalName;
-                        (void) GetSignalName(signalIdx, signalName);
-                        REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of signals found [%s]", line.Buffer());
-                    }
-                }
-            }
-            fatalFileError = !ok;
             if (fatalFileError) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Failed to read from file. No more attempts will be performed.");
+                REPORT_ERROR(ErrorManagement::FatalError, "End of data. No more attempts will be performed.");
                 if (fileRuntimeErrorMsg.IsValid()) {
                     //Reset any previous replies
                     fileRuntimeErrorMsg->SetAsReply(false);
                     if (!MessageI::SendMessage(fileRuntimeErrorMsg, this)) {
                         StreamString destination = fileRuntimeErrorMsg->GetDestination();
                         StreamString function = fileRuntimeErrorMsg->GetFunction();
-                        REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(), function.Buffer());
+                        REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(),
+                                     function.Buffer());
+                    }
+                }
+            }
+            else {
+                if (!lockAtLast) {
+                    ok = MemoryOperationsHelper::Copy(dataSourceMemory, &(allData.internalBuffer[allData.interalBufferIdx]), numberOfBinaryBytes);
+                    allData.interalBufferIdx = allData.interalBufferIdx + numberOfBinaryBytes;
+
+                }
+            }
+        }
+        else {
+            if (inputFile.Position() == inputFile.Size()) {
+                if (eofBehaviour == EOFRewind) {
+                    if (fileFormat == FILE_FORMAT_BINARY) {
+                        const uint32 SIGNAL_NAME_MAX_SIZE = 32u;
+                        uint32 headerSize = static_cast<uint32>(sizeof(uint16));
+                        headerSize += SIGNAL_NAME_MAX_SIZE;
+                        headerSize += static_cast<uint32>(sizeof(uint32));
+                        headerSize *= GetNumberOfSignals();
+                        headerSize += static_cast<uint32>(sizeof(uint32));
+                        ok = inputFile.Seek(0LLU);
+                        if (ok) {
+                            ok = inputFile.Seek(static_cast<uint64>(headerSize));
+                        }
+                    }
+                    else {
+                        ok = inputFile.Seek(0LLU);
+                        if (ok) {
+                            StreamString header;
+                            //Skip the header
+                            ok = inputFile.GetLine(header);
+                        }
+                    }
+                }
+                else if (eofBehaviour == EOFLast) {
+                    lockAtLast = true;
+                }
+                else {
+                    //Unreachable by design.
+                }
+            }
+            if (!lockAtLast) {
+                if (fileFormat == FILE_FORMAT_BINARY) {
+                    uint32 readSize = numberOfBinaryBytes;
+                    ok = inputFile.Read(dataSourceMemory, readSize);
+                    if (ok) {
+                        ok = (readSize == numberOfBinaryBytes);
+                    }
+                }
+                else {
+                    ok = ReadLineCSVFormat();
+                }
+                fatalFileError = !ok;
+                if (fatalFileError) {
+                    REPORT_ERROR(ErrorManagement::FatalError, "Failed to read from file. No more attempts will be performed.");
+                    if (fileRuntimeErrorMsg.IsValid()) {
+                        //Reset any previous replies
+                        fileRuntimeErrorMsg->SetAsReply(false);
+                        if (!MessageI::SendMessage(fileRuntimeErrorMsg, this)) {
+                            StreamString destination = fileRuntimeErrorMsg->GetDestination();
+                            StreamString function = fileRuntimeErrorMsg->GetFunction();
+                            REPORT_ERROR(ErrorManagement::FatalError, "Could not send TreeRuntimeError message to %s [%s]", destination.Buffer(),
+                                         function.Buffer());
+                        }
                     }
                 }
             }
@@ -341,11 +314,12 @@ bool FileReader::Synchronise() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool FileReader::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool FileReader::PrepareNextState(const char8 *const currentStateName,
+                                  const char8 *const nextStateName) {
     return true;
 }
 
-bool FileReader::Initialise(StructuredDataI& data) {
+bool FileReader::Initialise(StructuredDataI &data) {
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
         ok = data.Read("FileFormat", fileFormatStr);
@@ -380,6 +354,31 @@ bool FileReader::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
+        StreamString preloadStr;
+        if (!data.Read("Preload", preloadStr)) {
+            preload = false;
+        }
+        else {
+            if (preloadStr == "yes") {
+                const uint32 maxAllowedSizeFile = 4000000000u;
+                preload = true;
+                if (!data.Read("MaxFileByteSize", allData.maxDataFileByteSize)) {
+                    allData.maxDataFileByteSize = maxAllowedSizeFile; //4 GByte
+                }
+                else {
+                    if (allData.maxDataFileByteSize > maxAllowedSizeFile) {
+                        allData.maxDataFileByteSize = maxAllowedSizeFile;
+                        REPORT_ERROR(ErrorManagement::ParametersError, "MaxFileByteSize allowed is %u GB. Using default %u GB", maxAllowedSizeFile/1000000000u,
+                                     maxAllowedSizeFile/1000000000u);
+                    }
+                }
+            }
+            else {
+                preload = false;
+            }
+        }
+    }
+    if (ok) {
         StreamString interpolateStr;
         ok = data.Read("Interpolate", interpolateStr);
         if (ok) {
@@ -400,12 +399,14 @@ bool FileReader::Initialise(StructuredDataI& data) {
     if (ok) {
         if (interpolate) {
             if (!data.Read("XAxisSignal", xAxisSignalName)) {
-                REPORT_ERROR(ErrorManagement::Warning,
-                             "Interpolate=yes and the XAxisSignal was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
+                REPORT_ERROR(
+                        ErrorManagement::Warning,
+                        "Interpolate=yes and the XAxisSignal was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
             }
             if (!data.Read("InterpolationPeriod", interpolationPeriod)) {
-                REPORT_ERROR(ErrorManagement::Warning,
-                             "Interpolate=yes and the InterpolationPeriod was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
+                REPORT_ERROR(
+                        ErrorManagement::Warning,
+                        "Interpolate=yes and the InterpolationPeriod was not specified. This will fail if none of the signals interacting with this FileReader has Frequency > 0");
             }
         }
     }
@@ -484,7 +485,7 @@ bool FileReader::Initialise(StructuredDataI& data) {
     return ok;
 }
 
-bool FileReader::SetConfiguredDatabase(StructuredDataI& data) {
+bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok) {
         ok = data.MoveRelative("Signals");
@@ -522,6 +523,12 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI& data) {
             uint32 nBytes = 0u;
             ok = GetSignalByteSize(n, nBytes);
             numberOfBinaryBytes += nBytes;
+        }
+        if (ok) {
+            ok = numberOfBinaryBytes != 0u;
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "numberOfBinaryBytes = 0. The number of input signal bytes sizes should be positive");
+            }
         }
     }
     //Only one and one GAM allowed to interact with this DataSourceI
@@ -577,9 +584,62 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI& data) {
 
     //Allocate memory
     if (ok) {
-        dataSourceMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfBinaryBytes));
+        dataSourceMemory = reinterpret_cast<char8*>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(numberOfBinaryBytes));
+        if (preload) { //Get the size of the file and allocate memory
+            if (fileFormat == FILE_FORMAT_BINARY) {
+                const uint32 SIGNAL_NAME_MAX_SIZE = 32u;
+                uint32 headerSize = static_cast<uint32>(sizeof(uint16));
+                headerSize += SIGNAL_NAME_MAX_SIZE;
+                headerSize += static_cast<uint32>(sizeof(uint32));
+                headerSize *= GetNumberOfSignals();
+                headerSize += static_cast<uint32>(sizeof(uint32));
+                allData.dataFileByteSize = inputFile.Size() - static_cast<uint64>(headerSize);
+                //check file size is multiple of numberOfBinaryBytes
+                //lint -e{414} Possible division by 0. numberOfBinaryBytes is different from 0 due to ok is true.
+                uint64 aux = allData.dataFileByteSize / numberOfBinaryBytes;
+                uint64 aux2 = aux * numberOfBinaryBytes;
+                ok = aux2 == allData.dataFileByteSize;
+                if (!ok) {
+                    REPORT_ERROR(
+                            ErrorManagement::InitialisationError,
+                            "The total data file size is not a multiple of the data to read each cycle. allData.dataFileByteSize = %u, data to read for each cycle = %u ",
+                            allData.dataFileByteSize, numberOfBinaryBytes);
+                }
+            }
+            else { //Get the size of data CSV format
+                ok = inputFile.Seek(0LLU);
+                StreamString headerline;
+                bool endFile = false;
+                if (ok) {
+                    ok = inputFile.GetLine(headerline); //Skip header
+                }
+                uint64 countLines = 0u;
+                while (ok && (!endFile)) {
+                    ok = inputFile.GetLine(headerline);
+                    if (!ok) { //Should not fail (if the file is not corrupted) since the end of the file is checked before calling GetLine
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading line in CSV format");
+                    }
+                    countLines++;
+                    endFile = inputFile.Position() == inputFile.Size();
+                }
+                if (ok) {
+                    allData.dataFileByteSize = countLines * numberOfBinaryBytes;
+                }
+            }
+            if (ok) { //check the maximum size is below the expected size
+                ok = allData.dataFileByteSize < allData.maxDataFileByteSize;
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::InitialisationError,
+                                 "%u = dataFileByteSize > maxDataFileByteSize = %u. Increase the MaxDataFileByteSize (if the PC allows it) or use smaller file",
+                                 allData.dataFileByteSize, allData.maxDataFileByteSize);
+                }
+            }
+            if (ok) { //allocate allData buffer
+                allData.internalBuffer = reinterpret_cast<char8*>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(
+                        static_cast<uint32>(allData.dataFileByteSize)));
+            }
+        }
     }
-
     //If the type is text prepare the Printf properties in advanced
     if (fileFormat == FILE_FORMAT_CSV) {
         uint32 nOfSignals = GetNumberOfSignals();
@@ -598,12 +658,65 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI& data) {
             /*lint -e{613} signalsAnyType, dataSourceMemory and offsets cannot be null as otherwise ok would be false*/
             if (ok) {
                 char8 *memPtr = &dataSourceMemory[offsets[n]];
-                void *signalAddress = reinterpret_cast<void *&>(memPtr);
+                void *signalAddress = reinterpret_cast<void*&>(memPtr);
                 signalsAnyType[n] = AnyType(GetSignalType(n), 0u, signalAddress);
                 signalsAnyType[n].SetNumberOfDimensions(nDimensions);
                 signalsAnyType[n].SetNumberOfElements(0u, nElements);
             }
         }
+    }
+    if (ok && preload) { //Read all the file
+        if (fileFormat == FILE_FORMAT_BINARY) {
+            ok = inputFile.Seek(inputFile.Size() - allData.dataFileByteSize);
+            uint64 remainingDataToRead = allData.dataFileByteSize;
+            uint32 sizeRead;
+            uint32 sizeToRead;
+            while ((remainingDataToRead > 0u) && ok) {
+                uint32 auxMax = 500000000u;
+                if (remainingDataToRead > auxMax) {
+                    sizeToRead = auxMax;
+                    sizeRead = sizeToRead;
+                }
+                else {
+                    sizeToRead = static_cast<uint32>(remainingDataToRead);
+                    sizeRead = sizeToRead;
+                }
+                ok = inputFile.Read(&(allData.internalBuffer[allData.interalBufferIdx]), sizeRead);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "%Error reading input file");
+                }
+                if (ok) {
+                    ok = (sizeRead == sizeToRead);
+                    if (!ok) {
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "%u = sizeToRead != sizeRead = %u", sizeToRead, sizeRead);
+                    }
+                    if (ok) {
+                        remainingDataToRead = remainingDataToRead - sizeRead;
+                        allData.interalBufferIdx = allData.interalBufferIdx + sizeRead;
+                    }
+                }
+            }
+        }
+        else { //FILE_FORMAT_CSV
+            ok = inputFile.Seek(0LLU);
+            StreamString headerline;
+            bool endFile = false;
+            if (ok) {
+                ok = inputFile.GetLine(headerline); //Skip header
+            }
+            while (ok && (!endFile)) {
+                ok = ReadLineCSVFormat();
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error reading line in CSV format");
+                }
+                if (ok) {
+                    ok = MemoryOperationsHelper::Copy(&(allData.internalBuffer[allData.interalBufferIdx]), dataSourceMemory, numberOfBinaryBytes);
+                }
+                endFile = inputFile.Position() == inputFile.Size();
+                allData.interalBufferIdx = allData.interalBufferIdx + numberOfBinaryBytes;
+            }
+        }
+        allData.interalBufferIdx = 0u;
     }
 
     return ok;
@@ -622,7 +735,7 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
         uint32 n;
         uint32 nOfSignals;
 
-        //Write the header
+//Write the header
         if (fileFormat == FILE_FORMAT_CSV) {
             StreamString line;
             fatalFileError = !inputFile.GetLine(line);
@@ -707,13 +820,13 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
         else {
             uint32 readSize = static_cast<uint32>(sizeof(uint32));
             /*lint -e{928}  [MISRA C++ Rule 5-2-7]. Justification: Need to cast to the type expected by the Read function.*/
-            fatalFileError = !inputFile.Read(reinterpret_cast<char8 *>(&nOfSignals), readSize);
+            fatalFileError = !inputFile.Read(reinterpret_cast<char8*>(&nOfSignals), readSize);
             for (n = 0u; (n < nOfSignals) && (!fatalFileError); n++) {
                 //Write the signal type
                 readSize = static_cast<uint32>(sizeof(uint16));
                 TypeDescriptor signalType;
                 /*lint -e{928}  [MISRA C++ Rule 5-2-7]. Justification: Need to cast to the type expected by the Read function.*/
-                fatalFileError = !inputFile.Read(reinterpret_cast<char8 *>(&signalType.all), readSize);
+                fatalFileError = !inputFile.Read(reinterpret_cast<char8*>(&signalType.all), readSize);
 
                 const uint32 SIGNAL_NAME_MAX_SIZE = 32u;
                 char8 signalNameMemory[SIGNAL_NAME_MAX_SIZE + 1u];
@@ -730,13 +843,13 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                 StreamString signalName;
                 if (!fatalFileError) {
                     //lint -e{645} signalNameMemory is always initialised if !fatalFileError
-                    signalName = reinterpret_cast<const char8 * const >(&signalNameMemory[0]);
+                    signalName = reinterpret_cast<const char8* const >(&signalNameMemory[0]);
                 }
                 uint32 nOfElements = 0u;
                 if (!fatalFileError) {
                     readSize = static_cast<uint32>(sizeof(uint32));
                     /*lint -e{928}  [MISRA C++ Rule 5-2-7]. Justification: Need to cast to the type expected by the Read function.*/
-                    fatalFileError = !inputFile.Read(reinterpret_cast<char8 *>(&nOfElements), readSize);
+                    fatalFileError = !inputFile.Read(reinterpret_cast<char8*>(&nOfElements), readSize);
                 }
                 if (!fatalFileError) {
                     fatalFileError = !cdb.CreateRelative(signalName.Buffer());
@@ -751,7 +864,8 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
                     fatalFileError = !cdb.MoveToAncestor(1u);
                 }
                 if (!fatalFileError) {
-                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
+                    REPORT_ERROR(ErrorManagement::Information, "Added signal %s:%s[%d]", signalName.Buffer(),
+                                 TypeDescriptor::GetTypeNameFromTypeDescriptor(signalType), nOfElements);
                 }
             }
         }
@@ -760,7 +874,92 @@ ErrorManagement::ErrorType FileReader::OpenFile(StructuredDataI &cdb) {
     ErrorManagement::ErrorType ret(!fatalFileError);
     return ret;
 }
-
+bool FileReader::ReadLineCSVFormat() {
+    StreamString token;
+    char8 saveTerminator;
+    uint32 nSignals = GetNumberOfSignals();
+    uint32 signalIdx = 0u;
+    StreamString line;
+    bool ok = inputFile.GetLine(line);
+    if (ok) {
+        ok = line.Seek(0LLU);
+    }
+    if (ok) {
+        ok = line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
+    }
+    /*lint -e{613} signalsAnyType cannot be NULL as otherwise SetConfiguredDatabase would have failed.*/
+    while ((ok) && (signalIdx < nSignals)) {
+        bool isString = (signalsAnyType[signalIdx].GetTypeDescriptor() == CharString);
+        if (!isString) {
+            isString = (signalsAnyType[signalIdx].GetTypeDescriptor() == Character8Bit);
+        }
+        if ((signalsAnyType[signalIdx].GetNumberOfDimensions() == 1u) && (!isString)) {
+            uint32 nElements = signalsAnyType[signalIdx].GetNumberOfElements(0u);
+            StreamString tokenArray;
+            uint32 arrayIdx = 0u;
+            void *signalAddress = signalsAnyType[signalIdx].GetDataPointer();
+            char8 *signalAddressChr = reinterpret_cast<char8*>(signalAddress);
+            if (token[static_cast<uint32>(token.Size()) - 1u] != '}') {
+                token += csvSeparator;
+                ok = line.GetToken(token, "}", saveTerminator);
+                if (ok) {
+                    token += saveTerminator;
+                }
+            }
+            if (ok) {
+                ok = token.Seek(0LLU);
+            }
+            if (ok) {
+                ok = token.GetToken(tokenArray, "{},", saveTerminator);
+            }
+            while ((ok) && (arrayIdx < nElements)) {
+                AnyType sourceStr(CharString, 0u, tokenArray.Buffer());
+                uint32 byteSize = signalsAnyType[signalIdx].GetByteSize();
+                uint32 arrayIdxByteSize = (arrayIdx * byteSize);
+                AnyType destination(signalsAnyType[signalIdx].GetTypeDescriptor(), 0u, &signalAddressChr[arrayIdxByteSize]);
+                ok = TypeConvert(destination, sourceStr);
+                tokenArray = "";
+                arrayIdx++;
+                if (ok) {
+                    ok = token.GetToken(tokenArray, "{},", saveTerminator);
+                }
+            }
+            ok = (arrayIdx == nElements);
+            if (!ok) {
+                StreamString signalName;
+                (void) GetSignalName(signalIdx, signalName);
+                REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of elements found in array of signal %s. [%s]", signalName.Buffer(),
+                             line.Buffer());
+            }
+        }
+        else {
+            if (!isString) {
+                AnyType sourceStr(CharString, 0u, token.Buffer());
+                ok = TypeConvert(signalsAnyType[signalIdx], sourceStr);
+            }
+            else {
+                ok = StringHelper::CopyN(reinterpret_cast<char8*>(signalsAnyType[signalIdx].GetDataPointer()), token.Buffer(),
+                                         signalsAnyType[signalIdx].GetNumberOfElements(0u));
+            }
+        }
+        signalIdx++;
+        token = "";
+        if (ok) {
+            if (signalIdx != nSignals) {
+                ok = line.GetToken(token, csvSeparator.Buffer(), saveTerminator);
+            }
+        }
+    }
+    if (ok) {
+        ok = (signalIdx == nSignals);
+        if (!ok) {
+            StreamString signalName;
+            (void) GetSignalName(signalIdx, signalName);
+            REPORT_ERROR(ErrorManagement::FatalError, "Inconsistent number of signals found [%s]", line.Buffer());
+        }
+    }
+    return ok;
+}
 ErrorManagement::ErrorType FileReader::CloseFile() {
     ErrorManagement::ErrorType err;
     if (inputFile.IsOpen()) {

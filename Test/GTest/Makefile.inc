@@ -29,6 +29,8 @@ PACKAGE=
 ROOT_DIR=../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
+include $(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource/Makefile.detect
+
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
@@ -55,6 +57,10 @@ endif
 
 ifdef OPEN62541_LIB
 LIBRARIES_STATIC += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
+endif
+
+ifdef PROFINET_COMPILE
+LIBRARIES += -L$(PROFINET_LIBRARY) -losal -lprofinet
 endif
 
 all: $(OBJS) $(SUBPROJ)   \

@@ -381,6 +381,7 @@ template<class Type> bool StatisticsGAM::ExecuteT() {
 }
 
 /*lint -e{613} Reset() method called only when stats is not NULL*/
+/*lint -e{826} The type sizes are checked for every signalType*/
 /*lint -e{715} [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns irrespectively of the input parameters.*/
 bool StatisticsGAM::PrepareNextState(const char8 * const currentStateName,
                                      const char8 * const nextStateName) {

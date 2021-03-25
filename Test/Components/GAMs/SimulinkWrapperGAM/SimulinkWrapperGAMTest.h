@@ -317,13 +317,13 @@ public:
      *        Type != uint8 for a struct signal.
      */
     bool TestSetup_Failed_WrongDatatypeWithStructSignals();
-    
+#ifdef ROW_MAJOR_ND_FEATURE    
     /**
      * @brief Tests the correct actualisation of parameters in a model
      *        using row-major data orientation.
      */
     bool TestParameterActualisation_RowMajorModel();
-    
+#endif /* ROW_MAJOR_ND_FEATURE */ 
     /**
      * @brief Tests the correct actualisation of parameters in a model
      *        using column-major data orientation.
@@ -388,8 +388,38 @@ public:
      */
     bool TestSetup_WithNestedSingleSignals();
 
+    /**
+     * @brief Tests the setup of a model with struct parameters from external AnyObject source
+     */
     bool TestSetup_StructTunableParametersFromExternalSource_Failed();
-
+    
+#ifdef ENUM_FEATURE
+    /**
+     * @brief Tests the setup of a model with enums in output signals
+     */
+    bool TestSetup_WithOutputEnumSignals();
+    
+    /**
+     * @brief Tests the setup of a model with enums as signals
+     */
+    bool TestSetup_WithEnumSignals();
+    
+    /**
+     * @brief Tests the setup of a model with enums as parameters
+     */
+    bool TestSetup_WithEnumParameters();
+    
+    /**
+     * @brief Tests the setup of a model with enums in output signals
+     */
+    bool TestSetup_WithOutputEnumSignals_FailedWrongType();
+    
+    /**
+     * @brief Tests execution of a model with enums as signals
+     */
+    bool TestExecute_WithEnumSignals();
+#endif
+    
     /**
      * @brief A general template for the GAM configuration.
      *        The template has printf-style spcifiers (`%s`) where

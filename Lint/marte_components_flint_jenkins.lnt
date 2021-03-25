@@ -12,6 +12,11 @@ marte_components_flint_exceptions.lnt
 -w3
 
 /*
+ * defines for SimulinkWrapperGAM
+ */
+-dHOST_CAPI_BUILD
+
+/*
  * Set jenkins output format
  */
 -ffn // force full path names

@@ -75,5 +75,3 @@ endif
 ifdef OPEN62541_LIB
 LIBRARIES += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
 endif
-
-

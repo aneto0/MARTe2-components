@@ -59,6 +59,10 @@ ifdef OPEN62541_INCLUDE
 LIBRARIES_STATIC+=OPCUADataSource/cov/OPCUADataSource$(LIBEXT)
 endif
 
+ifdef PROFINET_COMPILE
+LIBRARIES_STATIC+=ProfinetDataSource/cov/ProfinetDataSource$(LIBEXT)
+endif
+
 # Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
 LIBRARIES_STATIC+=SDN/cov/SDN$(LIBEXT)
