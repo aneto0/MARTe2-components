@@ -430,7 +430,9 @@ ErrorManagement::ErrorType NI9157CircularFifoReader::StopAcquisition() {
             }
         }
     }
-    REPORT_ERROR(err.ErrorsCleared() ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::StopAcquisition returning %s", err.ErrorsCleared() ? "true" : "false");
+
+    bool ret = err.ErrorsCleared();
+    REPORT_ERROR(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::StopAcquisition returning %s", ret ? "true" : "false");
     return err;
 }
 
@@ -470,7 +472,8 @@ ErrorManagement::ErrorType NI9157CircularFifoReader::StartAcquisition() {
         err = (!eventSem.Post());
     }
 
-    REPORT_ERROR(err.ErrorsCleared() ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::StartAcquisition returning %s", err.ErrorsCleared() ? "true" : "false");
+    bool ret = err.ErrorsCleared();
+    REPORT_ERROR(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::StartAcquisition returning %s", ret ? "true" : "false");
     return err;
 }
 
@@ -479,3 +482,4 @@ CLASS_METHOD_REGISTER(NI9157CircularFifoReader, StopAcquisition)
 CLASS_METHOD_REGISTER(NI9157CircularFifoReader, StartAcquisition)
 
 }
+
