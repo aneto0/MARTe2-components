@@ -41,8 +41,8 @@
 using namespace MARTe;
 
 /**
- * @brief Test all the TcnTimeProvider methods
- */
+* @brief Enumerates all the possible operating modes for the TcnTime Provider
+*/
 typedef enum {
     TcnTimeProviderTestInitialiseMode_LegacyTcnPollTrue,
     TcnTimeProviderTestInitialiseMode_LegacyTcnPollFalse,
@@ -55,33 +55,123 @@ typedef enum {
     TcnTimeProviderTestInitialiseMode_InvalidMode
 }TcnTimeProviderTestInitialiseMode;
 
+/**
+ * @brief Tests all the TcnTimeProvider operating modes
+ */
 class TcnTimeProviderTest : public TimeProviderTest {
     public:
+        /**
+        * @brief Constructs the Test Unit environment basics
+        */
         TcnTimeProviderTest();
+
+        /**
+        * @brief Constructs the Test Unit environment, giving the ability to skip the pre initialization step
+        * param[in] noPreinit true if implicit initialisation has to be skipped
+        */
         TcnTimeProviderTest(bool noPreinit);
 
+        /**
+        * @brief Destructs the Test Unit environment
+        */
         ~TcnTimeProviderTest();
 
+        /**
+        * @brief Tests the TCN Time Provider in No Poll legacy mode (TcnPoll = 0 - internal HRT usage)
+        */
         bool TestInitialise_NoPollLegacyMode();
+
+        /**
+        * @brief Tests the TCN Time Provider in Poll legacy mode (TcnPoll = 1 - polling happens on the tcn underlying to get the counter)
+        */
         bool TestInitialise_PollLegacyMode();
+
+        /**
+        * @brief Tests the TCN Time Provider using the internal tcn_wait_until mode
+        */
         bool TestInitialise_WaitUntilMode();
+
+        /**
+        * @brief Tests the TCN Time Provider using the internal tcn_wait_until_hr mode
+        */
         bool TestInitialise_WaitUntilHRMode();
+
+        /**
+        * @brief Tests the TCN Time Provider using the internal tcn_sleep mode
+        */
         bool TestInitialise_SleepMode();
+
+        /**
+        * @brief Tests the TCN Time Provider using the internal tcn_sleep_hr mode
+        */
         bool TestInitialise_SleepHRMode();
+
+        /**
+        * @brief Tries to force and expects failure for an invalid mode assignment
+        */
         bool TestInitialise_InvalidMode_Fail();
+
+        /**
+        * @brief Tests the Legacy Poll mode ON explicitly
+        */
         bool TestInitialise_LegacyTcnPollTrue();
+
+        /**
+        * @brief Tests the Legacy Poll mode OFF explicitly
+        */
         bool TestInitialise_LegacyTcnPollFalse();
+
+        /**
+        * @brief Tests the tolerance parameter
+        */
         bool TestInitialise_WithTolerance();
+
+        /**
+        * @brief Tries to initialize the TCN underlying library with an invalid TCN device
+        */
         bool TestInitialise_WithInvalidTcnDevice_Fail();
+
+        /**
+        * @brief Tries to initialize the TCN underlying library without passing the TcnDevice parameter
+        */
         bool TestInitialise_WithMissingTcnDevice_Fail();
+
+        /**
+        * @brief Tries to initialize the TCN underlying using a wrong XML
+        */
         bool TestInitialise_WrongXmlPlugin_Fail();
+
+        /**
+        * @brief Explicitly passes the TCN frequency which is related to the effective provider
+        */
         bool TestInitialise_WithFrequency();
+
+        /**
+        * @brief Tries an integrated run using TcnPoll=0 method
+        */
         bool TestIntegrated_WithTcnPollEnabled();
+
+        /**
+        * @brief Tries an integrated run using TcnPoll=1 method
+        */
         bool TestIntegrated_WithTcnPollDisabled();
 
     private:
+
+        /**
+        * @brief The configuration StructuredDataI which is built-up across tests
+        */
         ConfigurationDatabase tcnCfg;
+
+        /**
+        * @brief Heart of the pre-initialization function, used from the constructors
+        */
         bool PreInitialise(bool noPreInit);
+
+        /**
+        * @brief Heart of the configuration test unit which allows parametrized mode
+        * @param[in] mode One of the enumerated operating modes for the TCN Provider
+        */
         bool TestInitialise_ConfigurableMode(TcnTimeProviderTestInitialiseMode mode);
 };
 
