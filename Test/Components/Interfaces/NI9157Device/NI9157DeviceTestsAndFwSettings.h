@@ -1,6 +1,6 @@
 /**
  * @file NI9157DeviceTestsAndFwSettings.h
- * @brief Header file for NI9157Device Tests with parameters and FW settings.
+ * @brief Header file for class NI9157DeviceTestsAndFwSettings.
  * @date 23/03/2021
  * @author Pedro Lourenco
  *
