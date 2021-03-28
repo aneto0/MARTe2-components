@@ -42,8 +42,7 @@ HighResolutionTimeProviderTest::HighResolutionTimeProviderTest() : TimeProviderT
     timeProvider = new MARTe::HighResolutionTimeProvider();
 }
 
-HighResolutionTimeProviderTest::~HighResolutionTimeProviderTest() {
-    delete timeProvider;
+HighResolutionTimeProviderTest::~HighResolutionTimeProviderTest() {    
 }
 
 
