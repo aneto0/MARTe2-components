@@ -31,6 +31,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
+#include "SafeMath.h"
 #include "Sleep.h"
 #include "TimeProvider.h"
 #include "TimeProviderTest.h"
@@ -80,7 +81,7 @@ bool TimeProviderTest::TestPeriod() {
 
     if(ok) {
         float64 frequencyInverse = 1.0 / static_cast<float64>(timeProvider->Frequency());
-        ok = static_cast<float64>(timeProvider->Period()) == frequencyInverse;
+        ok = SafeMath::IsEqual<float64>(static_cast<float64>(timeProvider->Period()), frequencyInverse);
         if(!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Period value is not equivalent to the inverse of the frequency");
         }
@@ -100,7 +101,7 @@ bool TimeProviderTest::TestFrequency() {
 
     if(ok) {
         float64 frequencyInverse = 1.0 / static_cast<float64>(timeProvider->Frequency());
-        ok = static_cast<float64>(timeProvider->Period()) == frequencyInverse;
+        ok = SafeMath::IsEqual<float64>(static_cast<float64>(timeProvider->Period()), frequencyInverse);
         if(!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Frequency value is not equivalent to the inverse of the period");
         }
