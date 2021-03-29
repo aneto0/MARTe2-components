@@ -1,6 +1,6 @@
 /**
  * @file SampleChecker.cpp
- * @brief Source file for class SampleChecker
+ * @brief Source file for class SampleChecker.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
@@ -25,12 +25,10 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "AdvancedErrorManagement.h"
 #include "SampleChecker.h"
 
 /*---------------------------------------------------------------------------*/
@@ -44,8 +42,6 @@ namespace MARTe {
 
 SampleChecker::SampleChecker() :
         Object() {
-    // Auto-generated constructor stub for SampleChecker
-    // TODO Verify if manual additions are needed
 
     sampleSize = 0u;
     nFrameForSync = 0u;
@@ -53,35 +49,34 @@ SampleChecker::SampleChecker() :
 }
 
 SampleChecker::~SampleChecker() {
-    // Auto-generated destructor stub for SampleChecker
-    // TODO Verify if manual additions are needed
 }
 
 bool SampleChecker::Initialise(StructuredDataI &data) {
 
-    bool ret = Object::Initialise(data);
-    printf("Initialise beg SampleChecker\n");
+    bool ret;
+    REPORT_ERROR(ErrorManagement::Information, "SampleChecker::Initialise");
 
+    ret = Object::Initialise(data);
     if (ret) {
         ret = data.Read("SampleSize", sampleSize);
-        if (ret) {
-            //read the number of frame to use to resync
-            if (data.Read("NumOfFrameForSync", nFrameForSync)) {
-                ret = (nFrameForSync > 0u);
-                if (!ret) {
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "NumOfFrameForSync must be > 0");
-                }
-            }
-            else {
-                nFrameForSync = 1u;
-            }
-        }
-        else {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Please define SampleSize");
+        if (!ret) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "SampleChecker::Initialise Please define SampleSize");
         }
     }
-    printf("Initialise end SampleChecker\n");
+    if (ret) {
+        if (!data.Read("NumOfFrameForSync", nFrameForSync)) {
+            REPORT_ERROR(ErrorManagement::Warning, "SampleChecker::Initialise NumOfFrameForSync not defined, using default value 1");
+            nFrameForSync = 1u;
+        }
+        else {
+            ret = (nFrameForSync > 0u);
+            if (!ret) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "SampleChecker::Initialise NumOfFrameForSync must be > 0");
+            }
+        }
+    }
 
+    REPORT_ERROR(ret ? ErrorManagement::Information : ErrorManagement::InitialisationError, "SampleChecker::Initialise retruning %s", ret ? "true" : "false");
     return ret;
 }
 

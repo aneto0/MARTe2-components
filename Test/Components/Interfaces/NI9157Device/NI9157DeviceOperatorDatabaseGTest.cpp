@@ -1,6 +1,6 @@
 /**
  * @file NI9157DeviceOperatorDatabaseGTest.cpp
- * @brief Source file for class NI9157DeviceOperatorDatabaseGTest
+ * @brief Source file for class NI9157DeviceOperatorDatabaseGTest.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco

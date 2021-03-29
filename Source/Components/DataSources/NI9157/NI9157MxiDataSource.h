@@ -1,6 +1,6 @@
 /**
  * @file NI9157MxiDataSource.h
- * @brief Header file for class NI9157MxiDataSource
+ * @brief Header file for class NI9157MxiDataSource.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
@@ -17,9 +17,10 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
- * @details This header file contains the declaration of the class NI9157MxiDataSource
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * @details This header file contains the declaration of the class
+ * NI9157MxiDataSource with all of its public, protected and private members.
+ * It may also include definitions for inline methods which need to be visible
+ * to the compiler.
  */
 
 #ifndef NI9157MXIDATASOURCE_H_
@@ -32,9 +33,15 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
+#include "CLASSMETHODREGISTER.h"
+#include "CreateNI9157DeviceOperatorI.h"
 #include "MemoryDataSourceI.h"
 #include "MessageI.h"
+#include "NI9157DeviceOperatorDatabase.h"
 #include "NI9157DeviceOperatorT.h"
+#include "ObjectRegistryDatabase.h"
+#include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */

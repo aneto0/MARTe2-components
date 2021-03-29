@@ -1,6 +1,6 @@
 /**
  * @file NI9157Device.cpp
- * @brief Source file for class NI9157Device
+ * @brief Source file for class NI9157Device.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco

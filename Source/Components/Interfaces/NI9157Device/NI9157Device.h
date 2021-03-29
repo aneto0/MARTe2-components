@@ -1,6 +1,6 @@
 /**
  * @file NI9157Device.h
- * @brief Header file for class NI9157Device
+ * @brief Header file for class NI9157Device.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco

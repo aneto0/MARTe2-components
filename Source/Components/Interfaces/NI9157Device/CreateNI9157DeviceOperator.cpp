@@ -1,6 +1,6 @@
 /**
  * @file CreateNI9157DeviceOperator.cpp
- * @brief Source file for class CreateNI9157DeviceOperator
+ * @brief Source file for class CreateNI9157DeviceOperator.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco

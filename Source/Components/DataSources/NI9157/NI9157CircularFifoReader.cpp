@@ -1,6 +1,6 @@
 /**
  * @file NI9157CircularFifoReader.cpp
- * @brief Source file for class NI9157CircularFifoReader
+ * @brief Source file for class NI9157CircularFifoReader.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
@@ -30,15 +30,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "AdvancedErrorManagement.h"
-#include "CLASSMETHODREGISTER.h"
-#include "CreateNI9157DeviceOperatorI.h"
-#include "MemoryOperationsHelper.h"
 #include "NI9157CircularFifoReader.h"
-#include "NI9157DeviceOperatorDatabase.h"
-#include "ObjectRegistryDatabase.h"
-#include "Optim/NI9157MemoryOperationsHelper.h"
-#include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

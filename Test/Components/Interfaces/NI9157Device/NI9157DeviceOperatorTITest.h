@@ -1,6 +1,6 @@
 /**
  * @file NI9157DeviceOperatorTITest.h
- * @brief Header file for class NI9157DeviceOperatorTITest
+ * @brief Header file for class NI9157DeviceOperatorTITest.
  * @date 22/03/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco

@@ -1,6 +1,6 @@
 /**
  * @file NI9157CircularFifoReaderGTest.cpp
- * @brief Source file for class NI9157CircularFifoReaderGTest
+ * @brief Source file for class NI9157CircularFifoReaderGTest.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco

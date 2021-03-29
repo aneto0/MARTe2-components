@@ -62,7 +62,7 @@ INCLUDES += -I$(CODAC_ROOT)/include
 INCLUDES += -I../../../../Source/Components/Interfaces/NI9157Device
 
 all: $(OBJS) \
-                $(BUILD_DIR)/NI9157DeviceTest$(LIBEXT)
+	$(BUILD_DIR)/NI9157DeviceTest$(LIBEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

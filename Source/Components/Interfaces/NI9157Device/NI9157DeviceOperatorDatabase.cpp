@@ -1,6 +1,6 @@
 /**
  * @file NI9157DeviceOperatorDatabase.cpp
- * @brief Source file for class NI9157DeviceOperatorDatabase
+ * @brief Source file for class NI9157DeviceOperatorDatabase.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco

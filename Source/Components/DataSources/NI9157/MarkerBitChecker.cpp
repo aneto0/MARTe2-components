@@ -1,6 +1,6 @@
 /**
  * @file MarkerBitChecker.cpp
- * @brief Source file for class MarkerBitChecker
+ * @brief Source file for class MarkerBitChecker.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
@@ -18,19 +18,18 @@
  * or implied. See the Licence permissions and limitations under the Licence.
  *
  * @details This source file contains the definition of all the methods for
- * the class MarkerBitChecker (public, protected, and private). Be aware that some 
- * methods, such as those inline could be defined on the header file, instead.
+ * the class MarkerBitChecker (public, protected, and private). Be aware that
+ * some methods, such as those inline could be defined on the header file,
+ * instead.
  */
 
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "AdvancedErrorManagement.h"
 #include "MarkerBitChecker.h"
 
 /*---------------------------------------------------------------------------*/
@@ -44,53 +43,52 @@ namespace MARTe {
 
 MarkerBitChecker::MarkerBitChecker() :
         SampleChecker() {
-    // Auto-generated constructor stub for MarkerBitChecker
-    // TODO Verify if manual additions are needed
 
     resetBitMask = 0ull;
     bitMask = 0ull;
+
 }
 
 MarkerBitChecker::~MarkerBitChecker() {
-    // Auto-generated destructor stub for MarkerBitChecker
-    // TODO Verify if manual additions are needed
 }
 
 bool MarkerBitChecker::Initialise(StructuredDataI &data) {
     
-    bool ret = SampleChecker::Initialise(data);
-    printf("Initialise beg MarkerBitChecker\n");
+    bool ret;
+    REPORT_ERROR(ErrorManagement::Information, "MarkerBitChecker::Initialise");
 
+    ret = SampleChecker::Initialise(data);
     if (ret) {
         ret = (nFrameForSync == 1u);
-        if (ret) {
-            ret = data.Read("MarkerBitMask", bitMask);
-            if (!ret) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Please define MarkerBit");
-            }
-
-            if (ret) {
-                if (!data.Read("ResetBitMask", resetBitMask)) {
-                    resetBitMask = bitMask;
-                }
-            }
-
+        if (!ret) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "MarkerBitChecker::Initialise NumOfFrameForSync must be equal to 1");
         }
         else {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "NumOfFrameForSync must be equal to 1");
+            ret = data.Read("MarkerBitMask", bitMask);
+            if (!ret) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "MarkerBitChecker::Initialise Parameter MarkerBitMask not found, please define it");
+            }
+            else {
+                if (!data.Read("ResetBitMask", resetBitMask)) {
+                    resetBitMask = bitMask;
+                    REPORT_ERROR(ErrorManagement::Warning, "MarkerBitChecker::Initialise Parameter ResetBitMask not found, using value set for MarkerBitMask (default)");
+                }
+            }
         }
     }
-    printf("Initialise end MarkerBitChecker\n");
 
+    REPORT_ERROR(ret ? ErrorManagement::Information : ErrorManagement::InitialisationError, "MarkerBitChecker::Initialise retruning %s", ret ? "true" : "false");
     return ret;
 }
 
 /*lint -e{952} -e{578} parameter 'sample' not declared as const*/
 bool MarkerBitChecker::Check(uint8 *sample,
                              bool &write) {
+    bool ret;
     write = true;
     uint64 temp = 0ull;
-    bool ret = MemoryOperationsHelper::Copy(&temp, sample, sampleSize);
+    
+    ret = MemoryOperationsHelper::Copy(&temp, sample, sampleSize);
     if (ret) {
         ret = ((temp & bitMask) != 0ull);
     }
@@ -107,10 +105,9 @@ bool MarkerBitChecker::Synchronise(uint8 *frames,
                                    uint32 sizeToRead,
                                    uint32 &idx,
                                    bool &write) {
-
+    bool ret = false;
     idx = 0u;
     write = true;
-    bool ret = false;
 
     while (idx < sizeToRead) {
         ret = Check(&frames[idx], write);

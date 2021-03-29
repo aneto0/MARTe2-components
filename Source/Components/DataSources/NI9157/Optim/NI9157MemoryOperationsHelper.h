@@ -1,6 +1,6 @@
 /**
  * @file NI9157MemoryOperationsHelper.h
- * @brief Header file for class NI9157MemoryOperationsHelper
+ * @brief Header file for class NI9157MemoryOperationsHelper.
  * @date 11/02/2021
  * @author Andre Neto
  * @author Pedro Lourenco
@@ -17,9 +17,10 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
- * @details This header file contains the declaration of the class NI9157MemoryOperationsHelper
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * @details This header file contains the declaration of the class
+ * NI9157MemoryOperationsHelper with all of its public, protected and private
+ * members. It may also include definitions for inline methods which need to be
+ * visible to the compiler.
  */
 
 #ifndef NI9157MEMORYOPERATIONSHELPER_H_
@@ -32,6 +33,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "MemoryOperationsHelper.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -53,6 +55,7 @@ namespace NI9157MemoryOperationsHelper {
      */
     void FlatToInterleaved(MARTe::uint8 * const originSource, MARTe::uint8 * const originDest, const MARTe::uint32 beginIndex, const MARTe::uint32 * const packetMemberSize, const MARTe::uint32 packetByteSize,
                            const MARTe::uint32 numberOfPacketMembers, const MARTe::uint32 numberOfSamples);
+
 }
 
 /*---------------------------------------------------------------------------*/

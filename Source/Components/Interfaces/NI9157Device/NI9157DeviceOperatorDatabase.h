@@ -1,6 +1,6 @@
 /**
  * @file NI9157DeviceOperatorDatabase.h
- * @brief Header file for class NI9157DeviceOperatorDatabase
+ * @brief Header file for class NI9157DeviceOperatorDatabase.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
@@ -42,8 +42,9 @@
 namespace MARTe{
 
 /**
- * @brief These functions allow to get the CreateNI9157DeviceOperator object or directly the NI9157DeviceOperatorT
- * by name (or by type descriptor), in order to create the object to interface with the NI-9157 device.
+ * @brief These functions allow to get the CreateNI9157DeviceOperator object or
+ * directly the NI9157DeviceOperatorT by name (or by type descriptor), in order
+ * to create the object to interface with the NI-9157 device.
  * @see CreateNI9157DeviceOperatorI and CreateNI9157DeviceOperator
  * @see NI9157DeviceOperatorTI and NI9157DeviceOperatorT
  */

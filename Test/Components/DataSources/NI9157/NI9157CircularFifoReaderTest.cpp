@@ -1,6 +1,6 @@
 /**
  * @file NI9157CircularFifoReaderTest.cpp
- * @brief Source file for class NI9157CircularFifoReaderTest
+ * @brief Source file for class NI9157CircularFifoReaderTest.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
@@ -526,7 +526,7 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultNFrameForSync(uint32 mo
     }
     if (ret) {
         ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
-        ret &= cdb.Delete("NumOfFrameForSync");
+        ret &= cdb.Write("NumOfFrameForSync", "2");
         ret &= cdb.MoveToRoot();
     }
 
@@ -541,7 +541,7 @@ bool NI9157CircularFifoReaderTest::TestInitialise_DefaultNFrameForSync(uint32 mo
         ret = dataSource.IsValid();
     }
     if (ret) {
-        ret = (dataSource->GetNFrameForSync() == 1u);
+        ret = (dataSource->GetNFrameForSync() == 2u);
         ret &= (dataSource->GetRunNi() == 1u);
         ret &= (dataSource->GetNumberOfPacketsInFIFO() == 20u);
     }

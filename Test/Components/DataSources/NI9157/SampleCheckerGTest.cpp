@@ -1,8 +1,7 @@
 /**
- * @file NI9157DeviceOperatorT.cpp
- * @brief Source file for class NI9157DeviceOperatorT.
- * @date 11/02/2021
- * @author Giuseppe Ferro
+ * @file SampleCheckerGTest.cpp
+ * @brief Source file for class SampleCheckerGTest.
+ * @date 26/03/2021
  * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -18,19 +17,21 @@
  * or implied. See the Licence permissions and limitations under the Licence.
  *
  * @details This source file contains the definition of all the methods for
- * the class NI9157DeviceOperatorT (public, protected, and private). Be aware
- * that some methods, such as those inline could be defined on the header file,
- * instead.
+ * the class SampleCheckerGTest (public, protected, and private). Be aware
+ * that some methods, such as those inline could be defined on the header
+ * file, instead.
  */
 
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#include "gtest/gtest.h"
+#include <limits.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "NI9157DeviceOperatorT.h"
+#include "SampleCheckerTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -39,3 +40,32 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+TEST(SampleCheckerGTest,TestConstructor) {
+    SampleCheckerTest test;
+    ASSERT_TRUE(test.TestConstructor());
+}
+
+TEST(SampleCheckerGTest,TestInitialise) {
+    SampleCheckerTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
+TEST(SampleCheckerGTest,TestInitialise_NoNumOfFrameForSync) {
+    SampleCheckerTest test;
+    ASSERT_TRUE(test.TestInitialise_NoNumOfFrameForSync());
+}
+
+TEST(SampleCheckerGTest,TestInitialise_NoSampleSize) {
+    SampleCheckerTest test;
+    ASSERT_TRUE(test.TestInitialise_NoSampleSize());
+}
+
+TEST(SampleCheckerGTest,TestInitialise_NumOfFrameForSyncZero) {
+    SampleCheckerTest test;
+    ASSERT_TRUE(test.TestInitialise_NumOfFrameForSyncZero());
+}
+
+TEST(SampleCheckerGTest,TestGetNumberOfFramesToSync) {
+    SampleCheckerTest test;
+    ASSERT_TRUE(test.TestGetNumberOfFramesToSync());
+}

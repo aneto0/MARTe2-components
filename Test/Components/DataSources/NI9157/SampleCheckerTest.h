@@ -1,8 +1,7 @@
 /**
- * @file CreateNI9157DeviceOperatorI.h
- * @brief Header file for class CreateNI9157DeviceOperatorI.
- * @date 11/02/2021
- * @author Giuseppe Ferro
+ * @file SampleCheckerTest.h
+ * @brief Header file for class SampleCheckerTest.
+ * @date 26/03/2021
  * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -18,13 +17,13 @@
  * or implied. See the Licence permissions and limitations under the Licence.
  *
  * @details This header file contains the declaration of the class
- * CreateNI9157DeviceOperatorI with all of its public, protected and private
- * members. It may also include definitions for inline methods which need to be
- * visible to the compiler.
+ * SampleCheckerTest with all of its public, protected and private members.
+ * It may also include definitions for inline methods which need to be visible
+ * to the compiler.
  */
 
-#ifndef CREATENI9157DEVICEOPERATORI_H_
-#define CREATENI9157DEVICEOPERATORI_H_
+#ifndef NI9157SAMPLECHECKERTEST_H_
+#define NI9157SAMPLECHECKERTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -33,66 +32,67 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "NI9157Device.h"
-#include "NI9157DeviceOperatorTI.h"
-#include "ReferenceT.h"
-#include "TypeDescriptor.h"
+#include "ConfigurationDatabase.h"
+#include "SampleChecker.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-namespace MARTe{
+using namespace MARTe;
 
 /**
- * @brief Interface of the CreateNI9157DeviceOperator templated class. This
- * allows for the NI9157DeviceOperatorDatabase functions to return a pointer to
- * the specific CreateNI9157DeviceOperator.
- * @see NI9157DeviceOperatorDatabase.
- * @see CreateNI9157DeviceOperator.
+ * @brief Tests the SampleCheckerTest methods.
  */
-class CreateNI9157DeviceOperatorI {
+class SampleCheckerTest {
 public:
 
     /**
-     * @brief Constructor.
+     * @brief SampleCheckerTest Constructor.
      */
-    CreateNI9157DeviceOperatorI();
+    SampleCheckerTest();
 
     /**
-     * @brief Destructor.
+     * @brief SampleCheckerTest Destructor.
      */
-    virtual ~CreateNI9157DeviceOperatorI();
+    virtual ~SampleCheckerTest();
 
     /**
-     * @brief Creates the specific NI9157DeviceOperatorT and returns a pointer
-     * to its interface.
-     * @param[in] niDev is the reference to the NI9157Device to be wrapped by
-     * the returned NI9157DeviceOperatorT.
-     * @return a pointer to the interface of the created NI9157DeviceOperatorT.
-     * @warning the returned NI9157DeviceOperatorT memory must be freed when
-     * finishing to use it.
+     * @brief Tests the SampleChecker Constructor.
      */
-    virtual NI9157DeviceOperatorTI *Create(ReferenceT<NI9157Device> niDev) const=0;
+    bool TestConstructor();
 
     /**
-     * @brief Returns the name of this creator object.
-     * @return the name of this creator object.
+     * @brief Tests the SampleChecker::Initialise method.
      */
-    virtual const char8 *GetIdentifier() const=0;
+    bool TestInitialise();
 
     /**
-     * @brief Returns the type associated to this creator object.
-     * @return the TypeDescriptor of the type associated to this creator
-     * object.
+     * @brief Tests the SampleChecker::Initialise method with the 
+     * NumOfFrameForSync parameter not set.
      */
-    virtual TypeDescriptor GetTypeDescriptor() const=0;
+    bool TestInitialise_NoNumOfFrameForSync();
+
+    /**
+     * @brief Tests the SampleChecker::Initialise method which retuns false
+     * when the SampleSize parameter is not defined.
+     */
+    bool TestInitialise_NoSampleSize();
+
+    /**
+     * @brief Tests the SampleChecker::Initialise method which retuns false
+     * when the NumOfFrameForSync parameter is zero.
+     */
+    bool TestInitialise_NumOfFrameForSyncZero();
+
+    /**
+     * @brief Tests the SampleChecker::GetNumberOfFramesToSync method.
+     */
+    bool TestGetNumberOfFramesToSync();
 
 };
-
-}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* CREATENI9157DEVICEOPERATORI_H_ */
+#endif /* NI9157SAMPLECHECKERTEST_H_ */

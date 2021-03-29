@@ -1,6 +1,6 @@
 /**
  * @file NI9157CircularFifoReaderTest.h
- * @brief Header file for class NI9157CircularFifoReaderTest
+ * @brief Header file for class NI9157CircularFifoReaderTest.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
@@ -55,11 +55,7 @@
 using namespace MARTe;
 
 /**
- * @brief Tests the NI9157CircularFifoReader methods
- * @details Compile into the folder TestLabviewFiles and be sure that in the
- * configuration streams of the tests the variable NiDevice.NiRioGenFile points
- * to this folder. Export also the environment variable NI9157_PROJ_DIR to the
- * folder when the dynamic library is created after the compilation.
+ * @brief Tests the NI9157CircularFifoReader methods.
  */
 class NI9157CircularFifoReaderTest {
 public:
@@ -312,7 +308,6 @@ public:
      * with he HeaderSize > 0 and CheckFrame = 1.
      */
     bool TestDriverRead_HeaderSizeCheckFrame(uint32 model);
-    
 
 };
 

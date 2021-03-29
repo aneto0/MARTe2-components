@@ -1,6 +1,6 @@
 /**
  * @file NI9157DeviceOperatorTIGTest.cpp
- * @brief Source file for class NI9157DeviceOperatorTIGTest
+ * @brief Source file for class NI9157DeviceOperatorTIGTest.
  * @date 22/03/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco

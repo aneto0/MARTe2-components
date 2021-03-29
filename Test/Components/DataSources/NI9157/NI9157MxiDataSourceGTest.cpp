@@ -1,6 +1,6 @@
 /**
  * @file NI9157MxiDataSourceGTest.cpp
- * @brief Source file for class NI9157MxiDataSourceGTest
+ * @brief Source file for class NI9157MxiDataSourceGTest.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
@@ -18,8 +18,9 @@
  * or implied. See the Licence permissions and limitations under the Licence.
  *
  * @details This source file contains the definition of all the methods for
- * the class NI9157MxiDataSourceGTest (public, protected, and private). Be aware that some 
- * methods, such as those inline could be defined on the header file, instead.
+ * the class NI9157MxiDataSourceGTest (public, protected, and private). Be
+ * aware that some methods, such as those inline could be defined on the
+ * header file, instead.
  */
 
 /*---------------------------------------------------------------------------*/

@@ -1,6 +1,6 @@
 /**
  * @file CounterChecker.cpp
- * @brief Source file for class CounterChecker
+ * @brief Source file for class CounterChecker.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
@@ -18,19 +18,18 @@
  * or implied. See the Licence permissions and limitations under the Licence.
  *
  * @details This source file contains the definition of all the methods for
- * the class CounterChecker (public, protected, and private). Be aware that some 
- * methods, such as those inline could be defined on the header file, instead.
+ * the class CounterChecker (public, protected, and private). Be aware that
+ * some methods, such as those inline could be defined on the header file,
+ * instead.
  */
 
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "AdvancedErrorManagement.h"
 #include "CounterChecker.h"
 
 /*---------------------------------------------------------------------------*/
@@ -44,8 +43,6 @@ namespace MARTe {
 
 CounterChecker::CounterChecker() :
         SampleChecker() {
-    // Auto-generated constructor stub for CounterChecker
-    // TODO Verify if manual additions are needed
 
     packetCounter = 1u;
     acquireFromCounter = 0u;
@@ -56,61 +53,60 @@ CounterChecker::CounterChecker() :
 }
 
 CounterChecker::~CounterChecker() {
-    // Auto-generated destructor stub for CounterChecker
-    // TODO Verify if manual additions are needed
 }
 
 bool CounterChecker::Initialise(StructuredDataI &data) {
 
-    bool ret = SampleChecker::Initialise(data);
-
+    bool ret;
+    REPORT_ERROR(ErrorManagement::Information, "CounterChecker::Initialise");
+    
+    ret = SampleChecker::Initialise(data);
     if (ret) {
         ret = (nFrameForSync > 1u);
         if (!ret) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "NumOfFrameForSync must be > 1");
-        }
-        if (!data.Read("FirstPacketCounter", packetCounter)) {
-            packetCounter = 1u;
-        }
-        //wait this packet counter before save data
-        if (!data.Read("AcquireFromCounter", acquireFromCounter)) {
-            acquireFromCounter = packetCounter;
-        }
-
-        //the counter step
-        if (!data.Read("CounterStep", counterStep)) {
-            counterStep = 1u;
+            REPORT_ERROR(ErrorManagement::InitialisationError, "CounterChecker::Initialise NumOfFrameForSync must be > 1");
         }
         else {
-            ret = (counterStep > 0u);
-            if (!ret) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "CounterStep must be >0");
+            if (!data.Read("FirstPacketCounter", packetCounter)) {
+                packetCounter = 1u;
             }
-        }
-
-        //check the counter each N
-        if (!data.Read("CheckCounterAfterNSteps", checkCounterAfterNSteps)) {
-            checkCounterAfterNSteps = counterStep;
-        }
-        if (ret) {
-            ret = ((checkCounterAfterNSteps % counterStep) == 0u);
-            if (!ret) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "CounterStep=%d must divide exactly CheckCounterAfterNPackets=%d", counterStep,
-                             checkCounterAfterNSteps);
+            //wait this packet counter before save data
+            if (!data.Read("AcquireFromCounter", acquireFromCounter)) {
+                acquireFromCounter = packetCounter;
             }
-            if (ret) {
-                ret = (((acquireFromCounter - packetCounter) % counterStep) == 0u);
+            //the counter step
+            if (!data.Read("CounterStep", counterStep)) {
+                counterStep = 1u;
+            }
+            else {
+                ret = (counterStep > 0u);
                 if (!ret) {
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "AcquireFromCounter=%d must divide exactly CounterStep=%d", acquireFromCounter,
-                                 counterStep);
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "CounterChecker::Initialise CounterStep must be > 0");
                 }
             }
-        }
-        if (ret) {
-            nextPacketCheck = packetCounter;
+            //check the counter each N
+            if (!data.Read("CheckCounterAfterNSteps", checkCounterAfterNSteps)) {
+                checkCounterAfterNSteps = counterStep;
+            }
+            if (ret) {
+                ret = ((checkCounterAfterNSteps % counterStep) == 0u);
+                if (!ret) {
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "CounterChecker::Initialise CheckCounterAfterNPackets=%d must divide exactly CounterStep=%d", checkCounterAfterNSteps, counterStep);
+                }
+                else {
+                    ret = (((acquireFromCounter - packetCounter) % counterStep) == 0u);
+                    if (!ret) {
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "CounterChecker::Initialise (AcquireFromCounter=%d - FirstPacketCounter=%d) must divide exactly CounterStep=%d", acquireFromCounter, packetCounter, counterStep);
+                    }
+                }
+            }
+            if (ret) {
+                nextPacketCheck = packetCounter;
+            }
         }
     }
 
+    REPORT_ERROR(ret ? ErrorManagement::Information : ErrorManagement::InitialisationError, "CounterChecker::Initialise retruning %s", ret ? "true" : "false");
     return ret;
 }
 
@@ -157,8 +153,7 @@ bool CounterChecker::Synchronise(uint8 *frames,
     idx = 0u;
 
     while (idx < sizeToRead) {
-        //try all the elements and compare them with the relative
-        //ones in the other frames
+        //try all the elements and compare them with the relative ones in the other frames
         candidate = 0ull;
         /*lint -e{340} -e{534} -e{927} -e{928} -e{826} -e{740} Allowed cast from pointer to pointer*/
         MemoryOperationsHelper::Copy(reinterpret_cast<uint8*>(&candidate), reinterpret_cast<uint8*>(&frames[idx]), sampleSize);
@@ -182,11 +177,14 @@ bool CounterChecker::Synchronise(uint8 *frames,
     }
 
     bool ret = (syncCnt >= nFrameForSync);
-
-    if (ret) {
+    if (!ret) {
+        /*lint -e{927} -e{826} Allowed cast from pointer to pointer*/
+        REPORT_ERROR(ErrorManagement::FatalError, "CounterChecker::Synchronise Failed Sync for Frame %u PacketCounter %u", *reinterpret_cast<uint64*>(&(frames[0])), static_cast<uint64>(packetCounter));
+    }
+    else {
         /*lint -e{9123} -e{647} allowed cast to larger type*/
         uint64 newCounter = candidate + static_cast<uint64>(nFrameForSync * counterStep);
-        REPORT_ERROR(ErrorManagement::FatalError, "Resync done %d", newCounter);
+        REPORT_ERROR(ErrorManagement::Information, "CounterChecker::Synchronise Resync done with newCounter %u", newCounter);
 
         /*lint -e{9123} -e{647} allowed cast to larger type*/
         packetCounter = candidate + static_cast<uint64>(nFrameForSync * counterStep);
@@ -204,10 +202,6 @@ bool CounterChecker::Synchronise(uint8 *frames,
                 acquireFromCounter = 0ull;
             }
         }
-    }
-    else {
-        /*lint -e{927} -e{826} Allowed cast from pointer to pointer*/
-        REPORT_ERROR(ErrorManagement::FatalError, "Failed Sync %llu %u", *reinterpret_cast<uint64*>(&(frames[0])), packetCounter);
     }
 
     return ret;

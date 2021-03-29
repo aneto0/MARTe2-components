@@ -24,8 +24,13 @@
 #
 #############################################################
 
-OBJSX += NI9157CircularFifoReaderTest.x NI9157MxiDataSourceTest.x
-		
+OBJSX += NI9157CircularFifoReaderTest.x \
+    NI9157MxiDataSourceTest.x \
+    SampleCheckerTest.x \
+    CounterCheckerTest.x \
+    MarkerBitCheckerTest.x \
+    NI9157MemoryOperationsHelperTest.x
+
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
@@ -50,14 +55,14 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 
 INCLUDES += -I$(ROOT_DIR)/Source/Components/DataSources/NI9157
+INCLUDES += -I$(ROOT_DIR)/Source/Components/DataSources/NI9157/Optim
 INCLUDES += -I$(ROOT_DIR)/Source/Components/GAMs/Interleaved2FlatGAM
 INCLUDES += -I$(ROOT_DIR)/Source/Components/GAMs/IOGAM
 INCLUDES += -I$(ROOT_DIR)/Source/Components/Interfaces/NI9157Device
 
 all: $(OBJS) \
 	$(BUILD_DIR)/NI9157Test$(LIBEXT)
-	echo  $(OBJS)
-
+	echo $(OBJS)
 
 include depends.$(TARGET)
 

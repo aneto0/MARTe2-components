@@ -1,6 +1,6 @@
 /**
  * @file NI9157MxiDataSourceTest.h
- * @brief Header file for class NI9157MxiDataSourceTest
+ * @brief Header file for class NI9157MxiDataSourceTest.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
@@ -17,9 +17,10 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
- * @details This header file contains the declaration of the class NI9157MxiDataSourceTest
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * @details This header file contains the declaration of the class
+ * NI9157MxiDataSourceTest with all of its public, protected and private
+ * members. It may also include definitions for inline methods which need to
+ * be visible to the compiler.
  */
 
 #ifndef NI9157MXIDATASOURCETEST_H_
@@ -32,8 +33,26 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "AdvancedErrorManagement.h"
+#include "ConfigurationDatabase.h"
+#include "DataSourceI.h"
+#include "GAMSchedulerI.h"
+#include "IOGAM.h"
+#include "Interleaved2FlatGAM.h"
+#include "MemoryMapInputBroker.h"
+#include "MemoryMapMultiBufferInputBroker.h"
+#include "MemoryMapMultiBufferOutputBroker.h"
+#include "MemoryMapOutputBroker.h"
+#include "MemoryMapSynchronisedInputBroker.h"
+#include "MemoryMapSynchronisedMultiBufferInputBroker.h"
+#include "MemoryMapSynchronisedMultiBufferOutputBroker.h"
+#include "MemoryMapSynchronisedOutputBroker.h"
 #include "NI9157MxiDataSource.h"
 #include "NI9157TestsAndFwSettings.h"
+#include "ObjectRegistryDatabase.h"
+#include "RealTimeApplication.h"
+#include "StandardParser.h"
+#include "Threads.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -41,11 +60,7 @@
 using namespace MARTe;
 
 /**
- * @brief Tests the NI9157MxiDataSource methods
- * @details Compile into the folder TestLabviewFiles and be sure that in the
- * configuration streams of the tests the variable NiDevice.NiRioGenFile points
- * to this folder. Export also the environment variable NI9157_PROJ_DIR to the
- * folder when the dynamic library is created after the compilation.
+ * @brief Tests the NI9157MxiDataSource methods.
  */
 class NI9157MxiDataSourceTest {
 public:

@@ -1,6 +1,6 @@
 /**
  * @file NI9157DeviceOperatorT.h
- * @brief Header file for class NI9157DeviceOperatorT
+ * @brief Header file for class NI9157DeviceOperatorT.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco

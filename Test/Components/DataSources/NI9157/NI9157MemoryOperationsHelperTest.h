@@ -1,8 +1,7 @@
 /**
- * @file SampleChecker.h
- * @brief Header file for class SampleChecker.
- * @date 11/02/2021
- * @author Giuseppe Ferro
+ * @file NI9157MemoryOperationsHelperTest.h
+ * @brief Header file for class NI9157MemoryOperationsHelperTest.
+ * @date 26/03/2021
  * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -18,13 +17,13 @@
  * or implied. See the Licence permissions and limitations under the Licence.
  *
  * @details This header file contains the declaration of the class
- * SampleChecker with all of its public, protected and private members. It may
- * also include definitions for inline methods which need to be visible to the
- * compiler.
+ * NI9157MemoryOperationsHelperTest with all of its public, protected and
+ * private members. It may also include definitions for inline methods which
+ * need to be visible to the compiler.
  */
 
-#ifndef NI9157SAMPLECHECKER_H_
-#define NI9157SAMPLECHECKER_H_
+#ifndef NI9157MEMORYOPERATIONSHELPERTEST_H_
+#define NI9157MEMORYOPERATIONSHELPERTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -33,79 +32,48 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "AdvancedErrorManagement.h"
-#include "Object.h"
+#include "ConfigurationDatabase.h"
+#include "NI9157MemoryOperationsHelper.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-namespace MARTe { 
+using namespace MARTe;
 
-class SampleChecker: public Object {
+/**
+ * @brief Tests the NI9157MemoryOperationsHelperTest methods.
+ */
+class NI9157MemoryOperationsHelperTest {
 public:
 
     /**
-     * @brief Constructor.
-     * @post
-     *  sampleSize = 0u;
-     *  nFrameForSync = 0u;
+     * @brief NI9157MemoryOperationsHelperTest Constructor.
      */
-    SampleChecker();
+    NI9157MemoryOperationsHelperTest();
 
     /**
-     * @brief Destructor.
+     * @brief NI9157MemoryOperationsHelperTest Destructor.
      */
-    virtual ~SampleChecker();
+    virtual ~NI9157MemoryOperationsHelperTest();
 
     /**
-     * @see Object::Initialise.
-     * @details Follows the list of parameters to be configured by the user
-     * for initialisation: \n
-     * SampleSize: The size of each sample in bytes. Must be defined. \n
-     * NumOfFrameForSync: The number of frames to resync/sync. If not defined
-     * then the default value 1 is used and a warning message is issued.
+     * @brief Tests the NI9157MemoryOperationsHelper::InterleavedToFlat method.
+     * @details The original MemoryOperationsHelper::InterleavedToFlat test
+     * from MARTe2 core was reused here.
      */
-    virtual bool Initialise(StructuredDataI &data);
+    bool TestInterleavedToFlat();
 
     /**
-     * @see Object::Check.
+     * @brief Tests the NI9157MemoryOperationsHelper::FlatToInterleaved method.
+     * @details The original MemoryOperationsHelper::FlatToInterleaved test
+     * from MARTe2 core was reused here.
      */
-    virtual bool Check(uint8 *sample,
-                       bool &write) = 0;
-
-    /**
-     * @brief Gets the value of the NumOfFrameForSync parameter.
-     * @details Retruns the value of the nFrameForSync parameter.
-     * @return nFrameForSync.
-     */
-    uint8 GetNumberOfFramesToSync() const;
-
-    /**
-     * @see Object::Synchronise.
-     */
-    virtual bool Synchronise(uint8 *frames,
-                               uint32 sizeToRead,
-                               uint32 &idx,
-                               bool &write) = 0;
-
-protected:
-
-    /**
-     * The size of each sample in bytes.
-     */
-    uint8 sampleSize;
-
-    /**
-     * The number of frames to resync/sync.
-     */
-    uint8 nFrameForSync;
+    bool TestFlatToInterleaved();
 
 };
-
-}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* NI9157SAMPLECHECKER_H_ */
+#endif /* NI9157MEMORYOPERATIONSHELPERTEST_H_ */

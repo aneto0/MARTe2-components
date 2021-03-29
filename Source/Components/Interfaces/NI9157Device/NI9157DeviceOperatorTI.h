@@ -1,6 +1,6 @@
 /**
  * @file NI9157DeviceOperatorTI.h
- * @brief Header file for class NI9157DeviceOperatorTI
+ * @brief Header file for class NI9157DeviceOperatorTI.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
@@ -45,8 +45,8 @@ namespace MARTe {
 
 /**
  * @brief Interface of NI9157DeviceOperatorT.
- * @brief This interface allows to the NI9157DeviceOperatorDatabase functions to
- * return a pointer to the specific NI9157DeviceOperatorT.
+ * @brief This interface allows to the NI9157DeviceOperatorDatabase functions
+ * to return a pointer to the specific NI9157DeviceOperatorT.
  */
 class NI9157DeviceOperatorTI {
 public:

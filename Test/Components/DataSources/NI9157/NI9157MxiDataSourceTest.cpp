@@ -1,6 +1,6 @@
 /**
  * @file NI9157MxiDataSourceTest.cpp
- * @brief Source file for class NI9157MxiDataSourceTest
+ * @brief Source file for class NI9157MxiDataSourceTest.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
@@ -18,8 +18,9 @@
  * or implied. See the Licence permissions and limitations under the Licence.
  *
  * @details This source file contains the definition of all the methods for
- * the class NI9157MxiDataSourceTest (public, protected, and private). Be aware that some 
- * methods, such as those inline could be defined on the header file, instead.
+ * the class NI9157MxiDataSourceTest (public, protected, and private). Be
+ * aware that some methods, such as those inline could be defined on the
+ * header file, instead.
  */
 
 /*---------------------------------------------------------------------------*/
@@ -30,25 +31,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "AdvancedErrorManagement.h"
-#include "ConfigurationDatabase.h"
-#include "DataSourceI.h"
-#include "GAMSchedulerI.h"
-#include "IOGAM.h"
-#include "Interleaved2FlatGAM.h"
-#include "MemoryMapInputBroker.h"
-#include "MemoryMapMultiBufferInputBroker.h"
-#include "MemoryMapMultiBufferOutputBroker.h"
-#include "MemoryMapOutputBroker.h"
-#include "MemoryMapSynchronisedInputBroker.h"
-#include "MemoryMapSynchronisedMultiBufferInputBroker.h"
-#include "MemoryMapSynchronisedMultiBufferOutputBroker.h"
-#include "MemoryMapSynchronisedOutputBroker.h"
 #include "NI9157MxiDataSourceTest.h"
-#include "ObjectRegistryDatabase.h"
-#include "RealTimeApplication.h"
-#include "StandardParser.h"
-#include "Threads.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */

@@ -24,10 +24,10 @@
 #
 #############################################################
 
-OBJSX=NI9157CircularFifoReader.x\
-    NI9157MxiDataSource.x\
-    SampleChecker.x\
-    CounterChecker.x\
+OBJSX=NI9157CircularFifoReader.x \
+    NI9157MxiDataSource.x \
+    SampleChecker.x \
+    CounterChecker.x \
     MarkerBitChecker.x
 
 SPB=Optim.x

@@ -1,6 +1,6 @@
 /**
  * @file CreateNI9157DeviceOperator.h
- * @brief Header file for class CreateNI9157DeviceOperator
+ * @brief Header file for class CreateNI9157DeviceOperator.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
@@ -42,8 +42,9 @@
 namespace MARTe {
 
 /**
- * @brief This object allows to create a specific NI9157DeviceOperatorT depending on the template type.
- * @see NI9157DeviceOperatorTI and NI9157DeviceOperatorT
+ * @brief This object allows to create a specific NI9157DeviceOperatorT
+ * depending on the template type.
+ * @see NI9157DeviceOperatorTI and NI9157DeviceOperatorT.
  */
 /*lint -esym(9107, MARTe::CreateNI9157DeviceOperator*) [MISRA C++ Rule 3-1-1]. Justification: Required for template implementation.
  * No code is actually being generated and the header files can be included in multiple unit files.*/

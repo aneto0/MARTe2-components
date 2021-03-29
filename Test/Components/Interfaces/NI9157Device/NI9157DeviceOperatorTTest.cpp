@@ -1,6 +1,6 @@
 /**
  * @file NI9157DeviceOperatorTTest.cpp
- * @brief Source file for class NI9157DeviceOperatorTTest
+ * @brief Source file for class NI9157DeviceOperatorTTest.
  * @date 11/02/2021
  * @author Giuseppe Ferro
  * @author Pedro Lourenco
