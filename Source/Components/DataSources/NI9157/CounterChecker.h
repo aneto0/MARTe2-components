@@ -42,6 +42,10 @@
 
 namespace MARTe {
 
+/**
+ * @brief The CounterChecker class.
+ * @see CounterChecker::Initialise for details on the configuration parameters.
+ */
 class CounterChecker: public SampleChecker {
 public:
     CLASS_REGISTER_DECLARATION()
@@ -81,7 +85,9 @@ public:
      * @see SampleChecker::Check.
      * @details Checks if the value of sample corresponds to the value of the
      * packet counter.
-     * @param[out] write is true unless the sample and the AcquireFromCounter
+     * @param[in] sample is the sample to be checked against the value of the
+     * class internal packetCounter.
+     * @param[in,out] write is true unless the sample and the AcquireFromCounter
      * values do not match.
      * @return true if the packetCounter matches the sample value, otherwise
      * returns false.

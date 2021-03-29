@@ -29,7 +29,7 @@ OBJSX += NI9157CircularFifoReaderTest.x \
     SampleCheckerTest.x \
     CounterCheckerTest.x \
     MarkerBitCheckerTest.x \
-    NI9157MemoryOperationsHelperTest.x
+    Optim/NI9157MemoryOperationsHelperTest.x
 
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..

@@ -33,6 +33,6 @@ OBJSX = NI9157CircularFifoReaderGTest.x \
     SampleCheckerGTest.x \
     CounterCheckerGTest.x \
     MarkerBitCheckerGTest.x \
-    NI9157MemoryOperationsHelperGTest.x
+    Optim/NI9157MemoryOperationsHelperGTest.x
 
 include Makefile.inc

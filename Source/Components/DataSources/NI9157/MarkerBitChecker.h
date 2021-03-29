@@ -41,6 +41,11 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+/**
+ * @brief The MarkerBitChecker class.
+ * @see MarkerBitChecker::Initialise for details on the configuration
+ * parameters.
+ */
 class MarkerBitChecker: public SampleChecker {
 public:
     CLASS_REGISTER_DECLARATION()

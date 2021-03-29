@@ -41,6 +41,11 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe { 
 
+/**
+ * @brief The SampleChecker class. This class is used by the CounterChecker and
+ * MarkerBitChecker classes of the NI9157 DataSource.
+ * @see SampleChecker::Initialise for details on the configuration parameters.
+ */
 class SampleChecker: public Object {
 public:
 
