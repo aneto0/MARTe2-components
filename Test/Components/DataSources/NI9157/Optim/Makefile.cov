@@ -29,5 +29,3 @@ INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 OBJSX = NI9157MemoryOperationsHelperGTest.x
 
 include Makefile.inc
-
-LIBRARIES_STATIC=cov/NI9157MemoryOperationsHelperTest$(OBJEXT)

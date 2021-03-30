@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX=NI9157MemoryOperationsHelperTest.x
+OBJSX += NI9157MemoryOperationsHelperTest.x
 
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
@@ -57,6 +57,14 @@ INCLUDES += -I$(CODAC_ROOT)/include
 
 OPTIM = -O3
 
-all: $(OBJS)
+#all: $(OBJS)
+
+#include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+
+all: $(OBJS) \
+	$(BUILD_DIR)/NI9157MemoryOperationsHelperTest$(LIBEXT)
+	echo $(OBJS)
+
+include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
