@@ -2,7 +2,7 @@
 #
 # Copyright 2015 F4E | European Joint Undertaking for ITER 
 #  and the Development of Fusion Energy ('Fusion for Energy')
-# 
+#
 # Licensed under the EUPL, Version 1.1 or - as soon they 
 # will be approved by the European Commission - subsequent  
 # versions of the EUPL (the "Licence"); 
@@ -24,47 +24,39 @@
 #
 #############################################################
 
-OBJSX += NI9157CircularFifoReaderTest.x \
-    NI9157MxiDataSourceTest.x \
-    SampleCheckerTest.x \
-    CounterCheckerTest.x \
-    MarkerBitCheckerTest.x 
+OBJSX=NI9157MemoryOperationsHelperTest.x
 
-SPB=Optim.x
-
-PACKAGE=Components/DataSources
-ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-INCLUDES += -I$(CODAC_ROOT)/include/
-INCLUDES += -I$(MARTe2_DIR)/Components/DataSources/NI6259
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+PACKAGE=Components/DataSources/NI9157
+
+ROOT_DIR=../../../../../
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs/
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4LoggerService
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4StateMachine
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
-
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L4LoggerService
+INCLUDES += -I$(MARTe2_DIR)/Source/Interfaces/NI9157Device
 INCLUDES += -I$(ROOT_DIR)/Source/Components/DataSources/NI9157
 INCLUDES += -I$(ROOT_DIR)/Source/Components/DataSources/NI9157/Optim
-INCLUDES += -I$(ROOT_DIR)/Source/Components/GAMs/Interleaved2FlatGAM
-INCLUDES += -I$(ROOT_DIR)/Source/Components/GAMs/IOGAM
-INCLUDES += -I$(ROOT_DIR)/Source/Components/Interfaces/NI9157Device
+INCLUDES += -I$(CODAC_ROOT)/include
 
-all: $(OBJS) \
-	$(BUILD_DIR)/NI9157Test$(LIBEXT)
-	echo $(OBJS)
+OPTIM = -O3
 
-include depends.$(TARGET)
+all: $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
