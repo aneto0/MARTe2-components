@@ -55,12 +55,6 @@ INCLUDES += -I$(ROOT_DIR)/Source/Components/DataSources/NI9157
 INCLUDES += -I$(ROOT_DIR)/Source/Components/DataSources/NI9157/Optim
 INCLUDES += -I$(CODAC_ROOT)/include
 
-OPTIM = -O3
-
-#all: $(OBJS)
-
-#include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-
 all: $(OBJS) \
 	$(BUILD_DIR)/NI9157MemoryOperationsHelperTest$(LIBEXT)
 	echo $(OBJS)
