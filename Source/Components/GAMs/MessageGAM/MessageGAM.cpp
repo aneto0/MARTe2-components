@@ -53,7 +53,7 @@ MessageGAM::MessageGAM() :
     currentValue = NULL_PTR(uint8*);
     previousValue = NULL_PTR(uint8*);
     commandIndex = NULL_PTR(uint32*);
-    trigOnChange = 1u;
+    trigOnChange = true;
     firstTime = true;
 }
 
@@ -74,8 +74,12 @@ MessageGAM::~MessageGAM() {
 bool MessageGAM::Initialise(StructuredDataI &data) {
     bool ret = GAM::Initialise(data);
     if (ret) {
-        if (!data.Read("TriggerOnChange", trigOnChange)) {
-            trigOnChange = 1u;
+        uint8 tempTrigOnChange;
+        if (!data.Read("TriggerOnChange", tempTrigOnChange)) {
+            trigOnChange = true;
+        }
+        else {
+            trigOnChange = (tempTrigOnChange != 0u);
         }
     }
     return ret;
@@ -233,6 +237,7 @@ bool MessageGAM::Setup() {
     return ret;
 }
 
+/*lint -e{715} PrepareNextState function is independent from current and next state name. State change only triggers a flag */
 bool MessageGAM::PrepareNextState(const char8 * const currentStateName,
                                   const char8 * const nextStateName) {
 
@@ -245,10 +250,11 @@ bool MessageGAM::PrepareNextState(const char8 * const currentStateName,
 bool MessageGAM::Execute() {
     if (firstTime) {
         for (uint32 i = 0u; i < numberOfCommands; i++) {
-
+            /*lint -e{613} NULLity of pointer was afore checked */
             (void) MemoryOperationsHelper::Copy(&previousValue[signalMetadata[commandIndex[i]].offset], &currentValue[signalMetadata[commandIndex[i]].offset],
                                                 (static_cast<uint32>(signalMetadata[commandIndex[i]].type.numberOfBits) / 8u));
 
+            /*lint -e{613} NULLity of pointer was afore checked */
             REPORT_ERROR(ErrorManagement::Information, "\nFirst Time %s u-->%u\n", signalMetadata[commandIndex[i]].name.Buffer(), currentValue[signalMetadata[commandIndex[i]].offset],
                          previousValue[signalMetadata[commandIndex[i]].offset]);
         }
@@ -258,7 +264,8 @@ bool MessageGAM::Execute() {
     else {
 
         for (uint32 i = 0u; i < numberOfCommands; i++) {
-
+            
+            /*lint -e{613} NULL pointer checked.*/
             bool check = (cntTrigger[i] == 0u);
 
             /*lint -e{613} NULL pointer checked.*/
@@ -274,7 +281,7 @@ bool MessageGAM::Execute() {
             }
 
             bool trigEvent = false;
-            if (trigOnChange == 0u) {
+            if (!trigOnChange) {
                 trigEvent = check;
             }
             else {

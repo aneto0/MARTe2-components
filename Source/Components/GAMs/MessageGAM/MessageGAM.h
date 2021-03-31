@@ -232,7 +232,7 @@ protected:
     /**
     * Holds internal value for the trigger on change configuration setting
     */
-    uint8 trigOnChange;
+    bool trigOnChange;
 
     /**
     * True only on first Execute pass, used to handle the trigger on change setting

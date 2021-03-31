@@ -58,6 +58,7 @@
 -i./Source/Components/GAMs/Interleaved2FlatGAM/
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/GAMs/MathExpressionGAM/
+-i./Source/Components/GAMs/MessageGAM/
 -i./Source/Components/GAMs/PIDGAM/
 -i./Source/Components/GAMs/MuxGAM/
 -i./Source/Components/GAMs/SSMGAM/
@@ -65,7 +66,6 @@
 -i./Source/Components/GAMs/SimulinkWrapperGAM/
 -i./Source/Components/GAMs/StatisticsGAM/
 -i./Source/Components/GAMs/TimeCorrectionGAM/
--i./Source/Components/GAMs/TriggerOnChangeGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
 -i./Source/Components/Interfaces/EPICS/
 -i./Source/Components/Interfaces/EPICSPVA/
@@ -129,6 +129,7 @@ MDSWriterNode.cpp
 MemoryGate.cpp
 MemoryMapSynchNMutexInputBroker.cpp
 MemoryMapSynchNMutexOutputBroker.cpp
+MessageGAM.cpp
 MuxGAM.cpp
 MuxGAM.h
 NI1588Timestamp.cpp
@@ -168,7 +169,6 @@ StatisticsGAM.cpp
 StatisticsHelperT.h
 SysLogger.cpp
 TimeCorrectionGAM.cpp
-TriggerOnChangeGAM.cpp
 Types.h
 Waveform.cpp
 Waveform.h
