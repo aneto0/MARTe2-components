@@ -86,6 +86,11 @@ TEST(MessageGAMGTest,TestExecute_Commands) {
     ASSERT_TRUE(test.TestExecute_Commands());
 }
 
+TEST(MessageGAMGTest,TestExecute_WithoutTriggerOnChange) {
+    MessageGAMTest test;
+    ASSERT_TRUE(test.TestExecute_WithoutTriggerOnChange());
+}
+
 TEST(MessageGAMGTest,TestGetNumberOfCommands) {
     MessageGAMTest test;
     ASSERT_TRUE(test.TestGetNumberOfCommands());

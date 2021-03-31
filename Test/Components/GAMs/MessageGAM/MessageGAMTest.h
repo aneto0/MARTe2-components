@@ -64,6 +64,8 @@ public:
 
     bool TestExecute_Commands();
 
+    bool TestExecute_WithoutTriggerOnChange();
+
     bool TestGetNumberOfCommands();
 
     bool TestGetNumberOfEvents();

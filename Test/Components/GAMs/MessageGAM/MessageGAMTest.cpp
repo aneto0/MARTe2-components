@@ -379,7 +379,7 @@ bool MessageGAMTest::TestSetup() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
+            "                    CPUs = 0xFF"
             "                    Functions = { GAM1 }"
             "                }"
             "            }"
@@ -609,7 +609,6 @@ bool MessageGAMTest::TestSetup_FalseNoCommands() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { GAM1 }"
             "                }"
             "            }"
@@ -724,7 +723,6 @@ bool MessageGAMTest::TestSetup_FalseInOutMismatch() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { GAM1 }"
             "                }"
             "            }"
@@ -840,7 +838,6 @@ bool MessageGAMTest::TestSetup_FalseStateBadType() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { GAM1 }"
             "                }"
             "            }"
@@ -953,7 +950,6 @@ bool MessageGAMTest::TestExecute() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 0xFF"
             "                    Functions = { GAM1 }"
             "                }"
             "            }"
@@ -1675,6 +1671,197 @@ bool MessageGAMTest::TestExecute_Commands() {
 
     return ret;
 }
+
+bool MessageGAMTest::TestExecute_WithoutTriggerOnChange() {
+    const char8 *config = ""
+            "$Application = {"
+            "   Class = RealTimeApplication"
+            "   +Functions = {"
+            "       Class = ReferenceContainer"
+            "       +GAM1 = {"
+            "           Class = MessageGAMTestGAM"
+            "           TriggerOnChange = 0"
+            "            +Events = {"
+            "                Class = ReferenceContainer"
+            "                +Event1 = {"
+            "                    Class = EventConditionTrigger"
+            "                    EventTrigger = {"
+            "                        Command = 1"
+            "                    }"
+            "                    +Fun1Mess = {"
+            "                        Class = Message"
+            "                        Destination = Application.Data.Input"
+            "                        Function = \"TrigFun1\""
+            "                        Mode = ExpectsReply"
+            "                    }"
+            "                }"
+            "                +Event2 = {"
+            "                    Class = EventConditionTrigger"
+            "                    EventTrigger = {"
+            "                        Command = 2"
+            "                    }"
+            "                    +Fun2Mess = {"
+            "                        Class = Message"
+            "                        Destination = Application.Data.Input"
+            "                        Function = \"TrigFun2\""
+            "                        Mode = ExpectsReply"
+            "                    }"
+            "                }"
+            "                +Event3 = {"
+            "                    Class = EventConditionTrigger"
+            "                    EventTrigger = {"
+            "                        Command = 3"
+            "                    }"
+            "                    +Fun3Mess = {"
+            "                        Class = Message"
+            "                        Destination = Application.Data.Input"
+            "                        Function = \"TrigFun3\""
+            "                        Mode = ExpectsReply"
+            "                    }"
+            "                 }"
+            "             }"
+            "             InputSignals = {"
+            "                 Command = {"
+            "                     DataSource = Input"
+            "                     Frequency = 1"
+            "                     Type = uint32"
+            "                 }"
+            "                 State = {"
+            "                     DataSource = Input"
+            "                     Type = uint32"
+            "                 }"
+            "                 Command1 = {"
+            "                     DataSource = Input"
+            "                     Type = uint32"
+            "                 }"
+            "             }"
+            "             OutputSignals = {"
+            "                 ReplyState = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                 }"
+            "                 ReplyState1 = {"
+            "                     DataSource = DDB1"
+            "                     Type = uint32"
+            "                 }"
+            "             }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +DDB1 = {"
+            "            Class = GAMDataSource"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "        +LoggerDataSource = {"
+            "            Class = LoggerDataSource"
+            "        }"
+            "        +Input = {"
+            "            Class = MessageGAMTestDS"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Idle = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = { GAM1 }"
+            "                }"
+            "            }"
+            "         }"
+            "     }"
+            "     +Scheduler = {"
+            "         Class = GAMScheduler"
+            "         TimingDataSource = Timings"
+            "     }"
+            "}";
+    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    ReferenceT<MessageGAMTestGAM> test;
+    if (ret) {
+        test = ObjectRegistryDatabase::Instance()->Find("Application.Functions.GAM1");
+        ret = test.IsValid();
+    }
+    ReferenceContainer inputBrokers;
+    ReferenceContainer outputBrokers;
+
+    ReferenceT < MemoryMapSynchronisedInputBroker > brokerIn;
+    ReferenceT < MemoryMapInputBroker > brokerIn1;
+
+    ReferenceT < MemoryMapOutputBroker > brokerOut;
+
+    if (ret) {
+        test->GetInputBrokers(inputBrokers);
+        brokerIn = inputBrokers.Get(0);
+        ret = brokerIn.IsValid();
+    }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after InputBrokers(0) IsValid");
+    }
+
+    if (ret) {
+        brokerIn1 = inputBrokers.Get(1);
+        ret = brokerIn1.IsValid();
+    }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after InputBrokers(1) IsValid");
+    }
+
+    if (ret) {
+        test->GetOutputBrokers(outputBrokers);
+        brokerOut = outputBrokers.Get(0);
+        ret = brokerOut.IsValid();
+    }
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after OutputBrokers IsValid");
+    }
+
+    ReferenceT < MessageGAMTestDS > ds;
+    if (ret) {
+        ds = ObjectRegistryDatabase::Instance()->Find("Application.Data.Input");
+        ret = ds.IsValid();
+    }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after MessageGAMDS IsValid");
+    }
+
+    uint32 *outMem = NULL;
+    if (ret) {
+        ds->PrepareNextState("Idle", "Idle");
+        test->PrepareNextState("Idle", "Idle");
+
+        outMem = (uint32*) test->GetOutputMemoryX();
+    }
+    bool retBrokerIn, retBrokerIn1, retTest, retBrokerOut;
+
+    if (ret) {
+        ds->ChangeCommand(0u, 1u);
+        brokerIn->Execute();
+        brokerIn1->Execute();
+        test->Execute();
+        
+        brokerOut->Execute();
+        ret = ((outMem[0] == 1) && (outMem[1] == 0));
+    }
+
+    if (ret) {
+        Sleep::Sec(2);
+        ret = (ds->GetFlag() == 0x1);
+    }
+    ObjectRegistryDatabase::Instance()->Purge();
+
+    return ret;
+
+}
+
 
 bool MessageGAMTest::TestGetNumberOfCommands() {
     return TestSetup();

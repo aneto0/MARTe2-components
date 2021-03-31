@@ -229,9 +229,14 @@ protected:
      */
     uint8 *previousValue;
 
-
+    /**
+    * Holds internal value for the trigger on change configuration setting
+    */
     uint8 trigOnChange;
 
+    /**
+    * True only on first Execute pass, used to handle the trigger on change setting
+    */
     bool firstTime;
 
 };
