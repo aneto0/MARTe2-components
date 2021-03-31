@@ -41,6 +41,10 @@ PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
+ARCHIVEPATH = TestLvFw
+ARCHIVE = TestLvFw.tar.gz
+FILE_PREIX = NiFpga_NI915
+
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
@@ -64,7 +68,11 @@ INCLUDES += -I../../../../Source/Components/Interfaces/NI9157Device
 all: $(OBJS) \
 	$(BUILD_DIR)/NI9157DeviceTest$(LIBEXT)
 	echo  $(OBJS)
+	-tar -xzvf $(ARCHIVEPATH)/$(ARCHIVE) -C $(ARCHIVEPATH)
 
 include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+
+clean:
+	-@rm -fv $(ARCHIVEPATH)/$(FILE_PREIX)*

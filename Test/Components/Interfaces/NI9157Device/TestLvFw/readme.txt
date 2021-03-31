@@ -1,5 +1,1 @@
-For GTests requiring NI9157/NI9159 bitstreams:
- - Test/Source/Components/NI9157/...
- - Test/Source/Interfaces/NI9157Device/...
-please extrct (tar -xzvf TestLvFw.tar.gz) the files in 'TestLvFw.tar.gz' here:
- - Test/Components/Interfaces/NI9157Device/TestLvFw
+If the Makefile in the parent directory was not used, please extrct (tar -xzvf TestLvFw.tar.gz) the files in 'TestLvFw.tar.gz' here.
