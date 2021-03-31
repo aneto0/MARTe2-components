@@ -953,7 +953,7 @@ bool MessageGAMTest::TestExecute() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
+            "                    CPUs = 0xFF"
             "                    Functions = { GAM1 }"
             "                }"
             "            }"
@@ -983,14 +983,27 @@ bool MessageGAMTest::TestExecute() {
         brokerIn = inputBrokers.Get(0);
         ret = brokerIn.IsValid();
     }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after InputBrokers(0) IsValid");
+    }
+
     if (ret) {
         brokerIn1 = inputBrokers.Get(1);
         ret = brokerIn1.IsValid();
     }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after InputBrokers(1) IsValid");
+    }
+
     if (ret) {
         test->GetOutputBrokers(outputBrokers);
         brokerOut = outputBrokers.Get(0);
         ret = brokerOut.IsValid();
+    }
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after OutputBrokers IsValid");
     }
 
     ReferenceT < MessageGAMTestDS > ds;
@@ -998,20 +1011,42 @@ bool MessageGAMTest::TestExecute() {
         ds = ObjectRegistryDatabase::Instance()->Find("Application.Data.Input");
         ret = ds.IsValid();
     }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after MessageGAMDS IsValid");
+    }
+
     uint32 *outMem = NULL;
     if (ret) {
         ds->PrepareNextState("Idle", "Idle");
+        test->PrepareNextState("Idle", "Idle");
+
         outMem = (uint32*) test->GetOutputMemoryX();
+    }
+    bool retBrokerIn, retBrokerIn1, retTest, retBrokerOut;
+
+    if (ret) {
+        ds->ChangeCommand(0u, 10u);
+        retBrokerIn = brokerIn->Execute();
+        retBrokerIn1 = brokerIn1->Execute();
+        retTest = test->Execute();
+        
+        retBrokerOut = brokerOut->Execute();
     }
 
     if (ret) {
         ds->ChangeCommand(0u, 1u);
-        brokerIn->Execute();
-        brokerIn1->Execute();
-        test->Execute();
-        brokerOut->Execute();
+        retBrokerIn = brokerIn->Execute();
+        retBrokerIn1 = brokerIn1->Execute();
+        retTest = test->Execute();
+        
+        retBrokerOut = brokerOut->Execute();
         ret = ((outMem[0] == 1) && (outMem[1] == 0));
     }
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after change command 0, 1 %d %d %d %d %d %d", outMem[0], outMem[1], retBrokerIn, retBrokerIn1, retTest, retBrokerOut);
+    }
+
     if (ret) {
         ds->ChangeCommand(0u, 2u);
         brokerIn->Execute();
@@ -1020,6 +1055,11 @@ bool MessageGAMTest::TestExecute() {
         brokerOut->Execute();
         ret = ((outMem[0] >= 1) && (outMem[1] == 0));
     }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after change command 0, 2");
+    }
+
     if (ret) {
         ds->ChangeCommand(0u, 3u);
         brokerIn->Execute();
@@ -1027,6 +1067,10 @@ bool MessageGAMTest::TestExecute() {
         test->Execute();
         brokerOut->Execute();
         ret = (outMem[0] >= 1);
+    }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after change command 0, 3");
     }
 
     if (ret) {
@@ -1167,14 +1211,28 @@ bool MessageGAMTest::TestExecute_MoreCommands() {
         brokerIn = inputBrokers.Get(0);
         ret = brokerIn.IsValid();
     }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after InputBrokers(0) IsValid");
+    }
+
     if (ret) {
         brokerIn1 = inputBrokers.Get(1);
         ret = brokerIn1.IsValid();
     }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after InputBrokers(1) IsValid");
+    }
+
     if (ret) {
         test->GetOutputBrokers(outputBrokers);
         brokerOut = outputBrokers.Get(0);
         ret = brokerOut.IsValid();
+    }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after OutputBrokers IsValid");
     }
 
     ReferenceT < MessageGAMTestDS > ds;
@@ -1182,10 +1240,28 @@ bool MessageGAMTest::TestExecute_MoreCommands() {
         ds = ObjectRegistryDatabase::Instance()->Find("Application.Data.Input");
         ret = ds.IsValid();
     }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after MessageGAMTestDS IsValid");
+    }
+
     uint32 *outMem = NULL;
     if (ret) {
         ds->PrepareNextState("Idle", "Idle");
         outMem = (uint32*) test->GetOutputMemoryX();
+    }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after PrepareNextState check");
+    }
+
+    if (ret) {
+        ds->ChangeCommand(0u, 10u);
+        brokerIn->Execute();
+        brokerIn1->Execute();
+        test->Execute();
+        
+        brokerOut->Execute();
     }
 
     if (ret) {
@@ -1196,6 +1272,11 @@ bool MessageGAMTest::TestExecute_MoreCommands() {
         brokerOut->Execute();
         ret = ((outMem[0] == 1) && (outMem[1] == 0));
     }
+    
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after 1st check");
+    }
+
     if (ret) {
         ds->ChangeCommand(0u, 2u);
         brokerIn->Execute();
@@ -1204,6 +1285,11 @@ bool MessageGAMTest::TestExecute_MoreCommands() {
         brokerOut->Execute();
         ret = ((outMem[0] >= 1) && (outMem[1] == 0));
     }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after 2nd check");
+    }
+
     if (ret) {
         ds->ChangeCommand(2u, 3u);
         brokerIn->Execute();
@@ -1213,10 +1299,19 @@ bool MessageGAMTest::TestExecute_MoreCommands() {
         ret = (outMem[1] == 1);
     }
 
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after 3rd check");
+    }
+
     if (ret) {
         Sleep::Sec(2);
         ret = (ds->GetFlag() == 0x7);
     }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after 4th check");
+    }
+
     ObjectRegistryDatabase::Instance()->Purge();
 
     return ret;
@@ -1551,6 +1646,15 @@ bool MessageGAMTest::TestExecute_Commands() {
     if (ret) {
         ds->PrepareNextState("Idle", "Idle");
         outMem = (uint32*) test->GetOutputMemoryX();
+    }
+
+    if (ret) {
+        ds->ChangeCommand(0u, 10u);
+        brokerIn->Execute();
+        brokerIn1->Execute();
+        test->Execute();
+        
+        brokerOut->Execute();
     }
 
     if (ret) {

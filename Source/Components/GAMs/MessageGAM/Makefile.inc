@@ -42,7 +42,6 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
 
 all: $(OBJS) $(SUBPROJ) \

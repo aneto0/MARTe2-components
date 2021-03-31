@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  MessageGAMTest.x EventConditionTriggerTest.x
+OBJSX += MessageGAMTest.x EventConditionTriggerTest.x
 		
 PACKAGE=Components/GAMs
 ROOT_DIR=../../../..

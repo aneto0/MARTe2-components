@@ -45,12 +45,333 @@
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
-#include "MessageGAM.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-class EventConditionTriggerTestGAM: public MessageGAM {
+class EventConditionMessageGAMTest: public GAM, public MessageI, public StatefulI {
+public:
+
+    CLASS_REGISTER_DECLARATION()
+    EventConditionMessageGAMTest();
+    virtual ~EventConditionMessageGAMTest();
+    virtual bool Initialise(StructuredDataI &data);
+    virtual bool Setup();
+    virtual bool PrepareNextState(const char8 * const currentStateName,
+                                  const char8 * const nextStateName);
+    virtual bool Execute();
+    uint32 GetNumberOfCommands() const ;
+    uint32 GetNumberOfEvents() const ;
+    virtual void Purge(ReferenceContainer &purgeList);
+
+protected:
+    virtual bool IsChanged(const uint32 cIdx) const;
+    uint32 numberOfFields;
+    SignalMetadata *signalMetadata;
+    ReferenceT<ReferenceContainer> events;
+    uint32 numberOfCommands;
+    uint32 numberOfEvents;
+    uint32 *cntTrigger;
+    uint8 *currentValue;
+    uint32 *commandIndex;
+    uint8 *previousValue;
+    uint8 trigOnChange;
+    bool firstTime;
+};
+
+EventConditionMessageGAMTest::EventConditionMessageGAMTest() :
+        GAM(),
+        MessageI() {
+    numberOfFields = 0u;
+    signalMetadata = NULL_PTR(SignalMetadata*);
+    numberOfCommands = 0u;
+    numberOfEvents = 0u;
+    cntTrigger = NULL_PTR(uint32*);
+    currentValue = NULL_PTR(uint8*);
+    previousValue = NULL_PTR(uint8*);
+    commandIndex = NULL_PTR(uint32*);
+    trigOnChange = 1u;
+    firstTime = true;
+}
+
+EventConditionMessageGAMTest::~EventConditionMessageGAMTest() {
+    if (signalMetadata != NULL_PTR(SignalMetadata*)) {
+        delete[] signalMetadata;
+    }
+    if (previousValue != NULL_PTR(uint8*)) {
+        delete[] previousValue;
+    }
+    if (commandIndex != NULL_PTR(uint32*)) {
+        delete[] commandIndex;
+    }
+    cntTrigger = NULL_PTR(uint32*);
+    currentValue = NULL_PTR(uint8*);
+}
+
+bool EventConditionMessageGAMTest::Initialise(StructuredDataI &data) {
+    bool ret = GAM::Initialise(data);
+    if (ret) {
+        if (!data.Read("TriggerOnChange", trigOnChange)) {
+            trigOnChange = 1u;
+        }
+    }
+    return ret;
+}
+
+bool EventConditionMessageGAMTest::Setup() {
+
+    numberOfFields = 0u;
+    bool ret = true;
+
+    uint32 numberOfSignals = GetNumberOfInputSignals();
+
+    for (uint32 i = 0u; (i < numberOfSignals) && (ret); i++) {
+        uint32 numberOfElements = 0u;
+        ret = GetSignalNumberOfElements(InputSignals, i, numberOfElements);
+        if (ret) {
+            numberOfFields += numberOfElements;
+        }
+    }
+
+    uint32 metadataSize = 0u;
+    if (ret) {
+        /*lint -e{613} NULL pointer checked.*/
+        signalMetadata = new SignalMetadata[numberOfFields];
+        ret = (signalMetadata != NULL_PTR(SignalMetadata*));
+
+        uint32 n = 0u;
+
+        /*lint -e{850} the loop variable is not modified within the loop*/
+        for (uint32 i = 0u; (i < numberOfSignals) && (ret); i++) {
+            StreamString signalName;
+            ret = GetSignalName(InputSignals, i, signalName);
+            /*lint -e{613} NULL pointer checked.*/
+            signalMetadata[n].name = signalName;
+            if (ret) {
+                TypeDescriptor type = GetSignalType(InputSignals, i);
+                /*lint -e{613} NULL pointer checked.*/
+                signalMetadata[n].type = type;
+                bool isCommand = (StringHelper::CompareN(signalName.Buffer(), "Command", StringHelper::Length("Command")) == 0);
+                /*lint -e{613} NULL pointer checked.*/
+                signalMetadata[n].isCommand = isCommand;
+                /*lint -e{613} NULL pointer checked.*/
+                if (signalMetadata[n].isCommand) {
+                    numberOfCommands++;
+                }
+
+                /*lint -e{613} NULL pointer checked.*/
+                uint32 typeSize = (static_cast<uint32>(signalMetadata[i].type.numberOfBits) / 8u);
+                /*lint -e{613} NULL pointer checked.*/
+                signalMetadata[n].offset = metadataSize;
+                metadataSize += typeSize;
+
+                uint32 numberOfElements = 0u;
+                ret = GetSignalNumberOfElements(InputSignals, i, numberOfElements);
+                if (ret) {
+                    if (numberOfElements > 1u) {
+                        for (uint32 j = 0u; (j < numberOfElements) && (ret); j++) {
+                            StreamString newSignalName = signalName;
+                            ret = newSignalName.Printf("_%d", j);
+                            if (ret) {
+                                /*lint -e{613} NULL pointer checked.*/
+                                signalMetadata[n].name = newSignalName;
+                                if (j > 0u) {
+                                    /*lint -e{613} NULL pointer checked.*/
+                                    signalMetadata[n].type = type;
+                                    /*lint -e{613} NULL pointer checked.*/
+                                    signalMetadata[n].isCommand = isCommand;
+                                    /*lint -e{613} NULL pointer checked.*/
+                                    if (signalMetadata[n].isCommand) {
+                                        numberOfCommands++;
+                                    }
+                                    /*lint -e{613} NULL pointer checked.*/
+                                    signalMetadata[n].offset = metadataSize;
+                                    metadataSize += typeSize;
+                                }
+                            }
+                            n++;
+                        }
+                    }
+                    else {
+                        n++;
+                    }
+                }
+            }
+        }
+    }
+
+    if (ret) {
+        ret = (numberOfCommands > 0u);
+        if (!ret) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "The number of commands is 0");
+        }
+    }
+
+    if (ret) {
+        previousValue = new uint8[metadataSize];
+        (void) MemoryOperationsHelper::Set(previousValue, '\0', metadataSize);
+        commandIndex = new uint32[numberOfCommands];
+
+        uint32 c = 0u;
+        for (uint32 i = 0u; i < numberOfFields; i++) {
+            /*lint -e{613} NULL pointer checked.*/
+            if (signalMetadata[i].isCommand) {
+                commandIndex[c] = i;
+                c++;
+            }
+        }
+
+//build the lookup table
+        events = this->Find("Events");
+        ret = events.IsValid();
+        if (ret) {
+            numberOfEvents = events->Size();
+            for (uint32 i = 0u; i < numberOfEvents; i++) {
+                ReferenceT<EventConditionTrigger> eventCondition = events->Get(i);
+                ret = eventCondition.IsValid();
+                if (ret) {
+                    ret = eventCondition->SetMetadataConfig(signalMetadata, numberOfFields);
+                }
+            }
+        }
+
+    }
+
+    if (ret) {
+//check that the state signal has siz #elements
+        uint32 totalNumberOfOutputs = 0u;
+        for (uint32 i = 0u; (i < numberOfOutputSignals) && (ret); i++) {
+            TypeDescriptor td = GetSignalType(OutputSignals, i);
+            ret = (td == UnsignedInteger32Bit);
+            if (!ret) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "The type of the output signal (reply state) must be uint32");
+            }
+            else {
+                uint32 numberOfElements;
+                ret = GetSignalNumberOfElements(OutputSignals, 0u, numberOfElements);
+                totalNumberOfOutputs += numberOfElements;
+            }
+
+        }
+        if (ret) {
+            ret = (totalNumberOfOutputs == numberOfCommands);
+            if (!ret) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "The number of outputs %d must match the number of commands %d", totalNumberOfOutputs,
+                             numberOfCommands);
+            }
+        }
+    }
+
+    if (ret) {
+        currentValue = reinterpret_cast<uint8*>(GetInputSignalsMemory());
+        cntTrigger = reinterpret_cast<uint32*>(GetOutputSignalsMemory());
+    }
+
+    return ret;
+}
+
+bool EventConditionMessageGAMTest::PrepareNextState(const char8 * const currentStateName,
+                                  const char8 * const nextStateName) {
+
+    firstTime = trigOnChange;
+    REPORT_ERROR(ErrorManagement::Information, "\nCalled MessageGAM::PrepareNextState\n");
+
+    return true;
+}
+
+bool EventConditionMessageGAMTest::Execute() {
+    if (firstTime) {
+        for (uint32 i = 0u; i < numberOfCommands; i++) {
+
+            (void) MemoryOperationsHelper::Copy(&previousValue[signalMetadata[commandIndex[i]].offset], &currentValue[signalMetadata[commandIndex[i]].offset],
+                                                (static_cast<uint32>(signalMetadata[commandIndex[i]].type.numberOfBits) / 8u));
+
+            REPORT_ERROR(ErrorManagement::Information, "\nFirst Time %s u-->%u\n", signalMetadata[commandIndex[i]].name.Buffer(), currentValue[signalMetadata[commandIndex[i]].offset],
+                         previousValue[signalMetadata[commandIndex[i]].offset]);
+        }
+
+        firstTime = false;
+    }
+    else {
+
+        for (uint32 i = 0u; i < numberOfCommands; i++) {
+
+            bool check = (cntTrigger[i] == 0u);
+
+            /*lint -e{613} NULL pointer checked.*/
+            if (cntTrigger[i] > 0u) {
+                for (uint32 j = 0u; j < numberOfEvents; j++) {
+                    ReferenceT<EventConditionTrigger> eventCondition = events->Get(j);
+                    if (eventCondition.IsValid()) {
+                        uint32 nReplies = eventCondition->Replied(&signalMetadata[commandIndex[i]], cntTrigger[i]);
+                        /*lint -e{613} NULL pointer checked.*/
+                        cntTrigger[i] -= nReplies;
+                    }
+                }
+            }
+
+            bool trigEvent = false;
+            if (trigOnChange == 0u) {
+                trigEvent = check;
+            }
+            else {
+                trigEvent = IsChanged(i);
+            }
+
+            if (trigEvent) {
+                //rising edge, send the message associated to the code
+                for (uint32 j = 0u; j < numberOfEvents; j++) {
+                    ReferenceT<EventConditionTrigger> eventCondition = events->Get(j);
+                    if (eventCondition.IsValid()) {
+                        /*lint -e{613} NULL pointer checked.*/
+                        if (eventCondition->Check(currentValue, &signalMetadata[commandIndex[i]])) {
+                            uint32 nMessages = eventCondition->Size();
+                            //trigger all the messages of that event
+                            /*lint -e{613} NULL pointer checked.*/
+                            cntTrigger[i] += nMessages;
+                        }
+                    }
+                }
+                /*lint -e{613} NULL pointer checked.*/
+                (void) MemoryOperationsHelper::Copy(&previousValue[signalMetadata[commandIndex[i]].offset], &currentValue[signalMetadata[commandIndex[i]].offset],
+                                                    (static_cast<uint32>(signalMetadata[commandIndex[i]].type.numberOfBits) / 8u));
+            }
+        }
+    }
+    return true;
+}
+
+bool EventConditionMessageGAMTest::IsChanged(const uint32 cIdx) const {
+    //check if the command i had a rising event
+    /*lint -e{613} NULL pointer checked.*/
+    uint32 commandOffset = signalMetadata[commandIndex[cIdx]].offset;
+    /*lint -e{613} NULL pointer checked.*/
+    uint32 commandSize = static_cast<uint32>(signalMetadata[commandIndex[cIdx]].type.numberOfBits) / 8u;
+    /*lint -e{613} NULL pointer checked.*/
+    return (MemoryOperationsHelper::Compare(&currentValue[commandOffset], &previousValue[commandOffset], commandSize) != 0);
+}
+
+uint32 EventConditionMessageGAMTest::GetNumberOfCommands() const {
+    return numberOfCommands;
+}
+
+uint32 EventConditionMessageGAMTest::GetNumberOfEvents() const {
+    return numberOfEvents;
+
+}
+
+void EventConditionMessageGAMTest::Purge(ReferenceContainer &purgeList) {
+    if (events.IsValid()) {
+        events->Purge(purgeList);
+    }
+    ReferenceContainer::Purge(purgeList);
+}
+
+CLASS_REGISTER(EventConditionMessageGAMTest, "1.0")
+
+
+class EventConditionTriggerTestGAM: public EventConditionMessageGAMTest {
 public:
     CLASS_REGISTER_DECLARATION()
 
@@ -58,7 +379,7 @@ EventConditionTriggerTestGAM    ();
     ~EventConditionTriggerTestGAM();
 
     uint8 *GetPreviousValue();
-    PacketField *GetPacketConfig();
+    SignalMetadata *GetMetadataConfig();
     uint32 GetNumberOfFields();
     ReferenceT<ReferenceContainer> GetEvents();
     uint32 GetNumberOfEvents();
@@ -95,8 +416,8 @@ uint8 *EventConditionTriggerTestGAM::GetPreviousValue() {
 }
 
 
-PacketField *EventConditionTriggerTestGAM::GetPacketConfig() {
-    return packetConfig;
+SignalMetadata *EventConditionTriggerTestGAM::GetMetadataConfig() {
+    return signalMetadata;
 }
 
 uint32 EventConditionTriggerTestGAM::GetNumberOfFields() {
@@ -525,7 +846,7 @@ bool EventConditionTriggerTest::TestInitialise_FalseNotOnlyMessages() {
 
 }
 
-bool EventConditionTriggerTest::TestSetPacketConfig() {
+bool EventConditionTriggerTest::TestSetMetadataConfig() {
 
     const char8 *config = ""
             "                    Class = EventConditionTrigger"
@@ -543,31 +864,31 @@ bool EventConditionTriggerTest::TestSetPacketConfig() {
             "                        Mode = ExpectsReply"
             "                    }";
 
-    PacketField packetField[5];
-    packetField[0].isCommand = true;
-    packetField[0].name = "Command1";
-    packetField[0].offset = 0;
-    packetField[0].type = UnsignedInteger64Bit;
+    SignalMetadata signalMetadata[5];
+    signalMetadata[0].isCommand = true;
+    signalMetadata[0].name = "Command1";
+    signalMetadata[0].offset = 0;
+    signalMetadata[0].type = UnsignedInteger64Bit;
 
-    packetField[1].isCommand = true;
-    packetField[1].name = "Command2";
-    packetField[1].offset = 8;
-    packetField[1].type = UnsignedInteger32Bit;
+    signalMetadata[1].isCommand = true;
+    signalMetadata[1].name = "Command2";
+    signalMetadata[1].offset = 8;
+    signalMetadata[1].type = UnsignedInteger32Bit;
 
-    packetField[2].isCommand = true;
-    packetField[2].name = "Command3";
-    packetField[2].offset = 12;
-    packetField[2].type = UnsignedInteger16Bit;
+    signalMetadata[2].isCommand = true;
+    signalMetadata[2].name = "Command3";
+    signalMetadata[2].offset = 12;
+    signalMetadata[2].type = UnsignedInteger16Bit;
 
-    packetField[3].isCommand = true;
-    packetField[3].name = "Command4";
-    packetField[3].offset = 14;
-    packetField[3].type = UnsignedInteger8Bit;
+    signalMetadata[3].isCommand = true;
+    signalMetadata[3].name = "Command4";
+    signalMetadata[3].offset = 14;
+    signalMetadata[3].type = UnsignedInteger8Bit;
 
-    packetField[4].isCommand = false;
-    packetField[4].name = "State";
-    packetField[4].offset = 15;
-    packetField[4].type = SignedInteger32Bit;
+    signalMetadata[4].isCommand = false;
+    signalMetadata[4].name = "State";
+    signalMetadata[4].offset = 15;
+    signalMetadata[4].type = SignedInteger32Bit;
 
     EventConditionTriggerTestComp comp;
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
@@ -586,14 +907,14 @@ bool EventConditionTriggerTest::TestSetPacketConfig() {
     }
 
     if (ret) {
-        ret = comp.SetPacketConfig(packetField, 5);
+        ret = comp.SetMetadataConfig(signalMetadata, 5);
     }
 
     if (ret) {
         EventConditionTriggerTestComp::EventConditionField *fields = comp.GetEventConditions();
         ret = (fields != NULL);
         if (ret) {
-            ret = fields[0].packetField == &packetField[0];
+            ret = fields[0].signalMetadata == &signalMetadata[0];
         }
         if (ret) {
             ret = (fields[0].at.GetTypeDescriptor() == UnsignedInteger64Bit);
@@ -604,7 +925,7 @@ bool EventConditionTriggerTest::TestSetPacketConfig() {
         }
 
         if (ret) {
-            ret = fields[1].packetField == &packetField[1];
+            ret = fields[1].signalMetadata == &signalMetadata[1];
         }
         if (ret) {
             ret = (fields[1].at.GetTypeDescriptor() == UnsignedInteger32Bit);
@@ -615,7 +936,7 @@ bool EventConditionTriggerTest::TestSetPacketConfig() {
         }
 
         if (ret) {
-            ret = fields[2].packetField == &packetField[2];
+            ret = fields[2].signalMetadata == &signalMetadata[2];
         }
         if (ret) {
             ret = (fields[2].at.GetTypeDescriptor() == UnsignedInteger16Bit);
@@ -626,7 +947,7 @@ bool EventConditionTriggerTest::TestSetPacketConfig() {
         }
 
         if (ret) {
-            ret = fields[3].packetField == &packetField[3];
+            ret = fields[3].signalMetadata == &signalMetadata[3];
         }
         if (ret) {
             ret = (fields[3].at.GetTypeDescriptor() == UnsignedInteger8Bit);
@@ -637,7 +958,7 @@ bool EventConditionTriggerTest::TestSetPacketConfig() {
         }
 
         if (ret) {
-            ret = fields[4].packetField == &packetField[4];
+            ret = fields[4].signalMetadata == &signalMetadata[4];
         }
         if (ret) {
             ret = (fields[4].at.GetTypeDescriptor() == SignedInteger32Bit);
@@ -653,7 +974,7 @@ bool EventConditionTriggerTest::TestSetPacketConfig() {
 
 }
 
-bool EventConditionTriggerTest::TestSetPacketConfig_FalseNoPacketFieldMatch() {
+bool EventConditionTriggerTest::TestSetMetadataConfig_FalseNoMetadataFieldMatch() {
     const char8 *config = ""
             "                    Class = EventConditionTrigger"
             "                    EventTrigger = {"
@@ -669,31 +990,31 @@ bool EventConditionTriggerTest::TestSetPacketConfig_FalseNoPacketFieldMatch() {
             "                        Mode = ExpectsReply"
             "                    }";
 
-    PacketField packetField[5];
-    packetField[0].isCommand = true;
-    packetField[0].name = "Command1";
-    packetField[0].offset = 0;
-    packetField[0].type = UnsignedInteger64Bit;
+    SignalMetadata signalMetadata[5];
+    signalMetadata[0].isCommand = true;
+    signalMetadata[0].name = "Command1";
+    signalMetadata[0].offset = 0;
+    signalMetadata[0].type = UnsignedInteger64Bit;
 
-    packetField[1].isCommand = true;
-    packetField[1].name = "Command2";
-    packetField[1].offset = 8;
-    packetField[1].type = UnsignedInteger32Bit;
+    signalMetadata[1].isCommand = true;
+    signalMetadata[1].name = "Command2";
+    signalMetadata[1].offset = 8;
+    signalMetadata[1].type = UnsignedInteger32Bit;
 
-    packetField[2].isCommand = true;
-    packetField[2].name = "Command3";
-    packetField[2].offset = 12;
-    packetField[2].type = UnsignedInteger16Bit;
+    signalMetadata[2].isCommand = true;
+    signalMetadata[2].name = "Command3";
+    signalMetadata[2].offset = 12;
+    signalMetadata[2].type = UnsignedInteger16Bit;
 
-    packetField[3].isCommand = true;
-    packetField[3].name = "Command4";
-    packetField[3].offset = 14;
-    packetField[3].type = UnsignedInteger8Bit;
+    signalMetadata[3].isCommand = true;
+    signalMetadata[3].name = "Command4";
+    signalMetadata[3].offset = 14;
+    signalMetadata[3].type = UnsignedInteger8Bit;
 
-    packetField[4].isCommand = false;
-    packetField[4].name = "State";
-    packetField[4].offset = 15;
-    packetField[4].type = SignedInteger32Bit;
+    signalMetadata[4].isCommand = false;
+    signalMetadata[4].name = "State";
+    signalMetadata[4].offset = 15;
+    signalMetadata[4].type = SignedInteger32Bit;
 
     EventConditionTriggerTestComp comp;
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
@@ -712,14 +1033,14 @@ bool EventConditionTriggerTest::TestSetPacketConfig_FalseNoPacketFieldMatch() {
     }
 
     if (ret) {
-        ret = !comp.SetPacketConfig(packetField, 5);
+        ret = !comp.SetMetadataConfig(signalMetadata, 5);
     }
 
     return ret;
 
 }
 
-bool EventConditionTriggerTest::TestSetPacketConfig_FalseReadFailedTypeMismatch() {
+bool EventConditionTriggerTest::TestSetMetadataConfig_FalseReadFailedTypeMismatch() {
     const char8 *config = ""
             "                    Class = EventConditionTrigger"
             "                    EventTrigger = {"
@@ -735,31 +1056,31 @@ bool EventConditionTriggerTest::TestSetPacketConfig_FalseReadFailedTypeMismatch(
             "                        Mode = ExpectsReply"
             "                    }";
 
-    PacketField packetField[5];
-    packetField[0].isCommand = true;
-    packetField[0].name = "Command1";
-    packetField[0].offset = 0;
-    packetField[0].type = UnsignedInteger64Bit;
+    SignalMetadata signalMetadata[5];
+    signalMetadata[0].isCommand = true;
+    signalMetadata[0].name = "Command1";
+    signalMetadata[0].offset = 0;
+    signalMetadata[0].type = UnsignedInteger64Bit;
 
-    packetField[1].isCommand = true;
-    packetField[1].name = "Command2";
-    packetField[1].offset = 8;
-    packetField[1].type = UnsignedInteger32Bit;
+    signalMetadata[1].isCommand = true;
+    signalMetadata[1].name = "Command2";
+    signalMetadata[1].offset = 8;
+    signalMetadata[1].type = UnsignedInteger32Bit;
 
-    packetField[2].isCommand = true;
-    packetField[2].name = "Command3";
-    packetField[2].offset = 12;
-    packetField[2].type = UnsignedInteger16Bit;
+    signalMetadata[2].isCommand = true;
+    signalMetadata[2].name = "Command3";
+    signalMetadata[2].offset = 12;
+    signalMetadata[2].type = UnsignedInteger16Bit;
 
-    packetField[3].isCommand = true;
-    packetField[3].name = "Command4";
-    packetField[3].offset = 14;
-    packetField[3].type = UnsignedInteger8Bit;
+    signalMetadata[3].isCommand = true;
+    signalMetadata[3].name = "Command4";
+    signalMetadata[3].offset = 14;
+    signalMetadata[3].type = UnsignedInteger8Bit;
 
-    packetField[4].isCommand = false;
-    packetField[4].name = "State";
-    packetField[4].offset = 15;
-    packetField[4].type = SignedInteger32Bit;
+    signalMetadata[4].isCommand = false;
+    signalMetadata[4].name = "State";
+    signalMetadata[4].offset = 15;
+    signalMetadata[4].type = SignedInteger32Bit;
 
     EventConditionTriggerTestComp comp;
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
@@ -778,7 +1099,7 @@ bool EventConditionTriggerTest::TestSetPacketConfig_FalseReadFailedTypeMismatch(
     }
 
     if (ret) {
-        ret = !comp.SetPacketConfig(packetField, 5);
+        ret = !comp.SetMetadataConfig(signalMetadata, 5);
     }
 
     return ret;
@@ -801,31 +1122,31 @@ bool EventConditionTriggerTest::TestCheck() {
             "                        Mode = ExpectsReply"
             "                    }";
 
-    PacketField packetField[5];
-    packetField[0].isCommand = true;
-    packetField[0].name = "Command1";
-    packetField[0].offset = 0;
-    packetField[0].type = UnsignedInteger64Bit;
+    SignalMetadata signalMetadata[5];
+    signalMetadata[0].isCommand = true;
+    signalMetadata[0].name = "Command1";
+    signalMetadata[0].offset = 0;
+    signalMetadata[0].type = UnsignedInteger64Bit;
 
-    packetField[1].isCommand = true;
-    packetField[1].name = "Command2";
-    packetField[1].offset = 8;
-    packetField[1].type = UnsignedInteger32Bit;
+    signalMetadata[1].isCommand = true;
+    signalMetadata[1].name = "Command2";
+    signalMetadata[1].offset = 8;
+    signalMetadata[1].type = UnsignedInteger32Bit;
 
-    packetField[2].isCommand = true;
-    packetField[2].name = "Command3";
-    packetField[2].offset = 12;
-    packetField[2].type = UnsignedInteger16Bit;
+    signalMetadata[2].isCommand = true;
+    signalMetadata[2].name = "Command3";
+    signalMetadata[2].offset = 12;
+    signalMetadata[2].type = UnsignedInteger16Bit;
 
-    packetField[3].isCommand = true;
-    packetField[3].name = "Command4";
-    packetField[3].offset = 14;
-    packetField[3].type = UnsignedInteger8Bit;
+    signalMetadata[3].isCommand = true;
+    signalMetadata[3].name = "Command4";
+    signalMetadata[3].offset = 14;
+    signalMetadata[3].type = UnsignedInteger8Bit;
 
-    packetField[4].isCommand = false;
-    packetField[4].name = "State";
-    packetField[4].offset = 15;
-    packetField[4].type = SignedInteger32Bit;
+    signalMetadata[4].isCommand = false;
+    signalMetadata[4].name = "State";
+    signalMetadata[4].offset = 15;
+    signalMetadata[4].type = SignedInteger32Bit;
 
     EventConditionTriggerTestComp comp;
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
@@ -844,7 +1165,7 @@ bool EventConditionTriggerTest::TestCheck() {
     }
 
     if (ret) {
-        ret = comp.SetPacketConfig(packetField, 5);
+        ret = comp.SetMetadataConfig(signalMetadata, 5);
     }
 
     if (ret) {
@@ -856,11 +1177,11 @@ bool EventConditionTriggerTest::TestCheck() {
         *(int32*) (mem + 15) = -4;
 
         ret &= !comp.Check(mem, NULL);
-        ret = comp.Check(mem, &packetField[0]);
-        ret &= comp.Check(mem, &packetField[1]);
-        ret &= !comp.Check(mem, &packetField[2]);
-        ret &= comp.Check(mem, &packetField[3]);
-        ret = !comp.Check(mem, &packetField[4]);
+        ret = comp.Check(mem, &signalMetadata[0]);
+        ret &= comp.Check(mem, &signalMetadata[1]);
+        ret &= !comp.Check(mem, &signalMetadata[2]);
+        ret &= comp.Check(mem, &signalMetadata[3]);
+        ret = !comp.Check(mem, &signalMetadata[4]);
     }
 
     if (ret) {
@@ -937,9 +1258,6 @@ bool EventConditionTriggerTest::TestExecute_ImmediateReply() {
             "        +Timings = {"
             "            Class = TimingDataSource"
             "        }"
-            "        +LoggerDataSource = {"
-            "            Class = LoggerDataSource"
-            "        }"
             "        +Input = {"
             "            Class = EventConditionTriggerTestDS"
             "        }"
@@ -984,10 +1302,18 @@ bool EventConditionTriggerTest::TestExecute_ImmediateReply() {
         ret = ds.IsValid();
     }
 
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError,"Find and IsValid Input");
+    }
+
     ReferenceT<EventConditionTriggerTestGAM> gam;
     if (ret) {
         gam = god->Find("Application.Functions.GAM1");
         ret = gam.IsValid();
+    }
+
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError,"Find and IsValid GAM1");
     }
 
     uint32 *mem = NULL;
@@ -996,11 +1322,15 @@ bool EventConditionTriggerTest::TestExecute_ImmediateReply() {
 
     }
 
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError,"Fail GetSignalMemoryBuffer");
+    }
+
     if (ret) {
         mem[0] = 1;
         mem[1] = 2;
-        PacketField *packetField = gam->GetPacketConfig();
-        ret = event1->Check((uint8*) mem, &packetField[0]);
+        SignalMetadata *signalMetadata = gam->GetMetadataConfig();
+        ret = event1->Check((uint8*) mem, &signalMetadata[0]);
         if (ret) {
             uint8 flag = 0u;
             //give max 10 sec to execute the messages
@@ -1009,13 +1339,17 @@ bool EventConditionTriggerTest::TestExecute_ImmediateReply() {
             for (uint32 i = 0u; i < nTries; i++) {
                 flag = ds->GetFlag();
                 if (flag == 0x7) {
-                    ret = (event1->Replied(&packetField[0], 3) == 3);
+                    ret = (event1->Replied(&signalMetadata[0], 3) == 3);
                     break;
                 }
                 Sleep::Sec(1);
             }
 
         }
+    }
+    
+    if(!ret) {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError,"Fail Replied");
     }
 
     god->Purge();
@@ -1088,9 +1422,6 @@ bool EventConditionTriggerTest::TestExecute_IndirectReply() {
             "        +Timings = {"
             "            Class = TimingDataSource"
             "        }"
-            "        +LoggerDataSource = {"
-            "            Class = LoggerDataSource"
-            "        }"
             "        +Input = {"
             "            Class = EventConditionTriggerTestDS"
             "        }"
@@ -1150,8 +1481,8 @@ bool EventConditionTriggerTest::TestExecute_IndirectReply() {
     if (ret) {
         mem[0] = 1;
         mem[1] = 2;
-        PacketField *packetField = gam->GetPacketConfig();
-        ret = event1->Check((uint8*) mem, &packetField[0]);
+        SignalMetadata *signalMetadata = gam->GetMetadataConfig();
+        ret = event1->Check((uint8*) mem, &signalMetadata[0]);
         if (ret) {
             uint8 flag = 0u;
             //give max 10 sec to execute the messages
@@ -1160,7 +1491,7 @@ bool EventConditionTriggerTest::TestExecute_IndirectReply() {
             for (uint32 i = 0u; i < nTries; i++) {
                 flag = ds->GetFlag();
                 if (flag == 0x7) {
-                    ret = (event1->Replied(&packetField[0], 3) == 3);
+                    ret = (event1->Replied(&signalMetadata[0], 3) == 3);
                     break;
                 }
                 Sleep::Sec(1);
@@ -1239,9 +1570,6 @@ bool EventConditionTriggerTest::TestExecute_Mixed() {
             "        +Timings = {"
             "            Class = TimingDataSource"
             "        }"
-            "        +LoggerDataSource = {"
-            "            Class = LoggerDataSource"
-            "        }"
             "        +Input = {"
             "            Class = EventConditionTriggerTestDS"
             "        }"
@@ -1301,8 +1629,8 @@ bool EventConditionTriggerTest::TestExecute_Mixed() {
     if (ret) {
         mem[0] = 1;
         mem[1] = 2;
-        PacketField *packetField = gam->GetPacketConfig();
-        ret = event1->Check((uint8*) mem, &packetField[0]);
+        SignalMetadata *signalMetadata = gam->GetMetadataConfig();
+        ret = event1->Check((uint8*) mem, &signalMetadata[0]);
         if (ret) {
             uint8 flag = 0u;
             //give max 10 sec to execute the messages
@@ -1311,7 +1639,7 @@ bool EventConditionTriggerTest::TestExecute_Mixed() {
             for (uint32 i = 0u; i < nTries; i++) {
                 flag = ds->GetFlag();
                 if (flag == 0x7) {
-                    ret = (event1->Replied(&packetField[0], 3) == 3);
+                    ret = (event1->Replied(&signalMetadata[0], 3) == 3);
                     break;
                 }
                 Sleep::Sec(1);

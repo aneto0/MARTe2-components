@@ -82,21 +82,21 @@ public:
     bool TestInitialise_FalseNotOnlyMessages();
 
     /**
-     * @brief Tests the EventConditionTrigger::SetPacketConfig method
+     * @brief Tests the EventConditionTrigger::SetMetadataConfig method
      */
-    bool TestSetPacketConfig();
+    bool TestSetMetadataConfig();
 
     /**
-     * @brief Tests the EventConditionTrigger::SetPacketConfig method that fails if
-     * the field name does not match with anyone in the packet
+     * @brief Tests the EventConditionTrigger::SetMetadataConfig method that fails if
+     * the field name does not match with anyone in the metadata information
      */
-    bool TestSetPacketConfig_FalseNoPacketFieldMatch();
+    bool TestSetMetadataConfig_FalseNoMetadataFieldMatch();
 
     /**
-     * @brief Tests the EventConditionTrigger::SetPacketConfig method that fails if
+     * @brief Tests the EventConditionTrigger::SetMetadataConfig method that fails if
      * the read from the configuration fails for the specified field type
      */
-    bool TestSetPacketConfig_FalseReadFailedTypeMismatch();
+    bool TestSetMetadataConfig_FalseReadFailedTypeMismatch();
 
     /**
      * @brief Tests the EventConditionTrigger::Check method

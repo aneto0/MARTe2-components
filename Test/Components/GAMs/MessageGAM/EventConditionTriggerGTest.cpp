@@ -60,19 +60,19 @@ TEST(EventConditionTriggerGTest,TestInitialise_FalseNotOnlyMessages) {
     ASSERT_TRUE(test.TestInitialise_FalseNotOnlyMessages());
 }
 
-TEST(EventConditionTriggerGTest,TestSetPacketConfig) {
+TEST(EventConditionTriggerGTest,TestSetMetadataConfig) {
     EventConditionTriggerTest test;
-    ASSERT_TRUE(test.TestSetPacketConfig());
+    ASSERT_TRUE(test.TestSetMetadataConfig());
 }
 
-TEST(EventConditionTriggerGTest,TestSetPacketConfig_FalseNoPacketFieldMatch) {
+TEST(EventConditionTriggerGTest,TestSetMetadataConfig_FalseNoMetadataFieldMatch) {
     EventConditionTriggerTest test;
-    ASSERT_TRUE(test.TestSetPacketConfig_FalseNoPacketFieldMatch());
+    ASSERT_TRUE(test.TestSetMetadataConfig_FalseNoMetadataFieldMatch());
 }
 
-TEST(EventConditionTriggerGTest,TestSetPacketConfig_FalseReadFailedTypeMismatch) {
+TEST(EventConditionTriggerGTest,TestSetMetadataConfig_FalseReadFailedTypeMismatch) {
     EventConditionTriggerTest test;
-    ASSERT_TRUE(test.TestSetPacketConfig_FalseReadFailedTypeMismatch());
+    ASSERT_TRUE(test.TestSetMetadataConfig_FalseReadFailedTypeMismatch());
 }
 
 TEST(EventConditionTriggerGTest,TestCheck) {
