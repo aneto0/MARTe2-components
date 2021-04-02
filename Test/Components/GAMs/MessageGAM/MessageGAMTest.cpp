@@ -263,13 +263,9 @@ static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config)
 /*---------------------------------------------------------------------------*/
 
 MessageGAMTest::MessageGAMTest() {
-    // Auto-generated constructor stub for MessageGAMTest
-    // TODO Verify if manual additions are needed
 }
 
 MessageGAMTest::~MessageGAMTest() {
-    // Auto-generated destructor stub for MessageGAMTest
-    // TODO Verify if manual additions are needed
 }
 
 bool MessageGAMTest::TestConstructor() {
