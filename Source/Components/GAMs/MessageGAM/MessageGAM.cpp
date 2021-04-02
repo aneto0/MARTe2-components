@@ -271,7 +271,7 @@ bool MessageGAM::Execute() {
     }
     else {
         for (uint32 i = 0u; i < numberOfCommands; i++) {
-         
+
             /*lint -e{613} NULL pointer checked.*/
             if (cntTrigger[i] > 0u) {
                 for (uint32 j = 0u; j < numberOfEvents; j++) {
@@ -298,7 +298,6 @@ bool MessageGAM::Execute() {
                 if(check) {                
                     trigEvent = IsChanged(i);
                 }
-                REPORT_ERROR(ErrorManagement::Information, "cntTrigger[i] i = %d, cntTrigger[i] = %d TE: %d CHECK: %d", i, cntTrigger[i], trigEvent, check);
             }
 
             if (trigEvent) {

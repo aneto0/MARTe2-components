@@ -14,6 +14,7 @@ lcov --capture --initial --directory . --no-external --output-file $OUTPUT_DIR/M
 #Execute the tests
 Test/GTest/cov/MainGTest.ex --gtest_filter=*EventConditionTrigg*
 Test/GTest/cov/MainGTest.ex --gtest_filter=*MessageGAM*
+Test/GTest/cov/MainGTest.ex --gtest_filter=*DoubleHandshake*
 
 #Create test coverage data file
 lcov --capture --directory . --no-external --output-file $OUTPUT_DIR/MARTe2-components.coverage.info.tests

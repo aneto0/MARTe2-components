@@ -184,7 +184,7 @@ protected:
     /**
      * READY state
      */
-    static const uint32 READY=0u;
+    static const uint8 READY=0u;
 
     /**
      * SENDING state

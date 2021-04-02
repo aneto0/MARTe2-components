@@ -89,7 +89,7 @@ bool DoubleHandshakeSlaveGAM::Initialise(StructuredDataI & data) {
         timeout = 0xFFFFFFFFFFFFFFFFu;
         uint32 timeoutMsecs;
         if (data.Read("Timeout", timeoutMsecs)) {
-            float64 timeoutSecs = (timeoutMsecs * 1e-3);
+            float64 timeoutSecs = static_cast<float64>(timeoutMsecs) * 1.0e-3;
             float64 freq = static_cast<float64>(HighResolutionTimer::Frequency());
             float64 timeoutF = (timeoutSecs * freq);
             timeout = static_cast<uint64>(timeoutF);
@@ -281,9 +281,9 @@ bool DoubleHandshakeSlaveGAM::Setup() {
             if (ret) {
                 ret = GetSignalNumberOfElements(OutputSignals, i, numberOfElements);
             }
-
+            TypeDescriptor td;
             if (ret) {
-                TypeDescriptor td = GetSignalType(OutputSignals, i);
+                td = GetSignalType(OutputSignals, i);
                 uint32 size = (static_cast<uint32>(td.numberOfBits) / 8u);
 
                 if (StringHelper::CompareN(signalName.Buffer(), ackOutId, ackOutIdLen) == 0) {
@@ -302,13 +302,17 @@ bool DoubleHandshakeSlaveGAM::Setup() {
                         }
                     }
                 }
-
+            }
+            if(ret) {
                 if (StringHelper::CompareN(signalName.Buffer(), stateOutId, stateIdLen) == 0) {
                     ret = (td == UnsignedInteger8Bit);
                     if (!ret) {
                         StreamString tempSignalName;
-                        GetSignalName(OutputSignals, i, tempSignalName);
+                        bool signalNameRet = GetSignalName(OutputSignals, i, tempSignalName);
                         REPORT_ERROR(ErrorManagement::FatalError, "The type of the internal state (%d) must be uint8 - %s", i, tempSignalName.Buffer());
+                        if(!signalNameRet) {
+                            REPORT_ERROR(ErrorManagement::FatalError, "Cannot get output signal name at index %d", i);
+                        }
                     }
                 }
             }

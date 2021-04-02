@@ -379,7 +379,6 @@ bool MessageGAMTest::TestSetup() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 0xFF"
             "                    Functions = { GAM1 }"
             "                }"
             "            }"
@@ -502,7 +501,6 @@ bool MessageGAMTest::TestSetupNumberOfElements() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { GAM1 }"
             "                }"
             "            }"
@@ -1204,7 +1202,6 @@ bool MessageGAMTest::TestExecute_MoreCommands() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { GAM1 }"
             "                }"
             "            }"
@@ -1283,51 +1280,56 @@ bool MessageGAMTest::TestExecute_MoreCommands() {
         brokerIn->Execute();
         brokerIn1->Execute();
         test->Execute();
-        
+      
         brokerOut->Execute();
     }
 
-    if (ret) {
+    uint32 iterationCount = 0u;
+
+    if(ret) {
+        ret = false;
+        iterationCount = 0u;
         ds->ChangeCommand(0u, 1u);
-        brokerIn->Execute();
-        brokerIn1->Execute();
-        test->Execute();
-        brokerOut->Execute();
-        ret = ((outMem[0] == 1) && (outMem[1] == 0));
-    }
-    
-    if(!ret) {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after 1st check");
+        while(!ret && (iterationCount++ < 20)) {
+            brokerIn->Execute();
+            brokerIn1->Execute();
+            test->Execute();
+            brokerOut->Execute();
+            ret = ((outMem[0] >= 1) && (outMem[1] == 0));
+            Sleep::MSec(250);
+        }
     }
 
-    if (ret) {
+    if(ret) {
+        ret = false;
+        iterationCount = 0u;
         ds->ChangeCommand(0u, 2u);
-        brokerIn->Execute();
-        brokerIn1->Execute();
-        test->Execute();
-        brokerOut->Execute();
-        ret = ((outMem[0] >= 1) && (outMem[1] == 0));
+        while(!ret && (iterationCount++ < 20)) {
+            brokerIn->Execute();
+            brokerIn1->Execute();
+            test->Execute();
+            brokerOut->Execute();
+            ret = ((outMem[0] >= 1) && (outMem[1] == 0));
+            Sleep::MSec(250);
+        }
     }
 
-    if(!ret) {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after 2nd check");
-    }
-
-    if (ret) {
+    if(ret) {
+        ret = false;
+        iterationCount = 0u;
         ds->ChangeCommand(2u, 3u);
-        brokerIn->Execute();
-        brokerIn1->Execute();
-        test->Execute();
-        brokerOut->Execute();
-        ret = (outMem[1] == 1);
-    }
-
-    if(!ret) {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after 3rd check");
+        while(!ret && (iterationCount++ < 20)) {
+            brokerIn->Execute();
+            brokerIn1->Execute();
+            test->Execute();
+            brokerOut->Execute();
+            ret = (outMem[1] == 1);
+            Sleep::MSec(250);
+        }
     }
 
     if (ret) {
-        Sleep::Sec(2);
+        Sleep::Sec(2.0);
         ret = (ds->GetFlag() == 0x7);
     }
 
@@ -1448,7 +1450,6 @@ bool MessageGAMTest::TestExecute_CommandsAndStates() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { GAM1 }"
             "                }"
             "            }"
@@ -1619,7 +1620,6 @@ bool MessageGAMTest::TestExecute_Commands() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { GAM1 }"
             "                }"
             "            }"

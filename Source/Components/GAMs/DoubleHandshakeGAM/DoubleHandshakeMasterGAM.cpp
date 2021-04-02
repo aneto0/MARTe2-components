@@ -314,11 +314,12 @@ bool DoubleHandshakeMasterGAM::Setup() {
             if (ret) {
                 ret = GetSignalNumberOfElements(OutputSignals, i, numberOfElements);
             }
+            TypeDescriptor td;
             if (ret) {
-                TypeDescriptor td = GetSignalType(OutputSignals, i);
+                td = GetSignalType(OutputSignals, i);
                 uint32 size = (static_cast<uint32>(td.numberOfBits) / 8u);
-                uint32 commandIdLen = StringHelper::Length(commandOutId);
-                if (StringHelper::CompareN(signalName.Buffer(), commandOutId, commandIdLen) == 0) {
+                //uint32 commandIdLen = StringHelper::Length(commandOutId);
+                if (StringHelper::CompareN(signalName.Buffer(), commandOutId, commandOutIdLen) == 0) {
                     for (uint32 j = 0u; (j < numberOfElements) && (ret); j++) {
                         /*lint -e{613} NULL pointer checked.*/
                         ret = (size == inputCommandSize[commandCounter]);
@@ -334,13 +335,17 @@ bool DoubleHandshakeMasterGAM::Setup() {
                         }
                     }
                 }
-                //TODO if-RET + commandIdLen wrong see :320
-                if (StringHelper::CompareN(signalName.Buffer(), stateOutId, commandIdLen) == 0) {
+            }
+            if(ret) {
+                if (StringHelper::CompareN(signalName.Buffer(), stateOutId, stateIdLen) == 0) {
                     ret = (td == UnsignedInteger8Bit);
                     if (!ret) {
                         StreamString tempSignalName;
-                        GetSignalName(OutputSignals, i, tempSignalName);
+                        bool retSigName = GetSignalName(OutputSignals, i, tempSignalName);
                         REPORT_ERROR(ErrorManagement::FatalError, "The type of the internal state (%d) must be uint8 - %s", i, tempSignalName.Buffer());
+                        if(!retSigName) {
+                            REPORT_ERROR(ErrorManagement::FatalError, "Failure to get signal name from OutputSignals at index i", i);
+                        }
                     }
                 }
             }
