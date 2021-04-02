@@ -1,8 +1,8 @@
 /**
  * @file DoubleHandshakeSlaveGAMGTest.cpp
  * @brief Source file for class DoubleHandshakeSlaveGAMGTest
- * @date 13 ago 2019
- * @author pc
+ * @date 13/08/2019
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -28,15 +28,13 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
-#include <limits.h>
-
-#include "DoubleHandshakeSlaveGAMTest.h"
 #include "gtest/gtest.h"
+#include <limits.h>
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+#include "DoubleHandshakeSlaveGAMTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

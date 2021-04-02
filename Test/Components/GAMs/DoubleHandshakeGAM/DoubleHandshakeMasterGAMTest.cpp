@@ -1,8 +1,8 @@
 /**
  * @file DoubleHandshakeMasterGAMTest.cpp
  * @brief Source file for class DoubleHandshakeMasterGAMTest
- * @date 07 ago 2019
- * @author pc
+ * @date 07/08/2019
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -28,11 +28,10 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
-#include "DoubleHandshakeMasterGAMTest.h"
 #include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
 #include "DataSourceI.h"
+#include "DoubleHandshakeMasterGAMTest.h"
 #include "GAMSchedulerI.h"
 #include "MemoryDataSourceI.h"
 #include "MemoryMapInputBroker.h"
@@ -40,11 +39,12 @@
 #include "MemoryMapOutputBroker.h"
 #include "MemoryMapSynchronisedInputBroker.h"
 #include "MemoryMapSynchronisedOutputBroker.h"
+#include "MessageGAM.h"
 #include "MessageI.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
-#include "MessageGAM.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/

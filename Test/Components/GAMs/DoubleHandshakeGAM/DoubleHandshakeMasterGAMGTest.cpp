@@ -1,8 +1,8 @@
 /**
  * @file DoubleHandshakeMasterGAMGTest.cpp
  * @brief Source file for class DoubleHandshakeMasterGAMGTest
- * @date 07 ago 2019
- * @author pc
+ * @date 07/08/2019
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

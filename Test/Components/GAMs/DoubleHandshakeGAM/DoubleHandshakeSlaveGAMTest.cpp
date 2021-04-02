@@ -1,8 +1,8 @@
 /**
  * @file DoubleHandshakeSlaveGAMTest.cpp
  * @brief Source file for class DoubleHandshakeSlaveGAMTest
- * @date 13 ago 2019
- * @author pc
+ * @date 13/08/2019
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -28,11 +28,10 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
-#include "DoubleHandshakeSlaveGAMTest.h"
 #include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
 #include "DataSourceI.h"
+#include "DoubleHandshakeSlaveGAMTest.h"
 #include "GAMSchedulerI.h"
 #include "MemoryDataSourceI.h"
 #include "MemoryMapInputBroker.h"
@@ -40,11 +39,12 @@
 #include "MemoryMapOutputBroker.h"
 #include "MemoryMapSynchronisedInputBroker.h"
 #include "MemoryMapSynchronisedOutputBroker.h"
+#include "MessageGAM.h"
 #include "MessageI.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
-#include "MessageGAM.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -285,13 +285,9 @@ static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config)
 /*---------------------------------------------------------------------------*/
 
 DoubleHandshakeSlaveGAMTest::DoubleHandshakeSlaveGAMTest() {
-    // Auto-generated constructor stub for DoubleHandshakeSlaveGAMTest
-    // TODO Verify if manual additions are needed
 }
 
 DoubleHandshakeSlaveGAMTest::~DoubleHandshakeSlaveGAMTest() {
-    // Auto-generated destructor stub for DoubleHandshakeSlaveGAMTest
-    // TODO Verify if manual additions are needed
 }
 
 bool DoubleHandshakeSlaveGAMTest::TestConstructor() {
@@ -433,7 +429,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -444,7 +439,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -597,7 +591,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_UselessSignal() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -608,7 +601,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_UselessSignal() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -745,7 +737,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_NumberOfElements() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -756,7 +747,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_NumberOfElements() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -909,7 +899,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseNCommansDiffThanNAcks() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -920,7 +909,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseNCommansDiffThanNAcks() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1065,7 +1053,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseNCommansDiffThanNClears() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1076,7 +1063,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseNCommansDiffThanNClears() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1229,7 +1215,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseNCommansDiffThanNStatuses() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1240,7 +1225,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseNCommansDiffThanNStatuses() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1389,7 +1373,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseClearTrigsWrongType() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1400,7 +1383,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseClearTrigsWrongType() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1549,7 +1531,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseInternalStateWrongType() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1560,7 +1541,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseInternalStateWrongType() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1709,7 +1689,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseCommandAndAckMismatch() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1720,7 +1699,6 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseCommandAndAckMismatch() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1891,7 +1869,6 @@ const char8 *configExecute = ""
         "                Class = ReferenceContainer"
         "                +Thread1 = {"
         "                    Class = RealTimeThread"
-        "                    CPUs = 2"
         "                    Functions = { FC2PLC, MessageGAM }"
         "                }"
         "            }"
@@ -1902,7 +1879,6 @@ const char8 *configExecute = ""
         "                Class = ReferenceContainer"
         "                +Thread1 = {"
         "                    Class = RealTimeThread"
-        "                    CPUs = 2"
         "                    Functions = { FC2PLC, MessageGAM }"
         "                }"
         "            }"
@@ -2431,7 +2407,6 @@ const char8 *configTimeout = ""
         "                Class = ReferenceContainer"
         "                +Thread1 = {"
         "                    Class = RealTimeThread"
-        "                    CPUs = 2"
         "                    Functions = { FC2PLC, MessageGAM }"
         "                }"
         "            }"
@@ -2442,7 +2417,6 @@ const char8 *configTimeout = ""
         "                Class = ReferenceContainer"
         "                +Thread1 = {"
         "                    Class = RealTimeThread"
-        "                    CPUs = 2"
         "                    Functions = { FC2PLC, MessageGAM }"
         "                }"
         "            }"
@@ -3148,7 +3122,6 @@ bool DoubleHandshakeSlaveGAMTest::TestExecute_Interactive() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, FC2PLC, MessageGAM }"
             "                }"
             "            }"
@@ -3159,7 +3132,6 @@ bool DoubleHandshakeSlaveGAMTest::TestExecute_Interactive() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, FC2PLC, MessageGAM }"
             "                }"
             "            }"

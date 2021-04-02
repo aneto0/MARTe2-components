@@ -1,8 +1,8 @@
 /**
  * @file MessageGAMTest.cpp
  * @brief Source file for class MessageGAMTest
- * @date 02 ago 2019
- * @author pc
+ * @date 02/07/2019
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -29,8 +29,6 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "MessageGAMTest.h"
-
 #include "AdvancedErrorManagement.h"
 #include "ConfigurationDatabase.h"
 #include "DataSourceI.h"
@@ -41,6 +39,7 @@
 #include "MemoryMapOutputBroker.h"
 #include "MemoryMapSynchronisedInputBroker.h"
 #include "MemoryMapSynchronisedOutputBroker.h"
+#include "MessageGAMTest.h"
 #include "MessageI.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
