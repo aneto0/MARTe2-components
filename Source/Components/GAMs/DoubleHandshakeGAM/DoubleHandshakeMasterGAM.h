@@ -1,8 +1,8 @@
 /**
  * @file DoubleHandshakeMasterGAM.h
  * @brief Header file for class DoubleHandshakeMasterGAM
- * @date 01 ago 2019
- * @author pc
+ * @date 01/08/2019
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

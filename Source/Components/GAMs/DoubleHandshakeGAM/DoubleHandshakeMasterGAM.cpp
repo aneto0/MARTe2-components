@@ -1,8 +1,8 @@
 /**
  * @file DoubleHandshakeMasterGAM.cpp
  * @brief Source file for class DoubleHandshakeMasterGAM
- * @date 01 ago 2019
- * @author pc
+ * @date 01/08/2019
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -29,8 +29,9 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "DoubleHandshakeMasterGAM.h"
 #include "AdvancedErrorManagement.h"
+#include "DoubleHandshakeMasterGAM.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -45,8 +46,6 @@ namespace MARTe {
 
 DoubleHandshakeMasterGAM::DoubleHandshakeMasterGAM() :
         GAM() {
-    // Auto-generated constructor stub for DoubleHandshakeMasterGAM
-    // TODO Verify if manual additions are needed
     numberOfInputCommands = 0u;
     inputs = NULL_PTR(uint8*);
     outputs = NULL_PTR(uint8*);

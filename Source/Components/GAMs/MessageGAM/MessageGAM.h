@@ -1,8 +1,8 @@
 /**
  * @file MessageGAM.h
  * @brief Header file for class MessageGAM
- * @date 26 lug 2019
- * @author pc
+ * @date 26/07/2019
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -31,10 +31,11 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "EventConditionTrigger.h"
 #include "GAM.h"
 #include "MessageI.h"
 #include "StatefulI.h"
-#include "EventConditionTrigger.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/

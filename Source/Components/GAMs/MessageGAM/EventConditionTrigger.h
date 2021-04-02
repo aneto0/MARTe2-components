@@ -2,7 +2,7 @@
  * @file EventConditionTrigger.h
  * @brief Header file for class EventConditionTrigger
  * @date 06/07/2018
- * @author Giuseppe Ferro
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').

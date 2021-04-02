@@ -2,7 +2,7 @@
  * @file EventConditionTrigger.cpp
  * @brief Source file for class EventConditionTrigger
  * @date 06/07/2018
- * @author Giuseppe Ferro
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -28,9 +28,8 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
-#include "EventConditionTrigger.h"
 #include "AdvancedErrorManagement.h"
+#include "EventConditionTrigger.h"
 #include "EventSem.h"
 #include "QueuedReplyMessageCatcherFilter.h"
 /*---------------------------------------------------------------------------*/

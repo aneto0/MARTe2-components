@@ -1,8 +1,8 @@
 /**
  * @file DoubleHandshakeSlaveGAM.cpp
  * @brief Source file for class DoubleHandshakeSlaveGAM
- * @date 01 ago 2019
- * @author pc
+ * @date 01/08/2019
+ * @author Giuseppe Ferrò
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -29,8 +29,8 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-#include "DoubleHandshakeSlaveGAM.h"
 #include "AdvancedErrorManagement.h"
+#include "DoubleHandshakeSlaveGAM.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -41,8 +41,6 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
-
-//#define NULL_PTR(x) NULL
 
 DoubleHandshakeSlaveGAM::DoubleHandshakeSlaveGAM() :
         GAM() {
