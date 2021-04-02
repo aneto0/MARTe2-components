@@ -54,6 +54,7 @@ MessageGAM::MessageGAM() :
     previousValue = NULL_PTR(uint8*);
     commandIndex = NULL_PTR(uint32*);
     trigOnChange = true;
+    firstTimeAfterStateChange = true;
     firstTime = true;
 }
 
@@ -241,51 +242,63 @@ bool MessageGAM::Setup() {
 bool MessageGAM::PrepareNextState(const char8 * const currentStateName,
                                   const char8 * const nextStateName) {
 
-    firstTime = trigOnChange;
-    REPORT_ERROR(ErrorManagement::Information, "\nCalled MessageGAM::PrepareNextState\n");
+    firstTimeAfterStateChange = trigOnChange;
 
+    if(firstTime) {
+        firstTimeAfterStateChange = false;
+        firstTime = false;
+    }
+
+    REPORT_ERROR(ErrorManagement::Information, "\nCalled MessageGAM::PrepareNextState\n");
+    
     return true;
 }
 
 bool MessageGAM::Execute() {
-    if (firstTime) {
+
+    if (firstTimeAfterStateChange) {
         for (uint32 i = 0u; i < numberOfCommands; i++) {
             /*lint -e{613} NULLity of pointer was afore checked */
             (void) MemoryOperationsHelper::Copy(&previousValue[signalMetadata[commandIndex[i]].offset], &currentValue[signalMetadata[commandIndex[i]].offset],
                                                 (static_cast<uint32>(signalMetadata[commandIndex[i]].type.numberOfBits) / 8u));
 
             /*lint -e{613} NULLity of pointer was afore checked */
-            REPORT_ERROR(ErrorManagement::Information, "\nFirst Time %s u-->%u\n", signalMetadata[commandIndex[i]].name.Buffer(), currentValue[signalMetadata[commandIndex[i]].offset],
+            REPORT_ERROR(ErrorManagement::Information, "\nFirst Time %s u--> %u\n", signalMetadata[commandIndex[i]].name.Buffer(), currentValue[signalMetadata[commandIndex[i]].offset],
                          previousValue[signalMetadata[commandIndex[i]].offset]);
         }
 
-        firstTime = false;
+        firstTimeAfterStateChange = false;
     }
     else {
-
         for (uint32 i = 0u; i < numberOfCommands; i++) {
-            
-            /*lint -e{613} NULL pointer checked.*/
-            bool check = (cntTrigger[i] == 0u);
-
+         
             /*lint -e{613} NULL pointer checked.*/
             if (cntTrigger[i] > 0u) {
                 for (uint32 j = 0u; j < numberOfEvents; j++) {
                     ReferenceT<EventConditionTrigger> eventCondition = events->Get(j);
                     if (eventCondition.IsValid()) {
                         uint32 nReplies = eventCondition->Replied(&signalMetadata[commandIndex[i]], cntTrigger[i]);
+                        //TODO: Verify if nReplies can become greater than cntTrigger[i] and have it over-decrement
                         /*lint -e{613} NULL pointer checked.*/
                         cntTrigger[i] -= nReplies;
                     }
                 }
             }
 
+            /*lint -e{613} NULL pointer checked.*/
+            bool check = (cntTrigger[i] == 0u);
+
             bool trigEvent = false;
-            if (!trigOnChange) {
+            
+            if (!trigOnChange) { //If TriggerOnChange is disabled, we only check if no messages are awaiting for reply
+                //check means there are no sent messages which are awaiting for a reply
                 trigEvent = check;
             }
-            else {
-                trigEvent = IsChanged(i);
+            else { //Otherwise, even if messages are pending, we add messages if the signal has changed
+                if(check) {                
+                    trigEvent = IsChanged(i);
+                }
+                REPORT_ERROR(ErrorManagement::Information, "cntTrigger[i] i = %d, cntTrigger[i] = %d TE: %d CHECK: %d", i, cntTrigger[i], trigEvent, check);
             }
 
             if (trigEvent) {

@@ -51,7 +51,7 @@ namespace MARTe {
  * is set to zero and the DoubleHandshakeSlaveGAM will send the acknowledge accordingly.\n
  * The DoubleHandshakeSlaveGAM recognizes the signals commands, acks and clear triggers by name convention:\n
  *   - Signals beginning with "CommandIn" are the input commands signals.\n
- *   - Signals beginning with "CleatTrigIn" are the input clear trigger signals.\n
+ *   - Signals beginning with "ClearTrigIn" are the input clear trigger signals.\n
  *   - Signals beginning with "AckOut" are the output acknowledge signals.\n
  *   - Signals beginning with "InternalState" are the output state machine state signals.\n
  *
@@ -70,7 +70,7 @@ namespace MARTe {
  *   - 2 = DONE\n
  *   - 3 = ERROR\n
  *
- * The double handshake state machine can go in ERROR state in this cases:\n
+ * The double handshake state machine can go in ERROR state in these cases:\n
  *   - From SENDING if the command signal changes.\n
  *   - From DONE if the command signal changes to something different than zero.\n
  *   - From SENDING or DONE if the specified timeout expires.

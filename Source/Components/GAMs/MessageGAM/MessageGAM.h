@@ -237,6 +237,11 @@ protected:
     /**
     * True only on first Execute pass, used to handle the trigger on change setting
     */
+    bool firstTimeAfterStateChange;
+
+    /**
+    * True 
+    */
     bool firstTime;
 
 };

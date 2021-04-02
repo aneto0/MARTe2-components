@@ -334,10 +334,13 @@ bool DoubleHandshakeMasterGAM::Setup() {
                         }
                     }
                 }
+                //TODO if-RET + commandIdLen wrong see :320
                 if (StringHelper::CompareN(signalName.Buffer(), stateOutId, commandIdLen) == 0) {
                     ret = (td == UnsignedInteger8Bit);
                     if (!ret) {
-                        REPORT_ERROR(ErrorManagement::FatalError, "The type of the internal state (%d) must be uint8", i);
+                        StreamString tempSignalName;
+                        GetSignalName(OutputSignals, i, tempSignalName);
+                        REPORT_ERROR(ErrorManagement::FatalError, "The type of the internal state (%d) must be uint8 - %s", i, tempSignalName.Buffer());
                     }
                 }
             }

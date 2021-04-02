@@ -306,7 +306,9 @@ bool DoubleHandshakeSlaveGAM::Setup() {
                 if (StringHelper::CompareN(signalName.Buffer(), stateOutId, stateIdLen) == 0) {
                     ret = (td == UnsignedInteger8Bit);
                     if (!ret) {
-                        REPORT_ERROR(ErrorManagement::FatalError, "The type of the internal state (%d) must be uint8", i);
+                        StreamString tempSignalName;
+                        GetSignalName(OutputSignals, i, tempSignalName);
+                        REPORT_ERROR(ErrorManagement::FatalError, "The type of the internal state (%d) must be uint8 - %s", i, tempSignalName.Buffer());
                     }
                 }
             }

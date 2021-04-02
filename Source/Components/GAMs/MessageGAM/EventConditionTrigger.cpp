@@ -223,6 +223,7 @@ bool EventConditionTrigger::Check(const uint8 * const memoryArea,
 ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) {
 
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
+
     if (info.GetStage() == ExecutionInfo::StartupStage) {
 
     }
@@ -256,6 +257,9 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
                 if (eventMsg.IsValid()) {
                     if (eventMsg->ExpectsIndirectReply()) {
                         err = !eventReplyContainer.Insert(eventMsg);
+                        if(err.ErrorsCleared()) {
+                            REPORT_ERROR(ErrorManagement::Warning, "Error after inserting message");
+                        }
                         //REPORT_ERROR(ErrorManagement::Information, "Message %d set as indirect reply", i);
                     }
                 }
@@ -271,6 +275,9 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
                 filter->SetMessagesToCatch(eventReplyContainer);
                 filter->SetEventSemaphore(waitSem);
                 err = MessageI::InstallMessageFilter(filter, 0);
+                if(err.ErrorsCleared()) {
+                    REPORT_ERROR(ErrorManagement::Warning, "Error after installing message filter");
+                }
                 //REPORT_ERROR(ErrorManagement::Information, "Filter installed");
             }
 
@@ -289,6 +296,9 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
                     if (eventMsg.IsValid()) {
                         eventMsg->SetAsReply(false);
                         err = MessageI::SendMessage(eventMsg, this);
+                        if(!err.ErrorsCleared()) {
+                            REPORT_ERROR(ErrorManagement::Warning, "Error after sending message");
+                        }
                         if (!eventMsg->ExpectsIndirectReply()) {
                             if (static_cast<bool>(spinLock.FastLock())) {
                                 replied++;
@@ -308,13 +318,19 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
                 if (eventReplyContainer.Size() > 0u) {
                     REPORT_ERROR(ErrorManagement::Information, "Wait reply");
                     err = waitSem.Wait();
+
+                    if(!err.ErrorsCleared()) {
+                        REPORT_ERROR(ErrorManagement::Warning, "Error after waiting semaphore");
+                    }
                     if (static_cast<bool>(err)) {
                         if (static_cast<bool>(spinLock.FastLock())) {
                             replied += eventReplyContainer.Size();
                             spinLock.FastUnLock();
                         }
                         err = MessageI::RemoveMessageFilter(filter);
-
+                        if(!err.ErrorsCleared()) {
+                            REPORT_ERROR(ErrorManagement::Warning, "Error after removing message filter");
+                        }
                     }
                 }
             }
@@ -328,12 +344,19 @@ ErrorManagement::ErrorType EventConditionTrigger::Execute(ExecutionInfo & info) 
             }
             if (err.ErrorsCleared()) {
                 err = eventSem.Wait(500u);
+                
+                if(!err.ErrorsCleared()) {
+                    err.timeout = false;
+                }
             }
         }
-    }
-    else {
 
     }
+    else {
+        //TODO: It was empty here
+        REPORT_ERROR(ErrorManagement::Warning, "Thread in BadTerminationStage");
+    }
+    
     return err;
 }
 

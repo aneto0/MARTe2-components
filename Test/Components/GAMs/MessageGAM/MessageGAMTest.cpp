@@ -1030,39 +1030,60 @@ bool MessageGAMTest::TestExecute() {
         retBrokerOut = brokerOut->Execute();
     }
 
-    if (ret) {
-        ds->ChangeCommand(0u, 1u);
-        retBrokerIn = brokerIn->Execute();
-        retBrokerIn1 = brokerIn1->Execute();
-        retTest = test->Execute();
+    uint32 iterationCount = 0u;
         
-        retBrokerOut = brokerOut->Execute();
-        ret = ((outMem[0] == 1) && (outMem[1] == 0));
+    if (ret) {
+        ret = false;
+        ds->ChangeCommand(0u, 1u);
+
+        while(!ret && (iterationCount++ < 20)) {
+            retBrokerIn = brokerIn->Execute();
+            retBrokerIn1 = brokerIn1->Execute();
+            retTest = test->Execute();
+            
+            retBrokerOut = brokerOut->Execute();
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "outMem %d - %d", outMem[0], outMem[1]);
+            ret = ((outMem[0] == 1) && (outMem[1] == 0));
+            Sleep::MSec(250);
+        }
     }
     if(!ret) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after change command 0, 1 %d %d %d %d %d %d", outMem[0], outMem[1], retBrokerIn, retBrokerIn1, retTest, retBrokerOut);
     }
 
-    if (ret) {
-        ds->ChangeCommand(0u, 2u);
-        brokerIn->Execute();
-        brokerIn1->Execute();
-        test->Execute();
-        brokerOut->Execute();
-        ret = ((outMem[0] >= 1) && (outMem[1] == 0));
+    ds->ChangeCommand(0u, 2u);
+
+    if(ret) {
+        ret = false;
+        while(!ret && (iterationCount++ < 20)) {
+            brokerIn->Execute();
+            brokerIn1->Execute();
+            test->Execute();
+            brokerOut->Execute();
+            ret = ((outMem[0] >= 1) && (outMem[1] == 0));
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "outMem %d - %d", outMem[0], outMem[1]);
+            Sleep::MSec(250);
+        }
     }
 
     if(!ret) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after change command 0, 2");
     }
 
+    iterationCount = 0u;
+    ds->ChangeCommand(0u, 3u);
+        
     if (ret) {
-        ds->ChangeCommand(0u, 3u);
-        brokerIn->Execute();
-        brokerIn1->Execute();
-        test->Execute();
-        brokerOut->Execute();
-        ret = (outMem[0] >= 1);
+        ret = false;
+        while(!ret && (iterationCount++ < 20)) {
+            brokerIn->Execute();
+            brokerIn1->Execute();
+            test->Execute();
+            brokerOut->Execute();
+            ret = (outMem[0] >= 1);
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "outMem %d - %d", outMem[0], outMem[1]);
+            Sleep::MSec(250);
+        }
     }
 
     if(!ret) {
@@ -1070,13 +1091,19 @@ bool MessageGAMTest::TestExecute() {
     }
 
     if (ret) {
-        Sleep::Sec(2);
-        ret = (ds->GetFlag() == 0x7);
+        ret = false;
+        iterationCount = 0u;
+
+        while(!ret && (iterationCount++ < 20)) {
+            ret = (ds->GetFlag() == 0x7);
+            Sleep::MSec(250);
+        }
     }
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "Purging...");
+
     ObjectRegistryDatabase::Instance()->Purge();
 
     return ret;
-
 }
 
 bool MessageGAMTest::TestExecute_MoreCommands() {

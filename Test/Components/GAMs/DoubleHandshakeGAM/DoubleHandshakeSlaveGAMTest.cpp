@@ -368,11 +368,11 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup() {
             "                   DataSource = PlcSimulatorSlaveDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -532,11 +532,11 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_UselessSignal() {
             "                   DataSource = PlcSimulatorSlaveDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -686,11 +686,11 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_NumberOfElements() {
             "                   DataSource = PlcSimulatorSlaveDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -844,11 +844,11 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseNCommansDiffThanNAcks() {
             "                   DataSource = PlcSimulatorSlaveDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -1000,11 +1000,11 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseNCommansDiffThanNClears() {
             "                   DataSource = PlcSimulatorSlaveDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -1160,15 +1160,15 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseNCommansDiffThanNStatuses() {
             "                   DataSource = PlcSimulatorSlaveDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState2 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -1324,11 +1324,11 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseClearTrigsWrongType() {
             "                   DataSource = PlcSimulatorSlaveDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -1644,11 +1644,11 @@ bool DoubleHandshakeSlaveGAMTest::TestSetup_FalseCommandAndAckMismatch() {
             "                   DataSource = PlcSimulatorSlaveDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -1772,11 +1772,11 @@ const char8 *configExecute = ""
         "                   DataSource = PlcSimulatorSlaveDS"
         "               }"
         "               InternalState0 = {"
-        "                   Type = uint32"
+        "                   Type = uint8"
         "                   DataSource = DDB1"
         "               }"
         "               InternalState1 = {"
-        "                   Type = uint32"
+        "                   Type = uint8"
         "                   DataSource = DDB1"
         "               }"
         "           }"
@@ -1951,6 +1951,20 @@ bool DoubleHandshakeSlaveGAMTest::TestExecute() {
         ret = (plcSimDS.IsValid());
     }
 
+    //Warm up
+    //for (uint32 i = 0u; i < messInputBrokers.Size(); i++) {
+    //    ReferenceT < MemoryMapInputBroker > inBroker = messInputBrokers.Get(i);
+    //    inBroker->Execute();
+    //}
+    //messGAM->Execute();
+    //for (uint32 i = 0u; i < messOutputBrokers.Size(); i++) {
+    //    ReferenceT < MemoryMapOutputBroker > outBroker = messOutputBrokers.Get(i);
+    //    outBroker->Execute();
+    //}
+    //End of warm up
+
+    messGAM->PrepareNextState("Idle", "Idle");
+
     if (ret) {
         uint32 command0 = 1;
         plcSimDS->SetSignal(0u, command0);
@@ -1958,10 +1972,10 @@ bool DoubleHandshakeSlaveGAMTest::TestExecute() {
         plcSimDS->SetSignal(4u, state0);
     }
 
-    uint32 *internalState0;
+    uint8 *internalState0;
     if (ret) {
         //get the internal state
-        internalState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
         ret = (*internalState0 == 0u);
     }
 
@@ -2046,10 +2060,10 @@ bool DoubleHandshakeSlaveGAMTest::TestExecute_ErrorFromSending() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalState0;
+    uint8 *internalState0;
     if (ret) {
         //get the internal state
-        internalState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
         ret = (*internalState0 == 0u);
     }
 
@@ -2059,6 +2073,8 @@ bool DoubleHandshakeSlaveGAMTest::TestExecute_ErrorFromSending() {
         uint32 state0 = 2;
         plcSimDS->SetSignal(4u, state0);
     }
+
+    messGAM->PrepareNextState("Idle", "Idle");
 
     //first cycles
     if (ret) {
@@ -2156,10 +2172,10 @@ bool DoubleHandshakeSlaveGAMTest::TestExecute_ErrorFromDone() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalState0;
+    uint8 *internalState0;
     if (ret) {
         //get the internal state
-        internalState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
         ret = (*internalState0 == 0u);
     }
 
@@ -2296,11 +2312,11 @@ const char8 *configTimeout = ""
         "                   DataSource = PlcSimulatorSlaveDS"
         "               }"
         "               InternalState0 = {"
-        "                   Type = uint32"
+        "                   Type = uint8"
         "                   DataSource = DDB1"
         "               }"
         "               InternalState1 = {"
-        "                   Type = uint32"
+        "                   Type = uint8"
         "                   DataSource = DDB1"
         "               }"
         "           }"
@@ -2474,10 +2490,10 @@ bool DoubleHandshakeSlaveGAMTest::TestExecute_ErrorFromSendingTimeout() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalState0;
+    uint8 *internalState0;
     if (ret) {
         //get the internal state
-        internalState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
         ret = (*internalState0 == 0u);
     }
 
@@ -2578,10 +2594,10 @@ bool DoubleHandshakeSlaveGAMTest::TestExecute_ErrorFromDoneTimeout() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalState0;
+    uint8 *internalState0;
     if (ret) {
         //get the internal state
-        internalState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
         ret = (*internalState0 == 0u);
     }
 
@@ -2715,12 +2731,14 @@ bool DoubleHandshakeSlaveGAMTest::TestExecute_RecoverFromError() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalState0;
+    uint8 *internalState0;
     if (ret) {
         //get the internal state
-        internalState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
         ret = (*internalState0 == 0u);
     }
+
+    messGAM->PrepareNextState("Idle", "Idle");
 
     if (ret) {
         uint32 command0 = 1;
@@ -2813,6 +2831,8 @@ bool DoubleHandshakeSlaveGAMTest::TestExecute_RecoverFromError() {
         }
         ret = (*internalState0 == 0u);
     }
+
+    Sleep::Sec(5.0);
 
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
@@ -2994,11 +3014,11 @@ bool DoubleHandshakeSlaveGAMTest::TestExecute_Interactive() {
             "                   DataSource = PlcSimulatorSlaveDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"

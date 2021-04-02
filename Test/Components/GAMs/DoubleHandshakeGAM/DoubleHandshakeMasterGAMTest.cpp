@@ -569,11 +569,11 @@ bool DoubleHandshakeMasterGAMTest::TestSetup() {
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -634,7 +634,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -645,7 +644,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -753,11 +751,11 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_UselessSignal() {
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -818,7 +816,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_UselessSignal() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -829,7 +826,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_UselessSignal() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -922,11 +918,11 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_NumberOfElements() {
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -985,7 +981,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_NumberOfElements() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -996,7 +991,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_NumberOfElements() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1096,11 +1090,11 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseNInCommandsDiffThanNInAcks() {
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -1161,7 +1155,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseNInCommandsDiffThanNInAcks() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1172,7 +1165,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseNInCommandsDiffThanNInAcks() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1268,11 +1260,11 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseNInCommandsDiffThanClearTrigs(
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -1333,7 +1325,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseNInCommandsDiffThanClearTrigs(
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1344,7 +1335,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseNInCommandsDiffThanClearTrigs(
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1449,11 +1439,11 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseClearTrigsWrongType() {
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -1514,7 +1504,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseClearTrigsWrongType() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1525,7 +1514,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseClearTrigsWrongType() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1629,7 +1617,7 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseInternalStateWrongType() {
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint8"
+            "                   Type = uint32"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
@@ -1694,7 +1682,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseInternalStateWrongType() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1705,7 +1692,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseInternalStateWrongType() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1805,11 +1791,11 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseNInCommandsDiffThanNOutCommand
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -1870,7 +1856,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseNInCommandsDiffThanNOutCommand
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1881,7 +1866,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseNInCommandsDiffThanNOutCommand
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -1985,7 +1969,7 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseNInCommandsDiffThanNOutStatus(
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -2046,7 +2030,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseNInCommandsDiffThanNOutStatus(
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -2057,7 +2040,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseNInCommandsDiffThanNOutStatus(
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -2161,11 +2143,11 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseSizeInCommandDiffThanSizeInAck
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -2226,7 +2208,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseSizeInCommandDiffThanSizeInAck
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -2237,7 +2218,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseSizeInCommandDiffThanSizeInAck
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -2341,11 +2321,11 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseSizeInCommandDiffThanSizeOutCo
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -2406,7 +2386,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseSizeInCommandDiffThanSizeOutCo
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -2417,7 +2396,6 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_FalseSizeInCommandDiffThanSizeOutCo
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC }"
             "                }"
             "            }"
@@ -2480,11 +2458,11 @@ bool DoubleHandshakeMasterGAMTest::TestExecute() {
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8" 
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -2591,7 +2569,6 @@ bool DoubleHandshakeMasterGAMTest::TestExecute() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { FC2PLC, MessageGAM }"
             "                }"
             "            }"
@@ -2602,7 +2579,6 @@ bool DoubleHandshakeMasterGAMTest::TestExecute() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { FC2PLC, MessageGAM }"
             "                }"
             "            }"
@@ -2654,10 +2630,9 @@ bool DoubleHandshakeMasterGAMTest::TestExecute() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalDhGamState0;
+    uint8 *internalDhGamState0;
     if (ret) {
-        internalDhGamState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
-        REPORT_ERROR_STATIC(ErrorManagement::Information, "internalDhGamState0 @ %p", internalDhGamState0);
+        internalDhGamState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
     }
 
     if (ret) {
@@ -2689,12 +2664,13 @@ bool DoubleHandshakeMasterGAMTest::TestExecute() {
             ReferenceT < MemoryMapOutputBroker > outBroker = messOutputBrokers.Get(i);
             outBroker->Execute();
         }
-/*
+        //TODO: Was commented
+
         if (ret && (*internalDhGamState0 == 3u)) {
             uint32 command0 = 0;
             cmdProvDS->SetCommand(0u, &command0);
         }
-*/
+
         for (uint32 i = 0u; i < 10u; i++) {
             if (cmdProvDS->GetFlag() != 0x1u) {
                 Sleep::MSec(100u);
@@ -2755,11 +2731,11 @@ const char8 *configErrorTests = ""
         "                   DataSource = PlcSimulatorMasterDS"
         "               }"
         "               InternalState0 = {"
-        "                   Type = uint32"
+        "                   Type = uint8"
         "                   DataSource = DDB1"
         "               }"
         "               InternalState1 = {"
-        "                   Type = uint32"
+        "                   Type = uint8"
         "                   DataSource = DDB1"
         "               }"
         "           }"
@@ -2866,7 +2842,6 @@ const char8 *configErrorTests = ""
         "                Class = ReferenceContainer"
         "                +Thread1 = {"
         "                    Class = RealTimeThread"
-        "                    CPUs = 2"
         "                    Functions = { FC2PLC, MessageGAM }"
         "                }"
         "            }"
@@ -2877,7 +2852,6 @@ const char8 *configErrorTests = ""
         "                Class = ReferenceContainer"
         "                +Thread1 = {"
         "                    Class = RealTimeThread"
-        "                    CPUs = 2"
         "                    Functions = { FC2PLC, MessageGAM }"
         "                }"
         "            }"
@@ -2949,6 +2923,8 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_ErrorFromReady() {
         ret = (cmdProvDS.IsValid());
     }
 
+    messGAM->PrepareNextState("Idle", "Idle");
+
     //first cycle
     if (ret) {
         for (uint32 i = 0u; i < dhInputBrokers.Size(); i++) {
@@ -2978,9 +2954,9 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_ErrorFromReady() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalDhGamState0;
+    uint8 *internalDhGamState0;
     if (ret) {
-        internalDhGamState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalDhGamState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
     }
 
     //first cycle
@@ -3131,9 +3107,9 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_ErrorFromSending() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalDhGamState0;
+    uint8 *internalDhGamState0;
     if (ret) {
-        internalDhGamState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalDhGamState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
     }
     if (ret) {
         uint32 command0 = 1;
@@ -3290,9 +3266,9 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_ErrorFromClear() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalDhGamState0;
+    uint8 *internalDhGamState0;
     if (ret) {
-        internalDhGamState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalDhGamState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
     }
     if (ret) {
         uint32 command0 = 1;
@@ -3479,9 +3455,9 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_ErrorFromDone() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalDhGamState0;
+    uint8 *internalDhGamState0;
     if (ret) {
-        internalDhGamState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalDhGamState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
     }
     if (ret) {
         uint32 command0 = 1;
@@ -3651,11 +3627,11 @@ const char8 *configErrorTimeout = ""
         "                   DataSource = PlcSimulatorMasterDS"
         "               }"
         "               InternalState0 = {"
-        "                   Type = uint32"
+        "                   Type = uint8"
         "                   DataSource = DDB1"
         "               }"
         "               InternalState1 = {"
-        "                   Type = uint32"
+        "                   Type = uint8"
         "                   DataSource = DDB1"
         "               }"
         "           }"
@@ -3762,7 +3738,6 @@ const char8 *configErrorTimeout = ""
         "                Class = ReferenceContainer"
         "                +Thread1 = {"
         "                    Class = RealTimeThread"
-        "                    CPUs = 2"
         "                    Functions = { FC2PLC, MessageGAM }"
         "                }"
         "            }"
@@ -3773,7 +3748,6 @@ const char8 *configErrorTimeout = ""
         "                Class = ReferenceContainer"
         "                +Thread1 = {"
         "                    Class = RealTimeThread"
-        "                    CPUs = 2"
         "                    Functions = { FC2PLC, MessageGAM }"
         "                }"
         "            }"
@@ -3874,9 +3848,9 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_ErrorFromSendingTimeout() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalDhGamState0;
+    uint8 *internalDhGamState0;
     if (ret) {
-        internalDhGamState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalDhGamState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
     }
     if (ret) {
         uint32 command0 = 1;
@@ -4029,9 +4003,9 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_ErrorFromClearTimeout() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalDhGamState0;
+    uint8 *internalDhGamState0;
     if (ret) {
-        internalDhGamState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalDhGamState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
     }
     if (ret) {
         uint32 command0 = 1;
@@ -4214,9 +4188,9 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_ErrorFromDoneTimeout() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalDhGamState0;
+    uint8 *internalDhGamState0;
     if (ret) {
-        internalDhGamState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalDhGamState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
     }
     if (ret) {
         uint32 command0 = 1;
@@ -4405,9 +4379,9 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_RecoverFromError() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalDhGamState0;
+    uint8 *internalDhGamState0;
     if (ret) {
-        internalDhGamState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
+        internalDhGamState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
     }
 
     if (ret) {
@@ -4577,11 +4551,11 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_DoubleCycle() {
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -4688,7 +4662,6 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_DoubleCycle() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { FC2PLC, MessageGAM }"
             "                }"
             "            }"
@@ -4699,7 +4672,6 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_DoubleCycle() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { FC2PLC, MessageGAM }"
             "                }"
             "            }"
@@ -4751,13 +4723,10 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_DoubleCycle() {
         ret = (plcSimDS.IsValid());
     }
 
-    uint32 *internalDhGamState0;
+    uint8 *internalDhGamState0;
     if (ret) {
-        internalDhGamState0 = (((uint32*) dhGAM->GetOutputMemoryX()) + 2u);
-        REPORT_ERROR_STATIC(ErrorManagement::Information, "internalDhGamState0 @ %p", internalDhGamState0);
+        internalDhGamState0 = (((uint8*) dhGAM->GetOutputMemoryX()) + 8u);
     }
-
-
 
     //first cycles
     for (uint32 k = 0u; (k < 2u) && (ret); k++) {
@@ -4789,11 +4758,12 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_DoubleCycle() {
                 ReferenceT < MemoryMapOutputBroker > outBroker = messOutputBrokers.Get(i);
                 outBroker->Execute();
             }
-            /*
+            //TODO: Was commented
+
             if (ret && (*internalDhGamState0 == 3u)) {
                 uint32 command0 = 0;
                 cmdProvDS->SetCommand(0u, &command0);
-            }*/
+            }
 
             for (uint32 i = 0u; i < 10u; i++) {
                 if (cmdProvDS->GetFlag() != 0x1u) {
@@ -5011,11 +4981,11 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_Interactive() {
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -5147,7 +5117,6 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_Interactive() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC, MessageGAM }"
             "                }"
             "            }"
@@ -5158,7 +5127,6 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_Interactive() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC, MessageGAM }"
             "                }"
             "            }"
@@ -5426,11 +5394,11 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_InteractiveManual() {
             "                   DataSource = PlcSimulatorMasterDS"
             "               }"
             "               InternalState0 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "               InternalState1 = {"
-            "                   Type = uint32"
+            "                   Type = uint8"
             "                   DataSource = DDB1"
             "               }"
             "           }"
@@ -5563,7 +5531,6 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_InteractiveManual() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC, MessageGAM }"
             "                }"
             "            }"
@@ -5574,7 +5541,6 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_InteractiveManual() {
             "                Class = ReferenceContainer"
             "                +Thread1 = {"
             "                    Class = RealTimeThread"
-            "                    CPUs = 2"
             "                    Functions = { Sync, CommandProvider, FC2PLC, MessageGAM }"
             "                }"
             "            }"
