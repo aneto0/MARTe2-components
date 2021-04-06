@@ -5574,3 +5574,6 @@ bool DoubleHandshakeMasterGAMTest::TestExecute_InteractiveManual() {
     return ret;
 }
 
+bool DoubleHandshakeMasterGAMTest::TestInitialise() {
+    return TestExecute();
+}

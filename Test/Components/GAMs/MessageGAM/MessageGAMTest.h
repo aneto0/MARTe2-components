@@ -44,30 +44,84 @@ public:
     MessageGAMTest();
     virtual ~MessageGAMTest();
 
+    /**
+    * @brief Tests the constructor
+    */
     bool TestConstructor();
-
+    
+    /**
+    * @brief Fully constructs the GAM, configuring it
+    */
     bool TestSetup();
 
+    /**
+    * @brief Same as TestSetup, which represents a better scenario over the simple Initialise call
+    */    
+    bool TestInitialise();
+
+    /**
+    * @brief Tests if the GAM correctly tells apart commands and events by counting them
+    */
     bool TestSetupNumberOfElements();
 
+    /**
+    * @brief Tests the failure in case of missing commands
+    */
     bool TestSetup_FalseNoCommands();
 
+    /**
+    * @brief Tests the failure in mismatching input and outputs
+    */
     bool TestSetup_FalseInOutMismatch();
 
+    /**
+    * @brief Tests the failure if the state signal has a bad type
+    */
     bool TestSetup_FalseStateBadType();
 
+    /**
+    * @brief Tests the integrated execution
+    */
     bool TestExecute();
 
+    /**
+    * @brief Tests the integrated execution by causing the issue of multiple commands
+    */
     bool TestExecute_MoreCommands();
 
+    /**
+    * @brief Tests the integrated execution by changing commands across states
+    */
     bool TestExecute_CommandsAndStates();
 
+    /**
+    * @brief Same as execute, which is already calling PrepareNextState
+    */
+    bool TestPrepareNextState();
+
+    /**
+    * @brief Same as execute, which among others is already calling Purge method
+    */
+    bool TestPurge();
+
+    /**
+    * @brief Tests the integrated execution validating command ack
+    */
     bool TestExecute_Commands();
 
+    /**
+    * @brief Tests the integrated execution with the TriggerOnChange parameter disabled
+    */
     bool TestExecute_WithoutTriggerOnChange();
 
+    /**
+    * @brief Configures and gets the number of commands to tell if the command recognition is correctly working
+    */
     bool TestGetNumberOfCommands();
 
+    /**
+    * @brief Configures and gets the number of commands to tell if the events recognition is correctly working
+    */
     bool TestGetNumberOfEvents();
 
 };

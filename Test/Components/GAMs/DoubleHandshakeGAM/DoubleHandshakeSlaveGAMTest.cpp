@@ -3162,3 +3162,7 @@ bool DoubleHandshakeSlaveGAMTest::TestExecute_Interactive() {
     return ret;
 }
 
+bool DoubleHandshakeSlaveGAMTest::TestInitialise() {
+    return TestExecute();
+}
+

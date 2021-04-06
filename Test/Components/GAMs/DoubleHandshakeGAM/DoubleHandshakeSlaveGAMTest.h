@@ -134,6 +134,11 @@ public:
     * @brief Tests the GAM execution in normal running
     */    
     bool TestExecute_Interactive();
+
+    /**
+    * @brief Same as TestExecute() where the Initialise method is used
+    */
+    bool TestInitialise();
 };
 
 /*---------------------------------------------------------------------------*/

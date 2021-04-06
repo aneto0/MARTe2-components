@@ -95,6 +95,11 @@ TEST(DoubleHandshakeSlaveGAMGTest,TestExecute) {
     ASSERT_TRUE(test.TestExecute());
 }
 
+TEST(DoubleHandshakeSlaveGAMGTest,TestInitialise) {
+    DoubleHandshakeSlaveGAMTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
 TEST(DoubleHandshakeSlaveGAMGTest,TestExecute_ErrorFromSending) {
     DoubleHandshakeSlaveGAMTest test;
     ASSERT_TRUE(test.TestExecute_ErrorFromSending());

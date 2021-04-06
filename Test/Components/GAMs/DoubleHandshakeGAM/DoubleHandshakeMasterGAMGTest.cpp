@@ -106,6 +106,11 @@ TEST(DoubleHandshakeMasterGAMGTest,TestExecute) {
     ASSERT_TRUE(test.TestExecute());
 }
 
+TEST(DoubleHandshakeMasterGAMGTest,TestInitialise) {
+    DoubleHandshakeMasterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise());
+}
+
 TEST(DoubleHandshakeMasterGAMGTest,TestExecute_ErrorFromReady) {
     DoubleHandshakeMasterGAMTest test;
     ASSERT_TRUE(test.TestExecute_ErrorFromReady());

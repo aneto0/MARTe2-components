@@ -85,6 +85,16 @@ TEST(EventConditionTriggerGTest,TestExecute_ImmediateReply) {
     ASSERT_TRUE(test.TestExecute_ImmediateReply());
 }
 
+TEST(EventConditionTriggerGTest,TestPurge) {
+    EventConditionTriggerTest test;
+    ASSERT_TRUE(test.TestPurge());
+}
+
+TEST(EventConditionTriggerGTest,TestEventConditionField) {
+    EventConditionTriggerTest test;
+    ASSERT_TRUE(test.TestEventConditionField());
+}
+
 TEST(EventConditionTriggerGTest,TestExecute_IndirectReply) {
     EventConditionTriggerTest test;
     ASSERT_TRUE(test.TestExecute_IndirectReply());

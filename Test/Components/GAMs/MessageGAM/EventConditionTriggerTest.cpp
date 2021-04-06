@@ -1356,6 +1356,14 @@ bool EventConditionTriggerTest::TestExecute_ImmediateReply() {
     return ret;
 }
 
+bool EventConditionTriggerTest::TestPurge() {
+    return TestExecute_ImmediateReply();
+}
+
+bool EventConditionTriggerTest::TestEventConditionField() {
+    return TestExecute_ImmediateReply();
+}
+
 bool EventConditionTriggerTest::TestExecute_IndirectReply() {
 
     const char8 *config = ""

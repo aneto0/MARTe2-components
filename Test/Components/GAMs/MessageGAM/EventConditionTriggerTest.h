@@ -144,7 +144,15 @@ public:
      */
     bool TestGetCPUMask();
 
+    /**
+    * @brief Same as TestExecute_ImmediateReply which among others already calls Purge
+    */
+    bool TestPurge();
 
+    /**
+    * @brief Same as TestExecute_ImmediateReply, which already uses the EventCondition field
+    */
+    bool TestEventConditionField();
 };
 
 /*---------------------------------------------------------------------------*/

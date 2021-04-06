@@ -65,9 +65,20 @@ TEST(MessageGAMGTest,TestSetup_FalseStateBadType) {
     MessageGAMTest test;
     ASSERT_TRUE(test.TestSetup_FalseStateBadType());
 }
+
 TEST(MessageGAMGTest,TestExecute) {
     MessageGAMTest test;
     ASSERT_TRUE(test.TestExecute());
+}
+
+TEST(MessageGAMGTest,TestPrepareNextState) {
+    MessageGAMTest test;
+    ASSERT_TRUE(test.TestPrepareNextState());
+}
+
+TEST(MessageGAMGTest,TestPurge) {
+    MessageGAMTest test;
+    ASSERT_TRUE(test.TestPurge());
 }
 
 TEST(MessageGAMGTest,TestExecute_MoreCommands) {

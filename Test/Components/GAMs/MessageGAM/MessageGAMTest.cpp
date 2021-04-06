@@ -1099,6 +1099,14 @@ bool MessageGAMTest::TestExecute() {
     return ret;
 }
 
+bool MessageGAMTest::TestPrepareNextState() {
+    return TestExecute();
+}
+
+bool MessageGAMTest::TestPurge() {
+    return TestExecute();
+}
+
 bool MessageGAMTest::TestExecute_MoreCommands() {
     const char8 *config = ""
             "$Application = {"
