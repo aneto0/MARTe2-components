@@ -66,7 +66,6 @@
 -i./Source/Components/GAMs/SimulinkWrapperGAM/
 -i./Source/Components/GAMs/StatisticsGAM/
 -i./Source/Components/GAMs/TimeCorrectionGAM/
--i./Source/Components/GAMs/TriggerOnChangeGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
 -i./Source/Components/Interfaces/EPICS/
 -i./Source/Components/Interfaces/EPICSPVA/
@@ -177,7 +176,6 @@ SysLogger.cpp
 TcnTimeProvider.cpp
 TimeCorrectionGAM.cpp
 TimeProvider.cpp
-TriggerOnChangeGAM.cpp
 Types.h
 Waveform.cpp
 Waveform.h
