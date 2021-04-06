@@ -53,11 +53,13 @@
 -i./Source/Components/GAMs/ConstantGAM/
 -i./Source/Components/GAMs/ConversionGAM/
 -i./Source/Components/GAMs/CRCGAM/
+-i./Source/Components/GAMs/DoubleHandshakeGAM/
 -i./Source/Components/GAMs/FilterGAM/
 -i./Source/Components/GAMs/HistogramGAM/
 -i./Source/Components/GAMs/Interleaved2FlatGAM/
 -i./Source/Components/GAMs/IOGAM/
 -i./Source/Components/GAMs/MathExpressionGAM/
+-i./Source/Components/GAMs/MessageGAM/
 -i./Source/Components/GAMs/PIDGAM/
 -i./Source/Components/GAMs/MuxGAM/
 -i./Source/Components/GAMs/SSMGAM/
@@ -72,7 +74,6 @@
 -i./Source/Components/Interfaces/MemoryGate/
 -i./Source/Components/Interfaces/NI9157Device/
 -i./Source/Components/Interfaces/SysLogger/
--i./Source/Components/Interfaces/TcnTimeProvider/
 
 
 Atomic2.h
@@ -88,6 +89,8 @@ CRCGAM.cpp
 CRCHelperT.h
 DANSource.cpp
 DANStream.cpp
+DoubleHandshakeMasterGAM.cpp
+DoubleHandshakeSlaveGAM.cpp
 EpicsInputDataSource.cpp
 EpicsOutputDataSource.cpp
 EPICSPV.cpp
@@ -112,7 +115,6 @@ EventConditionTrigger.cpp
 FileReader.cpp
 FileWriter.cpp
 FilterGAM.cpp
-HighResolutionTimeProvider.cpp
 HistogramComparator.cpp
 HistogramComparatorT.h
 HistogramGAM.cpp
@@ -130,6 +132,7 @@ MDSWriterNode.cpp
 MemoryGate.cpp
 MemoryMapSynchNMutexInputBroker.cpp
 MemoryMapSynchNMutexOutputBroker.cpp
+MessageGAM.cpp
 MuxGAM.cpp
 MuxGAM.h
 NI1588Timestamp.cpp
@@ -168,7 +171,6 @@ SSMGAM.h
 StatisticsGAM.cpp
 StatisticsHelperT.h
 SysLogger.cpp
-TcnTimeProvider.cpp
 TimeCorrectionGAM.cpp
 TimeProvider.cpp
 Types.h
