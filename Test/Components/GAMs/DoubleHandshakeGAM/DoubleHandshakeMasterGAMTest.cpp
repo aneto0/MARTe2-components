@@ -841,6 +841,7 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_UselessSignal() {
     return ret;
 }
 
+/* Commented out as it was not executed
 bool DoubleHandshakeMasterGAMTest::TestSetup_NumberOfElements() {
     const char8 *config = ""
             "$Application = {"
@@ -1001,9 +1002,11 @@ bool DoubleHandshakeMasterGAMTest::TestSetup_NumberOfElements() {
             "         TimingDataSource = Timings"
             "     }"
             "}";
-    //TODO Fix this test
+
     return true;
 }
+//Commented out as it was not executed and only returning true
+*/
 
 bool DoubleHandshakeMasterGAMTest::TestSetup_FalseNInCommandsDiffThanNInAcks() {
 

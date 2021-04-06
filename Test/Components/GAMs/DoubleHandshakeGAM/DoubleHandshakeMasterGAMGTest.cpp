@@ -55,10 +55,11 @@ TEST(DoubleHandshakeMasterGAMGTest,TestSetup_UselessSignal) {
     ASSERT_TRUE(test.TestSetup_UselessSignal());
 }
 
-TEST(DoubleHandshakeMasterGAMGTest,TestSetup_NumberOfElements) {
-    DoubleHandshakeMasterGAMTest test;
-    ASSERT_TRUE(test.TestSetup_NumberOfElements());
-}
+////Commented out, it was only returning without executing
+//TEST(DoubleHandshakeMasterGAMGTest,TestSetup_NumberOfElements) {
+//    DoubleHandshakeMasterGAMTest test;
+//    ASSERT_TRUE(test.TestSetup_NumberOfElements());
+//}
 
 TEST(DoubleHandshakeMasterGAMGTest,TestSetup_FalseNInCommandsDiffThanNInAcks) {
     DoubleHandshakeMasterGAMTest test;
