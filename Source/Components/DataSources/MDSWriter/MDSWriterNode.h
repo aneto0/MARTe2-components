@@ -376,6 +376,9 @@ private:
      */
     bool flush;
 
+    uint8 flushIfDiscontinuity;
+
+    uint64 lastTimeGap;
     /**
      * @brief Save data in MDSplus using MDSplus::makeSegment() or MDSPlus::makeSegmentMaxMin()
      * @details the number of different time values per segment depends on Samples and the makeSegmentAfterNWrites
