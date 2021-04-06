@@ -51,6 +51,13 @@ namespace MARTe{
  * @details The input signals can be variables or commands. A command must be declared with a name that begins with the prefix "Command".
  * When a command changes, the MessageGAM interrogates all the contained EventConditionTrigger and messages are sent if the specified conditions are
  * matched. In output this GAM provides the number of the messages waiting for reply for each command.\n
+ * The GAM has two main behaviour modes, which can be controlled using the TriggerOnChange option:
+ * - TriggerOnChange enabled: the GAM must see a change in its command value input during its state lifecycle. Seeing a change during a state lifecycle means
+ *                            that every state change (e.g. PrepareNextState) the GAM stores the current value to wait for a change happening in the future, by comparing
+ *                            past value with current, during that specific state context. In other words, the GAM has to see and "edge" in the command value to trigger a message.
+ * - TriggerOnChange disabled: the GAM does not need to see an edge in command value to trigger the message, even across state changes.
+ * As the GAM keeps track of sent messages and received replies, if the message sent as a consequence of a triggering event is still awaiting for a reply, no further message will
+ * be sent until the reply acknowledgement.
  * Constraints:\n
  *   [number of commands] == [number of output signals]
  *   [output signals type] == uint32
@@ -59,6 +66,7 @@ namespace MARTe{
  * <pre>
  *   +GAM1 = {
  *       Class = TriggerOnChangeGAM
+ *       TriggerOnChange = 1 //Defaults to 1 = true if not present. Allowed values 0 == false or disabled, != 0 == true or enabled (see above)
  *       +Events = {
  *           Class = ReferenceContainer
  *           +Event1 = {
@@ -142,6 +150,9 @@ public:
      */
     virtual ~MessageGAM();
 
+    /**
+    * @brief Standard Initialise function
+    */
     virtual bool Initialise(StructuredDataI &data);
 
     /**
@@ -150,6 +161,11 @@ public:
      */
     virtual bool Setup();
 
+
+    /**
+    * @brief Informs the GAM that a state change is going on. Current and next names are ignored, the GAM uses the state signaling to
+    *        implement a specific (configurable) behaviour on state changes
+    */
     virtual bool PrepareNextState(const char8 * const currentStateName,
                                   const char8 * const nextStateName);
 
@@ -236,12 +252,12 @@ protected:
     bool trigOnChange;
 
     /**
-    * True only on first Execute pass, used to handle the trigger on change setting
+    * True only on first Execute pass after a state change, used to handle the trigger on change setting.
     */
     bool firstTimeAfterStateChange;
 
     /**
-    * True 
+    * @brief True only on the very Execute pass. Used to avoid message on first cycle.
     */
     bool firstTime;
 
