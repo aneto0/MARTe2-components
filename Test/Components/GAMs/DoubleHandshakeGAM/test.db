@@ -1,0 +1,25 @@
+record( ai,COMMAND0)
+{
+field(DTYP, "Soft Channel")
+}
+
+record( ai,COMMAND1)
+{
+field(DTYP, "Soft Channel")
+}
+
+record( ai,ACK0)
+{
+field(DTYP, "Soft Channel")
+}
+
+record( ai,ACK1)
+{
+field(DTYP, "Soft Channel")
+}
+
+
+record( ai,STATE)
+{
+field(DTYP, "Soft Channel")
+}

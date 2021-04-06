@@ -21,22 +21,20 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef SOURCE_COMPONENTS_DATASOURCES_LINUXTIMER_LINUXTIMER_H_
-#define SOURCE_COMPONENTS_DATASOURCES_LINUXTIMER_LINUXTIMER_H_
+#ifndef LINUXTIMER_H_
+#define LINUXTIMER_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+#include "DataSourceI.h"
+#include "EmbeddedServiceMethodBinderI.h"
+#include "EventSem.h"
+#include "SingleThreadService.h"
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "DataSourceI.h"
-#include "EmbeddedServiceMethodBinderI.h"
-#include "EventSem.h"
-#include "RealTimeApplication.h"
-#include "SingleThreadService.h"
-#include "TimeProvider.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -45,9 +43,9 @@ namespace MARTe {
 
 /**
  * @brief A DataSource which provides a timing source for a MARTe application.
- * @details The LinuxTimer provides a timing generation facility where generators can be conveniently plugged in.
- * The LinuxTimer itself comes with a default provider which is based on internal HighResolutionTimer.
- * The Timer can be configured with two, three or four signals and it shall
+ * @details The LinuxTimer generates a timing signal at the frequency specified by
+ * a given GAM signal.
+ * The Timer shall always be configured with two, and only two, signals and it shall
  * always have a frequency set in one of the signals.
 
  * The configuration syntax is (names are only given as an example):
@@ -57,14 +55,7 @@ namespace MARTe {
  *     SleepNature = Busy|Default//If SleepNature is not specified then Default is set
  *     SleepPercentage = 0 //Only meaningful if SleepNature = Busy. The percentage of time to sleep using the OS sleep.
  *     ExecutionMode = IndependentThread //Optional. If not set ExecutionMode = IndependentThread. If ExecutionMode == IndependentThread a thread is spawned to generate the time events. ExecutionMode == RealTimeThread the time is generated in the context of the real-time thread.
- *     Phase = 1 //Optional, sets the phase of the timing generation, defaults to MAX_PHASE = 1000000u
  *     CPUMask = 0x8 //Optional and only relevant if ExecutionMode=IndependentThread
- *     +TimeProvider = { //Optional, if omitted defaults to HighResolutionTimeProvider
- *         //Can be any of the implementing types for the TimeProvider interface
-           //Please refer to the specific time provider interface for configuration details
- *         //Please refer to the TimeProvider.h header for implementation details
- *         Class = HighResolutionTimeProvider
- *     }
  *     Signals = {
  *         Counter = {
  *             Type = uint32 //int32 also supported
@@ -73,12 +64,6 @@ namespace MARTe {
  *             Type = uint32 //int32 also supported
  *             Frequency = 1000
  *         }
- *           AbsoluteTime = { //Optional, can be omitted
- *               Type = uint64 //Only type supported
- *           }
- *           DeltaTime = { //Optional, can be omitted
- *               Type = uint64 //Only type supported
- *           }
  *     }
  * }
  * </pre>
@@ -95,7 +80,7 @@ public:
      *   Counter = 0
      *   Time = 0
      */
-    LinuxTimer ();
+LinuxTimer    ();
 
     /**
      * @brief Destructor. Stops the EmbeddedThread.
@@ -117,8 +102,8 @@ public:
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-                                       const uint32 bufferIdx,
-                                       void *&signalAddress);
+            const uint32 bufferIdx,
+            void *&signalAddress);
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
@@ -126,7 +111,7 @@ public:
      * @return MemoryMapSynchronisedInputBroker if frequency > 0, MemoryMapInputBroker otherwise.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
-                                       const SignalDirection direction);
+            const SignalDirection direction);
 
     /**
      * @brief Waits on an EventSem for the period given by 1/Frequency to elapse on Execute.
@@ -150,7 +135,7 @@ public:
      * @return true if the EmbeddedThread can be successfully started.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
-                                  const char8 * const nextStateName);
+            const char8 * const nextStateName);
 
     /**
      * @brief Initialises the LinuxTimer
@@ -158,7 +143,6 @@ public:
      * +Timer = {
      *     Class = LinuxTimer
      *     SleepNature = Busy|Default//If SleepNature is not specified then Default is set
-     *     Phase = 1000000u
      *     Signals = {
      *         Counter = {
      *             Type = uint32 //int32 also supported
@@ -167,12 +151,6 @@ public:
      *             Type = uint32 //int32 also supported
      *             Frequency = 1000
      *         }
-     *           AbsoluteTime = { //Optional
-     *               Type = uint64 //Only uint64 supported
-     *           }
-     *           DeltaTime = { //Optional
-     *               Type = uint64 //Only uint64 supported
-     *           }
      *     }
      * }
      * If the SleepNature=Busy a Sleep::Busy will be used to wait for the 1/Frequency period to elapse, otherwise
@@ -208,133 +186,81 @@ public:
      */
     uint32 GetSleepPercentage() const;
 
-    /**
-    * @brief Purges the DataSource
-    */
-    virtual void Purge(ReferenceContainer &purgeList);
-
 private:
-
     /**
-     * @brief The two supported sleep natures.
+     * The two supported sleep natures.
      */
     enum LinuxTimerSleepNature {
-        Default = 0, Busy = 1
+        Default = 0,
+        Busy = 1
     };
 
     /**
-     * @brief The non-busy sleep percentage. Valid only if LinuxTimerSleepNature == Busy
+     * The non-busy sleep percentage. Valid if
+     * LinuxTimerSleepNature == Busy
      */
     uint32 sleepPercentage;
 
     /**
-     * @brief The selected sleep nature.
+     * The selected sleep nature.
      */
     LinuxTimerSleepNature sleepNature;
 
     /**
-     * @brief Current counter and timer
+     * Current counter and timer
      */
     uint32 counterAndTimer[2];
 
     /**
-     * @brief The semaphore for the synchronisation between the EmbeddedThread and the Synchronise method.
+     * The semaphore for the synchronisation between the EmbeddedThread and the Synchronise method.
      */
     EventSem synchSem;
 
     /**
-     * @brief The EmbeddedThread where the Execute method waits for the period to elapse.
+     * The EmbeddedThread where the Execute method waits for the period to elapse.
      */
     SingleThreadService executor;
 
     /**
-    *  @brief Number of ticks at the start of the cycle
-    */
+     * Number of ticks at the start of the cycle
+     */
     uint64 startTimeTicks;
 
     /**
-     * @brief Sleeping period in units of ticks.
+     * Sleeping period in units of ticks.
      */
-    uint64 sleepTimeTicks[2];
+    uint64 sleepTimeTicks;
 
     /**
-     * @brief Sleeping period.
+     * Sleeping period.
      */
-    uint32 timerPeriodUsecTime[2];
+    uint32 timerPeriodUsecTime;
 
     /**
-     * @brief Index of the function which has the signal that synchronises on this DataSourceI.
+     * Index of the function which has the signal that synchronises on this DataSourceI.
      */
     uint32 synchronisingFunctionIdx;
 
     /**
-     * @brief True if this a synchronising data source
+     * True if this a synchronising data source
      */
     bool synchronising;
 
     /**
-     * @brief The affinity of the thread that asynchronously generates the time.
+     * The affinity of the thread that asynchronously generates the time.
      */
     ProcessorType cpuMask;
 
     /**
-     * @brief The size of the stack of the thread that asynchronously generates the time.
+     * The size of the stack of the thread that asynchronously generates the time.
      */
     uint32 stackSize;
 
     /**
-     * @brief The execution mode.
+     * The execution mode.
      */
     uint32 executionMode;
 
-    /**
-     * @brief Reference to the time provider plugin
-     */
-    ReferenceT<TimeProvider> timeProvider;
-
-    /**
-     * @brief The absolute time
-     */    
-    uint64 absoluteTime;
-
-    /**
-     * @brief The delta time
-     */
-    uint64 deltaTime;
-
-    /**
-     * @brief The absolute time
-     */
-    uint64 absoluteTime_1;
-
-    /**
-     * @brief Number of ticks occuring in a us
-     */
-    float64 ticksPerUs;
-
-    /**
-     * @brief Phase of the generating signal
-     */
-    uint32 phase;
-
-    /**
-    * @brief Keeps old phase value
-    */
-    uint32 phaseBackup;
-
-    /**
-     * @brief Frequency of the currentState and nextState
-     */
-    float32 frequency[2];
-
-    /**
-     * @brief The RealTime application reference
-     */
-    ReferenceT<RealTimeApplication> rtApp;
-
-    uint8 trigRephase;
-
-    uint8 trigRephase_1;
 };
 }
 
@@ -342,5 +268,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* SOURCE_COMPONENTS_DATASOURCES_LINUXTIMER_LINUXTIMER_H_ */
+#endif /* LINUXTIMER_H_ */
 
