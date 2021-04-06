@@ -1,8 +1,9 @@
 /**
  * @file NI9157DeviceOperatorDatabaseTest.cpp
  * @brief Source file for class NI9157DeviceOperatorDatabaseTest
- * @date 22/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,10 +16,11 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
- * the class NI9157DeviceOperatorDatabaseTest (public, protected, and private). Be aware that some 
- * methods, such as those inline could be defined on the header file, instead.
+ * the class NI9157DeviceOperatorDatabaseTest (public, protected, and private).
+ * Be aware that some methods, such as those inline could be defined on the
+ * header file, instead.
  */
 
 /*---------------------------------------------------------------------------*/
@@ -28,7 +30,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
 #include "NI9157DeviceOperatorDatabaseTest.h"
 
 /*---------------------------------------------------------------------------*/
@@ -38,7 +39,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
 NI9157DeviceOperatorDatabaseTest::NI9157DeviceOperatorDatabaseTest() {
 }
 
@@ -46,39 +46,49 @@ NI9157DeviceOperatorDatabaseTest::~NI9157DeviceOperatorDatabaseTest() {
 }
 
 bool NI9157DeviceOperatorDatabaseTest::TestGetCreateNI9157DeviceOperatorFromName() {
-
-    const char8 *names[] = { "NI9157DeviceBool", "NI9157DeviceU8", "NI9157DeviceI8", "NI9157DeviceU16", "NI9157DeviceI16", "NI9157DeviceU32", "NI9157DeviceI32", "NI9157DeviceU64", "NI9157DeviceI64", NULL };
-
+    
+    const char8 *names[] = { "NI9157DeviceBool", "NI9157DeviceU8", "NI9157DeviceI8", "NI9157DeviceU16", "NI9157DeviceI16", "NI9157DeviceU32", "NI9157DeviceI32", "NI9157DeviceU64", "NI9157DeviceI64", NULL_PTR(const char8 *)};
     TypeDescriptor typeDes[] = { UnsignedInteger8Bit, UnsignedInteger8Bit, SignedInteger8Bit, UnsignedInteger16Bit, SignedInteger16Bit, UnsignedInteger32Bit, SignedInteger32Bit, UnsignedInteger64Bit, SignedInteger64Bit };
     uint32 i = 0;
     bool ret = true;
-    while ((names[i] != NULL) && ret) {
+    
+    while ((names[i] != NULL_PTR(const char8 *)) && ret) {
         CreateNI9157DeviceOperatorI *creator = NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperator(names[i]);
-        ret = creator != NULL;
+        ret = (creator != NULL_PTR(CreateNI9157DeviceOperatorI *));
         if (ret) {
-            ret = creator->GetTypeDescriptor() == typeDes[i];
+            if (StringHelper::Compare(names[i], "NI9157DeviceBool") == 0) {
+                ret = true;
+            }
+            else{
+                ret = (creator->GetTypeDescriptor() == typeDes[i]);
+            }
         }
         i++;
     }
 
     return ret;
-
 }
-bool NI9157DeviceOperatorDatabaseTest::TestGetCreateNI9157DeviceOperatorFromTypeDes() {
-    const char8 *names[] = { "NI9157DeviceBool", "NI9157DeviceBool", "NI9157DeviceI8", "NI9157DeviceU16", "NI9157DeviceI16", "NI9157DeviceU32", "NI9157DeviceI32", "NI9157DeviceU64", "NI9157DeviceI64", NULL };
 
+bool NI9157DeviceOperatorDatabaseTest::TestGetCreateNI9157DeviceOperatorFromTypeDes() {
+    
+    const char8 *names[] = { "NI9157DeviceBool", "NI9157DeviceBool", "NI9157DeviceI8", "NI9157DeviceU16", "NI9157DeviceI16", "NI9157DeviceU32", "NI9157DeviceI32", "NI9157DeviceU64", "NI9157DeviceI64", NULL_PTR(const char8 *)};
     TypeDescriptor typeDes[] = { UnsignedInteger8Bit, UnsignedInteger8Bit, SignedInteger8Bit, UnsignedInteger16Bit, SignedInteger16Bit, UnsignedInteger32Bit, SignedInteger32Bit, UnsignedInteger64Bit, SignedInteger64Bit };
     uint32 i = 0;
     bool ret = true;
-    while ((names[i] != NULL) && ret) {
+    
+    while ((names[i] != NULL_PTR(const char8 *)) && ret) {
         CreateNI9157DeviceOperatorI *creator = NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperator(typeDes[i]);
-        ret = creator != NULL;
+        ret = (creator != NULL_PTR(CreateNI9157DeviceOperatorI *));
         if (ret) {
-            ret = StringHelper::Compare(creator->GetIdentifier(), names[i]) == 0;
+            if (StringHelper::Compare(names[i], "NI9157DeviceBool") == 0) {
+                ret = true;
+            }
+            else{
+                ret = (StringHelper::Compare(creator->GetIdentifier(), names[i]) == 0);
+            }
         }
         i++;
     }
 
     return ret;
 }
-

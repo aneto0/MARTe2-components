@@ -1,8 +1,9 @@
 /**
  * @file NI9157DeviceOperatorDatabaseTest.h
  * @brief Header file for class NI9157DeviceOperatorDatabaseTest
- * @date 22/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,10 +16,11 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
- * @details This header file contains the declaration of the class NI9157DeviceOperatorDatabaseTest
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ *
+ * @details This header file contains the declaration of the class
+ * NI9157DeviceOperatorDatabaseTest with all of its public, protected and
+ * private members. It may also include definitions for inline methods which
+ * need to be visible to the compiler.
  */
 
 #ifndef NI9157DEVICEOPERATORDATABASETEST_H_
@@ -32,49 +34,48 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "GlobalObjectsDatabase.h"
-
 #include "NI9157DeviceOperatorDatabase.h"
 #include "NI9157DeviceOperatorT.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
 using namespace MARTe;
 
 /**
- * @brief Tests the NI9157DeviceOperatorDatabase methods
+ * @brief Tests the NI9157DeviceOperatorDatabase methods.
  */
 class NI9157DeviceOperatorDatabaseTest {
 public:
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     NI9157DeviceOperatorDatabaseTest();
 
     /**
-     * @brief Destructor
+     * @brief Destructor.
      */
     virtual ~NI9157DeviceOperatorDatabaseTest();
 
     /**
-     * @brief Tests the NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperatorFromName
+     * @brief Tests the NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperatorFromName.
      */
     bool TestGetCreateNI9157DeviceOperatorFromName();
 
     /**
-     * @brief Tests the NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperatorFromTypeDes
+     * @brief Tests the NI9157DeviceOperatorDatabase::GetCreateNI9157DeviceOperatorFromTypeDes.
      */
     bool TestGetCreateNI9157DeviceOperatorFromTypeDes();
 
     /**
-     * @brief Tests the NI9157DeviceOperatorDatabase::GetNI9157DeviceOperatorFromName
+     * @brief Tests the NI9157DeviceOperatorDatabase::GetNI9157DeviceOperatorFromName.
      */
     template<typename T>
     bool TestGetNI9157DeviceOperatorFromName(const char8 *opName, T type);
 
     /**
-     * @brief Tests the NI9157DeviceOperatorDatabase::GetNI9157DeviceOperatorFromTypeDes
+     * @brief Tests the NI9157DeviceOperatorDatabase::GetNI9157DeviceOperatorFromTypeDes.
      */
     template<typename T>
     bool TestGetNI9157DeviceOperatorFromTypeDes(TypeDescriptor opType, T type);
@@ -84,31 +85,32 @@ public:
 template<typename T>
 bool NI9157DeviceOperatorDatabaseTest::TestGetNI9157DeviceOperatorFromName(const char8 *opName, T type) {
     ReferenceT<NI9157Device> niDev(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-
     NI9157DeviceOperatorTI *niOperator = NI9157DeviceOperatorDatabase::GetNI9157DeviceOperator(opName, niDev);
-    bool ret = niOperator != NULL;
+    bool ret = (niOperator != NULL);
+
     if (ret) {
-        ret = dynamic_cast<NI9157DeviceOperatorT<T>*>(niOperator) != NULL;
+        ret = (dynamic_cast<NI9157DeviceOperatorT<T>*>(niOperator) != NULL);
     }
     if (ret) {
         delete niOperator;
     }
+
     return ret;
 }
 
 template<typename T>
 bool NI9157DeviceOperatorDatabaseTest::TestGetNI9157DeviceOperatorFromTypeDes(TypeDescriptor opType, T type) {
-
     ReferenceT<NI9157Device> niDev(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-
     NI9157DeviceOperatorTI *niOperator = NI9157DeviceOperatorDatabase::GetNI9157DeviceOperator(opType, niDev);
-    bool ret = niOperator != NULL;
+    bool ret = (niOperator != NULL);
+
     if (ret) {
-        ret = dynamic_cast<NI9157DeviceOperatorT<T>*>(niOperator) != NULL;
+        ret = (dynamic_cast<NI9157DeviceOperatorT<T>*>(niOperator) != NULL);
     }
     if (ret) {
         delete niOperator;
     }
+
     return ret;
 }
 
@@ -116,5 +118,4 @@ bool NI9157DeviceOperatorDatabaseTest::TestGetNI9157DeviceOperatorFromTypeDes(Ty
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* TEST_COMPONENTS_INTERFACES_NI9157DEVICE_NI9157DEVICEOPERATORDATABASETEST_H_ */
-
+#endif /* NI9157DEVICEOPERATORDATABASETEST_H_ */

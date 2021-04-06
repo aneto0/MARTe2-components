@@ -1,8 +1,9 @@
 /**
  * @file CreateNI9157DeviceOperatorTest.cpp
  * @brief Source file for class CreateNI9157DeviceOperatorTest
- * @date 23/05/2018
- * @author Giuseppe Ferrò
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,10 +16,11 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
- * the class CreateNI9157DeviceOperatorTest (public, protected, and private). Be aware that some 
- * methods, such as those inline could be defined on the header file, instead.
+ * the class CreateNI9157DeviceOperatorTest (public, protected, and private).
+ * Be aware that some methods, such as those inline could be defined on the
+ * header file, instead.
  */
 
 /*---------------------------------------------------------------------------*/
@@ -28,7 +30,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
 #include "CreateNI9157DeviceOperatorTest.h"
 
 /*---------------------------------------------------------------------------*/
@@ -67,4 +68,3 @@ bool CreateNI9157DeviceOperatorTest::TestGetIdentifier() {
 bool CreateNI9157DeviceOperatorTest::TestGetTypeDescriptor() {
     return TestConstructorArgs();
 }
-

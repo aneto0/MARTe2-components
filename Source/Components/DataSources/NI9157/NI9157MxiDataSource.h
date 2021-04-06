@@ -1,8 +1,9 @@
 /**
  * @file NI9157MxiDataSource.h
- * @brief Header file for class NI9157MxiDataSource
- * @date 23/05/2018
- * @author Giuseppe Ferrò
+ * @brief Header file for class NI9157MxiDataSource.
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,10 +16,11 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
- * @details This header file contains the declaration of the class NI9157MxiDataSource
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ *
+ * @details This header file contains the declaration of the class
+ * NI9157MxiDataSource with all of its public, protected and private members.
+ * It may also include definitions for inline methods which need to be visible
+ * to the compiler.
  */
 
 #ifndef NI9157MXIDATASOURCE_H_
@@ -31,51 +33,68 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
+#include "AdvancedErrorManagement.h"
+#include "CLASSMETHODREGISTER.h"
+#include "CreateNI9157DeviceOperatorI.h"
 #include "MemoryDataSourceI.h"
 #include "MessageI.h"
+#include "NI9157DeviceOperatorDatabase.h"
 #include "NI9157DeviceOperatorT.h"
+#include "ObjectRegistryDatabase.h"
+#include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
 namespace MARTe{
 
 /**
  * @brief A class to communicate with a NI-9157 device
- * @details This object allows to read from Labview exported indicator variables, to write on Labview exported control variables and to read and write from/to FIFOs.
- * @details The names of the signals in the data source should be equal to the names of the Labview exported variables which the user want to read from or write to. If the
- * NumberOfDumensions parameter of the signal is greater than one, the signal is assumed to be a FIFO.
- * @details The two functions AsyncRead and AsyncWrite can be called using the Message interface to read and write simple variables (indicators and controls, no FIFOs).
+ * @details This object allows to read from Labview exported indicator
+ * variables, to write on Labview exported control variables and to read and
+ * write from/to FIFOs.
+ * @details The names of the signals in the data source should be equal to the 
+ * names of the Labview exported variables which the user want to read from or 
+ * write to. If the NumberOfDimensions parameter of the signal is greater than 
+ * one, the signal is assumed to be a FIFO.
+ * @details The two functions AsyncRead and AsyncWrite can be called using the 
+ * Message interface to read and write simple variables (indicators and 
+ * controls, no FIFOs).
  * @details Follows a configuration example:
  * <pre>
  * +Drv1 = {
  *     Class = NI9157MxiDataSource
- *     RunNi = 1 //if the device must be started from this data source
- *     NI9157DevicePath = NiDevice //the absolute path of the device in the configuration database
- *     NumberOfPacketsInFIFO = 10 //the number of packets in the FIFO host side. This parameter is valid for all the defined FIFOs. By default is 5.
+ *     RunNi = 1    //if the device must be started from this data source.
+ *     NI9157DevicePath = NiDevice  // The absolute path of the device in the 
+ *                                  // configuration database.
+ *     NumberOfPacketsInFIFO = 10   // The number of packets in the FIFO host 
+ *                                  // side. This parameter is valid for all 
+ *                                  // the defined FIFOs. By default it is 5.
+ *     BlockIfNotRunning = 0    // If >0 blocks the call inside Syncronise() 
+ *                              // until niDeviceBoard->IsRunning() is true.
  *     Signals = {
  *         // read from indicator
- *         NiFpga_TestGTD0001_IndicatorU32_Tick_Count_Ticks = {
+ *         IndicatorU32_ticks_counter = {   // 'ticks_counter' in the Fw
  *             Type = uint32"
  *         }
  *         // read from FIFO
- *         NiFpga_TestGTD0001_TargetToHostFifoU64_FIFO = {
+ *         TargetToHostFifoU64_FIFO1_U64_R = {// 'FIFO1_U64_R' in the Fw
  *             Type = uint64
  *             NumberOfDimensions = 1
  *             NumberOfElements = 10000
  *         }
  *         // write on control
- *         NiFpga_TestGTD0001_ControlU8_options = {
+ *         ControlU8_options = {    // 'options' in the Fw
  *             Type = uint8
  *         }
  *         // write on FIFO
- *         NiFpga_TestGTD0001_HostToTargetFifoU16_FIFO2 = {
- *             Type = uint16
+ *         HostToTargetFifoU16_FIFO0_U64_W = { // 'FIFO0_U64_W' in the Fw
+ *             Type = uint64
  *             NumberOfDimensions = 1
  *             NumberOfElements = 1
- *         }
+ *             InitialPattern = 0   // If this field is defined for a signal,
+ *                                  // it's value is used as initial pattern
+  *         }
  *     }"
  * }
  * </pre>
@@ -105,85 +124,106 @@ public:
 
     /**
      * @see MemoryDataSourceI::Initialise
-     * @details Follows the list of parameters to be configured by the user for initialisation:\n
-     *     RunNi: if the device must be started from this data source.\n
-     *     NI9157DevicePath: the absolute path of the device in the configuration database.\n
-     *     NumberOfPacketsInFIFO: the number of packets in the FIFO host side. This parameter is valid for all the defined FIFOs. By default is 5.
+     * @details Follows the list of parameters to be configured by the user
+     * for initialisation:\n
+     * RunNi: if the device must be started from this data source.\n
+     * NI9157DevicePath: the absolute path of the device in the 
+     * configuration database.\n
+     * NumberOfPacketsInFIFO: the number of packets in the FIFO host side.
+     * This parameter is valid for all the defined FIFOs. By default is 5.
      */
     virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @see MemoryDataSourceI::GetBrokerName
      * @details
-     *   - If (Trigger == 1) || (Frequency > 0.) return MemoryMapSynchronisedInputBroker if (direction == InputSignals) and MemoryMapSynchronisedOutputBroker if
-     *   (direction == OutputSignals).\n
-     *   - If (Trigger == 0) && (Frequency == 0.) return MemoryMapInputBroker if (direction == InputSignals) and MemoryMapOutputBroker if
-     *   (direction == OutputSignals).\n
+     * - If (Trigger == 1) || (Frequency > 0.) return 
+     * MemoryMapSynchronisedInputBroker if (direction == InputSignals) and
+     * MemoryMapSynchronisedOutputBroker if (direction == OutputSignals).\n
+     * If (Trigger == 0) && (Frequency == 0.) return MemoryMapInputBroker
+     * if (direction == InputSignals) and MemoryMapOutputBroker if 
+     * (direction == OutputSignals).\n
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
-                                       const SignalDirection direction);
+                                            const SignalDirection direction);
 
     /**
      * @see MemoryDataSourceI::PrepareNextState
-     * @details Sets the member values of signalFlags for each signal storing if the signal has to be read, write and if it is a FIFO.
-     * Then, if RunNi == 1, starts the NI-9157 device.
+     * @details Sets the member values of signalFlags for each signal storing
+     * if the signal has to be read, write and if it is a FIFO. Then, if 
+     * RunNi == 1, starts the NI-9157 device.
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
-                                  const char8 * const nextStateName);
+                                            const char8 * const nextStateName);
 
     /**
      * @see MemoryDataSourceI::SetConfiguredDatabase
-     * @details Creates the NI-9157 device operators for each signal looking at the configured signal type. It returns false if
-     * the signal name does not correspond to a valid variable name exported in the Labview header file.
+     * @details Creates the NI-9157 device operators for each signal looking at
+     * the configured signal type. It returns false if the signal name does not
+     * correspond to a valid variable name exported in the Labview header file.
      */
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
     /**
-     * @brief Reads and writes all the signals from/to the internal memory buffers.
+     * @brief Reads and writes all the signals from/to the internal memory
+     * buffers.
      */
     virtual bool Synchronise();
 
     /**
-     * @brief This method allows to read from a Labview exported indicator. It can be called within a MARTe message.
+     * @brief Asynchronous read for indicators.
+     * @details This method allows to read from a Labview exported indicator.
+     * It can be called within a MARTe message.
      */
     ErrorManagement::ErrorType AsyncRead(StreamString varName,
-                                         uint64 &varValue);
+                                            uint64 &varValue);
 
     /**
-     * @brief This method allows to write to a Labview exported control. It can be called within a MARTe message.
+     * @brief Asynchronous write for controls.
+     * @details This method allows to write to a Labview exported control.
+     * It can be called within a MARTe message.
      */
     ErrorManagement::ErrorType AsyncWrite(StreamString varName,
-                                          uint64 varValue);
+                                            uint64 varValue);
+
+    /**
+     * @brief Reset the device.
+     * @details This method resets the numberOfElements, the numberOfDimensions 
+     * and calls the Run method is RunNi is set. It can be called within a 
+     * MARTe message.
+     */
+    ErrorManagement::ErrorType Reset();
 
 protected:
 
     /**
-     * The reference to the NI9157Device
+     * The reference to the NI9157Device.
      */
     ReferenceT<NI9157Device> niDeviceBoard;
 
     /**
-     * The NI9157Device operator
+     * The NI9157Device operator.
      */
     NI9157DeviceOperatorTI **niDevice;
 
     /**
-     * The number of packets in the host-side FIFOs
+     * The number of packets in the host-side FIFOs.
      */
     uint32 numberOfPacketsInFifo;
 
     /**
-     * Holds the descriptors of the Labview exported variabled for each signal
+     * Holds the descriptors of the Labview exported variabled for each signal.
      */
     uint32 *varId;
 
     /**
-     * If the device has to be started by this data source
+     * If the device has to be started by this data source.
      */
     uint8 runNi;
 
     /**
-     * Defines for each signal if it has to be read or write, and if it is a FIFO.
+     * Defines for each signal if it has to be read or write, and if it is a 
+     * FIFO.
      */
     uint8 *signalFlag;
 
@@ -191,6 +231,28 @@ protected:
      * Holds the number of elements for each signal.
      */
     uint32 *numberOfElements;
+
+    /**
+     * Holds the initial pattern read from the configuration.
+     */
+    uint64 *initialPatterns;
+
+    /**
+     * Reset the initial partten for each selected signal.
+     */
+    uint8 *resetInitialPattern;
+
+    /**
+     * Use the initial partten for each selected signal.
+     */
+    uint8 *useInitialPattern;
+
+    /**
+     * If (blockIfNotRunning > 0), blocks the NI9157MxiDataSource::GetBrokerName 
+     * call if the device is not running.
+     */
+    uint8 blockIfNotRunning;
+
 };
 
 }
@@ -200,4 +262,3 @@ protected:
 /*---------------------------------------------------------------------------*/
 
 #endif /* NI9157MXIDATASOURCE_H_ */
-

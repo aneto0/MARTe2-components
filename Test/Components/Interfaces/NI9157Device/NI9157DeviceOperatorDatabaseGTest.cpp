@@ -1,8 +1,9 @@
 /**
  * @file NI9157DeviceOperatorDatabaseGTest.cpp
- * @brief Source file for class NI9157DeviceOperatorDatabaseGTest
- * @date 22/05/2018
- * @author Giuseppe Ferrò
+ * @brief Source file for class NI9157DeviceOperatorDatabaseGTest.
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,10 +16,11 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
- * the class NI9157DeviceOperatorDatabaseGTest (public, protected, and private). Be aware that some 
- * methods, such as those inline could be defined on the header file, instead.
+ * the class NI9157DeviceOperatorDatabaseGTest (public, protected, and private).
+ * Be aware that some methods, such as those inline could be defined on the
+ * header file, instead.
  */
 
 /*---------------------------------------------------------------------------*/
@@ -51,7 +53,7 @@ TEST(NI9157DeviceOperatorDatabaseGTest,TestGetCreateNI9157DeviceOperatorFromType
 
 TEST(NI9157DeviceOperatorDatabaseGTest,TestGetNI9157DeviceOperatorFromName_Bool) {
     NI9157DeviceOperatorDatabaseTest test;
-    uint8 x=0;
+    bool x=0;
     ASSERT_TRUE(test.TestGetNI9157DeviceOperatorFromName("NI9157DeviceBool", x));
 }
 

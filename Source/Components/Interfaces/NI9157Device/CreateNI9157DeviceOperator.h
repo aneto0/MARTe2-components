@@ -1,8 +1,9 @@
 /**
  * @file CreateNI9157DeviceOperator.h
- * @brief Header file for class CreateNI9157DeviceOperator
- * @date 17/05/2018
- * @author Giuseppe Ferrò
+ * @brief Header file for class CreateNI9157DeviceOperator.
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,10 +16,11 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
- * @details This header file contains the declaration of the class CreateNI9157DeviceOperator
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ *
+ * @details This header file contains the declaration of the class 
+ * CreateNI9157DeviceOperator with all of its public, protected and private
+ * members. It may also include definitions for inline methods which need to be
+ * visible to the compiler.
  */
 
 #ifndef CREATENI9157DEVICEOPERATOR_H_
@@ -33,14 +35,16 @@
 /*---------------------------------------------------------------------------*/
 #include "CreateNI9157DeviceOperatorI.h"
 #include "NI9157DeviceOperatorT.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
 /**
- * @brief This object allows to create a specific NI9157DeviceOperatorT depending on the template type.
- * @see NI9157DeviceOperatorTI and NI9157DeviceOperatorT
+ * @brief This object allows to create a specific NI9157DeviceOperatorT
+ * depending on the template type.
+ * @see NI9157DeviceOperatorTI and NI9157DeviceOperatorT.
  */
 /*lint -esym(9107, MARTe::CreateNI9157DeviceOperator*) [MISRA C++ Rule 3-1-1]. Justification: Required for template implementation.
  * No code is actually being generated and the header files can be included in multiple unit files.*/
@@ -49,8 +53,8 @@ class CreateNI9157DeviceOperator: public CreateNI9157DeviceOperatorI {
 public:
 
     /**
-     * @brief Default constructor
-     * @see CreateNI9157DeviceOperatorI
+     * @brief Default constructor.
+     * @see CreateNI9157DeviceOperatorI.
      * @post
      *   identifier=NULL
      *   typeDes=InvalidType
@@ -67,41 +71,46 @@ public:
     CreateNI9157DeviceOperator(const char8 * const id);
 
     /**
-     * @brief Destructor
+     * @brief Destructor.
      */
     virtual ~CreateNI9157DeviceOperator();
 
     /**
-     * @see CreateNI9157DeviceOperatorI::Create
+     * @see CreateNI9157DeviceOperatorI::Create.
      */
     virtual NI9157DeviceOperatorTI *Create(ReferenceT<NI9157Device> niDev) const;
 
     /**
-     * @see CreateNI9157DeviceOperatorI::GetIdentifier
+     * @see CreateNI9157DeviceOperatorI::GetIdentifier.
      */
     virtual const char8 *GetIdentifier() const;
 
     /**
-     * @see CreateNI9157DeviceOperatorI::GetTypeDescriptor
+     * @see CreateNI9157DeviceOperatorI::GetTypeDescriptor.
      */
     virtual TypeDescriptor GetTypeDescriptor() const;
+
 private:
 
     /**
-     * The object name
+     * The object name.
      */
     const char8 *identifier;
 
     /**
-     * The associated type descriptor that depends on T
+     * The associated type descriptor that depends on T.
      */
     TypeDescriptor typeDes;
+
 };
+
 }
+
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+
 template<typename T>
 CreateNI9157DeviceOperator<T>::CreateNI9157DeviceOperator() :
         CreateNI9157DeviceOperatorI(), typeDes() {
@@ -115,6 +124,9 @@ CreateNI9157DeviceOperator<T>::CreateNI9157DeviceOperator(const char8 * const id
         CreateNI9157DeviceOperatorI() {
     identifier = id;
     //discover the type descriptor
+    if (dynamic_cast<CreateNI9157DeviceOperator<bool>*>(this) != NULL) {
+        typeDes = UnsignedInteger32Bit;
+    }
     if (dynamic_cast<CreateNI9157DeviceOperator<uint8>*>(this) != NULL) {
         typeDes = UnsignedInteger8Bit;
     }
@@ -142,7 +154,6 @@ CreateNI9157DeviceOperator<T>::CreateNI9157DeviceOperator(const char8 * const id
     else {
         typeDes = InvalidType;
     }
-
 }
 
 template<typename T>
@@ -168,5 +179,4 @@ TypeDescriptor CreateNI9157DeviceOperator<T>::GetTypeDescriptor() const {
 
 }
 
-#endif /* SOURCE_COMPONENTS_INTERFACES_NI9157DEVICE_CREATENI9157DEVICEOPERATOR_H_ */
-
+#endif /* CREATENI9157DEVICEOPERATOR_H_ */

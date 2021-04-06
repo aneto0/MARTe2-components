@@ -62,7 +62,4 @@ all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/NI9157Device$(LIBEXT)\
     $(BUILD_DIR)/NI9157Device$(DLLEXT)
 
-
-
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-

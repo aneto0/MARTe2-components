@@ -41,6 +41,7 @@ SPB+=NI1588.x
 SPB+=NI6259.x
 SPB+=NI6368.x
 SPB+=NI9157.x
+SPB+=NI9157/Optim.x
 
 ## Only force EPICSPVA if CCS version is gt v6.1
 CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
@@ -97,6 +98,7 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/NI1588/NI1588Test$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259Test$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI6368/NI6368Test$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/NI9157/NI9157Test$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/NI9157/Optim/NI9157MemoryOperationsHelperTest$(LIBEXT)
 endif
 
 ifdef MDSPLUS_DIR

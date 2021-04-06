@@ -28,7 +28,10 @@ TARGET=cov
 
 INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-OBJSX = NI9157CircularFifoReaderGTest.x NI9157MxiDataSourceGTest.x 
+OBJSX = NI9157CircularFifoReaderGTest.x \
+    NI9157MxiDataSourceGTest.x \
+    SampleCheckerGTest.x \
+    CounterCheckerGTest.x \
+    MarkerBitCheckerGTest.x
 
 include Makefile.inc
-

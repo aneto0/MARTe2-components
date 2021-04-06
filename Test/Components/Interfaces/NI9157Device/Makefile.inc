@@ -26,17 +26,24 @@
 
 OBJSX +=  CreateNI9157DeviceOperatorTest.x \
     CreateNI9157DeviceOperatorGTest.x \
+    CreateNI9157DeviceOperatorITest.x \
+    CreateNI9157DeviceOperatorIGTest.x \
     NI9157DeviceTest.x \
     NI9157DeviceGTest.x \
     NI9157DeviceOperatorDatabaseTest.x \
     NI9157DeviceOperatorDatabaseGTest.x \
     NI9157DeviceOperatorTTest.x \
     NI9157DeviceOperatorTGTest.x \
-
+    NI9157DeviceOperatorTITest.x \
+    NI9157DeviceOperatorTIGTest.x
 
 PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
+
+ARCHIVEPATH = TestLvFw
+ARCHIVE = TestLvFw.tar.gz
+FILE_PREIX = NiFpga_NI915
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
@@ -59,10 +66,13 @@ INCLUDES += -I$(CODAC_ROOT)/include
 INCLUDES += -I../../../../Source/Components/Interfaces/NI9157Device
 
 all: $(OBJS) \
-                $(BUILD_DIR)/NI9157DeviceTest$(LIBEXT)
+	$(BUILD_DIR)/NI9157DeviceTest$(LIBEXT)
 	echo  $(OBJS)
+	-tar -xzvf $(ARCHIVEPATH)/$(ARCHIVE) -C $(ARCHIVEPATH)
 
 include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 
+clean:
+	-@rm -fv $(ARCHIVEPATH)/$(FILE_PREIX)*

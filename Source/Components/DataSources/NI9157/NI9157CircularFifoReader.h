@@ -1,8 +1,9 @@
 /**
  * @file NI9157CircularFifoReader.h
- * @brief Header file for class NI9157CircularFifoReader
- * @date 14/05/2018
- * @author Giuseppe Ferrò
+ * @brief Header file for class NI9157CircularFifoReader.
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,10 +16,11 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
- * @details This header file contains the declaration of the class NI9157CircularFifoReader
- * with all of its public, protected and private members. It may also include
- * definitions for inline methods which need to be visible to the compiler.
+ * 
+ * @details This header file contains the declaration of the class 
+ * NI9157CircularFifoReader with all of its public, protected and private
+ * members. It may also include definitions for inline methods which need to
+ * be visible to the compiler.
  */
 
 #ifndef NI9157CIRCULARFIFOREADER_H_
@@ -31,9 +33,20 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
+#include "AdvancedErrorManagement.h"
+#include "CLASSMETHODREGISTER.h"
 #include "CircularBufferThreadInputDataSource.h"
+#include "CreateNI9157DeviceOperatorI.h"
+#include "EventSem.h"
+#include "MemoryOperationsHelper.h"
+#include "MessageI.h"
+#include "NI9157Device.h"
+#include "NI9157DeviceOperatorDatabase.h"
 #include "NI9157DeviceOperatorT.h"
+#include "ObjectRegistryDatabase.h"
+#include "Optim/NI9157MemoryOperationsHelper.h"
+#include "RegisteredMethodsMessageFilter.h"
+#include "SampleChecker.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -57,11 +70,13 @@ namespace MARTe {
  *     CpuMask = 2 //see CircularBufferThreadInputDataSource
  *     sleepInMutexSec = 1e-9 //see CircularBufferThreadInputDataSource
  *     NI9157DevicePath = NiDevice //the absolute path of the NI9157Device block in the configuration database
- *     CheckPacketCounter = 1 //if the first element is the packet counter (default 0)
+ *     CheckFrame = 1 //if the first element is the packet counter (default 0)
  *     NumberOfPacketsInFIFO = 20 //the number of packets in the host-side FIFO (default 10)
  *     FifoName = "NiFpga_TestGTD0001_TargetToHostFifoU64_FIFO" //the name of the FIFO variable
  *     NumOfFrameForSync = 2 //the number of packets to be used if the synchronisation is lost with the device (checking the packet counter). Default 2.
  *     RunNi = 1 //if the NI9157Device has to be started by this data source
+ *     Timeout = 0xFFFFFFFFu //The miliseconds timeout used by the NiFifoRead method calls within the DriverRead method.
+ *     NonBlockSleepT = 0.F //if 0.F, no NiFifoReader call is repeated within the same DriverRead method call. if >0.F, corresponds to the sleep time in seconds between NiReadFifo calls within DriverRead.
  *     CounterStep = 2000 //the gap between two consecutive packet counters (default 1)
  *     CheckCounterAfterNSteps = 2000 //when the counter must be checked. It must be multiple of CounterStep (default is equal to CounterStep).
  *     FirstPacketCounter = 1 //the first packet counter that should be acquired from the device.
@@ -75,14 +90,14 @@ namespace MARTe {
  * }
  * </pre>
  */
-class NI9157CircularFifoReader: public CircularBufferThreadInputDataSource {
+class NI9157CircularFifoReader: public CircularBufferThreadInputDataSource, public MessageI  {
 public:
     CLASS_REGISTER_DECLARATION()
 
     /**
      * @brief Constructor
      * @post
-     *   checkPacketCounter = 0u;\n
+     *   checkFrame = 0u;\n
      *   nFrameForSync = 0u;\n
      *   sampleByteSize = 0u;\n
      *   niDeviceOperator = NULL_PTR(NI9157DeviceOperatorTI *);\n
@@ -90,6 +105,8 @@ public:
      *   totalReadSize = 0u;\n
      *   middleBuffer = NULL_PTR(uint8 *);\n
      *   runNi = 0u;\n
+     *   acqTimeout = 0xFFFFFFFFu;\n
+     *   nonBlockSleepT = 0.F;\n
      *   packetCounter = 1u;\n
      *   acquireFromCounter = 0u;\n
      *   nextPacketCheck = 1u;\n
@@ -112,8 +129,8 @@ public:
      *     NumberOfPacketsInFIFO: the number of packets in the host-side FIFO (default 10)\n
      *     FifoName: the name of the FIFO variable that can be found in the exported Labview header file.\n
      *     RunNi: if the NI9157Device has to be started by this data source\n
-     *     CheckPacketCounter: if the first element is the packet counter (default 0)\n
-     *     if (CheckPacketCounter == 1) then the following parameters mean:\n
+     *     CheckFrame: if the first element is the packet counter (default 0)\n
+     *     if (CheckFrame == 1) then the following parameters mean:\n
      *       NumOfFrameForSync: the number of packets to be used if the synchronisation is lost with the device (checking the packet counter). Default 2.\n
      *       CounterStep: the difference between two consecutive packet counters (default 1)\n
      *       CheckCounterAfterNSteps: when the counter must be checked. It must be multiple of CounterStep (by default is equal to CounterStep).\n
@@ -131,16 +148,23 @@ public:
     virtual bool SetConfiguredDatabase(StructuredDataI & data);
 
     /**
-     * @brief Configures the number of packets in the host-side FIFO and launchs the internal thread.
+     * @brief Configures the number of packets in the host-side FIFO and launches the internal thread.
      * @see CircularBufferThreadInputDataSource::PrepareNextState
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
                                   const char8 * const nextStateName);
 
     /**
+     * @brief The Synchronise method.
+     * @details Calls the CircularBufferThreadInputDataSource Synchronise method.
+     * @see CircularBufferThreadInputDataSource::Synchronise
+     */
+    virtual bool Synchronise();
+
+    /**
      * @brief Acquires a packet from the NI-9157 device and puts it in the circular buffer.
      * @see CircularBufferThreadInputDataSource::DriverRead
-     * @details If CheckPacketCounter==1, the method checks is the first element of the packet is coherent. In particular:
+     * @details If CheckFrame==1, the method checks is the first element of the packet is coherent. In particular:
      *   - the counter of the N-th packet should be (FirstPacketCounter+N*CounterStep).\n
      *   - the counter is checked after (CheckCounterAfterNSteps/CounterStep)s acquisitions.\n
      * If the packet counter does not respect these rules than \a NumOfFrameForSync packets are acquired in \a middleBuffer
@@ -153,12 +177,24 @@ public:
                             uint32 &sizeToRead,
                             const uint32 signalIdx);
 
+    /**
+     * @brief The StopAcquisition method.
+     * @details If the thread is running, this thread attempts to stop it.
+     */
+    virtual ErrorManagement::ErrorType StopAcquisition();
+
+    /**
+     * @brief The StartAcquisition method. 
+     * @details Configures the FIFO and strats the thread.
+     */
+    virtual ErrorManagement::ErrorType StartAcquisition();
+
 protected:
 
     /**
      * If the packet counter should be checked
      */
-    uint8 checkPacketCounter;
+    uint8 checkFrame;
 
     /**
      * The FIFO descriptor
@@ -191,7 +227,7 @@ protected:
     uint32 totalReadSize;
 
     /**
-     * A buffer used to acquire data and for eventual re-synchronisations
+     * A buffer used to acquire data and for eventual re-synchronisation
      */
     uint8* middleBuffer;
 
@@ -201,29 +237,9 @@ protected:
     uint8 runNi;
 
     /**
-     * The packet counter
+     * TODO - WAS MISSING.
      */
-    uint64 packetCounter;
-
-    /**
-     * The first packet to be acquired and put in the circular buffer
-     */
-    uint64 acquireFromCounter;
-
-    /**
-     * The next packet counter to be checked
-     */
-    uint64 nextPacketCheck;
-
-    /**
-     * The difference between two consecutive checked counter
-     */
-    uint32 checkCounterAfterNSteps;
-
-    /**
-     * The difference between two consecutive acquired counter
-     */
-    uint32 counterStep;
+    uint8 runNiOriginal;
 
     /**
      * The number of packets in the host-side FIFO.
@@ -234,11 +250,33 @@ protected:
      * The name of the fifo to be used in the MXI interface.
      */
     StreamString fifoName;
+
+    /**
+     * The samples frame checker.
+     */
+    ReferenceT<SampleChecker> checker;
+
+    /**
+     * The timeout used in the NiReadFifo calls of DriverRead in milliseconds.
+     */
+    uint32 acqTimeout;
+
+    /**
+     * The semaphore used in the Synchronise method.
+     */
+    EventSem eventSem;
+
+    /**
+     * The sleep time between NiReadFifo calls within DriverRead in seconds.
+     */
+    float32 nonBlockSleepT;
+    
 };
+
 }
+
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
 #endif /* NI9157CIRCULARFIFOREADER_H_ */
-

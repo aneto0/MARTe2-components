@@ -1,8 +1,9 @@
 /**
  * @file NI9157CircularFifoReaderTest.cpp
- * @brief Source file for class NI9157CircularFifoReaderTest
- * @date 17/05/2018
- * @author Giuseppe Ferrò
+ * @brief Source file for class NI9157CircularFifoReaderTest.
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,35 +16,21 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
- * the class NI9157CircularFifoReaderTest (public, protected, and private). Be aware that some 
- * methods, such as those inline could be defined on the header file, instead.
+ * the class NI9157CircularFifoReaderTest (public, protected, and private). Be
+ * aware that some methods, such as those inline could be defined on the
+ * header file, instead.
  */
 
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
-#include "ConfigurationDatabase.h"
-#include "DataSourceI.h"
-#include "GAMSchedulerI.h"
-#include "Interleaved2FlatGAM.h"
-#include "MemoryMapMultiBufferInputBroker.h"
-#include "MemoryMapMultiBufferOutputBroker.h"
-#include "MemoryMapOutputBroker.h"
-#include "MemoryMapSynchronisedMultiBufferInputBroker.h"
-#include "MemoryMapSynchronisedMultiBufferOutputBroker.h"
 #include "NI9157CircularFifoReaderTest.h"
-#include "ObjectRegistryDatabase.h"
-#include "RealTimeApplication.h"
-#include "StandardParser.h"
-
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -71,62 +58,28 @@ public:
 
     uint8 GetRunNi();
 
-    uint32 GetPacketCounter();
-
-    uint32 GetAcquireFromCounter();
-
-    uint32 GetNextPacketCheck();
-
-    uint32 GetCheckCounterAfterNPackets();
-
     uint32 GetCounterStep();
 
     uint32 GetNumberOfPacketsInFIFO();
 
-    void Anticipate(uint8 anticipate);
-
     virtual bool PrepareNextState(const char8 * const currentStateName,
                                   const char8 * const nextStateName);
-
-protected:
-    uint8 anticipateFpgaRun;
 
 };
 
 NI9157CircularFifoReaderTestDS::NI9157CircularFifoReaderTestDS() {
-    anticipateFpgaRun = 0u;
 }
 
 NI9157CircularFifoReaderTestDS::~NI9157CircularFifoReaderTestDS() {
 }
 
-void NI9157CircularFifoReaderTestDS::Anticipate(uint8 anticipate) {
-    anticipateFpgaRun = anticipate;
-}
-
 bool NI9157CircularFifoReaderTestDS::PrepareNextState(const char8 * const currentStateName,
                                                       const char8 * const nextStateName) {
-    bool ret = true;
-    if (ret) {
-        if (anticipateFpgaRun) {
-            if (runNi == 1u) {
-                NiFpga_Status status = niDeviceBoard->Run();
-                ret = (status == 0);
-                runNi = 0u;
-                Sleep::Sec(1);
-            }
-        }
-    }
-    if (ret) {
-        ret = NI9157CircularFifoReader::PrepareNextState(currentStateName, nextStateName);
-    }
-
-    return ret;
+    return NI9157CircularFifoReader::PrepareNextState(currentStateName, nextStateName);
 }
 
 uint8 NI9157CircularFifoReaderTestDS::GetCheckPacketCounter() {
-    return checkPacketCounter;
-
+    return checkFrame;
 }
 
 uint32 NI9157CircularFifoReaderTestDS::GetNFrameForSync() {
@@ -155,25 +108,6 @@ uint8 *NI9157CircularFifoReaderTestDS::GetMiddleBuffer() {
 
 uint8 NI9157CircularFifoReaderTestDS::GetRunNi() {
     return runNi;
-}
-
-uint32 NI9157CircularFifoReaderTestDS::GetPacketCounter() {
-    return packetCounter;
-}
-uint32 NI9157CircularFifoReaderTestDS::GetAcquireFromCounter() {
-    return acquireFromCounter;
-}
-
-uint32 NI9157CircularFifoReaderTestDS::GetNextPacketCheck() {
-    return nextPacketCheck;
-}
-
-uint32 NI9157CircularFifoReaderTestDS::GetCheckCounterAfterNPackets() {
-    return checkCounterAfterNSteps;
-}
-
-uint32 NI9157CircularFifoReaderTestDS::GetCounterStep() {
-    return counterStep;
 }
 
 uint32 NI9157CircularFifoReaderTestDS::GetNumberOfPacketsInFIFO() {
@@ -250,37 +184,6 @@ CLASS_REGISTER(NI9157CircularFifoReaderTestGAM2, "1.0")
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
-/**
- * Helper function to setup a MARTe execution environment
- */
-static bool InitialiseMemoryMapInputBrokerEnviroment(const char8 * const config) {
-
-    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-    ConfigurationDatabase cdb;
-    StreamString configStream = config;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-
-    bool ok = parser.Parse();
-
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-
-    if (ok) {
-        god->Purge();
-        ok = god->Initialise(cdb);
-    }
-    ReferenceT<RealTimeApplication> application;
-    if (ok) {
-        application = god->Find("Application1");
-        ok = application.IsValid();
-    }
-    if (ok) {
-        ok = application->ConfigureApplication();
-    }
-    return ok;
-}
-
 NI9157CircularFifoReaderTest::NI9157CircularFifoReaderTest() {
 }
 
@@ -291,2273 +194,1088 @@ bool NI9157CircularFifoReaderTest::TestConstructor() {
 
     NI9157CircularFifoReaderTestDS dataSource;
 
-    bool ret = dataSource.GetCheckPacketCounter() == 0u;
-    ret &= dataSource.GetNFrameForSync() == 1u;
-    ret &= dataSource.GetSampleByteSize() == 0u;
-    ret &= dataSource.GetNiDeviceOperator() == NULL;
-    ret &= dataSource.GetFifoDev() == 0u;
-    ret &= dataSource.GetTotalReadSize() == 0u;
-    ret &= dataSource.GetMiddleBuffer() == NULL;
-    ret &= dataSource.GetRunNi() == 0u;
-    ret &= dataSource.GetPacketCounter() == 1u;
-    ret &= dataSource.GetAcquireFromCounter() == 0u;
-    ret &= dataSource.GetNextPacketCheck() == 1u;
-    ret &= dataSource.GetCheckCounterAfterNPackets() == 0u;
-    ret &= dataSource.GetCounterStep() == 1u;
-    ret &= dataSource.GetNumberOfPacketsInFIFO() == 10u;
+    bool ret = (dataSource.GetCheckPacketCounter() == 0u);
+    ret &= (dataSource.GetNFrameForSync() == 1u);
+    ret &= (dataSource.GetSampleByteSize() == 0u);
+    ret &= (dataSource.GetNiDeviceOperator() == NULL_PTR(NI9157DeviceOperatorTI *));
+    ret &= (dataSource.GetFifoDev() == 0u);
+    ret &= (dataSource.GetTotalReadSize() == 0u);
+    ret &= (dataSource.GetMiddleBuffer() == NULL_PTR(uint8 *));
+    ret &= (dataSource.GetRunNi() == 0u);
+    ret &= (dataSource.GetNumberOfPacketsInFIFO() == 10u);
 
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = god->Initialise(cdb);
     }
-
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-        ret &= dataSource->GetNFrameForSync() == 3;
-        ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 2000u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 2000u;
-        ret &= dataSource->GetCounterStep() == 2000u;
-        ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
-
+        ret = (dataSource->GetNFrameForSync() == 3);
+        ret &= (dataSource->GetRunNi() == 1);
+        ret &= (dataSource->GetNumberOfPacketsInFIFO() == 20u);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
-
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_DefaultRunNi() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise_DefaultRunNi(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Delete("RunNi");
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = god->Initialise(cdb);
     }
-
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-        ret &= dataSource->GetNFrameForSync() == 3;
-        ret &= dataSource->GetRunNi() == 0;
-        ret &= dataSource->GetAcquireFromCounter() == 2000u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 2000u;
-        ret &= dataSource->GetCounterStep() == 2000u;
-        ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
-
+        ret = (dataSource->GetNFrameForSync() == 3u);
+        ret &= (dataSource->GetRunNi() == 0u);
+        ret &= (dataSource->GetNumberOfPacketsInFIFO() == 20u);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
-
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_DefaultNumberOfPacketsInFIFO() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise_DefaultNumberOfPacketsInFIFO(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Delete("NumberOfPacketsInFIFO");
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = god->Initialise(cdb);
     }
-
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-        ret &= dataSource->GetNFrameForSync() == 3;
-        ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 2000u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 2000u;
-        ret &= dataSource->GetCounterStep() == 2000u;
-        ret &= dataSource->GetNumberOfPacketsInFIFO() == 10u;
-
+        ret = (dataSource->GetNFrameForSync() == 3u);
+        ret &= (dataSource->GetRunNi() == 1u);
+        ret &= (dataSource->GetNumberOfPacketsInFIFO() == 10u);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
-
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_DefaultAcquiredFromPacket() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise_DefaultAcquiredFromPacket(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
+        ret &= cdb.Delete("AcquireFromCounter");
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = god->Initialise(cdb);
     }
-
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-        ret &= dataSource->GetNFrameForSync() == 3;
-        ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 0u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 2000u;
-        ret &= dataSource->GetCounterStep() == 2000u;
-        ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
-
+        ret = (dataSource->GetNFrameForSync() == 3u);
+        ret &= (dataSource->GetRunNi() == 1u);
+        ret &= (dataSource->GetNumberOfPacketsInFIFO() == 20u);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCheckPacketCounter() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCheckPacketCounter(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Delete("CheckFrame");
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = god->Initialise(cdb);
     }
-
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-        ret &= dataSource->GetNFrameForSync() == 1;
-        ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 0u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 0u;
-        ret &= dataSource->GetCounterStep() == 1u;
-        ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
-
+        ret = (dataSource->GetNFrameForSync() == 1u);
+        ret &= (dataSource->GetRunNi() == 1u);
+        ret &= (dataSource->GetNumberOfPacketsInFIFO() == 20u);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCheckCounterAfterNPackets() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
-            "            RunNi = 1"
-            "            CounterStep = 1"
-            "            AcquireFromCounter = 0"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCheckCounterAfterNPackets(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+  
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
-
     if (ret) {
         god->Purge();
         ret = god->Initialise(cdb);
     }
-
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-        ret &= dataSource->GetNFrameForSync() == 3;
-        ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 0u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 1u;
-        ret &= dataSource->GetCounterStep() == 1u;
-        ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
-
+        ret = (dataSource->GetNFrameForSync() == 3u);
+        ret &= (dataSource->GetRunNi() == 1u);
+        ret &= (dataSource->GetNumberOfPacketsInFIFO() == 20u);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCounterStep() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
-            "            RunNi = 1"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 0"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise_DefaultCounterStep(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
+        ret &= cdb.Delete("CounterStep");
+        ret &= cdb.Write("AcquireFromCounter", 0);
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = god->Initialise(cdb);
     }
-
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-        ret &= dataSource->GetNFrameForSync() == 3;
-        ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 0u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 2000u;
-        ret &= dataSource->GetCounterStep() == 1u;
-        ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
-
+        ret = (dataSource->GetNFrameForSync() == 3u);
+        ret &= (dataSource->GetRunNi() == 1u);
+        ret &= (dataSource->GetNumberOfPacketsInFIFO() == 20u);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_DefaultNFrameForSync() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise_DefaultNFrameForSync(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
+        ret &= cdb.Write("NumOfFrameForSync", "2");
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = god->Initialise(cdb);
     }
-
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-        ret &= dataSource->GetNFrameForSync() == 2;
-        ret &= dataSource->GetRunNi() == 1;
-        ret &= dataSource->GetAcquireFromCounter() == 2000u;
-        ret &= dataSource->GetCheckCounterAfterNPackets() == 2000u;
-        ret &= dataSource->GetCounterStep() == 2000u;
-        ret &= dataSource->GetNumberOfPacketsInFIFO() == 20u;
-
+        ret = (dataSource->GetNFrameForSync() == 2u);
+        ret &= (dataSource->GetRunNi() == 1u);
+        ret &= (dataSource->GetNumberOfPacketsInFIFO() == 20u);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_False_CounterStepZero() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
-            "            RunNi = 1"
-            "            CounterStep = 0"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise_False_CounterStepZero(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
+        ret &= cdb.Write("CounterStep", 0);
+        ret &= cdb.Write("AcquireFromCounter", 2000);
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_False_NFrameForSyncEqualTo1() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 1"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise_False_NFrameForSyncEqualTo1(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
+        ret &= cdb.Write("NumOfFrameForSync", 1);
+        ret &= cdb.Write("AcquireFromCounter", 2000);
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_False_CheckAfterNotDivideCounterStep() {
+bool NI9157CircularFifoReaderTest::TestInitialise_False_CheckAfterNotDivideCounterStep(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CheckCounterAfterNSteps = 1"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            AcquireFromCounter = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
+        ret &= cdb.Write("CheckCounterAfterNSteps", 1);
+        ret &= cdb.Write("AcquireFromCounter", 2000);
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_False_CounterStepNotDivideAcquireFromCounterDifference() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 3"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 1"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise_False_CounterStepNotDivideAcquireFromCounterDifference(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
+        ret &= cdb.Write("AcquireFromCounter", 2);
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_False_NoFifoName() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise_False_NoFifoName(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Delete("FifoName");
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_False_NoNI9157Device() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise_False_NoNI9157Device(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Delete("NI9157DevicePath");
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
-
 }
 
-bool NI9157CircularFifoReaderTest::TestInitialise_False_Invalidi9157Device() {
-
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = Boh"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+bool NI9157CircularFifoReaderTest::TestInitialise_False_Invalidi9157Device(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
-    StreamString configStream = config;
+    StreamString configStream = multiIOConfig5;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
-
     bool ret = parser.Parse();
 
-    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Write("NI9157DevicePath", "SomeDevicePath");
+        ret &= cdb.MoveToRoot();
+    }
 
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase() {
+bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            InputSignals = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig5;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
+        ret &= cdb.Write("NumOfFrameForSync", 2);
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-        ret = dataSource->GetNiDeviceOperator() != NULL;
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_MoreThanOneChannel() {
+bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_MoreThanOneChannel(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            InputSignals = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "               Signal2 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
-    bool ret = !InitialiseMemoryMapInputBrokerEnviroment(config);
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig5;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Functions.+GAMA.InputSignals");
+        ret &= cdb.CreateRelative("Signal2");
+        ret &= cdb.Write("DataSource", "Drv1");
+        ret &= cdb.Write("Type", "uint64");
+        ret &= cdb.Write("Samples", 1);
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = !application->ConfigureApplication();
+    }
+
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_NiDevOperatorNotFound() {
+bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_NiDevOperatorNotFound(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            InputSignals = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = float32"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig5;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
-    bool ret = !InitialiseMemoryMapInputBrokerEnviroment(config);
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Functions.+GAMA.InputSignals.Signal1");
+        ret &= cdb.Write("Type", "float32");
+        ret &= cdb.MoveToRoot();
+    }
+   
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+
     ObjectRegistryDatabase::Instance()->Purge();
-    return ret;
-
+    return !ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_InvalidFifoName() {
+bool NI9157CircularFifoReaderTest::TestSetConfiguredDatabase_False_InvalidFifoName(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            TcnTimeStamp = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   Frequency = 0"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"Invalid\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig5;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
-    bool ret = !InitialiseMemoryMapInputBrokerEnviroment(config);
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Write("FifoName", "\"SomeFIFO\"");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+
     ObjectRegistryDatabase::Instance()->Purge();
-    return ret;
+    return !ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestPrepareNextState() {
+bool NI9157CircularFifoReaderTest::TestPrepareNextState(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            InputSignals = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
-            "                   Frequency = 1000"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig5;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Functions.+GAMA.InputSignals.Signal1");
+        ret &= cdb.Write("NumberOfDimensions", 1);
+        ret &= cdb.Write("NumberOfElements", 10000);
+        ret &= cdb.Write("Frequency", 1000);
+        ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
+        ret &= cdb.Write("NumOfFrameForSync", 2);
+        ret &= cdb.Delete("AcquireFromCounter");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
     }
-
     if (ret) {
-        ret = dataSource->GetNiDeviceOperator() != NULL;
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(MARTe::NI9157DeviceOperatorTI *));
     }
-
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
         Sleep::MSec(100);
-        ObjectRegistryDatabase::Instance()->Purge();
     }
+    
+    ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestDriverRead() {
+bool NI9157CircularFifoReaderTest::TestPrepareNextState_TwoStates(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM2"
-            "            InputSignals = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
-            "                   Frequency = 1000"
-            "                   PacketMemberSizes = {8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 1, 1, 2}"
-            "               }"
-            "            }"
-            "            OutputSignals = {"
-            "                PacketCounter = {"
-            "                    Type = uint64"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                MHVPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                AI = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Alasm = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                InternalErrors = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                D0 = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                State = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Reserved = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +DDB = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 1"
-            "            FirstPacketCounter = 1"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig8;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Functions.+GAMA.InputSignals.Signal1");
+        ret &= cdb.Write("NumberOfDimensions", 1);
+        ret &= cdb.Write("NumberOfElements", 10000);
+        ret &= cdb.Write("Frequency", 1000);
+        ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
+        ret &= cdb.Write("NumOfFrameForSync", 2);
+        ret &= cdb.Delete("AcquireFromCounter");
+        ret &= cdb.MoveToRoot();
+    }
 
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+    if (ret) {
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(MARTe::NI9157DeviceOperatorTI *));
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+        Sleep::MSec(100);
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State2");
+        Sleep::MSec(100);
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State2", "State1");
+        Sleep::MSec(100);
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
+
+bool NI9157CircularFifoReaderTest::TestStopAcquisition(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig5;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Functions.+GAMA.InputSignals.Signal1");
+        ret &= cdb.Write("NumberOfDimensions", 1);
+        ret &= cdb.Write("NumberOfElements", 10000);
+        ret &= cdb.Write("Frequency", 1000);
+        ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
+        ret &= cdb.Write("NumOfFrameForSync", 2);
+        ret &= cdb.Delete("AcquireFromCounter");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+    if (ret) {
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(MARTe::NI9157DeviceOperatorTI *));
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
+
+bool NI9157CircularFifoReaderTest::TestStartAcquisition(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig5;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Functions.+GAMA.InputSignals.Signal1");
+        ret &= cdb.Write("NumberOfDimensions", 1);
+        ret &= cdb.Write("NumberOfElements", 10000);
+        ret &= cdb.Write("Frequency", 1000);
+        ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
+        ret &= cdb.Write("NumOfFrameForSync", 2);
+        ret &= cdb.Delete("AcquireFromCounter");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+    if (ret) {
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
+
+bool NI9157CircularFifoReaderTest::TestSynchronise(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig6;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -2566,262 +1284,273 @@ bool NI9157CircularFifoReaderTest::TestDriverRead() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
-        ret = dataSource->GetNiDeviceOperator() != NULL;
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
+    }
+    ReferenceContainer inputBrokers;
+    if (ret) {
+        ret = gam->GetInputBrokers(inputBrokers);
+    }
+    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        brokerSync->Execute();
+        gam->Execute();
+        Sleep::MSec(100);
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
     }
 
-    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
 
+static void NI9157StartAcquisitionCallback(const void * const params) {
+    
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
+    bool ret = false;
+    
+    dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+    ret = dataSource.IsValid();
     if (ret) {
-        ReferenceContainer inputBrokers;
+        REPORT_ERROR_STATIC(ErrorManagement::Information, "NI9157StartAcquisitionCallback: Waiting 2s to call StartAcquisition()...");
+        Sleep::MSec(2000);
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+        if (ret) {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "NI9157StartAcquisitionCallback: Drv1->StartAcquisition()");
+        }
+    }
+
+}
+
+bool NI9157CircularFifoReaderTest::TestSynchronise_NoStart(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig6;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+    if (ret) {
+        gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
+        ret = gam.IsValid();
+    }
+    if (ret) {
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
+    }
+    ReferenceContainer inputBrokers;
+    if (ret) {
         ret = gam->GetInputBrokers(inputBrokers);
-        if (ret) {
-            brokerSync = inputBrokers.Get(0);
-            ret = brokerSync.IsValid();
-        }
-        if (ret) {
-            ret = dataSource->PrepareNextState("State1", "State1");
-        }
+    }
+    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ThreadIdentifier tid = Threads::BeginThread(NI9157StartAcquisitionCallback);
+        brokerSync->Execute();
+        Threads::Kill(tid);
+    }
 
-        uint32 numberOfReads = 2;
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
 
+bool NI9157CircularFifoReaderTest::TestDriverRead(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig6;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+    if (ret) {
+        gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
+        ret = gam.IsValid();
+    }
+    if (ret) {
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
+    }
+    ReferenceContainer inputBrokers;
+    if (ret) {
+        ret = gam->GetInputBrokers(inputBrokers);
+    }
+    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        uint32 numberOfReads = 2u;
+        uint32 numberOfValues = 2000u;
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
         uint64 counterStore = 0ull;
         for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
             brokerSync->Execute();
             gam->Execute();
-            //printf("counter[%d]=%llu\n", 0, mem[0]);
-
-            for (uint32 j = 0u; (j < 2000) && (ret); j++) {
-                //printf("counter[%d]=%llu\n", j, mem[j]);
-                if (i * 2000 + j > 0) {
-                    ret = ((mem[j] - counterStore) == 1);
+            for (uint32 j = 0u; (j < numberOfValues) && (ret); j++) {
+                if (j > 0) { 
+                    ret = ((mem[j] - counterStore) == 1u);
+                    if (!ret) {
+                        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at mem[%u]=%u != mem[%u]=%u + 1", j , static_cast<uint32>(mem[j]), j-1, static_cast<uint32>(counterStore));
+                    }
                 }
                 counterStore = mem[j];
             }
-
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
-        ObjectRegistryDatabase::Instance()->Purge();
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret &= err.ErrorsCleared();
     }
+
+    ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestDriverRead_AllSignals() {
+bool NI9157CircularFifoReaderTest::TestDriverRead_AllSignals(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM2"
-            "            InputSignals = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
-            "                   Frequency = 1000"
-            "                   PacketMemberSizes = {8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 1, 1, 2}"
-            "               }"
-            "               InternalTimeStamp = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "               }"
-            "               ErrorCheck = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint32"
-            "                   Samples = 3"
-            "               }"
-            "            }"
-            "            OutputSignals = {"
-            "                PacketCounter = {"
-            "                    Type = uint64"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                MHVPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                AI = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Alasm = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                InternalErrors = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                D0 = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                State = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Reserved = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                InternalTimeStampDDB = {"
-            "                   DataSource = DDB"
-            "                   Type = uint64"
-            "                }"
-            "                ErrorCheckDDB = {"
-            "                   DataSource = DDB"
-            "                   Type = uint32"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 3"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +DDB = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 1"
-            "            FirstPacketCounter = 1"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig7;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
 
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -2830,289 +1559,113 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AllSignals() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
-        ret = dataSource->GetNiDeviceOperator() != NULL;
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
-
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
     ReferenceT < MemoryMapMultiBufferInputBroker > broker;
-
+    ReferenceContainer inputBrokers;
     if (ret) {
-        ReferenceContainer inputBrokers;
         ret = gam->GetInputBrokers(inputBrokers);
-        if (ret) {
-            brokerSync = inputBrokers.Get(0);
-            ret = brokerSync.IsValid();
-        }
-        if (ret) {
-            broker = inputBrokers.Get(1);
-            ret = broker.IsValid();
-        }
-        if (ret) {
-            ret = dataSource->PrepareNextState("State1", "State1");
-        }
-
-        uint32 numberOfReads = 5;
-
-        uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
-        uint64* tsMem = &mem[10000];
-        uint32 *errCheckMem = (uint32 *) (&tsMem[1]);
-
-        uint64 counterStore = 0ull;
-
-        uint64 tsStore = HighResolutionTimer::Counter();
-
+    }
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        broker = inputBrokers.Get(1);
+        ret = broker.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        uint32 numberOfReads = 5u;
+        uint32 numberOfErrorChecks = 3u;
+        uint32 numberOfValues = 2000u;
         const uint32 expectedDeltaTs = 10000;
         const int32 tol = 100;
-
+        uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
+        uint64* tsMem = &mem[10000];
+        uint32 *errCheckMem = (uint32 *) (&tsMem[1]);
+        uint64 counterStore = 0ull;
+        uint64 tsStore = HighResolutionTimer::Counter();
         for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
             brokerSync->Execute();
             broker->Execute();
             gam->Execute();
-            //printf("counter[%d]=%llu\n", 0, mem[0]);
             if (i > 0) {
                 uint32 delta = (uint32)((*tsMem - tsStore) * HighResolutionTimer::Period() * 1e6);
-                //printf("HRT[%d]=%d\n", i, delta);
                 ret = (((int32)(delta - expectedDeltaTs)) < tol) || (((int32)(delta - expectedDeltaTs)) > -tol);
             }
-
-            for (uint32 j = 0u; (j < 3u) && (ret); j++) {
-                //printf("ErrorCheck[%d, %d]=%d\n", i, j, errCheckMem[j]);
+            for (uint32 j = 0u; (j < numberOfErrorChecks) && (ret); j++) {
                 ret = (errCheckMem[j] == 0);
             }
-
             tsStore = *tsMem;
-            for (uint32 j = 0u; (j < 2000) && (ret); j++) {
-                //printf("counter[%d]=%llu\n", j, mem[j]);
-
+            for (uint32 j = 0u; (j < numberOfValues) && (ret); j++) {
                 if ((i * 2000 + j) > 0) {
                     ret = ((mem[j] - counterStore) == 1);
                 }
                 counterStore = mem[j];
             }
-
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
-        ObjectRegistryDatabase::Instance()->Purge();
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret &= err.ErrorsCleared();
     }
+
+    ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestDriverRead_AcquiredFromCounter() {
+bool NI9157CircularFifoReaderTest::TestDriverRead_AcquiredFromCounter(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM2"
-            "            InputSignals = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
-            "                   Frequency = 1000"
-            "                   PacketMemberSizes = {8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 1, 1, 2}"
-            "               }"
-            "               InternalTimeStamp = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "               }"
-            "               ErrorCheck = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint32"
-            "                   Samples = 3"
-            "               }"
-            "            }"
-            "            OutputSignals = {"
-            "                PacketCounter = {"
-            "                    Type = uint64"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                MHVPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                AI = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Alasm = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                InternalErrors = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                D0 = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                State = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Reserved = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                InternalTimeStampDDB = {"
-            "                   DataSource = DDB"
-            "                   Type = uint64"
-            "                }"
-            "                ErrorCheckDDB = {"
-            "                   DataSource = DDB"
-            "                   Type = uint32"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 3"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +DDB = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 8001"
-            "            FirstPacketCounter = 1"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig7;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
 
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -3121,272 +1674,122 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_AcquiredFromCounter() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
-        ret = dataSource->GetNiDeviceOperator() != NULL;
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
-
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
     ReferenceT < MemoryMapMultiBufferInputBroker > broker;
-
+    ReferenceContainer inputBrokers;
     if (ret) {
-        ReferenceContainer inputBrokers;
         ret = gam->GetInputBrokers(inputBrokers);
-        if (ret) {
-            brokerSync = inputBrokers.Get(0);
-            ret = brokerSync.IsValid();
-        }
-        if (ret) {
-            broker = inputBrokers.Get(1);
-            ret = broker.IsValid();
-        }
-        if (ret) {
-            ret = dataSource->PrepareNextState("State1", "State1");
-        }
-
-        uint32 numberOfReads = 2;
-
-        uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
-        uint64* tsMem = &mem[10000];
-        uint32 *errCheckMem = (uint32 *) (&tsMem[1]);
-
-        uint64 counterStore = 0ull;
-
-        uint64 tsStore = HighResolutionTimer::Counter();
-
+    }
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        broker = inputBrokers.Get(1);
+        ret = broker.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        uint32 numberOfReads = 2u;
+        uint32 numberOfErrorChecks = 3u;
+        uint32 numberOfValues = 2000u;
         const uint32 expectedDeltaTs = 10000;
         const int32 tol = 100;
-
+        uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
+        uint64* tsMem = &mem[10000];
+        uint32 *errCheckMem = (uint32 *) (&tsMem[1]);
+        uint64 counterStore = 0ull;
+        uint64 tsStore = HighResolutionTimer::Counter();
         for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
             brokerSync->Execute();
             broker->Execute();
             gam->Execute();
-            //printf("counter[%d]=%llu\n", 0, mem[0]);
             if (i > 0) {
                 uint32 delta = (uint32)((*tsMem - tsStore) * HighResolutionTimer::Period() * 1e6);
-                //printf("HRT[%d]=%d\n", i, delta);
                 ret = (((int32)(delta - expectedDeltaTs)) < tol) || (((int32)(delta - expectedDeltaTs)) > -tol);
             }
-
-            for (uint32 j = 0u; (j < 3u) && (ret); j++) {
-                //printf("ErrorCheck[%d, %d]=%d\n", i, j, errCheckMem[j]);
+            for (uint32 j = 0u; (j < numberOfErrorChecks) && (ret); j++) {
                 ret = (errCheckMem[j] == 0);
             }
-
             tsStore = *tsMem;
-            for (uint32 j = 0u; (j < 2000) && (ret); j++) {
-                //printf("counter[%d]=%llu\n", j, mem[j]);
-
-                if ((i * 2000 + j) > 0) {
+            for (uint32 j = 0u; (j < numberOfValues) && (ret); j++) {
+                if (j > 0) {
                     ret = ((mem[j] - counterStore) == 1);
-                    ret = (mem[j] > 8000);
                 }
                 counterStore = mem[j];
             }
-
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
-        ObjectRegistryDatabase::Instance()->Purge();
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret &= err.ErrorsCleared();
+        Sleep::MSec(100);
     }
+
+    ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestDriverReadCompleteCycle() {
+bool NI9157CircularFifoReaderTest::TestDriverReadCompleteCycle(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM2"
-            "            InputSignals = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
-            "                   Frequency = 1000"
-            "                   PacketMemberSizes = {8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 1, 1, 2}"
-            "               }"
-            "            }"
-            "            OutputSignals = {"
-            "                PacketCounter = {"
-            "                    Type = uint64"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                MHVPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                AI = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Alasm = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                InternalErrors = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                D0 = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                State = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Reserved = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +DDB = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 2"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 1"
-            "            FirstPacketCounter = 1"
-            "            sleepInMutexSec = 1e-9"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    RunOnCpu = 1"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig6;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Write("sleepInMutexSec", "1e-9");
+        ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+States.+State1.+Threads.+Thread1");
+        ret &= cdb.Write("RunOnCpu", 1);
+        ret &= cdb.MoveToRoot();
+    }
 
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -3395,268 +1798,111 @@ bool NI9157CircularFifoReaderTest::TestDriverReadCompleteCycle() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
-        ret = dataSource->GetNiDeviceOperator() != NULL;
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
-
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
     ReferenceT < MemoryMapOutputBroker > outBroker;
-
+    ReferenceContainer inputBrokers, outputBrokers;
     if (ret) {
-        ReferenceContainer inputBrokers, outputBrokers;
         ret = gam->GetInputBrokers(inputBrokers);
-        if (ret) {
-            ret = gam->GetOutputBrokers(outputBrokers);
-        }
-        if (ret) {
-            brokerSync = inputBrokers.Get(0);
-            ret = brokerSync.IsValid();
-        }
-        if (ret) {
-            outBroker = outputBrokers.Get(0);
-            ret = outBroker.IsValid();
-        }
-        if (ret) {
-            ret = dataSource->PrepareNextState("State1", "State1");
-        }
-
+    }
+    if (ret) {
+        ret = gam->GetOutputBrokers(outputBrokers);
+    }
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        outBroker = outputBrokers.Get(0);
+        ret = outBroker.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
         uint32 numberOfReads = 200;
-
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
         uint64 storeCounter = 0ull;
-        //uint64 tic=0;
         for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
-            //tic=HighResolutionTimer::Counter();
-
             brokerSync->Execute();
             gam->Execute();
             outBroker->Execute();
             if (i > 1) {
                 ret = (mem[0] - storeCounter == 2000);
                 if (!ret) {
-                    printf("mem[%d]=%lld %lld\n", i, mem[0], storeCounter);
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at mem[%u]=%u with storeCounter %u", i, static_cast<uint32>(mem[0]), static_cast<uint32>(storeCounter));
                 }
             }
             storeCounter = mem[0];
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
-        ObjectRegistryDatabase::Instance()->Purge();
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret &= err.ErrorsCleared();
     }
+    
+    ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestDriverRead_Resync() {
+bool NI9157CircularFifoReaderTest::TestDriverRead_Resync(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM2"
-            "            InputSignals = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
-            "                   Frequency = 1000"
-            "                   PacketMemberSizes = {8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 1, 1, 2}"
-            "               }"
-            "               InternalTimeStamp = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "               }"
-            "               ErrorCheck = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint32"
-            "               }"
-            "            }"
-            "            OutputSignals = {"
-            "                PacketCounter = {"
-            "                    Type = uint64"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                MHVPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                AI = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Alasm = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                InternalErrors = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                D0 = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                State = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Reserved = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                InternalTimeStampDDB = {"
-            "                   DataSource = DDB"
-            "                   Type = uint64"
-            "                }"
-            "                ErrorCheckDDB = {"
-            "                   DataSource = DDB"
-            "                   Type = uint32"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +DDB = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 1"
-            "            FirstPacketCounter = 1"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig7;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Functions.+GAMA.InputSignals.ErrorCheck");
+        ret &= cdb.Delete("Samples");
+        ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+Functions.+GAMA.OutputSignals.ErrorCheckDDB");
+        ret &= cdb.Delete("NumberOfDimensions");
+        ret &= cdb.Delete("NumberOfElements");
+        ret &= cdb.MoveToRoot();
+    }
 
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -3665,242 +1911,103 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_Resync() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
-        ret = dataSource->GetNiDeviceOperator() != NULL;
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
-
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
     ReferenceT < MemoryMapMultiBufferInputBroker > broker;
-
+    ReferenceContainer inputBrokers;
     if (ret) {
-        ReferenceContainer inputBrokers;
         ret = gam->GetInputBrokers(inputBrokers);
-        if (ret) {
-            brokerSync = inputBrokers.Get(0);
-            ret = brokerSync.IsValid();
-        }
-        if (ret) {
-            broker = inputBrokers.Get(1);
-            ret = broker.IsValid();
-        }
-        if (ret) {
-            dataSource->Anticipate(1);
-            ret = dataSource->PrepareNextState("State1", "State1");
-        }
-
+    }
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        broker = inputBrokers.Get(1);
+        ret = broker.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
         uint32 numberOfReads = 2;
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
         uint64* tsMem = &mem[10000];
         uint32 *errCheckMem = (uint32 *) (&tsMem[1]);
-
         for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
             brokerSync->Execute();
             broker->Execute();
             gam->Execute();
             if (i == 1u) {
-                printf("ErrorCheck[%d]=%d\n", i, errCheckMem[0]);
-                ret = (errCheckMem[0] == 8);
+                REPORT_ERROR_STATIC(ErrorManagement::Information, "ErrorCheck[%u]=%u", i, static_cast<uint32>(errCheckMem[0]));
             }
-            else {
-                ret = (errCheckMem[0] == 0);
-            }
-            //ret = (errCheckMem[j] == 0);
+            ret = (errCheckMem[0] == 0);
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
-        ObjectRegistryDatabase::Instance()->Purge();
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret &= err.ErrorsCleared();
     }
+    
+    ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestDriverRead_NoCheckCounter() {
+bool NI9157CircularFifoReaderTest::TestDriverRead_NoCheckCounter(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM2"
-            "            InputSignals = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
-            "                   Frequency = 1000"
-            "                   PacketMemberSizes = {8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 1, 1, 2}"
-            "               }"
-            "            }"
-            "            OutputSignals = {"
-            "                PacketCounter = {"
-            "                    Type = uint64"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                MHVPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                AI = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Alasm = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                InternalErrors = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                D0 = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                State = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Reserved = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +DDB = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            RunNi = 1"
-            "            FifoName = \"FIFO\""
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig6;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Delete("CheckFrame");
+        ret &= cdb.Delete("+Checker");
+        ret &= cdb.MoveToRoot();
+    }
 
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -3909,28 +2016,37 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_NoCheckCounter() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
-        ret = dataSource->GetNiDeviceOperator() != NULL;
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
-
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
-
+    ReferenceContainer inputBrokers;
     if (ret) {
-        ReferenceContainer inputBrokers;
         ret = gam->GetInputBrokers(inputBrokers);
-        if (ret) {
-            brokerSync = inputBrokers.Get(0);
-            ret = brokerSync.IsValid();
-        }
-        if (ret) {
-            ret = dataSource->PrepareNextState("State1", "State1");
-        }
-
+    }
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
         uint32 numberOfReads = 200;
-
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
         uint64 counterStore = 0ull;
         for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
             brokerSync->Execute();
@@ -3938,210 +2054,60 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_NoCheckCounter() {
             if (i > 0) {
                 ret = ((mem[0] - counterStore) == 2000);
                 if (!ret) {
-                    printf("counter[%d]=%llu %llu\n", i, mem[0], counterStore);
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at counter[%u]=%u with counterStore=%u", i, static_cast<uint32>(mem[0]), static_cast<uint32>(counterStore));
                 }
             }
             counterStore = mem[0];
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
-        ObjectRegistryDatabase::Instance()->Purge();
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
     }
+
+    ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestDriverRead_CheckAfterNPackets() {
+bool NI9157CircularFifoReaderTest::TestDriverRead_CheckAfterNPackets(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM2"
-            "            InputSignals = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
-            "                   Frequency = 1000"
-            "                   PacketMemberSizes = {8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 1, 1, 2}"
-            "               }"
-            "            }"
-            "            OutputSignals = {"
-            "                PacketCounter = {"
-            "                    Type = uint64"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                MHVPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_MHVPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Voltage = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_BPS_Current = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY1_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                GY2_RF_Detector = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                AI = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Alasm = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                InternalErrors = {"
-            "                    Type = uint32"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                D0 = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                State = {"
-            "                    Type = uint8"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "                Reserved = {"
-            "                    Type = uint16"
-            "                    NumberOfDimensions = 1"
-            "                    NumberOfElements = 2000"
-            "                    DataSource = DDB"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +DDB = {"
-            "            Class = GAMDataSource"
-            "        }"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 20"
-            "            CpuMask = 8"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 16000"
-            "            AcquireFromCounter = 1"
-            "            FirstPacketCounter = 1"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig6;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1.+Checker");
+        ret &= cdb.Write("CheckCounterAfterNSteps", 16000);
+        ret &= cdb.MoveToRoot();
+    }
 
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -4150,151 +2116,120 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_CheckAfterNPackets() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
-        ret = dataSource->GetNiDeviceOperator() != NULL;
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
-
     ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
-
+    ReferenceContainer inputBrokers;
     if (ret) {
-        ReferenceContainer inputBrokers;
         ret = gam->GetInputBrokers(inputBrokers);
-        if (ret) {
-            brokerSync = inputBrokers.Get(0);
-            ret = brokerSync.IsValid();
-        }
-        if (ret) {
-            ret = dataSource->PrepareNextState("State1", "State1");
-        }
-
+    }
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100); 
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
         uint32 numberOfReads = 200;
-
         uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
-
         uint64 counterStore = 0ull;
         for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
             brokerSync->Execute();
             gam->Execute();
-            //printf("counter[%d]=%llu\n", 0, mem[0]);
-
             for (uint32 j = 0u; (j < 2000) && (ret); j++) {
-                //printf("counter[%d]=%llu\n", j, mem[j]);
                 if (i * 2000 + j > 0) {
                     ret = ((mem[j] - counterStore) == 1);
                 }
                 counterStore = mem[j];
             }
-
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
-        ObjectRegistryDatabase::Instance()->Purge();
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
     }
+
+    ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
 
-bool NI9157CircularFifoReaderTest::TestDriverRead_InternalInterleaved() {
+bool NI9157CircularFifoReaderTest::TestDriverRead_InternalInterleaved(uint32 model) {
 
-    static const char8 * const config = ""
-            "+NiDevice = {"
-            "    Class = NI9157Device"
-            "    NiRioDeviceName = RIO0"
-            "    NiRioGenFile = \"Test/Components/DataSources/NI9157/TestLabviewFiles/NiFpga_TestGTD0001.lvbitx\""
-            "    NiRioGenSignature = \"056FA65581781B17399E48BA851E9F28\""
-            "    Open = 1"
-            "    Configuration = {"
-            "        NiFpga_TestGTD0001_ControlU8_options = 2"
-            "        NiFpga_TestGTD0001_ControlU8_options2 = 2"
-            "        NiFpga_TestGTD0001_ControlBool_stop = 0"
-            "        NiFpga_TestGTD0001_ControlBool_use_RT_MXI = 1"
-            "        NiFpga_TestGTD0001_ControlBool_use_counter = 1"
-            "        NiFpga_TestGTD0001_ControlU16_maxV = 5"
-            "        NiFpga_TestGTD0001_ControlU16_DacResolution = 16383"
-            "        NiFpga_TestGTD0001_ControlU32_cycleTimeDAC_ticks = 1"
-            "        NiFpga_TestGTD0001_ControlU32_cycle_ticks = 200"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_cycle_phase = 10000"
-            "        NiFpga_TestGTD0001_ControlU32_tcn_period_ticks = 40000"
-            "        NiFpga_TestGTD0001_ControlI32_Timeout = 0"
-            "        NiFpga_TestGTD0001_ControlU64_packet_size = 1"
-            "        NiFpga_TestGTD0001_ControlU64_end_frame = 0xFFFFFFFFFFFFFFFF"
-            "    }"
-            "}"
-            "$Application1 = {"
-            "    Class = RealTimeApplication"
-            "    +Functions = {"
-            "        Class = ReferenceContainer"
-            "        +GAMA = {"
-            "            Class = NI9157CircularFifoReaderTestGAM1"
-            "            InputSignals = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   Samples = 1"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
-            "                   Frequency = 1000"
-            "               }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Data = {"
-            "        Class = ReferenceContainer"
-            "        +Drv1 = {"
-            "            Class = NI9157CircularFifoReaderTestDS"
-            "            NI9157DevicePath = NiDevice"
-            "            NumberOfBuffers = 80"
-            "            CheckPacketCounter = 1"
-            "            NumberOfPacketsInFIFO = 5"
-            "            CpuMask = 16"
-            "            FifoName = \"FIFO\""
-            "            NumOfFrameForSync = 2"
-            "            RunNi = 1"
-            "            CounterStep = 2000"
-            "            CheckCounterAfterNSteps = 2000"
-            "            AcquireFromCounter = 1"
-            "            FirstPacketCounter = 1"
-            "            SleepInMutexSec = 1e-9"
-            "            Signals = {"
-            "               Signal1 = {"
-            "                   DataSource = Drv1"
-            "                   Type = uint64"
-            "                   NumberOfDimensions = 1"
-            "                   NumberOfElements = 10000"
-            "                   PacketMemberSizes = {8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 1, 1, 2}"
-            "               }"
-            "            }"
-            "        }"
-            "        +Timings = {"
-            "            Class = TimingDataSource"
-            "        }"
-            "    }"
-            "    +States = {"
-            "        Class = ReferenceContainer"
-            "        +State1 = {"
-            "            Class = RealTimeState"
-            "            +Threads = {"
-            "                Class = ReferenceContainer"
-            "                +Thread1 = {"
-            "                    RunOnCpu = 1"
-            "                    Class = RealTimeThread"
-            "                    Functions = {GAMA}"
-            "                }"
-            "            }"
-            "        }"
-            "    }"
-            "    +Scheduler = {"
-            "        Class = GAMScheduler"
-            "        TimingDataSource = Timings"
-            "    }"
-            "}";
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig5;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
 
-    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Functions.+GAMA.InputSignals.Signal1");
+        ret &= cdb.Write("NumberOfDimensions", "1");
+        ret &= cdb.Write("NumberOfElements", "10000");
+        ret &= cdb.Write("Frequency", "1000");
+        ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Write("NumberOfPacketsInFIFO", "5");
+        ret &= cdb.Write("SleepInMutexSec", "1e-9");
+        ret &= cdb.MoveRelative("+Checker");
+        ret &= cdb.Write("NumOfFrameForSync", "2");
+        ret &= cdb.Write("AcquireFromCounter", "1");
+        ret &= cdb.Write("FirstPacketCounter", "1");
+        ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.CreateRelative("Signals");
+        ret &= cdb.CreateRelative("Signal1");
+        ret &= cdb.Write("DataSource", "Drv1");
+        ret &= cdb.Write("Type", "uint64");
+        ret &= cdb.Write("NumberOfDimensions", "1");
+        ret &= cdb.Write("NumberOfElements", "10000");
+        const char * packetMemberSizesArray [] = {"8", "8", "8", "8", "8"};
+        ret &= cdb.Write("PacketMemberSizes", packetMemberSizesArray);
+        ret &= cdb.MoveToRoot();
+        ret &= cdb.MoveAbsolute("$Application1.+States.+State1.+Threads.+Thread1");
+        ret &= cdb.Write("RunOnCpu", "1");
+        ret &= cdb.MoveToRoot();
+    }
 
-    ReferenceT<NI9157CircularFifoReaderTestDS> dataSource;
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
     ReferenceT < NI9157CircularFifoReaderTestGAM1 > gam;
-
     if (ret) {
         dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
         ret = dataSource.IsValid();
@@ -4303,32 +2238,39 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_InternalInterleaved() {
         gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
         ret = gam.IsValid();
     }
-
     if (ret) {
-        ret = dataSource->GetNiDeviceOperator() != NULL;
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
     }
-
+    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
+    ReferenceContainer inputBrokers;
+    if (ret) {
+        ret = gam->GetInputBrokers(inputBrokers);
+    }
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
     if (ret) {
         ret = dataSource->PrepareNextState("State1", "State1");
     }
-    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
-
+    Sleep::MSec(100);
     if (ret) {
-        ReferenceContainer inputBrokers;
-        ret = gam->GetInputBrokers(inputBrokers);
-        if (ret) {
-            brokerSync = inputBrokers.Get(0);
-            ret = brokerSync.IsValid();
-        }
-
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
         uint32 numberOfReads = 2000;
-
         uint64* mem = (uint64*) gam->GetInputMemoryBuffer();
-
         uint64 storeCounter = 0ull;
-        //uint32 max = 0;
         for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
-            //uint64 tic = HighResolutionTimer::Counter();
             brokerSync->Execute();
             if (i > 1) {
                 ret = ((mem[0] - storeCounter) == 2000);
@@ -4336,25 +2278,647 @@ bool NI9157CircularFifoReaderTest::TestDriverRead_InternalInterleaved() {
                     ret = ((mem[1999] - mem[0]) == 1999);
                 }
                 if (!ret) {
-                    printf("mem[0]=%lld mem[1999]=%lld, storeCounter=%lld, %d\n", mem[0], mem[1999], storeCounter, i);
-                    printf("(mem[0] - storeCounter) = %lld\n", (mem[0] - storeCounter));
-                    printf("(mem[1999] - mem[0]) = %lld\n", ((mem[1999] - mem[0])));
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at mem[0]=%u, mem[1999]=%u, storeCounter=%u, %u", static_cast<uint32>(mem[0]), static_cast<uint32>(mem[1999]), static_cast<uint32>(storeCounter), i );
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at (mem[0] - storeCounter)=%d", static_cast<int32>( (mem[0] - storeCounter) ));
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at (mem[1999]-mem[0])=%d", static_cast<int32>( (mem[1999] - mem[0]) ));
                 }
-
             }
-
-            /*for(uint32 j=0u; j<2000; j++){
-             printf("mem[%d]=%lld\n", j, mem[j]);
-
-             }*/
             storeCounter = mem[0];
         }
-
         Sleep::MSec(100);
-        //Sleep::MSec(100);
-        ObjectRegistryDatabase::Instance()->Purge();
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret &= err.ErrorsCleared();
     }
+   
+    ObjectRegistryDatabase::Instance()->Purge();
     return ret;
-
 }
 
+bool NI9157CircularFifoReaderTest::TestDriverRead_NoCheckFrame(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig6;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Write("CheckFrame", 0);
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+    if (ret) {
+        gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
+        ret = gam.IsValid();
+    }
+    if (ret) {
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
+    }
+    ReferenceContainer inputBrokers;
+    if (ret) {
+        ret = gam->GetInputBrokers(inputBrokers);
+    }
+    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        uint32 numberOfReads = 2u;
+        uint32 numberOfValues = 2u;
+        uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
+        uint64 counterStore = 0ull;
+        bool allGood = true;
+        for (uint32 i = 0u; (i < numberOfReads) && (allGood); i++) {
+            brokerSync->Execute();
+            gam->Execute();
+            for (uint32 j = 0u; (j < numberOfValues) && (allGood); j++) {
+                if (j > 0) { 
+                    allGood = ((mem[j] - counterStore) == 1u);
+                    if (!allGood) {
+                        REPORT_ERROR_STATIC(ErrorManagement::Information, "Failed at mem[%u]=%u != mem[%u]=%u + 1 as expected", j , static_cast<uint32>(mem[j]), j-1, static_cast<uint32>(counterStore));
+                    }
+                }
+                counterStore = mem[j];
+            }
+        }
+        ret = !allGood;
+        Sleep::MSec(100);
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret &= err.ErrorsCleared();
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
+
+bool NI9157CircularFifoReaderTest::TestDriverRead_SetNonBlockSleepT(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig6;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Write("Timeout", "0");
+        ret &= cdb.Write("NonBlockSleepT", "0.001");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+    if (ret) {
+        gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
+        ret = gam.IsValid();
+    }
+    if (ret) {
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
+    }
+    ReferenceContainer inputBrokers;
+    if (ret) {
+        ret = gam->GetInputBrokers(inputBrokers);
+    }
+    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        uint32 numberOfReads = 2u;
+        uint32 numberOfValues = 2000u;
+        uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
+        uint64 counterStore = 0ull;
+        for (uint32 i = 0u; (i < numberOfReads) && (ret); i++) {
+            brokerSync->Execute();
+            gam->Execute();
+            for (uint32 j = 0u; (j < numberOfValues) && (ret); j++) {
+                if (j > 0) { 
+                    ret = ((mem[j] - counterStore) == 1u);
+                    if (!ret) {
+                        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed at mem[%u]=%u != mem[%u]=%u + 1", j , static_cast<uint32>(mem[j]), j-1, static_cast<uint32>(counterStore));
+                    }
+                }
+                counterStore = mem[j];
+            }
+        }
+        Sleep::MSec(100);
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret &= err.ErrorsCleared();
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
+
+bool NI9157CircularFifoReaderTest::TestDriverRead_FifoTOutNoErrorChecker(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig6;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Write("Timeout", "0");
+        ret &= cdb.Write("NonBlockSleepT", "0.0");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+    if (ret) {
+        gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
+        ret = gam.IsValid();
+    }
+    if (ret) {
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
+    }
+    ReferenceContainer inputBrokers;
+    if (ret) {
+        ret = gam->GetInputBrokers(inputBrokers);
+    }
+    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        uint32 numberOfReads = 2u;
+        uint32 numberOfValues = 2u;
+        uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
+        uint64 counterStore = 0ull;
+        bool allGood = true;
+        for (uint32 i = 0u; (i < numberOfReads) && (allGood); i++) {
+            brokerSync->Execute();
+            gam->Execute();
+            for (uint32 j = 0u; (j < numberOfValues) && (allGood); j++) {
+                if (j > 0) { 
+                    allGood = ((mem[j] - counterStore) == 1u);
+                    if (!allGood) {
+                        REPORT_ERROR_STATIC(ErrorManagement::Information, "Failed at mem[%u]=%u != mem[%u]=%u + 1 as expected", j , static_cast<uint32>(mem[j]), j-1, static_cast<uint32>(counterStore));
+                    }
+                }
+                counterStore = mem[j];
+            }
+        }
+        ret = !allGood;
+        Sleep::MSec(100);
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret &= err.ErrorsCleared();
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
+
+bool NI9157CircularFifoReaderTest::TestDriverRead_FifoTOutWithErrorChecker(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig9;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Write("Timeout", "0");
+        ret &= cdb.Write("NonBlockSleepT", "0.0");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestGAM2 > gam;
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+    if (ret) {
+        gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
+        ret = gam.IsValid();
+    }
+    if (ret) {
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
+    }
+    ReferenceContainer inputBrokers;
+    if (ret) {
+        ret = gam->GetInputBrokers(inputBrokers);
+    }
+    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        uint32 numberOfReads = 2u;
+        uint32 numberOfValues = 2u;
+        uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
+        uint64* tsMem = &mem[0];
+        uint32 *errCheckMem = (uint32 *) (&mem[0]);
+        uint64 counterStore = 0ull;
+        bool allGood = true;
+        for (uint32 i = 0u; (i < numberOfReads) && (allGood); i++) {
+            brokerSync->Execute();
+            gam->Execute();
+            for (uint32 j = 0u; (j < numberOfValues) && (allGood); j++) {
+                if (j > 0) { 
+                    allGood = ((mem[j] - counterStore) == 1u);
+                    if (!allGood) {
+                        REPORT_ERROR_STATIC(ErrorManagement::Information, "Failed at mem[%u]=%u != mem[%u]=%u + 1 as expected", j , static_cast<uint32>(mem[j]), j-1, static_cast<uint32>(counterStore));
+                    }
+                }
+                counterStore = mem[j];
+            }
+        }
+        ret = !allGood;
+        Sleep::MSec(100);
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret &= err.ErrorsCleared();
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
+
+bool NI9157CircularFifoReaderTest::TestDriverRead_HeaderSize(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig10;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestGAM1 > gam;
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+    if (ret) {
+        gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
+        ret = gam.IsValid();
+    }
+    if (ret) {
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
+    }
+    ReferenceContainer inputBrokers;
+    if (ret) {
+        ret = gam->GetInputBrokers(inputBrokers);
+    }
+    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        uint32 numberOfReads = 2u;
+        uint32 numberOfValues = 2u;
+        uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
+        uint64 counterStore = 0ull;
+        bool allGood = true;
+        for (uint32 i = 0u; (i < numberOfReads) && (allGood); i++) {
+            brokerSync->Execute();
+            gam->Execute();
+            for (uint32 j = 0u; (j < numberOfValues) && (allGood); j++) {
+                if (j > 0) { 
+                    allGood = ((mem[j] - counterStore) == 1u);
+                    if (!allGood) {
+                        REPORT_ERROR_STATIC(ErrorManagement::Information, "Failed at mem[%u]=%u != mem[%u]=%u + 1 as expected", j , static_cast<uint32>(mem[j]), j-1, static_cast<uint32>(counterStore));
+                    }
+                }
+                counterStore = mem[j];
+            }
+        }
+        ret = !allGood;
+        Sleep::MSec(100);
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret &= err.ErrorsCleared();
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
+
+bool NI9157CircularFifoReaderTest::TestDriverRead_HeaderSizeCheckFrame(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIOConfig10;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    StreamString pathAndFile = "";
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.MoveToRoot();
+    }
+    if (ret) {
+        ret = cdb.MoveAbsolute("$Application1.+Data.+Drv1");
+        ret &= cdb.Write("CheckFrame", "1");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ret) {
+        application = god->Find("Application1");
+        ret = application.IsValid();
+    }
+    if (ret) {
+        ret = application->ConfigureApplication();
+    }
+    ReferenceT < NI9157CircularFifoReaderTestDS > dataSource;
+    ReferenceT < NI9157CircularFifoReaderTestGAM1 > gam;
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+    if (ret) {
+        gam = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
+        ret = gam.IsValid();
+    }
+    if (ret) {
+        ret = (dataSource->GetNiDeviceOperator() != NULL_PTR(NI9157DeviceOperatorTI *));
+    }
+    ReferenceContainer inputBrokers;
+    if (ret) {
+        ret = gam->GetInputBrokers(inputBrokers);
+    }
+    ReferenceT < MemoryMapSynchronisedMultiBufferInputBroker > brokerSync;
+    if (ret) {
+        brokerSync = inputBrokers.Get(0);
+        ret = brokerSync.IsValid();
+    }
+    if (ret) {
+        ret = dataSource->PrepareNextState("State1", "State1");
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        ErrorManagement::ErrorType err;
+        err = dataSource->StartAcquisition();
+        ret = err.ErrorsCleared();
+    }
+    Sleep::MSec(100);
+    if (ret) {
+        uint32 numberOfReads = 2u;
+        uint32 numberOfValues = 2u;
+        uint64* mem = (uint64*) gam->GetOutputMemoryBuffer();
+        uint64 counterStore = 0ull;
+        bool allGood = true;
+        for (uint32 i = 0u; (i < numberOfReads) && (allGood); i++) {
+            brokerSync->Execute();
+            gam->Execute();
+            for (uint32 j = 0u; (j < numberOfValues) && (allGood); j++) {
+                if (j > 0) { 
+                    allGood = ((mem[j] - counterStore) == 1u);
+                    if (!allGood) {
+                        REPORT_ERROR_STATIC(ErrorManagement::Information, "Failed at mem[%u]=%u != mem[%u]=%u + 1 as expected", j , static_cast<uint32>(mem[j]), j-1, static_cast<uint32>(counterStore));
+                    }
+                }
+                counterStore = mem[j];
+            }
+        }
+        ret = !allGood;
+        Sleep::MSec(100);
+        ErrorManagement::ErrorType err;
+        err = dataSource->StopAcquisition();
+        ret &= err.ErrorsCleared();
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}

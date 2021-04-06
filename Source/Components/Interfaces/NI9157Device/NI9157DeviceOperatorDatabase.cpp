@@ -1,8 +1,9 @@
 /**
  * @file NI9157DeviceOperatorDatabase.cpp
- * @brief Source file for class NI9157DeviceOperatorDatabase
- * @date 17/05/2018
- * @author Giuseppe Ferrò
+ * @brief Source file for class NI9157DeviceOperatorDatabase.
+ * @date 11/02/2021
+ * @author Giuseppe Ferro
+ * @author Pedro Lourenco
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -15,10 +16,11 @@
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
-
+ *
  * @details This source file contains the definition of all the methods for
- * the class NI9157DeviceOperatorDatabase (public, protected, and private). Be aware that some 
- * methods, such as those inline could be defined on the header file, instead.
+ * the class NI9157DeviceOperatorDatabase (public, protected, and private). Be 
+ * aware that some methods, such as those inline could be defined on the header
+ * file, instead.
  */
 
 /*---------------------------------------------------------------------------*/
@@ -28,8 +30,9 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "NI9157DeviceOperatorDatabase.h"
 #include "CreateNI9157DeviceOperator.h"
+#include "NI9157DeviceOperatorDatabase.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -38,40 +41,49 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+	
 namespace NI9157DeviceOperatorDatabase {
 
 /**
  * bool implementation.
  */
-CreateNI9157DeviceOperator<uint8> CreateNI9157DeviceOperatorIBool("NI9157DeviceBool");
+CreateNI9157DeviceOperator<bool> CreateNI9157DeviceOperatorIBool("NI9157DeviceBool");
+
 /**
  * uint8 implementation.
  */
 CreateNI9157DeviceOperator<uint8> CreateNI9157DeviceOperatorIU8("NI9157DeviceU8");
+
 /**
  * int8 implementation.
  */
 CreateNI9157DeviceOperator<int8> CreateNI9157DeviceOperatorII8("NI9157DeviceI8");
+
 /**
  * uint16 implementation.
  */
 CreateNI9157DeviceOperator<uint16> CreateNI9157DeviceOperatorIU16("NI9157DeviceU16");
+
 /**
  * int16 implementation.
  */
 CreateNI9157DeviceOperator<int16> CreateNI9157DeviceOperatorII16("NI9157DeviceI16");
+
 /**
  * uint32 implementation.
  */
 CreateNI9157DeviceOperator<uint32> CreateNI9157DeviceOperatorIU32("NI9157DeviceU32");
+
 /**
  * int32 implementation.
  */
 CreateNI9157DeviceOperator<int32> CreateNI9157DeviceOperatorII32("NI9157DeviceI32");
+
 /**
  * uint64 implementation.
  */
 CreateNI9157DeviceOperator<uint64> CreateNI9157DeviceOperatorIU64("NI9157DeviceU64");
+
 /**
  * int64 implementation.
  */
@@ -90,10 +102,12 @@ CreateNI9157DeviceOperatorI *GetCreateNI9157DeviceOperator(const char8 * const n
         }
         i++;
     }
+
     return createNI9157DeviceOperatorIList[i];
 }
 
 CreateNI9157DeviceOperatorI *GetCreateNI9157DeviceOperator(const TypeDescriptor &td) {
+
     uint8 i = 0u;
     while (createNI9157DeviceOperatorIList[i] != NULL_PTR(CreateNI9157DeviceOperatorI *)) {
         if (createNI9157DeviceOperatorIList[i]->GetTypeDescriptor() == td) {
@@ -101,6 +115,7 @@ CreateNI9157DeviceOperatorI *GetCreateNI9157DeviceOperator(const TypeDescriptor 
         }
         i++;
     }
+
     return createNI9157DeviceOperatorIList[i];
 }
 
@@ -115,11 +130,13 @@ NI9157DeviceOperatorTI *GetNI9157DeviceOperator(const char8 * const niDevId,
         }
         i++;
     }
+
     return ret;
 }
 
 NI9157DeviceOperatorTI *GetNI9157DeviceOperator(const TypeDescriptor &td,
                                                 ReferenceT<NI9157Device> niDev) {
+
     uint8 i = 0u;
     NI9157DeviceOperatorTI *ret = NULL_PTR(NI9157DeviceOperatorTI *);
     while (createNI9157DeviceOperatorIList[i] != NULL) {
@@ -128,8 +145,10 @@ NI9157DeviceOperatorTI *GetNI9157DeviceOperator(const TypeDescriptor &td,
         }
         i++;
     }
+
     return ret;
 }
+
 }
 
 }

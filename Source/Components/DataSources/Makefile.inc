@@ -24,7 +24,7 @@
 
 OBJSX= 
 
-SPB    = EpicsDataSource.x \
+SPB = EpicsDataSource.x \
     FileDataSource.x \
     LinuxTimer.x \
     LinkDataSource.x \

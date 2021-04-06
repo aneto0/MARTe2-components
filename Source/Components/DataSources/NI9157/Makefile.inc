@@ -24,7 +24,12 @@
 #
 #############################################################
 
-OBJSX=NI9157CircularFifoReader.x NI9157MxiDataSource.x
+OBJSX=NI9157CircularFifoReader.x \
+    NI9157MxiDataSource.x \
+    SampleChecker.x \
+    CounterChecker.x \
+    MarkerBitChecker.x
+
 SPB=Optim.x
 
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
@@ -62,4 +67,3 @@ all: $(OBJS) $(SUBPROJ) $(SUBPROJCUST)\
 
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-
