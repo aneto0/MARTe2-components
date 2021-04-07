@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class LinuxTimer (public, protected, and private). Be aware that some 
+ * the class LinuxTimer (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -37,10 +37,7 @@
 #include "MemoryMapInputBroker.h"
 #include "MemoryMapSynchronisedInputBroker.h"
 #include "SDNSubscriber.h"
-
-#ifdef FEATURE_10840
 #include "Endianity.h"
-#endif
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
 /*lint -estring(843,"*crc.h*") ignore could be declared const warning from the crc.h header*/
 /*---------------------------------------------------------------------------*/
@@ -52,13 +49,23 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+/**
+ * Execute in the context of the real-time thread.
+ */
+const uint32 SDN_SUB_EXEC_MODE_RTTHREAD = 1u;
+/**
+ * Execute in the context of a spawned thread.
+ */
+const uint32 SDN_SUB_EXEC_MODE_SPAWNED = 2u;
+
+
 SDNSubscriber::SDNSubscriber() :
         DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
 
     nOfSignals = 0u;
     nOfTriggers = 0u;
     synchronising = false;
-    cpuMask = 0u;
+    cpuMask = 0ull;
     TTTimeout = TTInfiniteWait;
     sdnHeaderAsSignal = false;
 
@@ -71,6 +78,9 @@ SDNSubscriber::SDNSubscriber() :
     payloadNumberOfBits = NULL_PTR(uint16 *);
     payloadNumberOfElements = NULL_PTR(uint32 *);
     payloadAddresses = NULL_PTR(void **);
+    networkByteOrder = false;
+    internalTimeout = 0u;
+    ignoreTimeoutError = 0u;
 }
 
 /*lint -e{1551} the destructor must guarantee that the SDNSubscriber SingleThreadService is stopped and that all the SDN objects are destroyed.*/
@@ -79,11 +89,12 @@ SDNSubscriber::~SDNSubscriber() {
     if (!synchronisingSem.Post()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not post EventSem");
     }
+    if(executionMode == SDN_SUB_EXEC_MODE_SPAWNED){
 
-    if (!executor.Stop()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService");
+        if (!executor.Stop()) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService");
+        }
     }
-
     if (subscriber != NULL_PTR(sdn::Subscriber *)) {
         delete subscriber;
         subscriber = NULL_PTR(sdn::Subscriber *);
@@ -163,8 +174,37 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
         TTTimeout = timeout;
     }
 
-    if (data.Read("CPUs", cpuMask)) {
-        REPORT_ERROR(ErrorManagement::Information, "Explicit thread affinity '%u'", cpuMask);
+    if (!data.Read("InternalTimeout", internalTimeout)) {
+        internalTimeout = 1000000000ul;
+        REPORT_ERROR(ErrorManagement::Information, "Set default InternalTimeout to '%u'", internalTimeout);
+    }
+    if (!data.Read("IgnoreTimeoutError", ignoreTimeoutError)) {
+        ignoreTimeoutError = 0u;
+    }
+    uint8 networkByteOrderByte;
+    if(data.Read("NetworkByteOrder", networkByteOrderByte)){
+        networkByteOrder=(networkByteOrderByte!=0u);
+    }
+    StreamString executionModeStr;
+    if (!data.Read("ExecutionMode", executionModeStr)) {
+        executionModeStr = "IndependentThread";
+        REPORT_ERROR(ErrorManagement::Warning, "ExecutionMode not specified using: %s", executionModeStr.Buffer());
+    }
+    if (executionModeStr == "IndependentThread") {
+        executionMode = SDN_SUB_EXEC_MODE_SPAWNED;
+    }
+    else if (executionModeStr == "RealTimeThread") {
+        executionMode = SDN_SUB_EXEC_MODE_RTTHREAD;
+    }
+    else {
+        ok = false;
+        REPORT_ERROR(ErrorManagement::InitialisationError, "The Execution mode must be \"IndependentThread\" or \"RealTimeThread\"");
+    }
+
+    if (executionMode == SDN_SUB_EXEC_MODE_SPAWNED) {
+        if (data.Read("CPUs", cpuMask)) {
+            REPORT_ERROR(ErrorManagement::Information, "Explicit thread affinity '%u'", cpuMask);
+        }
     }
 
     return ok;
@@ -187,9 +227,8 @@ bool SDNSubscriber::SetConfiguredDatabase(StructuredDataI& data) {
     }
 
     if (ok) {
-        ok = (nOfTriggers <= 1u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with multiple synchronising signals");
+        if(nOfTriggers > 1u){
+            REPORT_ERROR(ErrorManagement::Warning, "More than one synchronising signals");
         }
     }
 
@@ -380,7 +419,13 @@ const char8* SDNSubscriber::GetBrokerName(StructuredDataI& data, const SignalDir
             frequency = -1.F;
         }
 
-        if (frequency > 0.F) {
+        uint8 trigger = 0u;
+
+        if (!data.Read("Trigger", trigger)) {
+            trigger = 0u;
+        }
+
+        if ((frequency >= 0.F) || (trigger>0u)) {
             brokerName = "MemoryMapSynchronisedInputBroker";
             nOfTriggers++;
             synchronising = true;
@@ -410,13 +455,22 @@ bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers, const char
         ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunctionSignals);
     }
 
+
     float32 frequency = 0.F;
+    uint32 trigger = 0u;
 
     for (signalIndex = 0u; (signalIndex < nOfFunctionSignals) && (ok) && (!synchGAM); signalIndex++) {
         ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, signalIndex, frequency);
 
         if (ok) {
             synchGAM = (frequency > 0.F);
+        }
+        if(ok && (!synchGAM)){
+            ok = GetFunctionSignalTrigger(InputSignals, functionIdx, signalIndex, trigger);
+
+            if (ok) {
+                synchGAM = (trigger > 0u);
+            }
         }
     }
 
@@ -503,37 +557,79 @@ bool SDNSubscriber::PrepareNextState(const char8* const currentStateName, const 
         REPORT_ERROR(ErrorManagement::FatalError, "sdn::Subscriber has not been initialised");
     }
 
-    if (ok) {
-        bool empty = false;
-        while (!empty) {
-            /*lint -e{613} The reference can not be NULL in this portion of the code.*/
-            empty = (subscriber->Receive(0ul) != STATUS_SUCCESS);
+    uint32 numberOfReadWriteCurrent = 0u;
+    uint32 numberOfReadWriteNext = 0u;
+
+    for (uint32 i = 0u; i < numberOfSignals; i++) {
+        uint32 numberOfProducersCurrentState;
+        uint32 numberOfProducersNextState;
+        if (!GetSignalNumberOfProducers(i, currentStateName, numberOfProducersCurrentState)) {
+            numberOfProducersCurrentState = 0u;
         }
+        if (!GetSignalNumberOfProducers(i, nextStateName, numberOfProducersNextState)) {
+            numberOfProducersNextState = 0u;
+        }
+        numberOfReadWriteCurrent += numberOfProducersCurrentState;
+        numberOfReadWriteNext += numberOfProducersNextState;
+        uint32 numberOfConsumersCurrentState;
+        uint32 numberOfConsumersNextState;
+        if (!GetSignalNumberOfConsumers(i, currentStateName, numberOfConsumersCurrentState)) {
+            numberOfConsumersCurrentState = 0u;
+        }
+        if (!GetSignalNumberOfConsumers(i, nextStateName, numberOfConsumersNextState)) {
+            numberOfConsumersNextState = 0u;
+        }
+        numberOfReadWriteCurrent += numberOfConsumersCurrentState;
+        numberOfReadWriteNext += numberOfConsumersNextState;
     }
 
-    if (ok) {
-        if (executor.GetStatus() == EmbeddedThreadI::OffState) {
-            if (cpuMask != 0u) {
-                executor.SetCPUMask(cpuMask);
+    //used in the next but not in the current, reset semaphore and empty stack
+    if (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) {
+        if (ok) {
+            bool empty = false;
+            while (!empty) {
+                /*lint -e{613} The reference can not be NULL in this portion of the code.*/
+                empty = (subscriber->Receive(0ul) != STATUS_SUCCESS);
             }
-            // Start the SingleThreadService
-            executor.SetName(GetName());
-            ok = executor.Start();
         }
+
+        if (ok) {
+            if(executionMode == SDN_SUB_EXEC_MODE_SPAWNED){
+                if (executor.GetStatus() == EmbeddedThreadI::OffState) {
+                    if (cpuMask != 0ull) {
+                        executor.SetCPUMask(cpuMask);
+                    }
+                    // Start the SingleThreadService
+                    ok = executor.Start();
+                }
+            }
+        }
+        synchronisingSem.Reset();
     }
+
 
     return ok;
 }
 
 bool SDNSubscriber::Synchronise() {
 
-    bool ok = synchronising; // DataSource is synchronising RT thread
-
-    if (ok) {
-        // Wait till next SDN topic is received
-        ErrorManagement::ErrorType err = synchronisingSem.ResetWait(TTTimeout);
-        ok = err.ErrorsCleared();
+    //bool ok = synchronising; // DataSource is synchronising RT thread
+    bool ok = true;
+    ErrorManagement::ErrorType err = ErrorManagement::NoError;
+    if(executionMode == SDN_SUB_EXEC_MODE_RTTHREAD){
+        ExecutionInfo info;
+        err = Execute(info);
     }
+    else{
+        // Get latest but don´t wait for next if arrived
+        err = synchronisingSem.Wait(TTTimeout);
+        synchronisingSem.Reset();
+        if(ignoreTimeoutError>0u){
+            err = ErrorManagement::NoError;
+        }
+    }
+    ok = err.ErrorsCleared();
+
 
     return ok;
 }
@@ -546,25 +642,45 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
     bool ok = (subscriber != NULL_PTR(sdn::Subscriber *));
 
     if (!ok) {
-        REPORT_ERROR(ErrorManagement::FatalError, "sdn::Subscriber has not been initiaised");
+        REPORT_ERROR(ErrorManagement::FatalError, "sdn::Subscriber has not been initialised");
         err.SetError(ErrorManagement::FatalError);
         Sleep::MSec(100u);
     }
 
     if (ok) {
-        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
-        ok = (subscriber->Receive(100000000ul) == STATUS_SUCCESS);
+        bool needBlock=true;
+        if(executionMode == SDN_SUB_EXEC_MODE_RTTHREAD){
+            //Get latest implementation, empty the stack
+
+            bool empty = false;
+            while (!empty) {
+                /*lint -e{613} The reference can not be NULL in this portion of the code.*/
+                empty = (subscriber->Receive(0ul) != STATUS_SUCCESS);
+                if(!empty){
+                    needBlock=false;
+                }
+            }
+        }
+
+        if(needBlock){
+            /*lint -e{613} The reference can not be NULL in this portion of the code.*/
+            ok = (subscriber->Receive(internalTimeout) == STATUS_SUCCESS);
+        }
 
         if (!ok) {
             //REPORT_ERROR(ErrorManagement::Timeout, "sdn::Subscriber failed to receive topic");
             err.SetError(ErrorManagement::Timeout);
         }
-#ifdef FEATURE_10840
         else {
-            if (!subscriber->IsPayloadOrdered()) {
+            bool convert=networkByteOrder;
+#ifdef FEATURE_10840
+            convert=(networkByteOrder)||(!subscriber->IsPayloadOrdered());
+#endif
+    if(convert){
                 // Convert payload from network byte order
                 uint32 signalIndex = 0u;
                 if (sdnHeaderAsSignal) {
+                    /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                     sdn::Header_t *header = static_cast<sdn::Header_t *>(payloadAddresses[0u]);
                     Endianity::FromBigEndian(header->header_size);
                     Endianity::FromBigEndian(reinterpret_cast<uint64 &>(header->recv_time));
@@ -576,20 +692,27 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
                     signalIndex = 1u;
                 }
                 for (; (signalIndex < nOfSignals); signalIndex++) {
+                    /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                     if (payloadNumberOfBits[signalIndex] == 16u) {
                         uint32 elementIndex;
+                        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                         for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
+                            /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                             Endianity::FromBigEndian(reinterpret_cast<uint16 *>(payloadAddresses[signalIndex])[elementIndex]);
                         }
                     }
+                    /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                     if (payloadNumberOfBits[signalIndex] == 32u) {
                         uint32 elementIndex;
+                        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                         for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
                             Endianity::FromBigEndian(reinterpret_cast<uint32 *>(payloadAddresses[signalIndex])[elementIndex]);
                         }
                     }
+                    /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                     if (payloadNumberOfBits[signalIndex] == 64u) {
                         uint32 elementIndex;
+                        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                         for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
                             Endianity::FromBigEndian(reinterpret_cast<uint64 *>(payloadAddresses[signalIndex])[elementIndex]);
                         }
@@ -597,7 +720,7 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
                 }
             }
         }
-#endif
+
     }
 
     if (ok) {
@@ -609,17 +732,13 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
         }
     }
 
-    if (err.Contains(ErrorManagement::Timeout)) {
-        // Ignore Timeout error for now
-        err.ClearError(ErrorManagement::Timeout);
+    //ignore the timeout if spawned
+    if((executionMode == SDN_SUB_EXEC_MODE_SPAWNED) || (ignoreTimeoutError>0u)){
+        if (err.Contains(ErrorManagement::Timeout)) {
+            // Ignore Timeout error for now
+            err.ClearError(ErrorManagement::Timeout);
+        }
     }
-
-#ifdef FEATURE_10840
-    if (subscriber != NULL_PTR(sdn::Subscriber *)) {
-       // Perform housekeeping activities .. irrespective of status
-       (void)subscriber->DoBackgroundActivity();
-    }
-#endif
 
     return err;
 }

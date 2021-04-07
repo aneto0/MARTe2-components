@@ -52,7 +52,6 @@
 /*Cannot include "sdn-header.h" otherwise lint gets lost in secondary includes.*/
 #if ((defined(LINT)) || (!defined(FEATURE_10840)))
 namespace sdn {
-//! @cond Doxygen_Suppress
 /*lint -e{970} -estring(754, "sdn::Header_t::*") -estring(770, "*sdn::Header_t*") -estring(9109, "*sdn::Header_t*")*/
 typedef struct {
   char     header_uid [4];
@@ -68,7 +67,6 @@ typedef struct {
 
 } Header_t;
 }
-//! @endcond
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -125,7 +123,7 @@ namespace MARTe {
  * so as to ensure that the message payload is consistently provided to all GAMs associated to it. It
  * does support however a signal 'caching' mode (non-synchronising) to cater for the cases where the
  * application real-time threads are synchronised using an alternate source, in which case the
- * DataSource only provides the last received payload, 
+ * DataSource only provides the last received payload,
  *
  * @warning The DataSource does not support signal samples batching.
  *
@@ -335,7 +333,7 @@ private:
     /**
      * The thread CPUs mask.
      */
-    uint32 cpuMask;
+    uint64 cpuMask;
 
     /**
      * Accelerator for signal types (to be used when translating to different endianness)
@@ -357,6 +355,16 @@ private:
     */
     bool sdnHeaderAsSignal;
 
+    /**
+     * Endianity flag
+    */
+    bool networkByteOrder;
+
+    uint8 executionMode;
+
+    uint32 internalTimeout;
+
+    uint8 ignoreTimeoutError;
 };
 
 }
