@@ -520,8 +520,9 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
     bool useTimeSignal = (timeSignalIdx > -1);
     if (storeOnTrigger) {
         if (ok) {
-            if (!useTimeSignal) {
-                REPORT_ERROR(ErrorManagement::Warning,
+            ok = useTimeSignal;
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError,
                              "StoreOnTrigger was specified but no TimeSignal was found");
             }
         }

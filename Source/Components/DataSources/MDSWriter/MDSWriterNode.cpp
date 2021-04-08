@@ -78,9 +78,6 @@ MDSWriterNode::MDSWriterNode() {
     segmentDim[1] = 0;
     segmentDim[2] = 0;
     flushIfDiscontinuity = 1u;
-
-    lastTimeGap=0ull;
-
 }
 
 /*lint -e{1551} -e{1740} the destructor must guarantee that the MDSplus TreeNode is deleted and the shared memory freed. The signalMemory and the timeSignalMemory are freed by the framework */
@@ -374,6 +371,7 @@ bool MDSWriterNode::Execute() {
                     if (timeSignalMemory != NULL_PTR(uint32 *)) {
                         if ((timeSignalTime - lastWriteTimeSignal) != executePeriod) {
                             if (lastWriteTimeSignal > 0u) {
+                                //discontinuityFound can be overruled by flushIfDiscontinuity, i.e. do not force the creation of the segment - the time signal already takes into account any discontinuity as part of its data
                                 discontinuityFound = (flushIfDiscontinuity > 0u);
                             }
                         }
@@ -461,12 +459,15 @@ bool MDSWriterNode::ForceSegment() {
     segmentDim[0] = numberOfSamplesPerSegment;
     int32 numberOfSamplesPerSegmentM1 = numberOfSamplesPerSegment - 1;
     float64 numberOfSamplesPerSegmentF = static_cast<float64>(numberOfSamplesPerSegmentM1);
-    float64 end = start + (numberOfSamplesPerSegmentF * period);
-    if (useTimeVector) {
-        float64 timeF = static_cast<float64>(lastWriteTimeSignal) * timeSignalMultiplier;
-        end = timeF;
+    float64 end = 0.;
+    if (!useTimeVector) {
+        end = start + (numberOfSamplesPerSegmentF * period);
+    }
+    else {
+        end = static_cast<float64>(lastWriteTimeSignal) * timeSignalMultiplier;
         float64 periodDelta = period;
-        periodDelta *= static_cast<float64>(numberOfSamples - 1u);
+        uint32 numberOfSamplesM1= numberOfSamples - 1u;
+        periodDelta *= static_cast<float64>(numberOfSamplesM1);
         end += periodDelta;
     }
     //lint -e{429} freed by MDSplus upon deletion of dimension

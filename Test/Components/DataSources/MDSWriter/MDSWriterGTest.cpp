@@ -158,6 +158,12 @@ TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_Discontinuity) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_Discontinuity());
 }
+
+TEST(MDSWriterGTest,TestIntegratedInApplication_Trigger_Discontinuity_FlushIfDiscontinuity) {
+    MDSWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_Trigger_Discontinuity_FlushIfDiscontinuity());
+}
+
 TEST(MDSWriterGTest,TestIntegratedInApplication_NoTrigger_Elements) {
     MDSWriterTest test;
     ASSERT_TRUE(test.TestIntegratedInApplication_NoTrigger_Elements());
