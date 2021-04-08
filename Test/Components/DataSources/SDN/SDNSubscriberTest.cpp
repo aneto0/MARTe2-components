@@ -53,7 +53,8 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-SDNSubscriberTestGAM    () : GAM() {
+    SDNSubscriberTestGAM() :
+            GAM() {
         counter = 0lu;
         timestamp = 0lu;
         headerSize = 0u;
@@ -62,21 +63,21 @@ SDNSubscriberTestGAM    () : GAM() {
 
     virtual ~SDNSubscriberTestGAM() {
         if (header != NULL_PTR(MARTe::char8 *)) {
-            delete [] header;
+            delete[] header;
         }
     }
 
     bool Execute() {
 
-        if(GetNumberOfInputSignals() > 0u) {
+        if (GetNumberOfInputSignals() > 0u) {
             MARTe::MemoryOperationsHelper::Copy(&counter, GetInputSignalMemory(0u), sizeof(MARTe::uint64));
         }
 
-        if(GetNumberOfInputSignals() > 1u) {
+        if (GetNumberOfInputSignals() > 1u) {
             MARTe::MemoryOperationsHelper::Copy(&timestamp, GetInputSignalMemory(1u), sizeof(MARTe::uint64));
         }
 
-        if(GetNumberOfInputSignals() > 2u) {
+        if (GetNumberOfInputSignals() > 2u) {
             MARTe::MemoryOperationsHelper::Copy(&header[0], GetInputSignalMemory(2u), headerSize);
         }
 
@@ -85,7 +86,7 @@ SDNSubscriberTestGAM    () : GAM() {
 
     bool Setup() {
         bool ok = true;
-        if(GetNumberOfInputSignals() > 2u) {
+        if (GetNumberOfInputSignals() > 2u) {
             ok = GetSignalByteSize(MARTe::InputSignals, 2u, headerSize);
             if (ok) {
                 header = new MARTe::char8[headerSize];
@@ -160,9 +161,13 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-SDNSubscriberTestConstantGAM    () : GAM() {dflt = 0;}
+    SDNSubscriberTestConstantGAM() :
+            GAM() {
+        dflt = 0;
+    }
 
-    ~SDNSubscriberTestConstantGAM() {}
+    ~SDNSubscriberTestConstantGAM() {
+    }
 
     bool Execute() {
 
@@ -170,7 +175,8 @@ SDNSubscriberTestConstantGAM    () : GAM() {dflt = 0;}
         MARTe::uint32 signalIndex = 0u;
 
         for (signalIndex = 0; signalIndex < nOfSignals; signalIndex++) {
-            MARTe::uint32 byteSize = 0u; GetSignalByteSize(MARTe::OutputSignals, signalIndex, byteSize);
+            MARTe::uint32 byteSize = 0u;
+            GetSignalByteSize(MARTe::OutputSignals, signalIndex, byteSize);
             MARTe::MemoryOperationsHelper::Set(GetOutputSignalMemory(signalIndex), (MARTe::char8) dflt, byteSize);
         }
 
@@ -198,9 +204,12 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-SDNSubscriberTestSinkGAM    () : GAM() {}
+    SDNSubscriberTestSinkGAM() :
+            GAM() {
+    }
 
-    ~SDNSubscriberTestSinkGAM() {}
+    ~SDNSubscriberTestSinkGAM() {
+    }
 
     bool Execute() {
         return true;
@@ -210,7 +219,8 @@ SDNSubscriberTestSinkGAM    () : GAM() {}
         return true;
     }
 
-    template <typename Type> bool TestSignal(MARTe::uint32 signalIndex = 0u, Type value = 0) {
+    template<typename Type> bool TestSignal(MARTe::uint32 signalIndex = 0u,
+                                            Type value = 0) {
 
         bool ok = (signalIndex < GetNumberOfInputSignals());
 
@@ -653,6 +663,19 @@ bool SDNSubscriberTest::TestInitialise_False_Address_5() {
     bool ok = test.Initialise(cdb);
     return !ok; // Expect failure
 }
+
+bool SDNSubscriberTest::TestInitialise_False_Invalid_ExecutionMode(){
+    using namespace MARTe;
+    SDNSubscriber test;
+    ConfigurationDatabase cdb;
+    uint32 cpumask = 1u;
+    cdb.Write("Topic", "Default");
+    cdb.Write("Interface", "lo");
+    cdb.Write("CPUs", cpumask);
+    cdb.Write("ExecutionMode", "Invalid");
+    return !test.Initialise(cdb);
+}
+
 
 bool SDNSubscriberTest::TestSetConfiguredDatabase() {
     return TestIntegratedInApplication(config_default);
@@ -1470,6 +1493,7 @@ bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_2() {
             "        DefaultDataSource = DDB1"
             "        +SDNSub = {"
             "            Class = SDNSubscriber"
+            "            ExecutionMode = IndependentThread"
             "            Topic = Default"
             "            Interface = lo"
             "            Timeout = 1000"
@@ -2775,6 +2799,963 @@ bool SDNSubscriberTest::TestSynchronise_UCAST_Topic_3() {
 
     return ok;
 }
+
+bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_RTT() {
+    using namespace MARTe;
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Sink = {"
+            "            Class = SDNSubscriberTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNSub"
+            "                    Frequency = 1."
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNSub = {"
+            "            ExecutionMode = RealTimeThread"
+            "            Class = SDNSubscriber"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            InternalTimeout = 1000000"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    Type = uint64"
+            "                }"
+            "                ArrayInt32_1D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayInt32_2D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "                ArrayFlt32_1D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayFlt32_2D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Sink}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    // Instantiate a sdn::Metadata structure to configure the topic
+    sdn::Metadata_t mdata;
+    sdn::Topic_InitializeMetadata(mdata, "Default", 0);
+    // Instantiate SDN topic from metadata specification
+    sdn::Topic* topic = new sdn::Topic;
+    topic->SetMetadata(mdata);
+    sdn::Publisher* publisher;
+
+    bool ok = true;
+
+    if (ok) {
+        ok = (topic->AddAttribute(0u, "Counter", "uint64") == STATUS_SUCCESS);
+    }
+    if (ok) {
+        ok = (topic->AddAttribute(1u, "Timestamp", "uint64") == STATUS_SUCCESS);
+    }
+    if (ok) {
+        ok = (topic->AddAttribute(2u, "Reserved", "uint8", 144) == STATUS_SUCCESS);
+    }
+    if (ok) {
+        topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
+        ok = (topic->Configure() == STATUS_SUCCESS);
+    }
+    if (ok) {
+        ok = topic->IsInitialized();
+    }
+    // Create sdn::Publisher
+    if (ok) {
+        publisher = new sdn::Publisher(*topic);
+    }
+    if (ok) {
+        ok = (publisher->SetInterface((char*) "lo") == STATUS_SUCCESS);
+    }
+    if (ok) {
+        ok = (publisher->Configure() == STATUS_SUCCESS);
+    }
+
+    if (ok) {
+        ok = ConfigureApplication(config);
+    }
+
+    if (ok) {
+        ok = StartApplication();
+    }
+
+    if (ok) {
+
+        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+        ReferenceT<RealTimeApplication> application = god->Find("Test");
+        ReferenceT<SDNSubscriber> subscriber = application->Find("Data.SDNSub");
+        ReferenceT<SDNSubscriberTestGAM> sink = application->Find("Functions.Sink");
+        ok = subscriber.IsValid();
+
+        // Prepare data
+        MARTe::uint64 counter = 10ul;
+        MARTe::uint64 timestamp = get_time();
+        if (ok) {
+            ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
+        }
+        if (ok) {
+            ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
+        }
+        // Send data
+        if (ok) {
+            ok = (publisher->Publish() == STATUS_SUCCESS);
+        }
+        // Let the application run
+        if (ok) {
+            wait_for(500000000ul);
+        }
+        // Test reception
+        if (ok) {
+            ok = sink->TestCounter(counter);
+        }
+        if (ok) {
+            ok = sink->TestTimestamp(timestamp);
+        }
+    }
+
+    if (ok) {
+        ok = StopApplication();
+    }
+
+    return ok;
+}
+
+bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_RTT_Trigger() {
+    using namespace MARTe;
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Sink = {"
+            "            Class = SDNSubscriberTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNSub"
+            "                    Trigger = 1"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNSub = {"
+            "            ExecutionMode = RealTimeThread"
+            "            Class = SDNSubscriber"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            InternalTimeout = 1000000"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    Type = uint64"
+            "                }"
+            "                ArrayInt32_1D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayInt32_2D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "                ArrayFlt32_1D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayFlt32_2D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Sink}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    // Instantiate a sdn::Metadata structure to configure the topic
+    sdn::Metadata_t mdata;
+    sdn::Topic_InitializeMetadata(mdata, "Default", 0);
+    // Instantiate SDN topic from metadata specification
+    sdn::Topic* topic = new sdn::Topic;
+    topic->SetMetadata(mdata);
+    sdn::Publisher* publisher;
+
+    bool ok = true;
+
+    if (ok) {
+        ok = (topic->AddAttribute(0u, "Counter", "uint64") == STATUS_SUCCESS);
+    }
+    if (ok) {
+        ok = (topic->AddAttribute(1u, "Timestamp", "uint64") == STATUS_SUCCESS);
+    }
+    if (ok) {
+        ok = (topic->AddAttribute(2u, "Reserved", "uint8", 144) == STATUS_SUCCESS);
+    }
+    if (ok) {
+        topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
+        ok = (topic->Configure() == STATUS_SUCCESS);
+    }
+    if (ok) {
+        ok = topic->IsInitialized();
+    }
+    // Create sdn::Publisher
+    if (ok) {
+        publisher = new sdn::Publisher(*topic);
+    }
+    if (ok) {
+        ok = (publisher->SetInterface((char*) "lo") == STATUS_SUCCESS);
+    }
+    if (ok) {
+        ok = (publisher->Configure() == STATUS_SUCCESS);
+    }
+
+    if (ok) {
+        ok = ConfigureApplication(config);
+    }
+
+    if (ok) {
+        ok = StartApplication();
+    }
+
+    if (ok) {
+
+        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+        ReferenceT<RealTimeApplication> application = god->Find("Test");
+        ReferenceT<SDNSubscriber> subscriber = application->Find("Data.SDNSub");
+        ReferenceT<SDNSubscriberTestGAM> sink = application->Find("Functions.Sink");
+        ok = subscriber.IsValid();
+
+        // Prepare data
+        MARTe::uint64 counter = 10ul;
+        MARTe::uint64 timestamp = get_time();
+        if (ok) {
+            ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
+        }
+        if (ok) {
+            ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
+        }
+        // Send data
+        if (ok) {
+            ok = (publisher->Publish() == STATUS_SUCCESS);
+        }
+        // Let the application run
+        if (ok) {
+            wait_for(500000000ul);
+        }
+        // Test reception
+        if (ok) {
+            ok = sink->TestCounter(counter);
+        }
+        if (ok) {
+            ok = sink->TestTimestamp(timestamp);
+        }
+    }
+
+    if (ok) {
+        ok = StopApplication();
+    }
+
+    return ok;
+}
+
+bool SDNSubscriberTest::TestSynchronise_MCAST_Topic_RTT_GetLatest() {
+    using namespace MARTe;
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Sink = {"
+            "            Class = SDNSubscriberTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNSub"
+            "                    Frequency = 0."
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNSub = {"
+            "            ExecutionMode = RealTimeThread"
+            "            Class = SDNSubscriber"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            InternalTimeout = 1000000"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    Type = uint64"
+            "                }"
+            "                ArrayInt32_1D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayInt32_2D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "                ArrayFlt32_1D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayFlt32_2D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Sink}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    // Instantiate a sdn::Metadata structure to configure the topic
+    sdn::Metadata_t mdata;
+    sdn::Topic_InitializeMetadata(mdata, "Default", 0);
+    // Instantiate SDN topic from metadata specification
+    sdn::Topic* topic = new sdn::Topic;
+    topic->SetMetadata(mdata);
+    sdn::Publisher* publisher;
+
+    bool ok = true;
+
+    if (ok) {
+        ok = (topic->AddAttribute(0u, "Counter", "uint64") == STATUS_SUCCESS);
+    }
+    if (ok) {
+        ok = (topic->AddAttribute(1u, "Timestamp", "uint64") == STATUS_SUCCESS);
+    }
+    if (ok) {
+        ok = (topic->AddAttribute(2u, "Reserved", "uint8", 144) == STATUS_SUCCESS);
+    }
+    if (ok) {
+        topic->SetUID(0u); // UID corresponds to the data type but it includes attributes name - Safer to clear with SDN core library 1.0.10
+        ok = (topic->Configure() == STATUS_SUCCESS);
+    }
+    if (ok) {
+        ok = topic->IsInitialized();
+    }
+    // Create sdn::Publisher
+    if (ok) {
+        publisher = new sdn::Publisher(*topic);
+    }
+    if (ok) {
+        ok = (publisher->SetInterface((char*) "lo") == STATUS_SUCCESS);
+    }
+    if (ok) {
+        ok = (publisher->Configure() == STATUS_SUCCESS);
+    }
+
+    if (ok) {
+        ok = ConfigureApplication(config);
+    }
+
+    if (ok) {
+
+        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+        ReferenceT<RealTimeApplication> application = god->Find("Test");
+        ReferenceT<SDNSubscriber> subscriber = application->Find("Data.SDNSub");
+        ReferenceT<SDNSubscriberTestGAM> sink = application->Find("Functions.Sink");
+        ok = subscriber.IsValid();
+
+        // Prepare data
+        MARTe::uint64 counter = 1ul;
+        MARTe::uint64 timestamp = get_time();
+        if (ok) {
+            ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
+        }
+        if (ok) {
+            ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
+        }
+        // Send data
+        if (ok) {
+            ok = (publisher->Publish() == STATUS_SUCCESS);
+        }
+
+        ReferenceContainer inputBrokers;
+        sink->GetInputBrokers(inputBrokers);
+
+        for (uint32 i = 0u; i < inputBrokers.Size(); i++) {
+            ReferenceT<BrokerI> broker = inputBrokers.Get(i);
+            if (broker.IsValid()) {
+                broker->Execute();
+            }
+        }
+
+        sink->Execute();
+        // Test reception
+        if (ok) {
+            ok = sink->TestCounter(counter);
+        }
+        if (ok) {
+            ok = sink->TestTimestamp(timestamp);
+        }
+
+        for (uint32 i = 0u; i < 10u; i++) {
+            // Prepare data
+            counter = i;
+            timestamp = get_time();
+            if (ok) {
+                ok = (topic->SetAttribute(0u, counter) == STATUS_SUCCESS);
+            }
+            if (ok) {
+                ok = (topic->SetAttribute(1u, timestamp) == STATUS_SUCCESS);
+            }
+            // Send data
+            if (ok) {
+                ok = (publisher->Publish() == STATUS_SUCCESS);
+            }
+        }
+
+        for (uint32 i = 0u; i < inputBrokers.Size(); i++) {
+            ReferenceT<BrokerI> broker = inputBrokers.Get(i);
+            if (broker.IsValid()) {
+                broker->Execute();
+            }
+        }
+        // Test reception last packet
+        sink->Execute();
+        if (ok) {
+            ok = sink->TestCounter(counter);
+        }
+        if (ok) {
+            ok = sink->TestTimestamp(timestamp);
+        }
+    }
+
+    return ok;
+}
+
+bool SDNSubscriberTest::TestSynchronise_MCAST_Timeout() {
+    using namespace MARTe;
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Sink = {"
+            "            Class = SDNSubscriberTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNSub"
+            "                    Frequency = 0."
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNSub = {"
+            "            Class = SDNSubscriber"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            Timeout = 1000"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    Type = uint64"
+            "                }"
+            "                ArrayInt32_1D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayInt32_2D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "                ArrayFlt32_1D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayFlt32_2D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Sink}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConfigureApplication(config);
+
+    if (ok) {
+
+        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+        ReferenceT<RealTimeApplication> application = god->Find("Test");
+        ReferenceT<SDNSubscriber> subscriber = application->Find("Data.SDNSub");
+        ReferenceT<SDNSubscriberTestGAM> sink = application->Find("Functions.Sink");
+        ok = subscriber.IsValid();
+
+        if (ok) {
+            //fails after timeout
+            ok = !subscriber->Synchronise();
+        }
+    }
+
+    return ok;
+}
+
+bool SDNSubscriberTest::TestSynchronise_MCAST_RTT_Timeout() {
+    using namespace MARTe;
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Sink = {"
+            "            Class = SDNSubscriberTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNSub"
+            "                    Frequency = 0."
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNSub = {"
+            "            ExecutionMode = RealTimeThread"
+            "            Class = SDNSubscriber"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            InternalTimeout = 1000000000"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    Type = uint64"
+            "                }"
+            "                ArrayInt32_1D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayInt32_2D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "                ArrayFlt32_1D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayFlt32_2D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Sink}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConfigureApplication(config);
+
+    if (ok) {
+
+        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+        ReferenceT<RealTimeApplication> application = god->Find("Test");
+        ReferenceT<SDNSubscriber> subscriber = application->Find("Data.SDNSub");
+        ReferenceT<SDNSubscriberTestGAM> sink = application->Find("Functions.Sink");
+        ok = subscriber.IsValid();
+
+        if (ok) {
+            //fails after timeout
+            ok = !subscriber->Synchronise();
+        }
+    }
+
+    return ok;
+}
+
+
+
+bool SDNSubscriberTest::TestSynchronise_MCAST_IgnoreTimeoutError() {
+    using namespace MARTe;
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Sink = {"
+            "            Class = SDNSubscriberTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNSub"
+            "                    Frequency = 0."
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNSub = {"
+            "            Class = SDNSubscriber"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            Timeout = 1000"
+            "            IgnoreTimeoutError = 1"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    Type = uint64"
+            "                }"
+            "                ArrayInt32_1D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayInt32_2D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "                ArrayFlt32_1D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayFlt32_2D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Sink}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConfigureApplication(config);
+
+    if (ok) {
+
+        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+        ReferenceT<RealTimeApplication> application = god->Find("Test");
+        ReferenceT<SDNSubscriber> subscriber = application->Find("Data.SDNSub");
+        ReferenceT<SDNSubscriberTestGAM> sink = application->Find("Functions.Sink");
+        ok = subscriber.IsValid();
+
+        if (ok) {
+            //ignore timeout
+            ok = subscriber->Synchronise();
+        }
+    }
+
+    return ok;
+}
+
+bool SDNSubscriberTest::TestSynchronise_MCAST_RTT_IgnoreTimeoutError() {
+    using namespace MARTe;
+    //Standard configuration for testing
+    const MARTe::char8 * const config = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +Sink = {"
+            "            Class = SDNSubscriberTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = SDNSub"
+            "                    Frequency = 0."
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    DataSource = SDNSub"
+            "                    Type = uint64"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +SDNSub = {"
+            "            ExecutionMode = RealTimeThread"
+            "            Class = SDNSubscriber"
+            "            Topic = Default"
+            "            Interface = lo"
+            "            InternalTimeout = 1000000000"
+            "            IgnoreTimeoutError = 1"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Timestamp = {"
+            "                    Type = uint64"
+            "                }"
+            "                ArrayInt32_1D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayInt32_2D = {"
+            "                    Type = uint32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "                ArrayFlt32_1D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 10"
+            "                    NumberOfDimensions = 1"
+            "                }"
+            "                ArrayFlt32_2D = {"
+            "                    Type = float32"
+            "                    NumberOfElements = 4"
+            "                    NumberOfDimensions = 2"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +Running = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {Sink}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ok = ConfigureApplication(config);
+
+    if (ok) {
+
+        ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+        ReferenceT<RealTimeApplication> application = god->Find("Test");
+        ReferenceT<SDNSubscriber> subscriber = application->Find("Data.SDNSub");
+        ReferenceT<SDNSubscriberTestGAM> sink = application->Find("Functions.Sink");
+        ok = subscriber.IsValid();
+
+        if (ok) {
+            //ignore timeout
+            ok = subscriber->Synchronise();
+        }
+    }
+
+    return ok;
+}
+
+
 #ifdef FEATURE_10840
 bool SDNSubscriberTest::TestSynchronise_NetworkByteOrder_Topic_1() {
     using namespace MARTe;

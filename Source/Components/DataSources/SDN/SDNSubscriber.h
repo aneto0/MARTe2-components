@@ -89,11 +89,14 @@ namespace MARTe {
  * <pre>
  * +Subscriber = {
  *     Class = SDNSubscriber
+ *     ExecutionMode = IndependentThread // Optional, it can be IndependentThread (default) or RealTimeThread
  *     Topic = "name" // The name is used to establish many-to-many communication channels
  *     Interface = "name" // The network interface name to be used
  *     Address = address:port // Optional - Explicit destination address
- *     Timeout = timeout_in_ms // Optional - Used for synchronising mode semaphore
+ *     Timeout = timeout_in_ms // Optional - Used for synchronising mode semaphore. It corresponds to the Synchronise() timeout if ExecutionMode==Independent
+ *     InternalTimoeut = timeout_in_ns //Optional - The internal thread receive call timeout. It corresponds to the Synchronise() timeout if ExecutionMode==RealTimeThread (Default 1s)
  *     CPUs = cpumask // Optional - Explicit affinity for the thread
+ *     IgnoreTimeoutError = 0 // Optional. If 1, Synchronise() returns true in case of timeout. (Default 0)
  *     Signals = {
  *         Header = { //Optional. If present (i.e. if there is a signal named header) the received packet header will be copied into this field (note that it can be later decomposed by GAMs using Ranges). It shall be the first signal.
  *             Type = uint8
@@ -119,9 +122,7 @@ namespace MARTe {
  * synchronised with an alternative method and the SDNSubscriber holds whichever signal
  * samples were last received.
  *
- * @warning The DataSource does not support more than one signal identified as synchronisation point
- * so as to ensure that the message payload is consistently provided to all GAMs associated to it. It
- * does support however a signal 'caching' mode (non-synchronising) to cater for the cases where the
+ * @warning The DataSource supports signal 'caching' mode (non-synchronising) to cater for the cases where the
  * application real-time threads are synchronised using an alternate source, in which case the
  * DataSource only provides the last received payload,
  *
@@ -159,10 +160,12 @@ SDNSubscriber    ();
      * <pre>
      * +Subscriber = {
      *     Class = SDNSubscriber
+     *     ExecutionMode = "mode" // Optonal - The execution mode can be IndependentThread (default) or RealTimeThread.
      *     Topic = "name" // The name is used to establish many-to-many communication channels
      *     Interface = "name" // The network interface name to be used, e.g. eth0
      *     Address = address:port // Optional - Explicit destination address
      *     CPUs = cpumask // Optional - Explicit affinity for the thread
+     *     IgnoreTimeoutError = 0 // Optional - Ignore the timeout error
      * }
      * </pre>
      * @details The configuration parameters are subject to the following criteria:
@@ -178,6 +181,9 @@ SDNSubscriber    ();
      * each received SDN message but the synchronisation of the RT thread is managed with an
      * alternative mechanism) vs. synchronising behaviour (the activity of the RT thread is
      * synchronised to the SDN reception).
+     * The execution mode can be \a IndepedentThread or \a RealTimeThread. When \a IndependentThread, an internal thread
+     * unblocks the RTTs waiting on Synchronise() when a packet is received. If \a RealTimeThread, the RTT calls
+     * directly the sdn receive API using the \a InternalTimeout
      * @warning The unicast behaviour is selected by means of specifying any destination address
      * within the IPv4 unicast address range. The socket is bound to the named interface and the
      * address is not used.
@@ -356,14 +362,18 @@ private:
     bool sdnHeaderAsSignal;
 
     /**
-     * Endianity flag
-    */
-    bool networkByteOrder;
-
+     * The execution mode
+     */
     uint8 executionMode;
 
+    /**
+     * The internal timeout
+     */
     uint32 internalTimeout;
 
+    /**
+     * Ignore timeout flag
+     */
     uint8 ignoreTimeoutError;
 };
 

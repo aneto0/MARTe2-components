@@ -58,9 +58,10 @@ const uint32 SDN_SUB_EXEC_MODE_RTTHREAD = 1u;
  */
 const uint32 SDN_SUB_EXEC_MODE_SPAWNED = 2u;
 
-
 SDNSubscriber::SDNSubscriber() :
-        DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
+        DataSourceI(),
+        EmbeddedServiceMethodBinderI(),
+        executor(*this) {
 
     nOfSignals = 0u;
     nOfTriggers = 0u;
@@ -78,7 +79,6 @@ SDNSubscriber::SDNSubscriber() :
     payloadNumberOfBits = NULL_PTR(uint16 *);
     payloadNumberOfElements = NULL_PTR(uint32 *);
     payloadAddresses = NULL_PTR(void **);
-    networkByteOrder = false;
     internalTimeout = 0u;
     ignoreTimeoutError = 0u;
 }
@@ -89,7 +89,7 @@ SDNSubscriber::~SDNSubscriber() {
     if (!synchronisingSem.Post()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not post EventSem");
     }
-    if(executionMode == SDN_SUB_EXEC_MODE_SPAWNED){
+    if (executionMode == SDN_SUB_EXEC_MODE_SPAWNED) {
 
         if (!executor.Stop()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService");
@@ -181,10 +181,6 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
     if (!data.Read("IgnoreTimeoutError", ignoreTimeoutError)) {
         ignoreTimeoutError = 0u;
     }
-    uint8 networkByteOrderByte;
-    if(data.Read("NetworkByteOrder", networkByteOrderByte)){
-        networkByteOrder=(networkByteOrderByte!=0u);
-    }
     StreamString executionModeStr;
     if (!data.Read("ExecutionMode", executionModeStr)) {
         executionModeStr = "IndependentThread";
@@ -227,7 +223,7 @@ bool SDNSubscriber::SetConfiguredDatabase(StructuredDataI& data) {
     }
 
     if (ok) {
-        if(nOfTriggers > 1u){
+        if (nOfTriggers > 1u) {
             REPORT_ERROR(ErrorManagement::Warning, "More than one synchronising signals");
         }
     }
@@ -353,7 +349,8 @@ bool SDNSubscriber::AllocateMemory() {
             if (ok) {
                 ok = (expectedSdnHeaderSize == sdnHeaderSignalSize);
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Incompatible header size. Expected %d and read %d", expectedSdnHeaderSize, sdnHeaderSignalSize);
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Incompatible header size. Expected %d and read %d", expectedSdnHeaderSize,
+                                 sdnHeaderSignalSize);
                 }
             }
         }
@@ -386,7 +383,9 @@ uint32 SDNSubscriber::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
-bool SDNSubscriber::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
+bool SDNSubscriber::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                          const uint32 bufferIdx,
+                                          void*& signalAddress) {
 
     bool ok = (signalIdx < nOfSignals);
 
@@ -407,7 +406,8 @@ bool SDNSubscriber::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 b
     return ok;
 }
 
-const char8* SDNSubscriber::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
+const char8* SDNSubscriber::GetBrokerName(StructuredDataI& data,
+                                          const SignalDirection direction) {
 
     const char8 *brokerName = NULL_PTR(const char8 *);
 
@@ -425,7 +425,7 @@ const char8* SDNSubscriber::GetBrokerName(StructuredDataI& data, const SignalDir
             trigger = 0u;
         }
 
-        if ((frequency >= 0.F) || (trigger>0u)) {
+        if ((frequency >= 0.F) || (trigger > 0u)) {
             brokerName = "MemoryMapSynchronisedInputBroker";
             nOfTriggers++;
             synchronising = true;
@@ -442,7 +442,9 @@ const char8* SDNSubscriber::GetBrokerName(StructuredDataI& data, const SignalDir
     return brokerName;
 }
 
-bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers,
+                                    const char8* const functionName,
+                                    void* const gamMemPtr) {
 
     // Check if this function has a synchronisation point (i.e. a signal which has Frequency > 0)
     uint32 functionIdx = 0u;
@@ -455,7 +457,6 @@ bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers, const char
         ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunctionSignals);
     }
 
-
     float32 frequency = 0.F;
     uint32 trigger = 0u;
 
@@ -463,9 +464,9 @@ bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers, const char
         ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, signalIndex, frequency);
 
         if (ok) {
-            synchGAM = (frequency > 0.F);
+            synchGAM = (frequency >= 0.F);
         }
-        if(ok && (!synchGAM)){
+        if (ok && (!synchGAM)) {
             ok = GetFunctionSignalTrigger(InputSignals, functionIdx, signalIndex, trigger);
 
             if (ok) {
@@ -544,12 +545,15 @@ bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers, const char
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns false irrespectively of the input parameters.*/
-bool SDNSubscriber::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool SDNSubscriber::GetOutputBrokers(ReferenceContainer& outputBrokers,
+                                     const char8* const functionName,
+                                     void* const gamMemPtr) {
     return false;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns irrespectively of the input parameters.*/
-bool SDNSubscriber::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool SDNSubscriber::PrepareNextState(const char8* const currentStateName,
+                                     const char8* const nextStateName) {
 
     bool ok = (subscriber != NULL_PTR(sdn::Subscriber *));
 
@@ -594,7 +598,7 @@ bool SDNSubscriber::PrepareNextState(const char8* const currentStateName, const 
         }
 
         if (ok) {
-            if(executionMode == SDN_SUB_EXEC_MODE_SPAWNED){
+            if (executionMode == SDN_SUB_EXEC_MODE_SPAWNED) {
                 if (executor.GetStatus() == EmbeddedThreadI::OffState) {
                     if (cpuMask != 0ull) {
                         executor.SetCPUMask(cpuMask);
@@ -607,7 +611,6 @@ bool SDNSubscriber::PrepareNextState(const char8* const currentStateName, const 
         synchronisingSem.Reset();
     }
 
-
     return ok;
 }
 
@@ -616,20 +619,19 @@ bool SDNSubscriber::Synchronise() {
     //bool ok = synchronising; // DataSource is synchronising RT thread
     bool ok = true;
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
-    if(executionMode == SDN_SUB_EXEC_MODE_RTTHREAD){
+    if (executionMode == SDN_SUB_EXEC_MODE_RTTHREAD) {
         ExecutionInfo info;
         err = Execute(info);
     }
-    else{
+    else {
         // Get latest but don´t wait for next if arrived
         err = synchronisingSem.Wait(TTTimeout);
         synchronisingSem.Reset();
-        if(ignoreTimeoutError>0u){
+        if (ignoreTimeoutError > 0u) {
             err = ErrorManagement::NoError;
         }
     }
     ok = err.ErrorsCleared();
-
 
     return ok;
 }
@@ -648,21 +650,21 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
     }
 
     if (ok) {
-        bool needBlock=true;
-        if(executionMode == SDN_SUB_EXEC_MODE_RTTHREAD){
+        bool needBlock = true;
+        if (executionMode == SDN_SUB_EXEC_MODE_RTTHREAD) {
             //Get latest implementation, empty the stack
 
             bool empty = false;
             while (!empty) {
                 /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                 empty = (subscriber->Receive(0ul) != STATUS_SUCCESS);
-                if(!empty){
-                    needBlock=false;
+                if (!empty) {
+                    needBlock = false;
                 }
             }
         }
 
-        if(needBlock){
+        if (needBlock) {
             /*lint -e{613} The reference can not be NULL in this portion of the code.*/
             ok = (subscriber->Receive(internalTimeout) == STATUS_SUCCESS);
         }
@@ -671,16 +673,12 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
             //REPORT_ERROR(ErrorManagement::Timeout, "sdn::Subscriber failed to receive topic");
             err.SetError(ErrorManagement::Timeout);
         }
-        else {
-            bool convert=networkByteOrder;
 #ifdef FEATURE_10840
-            convert=(networkByteOrder)||(!subscriber->IsPayloadOrdered());
-#endif
-    if(convert){
+        else {
+            if (!subscriber->IsPayloadOrdered()) {
                 // Convert payload from network byte order
                 uint32 signalIndex = 0u;
                 if (sdnHeaderAsSignal) {
-                    /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                     sdn::Header_t *header = static_cast<sdn::Header_t *>(payloadAddresses[0u]);
                     Endianity::FromBigEndian(header->header_size);
                     Endianity::FromBigEndian(reinterpret_cast<uint64 &>(header->recv_time));
@@ -692,27 +690,20 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
                     signalIndex = 1u;
                 }
                 for (; (signalIndex < nOfSignals); signalIndex++) {
-                    /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                     if (payloadNumberOfBits[signalIndex] == 16u) {
                         uint32 elementIndex;
-                        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                         for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
-                            /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                             Endianity::FromBigEndian(reinterpret_cast<uint16 *>(payloadAddresses[signalIndex])[elementIndex]);
                         }
                     }
-                    /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                     if (payloadNumberOfBits[signalIndex] == 32u) {
                         uint32 elementIndex;
-                        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                         for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
                             Endianity::FromBigEndian(reinterpret_cast<uint32 *>(payloadAddresses[signalIndex])[elementIndex]);
                         }
                     }
-                    /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                     if (payloadNumberOfBits[signalIndex] == 64u) {
                         uint32 elementIndex;
-                        /*lint -e{613} The reference can not be NULL in this portion of the code.*/
                         for (elementIndex = 0u; (elementIndex < payloadNumberOfElements[signalIndex]); elementIndex++) {
                             Endianity::FromBigEndian(reinterpret_cast<uint64 *>(payloadAddresses[signalIndex])[elementIndex]);
                         }
@@ -720,6 +711,7 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
                 }
             }
         }
+#endif
 
     }
 
@@ -733,18 +725,23 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
     }
 
     //ignore the timeout if spawned
-    if((executionMode == SDN_SUB_EXEC_MODE_SPAWNED) || (ignoreTimeoutError>0u)){
+    if ((executionMode == SDN_SUB_EXEC_MODE_SPAWNED) || (ignoreTimeoutError > 0u)) {
         if (err.Contains(ErrorManagement::Timeout)) {
             // Ignore Timeout error for now
             err.ClearError(ErrorManagement::Timeout);
         }
     }
-
+#ifdef FEATURE_10840
+    if (subscriber != NULL_PTR(sdn::Subscriber *)) {
+       // Perform housekeeping activities .. irrespective of status
+       (void)subscriber->DoBackgroundActivity();
+    }
+#endif
     return err;
 }
 #ifdef FEATURE_10840
 CLASS_REGISTER(SDNSubscriber, "1.2")
 #else
-CLASS_REGISTER(SDNSubscriber, "1.0.11")
+CLASS_REGISTER(SDNSubscriber, "1.0.12")
 #endif
 } /* namespace MARTe */

@@ -139,6 +139,11 @@ public:
     bool TestInitialise_False_Address_5();
 
     /**
+     * @brief Tests the Initialise method with .
+     */
+    bool TestInitialise_False_Invalid_ExecutionMode();
+
+    /**
      * @brief Tests the AllocateMemory method.
      */
     bool TestAllocateMemory();
@@ -282,6 +287,43 @@ public:
      * @brief Tests the Synchronise method.
      */
     bool TestSynchronise_UCAST_Topic_3();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_MCAST_Topic_RTT();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_MCAST_Topic_RTT_Trigger();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_MCAST_Topic_RTT_GetLatest();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_MCAST_Timeout();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_MCAST_RTT_Timeout();
+
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_MCAST_IgnoreTimeoutError();
+
+    /**
+     * @brief Tests the Synchronise method.
+     */
+    bool TestSynchronise_MCAST_RTT_IgnoreTimeoutError();
+
 #ifdef FEATURE_10840
     /**
      * @brief Tests the Synchronise method.
