@@ -42,7 +42,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-static const int32 MDS_UNDEFINED_PULSE_NUMBER = -2;
+static const int32 MDS_UNDEFINED_PULSE_NUMBER = -3;
 
 MDSWriter::MDSWriter() :
         DataSourceI(),
@@ -520,7 +520,7 @@ bool MDSWriter::SetConfiguredDatabase(StructuredDataI& data) {
     bool useTimeSignal = (timeSignalIdx > -1);
     if (storeOnTrigger) {
         if (ok) {
-            ok = (useTimeSignal);
+            ok = useTimeSignal;
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError,
                              "StoreOnTrigger was specified but no TimeSignal was found");
@@ -587,13 +587,19 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
         tree = NULL_PTR(MDSplus::Tree *);
     }
     //Check for the latest pulse number
-    if (pulseNumber == -1) {
+    if ((pulseNumber < 0) && (pulseNumber != MDS_UNDEFINED_PULSE_NUMBER)) {
         try {
             tree = new MDSplus::Tree(treeName.Buffer(), -1);
+            int32 pulseNumberT = pulseNumber;
             pulseNumber = MDSplus::Tree::getCurrent(treeName.Buffer());
-            pulseNumber++;
+            if (pulseNumberT == -1){
+                pulseNumber++;
+            }
+            REPORT_ERROR(ErrorManagement::ParametersError, "Opening tree %d", pulseNumber);
             MDSplus::Tree::setCurrent(treeName.Buffer(), pulseNumber);
-            tree->createPulse(pulseNumber);
+            if (pulseNumberT == -1){
+                tree->createPulse(pulseNumber);
+            }
             delete tree;
             tree = NULL_PTR(MDSplus::Tree *);
         }

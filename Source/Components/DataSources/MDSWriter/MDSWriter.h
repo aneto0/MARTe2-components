@@ -85,6 +85,7 @@ namespace MARTe {
  *             DecimatedNodeName = "SIGUINT16D" //Optional. The node where MDSplus stores the automatically computed decimated signal. When AutomaticSegmentation = 1 this field is ignored.
  *             MinMaxResampleFactor = 4 //Compulsory if DecimatedNodeName is set. Decimation factor that MDSplus applies to the decimated version of the signal. AutomaticSegmentation = 1 this field is ignored.
  *             SamplePhase = 0 //Optional. Shift the time vector by SamplePhase * Period
+ *             FlushIfDiscontinuity = 1 //Optional. If set to zero a discontinuity will not trigger the generation of a new segment (meaning that the time vector should have any discontinuities already embedded as part of its values.
  *         }
  *         ...
  *     }

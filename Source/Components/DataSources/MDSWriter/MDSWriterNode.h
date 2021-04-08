@@ -376,6 +376,12 @@ private:
      */
     bool flush;
 
+
+    /**
+     * For flushing if a discontinuity is found.
+     */
+    uint8 flushIfDiscontinuity;
+
     /**
      * @brief Save data in MDSplus using MDSplus::makeSegment() or MDSPlus::makeSegmentMaxMin()
      * @details the number of different time values per segment depends on Samples and the makeSegmentAfterNWrites

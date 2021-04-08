@@ -77,6 +77,7 @@ MDSWriterNode::MDSWriterNode() {
     segmentDim[0] = 0;
     segmentDim[1] = 0;
     segmentDim[2] = 0;
+    flushIfDiscontinuity = 1u;
 }
 
 /*lint -e{1551} -e{1740} the destructor must guarantee that the MDSplus TreeNode is deleted and the shared memory freed. The signalMemory and the timeSignalMemory are freed by the framework */
@@ -141,6 +142,10 @@ bool MDSWriterNode::Initialise(StructuredDataI & data) {
         ok = data.Read("Type", signalType);
     }
     if (ok) {
+        if (!data.Read("FlushIfDiscontinuity", flushIfDiscontinuity)) {
+            flushIfDiscontinuity = 1u;
+        }
+
         signalTypeDescriptor = TypeDescriptor::GetTypeDescriptorFromTypeName(signalType.Buffer());
     }
     if (ok) {
@@ -366,7 +371,8 @@ bool MDSWriterNode::Execute() {
                     if (timeSignalMemory != NULL_PTR(uint32 *)) {
                         if ((timeSignalTime - lastWriteTimeSignal) != executePeriod) {
                             if (lastWriteTimeSignal > 0u) {
-                                discontinuityFound = true;
+                                //discontinuityFound can be overruled by flushIfDiscontinuity, i.e. do not force the creation of the segment - the time signal already takes into account any discontinuity as part of its data
+                                discontinuityFound = (flushIfDiscontinuity > 0u);
                             }
                         }
                     }
@@ -396,7 +402,7 @@ bool MDSWriterNode::Execute() {
     }
 
     //If a discontinuity was found trigger the storage of data.
-    bool storeNow = discontinuityFound;
+    bool storeNow = (discontinuityFound);
     if (!storeNow) {
         //If the number of writes is sufficient to create a segment do it.
         storeNow = (currentBuffer == (makeSegmentAfterNWrites));
@@ -453,7 +459,17 @@ bool MDSWriterNode::ForceSegment() {
     segmentDim[0] = numberOfSamplesPerSegment;
     int32 numberOfSamplesPerSegmentM1 = numberOfSamplesPerSegment - 1;
     float64 numberOfSamplesPerSegmentF = static_cast<float64>(numberOfSamplesPerSegmentM1);
-    float64 end = start + (numberOfSamplesPerSegmentF * period);
+    float64 end = 0.;
+    if (!useTimeVector) {
+        end = start + (numberOfSamplesPerSegmentF * period);
+    }
+    else {
+        end = static_cast<float64>(lastWriteTimeSignal) * timeSignalMultiplier;
+        float64 periodDelta = period;
+        uint32 numberOfSamplesM1= numberOfSamples - 1u;
+        periodDelta *= static_cast<float64>(numberOfSamplesM1);
+        end += periodDelta;
+    }
     //lint -e{429} freed by MDSplus upon deletion of dimension
     MDSplus::Data *startD = new MDSplus::Float64(start);
     //lint -e{429} freed by MDSplus upon deletion of dimension
