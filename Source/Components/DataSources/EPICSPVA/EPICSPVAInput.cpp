@@ -41,10 +41,16 @@ EPICSPVAInput::EPICSPVAInput() :
     channelList = NULL_PTR(EPICSPVAChannelWrapper *);
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
+    if (!synchSem.Create()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
+    }
 }
 
 /*lint -e{1551} must stop the SingleThreadService in the destructor.*/
 EPICSPVAInput::~EPICSPVAInput() {
+    if (!synchSem.Post()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not post EventSem.");
+    }
     if (!executor.Stop()) {
         if (!executor.Stop()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
@@ -155,8 +161,19 @@ bool EPICSPVAInput::AllocateMemory() {
 const char8* EPICSPVAInput::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
     const char8* brokerName = "";
     if (direction == InputSignals) {
-        brokerName = "MemoryMapInputBroker";
+        float32 tempFrequency = 0.F;
+        if (!data.Read("Frequency", tempFrequency)) {
+            tempFrequency = -1.F;
+        }
+        if (tempFrequency > 0.F) {
+            //TODO prevent synchronising if numberOfChannels > 1) - KISS...
+            brokerName = "MemoryMapSynchronisedInputBroker";
+        }
+        else {
+            brokerName = "MemoryMapInputBroker";
+        }
     }
+
     return brokerName;
 }
 
@@ -165,11 +182,17 @@ bool EPICSPVAInput::PrepareNextState(const char8* const currentStateName, const 
     return true;
 }
 
+bool EPICSPVAInput::Synchronise() {
+    ErrorManagement::ErrorType err = synchSem.ResetWait(TTInfiniteWait);
+    return err.ErrorsCleared();
+}
+
 ErrorManagement::ErrorType EPICSPVAInput::Execute(ExecutionInfo& info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
         err.fatalError = !channelList[info.GetThreadNumber()].Monitor();
     }
+    (void) (synchSem.Post());
     return err;
 }
 
@@ -179,10 +202,6 @@ uint32 EPICSPVAInput::GetStackSize() const {
 
 uint32 EPICSPVAInput::GetCPUMask() const {
     return cpuMask;
-}
-
-bool EPICSPVAInput::Synchronise() {
-    return false;
 }
 
 CLASS_REGISTER(EPICSPVAInput, "1.0")
