@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class LinuxTimer (public, protected, and private). Be aware that some
+ * the class SDNSubscriber (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
