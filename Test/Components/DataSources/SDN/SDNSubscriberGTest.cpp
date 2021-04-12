@@ -139,6 +139,11 @@ TEST(SDNSubscriberGTest, TestInitialise_False_Address_5) {
     ASSERT_TRUE(test.TestInitialise_False_Address_5());
 }
 
+TEST(SDNSubscriberGTest, TestInitialise_False_Invalid_ExecutionMode) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestInitialise_False_Invalid_ExecutionMode());
+}
+
 TEST(SDNSubscriberGTest, TestSetConfiguredDatabase) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
@@ -278,6 +283,43 @@ TEST(SDNSubscriberGTest, TestSynchronise_UCAST_Topic_3) {
     SDNSubscriberTest test;
     ASSERT_TRUE(test.TestSynchronise_UCAST_Topic_3());
 }
+
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_RTT) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_RTT());
+}
+
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_RTT_Trigger) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_RTT_Trigger());
+}
+
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Topic_RTT_GetLatest) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_Topic_RTT_GetLatest());
+}
+
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_Timeout) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_Timeout());
+}
+
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_RTT_Timeout) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_RTT_Timeout());
+}
+
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_IgnoreTimeoutError) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_IgnoreTimeoutError());
+}
+
+TEST(SDNSubscriberGTest, TestSynchronise_MCAST_RTT_IgnoreTimeoutError) {
+    SDNSubscriberTest test;
+    ASSERT_TRUE(test.TestSynchronise_MCAST_RTT_IgnoreTimeoutError());
+}
+
+
 #ifdef FEATURE_10840
 TEST(SDNSubscriberGTest, TestSynchronise_NetworkByteOrder_Topic_1) {
     SDNSubscriberTest test;
