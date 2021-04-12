@@ -52,6 +52,7 @@
 /*Cannot include "sdn-header.h" otherwise lint gets lost in secondary includes.*/
 #if ((defined(LINT)) || (!defined(FEATURE_10840)))
 namespace sdn {
+//! @cond Doxygen_Suppress
 /*lint -e{970} -estring(754, "sdn::Header_t::*") -estring(770, "*sdn::Header_t*") -estring(9109, "*sdn::Header_t*")*/
 typedef struct {
   char     header_uid [4];
@@ -66,6 +67,7 @@ typedef struct {
   uint64_t recv_time;
 
 } Header_t;
+//! @endcond
 }
 #endif
 
