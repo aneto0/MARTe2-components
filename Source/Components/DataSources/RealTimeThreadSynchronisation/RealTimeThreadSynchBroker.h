@@ -63,8 +63,9 @@ public:
      * @param[in] dataSourceIn the RealTimeThreadSynchronisation DataSourceI instance using this broker.
      * @param[in] functionIdxIn the index of the function in the DataSourceI.
      * @param[in] timeoutIn the maximum time to wait for the expected number of samples to be available.
+     * @param[in] waitForNextIn if 1 first reset and then wait at the synchronisation point.
      */
-    void SetFunctionIndex(DataSourceI *dataSourceIn, uint32 functionIdxIn, const TimeoutType & timeoutIn);
+    void SetFunctionIndex(DataSourceI *dataSourceIn, uint32 functionIdxIn, const TimeoutType & timeoutIn, const uint8 waitForNextIn);
 
     /**
      * @brief Allocates memory to hold N copies of the dataSourceMemoryIn, where the N is the number of samples that are to be
@@ -156,6 +157,16 @@ private:
      * Synchronisation timeout
      */
     TimeoutType timeout;
+
+    /**
+     * If 1 => first reset and then wait at the synchronisation point.
+     */
+    uint8 waitForNext;
+
+    /**
+     * Protect the event sem
+     */
+    FastPollingMutexSem mux;
 };
 }
 

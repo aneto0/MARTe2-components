@@ -138,4 +138,10 @@ TEST(RealTimeThreadSynchronisationGTest,TestSynchronise) {
     RealTimeThreadSynchronisationTest test;
     ASSERT_TRUE(test.TestSynchronise());
 }
+
+TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase_WaitForNext) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_WaitForNext());
+}
+
 	

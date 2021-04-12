@@ -53,6 +53,8 @@ RealTimeThreadSynchBroker::RealTimeThreadSynchBroker() :
     numberOfSamples = 0u;
     currentSample = 0u;
     dataSource = NULL_PTR(DataSourceI *);
+    waitForNext = 0u;
+    mux.Create();
 }
 
 /*lint -e{1551} -e{1740} must free the allocated memory in the destructor and close the semaphore. The dataSourceMemory,
@@ -75,10 +77,11 @@ RealTimeThreadSynchBroker::~RealTimeThreadSynchBroker() {
     (void) synchSem.Close();
 }
 
-void RealTimeThreadSynchBroker::SetFunctionIndex(DataSourceI * const dataSourceIn, const uint32 functionIdxIn, const TimeoutType & timeoutIn) {
+void RealTimeThreadSynchBroker::SetFunctionIndex(DataSourceI * const dataSourceIn, const uint32 functionIdxIn, const TimeoutType & timeoutIn, const uint8 waitForNextIn) {
     dataSource = dataSourceIn;
     functionIdx = functionIdxIn;
     timeout = timeoutIn;
+    waitForNext = waitForNextIn;
     if (dataSource != NULL_PTR(DataSourceI *)) {
         (void) dataSource->GetFunctionName(functionIdx, gamName);
     }
@@ -164,7 +167,10 @@ bool RealTimeThreadSynchBroker::AddSample() {
     currentSample++;
     if (currentSample == numberOfSamples) {
         currentSample = 0u;
-        ok = synchSem.Post();
+        if(mux.FastLock() == ErrorManagement::NoError) {
+            ok = synchSem.Post();
+        }
+        mux.FastUnLock();
     }
     return ok;
 }
@@ -174,9 +180,27 @@ const char8 * const RealTimeThreadSynchBroker::GetGAMName() {
 }
 
 bool RealTimeThreadSynchBroker::Execute() {
-    bool ok = (synchSem.Wait(timeout) == ErrorManagement::NoError);
-    if (ok) {
-        ok = synchSem.Reset();
+    bool ok = true;
+   
+    //First Reset 
+    if (waitForNext == 1u) {
+        if(mux.FastLock() == ErrorManagement::NoError) {
+            ok = synchSem.Reset();
+        }
+        mux.FastUnLock();
+        if (ok) {
+            ok = (synchSem.Wait(timeout) == ErrorManagement::NoError);
+        }
+    }
+    //First wait
+    else {
+        ok = (synchSem.Wait(timeout) == ErrorManagement::NoError);
+        if (ok) {
+            if(mux.FastLock() == ErrorManagement::NoError) {
+                ok = synchSem.Reset();
+            }
+            mux.FastUnLock();
+        }
     }
     if (ok) {
         ok = MemoryMapInputBroker::Execute();

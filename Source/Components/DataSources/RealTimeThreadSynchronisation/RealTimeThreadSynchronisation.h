@@ -52,6 +52,10 @@ namespace MARTe {
  *
  * The number of samples for all the signals of any given GAM reading from this DataSource shall be the same.
  *
+ * If the parameter WaitForNext is set to 1, the synchronisation thread will first reset and then wait on the event semaphore. This can be 
+ * useful if cycles were lost and the thread should wait for the next synchronisation cycle. The default behaviour (WaitForNext=0) is to 
+ * first wait and then reset the semaphore and, as a consequence, if the semaphore had already been posted, it will not wait.
+ *
  * The configuration syntax is (names are only given as an example):
  * <pre>
  * +Functions = {"
@@ -279,6 +283,11 @@ private:
      * Synchronisation timeout
      */
     TimeoutType timeout;
+
+    /**
+     * If 1 => first reset and then wait at the synchronisation point.
+     */
+    uint8 waitForNext;
 };
 }
 

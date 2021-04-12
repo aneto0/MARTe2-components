@@ -50,6 +50,7 @@ RealTimeThreadSynchronisation::RealTimeThreadSynchronisation() :
     memoryOffsets = NULL_PTR(uint32 *);
     synchInputBrokers = NULL_PTR(RealTimeThreadSynchBroker **);
     currentInitBrokerIndex = -1;
+    waitForNext = 0u;
 }
 
 /*lint -e{1551} must free the allocated memory in the destructor. */
@@ -121,6 +122,10 @@ bool RealTimeThreadSynchronisation::GetInputBrokers(ReferenceContainer& inputBro
         }
     }
     if (broker.IsValid()) {
+        StreamString brokerName = functionName;
+        brokerName += ".InputBroker.";
+        brokerName += "RealTimeThreadSynchBroker";
+        broker->SetName(brokerName.Buffer());
         ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
     }
     if (ok) {
@@ -135,6 +140,11 @@ bool RealTimeThreadSynchronisation::GetOutputBrokers(ReferenceContainer& outputB
     currentInitBrokerIndex = -1;
     bool ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
     if (ok) {
+        StreamString brokerName = functionName;
+        brokerName += ".OutputBroker.";
+        brokerName += "MemoryMapSynchronisedOutputBroker";
+        broker->SetName(brokerName.Buffer());
+
         ok = outputBrokers.Insert(broker);
     }
 
@@ -156,6 +166,9 @@ bool RealTimeThreadSynchronisation::Initialise(StructuredDataI & data) {
         else {
             timeout = 1000u;
         }
+    }
+    if (!data.Read("WaitForNext", waitForNext)) {
+        waitForNext = 0u;
     }
     return ok;
 }
@@ -228,7 +241,7 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
             else {
                 ReferenceT<RealTimeThreadSynchBroker> synchInputBroker(new RealTimeThreadSynchBroker());
                 (void) synchInputBrokersContainer.Insert(synchInputBroker);
-                synchInputBroker->SetFunctionIndex(this, n, timeout);
+                synchInputBroker->SetFunctionIndex(this, n, timeout, waitForNext);
             }
         }
     }

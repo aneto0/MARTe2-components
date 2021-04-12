@@ -101,6 +101,11 @@ public:
     bool TestSetConfiguredDatabase();
 
     /**
+     * @brief Tests the SetConfiguredDatabase method with WaitForNext=1.
+     */
+    bool TestSetConfiguredDatabase_WaitForNext();
+
+    /**
      * @brief Tests the SetConfiguredDatabase method without specifying any consumer or producer GAM.
      */
     bool TestSetConfiguredDatabase_NoInteraction();
