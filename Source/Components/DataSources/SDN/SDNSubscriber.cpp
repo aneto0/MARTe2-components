@@ -37,7 +37,9 @@
 #include "MemoryMapInputBroker.h"
 #include "MemoryMapSynchronisedInputBroker.h"
 #include "SDNSubscriber.h"
+#ifdef FEATURE_10840
 #include "Endianity.h"
+#endif
 #include "sdn-api.h" /* SDN core library - API definition (sdn::core) */
 /*lint -estring(843,"*crc.h*") ignore could be declared const warning from the crc.h header*/
 /*---------------------------------------------------------------------------*/
@@ -52,11 +54,11 @@ namespace MARTe {
 /**
  * Execute in the context of the real-time thread.
  */
-const uint32 SDN_SUB_EXEC_MODE_RTTHREAD = 1u;
+const uint8 SDN_SUB_EXEC_MODE_RTTHREAD = 1u;
 /**
  * Execute in the context of a spawned thread.
  */
-const uint32 SDN_SUB_EXEC_MODE_SPAWNED = 2u;
+const uint8 SDN_SUB_EXEC_MODE_SPAWNED = 2u;
 
 SDNSubscriber::SDNSubscriber() :
         DataSourceI(),
@@ -175,7 +177,7 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
     }
 
     if (!data.Read("InternalTimeout", internalTimeout)) {
-        internalTimeout = 1000000000ul;
+        internalTimeout = 1000000000u;
         REPORT_ERROR(ErrorManagement::Information, "Set default InternalTimeout to '%u'", internalTimeout);
     }
     if (!data.Read("IgnoreTimeoutError", ignoreTimeoutError)) {
@@ -588,36 +590,35 @@ bool SDNSubscriber::PrepareNextState(const char8* const currentStateName,
     }
 
     //used in the next but not in the current, reset semaphore and empty stack
-    if (numberOfReadWriteNext > 0u && numberOfReadWriteCurrent == 0u) {
-        if (ok) {
-            bool empty = false;
-            while (!empty) {
-                /*lint -e{613} The reference can not be NULL in this portion of the code.*/
-                empty = (subscriber->Receive(0ul) != STATUS_SUCCESS);
-            }
-        }
+    if (numberOfReadWriteNext > 0u) {
+       if(numberOfReadWriteCurrent == 0u) {
+           if (ok) {
+               bool empty = false;
+               while (!empty) {
+                   /*lint -e{613} The reference can not be NULL in this portion of the code.*/
+                   empty = (subscriber->Receive(0ul) != STATUS_SUCCESS);
+               }
+           }
 
-        if (ok) {
-            if (executionMode == SDN_SUB_EXEC_MODE_SPAWNED) {
-                if (executor.GetStatus() == EmbeddedThreadI::OffState) {
-                    if (cpuMask != 0ull) {
-                        executor.SetCPUMask(cpuMask);
-                    }
-                    // Start the SingleThreadService
-                    ok = executor.Start();
-                }
-            }
-        }
-        synchronisingSem.Reset();
+           if (ok) {
+               if (executionMode == SDN_SUB_EXEC_MODE_SPAWNED) {
+                   if (executor.GetStatus() == EmbeddedThreadI::OffState) {
+                       if (cpuMask != 0ull) {
+                           executor.SetCPUMask(BitSet(cpuMask));
+                       }
+                       // Start the SingleThreadService
+                       ok = executor.Start();
+                   }
+               }
+           }
+           (void) synchronisingSem.Reset();
+       }
     }
 
     return ok;
 }
 
 bool SDNSubscriber::Synchronise() {
-
-    //bool ok = synchronising; // DataSource is synchronising RT thread
-    bool ok = true;
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (executionMode == SDN_SUB_EXEC_MODE_RTTHREAD) {
         ExecutionInfo info;
@@ -626,14 +627,12 @@ bool SDNSubscriber::Synchronise() {
     else {
         // Get latest but don´t wait for next if arrived
         err = synchronisingSem.Wait(TTTimeout);
-        synchronisingSem.Reset();
+        (void) synchronisingSem.Reset();
         if (ignoreTimeoutError > 0u) {
             err = ErrorManagement::NoError;
         }
     }
-    ok = err.ErrorsCleared();
-
-    return ok;
+    return err.ErrorsCleared();
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the method operates regardless of the input parameter.*/
@@ -666,7 +665,7 @@ ErrorManagement::ErrorType SDNSubscriber::Execute(ExecutionInfo& info) {
 
         if (needBlock) {
             /*lint -e{613} The reference can not be NULL in this portion of the code.*/
-            ok = (subscriber->Receive(internalTimeout) == STATUS_SUCCESS);
+            ok = (subscriber->Receive(static_cast<osulong>(internalTimeout)) == STATUS_SUCCESS);
         }
 
         if (!ok) {
