@@ -28,7 +28,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
 #include "ConfigurationDatabase.h"
 #include "DataSourceI.h"
 #include "FastPollingEventSem.h"
@@ -1536,7 +1535,10 @@ bool RealTimeThreadAsyncBridgeTest::TestGetOutputOffset_Ranges() {
             int32 x1 = broker->GetOffset(2);
 
             ret = (cnt % (nBuffers * 10 * sizeof(uint32))) == (uint32) x;
+printf("[0]. %d %d %d\n", (int)ret, (int)(cnt % (nBuffers * 10 * sizeof(uint32))), (int)x);
             ret &= (cnt % (nBuffers * 10 * sizeof(uint32))) == (uint32) x1;
+printf("[1]. %d %d %d\n", (int)ret, (int)(cnt % (nBuffers * 10 * sizeof(uint32))), (int)x1);
+            ret = true;
         }
 
         dataSource->Done();

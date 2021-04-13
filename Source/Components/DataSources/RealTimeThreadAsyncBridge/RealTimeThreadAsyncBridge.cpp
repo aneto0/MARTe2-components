@@ -47,19 +47,20 @@
 //Trigger=1 for the writers
 //Last refreshed mechanism based on an incrementing counter... write on the oldest and read on the newest
 namespace MARTe {
-
 RealTimeThreadAsyncBridge::RealTimeThreadAsyncBridge() :
-        MemoryDataSourceI(), MessageI(), resetTimeout() {
+        MemoryDataSourceI(),
+        resetTimeout() {
     spinlocksRead = NULL_PTR(volatile int32 *);
     spinlocksWrite = NULL_PTR(FastPollingMutexSem *);
     whatIsNewestCounter = NULL_PTR(uint32 *);
     whatIsNewestGlobCounter = NULL_PTR(uint32 *);
-    ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT<RegisteredMethodsMessageFilter> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT < RegisteredMethodsMessageFilter > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
     if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
     }
+    blockingMode = 0u;
 }
 
 RealTimeThreadAsyncBridge::~RealTimeThreadAsyncBridge() {
@@ -89,6 +90,17 @@ bool RealTimeThreadAsyncBridge::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "The maximum allowed numberOfBuffers is 64");
         }
 
+        if (!data.Read("BlockingMode", blockingMode)) {
+            blockingMode = 0u;
+        }
+        if (blockingMode > 0u) {
+            REPORT_ERROR(ErrorManagement::Information, "BlockingMode set: NumberOfBuffers will be set to 1");
+            numberOfBuffers = 1u;
+        }
+
+        if (numberOfBuffers == 1u) {
+            REPORT_ERROR(ErrorManagement::InitialisationError, "NumberOfBuffers==1, use blocking mode");
+        }
         uint32 resetTimeoutT;
         if (!data.Read("ResetMSecTimeout", resetTimeoutT)) {
             resetTimeout = TTInfiniteWait;
@@ -100,7 +112,9 @@ bool RealTimeThreadAsyncBridge::Initialise(StructuredDataI &data) {
 
 /*lint -e{715} symbols not referenced.*/
 /*lint -e{613} null pointer checked before.*/
-bool RealTimeThreadAsyncBridge::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName) {
+bool RealTimeThreadAsyncBridge::PrepareNextState(const char8 * const currentStateName,
+                                                  const char8 * const nextStateName) {
+
     return true;
 }
 
@@ -196,36 +210,47 @@ bool RealTimeThreadAsyncBridge::SetConfiguredDatabase(StructuredDataI & data) {
 
 /*lint -e{715} symbols not referenced.*/
 /*lint -e{613} null pointer checked before.*/
-bool RealTimeThreadAsyncBridge::GetInputOffset(const uint32 signalIdx, const uint32 numberOfSamples, uint32 &offset) {
+bool RealTimeThreadAsyncBridge::GetInputOffset(const uint32 signalIdx,
+                                                const uint32 numberOfSamples,
+                                                uint32 &offset) {
 
     bool ok = false;
-    uint64 checkedMask = 0ull;
-    for (uint32 k = 0u; (k < numberOfBuffers) && (!ok); k++) {
-        //check the last written
-        uint32 bufferIdx = 0u;
-        uint32 max = 0u;
-        for (uint32 h = 0u; (h < numberOfBuffers); h++) {
-            uint32 index = (signalIdx * numberOfBuffers) + h;
-            if (spinlocksWrite[index].FastTryLock()) {
-                uint32 tempMax = whatIsNewestCounter[index];
-                spinlocksWrite[index].FastUnLock();
-                if ((tempMax >= max) && (((1ull << h) & checkedMask) == 0u)) {
-                    max = tempMax;
-                    bufferIdx = h;
+    if (blockingMode) {
+        if (spinlocksWrite[signalIdx].FastLock()) {
+            Atomic::Increment(&spinlocksRead[signalIdx]);
+            spinlocksWrite[signalIdx].FastUnLock();
+            offset = 0u;
+            ok = true;
+        }
+    }
+    else {
+        uint64 checkedMask = 0ull;
+        for (uint32 k = 0u; (k < numberOfBuffers) && (!ok); k++) {
+            //check the last written
+            uint32 bufferIdx = 0u;
+            uint32 max = 0u;
+            for (uint32 h = 0u; (h < numberOfBuffers); h++) {
+                uint32 index = (signalIdx * numberOfBuffers) + h;
+                if (spinlocksWrite[index].FastTryLock()) {
+                    uint32 tempMax = whatIsNewestCounter[index];
+                    spinlocksWrite[index].FastUnLock();
+                    if (tempMax > max) {
+                        max = tempMax;
+                        bufferIdx = h;
+                    }
                 }
             }
-        }
 
-        checkedMask |= (1ull << bufferIdx);
-        ok = false;
-        //try to lock the next buffer to write
-        uint32 index = (signalIdx * numberOfBuffers) + bufferIdx;
+            ok = false;
+            //try to lock the next buffer to write
+            uint32 index = (signalIdx * numberOfBuffers) + bufferIdx;
 
-        if (spinlocksWrite[index].FastTryLock()) {
-            Atomic::Increment(&spinlocksRead[index]);
-            spinlocksWrite[index].FastUnLock();
-            offset = (signalSize[signalIdx] * bufferIdx);
-            ok = true;
+            if (spinlocksWrite[index].FastTryLock()) {
+                Atomic::Increment(&spinlocksRead[index]);
+                spinlocksWrite[index].FastUnLock();
+                offset = (signalSize[signalIdx] * bufferIdx);
+                ok = true;
+            }
         }
     }
 
@@ -234,47 +259,60 @@ bool RealTimeThreadAsyncBridge::GetInputOffset(const uint32 signalIdx, const uin
 
 /*lint -e{715} symbols not referenced.*/
 /*lint -e{613} null pointer checked before.*/
-bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx, const uint32 numberOfSamples, uint32 &offset) {
+bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx,
+                                                 const uint32 numberOfSamples,
+                                                 uint32 &offset) {
     bool ok = false;
-
-    uint64 checkedMask = 0ull;
-    for (uint32 k = 0u; (k < numberOfBuffers) && (!ok); k++) {
-        //check the oldest written
-        uint32 min = 0xFFFFFFFFu;
-        uint32 max = 0u;
-        uint32 bufferIdx = 0u;
-        uint32 newestBuffer = 0u;
-        for (uint32 h = 0u; (h < numberOfBuffers); h++) {
-            uint32 index = (signalIdx * numberOfBuffers) + h;
-            uint32 temp = whatIsNewestCounter[index];
-            if ((temp < min) && (((1ull << h) & checkedMask) == 0ull)) {
-                min = temp;
-                bufferIdx = h;
-            }
-            if (temp > max) {
-                max = temp;
-                newestBuffer = h;
-            }
+    if (blockingMode) {
+        if (spinlocksWrite[signalIdx].FastLock()) {
+            //wait the reader to finish
+            while (spinlocksRead[signalIdx] > 0)
+                ;
+            ok = true;
+            offset = 0u;
         }
-        checkedMask |= (1ull << bufferIdx);
-        ok = false;
-        //try to lock the next buffer to write
-        uint32 index = (signalIdx * numberOfBuffers) + bufferIdx;
-        if (spinlocksWrite[index].FastTryLock()) {
-            if (spinlocksRead[index] == 0) {
-                offset = (signalSize[signalIdx] * bufferIdx);
-                uint32 newestOffset = (signalSize[signalIdx] * newestBuffer);
-                uint32 newestIndex = (signalIdx * numberOfBuffers) + newestBuffer;
-                //do this in case of ranges
-                if (spinlocksWrite[newestIndex].FastTryLock()) {
-                    (void) MemoryOperationsHelper::Copy(&memory[signalOffsets[signalIdx] + offset], &memory[signalOffsets[signalIdx] + newestOffset],
-                                                        signalSize[signalIdx]);
-                    spinlocksWrite[newestIndex].FastUnLock();
+    }
+    else {
+
+        uint64 checkedMask = 0ull;
+        for (uint32 k = 0u; (k < numberOfBuffers) && (!ok); k++) {
+            //check the oldest written
+            uint32 min = 0xFFFFFFFFu;
+            uint32 max = 0u;
+            uint32 bufferIdx = 0u;
+            uint32 newestBuffer = 0u;
+            for (uint32 h = 0u; (h < numberOfBuffers); h++) {
+                uint32 index = (signalIdx * numberOfBuffers) + h;
+                uint32 temp = whatIsNewestCounter[index];
+                if ((temp < min) && (((1ull << h) & checkedMask) == 0ull)) {
+                    min = temp;
+                    bufferIdx = h;
                 }
-                ok = true;
+                if (temp > max) {
+                    max = temp;
+                    newestBuffer = h;
+                }
             }
-            else {
-                spinlocksWrite[index].FastUnLock();
+            checkedMask |= (1ull << bufferIdx);
+            ok = false;
+            //try to lock the next buffer to write
+            uint32 index = (signalIdx * numberOfBuffers) + bufferIdx;
+            if (spinlocksWrite[index].FastTryLock()) {
+                if (spinlocksRead[index] == 0) {
+                    offset = (signalSize[signalIdx] * bufferIdx);
+                    uint32 newestOffset = (signalSize[signalIdx] * newestBuffer);
+                    uint32 newestIndex = (signalIdx * numberOfBuffers) + newestBuffer;
+                    //do this in case of ranges
+                    if (spinlocksWrite[newestIndex].FastTryLock()) {
+                        (void) MemoryOperationsHelper::Copy(&memory[signalOffsets[signalIdx] + offset], &memory[signalOffsets[signalIdx] + newestOffset],
+                                                            signalSize[signalIdx]);
+                        spinlocksWrite[newestIndex].FastUnLock();
+                    }
+                    ok = true;
+                }
+                else {
+                    spinlocksWrite[index].FastUnLock();
+                }
             }
         }
     }
@@ -284,7 +322,9 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx, const ui
 
 /*lint -e{715} numberOfSamples not required for this implementation.*/
 /*lint -e{613} null pointer checked before.*/
-bool RealTimeThreadAsyncBridge::TerminateInputCopy(const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples) {
+bool RealTimeThreadAsyncBridge::TerminateInputCopy(const uint32 signalIdx,
+                                                    const uint32 offset,
+                                                    const uint32 numberOfSamples) {
 
     uint32 buffNumber = (offset / signalSize[signalIdx]);
     uint32 index = (signalIdx * numberOfBuffers) + buffNumber;
@@ -294,7 +334,9 @@ bool RealTimeThreadAsyncBridge::TerminateInputCopy(const uint32 signalIdx, const
 
 /*lint -e{715} numberOfSamples not required for this implementation.*/
 /*lint -e{613} null pointer checked before.*/
-bool RealTimeThreadAsyncBridge::TerminateOutputCopy(const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples) {
+bool RealTimeThreadAsyncBridge::TerminateOutputCopy(const uint32 signalIdx,
+                                                     const uint32 offset,
+                                                     const uint32 numberOfSamples) {
     uint32 buffNumber = (offset / signalSize[signalIdx]);
 
     uint32 index = (signalIdx * numberOfBuffers) + buffNumber;
@@ -332,11 +374,11 @@ bool RealTimeThreadAsyncBridge::TerminateOutputCopy(const uint32 signalIdx, cons
     }
     spinlocksWrite[index].FastUnLock();
 
-
     return true;
 }
 
-const char8 *RealTimeThreadAsyncBridge::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
+const char8 *RealTimeThreadAsyncBridge::GetBrokerName(StructuredDataI &data,
+                                                       const SignalDirection direction) {
 
     const char8* brokerName = NULL_PTR(const char8 *);
 
@@ -382,5 +424,4 @@ ErrorManagement::ErrorType RealTimeThreadAsyncBridge::ResetSignalValue() {
 
 CLASS_REGISTER(RealTimeThreadAsyncBridge, "1.0")
 CLASS_METHOD_REGISTER(RealTimeThreadAsyncBridge, ResetSignalValue)
-
 }

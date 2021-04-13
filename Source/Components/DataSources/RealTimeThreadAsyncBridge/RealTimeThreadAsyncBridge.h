@@ -57,6 +57,7 @@ namespace MARTe {
  *    Class = RealTimeThreadAsyncBridge
  *    NumberOfBuffers = 3 //Optional but < 64. Default = 1. Each buffer contains a copy of each signal.
  *    HeapName = "Default" //Optional. Default = GlobalObjectsDatabase::Instance()->GetStandardHeap();
+ *    BlockingMode = 0 //Optional. Default = 0 TODO
  *    ResetMSecTimeout = 1 //Optional. Default = TTInfiniteWait. The TerminateOutputCopy function can block when the counter used to newest written buffer overflows and needs to be reset.
  *                                                               If the reader should wait for this counter to be properly reset then the ResetMSecTimeout should
  *                                                               be increased to a large number. If instead the reader does not mind to get oldest buffer (instead of the newest) while this reset operation
@@ -196,6 +197,10 @@ protected:
      */
     TimeoutType resetTimeout;
 
+    /**
+     * TODO
+     */
+    uint8 blockingMode;
 };
 
 }
