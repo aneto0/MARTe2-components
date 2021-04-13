@@ -54,6 +54,12 @@ RealTimeThreadAsyncBridge::RealTimeThreadAsyncBridge() :
     spinlocksWrite = NULL_PTR(FastPollingMutexSem *);
     whatIsNewestCounter = NULL_PTR(uint32 *);
     whatIsNewestGlobCounter = NULL_PTR(uint32 *);
+    ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT<RegisteredMethodsMessageFilter> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    filter->SetDestination(this);
+    ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
+    if (!ret.ErrorsCleared()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
+    }
 }
 
 RealTimeThreadAsyncBridge::~RealTimeThreadAsyncBridge() {
