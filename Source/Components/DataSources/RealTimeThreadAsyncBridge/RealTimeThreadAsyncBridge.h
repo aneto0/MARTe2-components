@@ -33,6 +33,7 @@
 /*---------------------------------------------------------------------------*/
 #include "FastPollingMutexSem.h"
 #include "MemoryDataSourceI.h"
+#include "MessageI.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -48,6 +49,8 @@ namespace MARTe {
  * writer is guaranteed by spinlock semaphores, one for each buffer of each signal. If no buffer is available for the writer, the GetOutputOffset
  * function returns false. The same happens if there is no buffer available for the reader (impossible if more than one buffer has been declared),
  * in this case the GetInputOffset returns false.
+ *
+ * The RPC method ResetSignalValue allows to reset all the signal values.
  *
   * <pre>
  * +ThisDataSourceIObjectName = {
@@ -69,7 +72,7 @@ namespace MARTe {
  * }
  * </pre>
  */
-class RealTimeThreadAsyncBridge: public MemoryDataSourceI {
+class RealTimeThreadAsyncBridge: public MemoryDataSourceI, public MessageI {
 public:
     CLASS_REGISTER_DECLARATION()
 
@@ -156,9 +159,14 @@ RealTimeThreadAsyncBridge    ();
 
     /**
      * @see DataSourceI::GetBrokerName
-     * @returns .
+     * @returns the broker name.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data, const SignalDirection direction);
+
+    /**
+     * @brief RPC call to reset all the signal values.
+     */
+    ErrorManagement::ErrorType ResetSignalValue();
 
 protected:
 
@@ -181,23 +189,6 @@ protected:
      * The counter incremented for each signal at the end of the write operation
      */
     uint32 *whatIsNewestGlobCounter;
-
-    /**
-     * The number of write operations for each signal
-     */
-    uint32 *writeOp;
-
-    /**
-     * Initialised equal to \a writeOp and decremented in TerminateOutputCopy.
-     * When it reaches zero, the \a spinlocksWrite semaphore for the signal
-     * is unlocked.
-     */
-    uint32 *writeOpCounter;
-
-    /**
-     * Stores the signal offset in case of more write operations.
-     */
-    uint32 *offsetStore;
 
     /**
      * The timeout in millisecs to lock the other \a spinlocksWrite semaphores

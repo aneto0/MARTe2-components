@@ -32,6 +32,9 @@
 #include "AdvancedErrorManagement.h"
 #include "Atomic.h"
 #include "RealTimeThreadAsyncBridge.h"
+#include "CLASSMETHODREGISTER.h"
+#include "RegisteredMethodsMessageFilter.h"
+#include "ReferenceContainerFilterReferences.h"
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -46,14 +49,11 @@
 namespace MARTe {
 
 RealTimeThreadAsyncBridge::RealTimeThreadAsyncBridge() :
-        MemoryDataSourceI(), resetTimeout() {
+        MemoryDataSourceI(), MessageI(), resetTimeout() {
     spinlocksRead = NULL_PTR(volatile int32 *);
     spinlocksWrite = NULL_PTR(FastPollingMutexSem *);
     whatIsNewestCounter = NULL_PTR(uint32 *);
     whatIsNewestGlobCounter = NULL_PTR(uint32 *);
-    writeOp = NULL_PTR(uint32 *);
-    writeOpCounter = NULL_PTR(uint32 *);
-    offsetStore = NULL_PTR(uint32 *);
 }
 
 RealTimeThreadAsyncBridge::~RealTimeThreadAsyncBridge() {
@@ -65,10 +65,6 @@ RealTimeThreadAsyncBridge::~RealTimeThreadAsyncBridge() {
         delete[] spinlocksWrite;
         spinlocksWrite = NULL_PTR(FastPollingMutexSem *);
     }
-    if (offsetStore != NULL_PTR(uint32 *)) {
-        delete[] offsetStore;
-        spinlocksWrite = NULL_PTR(FastPollingMutexSem *);
-    }
     if (whatIsNewestCounter != NULL_PTR(uint32 *)) {
         delete[] whatIsNewestCounter;
         whatIsNewestCounter = NULL_PTR(uint32 *);
@@ -76,14 +72,6 @@ RealTimeThreadAsyncBridge::~RealTimeThreadAsyncBridge() {
     if (whatIsNewestGlobCounter != NULL_PTR(uint32 *)) {
         delete[] whatIsNewestGlobCounter;
         whatIsNewestGlobCounter = NULL_PTR(uint32 *);
-    }
-    if (writeOp != NULL_PTR(uint32 *)) {
-        delete[] writeOp;
-        writeOp = NULL_PTR(uint32 *);
-    }
-    if (writeOpCounter != NULL_PTR(uint32 *)) {
-        delete[] writeOpCounter;
-        writeOpCounter = NULL_PTR(uint32 *);
     }
 }
 
@@ -107,52 +95,6 @@ bool RealTimeThreadAsyncBridge::Initialise(StructuredDataI &data) {
 /*lint -e{715} symbols not referenced.*/
 /*lint -e{613} null pointer checked before.*/
 bool RealTimeThreadAsyncBridge::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName) {
-
-    bool ret = true;
-
-    for (uint32 i = 0u; (i < numberOfSignals) && (ret); i++) {
-        writeOp[i] = 0u;
-        writeOpCounter[i] = 0u;
-
-        uint32 numberOfStates = 0u;
-        ret = GetSignalNumberOfStates(i, numberOfStates);
-        for (uint32 j = 0u; (j < numberOfStates) && (ret); j++) {
-            StreamString stateName;
-            ret = GetSignalStateName(i, j, stateName);
-            if (ret) {
-                if (stateName == nextStateName) {
-                    uint32 numberOfFunctions = GetNumberOfFunctions();
-
-                    for (uint32 h = 0u; (h < numberOfFunctions) && (ret); h++) {
-                        uint32 numberOfFunctionSignals = 0u;
-                        ret = GetFunctionNumberOfSignals(OutputSignals, h, numberOfFunctionSignals);
-
-                        for (uint32 k = 0u; (k < numberOfFunctionSignals) && (ret); k++) {
-                            StreamString signalName;
-                            ret = GetFunctionSignalAlias(OutputSignals, h, k, signalName);
-                            uint32 signalIdx = 0u;
-                            if (ret) {
-                                ret = GetSignalIndex(signalIdx, signalName.Buffer());
-                            }
-                            if (signalIdx == i) {
-                                uint32 numberOfByteOffsets = 0u;
-                                if (ret) {
-                                    ret = GetFunctionSignalNumberOfByteOffsets(OutputSignals, h, k, numberOfByteOffsets);
-                                }
-                                if (ret) {
-                                    writeOp[i] += numberOfByteOffsets;
-                                }
-                            }
-                        }
-
-                    }
-                }
-            }
-        }
-        if (ret) {
-            writeOpCounter[i] = writeOp[i];
-        }
-    }
     return true;
 }
 
@@ -229,24 +171,6 @@ bool RealTimeThreadAsyncBridge::SetConfiguredDatabase(StructuredDataI & data) {
             }
         }
         if (ret) {
-            if (writeOp == NULL) {
-                writeOp = new uint32[numberOfSignals];
-                ret = (writeOp != NULL_PTR(uint32 *));
-            }
-        }
-        if (ret) {
-            if (writeOpCounter == NULL) {
-                writeOpCounter = new uint32[numberOfSignals];
-                ret = (writeOpCounter != NULL_PTR(uint32 *));
-            }
-        }
-        if (ret) {
-            if (offsetStore == NULL) {
-                offsetStore = new uint32[numberOfSignals];
-                ret = (offsetStore != NULL_PTR(uint32 *));
-            }
-        }
-        if (ret) {
             uint32 numberOfElements = (numberOfSignals * numberOfBuffers);
             for (uint32 i = 0u; i < numberOfElements; i++) {
                 spinlocksRead[i] = 0;
@@ -307,21 +231,23 @@ bool RealTimeThreadAsyncBridge::GetInputOffset(const uint32 signalIdx, const uin
 bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx, const uint32 numberOfSamples, uint32 &offset) {
     bool ok = false;
 
-    if (writeOpCounter[signalIdx] < writeOp[signalIdx]) {
-        offset = offsetStore[signalIdx];
-        ok = true;
-    }
     uint64 checkedMask = 0ull;
     for (uint32 k = 0u; (k < numberOfBuffers) && (!ok); k++) {
         //check the oldest written
         uint32 min = 0xFFFFFFFFu;
+        uint32 max = 0u;
         uint32 bufferIdx = 0u;
+        uint32 newestBuffer = 0u;
         for (uint32 h = 0u; (h < numberOfBuffers); h++) {
             uint32 index = (signalIdx * numberOfBuffers) + h;
-            uint32 tempMin = whatIsNewestCounter[index];
-            if ((tempMin < min) && (((1ull << h) & checkedMask) == 0ull)) {
-                min = tempMin;
+            uint32 temp = whatIsNewestCounter[index];
+            if ((temp < min) && (((1ull << h) & checkedMask) == 0ull)) {
+                min = temp;
                 bufferIdx = h;
+            }
+            if (temp > max) {
+                max = temp;
+                newestBuffer = h;
             }
         }
         checkedMask |= (1ull << bufferIdx);
@@ -331,6 +257,14 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx, const ui
         if (spinlocksWrite[index].FastTryLock()) {
             if (spinlocksRead[index] == 0) {
                 offset = (signalSize[signalIdx] * bufferIdx);
+                uint32 newestOffset = (signalSize[signalIdx] * newestBuffer);
+                uint32 newestIndex = (signalIdx * numberOfBuffers) + newestBuffer;
+                //do this in case of ranges
+                if (spinlocksWrite[newestIndex].FastTryLock()) {
+                    (void) MemoryOperationsHelper::Copy(&memory[signalOffsets[signalIdx] + offset], &memory[signalOffsets[signalIdx] + newestOffset],
+                                                        signalSize[signalIdx]);
+                    spinlocksWrite[newestIndex].FastUnLock();
+                }
                 ok = true;
             }
             else {
@@ -338,7 +272,6 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx, const ui
             }
         }
     }
-    offsetStore[signalIdx] = offset;
 
     return ok;
 }
@@ -356,47 +289,44 @@ bool RealTimeThreadAsyncBridge::TerminateInputCopy(const uint32 signalIdx, const
 /*lint -e{715} numberOfSamples not required for this implementation.*/
 /*lint -e{613} null pointer checked before.*/
 bool RealTimeThreadAsyncBridge::TerminateOutputCopy(const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples) {
-    writeOpCounter[signalIdx]--;
-    if (writeOpCounter[signalIdx] == 0u) {
-        uint32 buffNumber = (offset / signalSize[signalIdx]);
+    uint32 buffNumber = (offset / signalSize[signalIdx]);
 
-        uint32 index = (signalIdx * numberOfBuffers) + buffNumber;
-        whatIsNewestGlobCounter[signalIdx]++;
-        whatIsNewestCounter[index] = whatIsNewestGlobCounter[signalIdx];
+    uint32 index = (signalIdx * numberOfBuffers) + buffNumber;
+    whatIsNewestGlobCounter[signalIdx]++;
+    whatIsNewestCounter[index] = whatIsNewestGlobCounter[signalIdx];
 
-        //overflow... subtract the smaller one
-        if (whatIsNewestGlobCounter[signalIdx] == 0u) {
+    //overflow... subtract the smaller one
+    if (whatIsNewestGlobCounter[signalIdx] == 0u) {
 
-            uint32 min = 0xFFFFFFFFu;
-            for (uint32 h = 0u; (h < numberOfBuffers); h++) {
-                if (h != buffNumber) {
-                    uint32 index1 = (signalIdx * numberOfBuffers) + h;
-                    if (whatIsNewestCounter[index1] < min) {
-                        min = whatIsNewestCounter[index1];
-                    }
-                }
-
-            }
-
-            for (uint32 h = 0u; (h < numberOfBuffers); h++) {
+        uint32 min = 0xFFFFFFFFu;
+        for (uint32 h = 0u; (h < numberOfBuffers); h++) {
+            if (h != buffNumber) {
                 uint32 index1 = (signalIdx * numberOfBuffers) + h;
-                if (h != buffNumber) {
-                    bool blocked = spinlocksWrite[index1].FastLock(resetTimeout);
-                    if (blocked) {
-                        whatIsNewestCounter[index1] -= min;
-                        spinlocksWrite[index1].FastUnLock();
-                    }
+                if (whatIsNewestCounter[index1] < min) {
+                    min = whatIsNewestCounter[index1];
                 }
             }
-
-            whatIsNewestGlobCounter[signalIdx] -= min;
-            whatIsNewestCounter[index] -= min;
 
         }
 
-        writeOpCounter[signalIdx] = writeOp[signalIdx];
-        spinlocksWrite[index].FastUnLock();
+        for (uint32 h = 0u; (h < numberOfBuffers); h++) {
+            uint32 index1 = (signalIdx * numberOfBuffers) + h;
+            if (h != buffNumber) {
+                bool blocked = spinlocksWrite[index1].FastLock(resetTimeout);
+                if (blocked) {
+                    whatIsNewestCounter[index1] -= min;
+                    spinlocksWrite[index1].FastUnLock();
+                }
+            }
+        }
+
+        whatIsNewestGlobCounter[signalIdx] -= min;
+        whatIsNewestCounter[index] -= min;
+
     }
+    spinlocksWrite[index].FastUnLock();
+
+
     return true;
 }
 
@@ -422,5 +352,29 @@ const char8 *RealTimeThreadAsyncBridge::GetBrokerName(StructuredDataI &data, con
     return brokerName;
 }
 
+ErrorManagement::ErrorType RealTimeThreadAsyncBridge::ResetSignalValue() {
+    ErrorManagement::ErrorType err;
+    bool ret = true;
+    for (uint32 i = 0u; (i < numberOfSignals) && (ret); i++) {
+        //if the default value is declared use it to initialise
+        //otherwise null the memory
+        void *thisSignalMemory = NULL_PTR(void *);
+        if (ret) {
+            ret = GetSignalMemoryBuffer(i, 0u, thisSignalMemory);
+        }
+        if (ret) {
+            uint32 size = 0u;
+            ret = GetSignalByteSize(i, size);
+            if (ret) {
+                ret = MemoryOperationsHelper::Set(thisSignalMemory, '\0', (size * numberOfBuffers));
+            }
+        }
+    }
+    err = !ret;
+    return err;
+}
+
 CLASS_REGISTER(RealTimeThreadAsyncBridge, "1.0")
+CLASS_METHOD_REGISTER(RealTimeThreadAsyncBridge, ResetSignalValue)
+
 }
