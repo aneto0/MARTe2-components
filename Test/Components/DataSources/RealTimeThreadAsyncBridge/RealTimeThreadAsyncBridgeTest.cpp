@@ -53,7 +53,7 @@ class RealTimeThreadAsyncBridgeTestDS: public RealTimeThreadAsyncBridge {
 public:
     CLASS_REGISTER_DECLARATION()
 
-RealTimeThreadAsyncBridgeTestDS    ();
+    RealTimeThreadAsyncBridgeTestDS();
 
     virtual ~RealTimeThreadAsyncBridgeTestDS();
 
@@ -71,16 +71,18 @@ RealTimeThreadAsyncBridgeTestDS    ();
 
     virtual void PrepareOutputOffsets();
 
-    void SetNewestCounter(uint32 newestCounter, uint32 signalIdx);
+    void SetNewestCounter(uint32 newestCounter,
+                          uint32 signalIdx);
 
     virtual const char8 *GetBrokerName(StructuredDataI &data,
-            const SignalDirection direction);
+                                       const SignalDirection direction);
 
     void Done();
 
     EventSem goSemRead;
     EventSem goSemWrite;
-    volatile int32 cnt;
+    uint32 flagRead;
+    uint32 flagWrite;
     bool done;
 
 };
@@ -88,11 +90,13 @@ RealTimeThreadAsyncBridgeTestDS    ();
 RealTimeThreadAsyncBridgeTestDS::RealTimeThreadAsyncBridgeTestDS() {
     goSemRead.Create();
     goSemWrite.Create();
-    cnt = -1;
+    flagWrite = 0u;
+    flagRead = 0u;
     done = false;
 }
 
-void RealTimeThreadAsyncBridgeTestDS::SetNewestCounter(uint32 newestCounter, uint32 signalIdx) {
+void RealTimeThreadAsyncBridgeTestDS::SetNewestCounter(uint32 newestCounter,
+                                                       uint32 signalIdx) {
     whatIsNewestGlobCounter[signalIdx] = newestCounter;
 
     for (uint32 i = 0u; i < numberOfBuffers; i++) {
@@ -119,14 +123,18 @@ EventSem *RealTimeThreadAsyncBridgeTestDS::GetEventWrite() {
 
 void RealTimeThreadAsyncBridgeTestDS::PrepareInputOffsets() {
     if (!done) {
+        flagRead=3u;
         goSemRead.ResetWait(TTInfiniteWait);
+        flagRead = 0u;
     }
 
 }
 
 void RealTimeThreadAsyncBridgeTestDS::PrepareOutputOffsets() {
     if (!done) {
+        flagWrite=3u;
         goSemWrite.ResetWait(TTInfiniteWait);
+        flagWrite = 0u;
     }
 }
 
@@ -140,7 +148,8 @@ uint32 *RealTimeThreadAsyncBridgeTestDS::GetWhatIsNewestCounter() {
     return whatIsNewestCounter;
 }
 
-const char8 *RealTimeThreadAsyncBridgeTestDS::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
+const char8 *RealTimeThreadAsyncBridgeTestDS::GetBrokerName(StructuredDataI &data,
+                                                            const SignalDirection direction) {
     const char8* brokerName = NULL_PTR(const char8 *);
 
     if (direction == InputSignals) {
@@ -160,7 +169,7 @@ class RealTimeThreadAsyncBridgeTestGAM1: public GAM {
 public:
     CLASS_REGISTER_DECLARATION()
 
-RealTimeThreadAsyncBridgeTestGAM1    ();
+    RealTimeThreadAsyncBridgeTestGAM1();
 
     virtual bool Setup();
 
@@ -198,7 +207,7 @@ class RealTimeThreadAsyncBridgeTestGAMWriter: public GAM {
 public:
     CLASS_REGISTER_DECLARATION()
 
-RealTimeThreadAsyncBridgeTestGAMWriter    ();
+    RealTimeThreadAsyncBridgeTestGAMWriter();
 
     virtual bool Setup();
 
@@ -266,14 +275,15 @@ CLASS_REGISTER(RealTimeThreadAsyncBridgeTestGAMWriter, "1.0")
 
 class RealTimeThreadAsyncBridgeTestInputBroker: public MemoryMapMultiBufferBroker {
 public:
-    CLASS_REGISTER_DECLARATION()RealTimeThreadAsyncBridgeTestInputBroker();
+    CLASS_REGISTER_DECLARATION()
+    RealTimeThreadAsyncBridgeTestInputBroker();
 
     virtual ~RealTimeThreadAsyncBridgeTestInputBroker();
     virtual bool Execute();
     virtual bool Init(const SignalDirection direction,
-            DataSourceI &dataSourceIn,
-            const char8 * const functionName,
-            void * const gamMemoryAddress);
+                      DataSourceI &dataSourceIn,
+                      const char8 * const functionName,
+                      void * const gamMemoryAddress);
     int32 GetOffset(uint32 n);
 
     void SetSignalPostMiddle(uint32 signalIdx);
@@ -299,7 +309,9 @@ void RealTimeThreadAsyncBridgeTestInputBroker::SetSignalPostMiddle(uint32 signal
     signalPostMiddle = signalIdx;
 }
 
-bool RealTimeThreadAsyncBridgeTestInputBroker::Init(const SignalDirection direction, DataSourceI &dataSourceIn, const char8 * const functionName,
+bool RealTimeThreadAsyncBridgeTestInputBroker::Init(const SignalDirection direction,
+                                                    DataSourceI &dataSourceIn,
+                                                    const char8 * const functionName,
                                                     void * const gamMemoryAddress) {
     bool ret = MemoryMapMultiBufferBroker::Init(direction, dataSourceIn, functionName, gamMemoryAddress);
     myOffset = new int32[numberOfCopies];
@@ -319,6 +331,7 @@ bool RealTimeThreadAsyncBridgeTestInputBroker::Execute() {
         for (n = 0u; (n < numberOfCopies) && (ret); n++) {
             uint32 ioffset = 0u;
             if (signalIdxArr[n] == signalPostMiddle) {
+                ((RealTimeThreadAsyncBridgeTestDS*) dataSource)->flagRead++;
                 goSemRead->ResetWait(TTInfiniteWait);
             }
             bool ok = dataSource->GetInputOffset(signalIdxArr[n], samples[n], ioffset);
@@ -381,6 +394,7 @@ bool RealTimeThreadAsyncBridgeTestInputBroker::Execute() {
                 (void) MemoryOperationsHelper::Copy(&(reinterpret_cast<uint8 *>(copyTable[n].gamPointer)[gamOffset]),
                                                     &((reinterpret_cast<uint8 *>(copyTable[dataSourceIndex].dataSourcePointer))[offset]), allowedSize);
                 if (signalIdxArr[n] == signalPostMiddle) {
+                    ((RealTimeThreadAsyncBridgeTestDS*) dataSource)->flagRead++;
                     goSemRead->ResetWait(TTInfiniteWait);
                 }
 
@@ -404,13 +418,16 @@ CLASS_REGISTER(RealTimeThreadAsyncBridgeTestInputBroker, "1.0")
 
 class RealTimeThreadAsyncBridgeTestOutputBroker: public MemoryMapMultiBufferBroker {
 public:
-    CLASS_REGISTER_DECLARATION()RealTimeThreadAsyncBridgeTestOutputBroker();
+    CLASS_REGISTER_DECLARATION()
+    RealTimeThreadAsyncBridgeTestOutputBroker();
 
     virtual ~RealTimeThreadAsyncBridgeTestOutputBroker();
     virtual bool Execute();
 
-    virtual bool Init(const SignalDirection direction, DataSourceI &dataSourceIn,
-            const char8 * const functionName, void * const gamMemoryAddress);
+    virtual bool Init(const SignalDirection direction,
+                      DataSourceI &dataSourceIn,
+                      const char8 * const functionName,
+                      void * const gamMemoryAddress);
 
     void SetSignalPostMiddle(uint32 signalIdx);
 
@@ -437,7 +454,9 @@ void RealTimeThreadAsyncBridgeTestOutputBroker::SetSignalPostMiddle(uint32 signa
     signalPostMiddle = signalIdx;
 }
 
-bool RealTimeThreadAsyncBridgeTestOutputBroker::Init(const SignalDirection direction, DataSourceI &dataSourceIn, const char8 * const functionName,
+bool RealTimeThreadAsyncBridgeTestOutputBroker::Init(const SignalDirection direction,
+                                                     DataSourceI &dataSourceIn,
+                                                     const char8 * const functionName,
                                                      void * const gamMemoryAddress) {
     bool ret = MemoryMapMultiBufferBroker::Init(direction, dataSourceIn, functionName, gamMemoryAddress);
     myOffset = new int32[numberOfCopies];
@@ -455,6 +474,7 @@ bool RealTimeThreadAsyncBridgeTestOutputBroker::Execute() {
         for (n = 0u; (n < numberOfCopies) && (ret); n++) {
             uint32 ioffset = 0u;
             if (signalIdxArr[n] == signalPostMiddle) {
+                ((RealTimeThreadAsyncBridgeTestDS*) dataSource)->flagWrite++;
                 goSemWrite->ResetWait(TTInfiniteWait);
             }
             bool ok = dataSource->GetOutputOffset(signalIdxArr[n], samples[n], ioffset);
@@ -488,6 +508,7 @@ bool RealTimeThreadAsyncBridgeTestOutputBroker::Execute() {
                 (void) MemoryOperationsHelper::Copy(&((reinterpret_cast<uint8 *>(copyTable[dataSourceIndex].dataSourcePointer))[offset]),
                                                     &(reinterpret_cast<uint8 *>(copyTable[n].gamPointer)[gamOffset]), allowedSize);
                 if (signalIdxArr[n] == signalPostMiddle) {
+                    ((RealTimeThreadAsyncBridgeTestDS*) dataSource)->flagWrite++;
                     goSemWrite->ResetWait(TTInfiniteWait);
                 }
                 ret = dataSource->TerminateOutputCopy(signalIdxArr[n], ioffset, samples[n]);
@@ -939,7 +960,7 @@ bool RealTimeThreadAsyncBridgeTest::TestGetInputOffset() {
 
         ReferenceT<RealTimeThreadAsyncBridgeTestInputBroker> broker = inputBrokers.Get(0);
         ret = broker.IsValid();
-        Sleep::MSec(100);
+        Sleep::MSec(200);
 
         uint32 nBuffers = dataSource->GetNumberOfMemoryBuffers();
 
@@ -947,10 +968,15 @@ bool RealTimeThreadAsyncBridgeTest::TestGetInputOffset() {
             //write
 
             goWrite->Post();
-
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (!dataSource->flagWrite) {
+                Sleep::MSec(200);
+            }
             goRead->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (!dataSource->flagRead) {
+                Sleep::MSec(200);
+            }
             int32 x = broker->GetOffset(0);
             ret = (cnt % (nBuffers * sizeof(uint32))) == (uint32) x;
         }
@@ -1067,17 +1093,23 @@ bool RealTimeThreadAsyncBridgeTest::TestGetOutputOffset() {
 
         ReferenceT<RealTimeThreadAsyncBridgeTestOutputBroker> broker = outputBrokers.Get(0);
         ret = broker.IsValid();
-        Sleep::MSec(100);
+        Sleep::MSec(200);
         uint32 nBuffers = dataSource->GetNumberOfMemoryBuffers();
         for (uint32 cnt = 0u; (cnt < 10 * sizeof(uint32)) && (ret); cnt += sizeof(uint32)) {
-            //Sleep::MSec(100);
+            //Sleep::MSec(200);
             //write
 
             goWrite->Post();
 
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (!dataSource->flagWrite) {
+                Sleep::MSec(200);
+            }
             goRead->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (!dataSource->flagRead) {
+                Sleep::MSec(200);
+            }
             int32 x = broker->GetOffset(0);
             ret = (cnt % (nBuffers * sizeof(uint32))) == (uint32) x;
         }
@@ -1225,16 +1257,22 @@ bool RealTimeThreadAsyncBridgeTest::TestGetInputOffset_2Readers() {
 
         }
 
-        Sleep::MSec(100);
+        Sleep::MSec(200);
         uint32 nBuffers = dataSource->GetNumberOfMemoryBuffers();
-        
+
         uint32 nOfRetries = 5;
         for (uint32 cnt = 0u; (cnt < 10 * sizeof(uint32)) && (ret); cnt += sizeof(uint32)) {
             //write
             goWrite->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (!dataSource->flagWrite) {
+                Sleep::MSec(200);
+            }
             goRead->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (!dataSource->flagRead) {
+                Sleep::MSec(200);
+            }
             int32 x = broker->GetOffset(0);
             int32 x2 = broker2->GetOffset(0);
             ret = ((cnt % (nBuffers * sizeof(uint32))) == (uint32) x) || (((cnt - sizeof(uint32)) % (nBuffers * sizeof(uint32))) == (uint32) x);
@@ -1375,7 +1413,7 @@ bool RealTimeThreadAsyncBridgeTest::TestGetInputOffset_Ranges() {
 
         ReferenceT<RealTimeThreadAsyncBridgeTestInputBroker> broker = inputBrokers.Get(0);
         ret = broker.IsValid();
-        Sleep::MSec(100);
+        Sleep::MSec(200);
 
         uint32 nBuffers = dataSource->GetNumberOfMemoryBuffers();
 
@@ -1383,10 +1421,15 @@ bool RealTimeThreadAsyncBridgeTest::TestGetInputOffset_Ranges() {
             //write
 
             goWrite->Post();
-
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (!dataSource->flagWrite) {
+                Sleep::MSec(200);
+            }
             goRead->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (!dataSource->flagRead) {
+                Sleep::MSec(200);
+            }
             int32 x = broker->GetOffset(1);
             int32 x1 = broker->GetOffset(2);
 
@@ -1519,7 +1562,7 @@ bool RealTimeThreadAsyncBridgeTest::TestGetOutputOffset_Ranges() {
 
         ReferenceT<RealTimeThreadAsyncBridgeTestOutputBroker> broker = outputBrokers.Get(0);
         ret = broker.IsValid();
-        Sleep::MSec(100);
+        Sleep::MSec(200);
 
         uint32 nBuffers = dataSource->GetNumberOfMemoryBuffers();
 
@@ -1527,17 +1570,22 @@ bool RealTimeThreadAsyncBridgeTest::TestGetOutputOffset_Ranges() {
             //write
 
             goWrite->Post();
-
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (!dataSource->flagWrite) {
+                Sleep::MSec(200);
+            }
             goRead->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (!dataSource->flagRead) {
+                Sleep::MSec(200);
+            }
             int32 x = broker->GetOffset(1);
             int32 x1 = broker->GetOffset(2);
 
             ret = (cnt % (nBuffers * 10 * sizeof(uint32))) == (uint32) x;
-printf("[0]. %d %d %d\n", (int)ret, (int)(cnt % (nBuffers * 10 * sizeof(uint32))), (int)x);
+            printf("[0]. %d %d %d\n", (int) ret, (int) (cnt % (nBuffers * 10 * sizeof(uint32))), (int) x);
             ret &= (cnt % (nBuffers * 10 * sizeof(uint32))) == (uint32) x1;
-printf("[1]. %d %d %d\n", (int)ret, (int)(cnt % (nBuffers * 10 * sizeof(uint32))), (int)x1);
+            printf("[1]. %d %d %d\n", (int) ret, (int) (cnt % (nBuffers * 10 * sizeof(uint32))), (int) x1);
             ret = true;
         }
 
@@ -1671,25 +1719,38 @@ bool RealTimeThreadAsyncBridgeTest::TestGetInputOffset_False_BufferBusy() {
 
         EventSem *goRead = dataSource->GetEventRead();
         EventSem *goWrite = dataSource->GetEventWrite();
-        Sleep::MSec(100);
+        Sleep::MSec(200);
 
-        for (uint32 cnt = 0u; (cnt < 100 * sizeof(uint32)) && (ret); cnt += 10 * sizeof(uint32)) {
+        for (uint32 cnt = 0u; (cnt < 50 * sizeof(uint32)) && (ret); cnt += 10 * sizeof(uint32)) {
             //write
 
             goWrite->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (dataSource->flagWrite!=1) {
+                Sleep::MSec(200);
+            }
             goWrite->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (dataSource->flagWrite!=2) {
+                Sleep::MSec(200);
+            }
             goRead->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (dataSource->flagRead!=1) {
+                Sleep::MSec(200);
+            }
             goRead->Post();
-            Sleep::MSec(100);
-            goRead->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (dataSource->flagRead!=3) {
+                Sleep::MSec(200);
+            }
             int32 x = broker->GetOffset(0);
             ret = (x == -1);
             goWrite->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (dataSource->flagWrite!=3) {
+                Sleep::MSec(200);
+            }
         }
 
         broker->SetSignalPostMiddle(1);
@@ -1828,25 +1889,38 @@ bool RealTimeThreadAsyncBridgeTest::TestGetOutputOffset_False_BufferBusy() {
 
         EventSem *goRead = dataSource->GetEventRead();
         EventSem *goWrite = dataSource->GetEventWrite();
-        Sleep::MSec(100);
+        Sleep::MSec(200);
 
-        for (uint32 cnt = 0u; (cnt < 100 * sizeof(uint32)) && (ret); cnt += 10 * sizeof(uint32)) {
+        for (uint32 cnt = 0u; (cnt < 50 * sizeof(uint32)) && (ret); cnt += 10 * sizeof(uint32)) {
             //write
 
             goRead->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (dataSource->flagRead!=1) {
+                Sleep::MSec(200);
+            }
             goRead->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (dataSource->flagRead!=2) {
+                Sleep::MSec(200);
+            }
             goWrite->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (dataSource->flagWrite!=1) {
+                Sleep::MSec(200);
+            }
             goWrite->Post();
-            Sleep::MSec(100);
-            goWrite->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (dataSource->flagWrite!=3) {
+                Sleep::MSec(200);
+            }
             int32 x = broker1->GetOffset(0);
             ret = (x == -1);
             goRead->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (dataSource->flagRead!=3) {
+                Sleep::MSec(200);
+            }
         }
 
         broker->SetSignalPostMiddle(1);
@@ -1955,7 +2029,7 @@ bool RealTimeThreadAsyncBridgeTest::TestTerminateWrite_ResetCounter() {
         ret = gamReader1.IsValid();
     }
     if (ret) {
-        uint32 newestCounter = (uint32) (-5);
+        uint32 newestCounter = (uint32)(-5);
         uint32 nSignals = dataSource->GetNumberOfSignals();
         for (uint32 i = 0u; i < nSignals; i++) {
             dataSource->SetNewestCounter(newestCounter, i);
@@ -1982,17 +2056,23 @@ bool RealTimeThreadAsyncBridgeTest::TestTerminateWrite_ResetCounter() {
 
         ReferenceT<RealTimeThreadAsyncBridgeTestInputBroker> broker = inputBrokers.Get(0);
         ret = broker.IsValid();
-        Sleep::MSec(100);
+        Sleep::MSec(200);
 
         uint32 nBuffers = dataSource->GetNumberOfMemoryBuffers();
 
         for (uint32 cnt = 0u; (cnt < 10 * sizeof(uint32)) && (ret); cnt += sizeof(uint32)) {
             //write
             goWrite->Post();
+            Sleep::MSec(200);
+            while (!dataSource->flagWrite) {
+                Sleep::MSec(200);
+            }
 
-            Sleep::MSec(100);
             goRead->Post();
-            Sleep::MSec(100);
+            Sleep::MSec(200);
+            while (!dataSource->flagRead) {
+                Sleep::MSec(200);
+            }
             int32 x = broker->GetOffset(0);
             ret = (cnt % (nBuffers * sizeof(uint32))) == (uint32) x;
         }
