@@ -1586,7 +1586,6 @@ bool RealTimeThreadAsyncBridgeTest::TestGetOutputOffset_Ranges() {
             printf("[0]. %d %d %d\n", (int) ret, (int) (cnt % (nBuffers * 10 * sizeof(uint32))), (int) x);
             ret &= (cnt % (nBuffers * 10 * sizeof(uint32))) == (uint32) x1;
             printf("[1]. %d %d %d\n", (int) ret, (int) (cnt % (nBuffers * 10 * sizeof(uint32))), (int) x1);
-            ret = true;
         }
 
         dataSource->Done();
