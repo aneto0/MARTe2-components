@@ -123,7 +123,7 @@ EventSem *RealTimeThreadAsyncBridgeTestDS::GetEventWrite() {
 
 void RealTimeThreadAsyncBridgeTestDS::PrepareInputOffsets() {
     if (!done) {
-        flagRead=3u;
+        flagRead = 3u;
         goSemRead.ResetWait(TTInfiniteWait);
         flagRead = 0u;
     }
@@ -132,7 +132,7 @@ void RealTimeThreadAsyncBridgeTestDS::PrepareInputOffsets() {
 
 void RealTimeThreadAsyncBridgeTestDS::PrepareOutputOffsets() {
     if (!done) {
-        flagWrite=3u;
+        flagWrite = 3u;
         goSemWrite.ResetWait(TTInfiniteWait);
         flagWrite = 0u;
     }
@@ -1566,7 +1566,7 @@ bool RealTimeThreadAsyncBridgeTest::TestGetOutputOffset_Ranges() {
 
         uint32 nBuffers = dataSource->GetNumberOfMemoryBuffers();
 
-        for (uint32 cnt = 0u; (cnt < 100 * sizeof(uint32)) && (ret); cnt += 10 * sizeof(uint32)) {
+        for (uint32 cnt = 0u; (cnt < 10) && (ret); cnt++) {
             //write
 
             goWrite->Post();
@@ -1582,11 +1582,10 @@ bool RealTimeThreadAsyncBridgeTest::TestGetOutputOffset_Ranges() {
             int32 x = broker->GetOffset(1);
             int32 x1 = broker->GetOffset(2);
 
-            ret = (cnt % (nBuffers * 10 * sizeof(uint32))) == (uint32) x;
+            ret = ((2 * cnt) % (nBuffers)) * 10 * sizeof(uint32) == (uint32) x;
             printf("[0]. %d %d %d\n", (int) ret, (int) (cnt % (nBuffers * 10 * sizeof(uint32))), (int) x);
-            ret &= (cnt % (nBuffers * 10 * sizeof(uint32))) == (uint32) x1;
+            ret &= ((2 * cnt + 1) % (nBuffers)) * 10 * sizeof(uint32) == (uint32) x1;
             printf("[1]. %d %d %d\n", (int) ret, (int) (cnt % (nBuffers * 10 * sizeof(uint32))), (int) x1);
-            ret = true;
         }
 
         dataSource->Done();
@@ -1598,6 +1597,305 @@ bool RealTimeThreadAsyncBridgeTest::TestGetOutputOffset_Ranges() {
     MARTe::ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 
+}
+
+bool RealTimeThreadAsyncBridgeTest::TestGetInputOffset_Blocking() {
+
+    static const char8 * const config = ""
+            "$Application1 = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = RealTimeThreadAsyncBridgeTestGAMWriter"
+            "            OutputSignals = {"
+            "               Signal1 = {"
+            "                   DataSource = Drv1"
+            "                   Type = uint32"
+            "               }"
+            "               Signal2 = {"
+            "                   DataSource = Drv1"
+            "                   Type = uint32"
+            "                   NumberOfDimensions = 1"
+            "                   NumberOfElements = 10"
+            "                   Ranges = {{0,3}, {0,9}}"
+            "               }"
+            "            }"
+            "        }"
+            "        +GAMB = {"
+            "            Class = RealTimeThreadAsyncBridgeTestGAM1"
+            "            InputSignals = {"
+            "               Signal1 = {"
+            "                   DataSource = Drv1"
+            "                   Type = uint32"
+            "               }"
+            "               Signal2 = {"
+            "                   DataSource = Drv1"
+            "                   Type = uint32"
+            "                   NumberOfDimensions = 1"
+            "                   NumberOfElements = 10"
+            "               }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        +Drv1 = {"
+            "            Class = RealTimeThreadAsyncBridgeTestDS"
+            "            NumberOfBuffers = 3"
+            "            BlockingMode = 1"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    CPUs = 1"
+            "                    Functions = {GAMA}"
+            "                }"
+            "                +Thread2 = {"
+            "                    CPUs = 2"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMB}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    ReferenceT<RealTimeThreadAsyncBridgeTestDS> dataSource;
+
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+
+    ReferenceT<RealTimeThreadAsyncBridgeTestGAMWriter> gamWriter;
+    ReferenceT<RealTimeThreadAsyncBridgeTestGAM1> gamReader1;
+    if (ret) {
+        gamWriter = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
+        ret = gamWriter.IsValid();
+
+    }
+    if (ret) {
+        gamReader1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMB");
+        ret = gamReader1.IsValid();
+    }
+
+    ReferenceT<RealTimeApplication> app;
+    if (ret) {
+        app = ObjectRegistryDatabase::Instance()->Find("Application1");
+        ret = app.IsValid();
+    }
+
+    if (ret) {
+        ret = app->PrepareNextState("State1");
+    }
+
+    if (ret) {
+        app->StartNextStateExecution();
+
+        EventSem *goRead = dataSource->GetEventRead();
+        EventSem *goWrite = dataSource->GetEventWrite();
+
+        ReferenceContainer inputBrokers;
+        gamReader1->GetInputBrokers(inputBrokers);
+
+        ReferenceT<RealTimeThreadAsyncBridgeTestInputBroker> broker = inputBrokers.Get(0);
+        ret = broker.IsValid();
+        Sleep::MSec(200);
+
+        uint32 nBuffers = dataSource->GetNumberOfMemoryBuffers();
+        ret = (nBuffers == 1u);
+
+        for (uint32 cnt = 0u; (cnt < 100 * sizeof(uint32)) && (ret); cnt += 10 * sizeof(uint32)) {
+            //write
+
+            goWrite->Post();
+            Sleep::MSec(200);
+            while (!dataSource->flagWrite) {
+                Sleep::MSec(200);
+            }
+            goRead->Post();
+            Sleep::MSec(200);
+            while (!dataSource->flagRead) {
+                Sleep::MSec(200);
+            }
+            int32 x = broker->GetOffset(0);
+
+            ret = (uint32) x == 0u;
+        }
+
+        dataSource->Done();
+        goWrite->Post();
+        goRead->Post();
+
+        app->StopCurrentStateExecution();
+    }
+    MARTe::ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
+
+bool RealTimeThreadAsyncBridgeTest::TestGetOutputOffset_Blocking() {
+
+    static const char8 * const config = ""
+            "$Application1 = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = RealTimeThreadAsyncBridgeTestGAMWriter"
+            "            OutputSignals = {"
+            "               Signal1 = {"
+            "                   DataSource = Drv1"
+            "                   Type = uint32"
+            "               }"
+            "               Signal2 = {"
+            "                   DataSource = Drv1"
+            "                   Type = uint32"
+            "                   NumberOfDimensions = 1"
+            "                   NumberOfElements = 10"
+            "                   Ranges = {{0,3}, {0,9}}"
+            "               }"
+            "            }"
+            "        }"
+            "        +GAMB = {"
+            "            Class = RealTimeThreadAsyncBridgeTestGAM1"
+            "            InputSignals = {"
+            "               Signal1 = {"
+            "                   DataSource = Drv1"
+            "                   Type = uint32"
+            "               }"
+            "               Signal2 = {"
+            "                   DataSource = Drv1"
+            "                   Type = uint32"
+            "                   NumberOfDimensions = 1"
+            "                   NumberOfElements = 10"
+            "               }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        +Drv1 = {"
+            "            Class = RealTimeThreadAsyncBridgeTestDS"
+            "            NumberOfBuffers = 3"
+            "            BlockingMode = 1"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    CPUs = 1"
+            "                    Functions = {GAMA}"
+            "                }"
+            "                +Thread2 = {"
+            "                    CPUs = 2"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMB}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    ReferenceT<RealTimeThreadAsyncBridgeTestDS> dataSource;
+
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+
+    ReferenceT<RealTimeThreadAsyncBridgeTestGAMWriter> gamWriter;
+    ReferenceT<RealTimeThreadAsyncBridgeTestGAM1> gamReader1;
+    if (ret) {
+        gamWriter = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
+        ret = gamWriter.IsValid();
+
+    }
+    if (ret) {
+        gamReader1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMB");
+        ret = gamReader1.IsValid();
+    }
+
+    ReferenceT<RealTimeApplication> app;
+    if (ret) {
+        app = ObjectRegistryDatabase::Instance()->Find("Application1");
+        ret = app.IsValid();
+    }
+
+    if (ret) {
+        ret = app->PrepareNextState("State1");
+    }
+
+    if (ret) {
+        app->StartNextStateExecution();
+
+        EventSem *goRead = dataSource->GetEventRead();
+        EventSem *goWrite = dataSource->GetEventWrite();
+        ReferenceContainer outputBrokers;
+        gamWriter->GetOutputBrokers(outputBrokers);
+
+        ReferenceT<RealTimeThreadAsyncBridgeTestOutputBroker> broker = outputBrokers.Get(0);
+        ret = broker.IsValid();
+        Sleep::MSec(200);
+
+        uint32 nBuffers = dataSource->GetNumberOfMemoryBuffers();
+        ret = (nBuffers == 1u);
+
+        for (uint32 cnt = 0u; (cnt < 10) && (ret); cnt++) {
+            //write
+
+            goWrite->Post();
+            Sleep::MSec(200);
+            while (!dataSource->flagWrite) {
+                Sleep::MSec(200);
+            }
+            goRead->Post();
+            Sleep::MSec(200);
+            while (!dataSource->flagRead) {
+                Sleep::MSec(200);
+            }
+            int32 x = broker->GetOffset(1);
+            int32 x1 = broker->GetOffset(2);
+
+            ret = (uint32) x == 0u;
+            ret &= (uint32) x1 == 0u;
+        }
+
+        dataSource->Done();
+        goWrite->Post();
+        goRead->Post();
+
+        app->StopCurrentStateExecution();
+    }
+    MARTe::ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
 }
 
 bool RealTimeThreadAsyncBridgeTest::TestGetInputOffset_False_BufferBusy() {
@@ -1726,29 +2024,29 @@ bool RealTimeThreadAsyncBridgeTest::TestGetInputOffset_False_BufferBusy() {
 
             goWrite->Post();
             Sleep::MSec(200);
-            while (dataSource->flagWrite!=1) {
+            while (dataSource->flagWrite != 1) {
                 Sleep::MSec(200);
             }
             goWrite->Post();
             Sleep::MSec(200);
-            while (dataSource->flagWrite!=2) {
+            while (dataSource->flagWrite != 2) {
                 Sleep::MSec(200);
             }
             goRead->Post();
             Sleep::MSec(200);
-            while (dataSource->flagRead!=1) {
+            while (dataSource->flagRead != 1) {
                 Sleep::MSec(200);
             }
             goRead->Post();
             Sleep::MSec(200);
-            while (dataSource->flagRead!=3) {
+            while (dataSource->flagRead != 3) {
                 Sleep::MSec(200);
             }
             int32 x = broker->GetOffset(0);
             ret = (x == -1);
             goWrite->Post();
             Sleep::MSec(200);
-            while (dataSource->flagWrite!=3) {
+            while (dataSource->flagWrite != 3) {
                 Sleep::MSec(200);
             }
         }
@@ -1896,29 +2194,29 @@ bool RealTimeThreadAsyncBridgeTest::TestGetOutputOffset_False_BufferBusy() {
 
             goRead->Post();
             Sleep::MSec(200);
-            while (dataSource->flagRead!=1) {
+            while (dataSource->flagRead != 1) {
                 Sleep::MSec(200);
             }
             goRead->Post();
             Sleep::MSec(200);
-            while (dataSource->flagRead!=2) {
+            while (dataSource->flagRead != 2) {
                 Sleep::MSec(200);
             }
             goWrite->Post();
             Sleep::MSec(200);
-            while (dataSource->flagWrite!=1) {
+            while (dataSource->flagWrite != 1) {
                 Sleep::MSec(200);
             }
             goWrite->Post();
             Sleep::MSec(200);
-            while (dataSource->flagWrite!=3) {
+            while (dataSource->flagWrite != 3) {
                 Sleep::MSec(200);
             }
             int32 x = broker1->GetOffset(0);
             ret = (x == -1);
             goRead->Post();
             Sleep::MSec(200);
-            while (dataSource->flagRead!=3) {
+            while (dataSource->flagRead != 3) {
                 Sleep::MSec(200);
             }
         }
@@ -2087,3 +2385,124 @@ bool RealTimeThreadAsyncBridgeTest::TestTerminateWrite_ResetCounter() {
     return ret;
 
 }
+
+bool RealTimeThreadAsyncBridgeTest::TestResetSignalValue() {
+
+    static const char8 * const config = ""
+            "$Application1 = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = RealTimeThreadAsyncBridgeTestGAMWriter"
+            "            OutputSignals = {"
+            "               Signal1 = {"
+            "                   DataSource = Drv1"
+            "                   Type = uint32"
+            "               }"
+            "            }"
+            "        }"
+            "        +GAMB = {"
+            "            Class = RealTimeThreadAsyncBridgeTestGAM1"
+            "            InputSignals = {"
+            "               Signal1 = {"
+            "                   DataSource = Drv1"
+            "                   Type = uint32"
+            "               }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        +Drv1 = {"
+            "            Class = RealTimeThreadAsyncBridgeTestDS"
+            "            NumberOfBuffers = 3"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    CPUs = 2"
+            "                    Functions = {GAMA}"
+            "                }"
+            "                +Thread2 = {"
+            "                    CPUs = 3"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMB}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    bool ret = InitialiseMemoryMapInputBrokerEnviroment(config);
+    ReferenceT<RealTimeThreadAsyncBridgeTestDS> dataSource;
+
+    if (ret) {
+        dataSource = ObjectRegistryDatabase::Instance()->Find("Application1.Data.Drv1");
+        ret = dataSource.IsValid();
+    }
+
+    ReferenceT<RealTimeThreadAsyncBridgeTestGAMWriter> gamWriter;
+    ReferenceT<RealTimeThreadAsyncBridgeTestGAM1> gamReader1;
+    if (ret) {
+        gamWriter = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMA");
+        ret = gamWriter.IsValid();
+
+    }
+    if (ret) {
+        gamReader1 = ObjectRegistryDatabase::Instance()->Find("Application1.Functions.GAMB");
+        ret = gamReader1.IsValid();
+    }
+
+    ReferenceT<RealTimeApplication> app;
+    if (ret) {
+        app = ObjectRegistryDatabase::Instance()->Find("Application1");
+        ret = app.IsValid();
+    }
+
+    if (ret) {
+        ret = dataSource->PrepareNextState("", "State1");
+    }
+
+    if (ret) {
+
+        uint32 *mem = NULL;
+        dataSource->GetSignalMemoryBuffer(0u, 0u, (void*&) mem);
+
+        uint32 nBuffers = dataSource->GetNumberOfMemoryBuffers();
+
+        uint32 cnt = 0u;
+        for (uint32 i = 0u; i < dataSource->GetNumberOfSignals(); i++) {
+            for (uint32 j = 0u; j < nBuffers; j++) {
+                mem[nBuffers * i + j] = cnt;
+                cnt++;
+            }
+        }
+
+        dataSource->ResetSignalValue();
+
+        for (uint32 i = 0u; (i < dataSource->GetNumberOfSignals()) && ret; i++) {
+            for (uint32 j = 0u; (j < nBuffers) && ret; j++) {
+                ret = mem[nBuffers * i + j] == 0u;
+            }
+        }
+
+    }
+    MARTe::ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+
+}
+

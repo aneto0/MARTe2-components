@@ -124,6 +124,16 @@ TEST(RealTimeThreadAsyncBridgeGTest,TestGetOutputOffset_False_BufferBusy) {
     ASSERT_TRUE(test.TestGetOutputOffset_False_BufferBusy());
 }
 
+TEST(RealTimeThreadAsyncBridgeGTest,TestGetInputOffset_Blocking) {
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestGetInputOffset_Blocking());
+}
+
+TEST(RealTimeThreadAsyncBridgeGTest,TestGetOutputOffset_Blocking) {
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestGetOutputOffset_Blocking());
+}
+
 TEST(RealTimeThreadAsyncBridgeGTest,TestTerminateRead) {
     RealTimeThreadAsyncBridgeTest test;
     ASSERT_TRUE(test.TestTerminateRead());
@@ -137,4 +147,10 @@ TEST(RealTimeThreadAsyncBridgeGTest,TestTerminateWrite) {
 TEST(RealTimeThreadAsyncBridgeGTest,TestTerminateWrite_ResetCounter) {
     RealTimeThreadAsyncBridgeTest test;
     ASSERT_TRUE(test.TestTerminateWrite_ResetCounter());
+}
+
+
+TEST(RealTimeThreadAsyncBridgeGTest,TestResetSignalValue) {
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestResetSignalValue());
 }

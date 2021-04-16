@@ -127,6 +127,16 @@ public:
     bool TestGetOutputOffset_Ranges();
 
     /**
+     * @brief Tests the GetInputOffset method in blocking mode
+     */
+    bool TestGetInputOffset_Blocking();
+
+    /**
+     * @brief Tests the GetOutputOffset method in blocking mode
+     */
+    bool TestGetOutputOffset_Blocking();
+
+    /**
      * @brief Tests the GetInputOffset method that returns false if all the buffers are busy
      */
     bool TestGetInputOffset_False_BufferBusy();
@@ -150,6 +160,11 @@ public:
      * @brief Tests the TerminateWrite method when the counter reaches the overflow and it should be reset
      */
     bool TestTerminateWrite_ResetCounter();
+
+    /**
+     * @brief Tests the ResetSignalValue method
+     */
+    bool TestResetSignalValue();
 
 };
 

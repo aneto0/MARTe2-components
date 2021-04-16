@@ -225,6 +225,7 @@ bool RealTimeThreadAsyncBridge::GetInputOffset(const uint32 signalIdx,
     }
     else {
         uint64 checkedMask = 0ull;
+        //possibly give a chance to all buffers
         for (uint32 k = 0u; (k < numberOfBuffers) && (!ok); k++) {
             //check the last written
             uint32 bufferIdx = 0u;
@@ -274,7 +275,6 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx,
     }
     else {
 
-        uint64 checkedMask = 0ull;
         for (uint32 k = 0u; (k < numberOfBuffers) && (!ok); k++) {
             //check the oldest written
             uint32 min = 0xFFFFFFFFu;
@@ -283,17 +283,20 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx,
             uint32 newestBuffer = 0u;
             for (uint32 h = 0u; (h < numberOfBuffers); h++) {
                 uint32 index = (signalIdx * numberOfBuffers) + h;
-                uint32 temp = whatIsNewestCounter[index];
-                if ((temp < min) && (((1ull << h) & checkedMask) == 0ull)) {
-                    min = temp;
-                    bufferIdx = h;
-                }
-                if (temp > max) {
-                    max = temp;
-                    newestBuffer = h;
+
+                if (spinlocksWrite[index].FastTryLock()) {
+                    uint32 temp = whatIsNewestCounter[index];
+                    spinlocksWrite[index].FastUnLock();
+                    if (temp < min) {
+                        min = temp;
+                        bufferIdx = h;
+                    }
+                    if (temp > max) {
+                        max = temp;
+                        newestBuffer = h;
+                    }
                 }
             }
-            checkedMask |= (1ull << bufferIdx);
             ok = false;
             //try to lock the next buffer to write
             uint32 index = (signalIdx * numberOfBuffers) + bufferIdx;
@@ -302,7 +305,7 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx,
                     offset = (signalSize[signalIdx] * bufferIdx);
                     uint32 newestOffset = (signalSize[signalIdx] * newestBuffer);
                     uint32 newestIndex = (signalIdx * numberOfBuffers) + newestBuffer;
-                    //do this in case of ranges
+                    //needed in case of ranges
                     if (spinlocksWrite[newestIndex].FastTryLock()) {
                         (void) MemoryOperationsHelper::Copy(&memory[signalOffsets[signalIdx] + offset], &memory[signalOffsets[signalIdx] + newestOffset],
                                                             signalSize[signalIdx]);
@@ -417,6 +420,11 @@ ErrorManagement::ErrorType RealTimeThreadAsyncBridge::ResetSignalValue() {
                 ret = MemoryOperationsHelper::Set(thisSignalMemory, '\0', (size * numberOfBuffers));
             }
         }
+        for(uint32 j=0u; j<numberOfBuffers; j++){
+            uint32 index=numberOfBuffers*i+j;
+            whatIsNewestCounter[index] = 0u;
+        }
+        whatIsNewestGlobCounter[i]=0u;
     }
     err = !ret;
     return err;
