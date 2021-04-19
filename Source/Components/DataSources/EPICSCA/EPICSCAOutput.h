@@ -38,6 +38,7 @@
 #include "EmbeddedServiceMethodBinderI.h"
 #include "EventSem.h"
 #include "FastPollingMutexSem.h"
+#include "MemoryMapAsyncOutputBroker.h"
 #include "MessageI.h"
 #include "SingleThreadService.h"
 
@@ -197,6 +198,11 @@ public:
      */
     ErrorManagement::ErrorType AsyncCaPut(StreamString pvName, StreamString pvVal);
 
+    /**
+     * @see DataSourceI::Purge()
+     */
+    virtual void Purge(ReferenceContainer &purgeList);
+
 private:
     /**
      * List of PVs.
@@ -238,6 +244,10 @@ private:
      */
     uint8 *signalFlag;
 
+    /**
+     * The output broker.
+     */ 
+    ReferenceT<MemoryMapAsyncOutputBroker> broker;
 };
 }
 

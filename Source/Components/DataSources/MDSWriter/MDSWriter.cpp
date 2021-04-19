@@ -31,7 +31,6 @@
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
 #include "MDSWriter.h"
-#include "MemoryMapAsyncOutputBroker.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -65,7 +64,6 @@ MDSWriter::MDSWriter() :
     lastTimeRefreshCount = 0u;
     refreshEveryCounts = 0u;
     fatalTreeNodeError = false;
-    brokerAsyncTrigger = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
@@ -140,21 +138,20 @@ bool MDSWriter::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* c
 bool MDSWriter::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
     bool ok = true;
     if (storeOnTrigger) {
-        ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
-        brokerAsyncTrigger = brokerAsyncTriggerNew.operator ->();
-        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr,
+        brokerAsyncTrigger = ReferenceT<MemoryMapAsyncTriggerOutputBroker>("MemoryMapAsyncTriggerOutputBroker");
+        ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr,
                                                               numberOfBuffers, numberOfPreTriggers,
                                                               numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
-            ok = outputBrokers.Insert(brokerAsyncTriggerNew);
+            ok = outputBrokers.Insert(brokerAsyncTrigger);
         }
     }
     else {
-        ReferenceT<MemoryMapAsyncOutputBroker> brokerAsync("MemoryMapAsyncOutputBroker");
-        ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers,
+        brokerAsyncOutput = ReferenceT<MemoryMapAsyncOutputBroker> ("MemoryMapAsyncOutputBroker");
+        ok = brokerAsyncOutput->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers,
                                                    cpuMask, stackSize);
         if (ok) {
-            ok = outputBrokers.Insert(brokerAsync);
+            ok = outputBrokers.Insert(brokerAsyncOutput);
         }
     }
     return ok;
@@ -672,7 +669,7 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
         }
     }
     if (ok) {
-        if (brokerAsyncTrigger != NULL_PTR(MemoryMapAsyncTriggerOutputBroker *)) {
+        if (brokerAsyncTrigger.IsValid()) {
             brokerAsyncTrigger->ResetPreTriggerBuffers();
         }
     }
@@ -718,7 +715,7 @@ ErrorManagement::ErrorType MDSWriter::OpenTree(const int32 pulseNumberIn) {
 ErrorManagement::ErrorType MDSWriter::FlushSegments() {
     uint32 n;
     bool ok = true;
-    if (brokerAsyncTrigger != NULL_PTR(MemoryMapAsyncTriggerOutputBroker *)) {
+    if (brokerAsyncTrigger.IsValid()) {
         ok = brokerAsyncTrigger->FlushAllTriggers();
     }
     if (nodes != NULL_PTR(MDSWriterNode **)) {
@@ -793,6 +790,19 @@ int32 MDSWriter::GetTimeSignalIdx() const {
 const StreamString& MDSWriter::GetTreeName() const {
     return treeName;
 }
+
+void MDSWriter::Purge(ReferenceContainer &purgeList) {
+    if (brokerAsyncTrigger.IsValid()) {
+        brokerAsyncTrigger->FlushAllTriggers();
+        brokerAsyncTrigger->UnlinkDataSource();
+    }
+    if (brokerAsyncOutput.IsValid()) {
+        brokerAsyncOutput->Flush();
+        brokerAsyncOutput->UnlinkDataSource();
+    }
+    DataSourceI::Purge(purgeList);
+}
+
 
 CLASS_REGISTER(MDSWriter, "1.0")
 CLASS_METHOD_REGISTER(MDSWriter, FlushSegments)

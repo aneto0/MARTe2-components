@@ -32,7 +32,6 @@
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
 #include "EPICSCAOutput.h"
-#include "MemoryMapAsyncOutputBroker.h"
 #include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
@@ -79,6 +78,15 @@ EPICSCAOutput::~EPICSCAOutput() {
         delete[] signalFlag;
     }
 }
+
+void EPICSCAOutput::Purge(ReferenceContainer &purgeList) {
+    if (broker.IsValid()) {
+        (void) broker->Flush();
+        broker->UnlinkDataSource();
+    }
+    DataSourceI::Purge(purgeList);
+}
+
 
 bool EPICSCAOutput::Initialise(StructuredDataI & data) {
     bool ok = DataSourceI::Initialise(data);
@@ -294,7 +302,7 @@ bool EPICSCAOutput::GetInputBrokers(ReferenceContainer& inputBrokers, const char
 }
 
 bool EPICSCAOutput::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    ReferenceT<MemoryMapAsyncOutputBroker> broker("MemoryMapAsyncOutputBroker");
+    broker = ReferenceT<MemoryMapAsyncOutputBroker>("MemoryMapAsyncOutputBroker");
     bool ok = broker->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
     if (ok) {
         ok = outputBrokers.Insert(broker);

@@ -33,6 +33,7 @@
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
 #include "MDSWriterNode.h"
+#include "MemoryMapAsyncOutputBroker.h"
 #include "MemoryMapAsyncTriggerOutputBroker.h"
 #include "MessageI.h"
 #include "ProcessorType.h"
@@ -296,6 +297,11 @@ MDSWriter    ();
      */
     int32 GetTimeSignalIdx() const;
 
+    /**
+     * @see DataSourceI::Purge()
+     */
+    virtual void Purge(ReferenceContainer &purgeList);
+
 private:
 
     /**
@@ -399,9 +405,14 @@ private:
     ReferenceT<RegisteredMethodsMessageFilter> filter;
 
     /**
-     * The asynchronous triggered broker that provides the interface between the GAMs and the MDS+ memory
+     * Memory map asynchronous broker.
      */
-    MemoryMapAsyncTriggerOutputBroker *brokerAsyncTrigger;
+    ReferenceT<MemoryMapAsyncOutputBroker> brokerAsyncOutput;
+
+    /**
+     * Memory map asynchronously triggered broker.
+     */
+    ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger;
 
     /**
      * The message to send if the Tree is successfully opened.

@@ -33,6 +33,7 @@
 /*---------------------------------------------------------------------------*/
 #include "DANStream.h"
 #include "DataSourceI.h"
+#include "MemoryMapAsyncOutputBroker.h"
 #include "MemoryMapAsyncTriggerOutputBroker.h"
 #include "MessageI.h"
 #include "ProcessorType.h"
@@ -258,6 +259,11 @@ DANSource    ();
      */
     uint32 GetDANBufferMultiplier() const;
 
+    /**
+     * @see DataSourceI::Purge()
+     */
+    virtual void Purge(ReferenceContainer &purgeList);
+
 private:
 
     /**
@@ -306,9 +312,14 @@ private:
     ReferenceT<RegisteredMethodsMessageFilter> filter;
 
     /**
-     * The asynchronous triggered broker that provides the interface between the GAMs and the DAN memory
+     * Memory map asynchronous broker.
      */
-    MemoryMapAsyncTriggerOutputBroker *brokerAsyncTrigger;
+    ReferenceT<MemoryMapAsyncOutputBroker> brokerAsyncOutput;
+
+    /**
+     * Memory map asynchronously triggered broker.
+     */
+    ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger;
 
     /**
      * dan_DataCore singleton that is required by all the DANStream instances.

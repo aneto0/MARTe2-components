@@ -34,7 +34,6 @@
 #include "CLASSMETHODREGISTER.h"
 #include "DANAPI.h"
 #include "DANSource.h"
-#include "MemoryMapAsyncOutputBroker.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -62,7 +61,6 @@ DANSource::DANSource() :
     useAbsoluteTime = false;
     absoluteStartTime = 0LLU;
     danStreams = NULL_PTR(DANStream **);
-    brokerAsyncTrigger = NULL_PTR(MemoryMapAsyncTriggerOutputBroker *);
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
@@ -71,7 +69,7 @@ DANSource::DANSource() :
     }
 }
 
-/*lint -e{1551} -e{1740} must destroy all the DANStreams in the destructor. The brokerAsyncTrigger is freed by the framework.*/
+/*lint -e{1551} -e{1740} must destroy all the DANStreams in the destructor.*/
 DANSource::~DANSource() {
     if (danStreams != NULL_PTR(DANStream **)) {
         uint32 s;
@@ -144,22 +142,25 @@ bool DANSource::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* c
 bool DANSource::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
     bool ok = true;
     if (storeOnTrigger) {
-        ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTriggerNew("MemoryMapAsyncTriggerOutputBroker");
-        brokerAsyncTrigger = brokerAsyncTriggerNew.operator ->();
-        ok = brokerAsyncTriggerNew->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, cpuMask, stackSize);
+        brokerAsyncTrigger = ReferenceT<MemoryMapAsyncTriggerOutputBroker>("MemoryMapAsyncTriggerOutputBroker");
+        ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr,
+                                                              numberOfBuffers, numberOfPreTriggers,
+                                                              numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
-            ok = outputBrokers.Insert(brokerAsyncTriggerNew);
+            ok = outputBrokers.Insert(brokerAsyncTrigger);
         }
     }
     else {
-        ReferenceT<MemoryMapAsyncOutputBroker> brokerAsync("MemoryMapAsyncOutputBroker");
-        ok = brokerAsync->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
+        brokerAsyncOutput = ReferenceT<MemoryMapAsyncOutputBroker> ("MemoryMapAsyncOutputBroker");
+        ok = brokerAsyncOutput->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers,
+                                                   cpuMask, stackSize);
         if (ok) {
-            ok = outputBrokers.Insert(brokerAsync);
+            ok = outputBrokers.Insert(brokerAsyncOutput);
         }
     }
     return ok;
 }
+
 
 bool DANSource::Synchronise() {
     bool ok = true;
@@ -570,6 +571,19 @@ uint64 DANSource::GetAbsoluteStartTime() const {
 uint32 DANSource::GetDANBufferMultiplier() const {
     return danBufferMultiplier;
 }
+
+void DANSource::Purge(ReferenceContainer &purgeList) {
+    if (brokerAsyncTrigger.IsValid()) {
+        brokerAsyncTrigger->FlushAllTriggers();
+        brokerAsyncTrigger->UnlinkDataSource();
+    }
+    if (brokerAsyncOutput.IsValid()) {
+        brokerAsyncOutput->Flush();
+        brokerAsyncOutput->UnlinkDataSource();
+    }
+    DataSourceI::Purge(purgeList);
+}
+
 /*
  dan_DataCore DANSource::GetDANDataCore() {
  return danDataCore;

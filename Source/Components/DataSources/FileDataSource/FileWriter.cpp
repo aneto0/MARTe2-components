@@ -32,7 +32,6 @@
 #include "CLASSMETHODREGISTER.h"
 #include "Directory.h"
 #include "FileWriter.h"
-#include "MemoryMapAsyncOutputBroker.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -715,6 +714,21 @@ bool FileWriter::IsStoreOnTrigger() const {
 
 bool FileWriter::IsOverwrite() const {
     return overwrite;
+}
+
+void FileWriter::Purge(ReferenceContainer &purgeList) {
+    if (FlushFile() != ErrorManagement::NoError) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Failed to Flush the File");
+    }
+    ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger = brokerAsync;
+    if (brokerAsyncTrigger.IsValid()) {
+        brokerAsyncTrigger->UnlinkDataSource();
+    }
+    ReferenceT<MemoryMapAsyncOutputBroker> brokerAsyncOutput = brokerAsync;
+    if (brokerAsyncOutput.IsValid()) {
+        brokerAsyncOutput->UnlinkDataSource();
+    }
+    DataSourceI::Purge(purgeList);
 }
 
 CLASS_REGISTER(FileWriter, "1.0")
