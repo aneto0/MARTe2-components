@@ -574,11 +574,11 @@ uint32 DANSource::GetDANBufferMultiplier() const {
 
 void DANSource::Purge(ReferenceContainer &purgeList) {
     if (brokerAsyncTrigger.IsValid()) {
-        brokerAsyncTrigger->FlushAllTriggers();
+        (void) brokerAsyncTrigger->FlushAllTriggers();
         brokerAsyncTrigger->UnlinkDataSource();
     }
     if (brokerAsyncOutput.IsValid()) {
-        brokerAsyncOutput->Flush();
+        (void) brokerAsyncOutput->Flush();
         brokerAsyncOutput->UnlinkDataSource();
     }
     DataSourceI::Purge(purgeList);

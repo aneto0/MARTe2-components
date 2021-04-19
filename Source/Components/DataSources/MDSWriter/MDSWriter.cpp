@@ -793,11 +793,11 @@ const StreamString& MDSWriter::GetTreeName() const {
 
 void MDSWriter::Purge(ReferenceContainer &purgeList) {
     if (brokerAsyncTrigger.IsValid()) {
-        brokerAsyncTrigger->FlushAllTriggers();
+        (void) brokerAsyncTrigger->FlushAllTriggers();
         brokerAsyncTrigger->UnlinkDataSource();
     }
     if (brokerAsyncOutput.IsValid()) {
-        brokerAsyncOutput->Flush();
+        (void) brokerAsyncOutput->Flush();
         brokerAsyncOutput->UnlinkDataSource();
     }
     DataSourceI::Purge(purgeList);
