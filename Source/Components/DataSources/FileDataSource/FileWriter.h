@@ -33,6 +33,7 @@
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
 #include "File.h"
+#include "MemoryMapAsyncOutputBroker.h"
 #include "MemoryMapAsyncTriggerOutputBroker.h"
 #include "MessageI.h"
 #include "ProcessorType.h"
@@ -294,6 +295,11 @@ public:
      * @return true if the file is to be overwritten.
      */
     bool IsOverwrite() const;
+
+    /**
+     * @see DataSourceI::Purge()
+     */
+    virtual void Purge(ReferenceContainer &purgeList);
 
 private:
 

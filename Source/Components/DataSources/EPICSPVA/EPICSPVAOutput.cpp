@@ -27,7 +27,6 @@
 /*lint -efile(766,EPICSPVAOutput.cpp) MemoryMapAsyncOutputBroker.h is used in this file.*/
 #include "AdvancedErrorManagement.h"
 #include "EPICSPVAOutput.h"
-#include "MemoryMapAsyncOutputBroker.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -174,7 +173,7 @@ const char8* EPICSPVAOutput::GetBrokerName(StructuredDataI& data, const SignalDi
 }
 
 bool EPICSPVAOutput::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    ReferenceT<MemoryMapAsyncOutputBroker> broker("MemoryMapAsyncOutputBroker");
+    broker = ReferenceT<MemoryMapAsyncOutputBroker>("MemoryMapAsyncOutputBroker");
     bool ok = broker->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBrokerBuffers, cpuMask, stackSize);
     if (ok) {
         ok = outputBrokers.Insert(broker);
@@ -208,6 +207,14 @@ bool EPICSPVAOutput::Synchronise() {
 
 bool EPICSPVAOutput::IsIgnoringBufferOverrun() const {
     return (ignoreBufferOverrun == 1u);
+}
+
+void EPICSPVAOutput::Purge(ReferenceContainer &purgeList) {
+    if (broker.IsValid()) {
+        (void) broker->Flush();
+        broker->UnlinkDataSource();
+    }
+    DataSourceI::Purge(purgeList);
 }
 
 CLASS_REGISTER(EPICSPVAOutput, "1.0")

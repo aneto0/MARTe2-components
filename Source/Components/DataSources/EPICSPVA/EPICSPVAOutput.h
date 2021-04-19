@@ -35,6 +35,7 @@
 #include "EmbeddedServiceMethodBinderI.h"
 #include "EventSem.h"
 #include "MemoryDataSourceI.h"
+#include "MemoryMapAsyncOutputBroker.h"
 #include "SingleThreadService.h"
 
 /*---------------------------------------------------------------------------*/
@@ -171,6 +172,11 @@ EPICSPVAOutput    ();
      */
     bool IsIgnoringBufferOverrun() const;
 
+    /**
+     * @see DataSourceI::Purge()
+     */
+    virtual void Purge(ReferenceContainer &purgeList);
+
 private:
 
     /**
@@ -202,6 +208,11 @@ private:
      * The number of buffers for the circular buffer that flushes data into EPICS
      */
     uint32 numberOfBrokerBuffers;
+
+    /**
+     * The broker.
+     */
+    ReferenceT<MemoryMapAsyncOutputBroker> broker;
 };
 }
 
