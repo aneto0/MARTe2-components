@@ -49,6 +49,7 @@
 namespace MARTe {
 RealTimeThreadAsyncBridge::RealTimeThreadAsyncBridge() :
         MemoryDataSourceI(),
+        MessageI(),
         resetTimeout() {
     spinlocksRead = NULL_PTR(volatile int32 *);
     spinlocksWrite = NULL_PTR(FastPollingMutexSem *);
@@ -215,8 +216,8 @@ bool RealTimeThreadAsyncBridge::GetInputOffset(const uint32 signalIdx,
                                                 uint32 &offset) {
 
     bool ok = false;
-    if (blockingMode) {
-        if (spinlocksWrite[signalIdx].FastLock()) {
+    if (blockingMode != 0u) {
+        if (spinlocksWrite[signalIdx].FastLock() == ErrorManagement::NoError) {
             Atomic::Increment(&spinlocksRead[signalIdx]);
             spinlocksWrite[signalIdx].FastUnLock();
             offset = 0u;
@@ -224,7 +225,6 @@ bool RealTimeThreadAsyncBridge::GetInputOffset(const uint32 signalIdx,
         }
     }
     else {
-        uint64 checkedMask = 0ull;
         //possibly give a chance to all buffers
         for (uint32 k = 0u; (k < numberOfBuffers) && (!ok); k++) {
             //check the last written
@@ -264,11 +264,11 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx,
                                                  const uint32 numberOfSamples,
                                                  uint32 &offset) {
     bool ok = false;
-    if (blockingMode) {
-        if (spinlocksWrite[signalIdx].FastLock()) {
-            //wait the reader to finish
-            while (spinlocksRead[signalIdx] > 0)
-                ;
+    if (blockingMode != 0u) {
+        if (spinlocksWrite[signalIdx].FastLock() == ErrorManagement::NoError) {
+            //wait for the reader to finish
+            while (spinlocksRead[signalIdx] > 0) {
+            }
             ok = true;
             offset = 0u;
         }
@@ -283,7 +283,6 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx,
             uint32 newestBuffer = 0u;
             for (uint32 h = 0u; (h < numberOfBuffers); h++) {
                 uint32 index = (signalIdx * numberOfBuffers) + h;
-
                 if (spinlocksWrite[index].FastTryLock()) {
                     uint32 temp = whatIsNewestCounter[index];
                     spinlocksWrite[index].FastUnLock();
@@ -307,8 +306,9 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx,
                     uint32 newestIndex = (signalIdx * numberOfBuffers) + newestBuffer;
                     //needed in case of ranges
                     if (spinlocksWrite[newestIndex].FastTryLock()) {
-                        (void) MemoryOperationsHelper::Copy(&memory[signalOffsets[signalIdx] + offset], &memory[signalOffsets[signalIdx] + newestOffset],
-                                                            signalSize[signalIdx]);
+                        uint32 destOffset = signalOffsets[signalIdx] + offset; 
+                        uint32 srcOffset = signalOffsets[signalIdx] + newestOffset; 
+                        (void) MemoryOperationsHelper::Copy(&memory[destOffset], &memory[srcOffset], signalSize[signalIdx]);
                         spinlocksWrite[newestIndex].FastUnLock();
                     }
                     ok = true;
@@ -403,6 +403,7 @@ const char8 *RealTimeThreadAsyncBridge::GetBrokerName(StructuredDataI &data,
     return brokerName;
 }
 
+/*lint -e{613} ResetSignalValue only called if memory is properly initialised*/
 ErrorManagement::ErrorType RealTimeThreadAsyncBridge::ResetSignalValue() {
     ErrorManagement::ErrorType err;
     bool ret = true;
@@ -410,9 +411,7 @@ ErrorManagement::ErrorType RealTimeThreadAsyncBridge::ResetSignalValue() {
         //if the default value is declared use it to initialise
         //otherwise null the memory
         void *thisSignalMemory = NULL_PTR(void *);
-        if (ret) {
-            ret = GetSignalMemoryBuffer(i, 0u, thisSignalMemory);
-        }
+        ret = GetSignalMemoryBuffer(i, 0u, thisSignalMemory);
         if (ret) {
             uint32 size = 0u;
             ret = GetSignalByteSize(i, size);
@@ -421,7 +420,7 @@ ErrorManagement::ErrorType RealTimeThreadAsyncBridge::ResetSignalValue() {
             }
         }
         for(uint32 j=0u; j<numberOfBuffers; j++){
-            uint32 index=numberOfBuffers*i+j;
+            uint32 index= (numberOfBuffers * i) + j;
             whatIsNewestCounter[index] = 0u;
         }
         whatIsNewestGlobCounter[i]=0u;
