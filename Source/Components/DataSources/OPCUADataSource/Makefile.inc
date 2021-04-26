@@ -49,7 +49,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 INCLUDES += -I$(OPEN62541_INCLUDE)/
 
-LIBRARIES += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
+LIBRARIES_STATIC += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
 
 all: $(OBJS)    \
     $(BUILD_DIR)/OPCUADataSource$(LIBEXT) \

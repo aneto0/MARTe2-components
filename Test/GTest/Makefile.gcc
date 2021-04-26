@@ -25,50 +25,11 @@
 
 include Makefile.inc
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES+=-I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-LIBRARIES   += ../../Build/$(TARGET)/Components/DataSources/DataSources$(LIBEXT)
-LIBRARIES   += ../../Build/$(TARGET)/Components/DataSources/DataSourcesTests$(LIBEXT)
-LIBRARIES   += ../../Build/$(TARGET)/Components/GAMs/GAMs$(LIBEXT)
-LIBRARIES   += ../../Build/$(TARGET)/Components/GAMs/GAMsTests$(LIBEXT)
-LIBRARIES   += ../../Build/$(TARGET)/Components/Interfaces/Interfaces$(LIBEXT)
-LIBRARIES   += ../../Build/$(TARGET)/Components/Interfaces/InterfacesTests$(LIBEXT)
+LIBRARIES+=-L$(MARTe2_DIR)/Build/$(TARGET)/Core/ -lMARTe2
+LIBRARIES+=$(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest_main.a
 
-LIBRARIES   += -L$(MARTe2_DIR)/Build/$(TARGET)/Core/ -lMARTe2
-LIBRARIES   += $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest_main.a
+#Look for all the statically linked files
+LIBRARIES_STATIC+=$(shell find $(ROOT_DIR)/Build/$(TARGET) -name "*.a")
 
-
-ifdef CODAC_ROOT
-LIBRARIES += -L$(CODAC_ROOT)/lib/
-LIBRARIES += -lnisync
-LIBRARIES += -lnixseries
-LIBRARIES += -lpxi6259
-LIBRARIES += -lNiFpga
-
-## Only force EPICSPVA if CCS version is gt v6.1
-CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
-ifeq "$(CCSGT61)" "1"
-EPICSPVA = "1"
-endif
-
-endif
-
-ifdef EFDA_MARTe_DIR
-LIBRARIES   += -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Adapter -L$(EFDA_MARTe_DIR)/BaseLib2/linux -lBaseLib2
-endif
-
-ifdef MDSPLUS_DIR
-LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
-endif
-
-ifdef EPICS_BASE
-LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lca
-endif
-
-ifdef EPICSPVA
-LIBRARIES += -lpvAccess -lpvData -lpvDatabase -lnt -lpvAccessIOC -lpvAccessCA -ldbRecStd -ldbCore -lca -lCom -lpvaClient 
-endif 
-
-ifdef MATLAB_DIR
-LIBRARIES += -Wl,-rpath-link,$(MATLAB_DIR)/bin/glnxa64 "$(MATLAB_DIR)/sys/os/glnxa64/libstdc++.so.6" -L$(MATLAB_DIR)/extern/bin/glnxa64/ -L$(MATLAB_DIR)/bin/glnxa64/ -lMatlabDataArray -lMatlabEngine -lmx -lmex -lmat -lm -lstdc++ -leng
-endif

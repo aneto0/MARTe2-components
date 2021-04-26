@@ -23,55 +23,15 @@
 #############################################################
 
 TARGET=cov
-
 include Makefile.inc
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-LIBRARIES   += ../../Source/Components/DataSources/$(TARGET)/DataSources$(LIBEXT)
-LIBRARIES   += ../../Source/Components/GAMs/$(TARGET)/GAMs$(LIBEXT)
-LIBRARIES   += ../../Source/Components/Interfaces/$(TARGET)/Interfaces$(LIBEXT)
-LIBRARIES   += ../../Test/Components/Interfaces/$(TARGET)/InterfacesTests$(LIBEXT)
-LIBRARIES   += ../../Test/Components/DataSources/$(TARGET)/DataSourcesTests$(LIBEXT)
-LIBRARIES   += ../../Test/Components/GAMs/$(TARGET)/GAMsTests$(LIBEXT)
+INCLUDES+=-I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-LIBRARIES   += -L$(MARTe2_DIR)/Build/x86-linux/Core/ -lMARTe2
-LIBRARIES   += $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a 
+LIBRARIES+=-L$(MARTe2_DIR)/Build/x86-linux/Core/ -lMARTe2
 
-ifdef CODAC_ROOT
-LIBRARIES += -L$(CODAC_ROOT)/lib/
-LIBRARIES += -lnisync
-LIBRARIES += -lnixseries
-LIBRARIES += -lpxi6259
-LIBRARIES += -lNiFpga
+LIBRARIES_STATIC+=$(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest_main.a
 
-## Only force EPICSPVA if CCS version is gt v6.1
-CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
-ifeq "$(CCSGT61)" "1"
-EPICSPVA = "1"
-endif
+#Look for all the statically linked files
+LIBRARIES_STATIC+=$(shell find $(ROOT_DIR)/Source/Components/ -name "*.a")
+LIBRARIES_STATIC+=$(shell find $(ROOT_DIR)/Test/Components/ -name "*.a")
 
-endif
-
-ifdef EFDA_MARTe_DIR
-LIBRARIES   += -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Adapter -L$(EFDA_MARTe_DIR)/BaseLib2/linux -lBaseLib2
-endif
-
-ifdef MDSPLUS_DIR
-LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
-endif
-
-ifdef EPICS_BASE
-LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lca
-endif
-
-ifdef EPICSPVA
-LIBRARIES += -lpvaClient -lpvAccess -lpvData -lpvDatabase
-endif 
-
-ifdef MATLAB_DIR
-LIBRARIES += -Wl,-rpath-link,$(MATLAB_DIR)/bin/glnxa64 "$(MATLAB_DIR)/sys/os/glnxa64/libstdc++.so.6" -L$(MATLAB_DIR)/extern/bin/glnxa64/ -L$(MATLAB_DIR)/bin/glnxa64/ -lMatlabDataArray -lMatlabEngine -lmx -lmex -lmat -lm -lstdc++ -leng
-endif
-
-ifdef OPEN62541_LIB
-LIBRARIES += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
-endif
