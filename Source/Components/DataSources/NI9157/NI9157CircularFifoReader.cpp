@@ -56,12 +56,13 @@ NI9157CircularFifoReader::NI9157CircularFifoReader() :
     acqTimeout = 0xFFFFFFFFu;
     nonBlockSleepT = 0.F;
     if (eventSem.Create()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "NI9157CircularFifoReader::NI9157CircularFifoReader EventSem successfully created");
+        REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::NI9157CircularFifoReader EventSem successfully created");
     }
     ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT<RegisteredMethodsMessageFilter> (GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType err = MessageI::InstallMessageFilter(filter);
-    REPORT_ERROR_PARAMETERS(err.ErrorsCleared() ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::NI9157CircularFifoReader Install Message Filter returned %s", err.ErrorsCleared() ? "true" : "false");
+    bool ret = err.ErrorsCleared();
+    REPORT_ERROR_PARAMETERS(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::NI9157CircularFifoReader Install Message Filter returned %s", ret ? "true" : "false");
 }
 
 /*lint -e{1551} destructor needs to delete the devices*/
@@ -146,6 +147,7 @@ bool NI9157CircularFifoReader::Initialise(StructuredDataI &data) {
         }
     }
 
+    REPORT_ERROR_PARAMETERS(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::Initialise returning %s", ret ? "true" : "false");
     return ret;
 }
 
@@ -196,6 +198,7 @@ bool NI9157CircularFifoReader::SetConfiguredDatabase(StructuredDataI & data) {
         REPORT_ERROR(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::SetConfiguredDatabase FindResource %s returned %s with status %d", fifoName.Buffer(), ret ? "true" : "false", static_cast<int32>(status));
     }
 
+    REPORT_ERROR_PARAMETERS(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157CircularFifoReader::SetConfiguredDatabase returning %s", ret ? "true" : "false");
     return ret;
 }
 
@@ -474,4 +477,3 @@ CLASS_METHOD_REGISTER(NI9157CircularFifoReader, StopAcquisition)
 CLASS_METHOD_REGISTER(NI9157CircularFifoReader, StartAcquisition)
 
 }
-

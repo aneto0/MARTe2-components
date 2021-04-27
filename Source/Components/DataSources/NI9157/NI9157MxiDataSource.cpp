@@ -61,7 +61,8 @@ NI9157MxiDataSource::NI9157MxiDataSource() :
     ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT < RegisteredMethodsMessageFilter > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType err = MessageI::InstallMessageFilter(filter);
-    REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::NI9157MxiDataSource InstallMessageFilter() returned %s", err.ErrorsCleared() ? "true" : "false");
+    bool ret = err.ErrorsCleared();
+    REPORT_ERROR(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157MxiDataSource::NI9157MxiDataSource InstallMessageFilter() returned %s", ret ? "true" : "false");
 }
 
 /*lint -e{1551} possible thrown exception non critical*/
@@ -135,6 +136,7 @@ bool NI9157MxiDataSource::Initialise(StructuredDataI & data) {
         }
     }
 
+    REPORT_ERROR_PARAMETERS(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157MxiDataSource::Initialise returning %s", ret ? "true" : "false");
     return ret;
 }
 
@@ -215,6 +217,7 @@ bool NI9157MxiDataSource::SetConfiguredDatabase(StructuredDataI & data) {
         }
     }
 
+    REPORT_ERROR_PARAMETERS(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157MxiDataSource::SetConfiguredDatabase returning %s", ret ? "true" : "false");
     return ret;
 }
 
@@ -223,7 +226,7 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
                                             const char8 * const nextStateName) {
 
     bool prepare;
-    bool ret = false;
+    bool ret = true;
     uint32 numberOfReadWriteCurrent = 0u;
     uint32 numberOfReadWriteNext = 0u;
     uint32 numberOfProducersCurrentState = 0u;
@@ -311,16 +314,15 @@ bool NI9157MxiDataSource::PrepareNextState(const char8 * const currentStateName,
                 useInitialPattern[i] = resetInitialPattern[i];
             }
             if (runNi == 1u) {
-                REPORT_ERROR(ErrorManagement::Information, "Running...");
+                REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::PrepareNextState Calling Run on NI Device");
                 status = niDeviceBoard->Run();
                 ret = (status == 0);
-                REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "NI9157MxiDataSource::PrepareNextState Run returning %s with status=%d", ret ? "true" : "false", static_cast<int32> (status));
+                REPORT_ERROR_PARAMETERS(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157MxiDataSource::PrepareNextState Run returning %s with status=%d", ret ? "true" : "false", static_cast<int32> (status));
             }
         }
     }
 
-    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157MxiDataSource::PrepareNextState returning %s with prepare %s", ret ? "true" : "false", prepare ? "true" : "false");
-
+    REPORT_ERROR_PARAMETERS(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157MxiDataSource::PrepareNextState returning %s with prepare %s", ret ? "true" : "false", prepare ? "true" : "false");
     return ret;
 }
 
@@ -467,49 +469,54 @@ bool NI9157MxiDataSource::Synchronise() {
 ErrorManagement::ErrorType NI9157MxiDataSource::AsyncRead(StreamString varName,
                                             uint64 &varValue) {
 
-    ErrorManagement::ErrorType ret;
+    ErrorManagement::ErrorType err;
     uint32 i = 0u;
     NiFpga_Status status;
     //REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::AsyncRead");
 
     if (GetSignalIndex(i, varName.BufferReference())) {
-        //REPORT_ERROR(ErrorManagement::Information, "Reading %s", varName.Buffer());
+        //REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::AsyncRead Reading %s", varName.Buffer());
         /*lint -e{613} NULL pointer checked*/
         status = niDevice[i]->NiRead(varId[i], reinterpret_cast<void*>(&varValue));
-        ret.fatalError = static_cast<bool>(status != 0);
+        err.fatalError = static_cast<bool>(status != 0);
     }
     else {
-        REPORT_ERROR(ErrorManagement::FatalError, "Could not find %s", varName.Buffer());
-        ret.fatalError = true;
+        REPORT_ERROR(ErrorManagement::FatalError, "NI9157MxiDataSource::AsyncRead Could not find %s", varName.Buffer());
+        err.fatalError = true;
     }
 
-    return ret;
+    //bool ret = err.ErrorsCleared();
+    //REPORT_ERROR_PARAMETERS(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157MxiDataSource::AsyncRead returning %s", ret ? "true" : "false");
+    return err;
 }
 
 ErrorManagement::ErrorType NI9157MxiDataSource::AsyncWrite(StreamString varName,
                                             uint64 varValue) {
-                                                               
-    ErrorManagement::ErrorType ret;
+
+    ErrorManagement::ErrorType err;
     uint32 i = 0u;
     NiFpga_Status status;
     //REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::AsyncWrite");
 
     if (GetSignalIndex(i, varName.BufferReference())) {
-        //REPORT_ERROR(ErrorManagement::Information, "Writing %s %!", varName.Buffer(), varValue);
+        //REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::AsyncWrite Writing %s %!", varName.Buffer(), varValue);
         /*lint -e{613} NULL pointer checked*/
         status = niDevice[i]->NiWrite(varId[i], reinterpret_cast<void*>(&varValue));
-        ret.fatalError = static_cast<bool>(status != 0);
+        err.fatalError = static_cast<bool>(status != 0);
     }
     else {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not find %s", varName.Buffer());
-        ret.fatalError = true;
+        err.fatalError = true;
     }
 
-    return ret;
+    //bool ret = err.ErrorsCleared();
+    //REPORT_ERROR_PARAMETERS(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157MxiDataSource::AsyncWrite returning %s", ret ? "true" : "false");
+    return err;
 }
 
 ErrorManagement::ErrorType NI9157MxiDataSource::Reset() {
 
+    bool ret;
     ErrorManagement::ErrorType err;
     uint8 numberOfDimensions = 0u;
     uint32 oldSize = 0u;
@@ -530,7 +537,8 @@ ErrorManagement::ErrorType NI9157MxiDataSource::Reset() {
                     /*lint -e{613} NULL pointer checked*/
                     status = niDeviceBoard->NiConfigureFifo(varId[i], fifoSize, oldSize);
                     err = (status != 0);
-                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157MxiDataSource::Reset NiConfigureFifo to size %d returned %s with status %d", fifoSize, err.ErrorsCleared() ? "true" : "false", static_cast<int32> (status));
+                    ret = err.ErrorsCleared();
+                    REPORT_ERROR_PARAMETERS(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157MxiDataSource::Reset NiConfigureFifo to size %d returned %s with status %d", fifoSize, ret ? "true" : "false", static_cast<int32> (status));
                 }
             }
         }
@@ -541,13 +549,16 @@ ErrorManagement::ErrorType NI9157MxiDataSource::Reset() {
             useInitialPattern[i] = resetInitialPattern[i];
         }
         if (runNi == 1u) {
-            REPORT_ERROR(ErrorManagement::Information, "Running...");
+            REPORT_ERROR(ErrorManagement::Information, "NI9157MxiDataSource::Reset Calling Run on NI Device");
             status = niDeviceBoard->Run();
             err = (status != 0);
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157MxiDataSource::Reset Run returned %s with status %d", err.ErrorsCleared() ? "true" : "false", static_cast<int32> (status));
+            ret = err.ErrorsCleared();
+            REPORT_ERROR_PARAMETERS(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157MxiDataSource::Reset Run returned %s with status %d", ret ? "true" : "false", static_cast<int32> (status));
         }
     }
 
+    ret = err.ErrorsCleared();
+    REPORT_ERROR_PARAMETERS(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157MxiDataSource::Reset returning %s", ret ? "true" : "false");
     return err;
 }
 
