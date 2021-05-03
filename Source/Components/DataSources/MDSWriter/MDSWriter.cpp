@@ -204,7 +204,7 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
     }
     if (ok) {
         // TODO (WARNING) change CPUMask type to support more than 32 cpus
-        uint32 cpuMaskIn;
+        uint64 cpuMaskIn;
         ok = data.Read("CPUMask", cpuMaskIn);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "CPUMask shall be specified");

@@ -213,7 +213,7 @@ bool DANSource::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        uint32 cpuMaskIn;
+        uint64 cpuMaskIn;
         ok = data.Read("CPUMask", cpuMaskIn);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "CPUMask shall be specified");
