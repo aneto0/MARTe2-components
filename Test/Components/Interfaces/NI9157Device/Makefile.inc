@@ -74,5 +74,5 @@ include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 
-clean:
+clean::
 	-@rm -fv $(ARCHIVEPATH)/$(FILE_PREIX)*
