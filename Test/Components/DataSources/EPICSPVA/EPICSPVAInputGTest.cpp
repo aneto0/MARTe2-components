@@ -114,6 +114,11 @@ TEST(EPICSPVAInputGTest,TestSynchronise) {
     ASSERT_TRUE(test.TestSynchronise());
 }
 
+TEST(EPICSPVAInputGTest,TestGetBrokerNameSynchronised_too_many_channels) {
+    EPICSPVAInputTest test;
+    ASSERT_TRUE(test.TestGetBrokerNameSynchronised_too_many_channels());
+}
+
 TEST(EPICSPVAInputGTest,TestExecute) {
     EPICSPVAInputTest test;
     ASSERT_TRUE(test.TestExecute());

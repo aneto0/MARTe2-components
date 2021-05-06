@@ -36,7 +36,9 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 EPICSPVAInput::EPICSPVAInput() :
-        MemoryDataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
+        MemoryDataSourceI(),
+        EmbeddedServiceMethodBinderI(),
+        executor(*this) {
     numberOfChannels = 0u;
     channelList = NULL_PTR(EPICSPVAChannelWrapper *);
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
@@ -61,7 +63,7 @@ EPICSPVAInput::~EPICSPVAInput() {
     }
 }
 
-bool EPICSPVAInput::Initialise(StructuredDataI & data) {
+bool EPICSPVAInput::Initialise(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::Initialise(data);
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
@@ -114,7 +116,7 @@ bool EPICSPVAInput::Initialise(StructuredDataI & data) {
     return ok;
 }
 
-bool EPICSPVAInput::SetConfiguredDatabase(StructuredDataI & data) {
+bool EPICSPVAInput::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
     //Check the signal index of the timing signal.
     uint32 nOfSignals = GetNumberOfSignals();
@@ -158,8 +160,9 @@ bool EPICSPVAInput::AllocateMemory() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
-const char8* EPICSPVAInput::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
-    const char8* brokerName = "";
+const char8* EPICSPVAInput::GetBrokerName(StructuredDataI &data,
+                                          const SignalDirection direction) {
+    const char8 *brokerName = "";
     if (direction == InputSignals) {
         float32 tempFrequency = 0.F;
         if (!data.Read("Frequency", tempFrequency)) {
@@ -167,7 +170,14 @@ const char8* EPICSPVAInput::GetBrokerName(StructuredDataI& data, const SignalDir
         }
         if (tempFrequency > 0.F) {
             //TODO prevent synchronising if numberOfChannels > 1) - KISS...
-            brokerName = "MemoryMapSynchronisedInputBroker";
+            if (numberOfChannels > 1u) {
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                             "The number of channels shall be exactly 1 if using Synchronisation.");
+                brokerName = "Null";
+            }
+            else {
+                brokerName = "MemoryMapSynchronisedInputBroker";
+            }
         }
         else {
             brokerName = "MemoryMapInputBroker";
@@ -178,7 +188,8 @@ const char8* EPICSPVAInput::GetBrokerName(StructuredDataI& data, const SignalDir
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool EPICSPVAInput::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool EPICSPVAInput::PrepareNextState(const char8 *const currentStateName,
+                                     const char8 *const nextStateName) {
     return true;
 }
 
@@ -187,7 +198,7 @@ bool EPICSPVAInput::Synchronise() {
     return err.ErrorsCleared();
 }
 
-ErrorManagement::ErrorType EPICSPVAInput::Execute(ExecutionInfo& info) {
+ErrorManagement::ErrorType EPICSPVAInput::Execute(ExecutionInfo &info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
         err.fatalError = !channelList[info.GetThreadNumber()].Monitor();

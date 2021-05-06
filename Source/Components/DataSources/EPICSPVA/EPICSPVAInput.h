@@ -53,7 +53,8 @@ namespace MARTe {
  *
  * Note that strings shall be specified with Type = string (also inside structured types).
  *
- * TODO explain that it can be used as a synchronising data-source (with at most one channel).
+ * The DataSource can be used as a synchronisation point (with at most one channel). The signal must have the property
+ * 'Frequency' setup to the value at which the values are expected to be produced.
  *
  * <pre>
  * +EPICSPVAInput_1 = {
