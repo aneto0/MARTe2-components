@@ -227,22 +227,33 @@ bool WaveformPointsDef::VerifyTimes() const {
     return ret;
 }
 
-//lint -e{613} Possible use of a null pointer. It is not possible due to this function only is called inside Execute() and Execute() only is called if Setup() and initialise() succeed.
-void WaveformPointsDef::FindNearestPoints() {
+bool WaveformPointsDef::SearchIndex(const float64 Preq, const float64 * const P, const uint32 sizeOfArrays, uint32& index){
     bool found = false;
-    bool end = false;
-    uint32 i = 0u;
-    while ((!found) && (!end)) {
-        if (times[i] > currentTime) {
-            found = true;
-        }
-        else {
-            i++;
-            if (i >= numberOfTimesElements) {
-                end = true;
+
+    uint32 med;
+    uint32 inf = 0u;
+    uint32 sup = sizeOfArrays;
+        while (inf != sup) {
+            med = (inf + sup) / 2u;
+            if (P[med] <= Preq) {
+                inf = med + 1u;
+            }
+            else {
+                sup = med;
             }
         }
+    if (inf < sizeOfArrays) {
+        found = true;
     }
+    index = sup;
+    return found;
+}
+
+//lint -e{613} Possible use of a null pointer. It is not possible due to this function only is called inside Execute() and Execute() only is called if Setup() and initialise() succeed.
+void WaveformPointsDef::FindNearestPoints() {
+    bool found;
+    uint32 i = 0u;
+    found = SearchIndex(currentTime, times, numberOfTimesElements, i);
     if (found) {
         if (i > 0u) {
             uint32 auxIndex = i - 1u;
@@ -267,20 +278,8 @@ void WaveformPointsDef::FindNearestPoints() {
                 times[m] = times[m] + lastTimeValue + timeIncrement;
             }
         }
-        found = false;
-        end = false;
         i = 0u;
-        while ((!found) && (!end)) { //find again
-            if (times[i] > currentTime) {
-                found = true;
-            }
-            else {
-                i++;
-                if ((i >= numberOfTimesElements)) {
-                    end = true;
-                }
-            }
-        }
+        found = SearchIndex(currentTime, times, numberOfTimesElements, i);
         if (found) {
             if (i == 0u) {
                 uint32 auxIdx = numberOfPointsElements - 1u;
