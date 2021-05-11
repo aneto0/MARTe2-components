@@ -55,10 +55,10 @@ namespace MARTe {
  *              Type = uint8
  *          }
  *          Counter = { //Mandatory. Packet Counter. Must be in second position
- *              Type = uint64 //Mandatory (Note: Sender and Receiver must be same type),  int64 also supported.
+ *              Type = uint64 //Mandatory (Note: Sender and Receiver must be same type),  int64 and uint32 also supported.
  *          }
  *          Time = { //Mandatory. Current cycle timestamp. Must be in third position
- *               Type = uint64 //Mandatory (Note: Sender and Receiver must be same type),  int64 also supported.
+ *               Type = uint64 //Mandatory (Note: Sender and Receiver must be same type),  int64 and uint32 also supported.
  *          }
  *          Signal1 = { //One or more extra signals shall be defined
  *              Type = float32 //Mandatory (Note: Sender and Receiver must be same type). All other MARTe2 types are supported

@@ -59,13 +59,14 @@ UDPSender::UDPSender() :
 UDPSender::~UDPSender() {
     if (!client->Close()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not close UDP sender.");
-    } else {
+    }
+    else {
         delete client;
     }
 }
 
 bool UDPSender::Initialise(StructuredDataI &data) {
-    bool ok = DataSourceI::Initialise(data);
+    bool ok = MemoryDataSourceI::Initialise(data);
     if (ok) {
         ok = data.Read("NumberOfPreTriggers", numberOfPreTriggers);
         if (!ok) {
@@ -155,31 +156,34 @@ bool UDPSender::Initialise(StructuredDataI &data) {
         }
         tempName = "";
     }
+    if (ok) {
+        ok = data.MoveToAncestor(1u);
+    }
 
     return ok;
 }
 
 bool UDPSender::Synchronise() {
-    const char8* const dataBuffer = reinterpret_cast<char8*>(memory);
+    const char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
     bool ok = client->Write(dataBuffer, totalMemorySize);
     return ok;
 }
 
 bool UDPSender::SetConfiguredDatabase(StructuredDataI &data) {
-    bool ok = DataSourceI::SetConfiguredDatabase(data);
+    bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
     if (ok) {
-        ok = (GetSignalType(1u) == SignedInteger64Bit || GetSignalType(1u) == UnsignedInteger64Bit);
+        ok = (GetSignalType(1u) == SignedInteger64Bit || GetSignalType(1u) == UnsignedInteger64Bit || GetSignalType(1u) == UnsignedInteger32Bit);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Counter signal type not supported. Use uint64 or int64");
         }
         if (ok) {
-            ok = (GetSignalType(2u) == SignedInteger64Bit || GetSignalType(1u) == UnsignedInteger64Bit);
+            ok = (GetSignalType(2u) == SignedInteger64Bit || GetSignalType(1u) == UnsignedInteger64Bit || GetSignalType(1u) == UnsignedInteger32Bit);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Time signal type not supported. Use uint64 or int64");
             }
         }
     }
-    if(ok){
+    if (ok) {
         client = new UDPSocket();
     }
     if (ok) {
@@ -196,60 +200,6 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI &data) {
     }
     return ok;
 }
-
-/*bool UDPSender::AllocateMemory() {
-
- nOfSignals = GetNumberOfSignals();
- bool ok = (nOfSignals > 3u);
- if (signalsMemoryOffset == NULL_PTR(uint32*)) {
- REPORT_ERROR(ErrorManagement::FatalError, "Variable \"signalsMemoryOffset\" was not initialised!");
- ok = false;
- }
- else {
- if (ok) {
- dataBuffer = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalPacketSize);
- sequenceNumberPtr = &((static_cast<uint64*>(dataBuffer))[0]);
- timerPtr = &((static_cast<uint64*>(dataBuffer))[1]);
- }
- else {
- REPORT_ERROR(ErrorManagement::ParametersError, "A minimum of three signals (counter, timer and one other signal) must be specified!");
- }
-
- }
-
- return ok;
- }*/
-
-/*uint32 UDPSender::GetNumberOfMemoryBuffers() {
- return 1u;
- }*/
-
-//lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
-/*bool UDPSender::GetSignalMemoryBuffer(const uint32 signalIdx,
- const uint32 bufferIdx,
- void *&signalAddress) {
- bool ok = true;
- if (signalIdx <= (GetNumberOfSignals() - 1u)) {
- if (dataBuffer == NULL_PTR(void*)) {
- ok = false;
- REPORT_ERROR(ErrorManagement::FatalError, "Variable \"dataBuffer\" was not initialised!");
- }
- else {
- char8 *dataBufferChar = static_cast<char8*>(dataBuffer);
- if (signalsMemoryOffset == NULL_PTR(uint32*)) {
- ok = false;
- REPORT_ERROR(ErrorManagement::FatalError, "Variable \"signalsMemoryOffset\" was not initialised!");
- }
- else {
- signalAddress = static_cast<void*>(&dataBufferChar[signalsMemoryOffset[signalIdx]]);
- }
- }
- }
- else {
- ok = false;
- }
- return ok;
- }*/
 
 const char8* UDPSender::GetBrokerName(StructuredDataI &data,
                                       const SignalDirection direction) {
