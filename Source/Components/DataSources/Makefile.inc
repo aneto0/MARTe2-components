@@ -30,7 +30,8 @@ SPB = EpicsDataSource.x \
     LinkDataSource.x \
     LoggerDataSource.x \
     RealTimeThreadAsyncBridge.x \
-    RealTimeThreadSynchronisation.x
+    RealTimeThreadSynchronisation.x \
+    UDP.x
 
 ROOT_DIR=../../..
 include ProfinetDataSource/Makefile.detect
@@ -89,6 +90,7 @@ LIBRARIES_STATIC+=$(BUILD_DIR)/LinkDataSource/LinkDataSource$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSource$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadAsyncBridge/RealTimeThreadAsyncBridge$(LIBEXT)
 LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadSynchronisation/RealTimeThreadSynchronisation$(LIBEXT)
+LIBRARIES_STATIC+=$(BUILD_DIR)/UDP/UDP$(LIBEXT)
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=$(BUILD_DIR)/DAN/DAN$(LIBEXT)

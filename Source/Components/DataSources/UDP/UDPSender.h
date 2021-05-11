@@ -1,8 +1,8 @@
 /**
  * @file UDPSender.h
  * @brief Header file for class UDPSender
- * @date 31/01/2017
- * @author Danny Sortino
+ * @date 10/05/2021
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -32,27 +32,32 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "CompilerTypes.h"
-#include "DataSourceI.h"
-#include "EventSem.h"
+#include "MemoryDataSourceI.h"
+#include "ProcessorType.h"
 #include "UDPSocket.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-namespace MARTe{
+namespace MARTe {
 /**
  * @brief A DataSource which transmits given signals via UDP.
  *
  * The configuration syntax is (names are only given as an example):
  * +UDPSender = {
  *     Class = UDPDrv::UDPSender
- *     TargetAddress = "127.0.0.1" //Optional (default 127.0.0.1) The address of the UDPReciever
+ *     Address = "127.0.0.1" //Optional (default 127.0.0.1) The address of the UDPReciever
  *     Port = "44488" //Optional (default 44488) The port of the UDPReciever
+ *     CPUMask = 15 //Compulsory. Affinity assigned to the threads responsible for asynchronously flush data.
+ *     StackSize = 10000000 //Compulsory. Stack size of the thread above.
  *     Signals = {
- *          Counter = { //Mandatory. Number of ticks since last state change.
+ *          Trigger = { //Mandatory. Must be in first position.
+ *              Type = uint8
+ *          }
+ *          Counter = { //Mandatory. Packet Counter. Must be in second position
  *              Type = uint64 //Mandatory (Note: Sender and Receiver must be same type),  int64 also supported.
  *          }
- *          Time = { //Mandatory. Elapsed time in micro-seconds since last state change.
+ *          Time = { //Mandatory. Current cycle timestamp. Must be in third position
  *               Type = uint64 //Mandatory (Note: Sender and Receiver must be same type),  int64 also supported.
  *          }
  *          Signal1 = { //One or more extra signals shall be defined
@@ -65,9 +70,8 @@ namespace MARTe{
  *     }
  * }
  */
-class UDPSender : public DataSourceI {
-public:
-    CLASS_REGISTER_DECLARATION()
+class UDPSender: public MemoryDataSourceI {
+public:CLASS_REGISTER_DECLARATION()
 
     /**
      * @brief Default constructor.
@@ -91,53 +95,52 @@ public:
      * @brief See DataSourceI::AllocateMemory.
      * @return true.
      */
-    virtual bool AllocateMemory();
+    //virtual bool AllocateMemory();
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
      * @return 1.
      */
-    virtual uint32 GetNumberOfMemoryBuffers();
+    //virtual uint32 GetNumberOfMemoryBuffers();
 
     /**
      * @brief See DataSourceI::GetSignalMemoryBuffer.
      */
-    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-                                            const uint32 bufferIdx,
-                                            void*& signalAddress);
+    /*virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
+                                       const uint32 bufferIdx,
+                                       void *&signalAddress);*/
 
     /**
      * @brief See DataSourceI::GetBrokerName.
      * @details Only Output signals are supported.
      * @return MemoryMapSynchronisedOutputBroker
      */
-    virtual const char8* GetBrokerName(StructuredDataI& data,
-                                            const SignalDirection direction);
-
+    virtual const char8* GetBrokerName(StructuredDataI &data,
+                                       const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
      * @return false.
      */
-    virtual bool GetInputBrokers(ReferenceContainer& inputBrokers,
-                                    const char8* const functionName,
-                                    void* const gamMemPtr);
-    
+    virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
+                                 const char8 *const functionName,
+                                 void *const gamMemPtr);
+
     /**
      * @brief See DataSourceI::GetOutputBrokers.
      * @details It adds a MemoryMapSynchronisedOutputBroker instance to the outputBrokers.
      * @return true.
      */
-    virtual bool GetOutputBrokers(ReferenceContainer& outputBrokers,
-                                        const char8* const functionName,
-                                        void* const gamMemPtr);
-    
+    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
+                                  const char8 *const functionName,
+                                  void *const gamMemPtr);
+
     /**
      * @brief Initialises the packet data and stores the time
      * @return true
      */
-    virtual bool PrepareNextState(const char8* const currentStateName,
-                                        const char8* const nextStateName);
+    virtual bool PrepareNextState(const char8 *const currentStateName,
+                                  const char8 *const nextStateName);
 
     /**
      * @brief Final verification of all the parameters and opens the connection to the receiver server.
@@ -145,7 +148,7 @@ public:
      * defined and of the correct types/sizes
      * @return true if all parameters are correctly configured and connection opened to the receiver server.
      */
-    virtual bool SetConfiguredDatabase(StructuredDataI& data);
+    virtual bool SetConfiguredDatabase(StructuredDataI &data);
 
     /**
      * @brief Loads and verifies the configuration parameters detailed in the class description.
@@ -161,50 +164,40 @@ private:
     StreamString udpServerAddress;
 
     /**
-     * The time when the state was last changed
+     * Number of pre buffers.
      */
-    uint64 timerAtStateChange;
+    uint32 numberOfPreTriggers;
 
     /**
-     * The number of signals that will be sent
+     * Number of post buffers.
      */
-    uint32 nOfSignals;
+    uint32 numberOfPostTriggers;
+
+    /**
+     * The affinity of the thread that asynchronously flushes data into MDSplus.
+     */
+    ProcessorType cpuMask;
+
+    /**
+     * The size of the stack of the thread that asynchronously flushes data into DAN.
+     */
+    uint32 stackSize;
 
     /**
      * The port that the sender will transmit to
      */
     uint16 udpServerPort;
 
-    /**
-     * An array storing the pointer offset (number of bytes) for each signal, 
-     * EG to get the pointer offset  for signal 1 = signalsMemoryOffset[0]
-     */
-    uint32 *signalsMemoryOffset;
 
     /**
-     * A pointer to memory that will contain all the information that will be sent
-     */
-    void *dataBuffer;
- 
-    /**
-     * A pointer to the sequence number data that is stored within the databuffer
-     */   
-    uint64 *sequenceNumberPtr;
- 
-    /**
-     * A pointer to the timer data that is stored within the databuffer
-     */      
-    uint64 *timerPtr;
- 
-    /**
      * The socket that will connect to the receiver
-     */  
-    UDPSocket client;
-    
+     */
+    UDPSocket * client;
+
     /**
-     * The total size of the packet being sent
-     */  
-    uint32 totalPacketSize;
+     * Memory map asynchronously triggered broker.
+     */
+    ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger;
 };
 }
 #endif

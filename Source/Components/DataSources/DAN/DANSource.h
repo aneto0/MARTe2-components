@@ -292,7 +292,7 @@ private:
     int32 timeSignalIdx;
 
     /**
-     * The affinity of the thread that asynchronously flushes data into MDSplus.
+     * The affinity of the thread that asynchronously flushes data into DAN.
      */
     ProcessorType cpuMask;
 
