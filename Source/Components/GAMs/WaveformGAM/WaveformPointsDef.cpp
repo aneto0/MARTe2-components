@@ -227,22 +227,22 @@ bool WaveformPointsDef::VerifyTimes() const {
     return ret;
 }
 
-bool WaveformPointsDef::SearchIndex(const float64 Preq, const float64 * const P, const uint32 sizeOfArrays, uint32& index){
+bool WaveformPointsDef::SearchIndex(const float64 preq, const float64 * const p, const uint32 sizeOfArray, uint32& index) const {
     bool found = false;
 
     uint32 med;
     uint32 inf = 0u;
-    uint32 sup = sizeOfArrays;
-        while (inf != sup) {
-            med = (inf + sup) / 2u;
-            if (P[med] <= Preq) {
-                inf = med + 1u;
-            }
-            else {
-                sup = med;
-            }
+    uint32 sup = sizeOfArray;
+    while (inf != sup) {
+        med = (inf + sup) / 2u;
+        if (p[med] <= preq) {
+            inf = med + 1u;
         }
-    if (inf < sizeOfArrays) {
+        else {
+            sup = med;
+        }
+    }
+    if (inf < sizeOfArray) {
         found = true;
     }
     index = sup;

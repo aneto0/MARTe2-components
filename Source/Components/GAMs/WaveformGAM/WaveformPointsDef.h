@@ -208,9 +208,21 @@ private:
     template<typename T>
     bool GetValue();
 
-    bool SearchIndex(const float64 Preq, const float64 * const P, const uint32 sizeOfArrays, uint32& index);
+    /**
+     * Binary search for preq in p.
+     * @param[in] preq the value to search.
+     * @param[in] p the array to be searched.
+     * @param[in] sizeOfArray the size of p.
+     * @param[out] index the index of preq in p, if found.
+     * @return true if preq is found.
+     */
+    bool SearchIndex(const float64 preq, const float64 * const p, const uint32 sizeOfArray, uint32& index) const;
 
+    /**
+     * Array to store the values.
+     */
     float64 *points;
+
     /**
      * times array to indicate at which time there is a new point. The first time must be 0
      */
