@@ -219,7 +219,7 @@ bool DANSource::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "CPUMask shall be specified");
         }
         else {
-            cpuMask = cpuMaskIn;
+            cpuMask = BitSet(cpuMaskIn);
         }
     }
     if (ok) {
