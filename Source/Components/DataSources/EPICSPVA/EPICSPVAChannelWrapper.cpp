@@ -331,7 +331,7 @@ bool EPICSPVAChannelWrapper::Monitor() {
             }
         }
         if (ok) {
-            if (monitor.wait(0.2)) {
+            if (monitor.wait(2.0)) {
                 if (monitor.event.event == pvac::MonitorEvent::Data) {
                     while (monitor.poll()) {
                         structureResolved = (monitorRoot ? true : false);

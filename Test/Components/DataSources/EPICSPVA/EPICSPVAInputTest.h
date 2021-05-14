@@ -143,9 +143,14 @@ public:
     bool TestSetConfiguredDatabase_False_Samples();
 
     /**
-     * @brief Tests that the Synchronise method returns false.
+     * @brief Tests that the Synchronise method returns true when the synchronise option is on.
      */
     bool TestSynchronise();
+
+    /**
+     * @brief Tests that the Synchronise method returns false.
+     */
+    bool TestGetBrokerNameSynchronised_too_many_channels();
 
     /**
      * @brief Tests that the PrepareNextState method returns true.

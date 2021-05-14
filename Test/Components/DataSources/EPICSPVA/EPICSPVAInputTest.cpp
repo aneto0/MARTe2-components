@@ -46,8 +46,7 @@
  * @brief GAM which writes signals into a given EPICSPVAInput
  */
 class EPICSPVAInputGAMTestHelper: public MARTe::GAM {
-public:
-    CLASS_REGISTER_DECLARATION()EPICSPVAInputGAMTestHelper() {
+public:CLASS_REGISTER_DECLARATION()EPICSPVAInputGAMTestHelper() {
         char8Signal = NULL;
         uint8Signal = NULL;
         int8Signal = NULL;
@@ -66,7 +65,7 @@ public:
         using namespace MARTe;
     }
 
-    virtual bool Initialise(MARTe::StructuredDataI & data) {
+    virtual bool Initialise(MARTe::StructuredDataI &data) {
         return GAM::Initialise(data);
     }
 
@@ -75,39 +74,39 @@ public:
         GetSignalNumberOfElements(InputSignals, 0, numberOfElements);
         uint32 n;
         uint32 numberOfSignals = GetNumberOfInputSignals();
-        for(n=0; n<numberOfSignals; n++) {
+        for (n = 0; n < numberOfSignals; n++) {
             if (GetSignalType(InputSignals, n) == Character8Bit) {
-                char8Signal = reinterpret_cast<char8 *>(GetInputSignalMemory(n));
+                char8Signal = reinterpret_cast<char8*>(GetInputSignalMemory(n));
             }
             else if (GetSignalType(InputSignals, n) == UnsignedInteger8Bit) {
-                uint8Signal = reinterpret_cast<uint8 *>(GetInputSignalMemory(n));
+                uint8Signal = reinterpret_cast<uint8*>(GetInputSignalMemory(n));
             }
             else if (GetSignalType(InputSignals, n) == SignedInteger8Bit) {
-                int8Signal = reinterpret_cast<int8 *>(GetInputSignalMemory(n));
+                int8Signal = reinterpret_cast<int8*>(GetInputSignalMemory(n));
             }
             else if (GetSignalType(InputSignals, n) == UnsignedInteger16Bit) {
-                uint16Signal = reinterpret_cast<uint16 *>(GetInputSignalMemory(n));
+                uint16Signal = reinterpret_cast<uint16*>(GetInputSignalMemory(n));
             }
             else if (GetSignalType(InputSignals, n) == SignedInteger16Bit) {
-                int16Signal = reinterpret_cast<int16 *>(GetInputSignalMemory(n));
+                int16Signal = reinterpret_cast<int16*>(GetInputSignalMemory(n));
             }
             else if (GetSignalType(InputSignals, n) == UnsignedInteger32Bit) {
-                uint32Signal = reinterpret_cast<uint32 *>(GetInputSignalMemory(n));
+                uint32Signal = reinterpret_cast<uint32*>(GetInputSignalMemory(n));
             }
             else if (GetSignalType(InputSignals, n) == SignedInteger32Bit) {
-                int32Signal = reinterpret_cast<int32 *>(GetInputSignalMemory(n));
+                int32Signal = reinterpret_cast<int32*>(GetInputSignalMemory(n));
             }
             else if (GetSignalType(InputSignals, n) == UnsignedInteger64Bit) {
-                uint64Signal = reinterpret_cast<uint64 *>(GetInputSignalMemory(n));
+                uint64Signal = reinterpret_cast<uint64*>(GetInputSignalMemory(n));
             }
             else if (GetSignalType(InputSignals, n) == SignedInteger64Bit) {
-                int64Signal = reinterpret_cast<int64 *>(GetInputSignalMemory(n));
+                int64Signal = reinterpret_cast<int64*>(GetInputSignalMemory(n));
             }
             else if (GetSignalType(InputSignals, n) == Float32Bit) {
-                float32Signal = reinterpret_cast<float32 *>(GetInputSignalMemory(n));
+                float32Signal = reinterpret_cast<float32*>(GetInputSignalMemory(n));
             }
             else {
-                float64Signal = reinterpret_cast<float64 *>(GetInputSignalMemory(n));
+                float64Signal = reinterpret_cast<float64*>(GetInputSignalMemory(n));
             }
         }
 
@@ -177,7 +176,7 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-EPICSPVAInputSchedulerTestHelper    () : MARTe::GAMSchedulerI() {
+    EPICSPVAInputSchedulerTestHelper () : MARTe::GAMSchedulerI() {
         scheduledStates = NULL;
     }
 
@@ -191,9 +190,9 @@ EPICSPVAInputSchedulerTestHelper    () : MARTe::GAMSchedulerI() {
 
     void ExecuteThreadCycle(MARTe::uint32 threadId) {
         using namespace MARTe;
-        ReferenceT<RealTimeApplication> realTimeAppT = realTimeApp;
+        ReferenceT < RealTimeApplication > realTimeAppT = realTimeApp;
         ExecuteSingleCycle(scheduledStates[realTimeAppT->GetIndex()]->threads[threadId].executables,
-                scheduledStates[realTimeAppT->GetIndex()]->threads[threadId].numberOfExecutables);
+                           scheduledStates[realTimeAppT->GetIndex()]->threads[threadId].numberOfExecutables);
     }
 
     virtual bool ConfigureScheduler(MARTe::Reference realTimeApp) {
@@ -210,7 +209,7 @@ EPICSPVAInputSchedulerTestHelper    () : MARTe::GAMSchedulerI() {
 
 private:
 
-    MARTe::ScheduledState * const * scheduledStates;
+    MARTe::ScheduledState *const*scheduledStates;
 };
 
 CLASS_REGISTER(EPICSPVAInputSchedulerTestHelper, "1.0")
@@ -242,27 +241,29 @@ DECLARE_CLASS_MEMBER(EPICSPVAInputTestUInt, UInt8, uint8, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestUInt, UInt16, uint16, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestUInt, UInt32, uint32, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestUInt, UInt64, uint64, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVAInputTestUIntStructEntries[] = { &EPICSPVAInputTestUInt_UInt8_introspectionEntry, &EPICSPVAInputTestUInt_UInt16_introspectionEntry,
-        &EPICSPVAInputTestUInt_UInt32_introspectionEntry, &EPICSPVAInputTestUInt_UInt64_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry *EPICSPVAInputTestUIntStructEntries[] =
+        { &EPICSPVAInputTestUInt_UInt8_introspectionEntry, &EPICSPVAInputTestUInt_UInt16_introspectionEntry, &EPICSPVAInputTestUInt_UInt32_introspectionEntry,
+                &EPICSPVAInputTestUInt_UInt64_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestUInt, EPICSPVAInputTestUIntStructEntries)
 
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestInt, Int8, int8, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestInt, Int16, int16, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestInt, Int32, int32, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestInt, Int64, int64, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVAInputTestIntStructEntries[] = { &EPICSPVAInputTestInt_Int8_introspectionEntry, &EPICSPVAInputTestInt_Int16_introspectionEntry,
-        &EPICSPVAInputTestInt_Int32_introspectionEntry, &EPICSPVAInputTestInt_Int64_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry *EPICSPVAInputTestIntStructEntries[] = { &EPICSPVAInputTestInt_Int8_introspectionEntry,
+        &EPICSPVAInputTestInt_Int16_introspectionEntry, &EPICSPVAInputTestInt_Int32_introspectionEntry, &EPICSPVAInputTestInt_Int64_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestInt, EPICSPVAInputTestIntStructEntries)
 
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestFloat, Float32, float32, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestFloat, Float64, float64, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVAInputTestFloatStructEntries[] = { &EPICSPVAInputTestFloat_Float32_introspectionEntry, &EPICSPVAInputTestFloat_Float64_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry *EPICSPVAInputTestFloatStructEntries[] = { &EPICSPVAInputTestFloat_Float32_introspectionEntry,
+        &EPICSPVAInputTestFloat_Float64_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestFloat, EPICSPVAInputTestFloatStructEntries)
 
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesS, UInts, EPICSPVAInputTestUInt, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesS, Ints, EPICSPVAInputTestInt, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesS, Floats, EPICSPVAInputTestFloat, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestInputTypesSStructEntries[] = { &EPICSPVADatabaseTestInputTypesS_UInts_introspectionEntry,
+static const MARTe::IntrospectionEntry *EPICSPVADatabaseTestInputTypesSStructEntries[] = { &EPICSPVADatabaseTestInputTypesS_UInts_introspectionEntry,
         &EPICSPVADatabaseTestInputTypesS_Ints_introspectionEntry, &EPICSPVADatabaseTestInputTypesS_Floats_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestInputTypesS, EPICSPVADatabaseTestInputTypesSStructEntries)
 
@@ -292,27 +293,29 @@ DECLARE_CLASS_MEMBER(EPICSPVAInputTestUIntA, UInt8, uint8, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestUIntA, UInt16, uint16, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestUIntA, UInt32, uint32, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestUIntA, UInt64, uint64, "[4]", "");
-static const MARTe::IntrospectionEntry* EPICSPVAInputTestUIntAStructEntries[] = { &EPICSPVAInputTestUIntA_UInt8_introspectionEntry, &EPICSPVAInputTestUIntA_UInt16_introspectionEntry,
-        &EPICSPVAInputTestUIntA_UInt32_introspectionEntry, &EPICSPVAInputTestUIntA_UInt64_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry *EPICSPVAInputTestUIntAStructEntries[] = { &EPICSPVAInputTestUIntA_UInt8_introspectionEntry,
+        &EPICSPVAInputTestUIntA_UInt16_introspectionEntry, &EPICSPVAInputTestUIntA_UInt32_introspectionEntry, &EPICSPVAInputTestUIntA_UInt64_introspectionEntry,
+        0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestUIntA, EPICSPVAInputTestUIntAStructEntries)
 
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestIntA, Int8, int8, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestIntA, Int16, int16, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestIntA, Int32, int32, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestIntA, Int64, int64, "[4]", "");
-static const MARTe::IntrospectionEntry* EPICSPVAInputTestIntAStructEntries[] = { &EPICSPVAInputTestIntA_Int8_introspectionEntry, &EPICSPVAInputTestIntA_Int16_introspectionEntry,
-        &EPICSPVAInputTestIntA_Int32_introspectionEntry, &EPICSPVAInputTestIntA_Int64_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry *EPICSPVAInputTestIntAStructEntries[] = { &EPICSPVAInputTestIntA_Int8_introspectionEntry,
+        &EPICSPVAInputTestIntA_Int16_introspectionEntry, &EPICSPVAInputTestIntA_Int32_introspectionEntry, &EPICSPVAInputTestIntA_Int64_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestIntA, EPICSPVAInputTestIntAStructEntries)
 
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestFloatA, Float32, float32, "[4]", "");
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestFloatA, Float64, float64, "[4]", "");
-static const MARTe::IntrospectionEntry* EPICSPVAInputTestFloatAStructEntries[] = { &EPICSPVAInputTestFloatA_Float32_introspectionEntry, &EPICSPVAInputTestFloatA_Float64_introspectionEntry, 0 };
+static const MARTe::IntrospectionEntry *EPICSPVAInputTestFloatAStructEntries[] = { &EPICSPVAInputTestFloatA_Float32_introspectionEntry,
+        &EPICSPVAInputTestFloatA_Float64_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestFloatA, EPICSPVAInputTestFloatAStructEntries)
 
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesSA, UInts, EPICSPVAInputTestUIntA, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesSA, Ints, EPICSPVAInputTestIntA, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesSA, Floats, EPICSPVAInputTestFloatA, "", "");
-static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestInputTypesSAStructEntries[] = { &EPICSPVADatabaseTestInputTypesSA_UInts_introspectionEntry,
+static const MARTe::IntrospectionEntry *EPICSPVADatabaseTestInputTypesSAStructEntries[] = { &EPICSPVADatabaseTestInputTypesSA_UInts_introspectionEntry,
         &EPICSPVADatabaseTestInputTypesSA_Ints_introspectionEntry, &EPICSPVADatabaseTestInputTypesSA_Floats_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestInputTypesSA, EPICSPVADatabaseTestInputTypesSAStructEntries)
 
@@ -612,7 +615,7 @@ bool EPICSPVAInputTest::TestExecute() {
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
     ReferenceT<EPICSPVAInputGAMTestHelper> gam1;
-    ReferenceT<RealTimeApplication> application;
+    ReferenceT < RealTimeApplication > application;
 
     if (ok) {
         application = godb->Find("Test");
@@ -776,8 +779,8 @@ bool EPICSPVAInputTest::TestExecute_StructuredType() {
     bool ok = TestIntegratedInApplication(config.Buffer(), false);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
-    ReferenceT<EPICSPVAInputGAMTestHelperS> gam1;
-    ReferenceT<RealTimeApplication> application;
+    ReferenceT < EPICSPVAInputGAMTestHelperS > gam1;
+    ReferenceT < RealTimeApplication > application;
 
     if (ok) {
         application = godb->Find("Test");
@@ -1055,7 +1058,7 @@ bool EPICSPVAInputTest::TestExecute_Arrays() {
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
     ReferenceT<EPICSPVAInputGAMTestHelper> gam1;
-    ReferenceT<RealTimeApplication> application;
+    ReferenceT < RealTimeApplication > application;
 
     if (ok) {
         application = godb->Find("Test");
@@ -1079,16 +1082,16 @@ bool EPICSPVAInputTest::TestExecute_Arrays() {
     if (ok) {
         uint32 n;
         uint32 nOfElements = 4;
-        epics::pvData::shared_vector<uint8> outUInt8;
-        epics::pvData::shared_vector<uint16> outUInt16;
-        epics::pvData::shared_vector<uint32> outUInt32;
+        epics::pvData::shared_vector < uint8 > outUInt8;
+        epics::pvData::shared_vector < uint16 > outUInt16;
+        epics::pvData::shared_vector < uint32 > outUInt32;
         epics::pvData::shared_vector<unsigned long int> outUInt64;
-        epics::pvData::shared_vector<int8> outInt8;
-        epics::pvData::shared_vector<int16> outInt16;
-        epics::pvData::shared_vector<int32> outInt32;
+        epics::pvData::shared_vector < int8 > outInt8;
+        epics::pvData::shared_vector < int16 > outInt16;
+        epics::pvData::shared_vector < int32 > outInt32;
         epics::pvData::shared_vector<long int> outInt64;
-        epics::pvData::shared_vector<float32> outFloat32;
-        epics::pvData::shared_vector<float64> outFloat64;
+        epics::pvData::shared_vector < float32 > outFloat32;
+        epics::pvData::shared_vector < float64 > outFloat64;
 
         outUInt8.resize(nOfElements);
         outUInt16.resize(nOfElements);
@@ -1271,8 +1274,8 @@ bool EPICSPVAInputTest::TestExecute_StructuredType_Arrays() {
     bool ok = TestIntegratedInApplication(config.Buffer(), false);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
-    ReferenceT<EPICSPVAInputGAMTestHelperSA> gam1;
-    ReferenceT<RealTimeApplication> application;
+    ReferenceT < EPICSPVAInputGAMTestHelperSA > gam1;
+    ReferenceT < RealTimeApplication > application;
 
     if (ok) {
         application = godb->Find("Test");
@@ -1296,16 +1299,16 @@ bool EPICSPVAInputTest::TestExecute_StructuredType_Arrays() {
     if (ok) {
         uint32 n;
         uint32 nOfElements = 4;
-        epics::pvData::shared_vector<uint8> outUInt8;
-        epics::pvData::shared_vector<uint16> outUInt16;
-        epics::pvData::shared_vector<uint32> outUInt32;
+        epics::pvData::shared_vector < uint8 > outUInt8;
+        epics::pvData::shared_vector < uint16 > outUInt16;
+        epics::pvData::shared_vector < uint32 > outUInt32;
         epics::pvData::shared_vector<unsigned long int> outUInt64;
-        epics::pvData::shared_vector<int8> outInt8;
-        epics::pvData::shared_vector<int16> outInt16;
-        epics::pvData::shared_vector<int32> outInt32;
+        epics::pvData::shared_vector < int8 > outInt8;
+        epics::pvData::shared_vector < int16 > outInt16;
+        epics::pvData::shared_vector < int32 > outInt32;
         epics::pvData::shared_vector<long int> outInt64;
-        epics::pvData::shared_vector<float32> outFloat32;
-        epics::pvData::shared_vector<float64> outFloat64;
+        epics::pvData::shared_vector < float32 > outFloat32;
+        epics::pvData::shared_vector < float64 > outFloat64;
 
         outUInt8.resize(nOfElements);
         outUInt16.resize(nOfElements);
@@ -1478,7 +1481,7 @@ bool EPICSPVAInputTest::TestExecute_False_CharString() {
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
     ReferenceT<EPICSPVAInput> ds1;
-    ReferenceT<RealTimeApplication> application;
+    ReferenceT < RealTimeApplication > application;
 
     if (ok) {
         application = godb->Find("Test");
@@ -2184,8 +2187,234 @@ bool EPICSPVAInputTest::TestSetConfiguredDatabase_False_Samples() {
 
 bool EPICSPVAInputTest::TestSynchronise() {
     using namespace MARTe;
-    EPICSPVAInput test;
-    return (!test.Synchronise());
+    StreamString config = ""
+            "+EPICSPVADatabase1 = {\n"
+            "    Class = EPICSPVADatabase\n"
+            "    +TestSignal = {\n"
+            "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Alias = \"TEST_RECORD1\"\n"
+            "        Structure = {\n"
+            "             Element = {\n"
+            "                  Type = uint32\n"
+            "             }\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAM1 = {\n"
+            "            Class = EPICSPVAInputGAMTestHelper\n"
+            "            InputSignals = {\n"
+            "                SignalUInt32 = {\n"
+            "                    Type = uint32\n"
+            "                    Frequency = 1\n"
+            "                    Alias = TestSignal"
+            "                    DataSource = EPICSPVAInputTest\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        DefaultDataSource = DDB1\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +EPICSPVAInputTest = {\n"
+            "            Class = EPICSPVAInput\n"
+            "            CPUMask = 15\n"
+            "            StackSize = 10000000\n"
+            "            NumberOfBuffers = 1\n"
+            "            Signals = {\n"
+            "                TestSignal = {\n"
+            "                    Alias = \"TEST_RECORD1\"\n"
+            "                    Field = Element\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    Functions = {GAM1}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = EPICSPVAInputSchedulerTestHelper\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+
+    bool ok = TestIntegratedInApplication(config.Buffer(), false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<EPICSPVAInputGAMTestHelper> gam1;
+    ReferenceT < RealTimeApplication > application;
+
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        gam1 = godb->Find("Test.Functions.GAM1");
+        ok = gam1.IsValid();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    ReferenceT<EPICSPVAInputSchedulerTestHelper> scheduler;
+    if (ok) {
+        scheduler = godb->Find("Test.Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        ok = application->StartNextStateExecution();
+    }
+    if (ok) {
+        *gam1->uint32Signal = 0;
+
+        pvac::ClientProvider provider("pva");
+        uint32 timeOutCounts = 50;
+        ok = false;
+        pvac::ClientChannel record1(provider.connect("TEST_RECORD1"));
+        pvac::detail::PutBuilder putBuilder1 = record1.put();
+
+        while (!ok) {
+            putBuilder1.set("Element", 3);
+
+            putBuilder1.exec();
+
+            scheduler->ExecuteThreadCycle(0u);
+            ok = (3 == *gam1->uint32Signal);
+
+            Sleep::Sec(0.1);
+        }
+    }
+    godb->Purge();
+
+    return ok;
+}
+
+bool EPICSPVAInputTest::TestGetBrokerNameSynchronised_too_many_channels() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+EPICSPVADatabase1 = {\n"
+            "    Class = EPICSPVADatabase\n"
+            "    +TestSignal = {\n"
+            "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Alias = \"TEST_RECORD1\"\n"
+            "        Structure = {\n"
+            "             Element = {\n"
+            "                  Type = uint32\n"
+            "             }\n"
+            "        }\n"
+            "    }\n"
+            "    +TestSignal2 = {\n"
+            "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Alias = \"TEST_RECORD2\"\n"
+            "        Structure = {\n"
+            "             Element = {\n"
+            "                  Type = uint64\n"
+            "             }\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAM1 = {\n"
+            "            Class = EPICSPVAInputGAMTestHelper\n"
+            "            InputSignals = {\n"
+            "                SignalUInt32 = {\n"
+            "                    Type = uint32\n"
+            "                    Frequency = 1\n"
+            "                    Alias = TestSignal"
+            "                    DataSource = EPICSPVAInputTest\n"
+            "                }\n"
+            "                SignalUInt64 = {\n"
+            "                    Type = uint32\n"
+            "                    Alias = TestSignal2"
+            "                    DataSource = EPICSPVAInputTest\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        DefaultDataSource = DDB1\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +EPICSPVAInputTest = {\n"
+            "            Class = EPICSPVAInput\n"
+            "            CPUMask = 15\n"
+            "            StackSize = 10000000\n"
+            "            NumberOfBuffers = 1\n"
+            "            Signals = {\n"
+            "                TestSignal = {\n"
+            "                    Alias = \"TEST_RECORD1\"\n"
+            "                    Field = Element\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "                TestSignal2 = {\n"
+            "                    Alias = \"TEST_RECORD2\"\n"
+            "                    Field = Element\n"
+            "                    Type = uint64\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    Functions = {GAM1}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = EPICSPVAInputSchedulerTestHelper\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+
+    bool ok = TestIntegratedInApplication(config.Buffer(), false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<EPICSPVAInputGAMTestHelper> gam1;
+    ReferenceT < RealTimeApplication > application;
+
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        gam1 = godb->Find("Test.Functions.GAM1");
+        ok = gam1.IsValid();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+
+    godb->Purge();
+
+    return !ok;
 }
 
 bool EPICSPVAInputTest::TestPrepareNextState() {
@@ -2193,4 +2422,3 @@ bool EPICSPVAInputTest::TestPrepareNextState() {
     EPICSPVAInput test;
     return (test.PrepareNextState("", ""));
 }
-

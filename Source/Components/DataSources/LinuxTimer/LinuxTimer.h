@@ -332,8 +332,10 @@ private:
      */
     ReferenceT<RealTimeApplication> rtApp;
 
+    /**
+     * @brief Rephase triggering signals.
+     */
     uint8 trigRephase;
-
     uint8 trigRephase_1;
 };
 }
