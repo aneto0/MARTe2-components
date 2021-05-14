@@ -168,8 +168,7 @@ const char8* EPICSPVAInput::GetBrokerName(StructuredDataI &data,
         if (!data.Read("Frequency", tempFrequency)) {
             tempFrequency = -1.F;
         }
-        if (tempFrequency > 0.F) {
-            //TODO prevent synchronising if numberOfChannels > 1) - KISS...
+        if (tempFrequency > 0.F) {            
             if (numberOfChannels > 1u) {
                 REPORT_ERROR(ErrorManagement::ParametersError,
                              "The number of channels shall be exactly 1 if using Synchronisation.");
