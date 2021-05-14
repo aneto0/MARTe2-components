@@ -62,7 +62,8 @@ INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 LIBRARIES +=  -L$(PROFINET_LIBRARY) -losal -lprofinet
 
 all: $(OBJS) \
-	$(BUILD_DIR)/ProfinetDataSourceTest$(LIBEXT) 
+	$(BUILD_DIR)/ProfinetDataSourceTest$(LIBEXT) \
+	$(BUILD_DIR)/ProfinetDataStructureTest$(LIBEXT)
 	echo $(OBJS)
 
 include depends.$(TARGET)
