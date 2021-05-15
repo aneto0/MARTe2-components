@@ -26,4 +26,3 @@ TARGET=cov
 
 include Makefile.inc
 
-LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
