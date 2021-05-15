@@ -57,7 +57,7 @@ core: $(SUBPROJMAIN) check-env
 test: $(SUBPROJMAINTEST) check-env
 	echo  $(SUBPROJMAINTEST)
 
-clean:: $(SUBPROJMAINCLEAN) $(SUBPROJMAINTESTCLEAN)
+clean:: $(SUBPROJMAINCLEAN) $(SUBPROJMAINTESTCLEAN) clean_wipe_old
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 
