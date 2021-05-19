@@ -92,25 +92,6 @@ public:CLASS_REGISTER_DECLARATION()
     virtual bool Synchronise();
 
     /**
-     * @brief See DataSourceI::AllocateMemory.
-     * @return true.
-     */
-    //virtual bool AllocateMemory();
-
-    /**
-     * @brief See DataSourceI::GetNumberOfMemoryBuffers.
-     * @return 1.
-     */
-    //virtual uint32 GetNumberOfMemoryBuffers();
-
-    /**
-     * @brief See DataSourceI::GetSignalMemoryBuffer.
-     */
-    /*virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-                                       const uint32 bufferIdx,
-                                       void *&signalAddress);*/
-
-    /**
      * @brief See DataSourceI::GetBrokerName.
      * @details Only Output signals are supported.
      * @return MemoryMapSynchronisedOutputBroker
@@ -161,7 +142,7 @@ private:
     /**
      * The IP address to which the data will be transmitted to
      */
-    StreamString udpServerAddress;
+    StreamString address;
 
     /**
      * Number of pre buffers.
@@ -186,7 +167,7 @@ private:
     /**
      * The port that the sender will transmit to
      */
-    uint16 udpServerPort;
+    uint16 port;
 
 
     /**

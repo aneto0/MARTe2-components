@@ -1,8 +1,8 @@
 /**
  * @file UDPReceiver.h
  * @brief Header file for class UDPReceiver
- * @date Jan 31, 2017
- * @author Danny Sortino
+ * @date 11/05/2021
+ * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -21,7 +21,7 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#if !defined (UDP_RECEIVER_H_)
+#ifndef UDP_RECEIVER_H_
 #define UDP_RECEIVER_H_
 
 /*---------------------------------------------------------------------------*/
@@ -32,7 +32,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "CompilerTypes.h"
-#include "DataSourceI.h"
+#include "MemoryDataSourceI.h"
 #include "EmbeddedServiceMethodBinderI.h"
 #include "EventSem.h"
 #include "SingleThreadService.h"
@@ -44,31 +44,28 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe{
 /**
- * @brief A DataSource which recieves given signals via UDP.
+ * @brief A DataSource which receives given signals via UDP with Multicast support.
  *
  * The configuration syntax is (names are only given as an example):
  * +UDPReceiver = {
  *     Class = UDPDrv::UDPReceiver
- *     Port = "44488" //Optional (default 44488) The port of the UDPReciever
- *     Timeout = "5" //Optional (default infinite, also known as 0) The time that the reciever will listen on a defined port before timeout
+ *     Address = "192.168.129.30" //Address or Multicast group
+ *     Port = "44488" //Optional. Default: Inifnite
+ *     Timeout = "5" //Optional (seconds) The time the receiver will wait while listening before timing out. Default: Infinite
+ *     Sync = 0 //Optional. Default: 0. If 1, the UDP DataSource can be used as synchronisation unit on the packet arrival. Otherwise a decoupled thread is used.
+ *     CPUMask = 0x1
+ *     StackSize = 10000000
  *     Signals = {
- *          Counter = { //Mandatory. Number of ticks since last state change.
- *              Type = uint64 //Mandatory (Note: Sender and Receiver must be same type), int64 also supported.
- *          }
- *          Time = { //Mandatory. Elapsed time in micro-seconds since last state change.
- *               Type = uint64 //Mandatory (Note: Sender and Receiver must be same type), int64 also supported.
- *          }
- *          Signal1 = { //One or more extra signals shall be defined
- *              Type = float32 //Mandatory (Note: Sender and Receiver must be same type). All other MARTe types are supported
- *          }
  *          Signal2 = {
- *             ...
+ *             Type = uint32 //Any MARTe2 type
  *          }
  *          ...
  *     }
  * }
+ *
+ * The Signals section is in practice a description of the structure of the UDP Packet read.
  */
-class UDPReceiver : public DataSourceI, public EmbeddedServiceMethodBinderI {
+class UDPReceiver : public MemoryDataSourceI, public EmbeddedServiceMethodBinderI {
 public:
     CLASS_REGISTER_DECLARATION()
     
@@ -99,20 +96,20 @@ public:
      * @brief See DataSourceI::AllocateMemory.
      * @return true.
      */
-    virtual bool AllocateMemory();
+//    virtual bool AllocateMemory();
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
      * @return 1.
      */
-    virtual uint32 GetNumberOfMemoryBuffers();
+//    virtual uint32 GetNumberOfMemoryBuffers();
 
     /**
      * @brief See DataSourceI::GetSignalMemoryBuffer.
      */
-    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-                                            const uint32 bufferIdx,
-                                            void*& signalAddress);
+//    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
+//                                            const uint32 bufferIdx,
+//                                            void*& signalAddress);
     
     /**
      * @brief See DataSourceI::GetBrokerName.
@@ -122,22 +119,22 @@ public:
     virtual const char8* GetBrokerName(StructuredDataI& data,
                                             const SignalDirection direction);
 
-    /**
-     * @brief See DataSourceI::GetInputBrokers.
-     * @details It adds a MemoryMapSynchronisedOutputBroker instance to the outputBrokers.
-     * @return true.
-     */                                        
-    virtual bool GetInputBrokers(ReferenceContainer& inputBrokers,
-                                    const char8* const functionName,
-                                    void* const gamMemPtr);
-    
-    /**
-     * @brief See DataSourceI::GetOutputBrokers.
-     * @return false.
-     */
-    virtual bool GetOutputBrokers(ReferenceContainer& outputBrokers,
-                                        const char8* const functionName,
-                                        void* const gamMemPtr);
+//    /**
+//     * @brief See DataSourceI::GetInputBrokers.
+//     * @details It adds a MemoryMapSynchronisedOutputBroker instance to the outputBrokers.
+//     * @return true.
+//     */
+//    virtual bool GetInputBrokers(ReferenceContainer& inputBrokers,
+//                                    const char8* const functionName,
+//                                    void* const gamMemPtr);
+//
+//    /**
+//     * @brief See DataSourceI::GetOutputBrokers.
+//     * @return false.
+//     */
+//    virtual bool GetOutputBrokers(ReferenceContainer& outputBrokers,
+//                                        const char8* const functionName,
+//                                        void* const gamMemPtr);
 
     /**
      * @brief Starts the EmbeddedThread and sets the counter and the time to zero.
@@ -166,35 +163,14 @@ public:
      * @brief Recieve signals when UDP data is recieved.
      * @return any errors.
      */
-    virtual ErrorManagement::ErrorType Execute(const ExecutionInfo& info); 
+    virtual ErrorManagement::ErrorType Execute(ExecutionInfo& info);
     
 private:
-    
-    /**
-     * The semaphore for the synchronisation between the EmbeddedThread and the Synchronise method.
-     */
-    EventSem synchSem;
 
     /**
      * The EmbeddedThread where the Execute method waits for the period to elapse.
      */
     SingleThreadService executor;
-
-    /**
-     * True if the server should remain running
-     */
-    bool keepRunning;
-
-    /**
-     * True if the server recieved data of the correct size (number of bytes defined in configuration file matches 
-     * that to which is recieved)
-     */
-    bool dataRecievedCorrectSize;
-
-    /**
-     * True if data is recieved within the timeout period specified
-     */
-    bool dataRecieved;
 
     /**
      * The timeout for which the server will listen to the specified port
@@ -204,58 +180,30 @@ private:
     /**
      * The receiver will listen on
      */
-    uint16 udpServerPort;
+    uint16 port;
 
     /**
-     * The IP address to which the data will be recieved on
+     * The IP address to which the data will be received on
      */
-    StreamString udpServerAddress;
-
-    /**
-     * The number of signals that will be received
-     */
-    uint32 nOfSignals;
-
-    /**
-     * The total size in bytes of the expected packet that will be received
-     */
-    uint32 totalPacketSize;
-
-    /**
-     * An array storing the pointer offset (number of bytes) for each signal, 
-     * EG to get the pointer offset  for signal 1 = signalsMemoryOffset[0]
-     */
-    uint32 *signalsMemoryOffset;
-
-    /**
-     * A pointer to memory that will contain all the information that will be sent
-     */
-    void *dataBuffer;
+    StreamString address;
     
-    /**
-     * A pointer to the sequence number data that is stored within the databuffer
-     */   
-    uint64 *sequenceNumberPtr;
-    
-    /**
-     * A pointer to the timer data that is stored within the databuffer
-     */    
-    uint64 *timerPtr;
 
     /**
      * The socket that will connect to the sender
      */ 
-    UDPSocket server;
+    UDPSocket socket;
     
     /**
-     * A boolean to determine if it is syncronising
-     */ 
-    bool synchronising;
-    
-    /*
-    * The thread CPUs mask.
-    */
+     * CPU affinity number for the executor thread
+     */
     uint32 cpuMask;
+
+    /**
+     * The stack size
+     */
+    uint32 stackSize;
+
+    uint32 sync;
 };
 }
 #endif

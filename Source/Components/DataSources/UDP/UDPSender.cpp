@@ -49,8 +49,8 @@ UDPSender::UDPSender() :
         MemoryDataSourceI() {
     numberOfPreTriggers = 0u;
     numberOfPostTriggers = 0u;
-    udpServerAddress = "";
-    udpServerPort = 44488u;
+    address = "";
+    port = 44488u;
     client = NULL_PTR(UDPSocket*);
 
 }
@@ -80,20 +80,20 @@ bool UDPSender::Initialise(StructuredDataI &data) {
         }
     }
     if (ok) {
-        ok = data.Read("Address", udpServerAddress);
+        ok = data.Read("Address", address);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "No Address defined!");
         }
     }
     if (ok) {
-        ok = data.Read("Port", udpServerPort);
+        ok = data.Read("Port", port);
         if (!ok) {
-            udpServerPort = 44488u;
+            port = 44488u;
             REPORT_ERROR(ErrorManagement::Information, "No valid Port defined! Using Default 44488");
             ok = true;
         }
-        if (udpServerPort <= 1024u) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Port is set to %d, possible issues with values < 1024", udpServerPort);
+        if (port <= 1024u) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Port is set to %d, possible issues with values < 1024", port);
         }
     }
     if (ok) {
@@ -193,7 +193,7 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI &data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Could not open the client!");
     }
     if (ok) {
-        ok = client->Connect(udpServerAddress.Buffer(), udpServerPort);
+        ok = client->Connect(address.Buffer(), port);
     }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Could not connect the client to the server!");
