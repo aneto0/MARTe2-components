@@ -357,46 +357,48 @@ template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberO
     numberOfSegments = node->getNumSegments();
     ok = numberOfSegments > 0;
     for (s = 0u; (s < numberOfSegments) && (ok); s++) {
-        int32 numberOfElements;
+        int32 numberOfElementsTime;
+        int32 numberOfElementsData;
         MDSplus::Array *segment = node->getSegment(s);
         typeToCheck *data = NULL;
         MDSplus::Data *segTimeD = node->getSegmentDim(s);
         uint64 *segTime;
-        segTime = reinterpret_cast<uint64 *>(segTimeD->getLongUnsignedArray(&numberOfElements));
+        segTime = reinterpret_cast<uint64 *>(segTimeD->getLongUnsignedArray(&numberOfElementsTime));
 
         if (typeDiscover.GetTypeDescriptor() == UnsignedInteger16Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getShortUnsignedArray(&numberOfElements));
+            data = reinterpret_cast<typeToCheck *>(segment->getShortUnsignedArray(&numberOfElementsData));
         }
         else if (typeDiscover.GetTypeDescriptor() == UnsignedInteger32Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getIntUnsignedArray(&numberOfElements));
+            data = reinterpret_cast<typeToCheck *>(segment->getIntUnsignedArray(&numberOfElementsData));
         }
         else if (typeDiscover.GetTypeDescriptor() == UnsignedInteger64Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getLongUnsignedArray(&numberOfElements));
+            data = reinterpret_cast<typeToCheck *>(segment->getLongUnsignedArray(&numberOfElementsData));
         }
         else if (typeDiscover.GetTypeDescriptor() == SignedInteger16Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getShortArray(&numberOfElements));
+            data = reinterpret_cast<typeToCheck *>(segment->getShortArray(&numberOfElementsData));
         }
         else if (typeDiscover.GetTypeDescriptor() == SignedInteger32Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getIntArray(&numberOfElements));
+            data = reinterpret_cast<typeToCheck *>(segment->getIntArray(&numberOfElementsData));
         }
         else if (typeDiscover.GetTypeDescriptor() == SignedInteger64Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getLongArray(&numberOfElements));
+            data = reinterpret_cast<typeToCheck *>(segment->getLongArray(&numberOfElementsData));
         }
         else if (typeDiscover.GetTypeDescriptor() == SignedInteger8Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getByteArray(&numberOfElements));
+            data = reinterpret_cast<typeToCheck *>(segment->getByteArray(&numberOfElementsData));
         }
         else if (typeDiscover.GetTypeDescriptor() == UnsignedInteger8Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getByteUnsignedArray(&numberOfElements));
+            data = reinterpret_cast<typeToCheck *>(segment->getByteUnsignedArray(&numberOfElementsData));
         }
         else if (typeDiscover.GetTypeDescriptor() == Float32Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getFloatArray(&numberOfElements));
+            data = reinterpret_cast<typeToCheck *>(segment->getFloatArray(&numberOfElementsData));
         }
         else if (typeDiscover.GetTypeDescriptor() == Float64Bit) {
-            data = reinterpret_cast<typeToCheck *>(segment->getDoubleArray(&numberOfElements));
+            data = reinterpret_cast<typeToCheck *>(segment->getDoubleArray(&numberOfElementsData));
         }
         int32 e;
-        for (e = 0; (e < numberOfElements) && (ok); e++) {
-            ok = (static_cast<typeToCheck>(signalToVerify[i]) == static_cast<typeToCheck>(data[e]));
+        int32 factor=numberOfElementsData/numberOfElementsTime;
+        for (e = 0; (e < numberOfElementsTime) && (ok); e++) {
+            ok = (static_cast<typeToCheck>(signalToVerify[i]) == static_cast<typeToCheck>(data[factor*e]));
             ok &= (timeToVerify[i] == segTime[e]);
             i++;
         }
@@ -456,6 +458,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
 
     cdb.MoveToRoot();
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    MDSplus::Tree *tree = NULL;
 
     if (ok) {
         god->Purge();
@@ -489,7 +492,6 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
 
     //Open the tree and check if the data was correctly stored.
     //Create a pulse. It assumes that the tree template is already created!!
-    MDSplus::Tree *tree = NULL;
     if (ok) {
         try {
             tree = new MDSplus::Tree(treeName, pulseNumber);
@@ -624,7 +626,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     }
     if (ok) {
         if (!automaticSegmentation) {
-            const uint64 maxTimeoutSeconds = 2;
+            const uint64 maxTimeoutSeconds = 30;
             uint64 maxTimeout = HighResolutionTimer::Counter() + maxTimeoutSeconds * HighResolutionTimer::Frequency();
             int32 expectedSegments = numberOfSegments;
             if (needsFlush) {
@@ -640,6 +642,9 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     if (ok) {
         //If the number of elements is not a multiple of the segment size then we have to flush so that an extra segment
         //with the missing data is added.
+
+        //To be increased if the tests do not pass
+        Sleep::MSec(200);
         if (needsFlush) {
             ReferenceT<Message> messageFlush = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageFlush");
             if (ok) {
@@ -649,7 +654,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
                 MessageI::SendMessage(messageFlush, NULL);
             }
             if (ok) {
-                const uint64 maxTimeoutSeconds = 2;
+                const uint64 maxTimeoutSeconds = 30;
                 uint64 maxTimeout = HighResolutionTimer::Counter() + maxTimeoutSeconds * HighResolutionTimer::Frequency();
                 while ((sigFloat64F->getNumSegments() != (numberOfSegments)) && (ok)) {
                     Sleep::MSec(10);
@@ -932,7 +937,6 @@ static const MARTe::char8 * const config1 = ""
         "                    DecimatedNodeName = \"SIGUINT8D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 1"
         "                }"
         "                SignalUInt16F = {"
         "                    NodeName = \"SIGUINT16F\""
@@ -1389,6 +1393,344 @@ static const MARTe::char8 * const config1_B = ""
         "        Function = FlushSegments"
         "    }"
         "}";
+
+
+
+
+//Standard configuration with no trigger source, AutomaticSegmentation = 1
+static const MARTe::char8 * const config1_B1 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = MDSWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt8F = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt32F = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt64F = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalInt8F = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalInt16F = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalInt32F = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalInt64F = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalFloat32F = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalFloat64F = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                    NumberOfElements = 2"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = MDSWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 20000000"
+        "            TreeName = \"mds_m2test\""
+        "            PulseNumber = 1"
+        "            StoreOnTrigger = 0"
+        "            EventName = \"updatejScope\""
+        "            TimeRefresh = 5"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt8F = {"
+        "                    NodeName = \"SIGUINT8F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalUInt16F = {"
+        "                    NodeName = \"SIGUINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalUInt32F = {"
+        "                    NodeName = \"SIGUINT32F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT32D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalUInt64F = {"
+        "                    NodeName = \"SIGUINT64F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGUINT64D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalInt8F = {"
+        "                    NodeName = \"SIGINT8F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGINT8D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalInt16F = {"
+        "                    NodeName = \"SIGINT16F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGINT16D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalInt32F = {"
+        "                    NodeName = \"SIGINT32F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGINT32D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalInt64F = {"
+        "                    NodeName = \"SIGINT64F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGINT64D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalFloat32F = {"
+        "                    NodeName = \"SIGFLT32F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGFLT32D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalFloat64F = {"
+        "                    NodeName = \"SIGFLT64F\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    DecimatedNodeName = \"SIGFLT64D\""
+        "                    MinMaxResampleFactor = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    NodeName = \"SIGUINT8\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    NodeName = \"SIGUINT16\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    NodeName = \"SIGUINT32\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    NodeName = \"SIGUINT64\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    NodeName = \"SIGINT8\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    NodeName = \"SIGINT16\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    NodeName = \"SIGINT32\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    NodeName = \"SIGINT64\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    NodeName = \"SIGFLT32\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "                SignalFloat64 = {"
+        "                    NodeName = \"SIGFLT64\""
+        "                    Period = 2"
+        "                    MakeSegmentAfterNWrites = 4"
+        "                    AutomaticSegmentation = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = MDSWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushSegments"
+        "    }"
+        "}";
+
 
 //Standard configuration with trigger source
 static const MARTe::char8 * const config2 = ""
@@ -6361,7 +6703,7 @@ static const MARTe::char8 * const config19 = ""
         "    Class = MDSWriterTestHelper"
         "}";
 
-//As config13 but with FlushIfDiscontinuity = 0
+//As config13 but with DiscontinuityFactor = 1000.
 static const MARTe::char8 * const config20 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
@@ -6496,7 +6838,7 @@ static const MARTe::char8 * const config20 = ""
         "                    DecimatedNodeName = \"SIGUINT8D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalUInt16F = {"
         "                    NodeName = \"SIGUINT16F\""
@@ -6505,7 +6847,7 @@ static const MARTe::char8 * const config20 = ""
         "                    DecimatedNodeName = \"SIGUINT16D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalUInt32F = {"
         "                    NodeName = \"SIGUINT32F\""
@@ -6514,7 +6856,7 @@ static const MARTe::char8 * const config20 = ""
         "                    DecimatedNodeName = \"SIGUINT32D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalUInt64F = {"
         "                    NodeName = \"SIGUINT64F\""
@@ -6523,7 +6865,7 @@ static const MARTe::char8 * const config20 = ""
         "                    DecimatedNodeName = \"SIGUINT64D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalInt8F = {"
         "                    NodeName = \"SIGINT8F\""
@@ -6532,7 +6874,7 @@ static const MARTe::char8 * const config20 = ""
         "                    DecimatedNodeName = \"SIGINT8D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalInt16F = {"
         "                    NodeName = \"SIGINT16F\""
@@ -6541,7 +6883,7 @@ static const MARTe::char8 * const config20 = ""
         "                    DecimatedNodeName = \"SIGINT16D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalInt32F = {"
         "                    NodeName = \"SIGINT32F\""
@@ -6550,7 +6892,7 @@ static const MARTe::char8 * const config20 = ""
         "                    DecimatedNodeName = \"SIGINT32D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalInt64F = {"
         "                    NodeName = \"SIGINT64F\""
@@ -6559,7 +6901,7 @@ static const MARTe::char8 * const config20 = ""
         "                    DecimatedNodeName = \"SIGINT64D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalFloat32F = {"
         "                    NodeName = \"SIGFLT32F\""
@@ -6568,7 +6910,7 @@ static const MARTe::char8 * const config20 = ""
         "                    DecimatedNodeName = \"SIGFLT32D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalFloat64F = {"
         "                    NodeName = \"SIGFLT64F\""
@@ -6577,77 +6919,77 @@ static const MARTe::char8 * const config20 = ""
         "                    DecimatedNodeName = \"SIGFLT64D\""
         "                    MinMaxResampleFactor = 4"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalUInt8 = {"
         "                    NodeName = \"SIGUINT8\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 8"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalUInt16 = {"
         "                    NodeName = \"SIGUINT16\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 8"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalUInt32 = {"
         "                    NodeName = \"SIGUINT32\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 8"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalUInt64 = {"
         "                    NodeName = \"SIGUINT64\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 8"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalInt8 = {"
         "                    NodeName = \"SIGINT8\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 8"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalInt16 = {"
         "                    NodeName = \"SIGINT16\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 8"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalInt32 = {"
         "                    NodeName = \"SIGINT32\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 8"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalInt64 = {"
         "                    NodeName = \"SIGINT64\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 8"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalFloat32 = {"
         "                    NodeName = \"SIGFLT32\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 8"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "                SignalFloat64 = {"
         "                    NodeName = \"SIGFLT64\""
         "                    Period = 2"
         "                    MakeSegmentAfterNWrites = 8"
         "                    AutomaticSegmentation = 0"
-        "                    FlushIfDiscontinuity = 0"
+        "                    DiscontinuityFactor = 1000."
         "                }"
         "            }"
         "        }"
@@ -7273,7 +7615,8 @@ bool MDSWriterTest::TestIntegratedInApplication_Trigger_Discontinuity_FlushIfDis
     using namespace MARTe;
     uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
     uint32 signalToVerify[] = { 1, 2, 3, 4, 6, 7, 8, 9 };
-    uint32 timeToVerify[] = { 0, 2, 4, 6, 8, 10, 12, 14 };
+    uint32 timeToVerify[] = { 0, 2, 5, 7, 9, 11, 14, 16 };
+
     uint8 triggerToGenerate[] = { 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     uint32 numberOfElementsToVerify = sizeof(signalToVerify) / sizeof(uint32);
@@ -7338,6 +7681,23 @@ bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_AutomaticSegmentation(
     const float32 period = 2;
     bool automaticSegmentation = true;
     return TestIntegratedExecution(config1_B, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
+                                   numberOfSegments, false, 100, automaticSegmentation);
+}
+
+
+bool MDSWriterTest::TestIntegratedInApplication_NoTrigger_AutomaticSegmentation_Vector() {
+    using namespace MARTe;
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+    uint32 timeToVerify[] = { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22 };
+    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
+    const char8 * const treeName = "mds_m2test";
+    const uint32 numberOfBuffers = 16;
+    const uint32 pulseNumber = 1;
+    const uint32 writeAfterNSegments = 4;
+    const uint32 numberOfSegments = numberOfElements / writeAfterNSegments;
+    const float32 period = 2;
+    bool automaticSegmentation = true;
+    return TestIntegratedExecution(config1_B1, signalToGenerate, numberOfElements, NULL, signalToGenerate, timeToVerify, numberOfElements, numberOfBuffers, 0, 0, period, treeName, pulseNumber,
                                    numberOfSegments, false, 100, automaticSegmentation);
 }
 

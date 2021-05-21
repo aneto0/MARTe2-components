@@ -380,7 +380,7 @@ private:
     /**
      * For flushing if a discontinuity is found.
      */
-    uint8 flushIfDiscontinuity;
+    float64 discontinuityFactor;
 
     /**
      * @brief Save data in MDSplus using MDSplus::makeSegment() or MDSPlus::makeSegmentMaxMin()
