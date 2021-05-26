@@ -68,6 +68,9 @@ INCLUDES += -I$(MATLAB_DIR)/extern/include
 INCLUDES += -I$(MATLAB_DIR)/rtw/c/src/
 INCLUDES += -I$(MATLAB_DIR)/simulink/include/
 
+LIBRARIES += -Wl,-rpath-link,$(MATLAB_DIR)/bin/glnxa64 "$(MATLAB_DIR)/sys/os/glnxa64/libstdc++.so.6" -L$(MATLAB_DIR)/extern/bin/glnxa64/ -L$(MATLAB_DIR)/bin/glnxa64/ -lMatlabDataArray -lMatlabEngine -lmx -lmex -lmat -lm -lstdc++ -leng
+
+
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/SimulinkWrapperGAM$(LIBEXT) \
 	$(BUILD_DIR)/SimulinkWrapperGAM$(DLLEXT)

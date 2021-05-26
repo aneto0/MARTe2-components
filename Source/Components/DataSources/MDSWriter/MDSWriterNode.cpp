@@ -370,8 +370,9 @@ bool MDSWriterNode::Execute() {
             else {
                 if (makeSegmentAfterNWrites > 1u) {
                     if (timeSignalMemory != NULL_PTR(uint32 *)) {
-                        uint32 range = static_cast<uint32>(executePeriod * discontinuityFactor);
-
+                        float64 executePeriodF = static_cast<float64>(executePeriod);
+                        float64 rangeF = executePeriodF * discontinuityFactor;
+                        uint64 range = static_cast<uint64>(rangeF);
                         if (lastWriteTimeSignal > 0u) {
                             discontinuityFound = ((timeSignalTime - lastWriteTimeSignal) > (executePeriod + range));
                             if (!discontinuityFound) {
@@ -481,8 +482,8 @@ bool MDSWriterNode::ForceSegment() {
         uint32 numberOfSamplesM1 = numberOfSamples - 1u;
         periodDelta *= static_cast<float64>(numberOfSamplesM1);
         end += periodDelta;
-        if (end != start) {
-            if (numberOfSamplesPerSegmentF > 0) {
+        if (!IsEqual(end, start)) {
+            if (numberOfSamplesPerSegmentF > 0.) {
                 newPeriod = (end - start) / numberOfSamplesPerSegmentF;
             }
         }
