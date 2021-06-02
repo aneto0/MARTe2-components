@@ -68,7 +68,7 @@ INCLUDES += -I$(MATLAB_DIR)/extern/include
 INCLUDES += -I$(MATLAB_DIR)/rtw/c/src/
 INCLUDES += -I$(MATLAB_DIR)/simulink/include/
 
-LIBRARIES += -Wl,-rpath-link,$(MATLAB_DIR)/bin/glnxa64 "$(MATLAB_DIR)/sys/os/glnxa64/libstdc++.so.6" -L$(MATLAB_DIR)/extern/bin/glnxa64/ -L$(MATLAB_DIR)/bin/glnxa64/ -lMatlabDataArray -lMatlabEngine -lmx -lmex -lmat -lm -lstdc++ -leng
+# Remember that no linking shall be performed against the matlab libraries, as this would prevent deploying it in an environment where no matlab is installed.
 
 
 all: $(OBJS) $(SUBPROJ) \
