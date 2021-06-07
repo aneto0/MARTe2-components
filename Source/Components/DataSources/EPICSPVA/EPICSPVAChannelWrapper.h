@@ -37,6 +37,7 @@
 #include "ConfigurationDatabase.h"
 #include "DataSourceI.h"
 #include "DjbHashFunction.h"
+#include "EPICSPVAFieldWrapper.h"
 #include "StreamString.h"
 #include "StructuredDataI.h"
 
@@ -45,6 +46,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+#if 0
 /**
  * Wraps a record signal memory
  */
@@ -70,7 +72,7 @@ struct EPICSPVAChannelWrapperCachedSignal {
      */
     epics::pvData::PVFieldPtr pvField;
 };
-
+#endif
 /**
  * @brief Helper class which encapsulates a PVA signal (record) and allows to put/monitor.
  */
@@ -145,10 +147,16 @@ private:
      * @brief Recursively populates the cachedSignals (flat list of the structure identified with the qualifiedName) array from the input structure.
      * @param[in] pvStruct the structure to be resolved.
      * @param[in] nodeName the name of structure.
+     * @param[in, out] absIndex TODO
      * @return true if the structure can be fully resolved with no errors.
      */
-    bool ResolveStructure(epics::pvData::PVFieldPtr pvField, const char8 * const nodeName);
-
+    bool ResolveStructure(epics::pvData::PVFieldPtr pvField, const char8 * const nodeName, uint32 &absIndex);
+    
+    /**
+     * TODO
+     */ 
+    bool RefreshStructure(epics::pvData::PVFieldPtr pvField, uint32 &absIndex);
+#if 0
     /**
      * @brief Helper method which set signal at index \a in the \a putBuilder.
      * @param[in] n the index of the signal to write.
@@ -164,7 +172,7 @@ private:
      */
     template<typename T>
     bool GetArrayHelper(epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr, uint32 n);
-
+#endif
     /**
      * The EPICS PVA channel
      */
@@ -203,7 +211,7 @@ private:
     /**
      * The cached signals (flat list of the structure identified with the qualifiedName).
      */
-    EPICSPVAChannelWrapperCachedSignal *cachedSignals;
+    EPICSPVAFieldWrapperI **cachedSignals;
 
     /**
      * Was the structured resolved at least once?
@@ -229,12 +237,18 @@ private:
      * Cache the index of the signals.
      */
     ConfigurationDatabase signalsIndexCache;
+
+    /**
+     * TODO
+     */
+    uint32 *resolvedStructIndexMap;
 };
 }
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+#if 0
 namespace MARTe {
 template<typename T>
 void EPICSPVAChannelWrapper::PutHelper(uint32 n) {
@@ -290,7 +304,7 @@ bool EPICSPVAChannelWrapper::GetArrayHelper(epics::pvData::PVScalarArray::const_
 
     return ok;
 }
-
 }
+#endif
 
 #endif /* EPICSPVA_EPICSPVACHANNELWRAPPER_H_ */
