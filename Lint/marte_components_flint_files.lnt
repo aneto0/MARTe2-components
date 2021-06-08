@@ -77,7 +77,6 @@
 -i./Source/Components/Interfaces/SysLogger/
 -i./Source/Components/Interfaces/TcnTimeProvider/
 
-
 Atomic2.h
 BaseLib2GAM.cpp
 BaseLib2Wrapper.cpp
@@ -101,6 +100,7 @@ EPICSCAClient.cpp
 EPICSCAInput.cpp
 EPICSCAOutput.cpp
 EPICSPVAChannelWrapper.cpp
+EPICSPVAFieldWrapperI.cpp
 EPICSPVAInput.cpp
 EPICSPVAOutput.cpp
 EPICSObjectRegistryDatabaseService.cpp
