@@ -346,7 +346,7 @@ bool EPICSPVAChannelWrapper::ResolveStructure(epics::pvData::PVFieldPtr pvField,
                     ok = found;
                     if (ok) {
                         resolvedStructIndexMap[absIndex] = index;
-                        cachedSignals[absIndex]->SetPVAField(field);
+                        cachedSignals[index]->SetPVAField(field);
                         absIndex++;
                         REPORT_ERROR_STATIC(ErrorManagement::Debug, "Assigned PV to signal with name [%s]", fullFieldName.Buffer());
                     }

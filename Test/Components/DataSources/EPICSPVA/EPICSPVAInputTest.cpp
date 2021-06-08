@@ -284,9 +284,9 @@ struct EPICSPVAInputTestFloatA {
     MARTe::float64 Float64[4];
 };
 struct EPICSPVADatabaseTestInputTypesSA {
-    struct EPICSPVAInputTestUIntA UInts;
+    struct EPICSPVAInputTestUIntA UInts[2];
     struct EPICSPVAInputTestIntA Ints;
-    struct EPICSPVAInputTestFloatA Floats;
+    struct EPICSPVAInputTestFloatA Floats[3];
 };
 //The strategy is identical to the class registration
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestUIntA, UInt8, uint8, "[4]", "");
@@ -312,9 +312,9 @@ static const MARTe::IntrospectionEntry *EPICSPVAInputTestFloatAStructEntries[] =
         &EPICSPVAInputTestFloatA_Float64_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestFloatA, EPICSPVAInputTestFloatAStructEntries)
 
-DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesSA, UInts, EPICSPVAInputTestUIntA, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesSA, UInts, EPICSPVAInputTestUIntA, "[2]", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesSA, Ints, EPICSPVAInputTestIntA, "", "");
-DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesSA, Floats, EPICSPVAInputTestFloatA, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesSA, Floats, EPICSPVAInputTestFloatA, "[3]", "");
 static const MARTe::IntrospectionEntry *EPICSPVADatabaseTestInputTypesSAStructEntries[] = { &EPICSPVADatabaseTestInputTypesSA_UInts_introspectionEntry,
         &EPICSPVADatabaseTestInputTypesSA_Ints_introspectionEntry, &EPICSPVADatabaseTestInputTypesSA_Floats_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestInputTypesSA, EPICSPVADatabaseTestInputTypesSAStructEntries)
@@ -358,6 +358,7 @@ class EPICSPVAInputGAMTestHelperSA: public MARTe::GAM {
 public:
     CLASS_REGISTER_DECLARATION()EPICSPVAInputGAMTestHelperSA() {
         testStruct = NULL;
+        testStructOut = NULL;
     }
 
     virtual ~EPICSPVAInputGAMTestHelperSA() {
@@ -371,6 +372,9 @@ public:
     virtual bool Setup() {
         using namespace MARTe;
         testStruct = reinterpret_cast<EPICSPVADatabaseTestInputTypesSA *>(GetInputSignalMemory(0u));
+        if (GetNumberOfOutputSignals() > 0){
+            testStructOut = reinterpret_cast<EPICSPVADatabaseTestInputTypesSA *>(GetOutputSignalMemory(0u));
+        }
         return true;
     }
 
@@ -380,6 +384,7 @@ public:
     }
 
     EPICSPVADatabaseTestInputTypesSA *testStruct;
+    EPICSPVADatabaseTestInputTypesSA *testStructOut;
 };
 CLASS_REGISTER(EPICSPVAInputGAMTestHelperSA, "1.0")
 
@@ -1209,7 +1214,7 @@ bool EPICSPVAInputTest::TestExecute_StructuredType_Arrays() {
     StreamString config = ""
             "+EPICSPVADatabase1 = {\n"
             "    Class = EPICSPVADatabase\n"
-            "    +RecordIn1SArr = {\n"
+            "    +Record1SArr = {\n"
             "        Class = EPICSPVA::EPICSPVARecord\n"
             "        Structure = {\n"
             "             SignalTypes = {\n"
@@ -1226,9 +1231,18 @@ bool EPICSPVAInputTest::TestExecute_StructuredType_Arrays() {
             "        +GAM1 = {\n"
             "            Class = EPICSPVAInputGAMTestHelperSA\n"
             "            InputSignals = {\n"
-            "                RecordIn1SArr = {\n"
+            "                Record1SArr = {\n"
             "                    Type = EPICSPVADatabaseTestInputTypesSA\n"
             "                    DataSource = EPICSPVAInputTest\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "        +GAM2 = {\n"
+            "            Class = EPICSPVAInputGAMTestHelperSA\n"
+            "            OutputSignals = {\n"
+            "                Record1SArr = {\n"
+            "                    Type = EPICSPVADatabaseTestInputTypesSA\n"
+            "                    DataSource = EPICSPVAOutputTest\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1245,7 +1259,19 @@ bool EPICSPVAInputTest::TestExecute_StructuredType_Arrays() {
             "            StackSize = 10000000\n"
             "            NumberOfBuffers = 2\n"
             "            Signals = {\n"
-            "                RecordIn1SArr = {\n"
+            "                Record1SArr = {\n"
+            "                    Field = SignalTypes"
+            "                    Type = EPICSPVADatabaseTestInputTypesSA\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "        +EPICSPVAOutputTest = {\n"
+            "            Class = EPICSPVAOutput\n"
+            "            CPUMask = 15\n"
+            "            StackSize = 10000000\n"
+            "            NumberOfBuffers = 2\n"
+            "            Signals = {\n"
+            "                Record1SArr = {\n"
             "                    Field = SignalTypes"
             "                    Type = EPICSPVADatabaseTestInputTypesSA\n"
             "                }\n"
@@ -1260,7 +1286,7 @@ bool EPICSPVAInputTest::TestExecute_StructuredType_Arrays() {
             "                Class = ReferenceContainer\n"
             "                +Thread1 = {\n"
             "                    Class = RealTimeThread\n"
-            "                    Functions = {GAM1}\n"
+            "                    Functions = {GAM2 GAM1}\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1275,6 +1301,7 @@ bool EPICSPVAInputTest::TestExecute_StructuredType_Arrays() {
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
     ReferenceT < EPICSPVAInputGAMTestHelperSA > gam1;
+    ReferenceT < EPICSPVAInputGAMTestHelperSA > gam2;
     ReferenceT < RealTimeApplication > application;
 
     if (ok) {
@@ -1284,6 +1311,10 @@ bool EPICSPVAInputTest::TestExecute_StructuredType_Arrays() {
     if (ok) {
         gam1 = godb->Find("Test.Functions.GAM1");
         ok = gam1.IsValid();
+    }
+    if (ok) {
+        gam2 = godb->Find("Test.Functions.GAM2");
+        ok = gam2.IsValid();
     }
     if (ok) {
         ok = application->PrepareNextState("State1");
@@ -1299,109 +1330,54 @@ bool EPICSPVAInputTest::TestExecute_StructuredType_Arrays() {
     if (ok) {
         uint32 n;
         uint32 nOfElements = 4;
-        epics::pvData::shared_vector < uint8 > outUInt8;
-        epics::pvData::shared_vector < uint16 > outUInt16;
-        epics::pvData::shared_vector < uint32 > outUInt32;
-        epics::pvData::shared_vector<unsigned long int> outUInt64;
-        epics::pvData::shared_vector < int8 > outInt8;
-        epics::pvData::shared_vector < int16 > outInt16;
-        epics::pvData::shared_vector < int32 > outInt32;
-        epics::pvData::shared_vector<long int> outInt64;
-        epics::pvData::shared_vector < float32 > outFloat32;
-        epics::pvData::shared_vector < float64 > outFloat64;
-
-        outUInt8.resize(nOfElements);
-        outUInt16.resize(nOfElements);
-        outUInt32.resize(nOfElements);
-        outUInt64.resize(nOfElements);
-        outInt8.resize(nOfElements);
-        outInt16.resize(nOfElements);
-        outInt32.resize(nOfElements);
-        outInt64.resize(nOfElements);
-        outFloat32.resize(nOfElements);
-        outFloat64.resize(nOfElements);
 
         for (n = 0u; n < nOfElements; n++) {
-            outUInt8[n] = n;
-            outUInt16[n] = 2 * n;
-            outUInt32[n] = 3 * n;
-            outUInt64[n] = 4 * n;
-            outInt8[n] = -1 * n;
-            outInt16[n] = -2 * n;
-            outInt32[n] = -3 * n;
-            outInt64[n] = -4 * n;
-            outFloat32[n] = 32 * n;
-            outFloat64[n] = 64 * n;
+            gam2->testStructOut->UInts[0].UInt8[n] = n;
+            gam2->testStructOut->UInts[1].UInt8[n] = n + 1;
+            gam2->testStructOut->UInts[0].UInt16[n] = 2 * n;
+            gam2->testStructOut->UInts[1].UInt16[n] = 2 * n + 1;
+            gam2->testStructOut->UInts[0].UInt32[n] = 3 * n;
+            gam2->testStructOut->UInts[1].UInt32[n] = 3 * n + 1;
+            gam2->testStructOut->UInts[0].UInt64[n] = 4 * n;
+            gam2->testStructOut->UInts[1].UInt64[n] = 4 * n + 1;
+            gam2->testStructOut->Ints.Int8[n] = -1 * n;
+            gam2->testStructOut->Ints.Int16[n] = -2 * n;
+            gam2->testStructOut->Ints.Int32[n] = -3 * n;
+            gam2->testStructOut->Ints.Int64[n] = -4 * n;
+            gam2->testStructOut->Floats[0].Float32[n] = 32 * n;
+            gam2->testStructOut->Floats[1].Float32[n] = 33 * n;
+            gam2->testStructOut->Floats[2].Float32[n] = 34 * n;
+            gam2->testStructOut->Floats[0].Float64[n] = 62 * n;
+            gam2->testStructOut->Floats[1].Float64[n] = 63 * n;
+            gam2->testStructOut->Floats[2].Float64[n] = 64 * n;
         }
-        epics::pvData::shared_vector<const uint8> outUInt8F = freeze(outUInt8);
-        epics::pvData::shared_vector<const uint16> outUInt16F = freeze(outUInt16);
-        epics::pvData::shared_vector<const uint32> outUInt32F = freeze(outUInt32);
-        epics::pvData::shared_vector<const unsigned long int> outUInt64F = freeze(outUInt64);
-        epics::pvData::shared_vector<const int8> outInt8F = freeze(outInt8);
-        epics::pvData::shared_vector<const int16> outInt16F = freeze(outInt16);
-        epics::pvData::shared_vector<const int32> outInt32F = freeze(outInt32);
-        epics::pvData::shared_vector<const long int> outInt64F = freeze(outInt64);
-        epics::pvData::shared_vector<const float32> outFloat32F = freeze(outFloat32);
-        epics::pvData::shared_vector<const float64> outFloat64F = freeze(outFloat64);
-
-        pvac::ClientProvider provider("pva");
-        uint32 timeOutCounts = 50;
         ok = false;
-        pvac::ClientChannel record1(provider.connect("RecordIn1SArr"));
-        pvac::detail::PutBuilder putBuilder1 = record1.put();
-
+        uint32 timeOutCounts = 50;
         while ((!ok) && (timeOutCounts != 0u)) {
-            putBuilder1.set("SignalTypes.UInts.UInt8", outUInt8F);
-            putBuilder1.set("SignalTypes.UInts.UInt16", outUInt16F);
-            putBuilder1.set("SignalTypes.UInts.UInt32", outUInt32F);
-            putBuilder1.set("SignalTypes.UInts.UInt64", outUInt64F);
-            putBuilder1.set("SignalTypes.Ints.Int8", outInt8F);
-            putBuilder1.set("SignalTypes.Ints.Int16", outInt16F);
-            putBuilder1.set("SignalTypes.Ints.Int32", outInt32F);
-            putBuilder1.set("SignalTypes.Ints.Int64", outInt64F);
-            putBuilder1.set("SignalTypes.Floats.Float32", outFloat32F);
-            putBuilder1.set("SignalTypes.Floats.Float64", outFloat64F);
-            putBuilder1.exec();
-
             scheduler->ExecuteThreadCycle(0u);
-            outUInt8.resize(nOfElements);
-            outUInt16.resize(nOfElements);
-            outUInt32.resize(nOfElements);
-            outUInt64.resize(nOfElements);
-            outInt8.resize(nOfElements);
-            outInt16.resize(nOfElements);
-            outInt32.resize(nOfElements);
-            outInt64.resize(nOfElements);
-            outFloat32.resize(nOfElements);
-            outFloat64.resize(nOfElements);
-
-            for (n = 0u; n < nOfElements; n++) {
-                outUInt8[n] = n;
-                outUInt16[n] = 2 * n;
-                outUInt32[n] = 3 * n;
-                outUInt64[n] = 4 * n;
-                outInt8[n] = -1 * n;
-                outInt16[n] = -2 * n;
-                outInt32[n] = -3 * n;
-                outInt64[n] = -4 * n;
-                outFloat32[n] = 32 * n;
-                outFloat64[n] = 64 * n;
-            }
             for (n = 0u; (n < nOfElements); n++) {
-                ok = (outUInt8[n] == gam1->testStruct->UInts.UInt8[n]);
-                ok &= (outUInt16[n] == gam1->testStruct->UInts.UInt16[n]);
-                ok &= (outUInt32[n] == gam1->testStruct->UInts.UInt32[n]);
-                ok &= (outUInt64[n] == gam1->testStruct->UInts.UInt64[n]);
-                ok &= (outInt8[n] == gam1->testStruct->Ints.Int8[n]);
-                ok &= (outInt16[n] == gam1->testStruct->Ints.Int16[n]);
-                ok &= (outInt32[n] == gam1->testStruct->Ints.Int32[n]);
-                ok &= (outInt64[n] == gam1->testStruct->Ints.Int64[n]);
-                ok &= (outFloat32[n] == gam1->testStruct->Floats.Float32[n]);
-                ok &= (outFloat64[n] == gam1->testStruct->Floats.Float64[n]);
+                ok = (gam1->testStruct->UInts[0].UInt8[n] == gam2->testStructOut->UInts[0].UInt8[n]);
+                ok &= (gam1->testStruct->UInts[1].UInt8[n] == gam2->testStructOut->UInts[1].UInt8[n]);
+                ok &= (gam1->testStruct->UInts[0].UInt16[n] == gam2->testStructOut->UInts[0].UInt16[n]);
+                ok &= (gam1->testStruct->UInts[1].UInt16[n] == gam2->testStructOut->UInts[1].UInt16[n]);
+                ok &= (gam1->testStruct->UInts[0].UInt32[n] == gam2->testStructOut->UInts[0].UInt32[n]);
+                ok &= (gam1->testStruct->UInts[1].UInt32[n] == gam2->testStructOut->UInts[1].UInt32[n]);
+                ok &= (gam1->testStruct->UInts[0].UInt64[n] == gam2->testStructOut->UInts[0].UInt64[n]);
+                ok &= (gam1->testStruct->UInts[1].UInt64[n] == gam2->testStructOut->UInts[1].UInt64[n]);
+                ok &= (gam1->testStruct->Ints.Int8[n] == gam2->testStructOut->Ints.Int8[n]);
+                ok &= (gam1->testStruct->Ints.Int16[n] == gam2->testStructOut->Ints.Int16[n]);
+                ok &= (gam1->testStruct->Ints.Int32[n] == gam2->testStructOut->Ints.Int32[n]);
+                ok &= (gam1->testStruct->Ints.Int64[n] == gam2->testStructOut->Ints.Int64[n]);
+                ok &= (gam1->testStruct->Floats[0].Float32[n] == gam2->testStructOut->Floats[0].Float32[n]);
+                ok &= (gam1->testStruct->Floats[1].Float32[n] == gam2->testStructOut->Floats[1].Float32[n]);
+                ok &= (gam1->testStruct->Floats[2].Float32[n] == gam2->testStructOut->Floats[2].Float32[n]);
+                ok &= (gam1->testStruct->Floats[0].Float64[n] == gam2->testStructOut->Floats[0].Float64[n]);
+                ok &= (gam1->testStruct->Floats[1].Float64[n] == gam2->testStructOut->Floats[1].Float64[n]);
+                ok &= (gam1->testStruct->Floats[2].Float64[n] == gam2->testStructOut->Floats[2].Float64[n]);
             }
+            Sleep::Sec(0.1);
+            timeOutCounts--;
         }
-        Sleep::Sec(0.1);
-        timeOutCounts--;
     }
     godb->Purge();
     return ok;
@@ -1477,24 +1453,7 @@ bool EPICSPVAInputTest::TestExecute_False_CharString() {
             "    }\n"
             "}\n";
 
-    bool ok = TestIntegratedInApplication(config.Buffer(), false);
-    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
-
-    ReferenceT<EPICSPVAInput> ds1;
-    ReferenceT < RealTimeApplication > application;
-
-    if (ok) {
-        application = godb->Find("Test");
-        ok = application.IsValid();
-    }
-    if (ok) {
-        ds1 = godb->Find("Test.Data.EPICSPVAInputTest");
-        ok = ds1.IsValid();
-    }
-    //Just to wait to increase coverage
-    Sleep::Sec(0.5);
-    godb->Purge();
-
+    bool ok = !TestIntegratedInApplication(config.Buffer(), true);
     return ok;
 }
 
