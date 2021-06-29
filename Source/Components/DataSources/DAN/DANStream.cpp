@@ -145,11 +145,11 @@ bool DANStream::PutData() {
         writeCounts++;
     }
     if ((blockInterleavedMemory != NULL_PTR(char8 *)) && (blockMemory != NULL_PTR(char8 *))) {
+        char8 *src = NULL_PTR(char8 *);
+        char8 *dest = NULL_PTR(char8 *);
         if (interleave) {
             uint32 s;
             uint32 z;
-            char8 *src = NULL_PTR(char8 *);
-            char8 *dest = NULL_PTR(char8 *);
             //Interleave the memory data
             for (s = 0u; (s < numberOfSignals) && (ok); s++) {
                 for (z = 0u; (z < numberOfSamples) && (ok); z++) {
