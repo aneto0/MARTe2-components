@@ -89,6 +89,11 @@ TEST(DANSourceGTest,TestIntegratedInApplication_NoTrigger) {
     ASSERT_TRUE(test.TestIntegratedInApplication_NoTrigger());
 }
 
+TEST(DANSourceGTest,TestIntegratedInApplication_Interleave) {
+    DANSourceTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_Interleave());
+}
+
 TEST(DANSourceGTest,TestIntegratedInApplication_Trigger) {
     DANSourceTest test;
     ASSERT_TRUE(test.TestIntegratedInApplication_Trigger());
