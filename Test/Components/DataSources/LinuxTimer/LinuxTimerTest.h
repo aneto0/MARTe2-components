@@ -106,15 +106,25 @@ public:
      */
     bool TestExecute_RTThread();
 
-	/**
-	* @brief Tests the Execute method in the context of the real-time thread by using all the five signals
-	*/
-	bool TestExecute_RTThread_WithFive();
+    /**
+     * @brief Tests the Execute method in the context of the real-time thread by using all the five signals
+     */
+    bool TestExecute_RTThread_WithFive();
 
-	/**
-	* @brief Tests the Execute method exercising the phase section
-	*/
-	bool TestExecute_RTThread_WithPhase();
+    /**
+     * @brief Tests the Execute method exercising the phase section
+     */
+    bool TestExecute_RTThread_WithPhase();
+
+    /**
+     * @brief Tests the Execute method exercising the phase section
+     */
+    bool TestExecute_Phase();
+
+    /**
+     * @brief Tests the Execute method rephasing
+     */
+    bool TestExecute_RePhase();
 
     /**
      * @brief Tests the PrepareNextState method.
@@ -211,20 +221,20 @@ public:
      */
     bool TestSetConfiguredDatabase_False_No32BitsSignal1();
 
-	/**
-	* @brief Tests the SetConfiguredDatabase method specifying a wrong attributes third signal
-	*/
-	bool TestSetConfiguredDatabase_False_InvalidSignal3();
+    /**
+     * @brief Tests the SetConfiguredDatabase method specifying a wrong attributes third signal
+     */
+    bool TestSetConfiguredDatabase_False_InvalidSignal3();
 
-	/**
-	* @brief Tests the SetConfiguredDatabase method specifying a wrong attributes fourth signal
-	*/
-	bool TestSetConfiguredDatabase_False_InvalidSignal4();
+    /**
+     * @brief Tests the SetConfiguredDatabase method specifying a wrong attributes fourth signal
+     */
+    bool TestSetConfiguredDatabase_False_InvalidSignal4();
 
-	/**
-	* @brief Tests the SetConfiguredDatabase method specifying a wrong attributes fifth signal
-	*/
-	bool TestSetConfiguredDatabase_False_InvalidSignal5();
+    /**
+     * @brief Tests the SetConfiguredDatabase method specifying a wrong attributes fifth signal
+     */
+    bool TestSetConfiguredDatabase_False_InvalidSignal5();
 
     /**
      * @brief Tests the SetConfiguredDatabase method specifying with a first signal that is not (Un)SignedInteged.
@@ -246,10 +256,10 @@ public:
      */
     bool TestSetConfiguredDatabase_False_NoFrequencySet();
 
-	/**
-	* @brief Tests the SetConfiguredDatabase with more than one pluggable time provider
-	*/
-	bool TestSetConfiguredDatabase_False_MoreThan1Provider();
+    /**
+     * @brief Tests the SetConfiguredDatabase with more than one pluggable time provider
+     */
+    bool TestSetConfiguredDatabase_False_MoreThan1Provider();
 
     /**
      * @brief Test the GetSleepPercentage method.
@@ -257,28 +267,28 @@ public:
     bool TestGetSleepPercentage();
 
     /**
-    * @brief Tests an explicit HRT provider with busy sleep and percentage
-    */
+     * @brief Tests an explicit HRT provider with busy sleep and percentage
+     */
     bool TestSetConfiguredDatabase_UseBusySleepAndPercentage();
 
     /**
-    * @brief Tests an explicit HRT provider with an invalid sleep nature
-    */
+     * @brief Tests an explicit HRT provider with an invalid sleep nature
+     */
     bool TestSetConfiguredDatabase_False_InvalidSleepNature();
 
     /**
-    * @brief Tests an explicit HRT provider with a sleep percentage over 100%
-    */
+     * @brief Tests an explicit HRT provider with a sleep percentage over 100%
+     */
     bool TestSetConfiguredDatabase_ExplicitHRTWithMoreThan100Perc();
 
     /**
-    * @brief Tests explicit HRT provider pure busy sleep
-    */
+     * @brief Tests explicit HRT provider pure busy sleep
+     */
     bool TestSetConfiguredDatabase_PureBusySleep();
 
     /**
-    * @brief Tests explicit HRT provider with parameter injection from LinuxTimer
-    */
+     * @brief Tests explicit HRT provider with parameter injection from LinuxTimer
+     */
     bool TestSetConfiguredDatabase_WithBackwardCompatOnHRT();
 
 };

@@ -44,10 +44,10 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 class LinuxTimerTestGAM: public MARTe::GAM {
-public:
-    CLASS_REGISTER_DECLARATION()
+public:CLASS_REGISTER_DECLARATION()
 
-LinuxTimerTestGAM    () : GAM() {
+    LinuxTimerTestGAM() :
+            GAM() {
         val1 = 0u;
         val2 = 0u;
     }
@@ -57,10 +57,10 @@ LinuxTimerTestGAM    () : GAM() {
     }
 
     bool Execute() {
-        if(GetNumberOfInputSignals() > 0u) {
+        if (GetNumberOfInputSignals() > 0u) {
             MARTe::MemoryOperationsHelper::Copy(&val1, GetInputSignalMemory(0u), sizeof(MARTe::uint32));
         }
-        if(GetNumberOfInputSignals() > 1u) {
+        if (GetNumberOfInputSignals() > 1u) {
             MARTe::MemoryOperationsHelper::Copy(&val2, GetInputSignalMemory(1u), sizeof(MARTe::uint32));
         }
 
@@ -80,7 +80,9 @@ CLASS_REGISTER(LinuxTimerTestGAM, "1.0")
 /**
  * Starts a MARTe application that uses this driver instance.
  */
-static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool checkVal1 = true, bool checkVal2 = true) {
+static bool TestIntegratedInApplication(const MARTe::char8 *const config,
+                                        bool checkVal1 = true,
+                                        bool checkVal2 = true) {
     using namespace MARTe;
 
     ConfigurationDatabase cdb;
@@ -111,10 +113,10 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
         application->StartNextStateExecution();
     }
 
-    ReferenceT<LinuxTimer> linuxTimer; 
+    ReferenceT<LinuxTimer> linuxTimer;
     ReferenceT<LinuxTimerTestGAM> gama;
-    
-    if(ok) {
+
+    if (ok) {
         linuxTimer = application->Find("Data.Timer");
         gama = application->Find("Functions.GAMA");
     }
@@ -128,8 +130,8 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
     if (ok) {
         uint32 *counter;
         uint32 *timer;
-        linuxTimer->GetSignalMemoryBuffer(0, 0, (void *&) counter);
-        linuxTimer->GetSignalMemoryBuffer(1, 0, (void *&) timer);
+        linuxTimer->GetSignalMemoryBuffer(0, 0, (void*&) counter);
+        linuxTimer->GetSignalMemoryBuffer(1, 0, (void*&) timer);
         uint32 c = 0;
         ok = false;
         while (c < 500 && !ok) {
@@ -147,7 +149,7 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
         }
     }
 
-    if(ok) {
+    if (ok) {
         Sleep::MSec(1000);
     }
 
@@ -160,7 +162,7 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
 }
 
 //Standard configuration for testing
-const MARTe::char8 * const config1 = ""
+const MARTe::char8 *const config1 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -187,16 +189,16 @@ const MARTe::char8 * const config1 = ""
         "                }"
         "            }"
         "        }"
-		"		 +GAMB = {"
-		"		 	Class = ConstantGAM"
-		"			OutputSignals = {"
-		"				Signal1 = {"
-		"					DataSource = LoggerSink"
-		"					Type = uint32"
-		"					Default = 1"
-		"				}"
-		"			}"
-		"        }"
+        "		 +GAMB = {"
+        "		 	Class = ConstantGAM"
+        "			OutputSignals = {"
+        "				Signal1 = {"
+        "					DataSource = LoggerSink"
+        "					Type = uint32"
+        "					Default = 1"
+        "				}"
+        "			}"
+        "        }"
         "    }"
         "    +Data = {"
         "        Class = ReferenceContainer"
@@ -204,9 +206,9 @@ const MARTe::char8 * const config1 = ""
         "        +Timer = {"
         "            Class = LinuxTimer"
         "        }"
-		"		 +LoggerSink = {"
-		"			 Class = LoggerDataSource"
-		"		 }"
+        "		 +LoggerSink = {"
+        "			 Class = LoggerDataSource"
+        "		 }"
         "        +Timings = {"
         "            Class = TimingDataSource"
         "        }"
@@ -240,7 +242,7 @@ const MARTe::char8 * const config1 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config2 = ""
+const MARTe::char8 *const config2 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -290,7 +292,7 @@ const MARTe::char8 * const config2 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config21 = ""
+const MARTe::char8 *const config21 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -341,7 +343,7 @@ const MARTe::char8 * const config21 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config3 = ""
+const MARTe::char8 *const config3 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -404,7 +406,7 @@ const MARTe::char8 * const config3 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config4 = ""
+const MARTe::char8 *const config4 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -469,7 +471,7 @@ const MARTe::char8 * const config4 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config5 = ""
+const MARTe::char8 *const config5 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -519,7 +521,7 @@ const MARTe::char8 * const config5 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config6 = ""
+const MARTe::char8 *const config6 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -569,7 +571,7 @@ const MARTe::char8 * const config6 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config7 = ""
+const MARTe::char8 *const config7 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -618,7 +620,7 @@ const MARTe::char8 * const config7 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config8 = ""
+const MARTe::char8 *const config8 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -686,7 +688,7 @@ const MARTe::char8 * const config8 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config9 = ""
+const MARTe::char8 *const config9 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -736,7 +738,7 @@ const MARTe::char8 * const config9 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config10 = ""
+const MARTe::char8 *const config10 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -787,7 +789,7 @@ const MARTe::char8 * const config10 = ""
         "}";
 
 //Standard configuration for testing in the context of the real-time thread
-const MARTe::char8 * const config11 = ""
+const MARTe::char8 *const config11 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -838,7 +840,7 @@ const MARTe::char8 * const config11 = ""
         "}";
 
 //Full 4 signal configuration for testing in the context of the real-time thread
-const MARTe::char8 * const config12 = ""
+const MARTe::char8 *const config12 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -900,7 +902,7 @@ const MARTe::char8 * const config12 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config13 = ""
+const MARTe::char8 *const config13 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -926,9 +928,9 @@ const MARTe::char8 * const config13 = ""
         "        +Timer = {"
         "            Class = LinuxTimer"
         "            ExecutionMode = RealTimeThread"
-		"			 +TimeProvider = {"
-		"				 Class = HighResolutionTimeProvider"
-		"			 }"
+        "			 +TimeProvider = {"
+        "				 Class = HighResolutionTimeProvider"
+        "			 }"
         "        }"
         "        +Timings = {"
         "            Class = TimingDataSource"
@@ -953,7 +955,7 @@ const MARTe::char8 * const config13 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config14 = ""
+const MARTe::char8 *const config14 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -979,9 +981,9 @@ const MARTe::char8 * const config14 = ""
         "        +Timer = {"
         "            Class = LinuxTimer"
         "            ExecutionMode = RealTimeThread"
-		"			 +WrongTimeProvider = {"
-		"				 Class = ReferenceContainer"
-		"			 }"
+        "			 +WrongTimeProvider = {"
+        "				 Class = ReferenceContainer"
+        "			 }"
         "        }"
         "        +Timings = {"
         "            Class = TimingDataSource"
@@ -1006,7 +1008,7 @@ const MARTe::char8 * const config14 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config15 = ""
+const MARTe::char8 *const config15 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1032,7 +1034,7 @@ const MARTe::char8 * const config15 = ""
         "        +Timer = {"
         "            Class = LinuxTimer"
         "            ExecutionMode = RealTimeThread"
-		"			 Phase = 500000"
+        "			 Phase = 500000"
         "        }"
         "        +Timings = {"
         "            Class = TimingDataSource"
@@ -1057,7 +1059,7 @@ const MARTe::char8 * const config15 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config16 = ""
+const MARTe::char8 *const config16 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1111,7 +1113,7 @@ const MARTe::char8 * const config16 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config17 = ""
+const MARTe::char8 *const config17 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1169,7 +1171,7 @@ const MARTe::char8 * const config17 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config18 = ""
+const MARTe::char8 *const config18 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1195,12 +1197,12 @@ const MARTe::char8 * const config18 = ""
         "        +Timer = {"
         "            Class = LinuxTimer"
         "            ExecutionMode = RealTimeThread"
-		"			 +TheGoodOne = {"
-		"				 Class = HighResolutionTimeProvider"
-		"			 }"
-		"			 +TheOneInExcess = {"
-		"				 Class = HighResolutionTimeProvider"
-		"			 }"
+        "			 +TheGoodOne = {"
+        "				 Class = HighResolutionTimeProvider"
+        "			 }"
+        "			 +TheOneInExcess = {"
+        "				 Class = HighResolutionTimeProvider"
+        "			 }"
         "        }"
         "        +Timings = {"
         "            Class = TimingDataSource"
@@ -1225,7 +1227,7 @@ const MARTe::char8 * const config18 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config19 = ""
+const MARTe::char8 *const config19 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1287,7 +1289,7 @@ const MARTe::char8 * const config19 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config20 = ""
+const MARTe::char8 *const config20 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1341,7 +1343,7 @@ const MARTe::char8 * const config20 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config31 = ""
+const MARTe::char8 *const config31 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1394,7 +1396,7 @@ const MARTe::char8 * const config31 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config32 = ""
+const MARTe::char8 *const config32 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1448,7 +1450,7 @@ const MARTe::char8 * const config32 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config33 = ""
+const MARTe::char8 *const config33 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1501,7 +1503,7 @@ const MARTe::char8 * const config33 = ""
         "    }"
         "}";
 
-const MARTe::char8 * const config34 = ""
+const MARTe::char8 *const config34 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1562,8 +1564,8 @@ bool LinuxTimerTest::TestConstructor() {
     LinuxTimer test;
     uint32 *counter;
     uint32 *timer;
-    test.GetSignalMemoryBuffer(0, 0, (void *&) counter);
-    test.GetSignalMemoryBuffer(1, 0, (void *&) timer);
+    test.GetSignalMemoryBuffer(0, 0, (void*&) counter);
+    test.GetSignalMemoryBuffer(1, 0, (void*&) timer);
     bool ok = (*counter == 0);
     ok &= (*timer == 0);
     return ok;
@@ -1586,8 +1588,8 @@ bool LinuxTimerTest::TestGetSignalMemoryBuffer() {
     LinuxTimer test;
     uint32 *counter;
     uint32 *timer;
-    test.GetSignalMemoryBuffer(0, 0, (void *&) counter);
-    test.GetSignalMemoryBuffer(1, 0, (void *&) timer);
+    test.GetSignalMemoryBuffer(0, 0, (void*&) counter);
+    test.GetSignalMemoryBuffer(1, 0, (void*&) timer);
     bool ok = (*counter == 0);
     ok &= (*timer == 0);
     return ok;
@@ -1597,7 +1599,7 @@ bool LinuxTimerTest::TestGetSignalMemoryBuffer_False() {
     using namespace MARTe;
     LinuxTimer test;
     uint32 *ptr;
-    return !test.GetSignalMemoryBuffer(5, 0, (void *&) ptr);
+    return !test.GetSignalMemoryBuffer(5, 0, (void*&) ptr);
 }
 
 bool LinuxTimerTest::TestGetBrokerName() {
@@ -1606,7 +1608,7 @@ bool LinuxTimerTest::TestGetBrokerName() {
     ConfigurationDatabase config;
     StreamString brokerName = test.GetBrokerName(config, OutputSignals);
 
-	REPORT_ERROR_STATIC(ErrorManagement::Information, "Detected %s as broker name", brokerName.Buffer());
+    REPORT_ERROR_STATIC(ErrorManagement::Information, "Detected %s as broker name", brokerName.Buffer());
 
     bool ok = (brokerName == "");
     if (ok) {
@@ -1658,6 +1660,217 @@ bool LinuxTimerTest::TestExecute_RTThread_WithPhase() {
     return TestIntegratedInApplication(config15);
 }
 
+bool LinuxTimerTest::TestExecute_Phase() {
+    using namespace MARTe;
+
+    const MARTe::char8 *const configPhase = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = LinuxTimerTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = Timer"
+            "                    Type = uint32"
+            "                }"
+            "                Time = {"
+            "                    DataSource = Timer"
+            "                    Type = uint32"
+            "                    Frequency = 0.1"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +Timer = {"
+            "            Class = LinuxTimer"
+            "            ExecutionMode = RealTimeThread"
+            "            Phase = 3000000"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMA}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = configPhase;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    if (ok) {
+        ReferenceT<LinuxTimer> test = god->Find("Test.Data.Timer");
+        ok = test.IsValid();
+        if (ok) {
+            uint64 tic = (HighResolutionTimer::Counter()/HighResolutionTimer::Frequency())*HighResolutionTimer::Frequency();
+
+
+            ExecutionInfo info;
+            test->Execute(info);
+            uint32 delta = (uint32)(((float64)(HighResolutionTimer::Counter() - tic)) / HighResolutionTimer::Frequency() * 1e6);
+            ok = (delta > 1500000);
+        }
+    }
+    return ok;
+}
+
+bool LinuxTimerTest::TestExecute_RePhase() {
+
+    using namespace MARTe;
+
+    const MARTe::char8 *const configRephase = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = LinuxTimerTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = Timer"
+            "                    Type = uint32"
+            "                }"
+            "                Time = {"
+            "                    DataSource = Timer"
+            "                    Type = uint32"
+            "                    Frequency = 0.5"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +Timer = {"
+            "            Class = LinuxTimer"
+            "            ExecutionMode = RealTimeThread"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint32"
+            "                }"
+            "                Time = {"
+            "                    Type = uint32"
+            "                }"
+            "                AbsTime = {"
+            "                   Type = uint64"
+            "                }"
+            "                DeltaTime = {"
+            "                    Type = uint64"
+            "                }"
+            "                RephaseTrigger = {"
+            "                    Type = uint8"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMA}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = configRephase;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    if (ok) {
+        ReferenceT<LinuxTimer> test = god->Find("Test.Data.Timer");
+        ok = test.IsValid();
+        if (ok) {
+            uint8 *rephaseTrig;
+            test->GetSignalMemoryBuffer(4u, 0u, (void*&)rephaseTrig);
+            *rephaseTrig = 1u;
+            uint64 tic = HighResolutionTimer::Counter();
+            ExecutionInfo info;
+
+            for (uint32 i = 0u; i < 5u; i++) {
+                test->Execute(info);
+            }
+            *rephaseTrig = 0u;
+            test->Execute(info);
+            uint32 delta = (uint32)(((float64)(HighResolutionTimer::Counter() - tic)) / HighResolutionTimer::Frequency() * 1e6);
+            ok = (delta > 1500000);
+        }
+    }
+    return ok;
+}
+
 bool LinuxTimerTest::TestInitialise_ExplicitTimeProvider() {
     using namespace MARTe;
 
@@ -1683,9 +1896,8 @@ bool LinuxTimerTest::TestInitialise_ExplicitTimeProvider() {
         ok = application->ConfigureApplication();
     }
 
-	return ok;
+    return ok;
 }
-
 
 bool LinuxTimerTest::TestInitialise_False_ExplicitWrongTimeProvider() {
     using namespace MARTe;
@@ -1712,7 +1924,7 @@ bool LinuxTimerTest::TestInitialise_False_ExplicitWrongTimeProvider() {
         ok = application->ConfigureApplication();
     }
 
-	return !ok;
+    return !ok;
 }
 
 bool LinuxTimerTest::TestSetConfiguredDatabase_False_MoreThan1Provider() {
@@ -1740,7 +1952,7 @@ bool LinuxTimerTest::TestSetConfiguredDatabase_False_MoreThan1Provider() {
         ok = application->ConfigureApplication();
     }
 
-	return !ok;
+    return !ok;
 }
 
 bool LinuxTimerTest::TestPrepareNextState() {
@@ -1786,10 +1998,10 @@ bool LinuxTimerTest::TestPrepareNextState() {
         application->StartNextStateExecution();
     }
 
-    ReferenceT<LinuxTimer> linuxTimer; 
-    ReferenceT<LinuxTimerTestGAM> gama; 
+    ReferenceT<LinuxTimer> linuxTimer;
+    ReferenceT<LinuxTimerTestGAM> gama;
 
-    if(ok) {
+    if (ok) {
         gama = application->Find("Functions.GAMA");
         linuxTimer = application->Find("Data.Timer");
     }
@@ -1799,23 +2011,24 @@ bool LinuxTimerTest::TestPrepareNextState() {
 
     ok = linuxTimer.IsValid() && gama.IsValid();
 
-    if(!ok) {
+    if (!ok) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "LinuxTimer and GAMA instances are not valid");
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "GAMA :%s and Timer instance :%s", gama.IsValid()?"true":"false", linuxTimer.IsValid()?"true":"false");
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "GAMA :%s and Timer instance :%s", gama.IsValid() ? "true" : "false",
+                            linuxTimer.IsValid() ? "true" : "false");
     }
 
     uint32 *counter;
     uint32 *timer;
-	uint64 *absoluteTime;
-	uint64 *deltaTime;
+    uint64 *absoluteTime;
+    uint64 *deltaTime;
     uint32 counterBefore;
     uint32 timerBefore;
 
     if (ok) {
-        linuxTimer->GetSignalMemoryBuffer(0, 0, (void *&) counter);
-        linuxTimer->GetSignalMemoryBuffer(1, 0, (void *&) timer);
-		linuxTimer->GetSignalMemoryBuffer(2, 0, (void *&) absoluteTime);
-		linuxTimer->GetSignalMemoryBuffer(3, 0, (void *&) deltaTime);
+        linuxTimer->GetSignalMemoryBuffer(0, 0, (void*&) counter);
+        linuxTimer->GetSignalMemoryBuffer(1, 0, (void*&) timer);
+        linuxTimer->GetSignalMemoryBuffer(2, 0, (void*&) absoluteTime);
+        linuxTimer->GetSignalMemoryBuffer(3, 0, (void*&) deltaTime);
 
         uint32 c = 0;
         ok = false;
@@ -1827,8 +2040,8 @@ bool LinuxTimerTest::TestPrepareNextState() {
             }
         }
     }
-	
-    if(ok) {
+
+    if (ok) {
         Sleep::MSec(1000);
         counterBefore = (*counter);
         timerBefore = (*timer);
@@ -1840,8 +2053,8 @@ bool LinuxTimerTest::TestPrepareNextState() {
 
     if (ok) {
         application->StartNextStateExecution();
-	    Sleep::MSec(10);
-        application->StopCurrentStateExecution();    
+        Sleep::MSec(10);
+        application->StopCurrentStateExecution();
         ok = (counterBefore > 1000) && (timerBefore > 1000000);
     }
     else {
@@ -1856,11 +2069,11 @@ bool LinuxTimerTest::TestPrepareNextState() {
     }
 
     if (ok) {
-		//We are checking that the state change is resetting the counter and the timer
+        //We are checking that the state change is resetting the counter and the timer
         ok = (((*counter) < counterBefore) && ((*timer) < timerBefore));
     }
 
-    if(!ok) {
+    if (!ok) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failure in check timer rewinding");
     }
 
