@@ -1750,6 +1750,13 @@ bool LinuxTimerTest::TestExecute_Phase() {
             uint32 delta = (uint32)(((float64)(HighResolutionTimer::Counter() - tic)) / HighResolutionTimer::Frequency() * 1e6);
             ok = (delta > 1500000);
         }
+        //need to do this to stop the threads otw they are stuck on the sem
+        if (ok) {
+            application->StartNextStateExecution();
+        }
+        if (ok) {
+            application->StopCurrentStateExecution();
+        }
     }
     return ok;
 }
@@ -1867,9 +1874,188 @@ bool LinuxTimerTest::TestExecute_RePhase() {
             uint32 delta = (uint32)(((float64)(HighResolutionTimer::Counter() - tic)) / HighResolutionTimer::Frequency() * 1e6);
             ok = (delta > 1500000);
         }
+        //need to do this to stop the threads otw they are stuck on the sem
+        if (ok) {
+            application->StartNextStateExecution();
+        }
+        if (ok) {
+            application->StopCurrentStateExecution();
+        }
     }
     return ok;
 }
+
+bool LinuxTimerTest::TestExecute_StateChange(){
+    using namespace MARTe;
+
+    const MARTe::char8 *const configStateChange = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = LinuxTimerTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = Timer"
+            "                    Type = uint32"
+            "                }"
+            "                Time = {"
+            "                    DataSource = Timer"
+            "                    Type = uint32"
+            "                    Frequency = 1"
+            "                }"
+            "            }"
+            "        }"
+            "        +GAMB = {"
+            "            Class = LinuxTimerTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = Timer2"
+            "                    Type = uint32"
+            "                }"
+            "                Time = {"
+            "                    DataSource = Timer2"
+            "                    Type = uint32"
+            "                    Frequency = 1"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +Timer = {"
+            "            Class = LinuxTimer"
+            "            ExecutionMode = RealTimeThread"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint32"
+            "                }"
+            "                Time = {"
+            "                    Type = uint32"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timer2 = {"
+            "            Class = LinuxTimer"
+            "            ExecutionMode = RealTimeThread"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint32"
+            "                }"
+            "                Time = {"
+            "                    Type = uint32"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMA}"
+            "                }"
+            "            }"
+            "        }"
+            "        +State2 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMB}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = configStateChange;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    if (ok) {
+        ReferenceT<LinuxTimer> test = god->Find("Test.Data.Timer");
+        ok = test.IsValid();
+        if (ok) {
+            uint64 tic = (HighResolutionTimer::Counter()/HighResolutionTimer::Frequency())*HighResolutionTimer::Frequency();
+
+
+            ExecutionInfo info;
+            test->Execute(info);
+            uint32 delta = (uint32)(((float64)(HighResolutionTimer::Counter() - tic)) / HighResolutionTimer::Frequency() * 1e6);
+
+            ok = (delta > 500000);
+        }
+    }
+    //need to do this to stop the threads otw they are stuck on the sem
+    if (ok) {
+        application->StartNextStateExecution();
+    }
+    if (ok) {
+        application->StopCurrentStateExecution();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State2");
+    }
+    if (ok) {
+        ReferenceT<LinuxTimer> test = god->Find("Test.Data.Timer2");
+        ok = test.IsValid();
+        if (ok) {
+            uint64 tic = (HighResolutionTimer::Counter()/HighResolutionTimer::Frequency())*HighResolutionTimer::Frequency();
+
+
+            ExecutionInfo info;
+            test->Execute(info);
+            uint32 delta = (uint32)(((float64)(HighResolutionTimer::Counter() - tic)) / HighResolutionTimer::Frequency() * 1e6);
+
+            ok = (delta > 500000);
+        }
+    }
+    //need to do this to stop the threads otw they are stuck on the sem
+    if (ok) {
+        application->StartNextStateExecution();
+    }
+    if (ok) {
+        application->StopCurrentStateExecution();
+    }
+    return ok;
+
+}
+
+
 
 bool LinuxTimerTest::TestInitialise_ExplicitTimeProvider() {
     using namespace MARTe;

@@ -127,6 +127,11 @@ public:
     bool TestExecute_RePhase();
 
     /**
+     * @brief Tests the Execute method with state change
+     */
+    bool TestExecute_StateChange();
+
+    /**
      * @brief Tests the PrepareNextState method.
      */
     bool TestPrepareNextState();

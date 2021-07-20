@@ -126,6 +126,11 @@ TEST(LinuxTimerGTest, TestExecute_RePhase) {
     ASSERT_TRUE(test.TestExecute_RePhase());
 }
 
+TEST(LinuxTimerGTest, TestExecute_StateChange) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestExecute_StateChange());
+}
+
 TEST(LinuxTimerGTest, TestInitialise_ExplicitTimeProvider) {
     LinuxTimerTest test;
     ASSERT_TRUE(test.TestInitialise_ExplicitTimeProvider());

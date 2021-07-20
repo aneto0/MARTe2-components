@@ -430,8 +430,8 @@ bool LinuxTimer::PrepareNextState(const char8 *const currentStateName,
     uint32 numberOfTotalConsumers = 0u;
 
     float32 tempFrequency = -1.0F;
-
-    uint32 nextIndex = rtApp->GetIndex();
+    uint32 currentIndex = rtApp->GetIndex();
+    uint32 nextIndex = currentIndex;
     nextIndex++;
     nextIndex &= 0x1u;
 
@@ -507,11 +507,11 @@ bool LinuxTimer::PrepareNextState(const char8 *const currentStateName,
                 timerPeriodUsecTime[nextIndex] = static_cast<uint32>(periodUsec);
                 sleepTimeTicks[nextIndex] = static_cast<uint64>(sleepTimeT);
 
-                //Act as we already slept, to avoid unnecessary idling on state changes
-                //But only if the startTimeTicks was touched (only on first change)
-//                if(startTimeTicks != 0u) {
-//                    startTimeTicks = timeProvider->Counter() + sleepTimeTicks[nextIndex];
-//                }
+                //on the first time if we start the thread with sleepTimeTicks[currentIndex]==0
+                //we have an infinite loop in Execute
+                if (sleepTimeTicks[currentIndex] == 0u) {
+                    sleepTimeTicks[currentIndex] = static_cast<uint64>(sleepTimeT);
+                }
 
                 if (executionMode == LINUX_TIMER_EXEC_MODE_SPAWNED) {
                     if (executor.GetStatus() == EmbeddedThreadI::OffState) {
@@ -547,7 +547,6 @@ bool LinuxTimer::PrepareNextState(const char8 *const currentStateName,
 ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo &info) {
 
     uint32 appIndex = rtApp->GetIndex();
-    appIndex %= 0x1u;
 
     uint64 sleepTimeTicksT;
     uint32 timerPeriodUsecTimeT;
