@@ -435,7 +435,8 @@ bool LinuxTimer::PrepareNextState(const char8 *const currentStateName,
     nextIndex++;
     nextIndex &= 0x1u;
 
-    bool notConsumed = true;
+    bool notConsumedNow = true;
+    bool notConsumedLater = true;
     for (uint32 idx = 0u; (idx < numberOfSignals) && ok; idx++) {
         uint32 i = idx;
         uint32 numberOfProducersNextState;
@@ -452,14 +453,15 @@ bool LinuxTimer::PrepareNextState(const char8 *const currentStateName,
             }
             //reset if not used in current state
             if (numberOfConsumers > 0u) {
-                notConsumed = false;
+                notConsumedNow = false;
             }
 
             if (!GetSignalNumberOfConsumers(i, nextStateName, numberOfConsumers)) {
                 numberOfConsumers = 0u;
             }
-            numberOfTotalConsumers += numberOfConsumers;
-
+            if (numberOfConsumers > 0u) {
+                notConsumedLater = false;
+            }
             for (uint32 j = 0u; (j < numberOfConsumers) && ok; j++) {
                 StreamString consumerName;
                 ok = GetSignalConsumerName(i, nextStateName, j, consumerName);
@@ -489,14 +491,14 @@ bool LinuxTimer::PrepareNextState(const char8 *const currentStateName,
     }
 
     if (ok) {
-        if (notConsumed) {
+        if (notConsumedNow) {
             counterAndTimer[0] = 0u;
             counterAndTimer[1] = 0u;
 
             startTimeTicks = 0u;
             phase = phaseBackup;
         }
-        if (numberOfTotalConsumers > 0u) {
+        if (!notConsumedLater) {
             ok = (tempFrequency >= 0.F);
 
             if (ok) {
