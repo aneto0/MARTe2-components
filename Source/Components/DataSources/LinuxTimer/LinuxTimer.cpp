@@ -427,8 +427,6 @@ bool LinuxTimer::Synchronise() {
 bool LinuxTimer::PrepareNextState(const char8 *const currentStateName,
                                   const char8 *const nextStateName) {
     bool ok = true;
-    uint32 numberOfTotalConsumers = 0u;
-
     float32 tempFrequency = -1.0F;
     uint32 currentIndex = rtApp->GetIndex();
     uint32 nextIndex = currentIndex;
@@ -559,17 +557,23 @@ ErrorManagement::ErrorType LinuxTimer::Execute(ExecutionInfo &info) {
 
     if (trigRephase > 0u) {
         startTimeTicks = cycleEndTicks;
-        float64 seconds0 = static_cast<float64>(cycleEndTicks * timeProvider->Period());
-        absoluteTime_1 = static_cast<uint64>(seconds0 * USEC_IN_SEC);
+        float64 seconds0 = static_cast<float64>(static_cast<float64>(cycleEndTicks) * timeProvider->Period());
+        float64 absoluteTime_1f = seconds0 * static_cast<float64>(USEC_IN_SEC);
+        absoluteTime_1 = static_cast<uint64>(absoluteTime_1f);
         phase = static_cast<uint32>(absoluteTime_1 % USEC_IN_SEC);
     }
 
     if (startTimeTicks == 0u) {
-        float64 seconds0 = static_cast<float64>(cycleEndTicks * timeProvider->Period());
-        absoluteTime_1 = static_cast<uint64>(seconds0) * USEC_IN_SEC;
+        float64 seconds0 = static_cast<float64>(cycleEndTicks);
+        seconds0 *= timeProvider->Period();
+        float64 absoluteTime_1f = seconds0 * static_cast<float64>(USEC_IN_SEC);
+        absoluteTime_1 = static_cast<uint64>(absoluteTime_1f);
         absoluteTime_1 += phase;
-        float64 secondsT = static_cast<float64>(absoluteTime_1) / USEC_IN_SEC;
-        startTimeTicks = static_cast<uint64>(secondsT * timeProvider->Frequency());
+        float64 secondsT = static_cast<float64>(absoluteTime_1);
+        secondsT /= static_cast<float64>(USEC_IN_SEC);
+        float64 startTimeTicksF = secondsT;
+        startTimeTicksF *= static_cast<float64>(timeProvider->Frequency());
+        startTimeTicks = static_cast<uint64>(startTimeTicksF);
     }
 
     //If we lose cycle (i.e. if startTimeTicks < N * cycleEndTicks), rephase to a multiple of the period
