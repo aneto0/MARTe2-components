@@ -475,9 +475,6 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
                 customFormat = originalSignalInformation.Read("Format", format);
                 ok = originalSignalInformation.MoveToAncestor(1);
             }
-            if (customFormat) {
-                REPORT_ERROR(ErrorManagement::Information, "Format of signal %d is %s", n, format.Buffer());
-            }
 
             /*lint -e{613} signalsAnyType, dataSourceMemory and offsets cannot be null as otherwise ok would be false*/
             if (ok) {
@@ -490,7 +487,17 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
 
             TypeDescriptor signalType = GetSignalType(n);
             if (customFormat){
-                ok = csvPrintfFormat.Printf("%s", "%e", format.Buffer());
+                if (format == "e" || format == "f") {
+                    /* Is there an easier way to Printf the '%' character? */
+                    ok = csvPrintfFormat.Printf("%s%s", "%", format.Buffer());
+                }
+                else
+                {
+                    ok = false;
+                    StreamString signalName;
+                    GetSignalName(n, signalName);
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported format specifier \"%s\" for signal %s", format.Buffer(), signalName.Buffer());
+                }
             }
             else
             {

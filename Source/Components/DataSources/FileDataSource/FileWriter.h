@@ -303,6 +303,10 @@ public:
 
 private:
 
+    /**
+     * Copy of the original signal information. 
+     * Needed to retrieve the "Format" parameter of the signals, not copied in configuredDatabase
+     */
     ConfigurationDatabase originalSignalInformation;
 
     /**
