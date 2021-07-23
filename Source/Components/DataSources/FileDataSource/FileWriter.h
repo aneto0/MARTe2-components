@@ -303,6 +303,8 @@ public:
 
 private:
 
+    ConfigurationDatabase originalSignalInformation;
+
     /**
      * True if the data is only to be stored in the output file following a trigger.
      */

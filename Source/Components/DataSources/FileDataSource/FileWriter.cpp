@@ -341,6 +341,10 @@ bool FileWriter::Initialise(StructuredDataI& data) {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
         }
+        if (ok)
+        {
+            ok = data.Copy(originalSignalInformation);
+        }
         if (ok) {
             //Do not allow to add signals in run-time
             ok = data.Write("Locked", 1);
@@ -456,12 +460,25 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
             }
             uint8 nDimensions = 0u;
             uint32 nElements = 0u;
+            StreamString format;
             if (ok) {
                 ok = GetSignalNumberOfDimensions(n, nDimensions);
             }
             if (ok) {
                 ok = GetSignalNumberOfElements(n, nElements);
             }
+            if(ok){
+                ok = originalSignalInformation.MoveRelative(originalSignalInformation.GetChildName(n));
+            }
+            bool customFormat = false;
+            if(ok){
+                customFormat = originalSignalInformation.Read("Format", format);
+                ok = originalSignalInformation.MoveToAncestor(1);
+            }
+            if (customFormat) {
+                REPORT_ERROR(ErrorManagement::Information, "Format of signal %d is %s", n, format.Buffer());
+            }
+
             /*lint -e{613} signalsAnyType, dataSourceMemory and offsets cannot be null as otherwise ok would be false*/
             if (ok) {
                 char8 *memPtr = &dataSourceMemory[offsets[n]];
@@ -472,22 +489,28 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
             }
 
             TypeDescriptor signalType = GetSignalType(n);
-            bool isUnsignedInteger = (signalType.type == UnsignedInteger);
-            bool isSignedInteger = (signalType.type == SignedInteger);
-            bool isFloat = (signalType.type == Float);
-            if (ok) {
-                if (isUnsignedInteger) {
-                    ok = csvPrintfFormat.Printf("%s", "%u");
-                }
-                else if (isSignedInteger) {
-                    ok = csvPrintfFormat.Printf("%s", "%d");
-                }
-                else if (isFloat) {
-                    ok = csvPrintfFormat.Printf("%s", "%f");
-                }
-                else {
-                    ok = false;
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported signal type.");
+            if (customFormat){
+                ok = csvPrintfFormat.Printf("%s", "%e", format.Buffer());
+            }
+            else
+            {
+                bool isUnsignedInteger = (signalType.type == UnsignedInteger);
+                bool isSignedInteger = (signalType.type == SignedInteger);
+                bool isFloat = (signalType.type == Float);
+                if (ok) {
+                    if (isUnsignedInteger) {
+                        ok = csvPrintfFormat.Printf("%s", "%u");
+                    }
+                    else if (isSignedInteger) {
+                        ok = csvPrintfFormat.Printf("%s", "%d");
+                    }
+                    else if (isFloat) {
+                        ok = csvPrintfFormat.Printf("%s", "%f");
+                    }
+                    else {
+                        ok = false;
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported signal type.");
+                    }
                 }
             }
         }
