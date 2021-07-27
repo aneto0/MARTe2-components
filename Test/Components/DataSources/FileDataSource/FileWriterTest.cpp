@@ -3835,3 +3835,36 @@ bool FileWriterTest::TestInvalidMessageType() {
     bool ok = TestIntegratedInApplication(config12, true);
     return !ok;
 }
+
+bool FileWriterTest::TestInitialise_NumberFormat_e() {
+    using namespace MARTe;
+    FileWriter test;
+    ConfigurationDatabase cdb;
+    cdb.CreateRelative("Signals");
+    cdb.MoveRelative("0");
+    cdb.Write("Format", "e");
+    cdb.MoveToRoot();
+    return test.Initialise(cdb);
+}
+
+bool FileWriterTest::TestInitialise_NumberFormat_f() {
+    using namespace MARTe;
+    FileWriter test;
+    ConfigurationDatabase cdb;
+    cdb.CreateRelative("Signals");
+    cdb.MoveRelative("0");
+    cdb.Write("Format", "e");
+    cdb.MoveToRoot();
+    return test.Initialise(cdb);
+}
+
+bool FileWriterTest::TestInitialise_WrongNumberFormat() {
+    using namespace MARTe;
+    FileWriter test;
+    ConfigurationDatabase cdb;
+    cdb.CreateRelative("Signals");
+    cdb.MoveRelative("0");
+    cdb.Write("Format", "z");
+    cdb.MoveToRoot();
+    return test.Initialise(cdb);
+}

@@ -317,3 +317,18 @@ TEST(FileWriterGTest,TestInvalidMessageType) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestInvalidMessageType());
 }
+
+TEST(FileWriterGTest,TestInitialise_NumberFormat_e) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_NumberFormat());
+}
+
+TEST(FileWriterGTest,TestInitialise_NumberFormat_f) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_NumberFormat());
+}
+
+TEST(FileWriterGTest,TestInitialise_WrongNumberFormat) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_NumberFormat());
+}
