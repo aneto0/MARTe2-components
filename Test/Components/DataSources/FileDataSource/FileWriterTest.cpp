@@ -3663,7 +3663,7 @@ bool FileWriterTest::TestIntegratedInApplication_NumberFormat() {
     using namespace MARTe;
 
     uint32 signalToGenerate[1] = {1234};
-    const char8* filename = "output_file_e.csv";
+    const char8* filename = "Test_NumberFormat.csv";
     const char8* expectedFileContent = "#SignalA (float32)[1];SignalB (uint32)[1];SignalC (float32)[1]\n"
                                        "1234.00;4D2;1.234000E+3\n";
 
