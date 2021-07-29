@@ -87,6 +87,7 @@ namespace MARTe {
  *         }
  *         SignalUInt16F = { //As many as required.
  *             Type = "uint16"
+ *             Format = "e" //Optional. Any format specifier supported by FormatDescriptor. Not of any effect if FileFormat is "binary".
  *         }
  *         ...
  *     }

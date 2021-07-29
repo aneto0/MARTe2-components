@@ -504,7 +504,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
 
     generatedFile.Close();
     Directory toDelete(filename);
-    //toDelete.Delete();
+    toDelete.Delete();
 
     if (triggerToGenerateWasNULL) {
         delete[] triggerToGenerate;
