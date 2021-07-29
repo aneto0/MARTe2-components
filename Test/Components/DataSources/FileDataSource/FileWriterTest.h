@@ -341,9 +341,7 @@ public:
      */
     bool TestInvalidMessageType();
 
-    bool TestInitialise_NumberFormat_e();
-
-    bool TestInitialise_NumberFormat_f();
+    bool TestInitialise_NumberFormat();
 
     bool TestInitialise_WrongNumberFormat();
 

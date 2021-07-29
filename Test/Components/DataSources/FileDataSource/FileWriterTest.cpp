@@ -504,7 +504,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
 
     generatedFile.Close();
     Directory toDelete(filename);
-    toDelete.Delete();
+    //toDelete.Delete();
 
     if (triggerToGenerateWasNULL) {
         delete[] triggerToGenerate;
@@ -3836,35 +3836,269 @@ bool FileWriterTest::TestInvalidMessageType() {
     return !ok;
 }
 
-bool FileWriterTest::TestInitialise_NumberFormat_e() {
+
+static const MARTe::char8 * const config2000 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                SignalA = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = \"output_file.csv\""
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
+        "            Signals = {"
+        "                SignalA = {"
+        "                    Type = float64"
+        "                    Format = \"z\""
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "}";
+
+static const MARTe::char8 * const config3000 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    DataSource = DDB1"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    DataSource = DDB1"
+        "                    Type = uint32"
+        "                }"
+        "                SignalA = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DDB1 = {"
+        "            Class = GAMDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = \"output_file.csv\""
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
+        "            Signals = {"
+        "                SignalA = {"
+        "                    Type = float32"
+        "                    Format = \"e\""
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "}";
+
+        static const MARTe::char8 * const config1000 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    DataSource = DDB1"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    DataSource = DDB1"
+        "                    Type = uint32"
+        "                }"
+        "                SignalA = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalB = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalC = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DDB1 = {"
+        "            Class = GAMDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = \"filewriter_test.bin\""
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
+        "            Signals = {"
+        "                SignalA = {"
+        "                    Type = float32"
+        "                    Format = \"e\""
+        "                }"
+        "                SignalB = {"
+        "                    Type = float32"
+        "                    Format = \"x\""
+        "                }"
+        "                SignalC = {"
+        "                    Type = float32"
+        "                    Format = \"o\""
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "}";
+
+
+bool FileWriterTest::TestInitialise_NumberFormat() {
     using namespace MARTe;
-    FileWriter test;
-    ConfigurationDatabase cdb;
-    cdb.CreateRelative("Signals");
-    cdb.MoveRelative("0");
-    cdb.Write("Format", "e");
-    cdb.MoveToRoot();
-    return test.Initialise(cdb);
+
+    uint32 signalToGenerate[1] = {1234};
+    const char8* filename = "output_file_e.csv";
+    const char8* expectedFileContent = "#SignalA (float64)[1]\n1.0e6\n";
+
+    bool ok = TestIntegratedExecution(config1000, signalToGenerate, 1, NULL, 1, 100, 0, 0, 2, filename,
+                                      expectedFileContent, 1);
+
+    return ok;
+
 }
 
-bool FileWriterTest::TestInitialise_NumberFormat_f() {
-    using namespace MARTe;
-    FileWriter test;
-    ConfigurationDatabase cdb;
-    cdb.CreateRelative("Signals");
-    cdb.MoveRelative("0");
-    cdb.Write("Format", "e");
-    cdb.MoveToRoot();
-    return test.Initialise(cdb);
-}
+
 
 bool FileWriterTest::TestInitialise_WrongNumberFormat() {
-    using namespace MARTe;
-    FileWriter test;
-    ConfigurationDatabase cdb;
-    cdb.CreateRelative("Signals");
-    cdb.MoveRelative("0");
-    cdb.Write("Format", "z");
-    cdb.MoveToRoot();
-    return test.Initialise(cdb);
+    return !TestIntegratedInApplication(config2000, true);
 }
