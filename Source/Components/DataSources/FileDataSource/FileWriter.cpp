@@ -472,6 +472,7 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
             }
             bool customFormat = false;
             if(ok){
+                // set customFormat to true if a format is specified for this signal
                 customFormat = originalSignalInformation.Read("Format", format);
                 ok = originalSignalInformation.MoveToAncestor(1);
             }
@@ -487,8 +488,12 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
 
             TypeDescriptor signalType = GetSignalType(n);
             if (customFormat){
-                if (format == "e" || format == "f") {
-                    /* Is there an easier way to Printf the '%' character? */
+                // Initialize a FormatDescriptor object to check that the parameter is a legal type descriptor
+                FormatDescriptor fd;
+                const char8* format_str = format.Buffer();
+                ok = fd.InitialiseFromString(format_str);
+                if (ok)
+                {
                     ok = csvPrintfFormat.Printf("%s%s", "%", format.Buffer());
                 }
                 else
@@ -527,8 +532,10 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
 
-    if (filename.Size() > 0u) {
-        ok = OpenFile(filename.Buffer());
+    if (ok){
+        if (filename.Size() > 0u) {
+            ok = OpenFile(filename.Buffer());
+        }
     }
 
     return ok;
