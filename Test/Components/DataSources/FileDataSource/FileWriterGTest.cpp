@@ -318,13 +318,13 @@
 //     ASSERT_TRUE(test.TestInvalidMessageType());
 // }
 
-TEST(FileWriterGTest,TestInitialise_NumberFormat) {
+TEST(FileWriterGTest,TestIntegratedInApplication_NumberFormat) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestInitialise_NumberFormat());
+    ASSERT_TRUE(test.TestIntegratedInApplication_NumberFormat());
 }
 
 
-TEST(FileWriterGTest,TestInitialise_WrongNumberFormat) {
+TEST(FileWriterGTest,TestSetConfiguredDatabase_WrongNumberFormat) {
     FileWriterTest test;
-    ASSERT_TRUE(test.TestInitialise_WrongNumberFormat());
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_WrongNumberFormat());
 }
