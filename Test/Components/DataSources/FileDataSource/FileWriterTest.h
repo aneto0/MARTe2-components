@@ -202,10 +202,20 @@ public:
     bool TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction();
 
     /**
+     * @brief Tests that the application initialises successfully when a legal format specifier is set for a signal
+     */
+    bool TestSetConfiguredDatabase_NumberFormat();
+
+    /**
      * @brief Tests that the application fails to initialise when an illegal format specifier is set for a signal
      */
-    bool TestSetConfiguredDatabase_WrongNumberFormat();
+    bool TestSetConfiguredDatabase_False_WrongNumberFormat();
 
+    /**
+     * @brief Tests that the application fails to initialise when an empty string is given as format specifier for a signal
+     */
+    bool TestSetConfiguredDatabase_False_EmptyNumberFormat();
+    
     /**
      * @brief Tests the OpenFile method.
      */

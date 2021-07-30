@@ -2743,7 +2743,7 @@ static const MARTe::char8 * const config14 = ""
         "    }"
         "}";
 
-// Configuration for TestSetConfiguredDatabase_WrongNumberFormat
+// Configuration for TestSetConfiguredDatabase_False_WrongNumberFormat
 static const MARTe::char8 * const config15 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
@@ -2793,6 +2793,87 @@ static const MARTe::char8 * const config15 = ""
         "                SignalA = {"
         "                    Type = float32"
         "                    Format = \"z\""
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "}";
+
+// Configuration for TestSetConfiguredDatabase_False_EmptyNumberFormat
+static const MARTe::char8 * const config16 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    DataSource = DDB1"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    DataSource = DDB1"
+        "                    Type = uint32"
+        "                }"
+        "                SignalA = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DDB1 = {"
+        "            Class = GAMDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = \"output_file.csv\""
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = yes"
+        "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
+        "            Signals = {"
+        "                SignalA = {"
+        "                    Type = float32"
+        "                    Format = \"\""
         "                }"
         "            }"
         "        }"
@@ -3306,8 +3387,16 @@ bool FileWriterTest::TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunct
     return !TestIntegratedInApplication(config4, true);
 }
 
-bool FileWriterTest::TestSetConfiguredDatabase_WrongNumberFormat() {
+bool FileWriterTest::TestSetConfiguredDatabase_NumberFormat() {
+    return TestIntegratedInApplication(config14, true);
+}
+
+bool FileWriterTest::TestSetConfiguredDatabase_False_WrongNumberFormat() {
     return !TestIntegratedInApplication(config15, true);
+}
+
+bool FileWriterTest::TestSetConfiguredDatabase_False_EmptyNumberFormat() {
+    return !TestIntegratedInApplication(config16, true);
 }
 
 bool FileWriterTest::TestIntegratedInApplication_RefreshContent(const MARTe::char8 *filename, bool csv, MARTe::uint32 * detectedFileSize)
