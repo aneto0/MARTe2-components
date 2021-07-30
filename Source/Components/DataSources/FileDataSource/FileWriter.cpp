@@ -468,13 +468,13 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
                 ok = GetSignalNumberOfElements(n, nElements);
             }
             if(ok){
-                ok = originalSignalInformation.MoveRelative(originalSignalInformation.GetChildName(n));
+                ok = originalSignalInformation.MoveToChild(n);
             }
             bool customFormat = false;
             if(ok){
                 // set customFormat to true if a format is specified for this signal
                 customFormat = originalSignalInformation.Read("Format", format);
-                ok = originalSignalInformation.MoveToAncestor(1);
+                ok = originalSignalInformation.MoveToAncestor(1u);
             }
 
             /*lint -e{613} signalsAnyType, dataSourceMemory and offsets cannot be null as otherwise ok would be false*/
