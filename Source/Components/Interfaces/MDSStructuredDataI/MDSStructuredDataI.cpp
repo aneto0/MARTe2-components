@@ -33,7 +33,6 @@
 #include "AnyType.h"
 #include "MDSStructuredDataI.h"
 #include "Reference.h"
-#include "StreamString.h"
 #include "AdvancedErrorManagement.h"
 #include "TypeConversion.h"
 /*---------------------------------------------------------------------------*/
@@ -83,6 +82,7 @@ bool MDSStructuredDataI::Read(const char8* const name,
             ok = false;
         }
     }
+    REPORT_ERROR_STATIC(ErrorManagement::Debug, "Lokking for node Node %s", name);
     //lint -e{613} Possible use of null pointer 'node' in left argument to operator '->' --> if node is NULL ok is false and hence node never used.
     if (ok) {
         MDSplus::Data *dataD = node->getData();
@@ -130,14 +130,15 @@ bool MDSStructuredDataI::Read(const char8* const name,
             numberOfElements = static_cast<int32>(auxStream.Size());
         }
         else {
-            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Not valid type");
-            ok = false;
+            data = dataD->getString();
+            StreamString auxStream = reinterpret_cast<char8 *>(data);
+            numberOfElements = static_cast<int32>(auxStream.Size());
+            marteType = UnsignedInteger8Bit;
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Not Valid Type %s %d  bits %d  %d",reinterpret_cast<char8 *>(data),numberOfElements,marteType.numberOfBits,(static_cast<uint32>(numberOfElements) * marteType.numberOfBits) / 8u);
         }
 
-        if (ok) {
-            ok = MemoryOperationsHelper::Copy(value.GetDataPointer(), data, (static_cast<uint32>(numberOfElements) * marteType.numberOfBits) / 8u);
-            MDSplus::deleteData(dataD);
-        }
+        ok = MemoryOperationsHelper::Copy(value.GetDataPointer(), data, (static_cast<uint32>(numberOfElements) * marteType.numberOfBits) / 8u);
+        MDSplus::deleteData(dataD);
     }
     return ok;
 }
@@ -182,6 +183,7 @@ bool MDSStructuredDataI::Write(const char8 * const name,
             //lint -e{613} Possible use of null pointer 'MARTe::MDSStructuredDataI::rootNode' in left argument to operator '->'--> currentNode is not NULL because IsOpen() ensure that
             //the pointer is not NULL.
             node = currentNode->addNode(name, "ANY");
+            REPORT_ERROR(ErrorManagement::Debug, "going to create Node %s", name);
         }
     }
     if (ok) {
@@ -338,6 +340,31 @@ bool MDSStructuredDataI::Copy(StructuredDataI& destination) {
         ok = MoveToChild(i);
         if (ok) {
             ok = destination.CreateRelative(GetName());
+
+            int32 numDescendants = 0;
+            try {
+                MDSplus::TreeNode **descendants = currentNode->getDescendants(&numDescendants);
+                //Traverse hierarchy
+                int32 d = 0;
+                for(d = 0; (d < numDescendants) && (ok); d++){ 
+                    char8* name = descendants[d]->getNodeName();
+                    int32 descNumberOfChildren = descendants[d]->getNumChildren();
+                    if(descNumberOfChildren == 0) {
+                        MDSplus::Data *dataD = descendants[d]->getData();
+                        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Descendant %s %s", name, dataD->getString());
+                        ok = destination.Write(name, dataD->getString());
+                    }
+                }
+                for(d = 0; d < numDescendants; d++) {
+                    delete descendants[d];
+                }
+                if (descendants != NULL_PTR(MDSplus::TreeNode **)) {
+                    delete [] descendants;
+                }
+            }
+            catch (const MDSplus::MdsException &exc) {
+                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Error::%s", exc.what());
+            }
         }
         if (ok) {
             // go recursively !
@@ -350,6 +377,7 @@ bool MDSStructuredDataI::Copy(StructuredDataI& destination) {
             ok = destination.MoveToAncestor(1u);
         }
     }
+ 
     return ok;
 }
 //lint -e{715} Symbol 'node' (line 319) not referenced --> function not supported
@@ -896,3 +924,4 @@ bool MDSStructuredDataI::AddChildToCurrentNode(const MARTe::char8 * const path) 
 
 CLASS_REGISTER(MDSStructuredDataI, "1.0")
 }
+
