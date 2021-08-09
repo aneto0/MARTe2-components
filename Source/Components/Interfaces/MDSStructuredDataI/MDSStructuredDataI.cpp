@@ -82,7 +82,7 @@ bool MDSStructuredDataI::Read(const char8* const name,
             ok = false;
         }
     }
-    REPORT_ERROR_STATIC(ErrorManagement::Debug, "Lokking for node Node %s", name);
+    REPORT_ERROR_STATIC(ErrorManagement::Debug, "Looking for node Node %s", name);
     //lint -e{613} Possible use of null pointer 'node' in left argument to operator '->' --> if node is NULL ok is false and hence node never used.
     if (ok) {
         MDSplus::Data *dataD = node->getData();
@@ -134,7 +134,6 @@ bool MDSStructuredDataI::Read(const char8* const name,
             StreamString auxStream = reinterpret_cast<char8 *>(data);
             numberOfElements = static_cast<int32>(auxStream.Size());
             marteType = UnsignedInteger8Bit;
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "Not Valid Type %s %d  bits %d  %d",reinterpret_cast<char8 *>(data),numberOfElements,marteType.numberOfBits,(static_cast<uint32>(numberOfElements) * marteType.numberOfBits) / 8u);
         }
 
         ok = MemoryOperationsHelper::Copy(value.GetDataPointer(), data, (static_cast<uint32>(numberOfElements) * marteType.numberOfBits) / 8u);

@@ -2740,7 +2740,7 @@ bool MDSStructuredDataITest::TestRead_StreamString(MARTe::StreamString val) {
     }
     StreamString auxStreamString;
     if (ret) {
-        ret = !mdsStructuredDataI.Read("NodeVal", auxStreamString);
+        ret = mdsStructuredDataI.Read("NodeVal", auxStreamString);
     }
     return ret;
 }
