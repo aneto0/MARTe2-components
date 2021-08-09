@@ -892,6 +892,9 @@ bool MDSStructuredDataITest::TestGetChildName_setAndDestroy() {
     }
     delete tree;
     if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
         ret = (NULL_PTR(char8 *) == mdsStructuredDataI.GetChildName(0));
     }
     return ret;
@@ -1178,6 +1181,9 @@ bool MDSStructuredDataITest::TestCreateRelative_setTreeAndDestroy() {
     }
     delete tree;
     if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
         ret = !mdsStructuredDataI.CreateRelative("A");
     }
     return ret;
@@ -1356,6 +1362,9 @@ bool MDSStructuredDataITest::TestCreateAbsolute_setTreeAndDestroy() {
     }
     delete tree;
     if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
         ret = !mdsStructuredDataI.CreateAbsolute("A.B");
     }
     return ret;
@@ -1519,6 +1528,9 @@ bool MDSStructuredDataITest::TestMoveToChild_setTreeAndDestroy() {
     }
     delete tree;
     if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
         ret = !mdsStructuredDataI.MoveToChild(0);
     }
     return ret;
@@ -1670,6 +1682,9 @@ bool MDSStructuredDataITest::TestMoveRelative_setTreeAndDestroy() {
     }
     delete tree;
     if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
         ret = !mdsStructuredDataI.MoveRelative("A");
     }
     return ret;
@@ -1817,6 +1832,9 @@ bool MDSStructuredDataITest::TestMoveAbsolute_setTreeAndDestroy() {
         ret = mdsStructuredDataI.CreateAbsolute("A.B");
     }
     delete tree;
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
     if (ret) {
         ret = !mdsStructuredDataI.MoveAbsolute("A");
     }
@@ -1989,6 +2007,9 @@ bool MDSStructuredDataITest::TestMoveToAncestor_setTreeAndDestroy() {
     }
     delete tree;
     if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
         ret = !mdsStructuredDataI.MoveToAncestor(1u);
     }
     return ret;
@@ -2075,6 +2096,9 @@ bool MDSStructuredDataITest::TestMoveToRoot_setTreeAndDestroy() {
         ret = mdsStructuredDataI.CreateAbsolute("A.B");
     }
     delete tree;
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
     if (ret) {
         ret = !mdsStructuredDataI.MoveToRoot();
     }
@@ -2515,6 +2539,9 @@ bool MDSStructuredDataITest::TestWrite_setTreeAndDestroy() {
     }
     delete tree;
     if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
+    if (ret) {
         ret = !mdsStructuredDataI.Write("SomeNodeName", 3.0);
     }
     return ret;
@@ -2612,6 +2639,9 @@ bool MDSStructuredDataITest::TestGetType_setTreeAndDestroy() {
         ret = mdsStructuredDataI.Write("F4E", aux);
     }
     delete tree;
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
+    }
     if (ret) {
         AnyType inputType(mdsStructuredDataI.GetType("F4E"));
         ret = inputType.IsVoid();
@@ -2773,6 +2803,9 @@ bool MDSStructuredDataITest::TestRead_setTreeAndDestroy() {
     }
     if (ret) {
         delete tree;
+    }
+    if (ret) {
+        ret = mdsStructuredDataI.CloseTree();
     }
     float value;
     if (ret) {
