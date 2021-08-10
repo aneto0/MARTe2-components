@@ -101,6 +101,11 @@ public:
     bool TestIntegratedInApplication_Trigger_AbsoluteTime();
 
     /**
+     * @brief Tests the DANSource integrated in an application with Interleave assumed to be implemented by the GAM.
+     */
+    bool TestIntegratedInApplication_Interleave();
+
+    /**
      * @brief Tests the Synchronise method. This is tested by the TestIntegratedInApplication_NoTrigger.
      */
     bool TestSynchronise();

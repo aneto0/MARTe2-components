@@ -74,7 +74,7 @@ template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = f
     uint64 externalTimeAbsoluteArr[numberOfWrites + 1];
     uint32 externalTimeRelativeArr[numberOfWrites + 1];
 
-    DANStream ds(typeDiscover.GetTypeDescriptor(), "DANStreamTest", 4, samplingFrequency, numberOfSamples);
+    DANStream ds(typeDiscover.GetTypeDescriptor(), "DANStreamTest", 4, samplingFrequency, numberOfSamples, true);
     ds.AddSignal(0u);
     ds.AddSignal(2u);
     ds.AddSignal(5u);
@@ -271,7 +271,7 @@ template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = f
 
 bool DANStreamTest::TestConstructor() {
     using namespace MARTe;
-    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8);
+    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8, true);
     bool ok = (ds.GetType() == Float32Bit);
     ok &= (ds.GetDANBufferMultiplier() == 4);
     ok &= (ds.GetPeriodNanos() == 500);
@@ -310,7 +310,7 @@ bool DANStreamTest::TestAddSignal() {
     DANSource danSource;
     bool ok = danSource.Initialise(cdb);
 
-    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8);
+    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8, true);
     float32 *signalPtr = NULL;
 
     ds.AddSignal(2u);
@@ -352,7 +352,7 @@ bool DANStreamTest::TestPutData_False() {
     DANSource danSource;
     danSource.Initialise(cdb);
 
-    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 1000);
+    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 1000, true);
     ds.AddSignal(0u);
     ds.AddSignal(2u);
     ds.AddSignal(5u);
@@ -405,7 +405,7 @@ bool DANStreamTest::TestOpenStream() {
     DANSource danSource;
     bool ok = danSource.Initialise(cdb);
 
-    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8);
+    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8, true);
     ds.AddSignal(2u);
     ds.AddSignal(0u);
     ds.AddSignal(1u);
@@ -419,7 +419,7 @@ bool DANStreamTest::TestOpenStream() {
 
 bool DANStreamTest::TestOpenStream_NoFinalise() {
     using namespace MARTe;
-    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8);
+    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8, true);
 
     return !ds.OpenStream();
 }
@@ -438,7 +438,7 @@ bool DANStreamTest::TestCloseStream() {
     DANSource danSource;
     bool ok = danSource.Initialise(cdb);
 
-    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8);
+    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8, true);
     ds.AddSignal(2u);
     ds.AddSignal(0u);
     ds.AddSignal(1u);

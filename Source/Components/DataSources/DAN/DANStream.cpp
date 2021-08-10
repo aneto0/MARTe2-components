@@ -44,7 +44,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-DANStream::DANStream(const TypeDescriptor & tdIn, const StreamString baseNameIn, const uint32 danBufferMultiplierIn, const float64 samplingFrequencyIn, const uint32 numberOfSamplesIn) {
+DANStream::DANStream(const TypeDescriptor & tdIn, const StreamString baseNameIn, const uint32 danBufferMultiplierIn, const float64 samplingFrequencyIn, const uint32 numberOfSamplesIn, const bool interleaveIn) {
     td = tdIn;
     typeSize = static_cast<uint32>(td.numberOfBits) / 8u;
     numberOfSignals = 0u;
@@ -66,6 +66,7 @@ DANStream::DANStream(const TypeDescriptor & tdIn, const StreamString baseNameIn,
     timeRelativeSignal = NULL_PTR(uint32 *);
     writeCounts = 0u;
     danSourceName = "";
+    interleave = interleaveIn;
 }
 
 /*lint -e{1551} the destructor must guarantee that the DANSource is unpublished at the of the object life-cycle. The internal buffering memory is also cleaned in this function.*/
@@ -144,20 +145,29 @@ bool DANStream::PutData() {
         writeCounts++;
     }
     if ((blockInterleavedMemory != NULL_PTR(char8 *)) && (blockMemory != NULL_PTR(char8 *))) {
-        uint32 s;
-        uint32 z;
-        //Interleave the memory data
-        for (s = 0u; (s < numberOfSignals) && (ok); s++) {
-            for (z = 0u; (z < numberOfSamples) && (ok); z++) {
-                uint32 blockMemoryIdx = s * numberOfSamples * typeSize;
-                blockMemoryIdx += (z * typeSize);
-                char8 *src = &blockMemory[blockMemoryIdx];
+        char8 *src = NULL_PTR(char8 *);
+        char8 *dest = NULL_PTR(char8 *);
+        if (interleave) {
+            uint32 s;
+            uint32 z;
+            //Interleave the memory data
+            for (s = 0u; (s < numberOfSignals) && (ok); s++) {
+                for (z = 0u; (z < numberOfSamples) && (ok); z++) {
+                    uint32 blockMemoryIdx = s * numberOfSamples * typeSize;
+                    blockMemoryIdx += (z * typeSize);
+                    src = &blockMemory[blockMemoryIdx];
 
-                uint32 blockInterleavedMemoryIdx = s * typeSize;
-                blockInterleavedMemoryIdx += (z * numberOfSignals * typeSize);
-                char8 *dest = &blockInterleavedMemory[blockInterleavedMemoryIdx];
-                ok = MemoryOperationsHelper::Copy(dest, src, typeSize);
+                    uint32 blockInterleavedMemoryIdx = s * typeSize;
+                    blockInterleavedMemoryIdx += (z * numberOfSignals * typeSize);
+                    dest = &blockInterleavedMemory[blockInterleavedMemoryIdx];
+                    ok = MemoryOperationsHelper::Copy(dest, src, typeSize);
+                }
             }
+        }
+        else {
+            src = &blockMemory[0u];
+            dest = &blockInterleavedMemory[0u];
+            ok = MemoryOperationsHelper::Copy(dest, src, blockSize);
         }
         if (ok) {
             //Check for >= 0 as true means == 1 but on CCS 6.0 true will be == 0

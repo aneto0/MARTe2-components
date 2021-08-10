@@ -65,6 +65,7 @@ namespace MARTe {
  *     NumberOfPreTriggers = 2 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store before the trigger.
  *     NumberOfPostTriggers = 1 //Compulsory iff StoreOnTrigger = 1.  Number of cycles to store after the trigger.
  *     ICProgName = "MARTeApp.ex" //Optional. If set it will call dan_initLibrary_icprog with the specified name.
+ *     Interleave = 1 //Optional. If == 1 => that the data is expected to be interleaved by the DANStream, if == 0, it can be assumed that the data is already interleaved.
  *
  *     Signals = {
  *         Trigger = { //Compulsory when StoreOnTrigger = 1. Must be set in index 0 of the Signals node. When the value of this signal is 1 data will be stored into the DAN database. Shall not be added if StoreOnTrigger = 0.
@@ -371,6 +372,11 @@ private:
      */
     uint64 absoluteStartTime;
 
+    /**
+     * If true the data will be interleaved by the DANStream
+     */
+    bool interleave;
+ 
 };
 }
 
