@@ -61,7 +61,11 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
     if (ok) {
         ok = data.Read("Address", address);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Address or Multicast group must be specified");
+            address = "NULL";
+            ok = true;
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::Information, "Using Multicast interface.");
         }
     }
     if (ok) {
@@ -73,7 +77,7 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
         }
         else {
             if (port <= 1024) {
-                REPORT_ERROR_PARAMETERS(ErrorManagement::Warning, "Port is set to %d, possible issues with values < 1024", port);
+                REPORT_ERROR(ErrorManagement::Warning, "Port is set to %d, possible issues with values < 1024", port);
             }
         }
     }
@@ -83,6 +87,9 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::Information, "No Timeout defined! Using Infinite");
             ok = true;
+        }
+        else {
+            timeout.SetTimeoutSec(timeoutVal);
         }
     }
     if (ok) {
@@ -126,74 +133,41 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     if (ok) {
-        ok = socket.Listen(port);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed listening on port number %d", port);
+        if (address != "NULL") {
+            ok = address.Seek(0LLU);
+            if (ok) {
+                char8 ignore;
+                StreamString networkBlock = "";
+                ok = address.GetToken(networkBlock, ".", ignore);
+                if (ok) {
+                    uint32 netValue = atoi(networkBlock.Buffer());
+                    if (netValue >= 224u && netValue <= 239u) {
+                        /* The net address belongs to the multicast address range therefore it must be a multicast group */
+                        ok = socket.Join(address.Buffer());
+                        if (!ok) {
+                            REPORT_ERROR(ErrorManagement::ParametersError, "Failed joining group %s", address.Buffer());
+                        }
+                    }
+                    else {
+                        ok = false;
+                        REPORT_ERROR(ErrorManagement::ParametersError, "No valid address for Multicast group.");
+                    }
+                }
+            }
         }
     }
     if (ok) {
-        ok = socket.Join(address.Buffer());
+        ok = socket.Listen(port);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed joining group %s", address.Buffer());
+            REPORT_ERROR(ErrorManagement::ParametersError, "Failed listening on port number %d", port);
         }
     }
     if (sync == 0u) {
         executor.SetCPUMask(cpuMask);
         executor.SetStackSize(stackSize);
         executor.SetName(GetName());
-        ok = (executor.Start() == ErrorManagement::NoError);
     }
-//    if (ok) {
-//        nOfSignals = GetNumberOfSignals();
-//        uint16 i;
-//        uint32 signalByteSize;
-//        signalsMemoryOffset = new uint32[nOfSignals];
-//        signalsMemoryOffset[0] = 0u;
-//        signalsMemoryOffset[1] = 8u; // To account for sequenceNumber to be stored as uint64
-//        signalsMemoryOffset[2] = 16u; // To account for timer to be stored as uint64
-//        for (i = 3u; i < nOfSignals; i++) {
-//            uint16 previousSignalIdx = i - 1u;
-//            ok = GetSignalByteSize(previousSignalIdx, signalByteSize);
-//            if (ok) {
-//                signalsMemoryOffset[i] = signalsMemoryOffset[i - 1u] + signalByteSize;
-//            }
-//        }
-//        uint32 lastSignalIdx = nOfSignals - 1u;
-//        ok = GetSignalByteSize(lastSignalIdx, signalByteSize);
-//        if (ok) {
-//            totalPacketSize = signalsMemoryOffset[lastSignalIdx] + signalByteSize;
-//        }
-//        ok = (GetSignalType(0u).numberOfBits == 64u);
-//        if (!ok) {
-//            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The first signal shall have 64 bits and %d were specified",
-//                                    uint16(GetSignalType(0u).numberOfBits));
-//        }
-//    }
-//    if (ok) {
-//        ok = (GetSignalType(0u).type == SignedInteger);
-//        if (!ok) {
-//            ok = (GetSignalType(0u).type == UnsignedInteger);
-//        }
-//        if (!ok) {
-//            REPORT_ERROR(ErrorManagement::ParametersError, "The first signal shall SignedInteger or UnsignedInteger type");
-//        }
-//    }
-//    if (ok) {
-//        ok = (GetSignalType(1u).numberOfBits == 64u);
-//        if (!ok) {
-//            REPORT_ERROR_PARAMETERS(ErrorManagement::ParametersError, "The second signal shall have 64 bits and %d were specified",
-//                                    uint16(GetSignalType(1u).numberOfBits));
-//        }
-//    }
-//    if (ok) {
-//        ok = (GetSignalType(1u).type == SignedInteger);
-//        if (!ok) {
-//            ok = (GetSignalType(1u).type == UnsignedInteger);
-//        }
-//        if (!ok) {
-//            REPORT_ERROR(ErrorManagement::ParametersError, "The second signal shall SignedInteger or UnsignedInteger type");
-//        }
-//    }
+
     return ok;
 }
 
@@ -224,97 +198,15 @@ const char8* UDPReceiver::GetBrokerName(StructuredDataI &data,
     return brokerName;
 }
 
-//bool UDPReceiver::GetInputBrokers(ReferenceContainer &inputBrokers,
-//                                  const char8 *const functionName,
-//                                  void *const gamMemPtr) {
-//    uint32 functionIdx = 0u;
-//    uint32 numbOfSignals = 0u;
-//    bool synchGAM = false;
-//    bool ok = GetFunctionIndex(functionIdx, functionName);
-//    if (ok) {
-//        ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, numbOfSignals);
-//    }
-//
-//    uint32 i;
-//    float32 frequency = 0.F;
-//    for (i = 0u; (i < numbOfSignals) && (ok) && (!synchGAM); i++) {
-//        ok = GetFunctionSignalReadFrequency(InputSignals, functionIdx, i, frequency);
-//        synchGAM = (frequency > 0.F);
-//    }
-//    if ((synchronising) && (synchGAM)) {
-//        ReferenceT<MemoryMapSynchronisedInputBroker> brokerSync("MemoryMapSynchronisedInputBroker");
-//        if (ok) {
-//            ok = brokerSync.IsValid();
-//        }
-//        if (ok) {
-//            ok = brokerSync->Init(InputSignals, *this, functionName, gamMemPtr);
-//        }
-//        if (ok) {
-//            ok = inputBrokers.Insert(brokerSync);
-//        }
-//        uint32 nOfFunctionSignals = 0u;
-//        if (ok) {
-//            ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfFunctionSignals);
-//        }
-//        if (ok) {
-//            if (nOfFunctionSignals > 1u) {
-//                ReferenceT<MemoryMapInputBroker> brokerNotSync("MemoryMapInputBroker");
-//                ok = brokerNotSync.IsValid();
-//                if (ok) {
-//                    ok = brokerNotSync->Init(InputSignals, *this, functionName, gamMemPtr);
-//                }
-//                if (ok) {
-//                    ok = inputBrokers.Insert(brokerNotSync);
-//                }
-//            }
-//        }
-//    }
-//    else {
-//        ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
-//        ok = broker.IsValid();
-//        if (ok) {
-//            ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
-//        }
-//        if (ok) {
-//            ok = inputBrokers.Insert(broker);
-//        }
-//    }
-//    return ok;
-//}
 
-/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: THe output broker is not needed*/
-//bool UDPReceiver::GetOutputBrokers(ReferenceContainer &outputBrokers,
-//                                   const char8 *const functionName,
-//                                   void *const gamMemPtr) {
-//    return false;
-//}
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the current and next state name are indepentent of the operation.*/
 bool UDPReceiver::PrepareNextState(const char8 *const currentStateName,
                                    const char8 *const nextStateName) {
     bool ok = true;
-//    if (executor.GetStatus() == EmbeddedThreadI::OffState) {
-//        keepRunning = true;
-//        if (cpuMask != 0u) {
-//            executor.SetCPUMask(cpuMask);
-//        }
-//        ok = executor.Start();
-//    }
-//    if (sequenceNumberPtr == NULL_PTR(uint64*)) {
-//        ok = false;
-//        REPORT_ERROR(ErrorManagement::FatalError, "Variable \"sequenceNumberPtr\" was not initialised!");
-//    }
-//    else {
-//        *sequenceNumberPtr = 0u;
-//    }
-//    if (ok) {
-//        if (timerPtr == NULL_PTR(uint64*)) {
-//            ok = false;
-//            REPORT_ERROR(ErrorManagement::FatalError, "Variable \"timerPtr\" was not initialised!");
-//        }
-//        else {
-//            *timerPtr = 0u;
-//        }
-//    }
+    if (sync == 0u) {
+        ok = (executor.Start() == ErrorManagement::NoError);
+    }
+
     return ok;
 }
 
@@ -322,39 +214,15 @@ bool UDPReceiver::PrepareNextState(const char8 *const currentStateName,
  * Required for EmbeddedServiceMethodBinderI.h
  */
 ErrorManagement::ErrorType UDPReceiver::Execute(ExecutionInfo &info) {
+    bool ok;
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
         char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
-        err = socket.Read(dataBuffer, totalMemorySize, timeout);
+        ok = socket.Read(dataBuffer, totalMemorySize, timeout);
+        if (!ok) {
+            err = ErrorManagement::CommunicationError;
+        }
     }
-
-//    ErrorManagement::ErrorType err;
-//    if (info.GetStage() == ExecutionInfo::TerminationStage) {
-//        keepRunning = false;
-//    }
-//    else {
-//        uint32 udpServerExpectReadSize = totalPacketSize;
-//        uint32 udpServerReadSize = udpServerExpectReadSize;
-//        if (keepRunning) {
-//            dataRecieved = server.Read(reinterpret_cast<char8*>(dataBuffer), udpServerReadSize, timeout);
-//            dataRecieved = (udpServerReadSize > 0u);
-//            dataRecievedCorrectSize = (udpServerReadSize == udpServerExpectReadSize);
-//            if (!dataRecieved) {
-//                REPORT_ERROR(ErrorManagement::ParametersError, "No data recieved");
-//                Sleep::Sec(20e-6);
-//            }
-//            else if (!dataRecievedCorrectSize) {
-//                REPORT_ERROR(ErrorManagement::ParametersError, "Recieved data of inccorect size, ignoring it.");
-//                Sleep::Sec(100e-6);
-//            }
-//            else {
-//
-//            }
-//        }
-//        if (synchronising) {
-//            err = !synchSem.Post();
-//        }
-//    }
 
     return err;
 }

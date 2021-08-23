@@ -49,9 +49,9 @@ namespace MARTe{
  * The configuration syntax is (names are only given as an example):
  * +UDPReceiver = {
  *     Class = UDPDrv::UDPReceiver
- *     Address = "192.168.129.30" //Address or Multicast group
- *     Port = "44488" //Optional. Default: Inifnite
- *     Timeout = "5" //Optional (seconds) The time the receiver will wait while listening before timing out. Default: Infinite
+ *     Address = "230.168.129.30" //Optional. Only for Multicast group
+ *     Port = "44488" //Optional. Default: 44488
+ *     Timeout = "5.0" //Optional (seconds) The time the receiver will wait while listening before timing out. Default: Infinite
  *     Sync = 0 //Optional. Default: 0. If 1, the UDP DataSource can be used as synchronisation unit on the packet arrival. Otherwise a decoupled thread is used.
  *     CPUMask = 0x1
  *     StackSize = 10000000
@@ -70,11 +70,6 @@ public:
     CLASS_REGISTER_DECLARATION()
     
     /**
-     * @brief PacketTypes.
-     * @details The layout for the packet that will be recieved
-     */
-    
-    /**
      * @brief Default constructor.
      * @details Initialises all the optional parameters as described in the class description.
      */
@@ -87,29 +82,10 @@ public:
     virtual ~UDPReceiver();
 
     /**
-     * @brief Syncs the embedded thread, while waiting to recieve data
+     * @brief Syncs the embedded thread, while waiting to receive data
      * @return true if no errors persist
      */
     virtual bool Synchronise();
-
-    /**
-     * @brief See DataSourceI::AllocateMemory.
-     * @return true.
-     */
-//    virtual bool AllocateMemory();
-
-    /**
-     * @brief See DataSourceI::GetNumberOfMemoryBuffers.
-     * @return 1.
-     */
-//    virtual uint32 GetNumberOfMemoryBuffers();
-
-    /**
-     * @brief See DataSourceI::GetSignalMemoryBuffer.
-     */
-//    virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-//                                            const uint32 bufferIdx,
-//                                            void*& signalAddress);
     
     /**
      * @brief See DataSourceI::GetBrokerName.
@@ -118,23 +94,6 @@ public:
      */
     virtual const char8* GetBrokerName(StructuredDataI& data,
                                             const SignalDirection direction);
-
-//    /**
-//     * @brief See DataSourceI::GetInputBrokers.
-//     * @details It adds a MemoryMapSynchronisedOutputBroker instance to the outputBrokers.
-//     * @return true.
-//     */
-//    virtual bool GetInputBrokers(ReferenceContainer& inputBrokers,
-//                                    const char8* const functionName,
-//                                    void* const gamMemPtr);
-//
-//    /**
-//     * @brief See DataSourceI::GetOutputBrokers.
-//     * @return false.
-//     */
-//    virtual bool GetOutputBrokers(ReferenceContainer& outputBrokers,
-//                                        const char8* const functionName,
-//                                        void* const gamMemPtr);
 
     /**
      * @brief Starts the EmbeddedThread and sets the counter and the time to zero.
