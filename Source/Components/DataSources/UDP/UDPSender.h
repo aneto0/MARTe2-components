@@ -33,6 +33,7 @@
 /*---------------------------------------------------------------------------*/
 #include "CompilerTypes.h"
 #include "MemoryDataSourceI.h"
+#include "MemoryMapAsyncTriggerOutputBroker.h"
 #include "ProcessorType.h"
 #include "UDPSocket.h"
 
@@ -41,13 +42,16 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 /**
- * @brief A DataSource which transmits given signals via UDP.
+ * @brief A DataSource which transmits given signals via UDP. It relies on a decoupled thread which asynchronously
+ * flush data to the output memory.
  *
  * The configuration syntax is (names are only given as an example):
  * +UDPSender = {
  *     Class = UDPDrv::UDPSender
  *     Address = "127.0.0.1" //Optional (default 127.0.0.1) The address of the UDPReciever
  *     Port = "44488" //Optional (default 44488) The port of the UDPReciever
+ *     NumberOfPreTriggers = 0
+ *     NumberOfPostTriggers = 0
  *     CPUMask = 15 //Compulsory. Affinity assigned to the threads responsible for asynchronously flush data.
  *     StackSize = 10000000 //Compulsory. Stack size of the thread above.
  *     Signals = {
@@ -137,6 +141,42 @@ public:CLASS_REGISTER_DECLARATION()
      */
     virtual bool Initialise(StructuredDataI &data);
 
+    /**
+     * @brief Gets the affinity of the thread which is going to be used to asynchronously store the data.
+     * @return the affinity of the thread which is going to be used to asynchronously store the data.
+     */
+    const ProcessorType& GetCPUMask() const;
+
+    /**
+     * @brief Gets the number of post configured buffers in the circular buffer.
+     * @return the number of post configured buffers in the circular buffer.
+     */
+    uint32 GetNumberOfPostTriggers() const;
+
+    /**
+     * @brief Gets the number of pre configured buffers in the circular buffer.
+     * @return the number of pre configured buffers in the circular buffer.
+     */
+    uint32 GetNumberOfPreTriggers() const;
+
+    /**
+     * @brief Gets the stack size of the thread which is going to be used to asynchronously store the data.
+     * @return the stack size of the thread which is going to be used to asynchronously store the data.
+     */
+    uint32 GetStackSize() const;
+
+    /**
+     * @brief Gets the port to be used by the UDPSocket.
+     * @return the port to be used by the UDPSocket.
+     */
+    uint16 GetPort() const;
+
+    /**
+     * @brief Gets the address to be used by the UDPSocket.
+     * @return the address to be used by the UDPSocket.
+     */
+    StreamString GetAddress() const;
+
 private:
 
     /**
@@ -169,11 +209,10 @@ private:
      */
     uint16 port;
 
-
     /**
      * The socket that will connect to the receiver
      */
-    UDPSocket * client;
+    UDPSocket *client;
 
     /**
      * Memory map asynchronously triggered broker.

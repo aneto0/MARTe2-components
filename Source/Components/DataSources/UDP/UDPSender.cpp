@@ -52,16 +52,20 @@ UDPSender::UDPSender() :
     address = "";
     port = 44488u;
     client = NULL_PTR(UDPSocket*);
+    cpuMask = 0xfu;
+    stackSize = 0u;
 
 }
 
 /*lint -e{1551} Justification: the destructor must guarantee that the client sending is closed.*/
 UDPSender::~UDPSender() {
-    if (!client->Close()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Could not close UDP sender.");
-    }
-    else {
-        delete client;
+    if (client != NULL_PTR(UDPSocket*)) {
+        if (!client->Close()) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Could not close UDP sender.");
+        }
+        else {
+            delete client;
+        }
     }
 }
 
@@ -118,12 +122,6 @@ bool UDPSender::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
         }
     }
-    if (ok) {
-        ok = data.MoveRelative("Signals");
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
-        }
-    }
     //Do not allow to add signals in run-time
     if (ok) {
         ok = signalsDatabase.MoveRelative("Signals");
@@ -156,9 +154,6 @@ bool UDPSender::Initialise(StructuredDataI &data) {
         }
         tempName = "";
     }
-    if (ok) {
-        ok = data.MoveToAncestor(1u);
-    }
 
     return ok;
 }
@@ -189,14 +184,8 @@ bool UDPSender::SetConfiguredDatabase(StructuredDataI &data) {
     if (ok) {
         ok = client->Open();
     }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "Could not open the client!");
-    }
     if (ok) {
         ok = client->Connect(address.Buffer(), port);
-    }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "Could not connect the client to the server!");
     }
     return ok;
 }
@@ -233,6 +222,30 @@ bool UDPSender::GetOutputBrokers(ReferenceContainer &outputBrokers,
 bool UDPSender::PrepareNextState(const char8 *const currentStateName,
                                  const char8 *const nextStateName) {
     return true;
+}
+
+const ProcessorType& UDPSender::GetCPUMask() const {
+    return cpuMask;
+}
+
+uint32 UDPSender::GetNumberOfPostTriggers() const {
+    return numberOfPostTriggers;
+}
+
+uint32 UDPSender::GetNumberOfPreTriggers() const {
+    return numberOfPreTriggers;
+}
+
+uint32 UDPSender::GetStackSize() const {
+    return stackSize;
+}
+
+uint16 UDPSender::GetPort() const {
+    return port;
+}
+
+StreamString UDPSender::GetAddress() const {
+    return address;
 }
 
 CLASS_REGISTER(UDPSender, "1.0")

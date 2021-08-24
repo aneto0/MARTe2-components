@@ -162,6 +162,9 @@ private:
      */
     uint32 stackSize;
 
+    /**
+     * Mode selector
+     */
     uint32 sync;
 };
 }

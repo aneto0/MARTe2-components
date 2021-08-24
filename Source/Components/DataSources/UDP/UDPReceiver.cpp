@@ -40,9 +40,7 @@ UDPReceiver::UDPReceiver() :
     sync = 0u;
 }
 
-/*
- * Destructor
- */
+
 /*lint -e{1551} the destructor must guarantee that the thread and servers are closed.*/
 UDPReceiver::~UDPReceiver() {
     if (!executor.Stop()) {
@@ -52,7 +50,7 @@ UDPReceiver::~UDPReceiver() {
     }
 
     if (!socket.Close()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP reciever server.");
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP receiver.");
     }
 }
 
@@ -171,9 +169,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
     return ok;
 }
 
-/**
- * Required for DataSourceI.h
- */
+
 bool UDPReceiver::Synchronise() {
     bool ok = false;
     char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
@@ -210,9 +206,6 @@ bool UDPReceiver::PrepareNextState(const char8 *const currentStateName,
     return ok;
 }
 
-/**
- * Required for EmbeddedServiceMethodBinderI.h
- */
 ErrorManagement::ErrorType UDPReceiver::Execute(ExecutionInfo &info) {
     bool ok;
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
