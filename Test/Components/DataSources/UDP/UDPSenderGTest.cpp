@@ -131,5 +131,15 @@ TEST(UDPSenderGTest,TestSynchronise) {
     ASSERT_TRUE(test.TestSynchronise());
 }
 
+TEST(UDPSenderGTest,TestSetConfiguredDatabase_Wrong_CounterType) {
+    UDPSenderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_Wrong_CounterType());
+}
+
+TEST(UDPSenderGTest,TestSetConfiguredDatabase_Wrong_TimeType) {
+    UDPSenderTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_Wrong_TimeType());
+}
+
 
 	

@@ -42,18 +42,19 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 /* Helper Client to check data sent */
-class ReceiverClient: public MARTe::EmbeddedServiceMethodBinderI {
+class ReceiverClientHelper: public MARTe::EmbeddedServiceMethodBinderI {
 public:
-    ReceiverClient() :
+    ReceiverClientHelper() :
             EmbeddedServiceMethodBinderI(),
             executor(*this) {
         using namespace MARTe;
-        totalMemorySize = 4u;
-        memory = NULL_PTR(char8*);
+        totalMemorySize = 13u;
+        memory = NULL_PTR(void*);
         port = 45678u;
+        timeout.SetTimeoutSec(2u);
     }
 
-    ~ReceiverClient() {
+    ~ReceiverClientHelper() {
         using namespace MARTe;
         if (!executor.Stop()) {
             if (!executor.Stop()) {
@@ -63,8 +64,8 @@ public:
         if (!socket.Close()) {
 
         }
-        if (memory != NULL_PTR(char8*)) {
-            delete[] memory;
+        if (memory != NULL_PTR(void*)) {
+            (void) HeapManager::Free(memory);
         }
     }
 
@@ -75,7 +76,7 @@ public:
             ok = socket.Listen(port);
         }
         if (ok) {
-            memory = new char8[totalMemorySize];
+            memory = HeapManager::Malloc(totalMemorySize);
         }
         return ok;
     }
@@ -85,14 +86,24 @@ public:
         return (executor.Start() == ErrorManagement::NoError);
     }
 
+    bool StopThread() {
+        using namespace MARTe;
+        executor.Stop();
+        return (executor.Stop() == ErrorManagement::NoError);
+    }
+
     virtual MARTe::ErrorManagement::ErrorType Execute(MARTe::ExecutionInfo &info) {
         using namespace MARTe;
-        bool ok = socket.Read(memory, totalMemorySize, MARTe::TTInfiniteWait);
+        char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
+        bool ok = socket.Read(dataBuffer, totalMemorySize, timeout);
         Sleep::MSec(100);
+        if (ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Received! %d", *reinterpret_cast<uint32*>(&dataBuffer[9]));
+        }
         return ok;
     }
 
-    MARTe::char8* const getMemory() {
+    void* const GetMemory() {
         return memory;
     }
 private:
@@ -100,22 +111,24 @@ private:
 
     MARTe::UDPSocket socket;
 
-    MARTe::char8 *memory;
+    void *memory;
 
     MARTe::uint32 totalMemorySize;
 
     MARTe::uint16 port;
+
+    MARTe::TimeoutType timeout;
 };
 
 /**
  * @brief Manual scheduler to test the correct interface between the UDPSender and the GAMs
  */
-class UDPSchedulerTestHelper: public MARTe::GAMSchedulerI {
+class UDPSenderSchedulerTestHelper: public MARTe::GAMSchedulerI {
 public:
 
     CLASS_REGISTER_DECLARATION()
 
-    UDPSchedulerTestHelper() :
+    UDPSenderSchedulerTestHelper() :
             MARTe::GAMSchedulerI() {
         scheduledStates = NULL;
     }
@@ -152,7 +165,7 @@ private:
     MARTe::ScheduledState * const * scheduledStates;
 };
 
-CLASS_REGISTER(UDPSchedulerTestHelper, "1.0")
+CLASS_REGISTER(UDPSenderSchedulerTestHelper, "1.0")
 
 static bool TestIntegratedExecution(const MARTe::char8 *const config,
                                     MARTe::uint32 sleepMSec = 10) {
@@ -172,7 +185,7 @@ static bool TestIntegratedExecution(const MARTe::char8 *const config,
         ok = god->Initialise(cdb);
     }
     ReferenceT<RealTimeApplication> application;
-    ReferenceT<UDPSchedulerTestHelper> scheduler;
+    ReferenceT<UDPSenderSchedulerTestHelper> scheduler;
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
     if (ok) {
@@ -209,7 +222,73 @@ static bool TestIntegratedExecution(const MARTe::char8 *const config,
 
 bool TestSendReceiveApplication(const MARTe::char8 *const config,
                                 MARTe::uint32 sleepMSec = 10) {
-    return true;
+    using namespace MARTe;
+
+    ReceiverClientHelper rcvThread;
+
+    bool ok = rcvThread.InitiliaseThread();
+    if (ok) {
+        ok = rcvThread.StartThread();
+    }
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = config;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    if (ok) {
+        ok = parser.Parse();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    ReferenceT<UDPSenderSchedulerTestHelper> scheduler;
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+    if (ok) {
+        scheduler = application->Find("Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    if (ok) {
+        ok = application->StartNextStateExecution();
+    }
+
+    if (ok) {
+        for (uint32 i = 0; (i < 5u); i++) {
+            scheduler->ExecuteThreadCycle(0);
+            Sleep::MSec(sleepMSec);
+        }
+    }
+
+    char8 *const mem = reinterpret_cast<char8*>(rcvThread.GetMemory());
+    uint32 valueReceived = *reinterpret_cast<uint32*>(&mem[9]);
+    ok = (valueReceived == 99u);
+
+    if (ok) {
+        ok = rcvThread.StopThread();
+    }
+
+    if (ok) {
+        ok = application->StopCurrentStateExecution();
+    }
+    godb->Purge();
+
+    return ok;
 }
 
 //Correct configuration
@@ -361,7 +440,315 @@ static const MARTe::char8 *const config1 = ""
         "        }"
         "    }"
         "    +Scheduler = {"
-        "        Class = UDPSchedulerTestHelper"
+        "        Class = UDPSenderSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Wrong Counter type
+static const MARTe::char8 *const config2 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMTimer = {"
+        "            Class = IOGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                    DataSource = Timer"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Timer"
+        "                    Frequency = 1"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                    DataSource = DDB1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = DDB1"
+        "                }"
+        "            }"
+        "        }"
+        "        +TriggerGAM = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = DDB1"
+        "                    Default = 1"
+        "                }"
+        "            }"
+        "        }"
+        "        +PayloadGAM = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Payload = {"
+        "                    Type = uint32"
+        "                    DataSource = DDB1"
+        "                    Default = 99"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAMSender = {"
+        "            Class = IOGAM"
+        "            InputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = DDB1"
+        "                }"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                    DataSource = DDB1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = DDB1"
+        "                }"
+        "                Payload = {"
+        "                    Type = uint32"
+        "                    DataSource = DDB1"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = UDP"
+        "                }"
+        "                Counter = {"
+        "                    Type = int32"
+        "                    DataSource = UDP"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = UDP"
+        "                }"
+        "                Payload = {"
+        "                    Type = uint32"
+        "                    DataSource = UDP"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +DDB1 = {"
+        "            Class = GAMDataSource"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +UDP = {"
+        "            Class = UDP::UDPSender"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            NumberOfPreTriggers = 0"
+        "            NumberOfPostTriggers = 0"
+        "            Address = \"127.0.0.1\""
+        "            Port = 45678"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Counter = {"
+        "                    Type = int32"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                Payload = {"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timer = {"
+        "            Class = LinuxTimer"
+        "            SleepNature = \"Default\""
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMTimer TriggerGAM PayloadGAM GAMSender}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = UDPSenderSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Wrong Time type
+static const MARTe::char8 *const config3 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMTimer = {"
+        "            Class = IOGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                    DataSource = Timer"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Timer"
+        "                    Frequency = 1"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                    DataSource = DDB1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = DDB1"
+        "                }"
+        "            }"
+        "        }"
+        "        +TriggerGAM = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = DDB1"
+        "                    Default = 1"
+        "                }"
+        "            }"
+        "        }"
+        "        +PayloadGAM = {"
+        "            Class = ConstantGAM"
+        "            OutputSignals = {"
+        "                Payload = {"
+        "                    Type = uint32"
+        "                    DataSource = DDB1"
+        "                    Default = 99"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAMSender = {"
+        "            Class = IOGAM"
+        "            InputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = DDB1"
+        "                }"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                    DataSource = DDB1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = DDB1"
+        "                }"
+        "                Payload = {"
+        "                    Type = uint32"
+        "                    DataSource = DDB1"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = UDP"
+        "                }"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                    DataSource = UDP"
+        "                }"
+        "                Time = {"
+        "                    Type = int32"
+        "                    DataSource = UDP"
+        "                }"
+        "                Payload = {"
+        "                    Type = uint32"
+        "                    DataSource = UDP"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +DDB1 = {"
+        "            Class = GAMDataSource"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +UDP = {"
+        "            Class = UDP::UDPSender"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            NumberOfPreTriggers = 0"
+        "            NumberOfPostTriggers = 0"
+        "            Address = \"127.0.0.1\""
+        "            Port = 45678"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    Type = int32"
+        "                }"
+        "                Payload = {"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timer = {"
+        "            Class = LinuxTimer"
+        "            SleepNature = \"Default\""
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMTimer TriggerGAM PayloadGAM GAMSender}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = UDPSenderSchedulerTestHelper"
         "        TimingDataSource = Timings"
         "    }"
         "}";
@@ -619,6 +1006,7 @@ bool UDPSenderTest::TestGetBrokerName() {
     cdb.MoveRelative("Time");
     cdb.Write("Type", "uint32");
     cdb.MoveToRoot();
+    ok = us.Initialise(cdb);
     if (ok) {
         ok = (StringHelper::Compare(us.GetBrokerName(cdb, OutputSignals), "MemoryMapAsyncTriggerOutputBroker") == 0);
     }
@@ -630,6 +1018,18 @@ bool UDPSenderTest::TestPrepareNextState() {
 }
 
 bool UDPSenderTest::TestSynchronise() {
+    return TestSendReceiveApplication(config1);
+}
+
+bool UDPSenderTest::TestSetConfiguredDatabase_Wrong_CounterType() {
+    return !TestIntegratedExecution(config2);
+}
+
+bool UDPSenderTest::TestSetConfiguredDatabase_Wrong_TimeType() {
+    return !TestIntegratedExecution(config3);
+}
+
+bool UDPSenderTest::TestSetConfiguredDatabase_Correct() {
     return TestIntegratedExecution(config1);
 }
 

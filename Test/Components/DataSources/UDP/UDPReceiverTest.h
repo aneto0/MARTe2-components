@@ -37,6 +37,89 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
+class UDPReceiverTest {
+public:
+    /**
+     * @brief Tests the constructor.
+     */
+    bool TestConstructor();
+
+    /**
+     * @brief Tests the Initialise method without Address.
+     */
+    bool TestInitialise_No_Address();
+
+    /**
+     * @brief Tests the Initialise method without Port.
+     */
+    bool TestInitialise_No_Port();
+
+    /**
+     * @brief Tests the Initialise method with forbidden port number.
+     */
+    bool TestInitialise_Forbidden_Port();
+
+    /**
+     * @brief Tests the Initialise method without Timeout.
+     */
+    bool TestInitialise_No_Timeout();
+
+    /**
+     * @brief Tests the Initialise method without Sync on.
+     */
+    bool TestInitialise_No_Sync();
+
+    /**
+     * @brief Tests the Initialise method without Sync on and No CPUMask set.
+     */
+    bool TestInitialise_No_Sync_No_Cpu();
+
+    /**
+     * @brief Tests the Initialise method without Sync on and No StackSize set.
+     */
+    bool TestInitialise_No_Sync_No_StackSize();
+
+    /**
+     * @brief Tests the Initialise method with Sync on.
+     */
+    bool TestInitialise_Sync();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method with Address for multicast.
+     */
+    bool TestSetConfiguredDatabase_ValidAddress();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method with invalid Address for multicast.
+     */
+    bool TestSetConfiguredDatabase_InvalidAddress();
+
+    /**
+     * @brief Tests the GetBrokerName method with MemoryMapInputBroker
+     */
+    bool TestGetBrokerName_MemoryMapInputBroker();
+
+    /**
+     * @brief Tests the GetBrokerName method with MemoryMapSynchronisedInputBroker
+     */
+    bool TestGetBrokerName_MemoryMapSynchronisedInputBroker();
+
+    /**
+     * @brief Tests the PrepareNextState method
+     */
+    bool TestPrepareNextState();
+
+    /**
+     * @brief Tests the Synchronise method
+     */
+    bool TestSynchronise();
+
+    /**
+     * @brief Tests the Execute method
+     */
+    bool TestExecute_Timeout();
+
+};
 
 
 

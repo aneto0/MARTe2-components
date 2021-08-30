@@ -21,9 +21,10 @@
  * methods, such as those inline could be defined on the header file, instead.
  */
 
+#include "stdlib.h"
+
 #include "AdvancedErrorManagement.h"
 #include "MemoryMapInputBroker.h"
-#include "MemoryMapSynchronisedInputBroker.h"
 #include "UDPReceiver.h"
 
 namespace MARTe {
@@ -38,8 +39,8 @@ UDPReceiver::UDPReceiver() :
     cpuMask = 0u;
     stackSize = THREADS_DEFAULT_STACKSIZE;
     sync = 0u;
+    socket = NULL_PTR(UDPSocket*);
 }
-
 
 /*lint -e{1551} the destructor must guarantee that the thread and servers are closed.*/
 UDPReceiver::~UDPReceiver() {
@@ -48,10 +49,25 @@ UDPReceiver::~UDPReceiver() {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
         }
     }
-
-    if (!socket.Close()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP receiver.");
+    if (socket != NULL_PTR(UDPSocket*)) {
+        if (!socket->Close()) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP receiver.");
+        }
+        else {
+            delete socket;
+        }
     }
+}
+
+bool UDPReceiver::AllocateMemory() {
+    bool ok = MemoryDataSourceI::AllocateMemory();
+    if (sync == 0u) {
+        if (ok) {
+            executor.SetName(GetName());
+            ok = (executor.Start() == ErrorManagement::NoError);
+        }
+    }
+    return ok;
 }
 
 bool UDPReceiver::Initialise(StructuredDataI &data) {
@@ -74,7 +90,7 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
             ok = true;
         }
         else {
-            if (port <= 1024) {
+            if (port <= 1024u) {
                 REPORT_ERROR(ErrorManagement::Warning, "Port is set to %d, possible issues with values < 1024", port);
             }
         }
@@ -95,12 +111,6 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::Information, "No Synchronisation. Using Thread execution.");
             ok = true;
-        }
-        if (ok) {
-            if (sync > 1u) {
-                ok = false;
-                REPORT_ERROR(ErrorManagement::ParametersError, "Sync: wrong value.");
-            }
         }
     }
     if (sync == 0u) {
@@ -125,10 +135,9 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
 bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok) {
-        ok = socket.Open();
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Could not open socket!");
-        }
+        socket = new UDPSocket;
+
+        ok = socket->Open();
     }
     if (ok) {
         if (address != "NULL") {
@@ -138,12 +147,12 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
                 StreamString networkBlock = "";
                 ok = address.GetToken(networkBlock, ".", ignore);
                 if (ok) {
-                    uint32 netValue = atoi(networkBlock.Buffer());
-                    if (netValue >= 224u && netValue <= 239u) {
+                    /*lint -e{1055} Justification: atoi returns int32*/
+                    int32 netValue = static_cast<int32>(strtol(networkBlock.Buffer(), NULL_PTR(char8**), 10));
+                    if ((netValue >= 224) && (netValue <= 239)) {
                         /* The net address belongs to the multicast address range therefore it must be a multicast group */
-                        ok = socket.Join(address.Buffer());
-                        if (!ok) {
-                            REPORT_ERROR(ErrorManagement::ParametersError, "Failed joining group %s", address.Buffer());
+                        if (socket != NULL_PTR(UDPSocket*)) {
+                            ok = socket->Join(address.Buffer());
                         }
                     }
                     else {
@@ -155,25 +164,24 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     if (ok) {
-        ok = socket.Listen(port);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Failed listening on port number %d", port);
+        if (socket != NULL_PTR(UDPSocket*)) {
+            ok = socket->Listen(port);
         }
     }
     if (sync == 0u) {
         executor.SetCPUMask(cpuMask);
         executor.SetStackSize(stackSize);
-        executor.SetName(GetName());
     }
 
     return ok;
 }
 
-
 bool UDPReceiver::Synchronise() {
     bool ok = false;
     char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
-    ok = socket.Read(dataBuffer, totalMemorySize, timeout);
+    if (socket != NULL_PTR(UDPSocket*)) {
+        ok = socket->Read(dataBuffer, totalMemorySize, timeout);
+    }
     return ok;
 }
 
@@ -194,30 +202,46 @@ const char8* UDPReceiver::GetBrokerName(StructuredDataI &data,
     return brokerName;
 }
 
-
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the current and next state name are indepentent of the operation.*/
 bool UDPReceiver::PrepareNextState(const char8 *const currentStateName,
                                    const char8 *const nextStateName) {
     bool ok = true;
-    if (sync == 0u) {
-        ok = (executor.Start() == ErrorManagement::NoError);
-    }
-
     return ok;
 }
 
 ErrorManagement::ErrorType UDPReceiver::Execute(ExecutionInfo &info) {
-    bool ok;
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
         char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
-        ok = socket.Read(dataBuffer, totalMemorySize, timeout);
+        bool ok = false;
+        if (socket != NULL_PTR(UDPSocket*)) {
+            ok = socket->Read(dataBuffer, totalMemorySize, timeout);
+        }
         if (!ok) {
-            err = ErrorManagement::CommunicationError;
+            REPORT_ERROR(ErrorManagement::Information, "Connection Timeout.");
         }
     }
-
     return err;
+}
+
+uint32 UDPReceiver::GetStackSize() const {
+    return stackSize;
+}
+
+uint16 UDPReceiver::GetPort() const {
+    return port;
+}
+
+StreamString UDPReceiver::GetAddress() const {
+    return address;
+}
+
+const uint32 UDPReceiver::GetCPUMask() const {
+    return cpuMask;
+}
+
+const uint32 UDPReceiver::GetSync() const {
+    return sync;
 }
 
 CLASS_REGISTER(UDPReceiver, "1.0")

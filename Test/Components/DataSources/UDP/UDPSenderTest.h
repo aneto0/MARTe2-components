@@ -129,7 +129,7 @@ public:
     bool TestPrepareNextState();
 
     /**
-     * @brief Tests the PrepareNextState method
+     * @brief Tests the Synchronise method
      */
     bool TestSynchronise();
 

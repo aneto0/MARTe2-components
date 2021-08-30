@@ -26,24 +26,96 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-
+#include "gtest/gtest.h"
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-
+#include "UDPReceiverTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-namespace {
-
-}
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
+TEST(UDPReceiverGTest,TestConstructor) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestConstructor());
+}
 
+TEST(UDPReceiverGTest,TestInitialise_No_Address) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_No_Address());
+}
 
-	
+TEST(UDPReceiverGTest,TestInitialise_No_Port) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_No_Port());
+}
+
+TEST(UDPReceiverGTest,TestInitialise_Forbidden_Port) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_Forbidden_Port());
+}
+
+TEST(UDPReceiverGTest,TestInitialise_No_Timeout) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_No_Timeout());
+}
+
+TEST(UDPReceiverGTest,TestInitialise_No_Sync) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_No_Sync());
+}
+
+TEST(UDPReceiverGTest,TestInitialise_No_Sync_No_Cpu) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_No_Sync_No_Cpu());
+}
+
+TEST(UDPReceiverGTest,TestInitialise_No_Sync_No_StackSize) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_No_Sync_No_StackSize());
+}
+
+TEST(UDPReceiverGTest,TestInitialise_Sync) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_Sync());
+}
+
+TEST(UDPReceiverGTest,TestSetConfiguredDatabase_ValidAddress) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_ValidAddress());
+}
+
+TEST(UDPReceiverGTest,TestSetConfiguredDatabase_InvalidAddress) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_InvalidAddress());
+}
+
+TEST(UDPReceiverGTest,TestGetBrokerName_MemoryMapInputBroker) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestGetBrokerName_MemoryMapInputBroker());
+}
+
+TEST(UDPReceiverGTest,TestGetBrokerName_MemoryMapSynchronisedInputBroker) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestGetBrokerName_MemoryMapSynchronisedInputBroker());
+}
+
+TEST(UDPReceiverGTest,TestPrepareNextState) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestPrepareNextState());
+}
+
+TEST(UDPReceiverGTest,TestSynchronise) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestSynchronise());
+}
+
+TEST(UDPReceiverGTest,TestExecute_Timeout) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestExecute_Timeout());
+}

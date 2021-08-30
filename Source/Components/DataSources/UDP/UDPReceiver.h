@@ -118,12 +118,44 @@ public:
      */
     virtual bool Initialise(StructuredDataI &data);
 
+    virtual bool AllocateMemory();
+
     /**
      * @brief Recieve signals when UDP data is recieved.
      * @return any errors.
      */
     virtual ErrorManagement::ErrorType Execute(ExecutionInfo& info);
     
+    /**
+     * @brief Gets the stack size of the thread which is going to be used to asynchronously store the data.
+     * @return the stack size of the thread which is going to be used to asynchronously store the data.
+     */
+    uint32 GetStackSize() const;
+
+    /**
+     * @brief Gets the port to be used by the UDPSocket.
+     * @return the port to be used by the UDPSocket.
+     */
+    uint16 GetPort() const;
+
+    /**
+     * @brief Gets the address to be used by the UDPSocket.
+     * @return the address to be used by the UDPSocket.
+     */
+    StreamString GetAddress() const;
+
+    /**
+     * @brief Gets the affinity of the thread which is going to be used to asynchronously store the data.
+     * @return the affinity of the thread which is going to be used to asynchronously store the data.
+     */
+    const uint32 GetCPUMask() const;
+
+    /**
+     * @brief Gets the mode selector value.
+     * @return the mode selector value.
+     */
+    const uint32 GetSync() const;
+
 private:
 
     /**
@@ -150,7 +182,7 @@ private:
     /**
      * The socket that will connect to the sender
      */ 
-    UDPSocket socket;
+    UDPSocket* socket;
     
     /**
      * CPU affinity number for the executor thread

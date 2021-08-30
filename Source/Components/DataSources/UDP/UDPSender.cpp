@@ -160,36 +160,42 @@ bool UDPSender::Initialise(StructuredDataI &data) {
 
 bool UDPSender::Synchronise() {
     const char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
-    bool ok = client->Write(dataBuffer, totalMemorySize);
+    bool ok = false;
+    if (client != NULL_PTR(UDPSocket*)) {
+        ok = client->Write(dataBuffer, totalMemorySize);
+    }
     return ok;
 }
 
 bool UDPSender::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
     if (ok) {
-        ok = (GetSignalType(1u) == SignedInteger64Bit || GetSignalType(1u) == UnsignedInteger64Bit || GetSignalType(1u) == UnsignedInteger32Bit);
+        /*lint -e{9007} Justification: no side effects on GetSignalType.*/
+        ok = ((GetSignalType(1u) == SignedInteger64Bit) || (GetSignalType(1u) == UnsignedInteger64Bit) || (GetSignalType(1u) == UnsignedInteger32Bit));
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Counter signal type not supported. Use uint64 or int64");
+            REPORT_ERROR(ErrorManagement::ParametersError, "Counter signal type not supported. Use uint64 or int64 or uint32");
         }
         if (ok) {
-            ok = (GetSignalType(2u) == SignedInteger64Bit || GetSignalType(1u) == UnsignedInteger64Bit || GetSignalType(1u) == UnsignedInteger32Bit);
+            /*lint -e{9007} Justification: no side effects on GetSignalType.*/
+            ok = ((GetSignalType(2u) == SignedInteger64Bit) || (GetSignalType(2u) == UnsignedInteger64Bit) || (GetSignalType(2u) == UnsignedInteger32Bit));
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Time signal type not supported. Use uint64 or int64");
+                REPORT_ERROR(ErrorManagement::ParametersError, "Time signal type not supported. Use uint64 or int64 or uint32");
             }
         }
     }
     if (ok) {
         client = new UDPSocket();
-    }
-    if (ok) {
+        /*lint -e{613} Justification: the client cannot be a Null_PTR since it is allocated just before.*/
         ok = client->Open();
     }
     if (ok) {
+        /*lint -e{613} Justification: the client cannot be a Null_PTR since it is allocated just before.*/
         ok = client->Connect(address.Buffer(), port);
     }
     return ok;
 }
 
+/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
 const char8* UDPSender::GetBrokerName(StructuredDataI &data,
                                       const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8*);
