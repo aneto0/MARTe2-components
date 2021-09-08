@@ -50,6 +50,7 @@
 -i./Source/Components/DataSources/RealTimeThreadSynchronisation/
 -i./Source/Components/DataSources/SDN/
 -i./Source/Components/DataSources/ProfinetDataSource/
+-i./Source/Components/DataSources/UARTDataSource/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/ConstantGAM/
 -i./Source/Components/GAMs/ConversionGAM/
@@ -190,3 +191,6 @@ WaveformSin.cpp
 WaveformSin.h
 WaveformPointsDef.cpp
 WaveformPointsDef.h
+UARTDataSource.cpp
+UARTDataSource.h
+

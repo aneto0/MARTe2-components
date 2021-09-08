@@ -77,7 +77,7 @@ namespace MARTe {
  *     }
  *   }
  */
-class UARTDataSource: public MemoryDataSourceI, public EmbeddedServiceMethodBinderT<UARTDataSource>, public MessageI {
+class UARTDataSource: public MemoryDataSourceI, public MessageI, public EmbeddedServiceMethodBinderT<UARTDataSource> {
 public:
 
     CLASS_REGISTER_DECLARATION()

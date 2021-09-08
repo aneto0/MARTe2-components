@@ -200,7 +200,7 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, MARTe
 		ok = uart.SetSpeed(speed);
 	}
 	if (ok) {
-		ok = uart.Open("/dev/ttyUSB0");
+		ok = uart.Open("/dev/pts/1");
 	}
 	if (ok) {
 		while (!gam->executedAtLeastOnce) {
@@ -281,11 +281,12 @@ const MARTe::char8 * const config1 = ""
 		"        +CRIOUART = {"
 		"            Class = UARTDataSource"
 		"            NumberOfBuffers = 3"
-		"            PortName = \"/dev/ttyUSB0\""
+		"            PortName = \"/dev/pts/1\""
 		"            BaudRate = 115200"
 		"            Timeout = 200000"
+		"            SerialTimeout = 100000"
 		"            CPUMask = 8"
-		"            TcnDevice = \"/etc/opt/codac-5.4/tcn/tcn-default.xml\""
+		"            TcnDevice = \"/etc/opt/codac-6.3/tcn/tcn-default.xml\""
 		"            Signals = {"
 		"                DataOK = {"
 		"                    Type = uint8"
@@ -355,11 +356,11 @@ const MARTe::char8 * const config2 = ""
 		"        +CRIOUART = {"
 		"            Class = UARTDataSource"
 		"            NumberOfBuffers = 3"
-		"            PortName = \"/dev/ttyUSB0\""
+		"            PortName = \"/dev/pts/1\""
 		"            BaudRate = 115200"
 		"            Timeout = 200000"
 		"            CPUMask = 8"
-		"            TcnDevice = \"/etc/opt/codac-5.4/tcn/tcn-default.xml\""
+		"            TcnDevice = \"/etc/opt/codac-6.3/tcn/tcn-default.xml\""
 		"            Signals = {"
 		"                DataOK = {"
 		"                    Type = uint8"
@@ -408,10 +409,10 @@ bool UARTDataSourceTest::TestInitialise() {
 	using namespace MARTe;
 	UARTDataSource ds;
 	ConfigurationDatabase cdb;
-	cdb.Write("PortName", "/dev/ttyUSB0");
+	cdb.Write("PortName", "/dev/pts/1");
 	cdb.Write("BaudRate", 9600);
 	cdb.Write("Timeout", 5000);
-	cdb.Write("TcnDevice", "/etc/opt/codac-5.4/tcn/tcn-default.xml");
+	cdb.Write("TcnDevice", "/etc/opt/codac-6.3/tcn/tcn-default.xml");
 
 	cdb.CreateAbsolute("Signals");
 	cdb.MoveToRoot();
@@ -426,7 +427,7 @@ bool UARTDataSourceTest::TestInitialise_False_PortName() {
 	ConfigurationDatabase cdb;
 	cdb.Write("BaudRate", 9600);
 	cdb.Write("Timeout", 5000);
-	cdb.Write("TcnDevice", "/etc/opt/codac-5.4/tcn/tcn-default.xml");
+	cdb.Write("TcnDevice", "/etc/opt/codac-6.3/tcn/tcn-default.xml");
 
 	cdb.CreateAbsolute("Signals");
 	cdb.MoveToRoot();
@@ -439,9 +440,9 @@ bool UARTDataSourceTest::TestInitialise_False_BaudRate() {
 	using namespace MARTe;
 	UARTDataSource ds;
 	ConfigurationDatabase cdb;
-	cdb.Write("PortName", "/dev/ttyUSB0");
+	cdb.Write("PortName", "/dev/pts/1");
 	cdb.Write("Timeout", 5000);
-	cdb.Write("TcnDevice", "/etc/opt/codac-5.4/tcn/tcn-default.xml");
+	cdb.Write("TcnDevice", "/etc/opt/codac-6.3/tcn/tcn-default.xml");
 
 	cdb.CreateAbsolute("Signals");
 	cdb.MoveToRoot();
@@ -454,9 +455,9 @@ bool UARTDataSourceTest::TestInitialise_False_Timeout() {
 	using namespace MARTe;
 	UARTDataSource ds;
 	ConfigurationDatabase cdb;
-	cdb.Write("PortName", "/dev/ttyUSB0");
+	cdb.Write("PortName", "/dev/pts/1");
 	cdb.Write("BaudRate", 9600);
-	cdb.Write("TcnDevice", "/etc/opt/codac-5.4/tcn/tcn-default.xml");
+	cdb.Write("TcnDevice", "/etc/opt/codac-6.3/tcn/tcn-default.xml");
 
 	cdb.CreateAbsolute("Signals");
 	cdb.MoveToRoot();
@@ -469,7 +470,7 @@ bool UARTDataSourceTest::TestInitialise_False_Port() {
 	using namespace MARTe;
 	UARTDataSource ds;
 	ConfigurationDatabase cdb;
-	cdb.Write("PortName", "/dev/ttyUSC0");
+	cdb.Write("PortName", "/dev/pts/1");
 	cdb.Write("BaudRate", 9600);
 	cdb.Write("Timeout", 5000);
 	cdb.CreateAbsolute("Signals");
@@ -483,10 +484,10 @@ bool UARTDataSourceTest::TestInitialise_False_Baud() {
 	using namespace MARTe;
 	UARTDataSource ds;
 	ConfigurationDatabase cdb;
-	cdb.Write("PortName", "/dev/ttyUSB0");
+	cdb.Write("PortName", "/dev/pts/1");
 	cdb.Write("BaudRate", 9601);
 	cdb.Write("Timeout", 5000);
-	cdb.Write("TcnDevice", "/etc/opt/codac-5.4/tcn/tcn-default.xml");
+	cdb.Write("TcnDevice", "/etc/opt/codac-6.3/tcn/tcn-default.xml");
 
 	cdb.CreateAbsolute("Signals");
 	cdb.MoveToRoot();
@@ -499,7 +500,7 @@ bool UARTDataSourceTest::TestInitialise_False_TcnDevice() {
 	using namespace MARTe;
 	UARTDataSource ds;
 	ConfigurationDatabase cdb;
-	cdb.Write("PortName", "/dev/ttyUSB0");
+	cdb.Write("PortName", "/dev/pts/1");
 	cdb.Write("BaudRate", 9600);
 	cdb.Write("Timeout", 5000);
 
@@ -583,11 +584,11 @@ bool UARTDataSourceTest::TestSetConfiguredDatabase_False_2_Signals() {
 			"        +CRIOUART = {"
 			"            Class = UARTDataSource"
 			"            NumberOfBuffers = 3"
-			"            PortName = \"/dev/ttyUSB0\""
+			"            PortName = \"/dev/pts/1\""
 			"            BaudRate = 115200"
 			"            Timeout = 200000"
 			"            CPUMask = 8"
-			"            TcnDevice = \"/etc/opt/codac-5.4/tcn/tcn-default.xml\""
+			"            TcnDevice = \"/etc/opt/codac-6.3/tcn/tcn-default.xml\""
 			"            Signals = {"
 			"                Packet = {"
 			"                    Type = uint8"
@@ -654,10 +655,10 @@ bool UARTDataSourceTest::TestSetConfiguredDatabase_False_Signal1_Not_UInt8() {
 			"        +CRIOUART = {"
 			"            Class = UARTDataSource"
 			"            NumberOfBuffers = 3"
-			"            PortName = \"/dev/ttyUSB0\""
+			"            PortName = \"/dev/pts/1\""
 			"            BaudRate = 115200"
 			"            Timeout = 200000"
-			"            TcnDevice = \"/etc/opt/codac-5.4/tcn/tcn-default.xml\""
+			"            TcnDevice = \"/etc/opt/codac-6.3/tcn/tcn-default.xml\""
 			"            CPUMask = 8"
 			"            Signals = {"
 			"                DataOK = {"
@@ -729,11 +730,11 @@ bool UARTDataSourceTest::TestSetConfiguredDatabase_False_Signal1_Not_1_Element()
 			"        +CRIOUART = {"
 			"            Class = UARTDataSource"
 			"            NumberOfBuffers = 3"
-			"            PortName = \"/dev/ttyUSB0\""
+			"            PortName = \"/dev/pts/1\""
 			"            BaudRate = 115200"
 			"            Timeout = 200000"
 			"            CPUMask = 8"
-			"            TcnDevice = \"/etc/opt/codac-5.4/tcn/tcn-default.xml\""
+			"            TcnDevice = \"/etc/opt/codac-6.3/tcn/tcn-default.xml\""
 			"            Signals = {"
 			"                DataOK = {"
 			"                    Type = uint8"
