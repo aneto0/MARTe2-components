@@ -22,6 +22,8 @@
 #
 #############################################################
 
-TARGET=x86-linux
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+
+OBJSX = UARTDataSourceGTest.x
 
 include Makefile.inc

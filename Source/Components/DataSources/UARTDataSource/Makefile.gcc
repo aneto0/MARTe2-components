@@ -22,6 +22,5 @@
 #
 #############################################################
 
-TARGET=x86-linux
-
 include Makefile.inc
+LIBRARIES += -L$(CODAC_ROOT)/lib -ltcn
