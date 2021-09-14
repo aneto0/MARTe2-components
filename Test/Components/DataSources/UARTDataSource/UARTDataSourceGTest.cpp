@@ -74,6 +74,16 @@ TEST(UARTDataSourceTestGTest,TestInitialise_False_Baud) {
     ASSERT_TRUE(test.TestInitialise_False_Baud());
 }
 
+TEST(UARTDataSourceTestGTest,TestInitialise_TimestampProvider) {
+    UARTDataSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_TimestampProvider());
+}
+
+TEST(UARTDataSourceTestGTest,TestInitialise_TooManyTimestampProviders) {
+    UARTDataSourceTest test;
+    ASSERT_TRUE(test.TestInitialise_TooManyTimestampProviders());
+}
+
 TEST(UARTDataSourceTestGTest,TestInitialise_False_BaudRate) {
     UARTDataSourceTest test;
     ASSERT_TRUE(test.TestInitialise_False_BaudRate());
@@ -94,9 +104,9 @@ TEST(UARTDataSourceTestGTest,TestInitialise_False_Timeout) {
     ASSERT_TRUE(test.TestInitialise_False_Timeout());
 }
 
-TEST(UARTDataSourceTestGTest,TestInitialise_False_TcnDevice) {
+TEST(UARTDataSourceTestGTest,TestInitialise_False_SerialTimeout) {
     UARTDataSourceTest test;
-    ASSERT_TRUE(test.TestInitialise_False_TcnDevice());
+    ASSERT_TRUE(test.TestInitialise_False_SerialTimeout());
 }
 
 TEST(UARTDataSourceTestGTest,TestPrepareInputOffsets) {
@@ -124,9 +134,14 @@ TEST(UARTDataSourceTestGTest,TestSetConfiguredDatabase_False_Signal1_Not_1_Eleme
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_Signal1_Not_1_Element());
 }
 
-TEST(UARTDataSourceTestGTest,TestSetConfiguredDatabase_False_2_Signals) {
+TEST(UARTDataSourceTestGTest,TestSetConfiguredDatabase_False_Signal2_Not_UInt64) {
     UARTDataSourceTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_2_Signals());
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_Signal2_Not_UInt64());
+}
+
+TEST(UARTDataSourceTestGTest,TestSetConfiguredDatabase_False_3_Signals) {
+    UARTDataSourceTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_3_Signals());
 }
 
 TEST(UARTDataSourceTestGTest,TestSynchronise) {
@@ -137,4 +152,9 @@ TEST(UARTDataSourceTestGTest,TestSynchronise) {
 TEST(UARTDataSourceTestGTest,TestTerminateInputCopy) {
     UARTDataSourceTest test;
     ASSERT_TRUE(test.TestTerminateInputCopy());
+}
+
+TEST(UARTDataSourceTestGTest,TestStopAcquisition) {
+    UARTDataSourceTest test;
+    ASSERT_TRUE(test.TestStopAcquisition());
 }

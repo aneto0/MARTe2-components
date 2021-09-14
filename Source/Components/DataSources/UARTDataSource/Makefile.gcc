@@ -23,4 +23,3 @@
 #############################################################
 
 include Makefile.inc
-LIBRARIES += -L$(CODAC_ROOT)/lib -ltcn

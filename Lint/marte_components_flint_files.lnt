@@ -120,6 +120,7 @@ FileReader.cpp
 FileWriter.cpp
 FilterGAM.cpp
 HighResolutionTimeProvider.cpp
+HighResolutionTimestampProvider.cpp
 HistogramComparator.cpp
 HistogramComparatorT.h
 HistogramGAM.cpp
@@ -182,6 +183,7 @@ SysLogger.cpp
 TcnTimeProvider.cpp
 TimeCorrectionGAM.cpp
 TimeProvider.cpp
+TimestampProvider.cpp
 Types.h
 Waveform.cpp
 Waveform.h

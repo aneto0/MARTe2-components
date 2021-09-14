@@ -22,7 +22,7 @@
 #
 #############################################################
 
-OBJSX=UARTDataSource.x
+OBJSX=UARTDataSource.x TimestampProvider.x HighResolutionTimestampProvider.x
 
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../../
@@ -43,10 +43,6 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
-
-ifdef CODAC_ROOT
-INCLUDES += -I$(CODAC_ROOT)/include
-endif
 
 all: $(OBJS)    \
     $(BUILD_DIR)/UARTDataSource$(LIBEXT) \

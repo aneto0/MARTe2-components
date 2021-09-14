@@ -66,6 +66,11 @@ public:
     bool TestInitialise_False_Timeout();
 
     /**
+     * @brief Tests that the Initialise method fails if no SerialTimeout is specified.
+     */
+    bool TestInitialise_False_SerialTimeout();
+
+    /**
      * @brief Tests that the Initialise method fails if the port cannot be open.
      */
     bool TestInitialise_False_Port();
@@ -76,9 +81,14 @@ public:
     bool TestInitialise_False_Baud();
 
     /**
-     * @brief Tests that the Initialise method fails if the TcnDevice is not specified.
+     * @brief Tests the Initialise method with the TimestampProvider specified in the configuration.
      */
-    bool TestInitialise_False_TcnDevice();
+    bool TestInitialise_TimestampProvider();
+
+    /**
+     * @brief Tests the Initialise method fails if the baud cannot be set.
+     */
+    bool TestInitialise_TooManyTimestampProviders();
 
     /**
      * @brief Tests the SetConfiguredDatabase method.
@@ -88,7 +98,7 @@ public:
     /**
      * @brief Tests that the SetConfiguredDatabase method fails if the number of specified signals is not 2.
      */
-    bool TestSetConfiguredDatabase_False_2_Signals();
+    bool TestSetConfiguredDatabase_False_3_Signals();
 
     /**
      * @brief Tests that the SetConfiguredDatabase method fails if the first signal is not uint8.
@@ -99,6 +109,11 @@ public:
      * @brief Tests that the SetConfiguredDatabase method fails if the first signal has not 1 element.
      */
     bool TestSetConfiguredDatabase_False_Signal1_Not_1_Element();
+
+    /**
+     * @brief Tests that the SetConfiguredDatabase method fails if the second signal is not uint64.
+     */
+    bool TestSetConfiguredDatabase_False_Signal2_Not_UInt64();
 
     /**
      * @brief Tests the GetInputOffset method.
@@ -139,6 +154,11 @@ public:
      * @brief Tests the PrepareNextState method.
      */
     bool TestPrepareNextState();
+
+    /**
+     * @brief Tests the StopAcquisition method.
+     */
+    bool TestStopAcquisition();
 };
 
 /*---------------------------------------------------------------------------*/

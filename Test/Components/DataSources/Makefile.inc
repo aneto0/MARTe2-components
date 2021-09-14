@@ -30,7 +30,8 @@ SPB    = EpicsDataSource.x \
         LinkDataSource.x \
         LoggerDataSource.x \
         RealTimeThreadAsyncBridge.x \
-        RealTimeThreadSynchronisation.x
+        RealTimeThreadSynchronisation.x \
+        UARTDataSource.x
 
 ROOT_DIR=../../..
 include ../../../Source/Components/DataSources/ProfinetDataSource/Makefile.detect
@@ -43,7 +44,6 @@ SPB+=NI6368.x
 SPB+=NI9157.x
 SPB+=NI9157/Optim.x
 SPB+=NI9157/Optim.x
-SPB+=UARTDataSource.x
 
 ## Only force EPICSPVA if CCS version is gt v6.1
 CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)

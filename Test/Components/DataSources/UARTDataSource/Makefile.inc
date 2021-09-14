@@ -22,7 +22,7 @@
 #
 #############################################################
 
-OBJSX += UARTDataSourceTest.x
+OBJSX += UARTDataSourceTest.x HighResolutionTimestampProviderTest.x
 
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../../

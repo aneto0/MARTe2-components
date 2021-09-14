@@ -25,15 +25,13 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <time.h>
-#include <tcn.h>
-#include <errno.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
+#include "HighResolutionTimestampProvider.h"
 #include "RegisteredMethodsMessageFilter.h"
 #include "UARTDataSource.h"
 /*---------------------------------------------------------------------------*/
@@ -70,9 +68,7 @@ writeMark = NULL_PTR(bool *);
 /*lint -e{1551} the destructor must guarantee that the thread and servers are closed.*/
 UARTDataSource::~UARTDataSource() {
 if (executor.Stop() != ErrorManagement::NoError) {
-    if (executor.Stop() != ErrorManagement::NoError) {
         REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the executor");
-    }
 }
 if (!eventSem.Close()) {
     REPORT_ERROR(ErrorManagement::OSError, "Failed to close EventSem");
@@ -80,8 +76,6 @@ if (!eventSem.Close()) {
 if (writeMark != NULL_PTR(bool *)) {
     delete[] writeMark;
 }
-/*lint -e{534} no return value needed.*/
-(void) tcn_finalize();
 
 serial.Close();
 }
@@ -122,6 +116,11 @@ if (ok) {
     }
 }
 if (ok) {
+    if (!data.Read("Timeout", timeout)) {
+        timeout = 1000u;
+    }
+}
+if (ok) {
     ok = data.Read("SerialTimeout", serialTimeout);
     if (ok) {
         REPORT_ERROR(ErrorManagement::Information, "The serial timeout is set to %d", serialTimeout);
@@ -131,27 +130,10 @@ if (ok) {
     }
 }
 if (ok) {
-    if (!data.Read("Timeout", timeout)) {
-        timeout = 1000u;
-    }
-}
-if (ok) {
     ok = serial.SetSpeed(baudRate);
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::OSError, "Failed to set baud rate %d", baudRate);
-    }
 }
 if (ok) {
     ok = serial.Open(portName.Buffer());
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::OSError, "Failed to open port %s", portName.Buffer());
-    }
-}
-if (ok) {
-    ok = data.Read("TcnDevice", tcnDevice);
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Please specify TcnDevice");
-    }
 }
 
 if (ok) {
@@ -161,12 +143,21 @@ if (ok) {
 }
 
 if (ok) {
-    bool registered = (tcn_register_device(tcnDevice.Buffer()) == TCN_SUCCESS);
-    bool initialised = (tcn_init() == TCN_SUCCESS);
-    if ((!registered) || (!initialised)) {
-        REPORT_ERROR(ErrorManagement::Information, "tcn already registered or initialised");
+    ok = (Size() < 2u);
+    if (!ok) {
+        REPORT_ERROR(ErrorManagement::ParametersError, "Number of pluggable timestamp providers can be 0 (Default) or 1 (Customized and specified)");
+        REPORT_ERROR(ErrorManagement::ParametersError, "%d providers where specified instead", Size());
     }
-    REPORT_ERROR(ErrorManagement::Information, "Registered TCN device %s", tcnDevice.Buffer());
+}
+if (ok) {
+    if (Size() == 0u) {
+        REPORT_ERROR(ErrorManagement::Information, "No timer provider specified. Falling back to HighResolutionTimestampProvider");
+        timeProvider = ReferenceT < HighResolutionTimestampProvider > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        timeProvider->SetName("DefaultHighResolutionTimestampProvider");
+    }
+    else {
+        timeProvider = Get(0u);
+    }
 }
 
 //Do not allow to add signals in run-time
@@ -288,8 +279,9 @@ if (info.GetStage() == ExecutionInfo::MainStage) {
                 }
             }
         }
+        *timePacket = timeProvider->Timestamp();
+        err = (*timePacket != 0LLU);
 
-        err = (tcn_get_time(reinterpret_cast<hpn_timestamp_t*>(timePacket)) != TCN_SUCCESS);
         muxSem.FastUnLock();
     }
     else {

@@ -35,10 +35,11 @@
 #include "EmbeddedServiceMethodBinderT.h"
 #include "EventSem.h"
 #include "MemoryDataSourceI.h"
+#include "MessageI.h"
 #include "SingleThreadService.h"
 #include "StructuredDataI.h"
 #include "StreamString.h"
-#include "MessageI.h"
+#include "TimestampProvider.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -202,9 +203,9 @@ private:
     uint32 serialTimeout;
 
     /**
-     * The path to the tcn device.
+     * @brief Reference to the time provider plugin
      */
-    StreamString tcnDevice;
+    ReferenceT<TimestampProvider> timeProvider;
 
     /**
      * Timeout to synchronise
