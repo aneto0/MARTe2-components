@@ -46,22 +46,19 @@ namespace MARTe {
  * delegates the events to the corresponding EPICSPV instance.
  */
 static FastPollingMutexSem eventCallbackFastMux;
-static EPICSCAClient *currentListener = NULL_PTR(EPICSCAClient *);
 /*lint -e{1746} function must match required prototype and thus cannot be changed to constant reference.*/
 void EPICSCAClientEventCallback(struct event_handler_args const args) {
     (void) eventCallbackFastMux.FastLock();
     EPICSCAClient *listener = static_cast<EPICSCAClient *>(args.usr);
     if (listener != NULL_PTR(EPICSCAClient *)) {
-        if (listener == currentListener) {
-            bool found = false;
-            uint32 j;
-            for (j = 0u; (j < listener->Size()) && (!found); j++) {
-                ReferenceT<EPICSPV> pvEvent = listener->Get(j);
-                if (pvEvent.IsValid()) {
-                    found = (pvEvent->GetPVChid() == args.chid);
-                    if (found) {
-                        pvEvent->HandlePVEvent(args);
-                    }
+        bool found = false;
+        uint32 j;
+        for (j = 0u; (j < listener->Size()) && (!found); j++) {
+            ReferenceT<EPICSPV> pvEvent = listener->Get(j);
+            if (pvEvent.IsValid()) {
+                found = (pvEvent->GetPVChid() == args.chid);
+                if (found) {
+                    pvEvent->HandlePVEvent(args);
                 }
             }
         }
@@ -170,7 +167,6 @@ ErrorManagement::ErrorType EPICSCAClient::Execute(ExecutionInfo& info) {
                 }
             }
         }
-        currentListener = this;
         eventCallbackFastMux.FastUnLock();
     }
     else if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
