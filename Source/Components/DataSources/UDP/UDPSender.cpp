@@ -32,6 +32,7 @@
 #include "AdvancedErrorManagement.h"
 #include "BrokerI.h"
 #include "MemoryMapAsyncTriggerOutputBroker.h"
+#include "MemoryMapSynchronisedOutputBroker.h"
 #include "Shift.h"
 #include "UDPSender.h"
 
@@ -52,9 +53,9 @@ UDPSender::UDPSender() :
     address = "";
     port = 44488u;
     client = NULL_PTR(UDPSocket*);
-    cpuMask = 0xfu;
+    cpuMask = 0xffffffffu;
     stackSize = 0u;
-
+    executionMode = UDPSenderExecutionModeIndependent;
 }
 
 /*lint -e{1551} Justification: the destructor must guarantee that the client sending is closed.*/
@@ -72,15 +73,58 @@ UDPSender::~UDPSender() {
 bool UDPSender::Initialise(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::Initialise(data);
     if (ok) {
+        StreamString tempExecModeStr;
+        ok = data.Read("ExecutionMode", tempExecModeStr);
+        if(!ok) {
+            REPORT_ERROR(ErrorManagement::Information, "Execution mode was not specified, defaulting to IndependentThread mode");
+            executionMode = UDPSenderExecutionModeIndependent;
+        }
+        else {
+            if(tempExecModeStr == "IndependentThread") {
+                executionMode = UDPSenderExecutionModeIndependent;
+                REPORT_ERROR(ErrorManagement::Information, "Running in IndependentThread mode");
+            }
+            else if(tempExecModeStr == "RealTimeThread") {
+                executionMode = UDPSenderExecutionModeRealTime;
+                REPORT_ERROR(ErrorManagement::Information, "Running in RealTimeThread mode");
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Specified execution mode is not allowed");
+                REPORT_ERROR(ErrorManagement::Information, "Allowed [IndependendThread, RealTimeThread], Specified %s", tempExecModeStr);
+                ok = false;
+            }
+        }
+    }
+    if (ok) {
         ok = data.Read("NumberOfPreTriggers", numberOfPreTriggers);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfPreTriggers shall be specified");
+            if(executionMode == UDPSenderExecutionModeIndependent) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfPreTriggers shall be specified");
+            }
+            else {
+                ok = true;
+            }
+        }
+        else {
+            if(executionMode == UDPSenderExecutionModeRealTime) {
+                REPORT_ERROR(ErrorManagement::Warning, "NumberOfPreTriggers was specified but it will be ignored in RealTimeThread mode");
+            }
         }
     }
     if (ok) {
         ok = data.Read("NumberOfPostTriggers", numberOfPostTriggers);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfPostTriggers shall be specified");
+            if(executionMode == UDPSenderExecutionModeIndependent) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfPostTriggers shall be specified");
+            }
+            else {
+                ok = true;
+            }
+        }
+        else {
+            if(executionMode == UDPSenderExecutionModeRealTime) {
+                REPORT_ERROR(ErrorManagement::Warning, "NumberOfPostTriggers was specified but it will be ignored in RealTimeThread mode");
+            }
         }
     }
     if (ok) {
@@ -104,22 +148,38 @@ bool UDPSender::Initialise(StructuredDataI &data) {
         uint32 cpuMaskIn;
         ok = data.Read("CPUMask", cpuMaskIn);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "CPUMask shall be specified");
+            cpuMaskIn = 0xFFFFFFFFu;
+            if(executionMode == UDPSenderExecutionModeIndependent) {
+                REPORT_ERROR(ErrorManagement::Information, "CPUMask was not specified, defaulting to 0xFFFFFFFFu");
+            }
         }
         else {
-            cpuMask = cpuMaskIn;
+            if(executionMode == UDPSenderExecutionModeRealTime) {
+                REPORT_ERROR(ErrorManagement::Warning, "CPUMask parameter not expected when in RealTimeThread mode, ignoring");
+            }
+            else {
+                cpuMask = cpuMaskIn;    
+            }
         }
     }
     if (ok) {
         ok = data.Read("StackSize", stackSize);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be specified");
+            stackSize = THREADS_DEFAULT_STACKSIZE;
+            if(executionMode == UDPSenderExecutionModeIndependent) {
+                REPORT_ERROR(ErrorManagement::Warning, "StackSize was not specified, defaulting to MARTe2 value (%d)", THREADS_DEFAULT_STACKSIZE);
+            }
+        }
+        else {
+            if(executionMode == UDPSenderExecutionModeRealTime) {
+                REPORT_ERROR(ErrorManagement::Warning, "StackSize parameter not expected when in RealTimeThread mode, ignoring");
+            }
         }
     }
     if (ok) {
-        ok = (stackSize > 0u);
+        ok = (executionMode == UDPSenderExecutionModeRealTime) || (stackSize > 0u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u");
+            REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u when running in IndependentThread mode");
         }
     }
     //Do not allow to add signals in run-time
@@ -200,7 +260,12 @@ const char8* UDPSender::GetBrokerName(StructuredDataI &data,
                                       const SignalDirection direction) {
     const char8 *brokerName = NULL_PTR(const char8*);
     if (direction == OutputSignals) {
-        brokerName = "MemoryMapAsyncTriggerOutputBroker";
+        if(executionMode == UDPSenderExecutionModeIndependent) {
+            brokerName = "MemoryMapAsyncTriggerOutputBroker";
+        }
+        else if(executionMode == UDPSenderExecutionModeRealTime) {
+            brokerName = "MemoryMapSynchronisedOutputBroker";
+        }
     }
     return brokerName;
 }
@@ -215,12 +280,41 @@ bool UDPSender::GetInputBrokers(ReferenceContainer &inputBrokers,
 bool UDPSender::GetOutputBrokers(ReferenceContainer &outputBrokers,
                                  const char8 *const functionName,
                                  void *const gamMemPtr) {
-    brokerAsyncTrigger = ReferenceT<MemoryMapAsyncTriggerOutputBroker>("MemoryMapAsyncTriggerOutputBroker");
-    bool ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
-                                                            numberOfPostTriggers, cpuMask, stackSize);
-    if (ok) {
-        ok = outputBrokers.Insert(brokerAsyncTrigger);
+    bool ok = true;
+
+    if(executionMode == UDPSenderExecutionModeIndependent) {
+        ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger = 
+            ReferenceT<MemoryMapAsyncTriggerOutputBroker>("MemoryMapAsyncTriggerOutputBroker");
+        ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
+                                                                numberOfPostTriggers, cpuMask, stackSize);
+        if (ok) {
+            ok = outputBrokers.Insert(brokerAsyncTrigger);
+        }
     }
+    else if (executionMode == UDPSenderExecutionModeRealTime) {
+        ReferenceT<MemoryMapSynchronisedOutputBroker> memMapSynchOutBroker("MemoryMapSynchronisedOutputBroker");
+        ok = memMapSynchOutBroker.IsValid();
+        if(!ok) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Failure while instantiating MemoryMapSynchronisedOutputBroker");
+        }
+
+        if (ok) {
+            ok = memMapSynchOutBroker->Init(OutputSignals, *this, functionName, gamMemPtr);
+        }
+        if(!ok) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Failure while initialising MemoryMapSynchronisedOutputBroker");
+        }
+
+        ok = outputBrokers.Insert(memMapSynchOutBroker);
+        if(!ok) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Failure while inserting MemoryMapSynchronisedOutputBroker");
+        }
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::ParametersError, "Execution mode specifies an unallowed mode");
+        ok = false;
+    }
+
     return ok;
 }
 

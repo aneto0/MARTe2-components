@@ -33,7 +33,6 @@
 /*---------------------------------------------------------------------------*/
 #include "CompilerTypes.h"
 #include "MemoryDataSourceI.h"
-#include "MemoryMapAsyncTriggerOutputBroker.h"
 #include "ProcessorType.h"
 #include "UDPSocket.h"
 
@@ -50,10 +49,18 @@ namespace MARTe {
  *     Class = UDPDrv::UDPSender
  *     Address = "127.0.0.1" //Optional (default 127.0.0.1) The address of the UDPReciever
  *     Port = "44488" //Optional (default 44488) The port of the UDPReciever
- *     NumberOfPreTriggers = 0
- *     NumberOfPostTriggers = 0
- *     CPUMask = 15 //Compulsory. Affinity assigned to the threads responsible for asynchronously flush data.
- *     StackSize = 10000000 //Compulsory. Stack size of the thread above.
+ *     ExecutionMode = IndependentThread //Optional (default IndependentThread)
+ *         If ExecutionMode == IndependentThread a thread is spawned to handle the DataSource by means of the MemoryMapAsyncTriggerOutputBroker
+ *         If ExecutionMode == RealTimeThread the DataSource is handled in the context of the real-time thread.
+ *     NumberOfPreTriggers = 0 //Compulsory when ExecutionMode is IndependentThread. 
+ *         Ignored with a warning when ExecutionMode is RealTimeThread
+ *     NumberOfPostTriggers = 0 //Compulsory when ExecutionMode is IndependentThread. Ignored with a warning if specified otherwise.
+ *         Ignored with a warning when ExecutionMode is RealTimeThread
+ *     CPUMask = 0xFFFFFFFF //Optional, (default 0xFFFFFFFF). Affinity assigned to the threads responsible for asynchronously flush data.
+ *         Ignored with a warning when ExecutionMode is RealTimeThread.
+ *     StackSize = 10000000 //Optional, (default MARTe2 THREADS_DEFAULT_STACKSIZE) Stack size of the independent thread spawned
+ *         Ignored with a warning when ExecutionMode is RealTimeThread.
+ *
  *     Signals = {
  *          Trigger = { //Mandatory. Must be in first position.
  *              Type = uint8
@@ -74,6 +81,12 @@ namespace MARTe {
  *     }
  * }
  */
+
+typedef enum {
+    UDPSenderExecutionModeIndependent,
+    UDPSenderExecutionModeRealTime
+}UDPSenderExecutionMode;
+
 class UDPSender: public MemoryDataSourceI {
 public:CLASS_REGISTER_DECLARATION()
 
@@ -215,9 +228,9 @@ private:
     UDPSocket *client;
 
     /**
-     * Memory map asynchronously triggered broker.
+     * Holds the current execution mode of the datasource.
      */
-    ReferenceT<MemoryMapAsyncTriggerOutputBroker> brokerAsyncTrigger;
+    UDPSenderExecutionMode executionMode;
 };
 }
 #endif
