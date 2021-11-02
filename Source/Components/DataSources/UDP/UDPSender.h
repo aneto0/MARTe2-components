@@ -21,7 +21,7 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#if !defined  (UDP_SENDER_H_)
+#ifndef UDP_SENDER_H_
 #define UDP_SENDER_H_
 
 /*---------------------------------------------------------------------------*/
