@@ -68,39 +68,7 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC=$(BUILD_DIR)/MemoryGate/MemoryGateTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/SysLogger/SysLoggerTest$(LIBEXT)
-
-
-ifdef CODAC_ROOT
-LIBRARIES_STATIC+=$(BUILD_DIR)/NI9157Device/NI9157DeviceTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/TcnTimeProvider/TcnTimeProviderTest$(LIBEXT)
-endif
-
-ifdef EFDA_MARTe_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/BaseLib2Wrapper/BaseLib2WrapperTest$(LIBEXT)
-endif
-
-ifdef EPICS_BASE
-LIBRARIES_STATIC+=$(BUILD_DIR)/EPICS/EPICSTest$(LIBEXT)
-endif
-
-
-ifdef MDSPLUS_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/MDSStructuredDataI/MDSStructuredDataITest$(LIBEXT)
-endif
-
-ifdef EPICSPVA
-LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVATest$(LIBEXT)
-endif
-
-ifdef OPEN62541_LIB
-LIBRARIES_STATIC+=$(BUILD_DIR)/OPCUA/OPCUATest$(LIBEXT)
-endif
-
-
-all: $(OBJS) $(SUBPROJ) \
-                $(BUILD_DIR)/InterfacesTests$(LIBEXT)
+all: $(OBJS) $(SUBPROJ)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

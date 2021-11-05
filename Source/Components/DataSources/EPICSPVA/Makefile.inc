@@ -22,7 +22,7 @@
 #
 #############################################################
 
-OBJSX=EPICSPVAChannelWrapper.x EPICSPVAInput.x EPICSPVAOutput.x
+OBJSX=EPICSPVAChannelWrapper.x EPICSPVAFieldWrapperI.x EPICSPVAInput.x EPICSPVAOutput.x
 
 PACKAGE=Components/DataSources
 

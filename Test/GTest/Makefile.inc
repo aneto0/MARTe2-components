@@ -22,9 +22,6 @@
 #
 #############################################################
 
-OBJSX=
-SPB =
-
 PACKAGE=
 ROOT_DIR=../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
@@ -38,6 +35,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
 
+# Detect project related files
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 # Current assumption is prior installation of CODAC Core System on the build node
 ifdef CODAC_ROOT
@@ -55,17 +53,45 @@ ifdef SDN_CORE_LIBRARY_DIR
 LIBRARIES += -L$(SDN_CORE_LIBRARY_DIR) -lsdn-core -lxml2
 endif
 
-ifdef OPEN62541_LIB
-LIBRARIES_STATIC += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
-endif
-
 ifdef PROFINET_COMPILE
 LIBRARIES += -L$(PROFINET_LIBRARY) -losal -lprofinet
 endif
 
-all: $(OBJS) $(SUBPROJ)   \
-        $(BUILD_DIR)/MainGTest$(EXEEXT)
-	echo  $(OBJS)
+ifdef CODAC_ROOT
+LIBRARIES += -L$(CODAC_ROOT)/lib/
+LIBRARIES += -lnisync
+LIBRARIES += -lnixseries
+LIBRARIES += -lpxi6259
+LIBRARIES += -lNiFpga
+
+## Only force EPICSPVA if CCS version is gt v6.1
+CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
+ifeq "$(CCSGT61)" "1"
+EPICSPVA = "1"
+endif
+endif
+
+ifdef EFDA_MARTe_DIR
+LIBRARIES   += -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Adapter -L$(EFDA_MARTe_DIR)/BaseLib2/linux -lBaseLib2
+endif
+
+ifdef MDSPLUS_DIR
+LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
+endif
+
+ifdef EPICS_BASE
+LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lca
+endif
+
+ifdef EPICSPVA
+LIBRARIES += -lpvAccess -lpvData -lpvDatabase -lnt -lpvAccessIOC -lpvAccessCA -ldbRecStd -ldbCore -lca -lCom -lpvaClient 
+endif 
+
+ifdef MATLAB_DIR
+LIBRARIES += -Wl,-rpath-link,$(MATLAB_DIR)/bin/glnxa64 "$(MATLAB_DIR)/sys/os/glnxa64/libstdc++.so.6" -L$(MATLAB_DIR)/extern/bin/glnxa64/ -L$(MATLAB_DIR)/bin/glnxa64/ -lMatlabDataArray -lMatlabEngine -lmx -lmex -lmat -lm -lstdc++ -leng
+endif
+
+all: $(BUILD_DIR)/MainGTest$(EXEEXT)
 
 include depends.$(TARGET)
 

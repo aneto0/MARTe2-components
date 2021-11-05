@@ -60,6 +60,7 @@ DANSource::DANSource() :
     trigger = 0u;
     useAbsoluteTime = false;
     absoluteStartTime = 0LLU;
+    interleave = true;
     danStreams = NULL_PTR(DANStream **);
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
@@ -213,13 +214,13 @@ bool DANSource::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        uint32 cpuMaskIn;
+        uint64 cpuMaskIn;
         ok = data.Read("CPUMask", cpuMaskIn);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "CPUMask shall be specified");
         }
         else {
-            cpuMask = cpuMaskIn;
+            cpuMask = BitSet(cpuMaskIn);
         }
     }
     if (ok) {
@@ -228,6 +229,15 @@ bool DANSource::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be specified");
         }
     }
+    if (ok) {
+        uint8 interleaveU8 = 1u;
+        if (!data.Read("Interleave", interleaveU8)) {
+            interleaveU8 = 1u;
+        }
+        interleave = (interleaveU8 > 0u);
+        REPORT_ERROR(ErrorManagement::Information, "Interleave parameter set to %d", interleave ? 1u : 0u);
+    }
+
     if (ok) {
         ok = (stackSize > 0u);
         if (!ok) {
@@ -427,7 +437,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
                         }
                         danStreams = newDanStreams;
 
-                        danStreams[nOfDANStreams] = new DANStream(typeDesc, GetName(), danBufferMultiplier, samplingFrequency, numberOfElements);
+                        danStreams[nOfDANStreams] = new DANStream(typeDesc, GetName(), danBufferMultiplier, samplingFrequency, numberOfElements, interleave);
                         danStreams[nOfDANStreams]->AddSignal(n);
                         nOfDANStreams++;
                     }

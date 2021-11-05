@@ -60,6 +60,7 @@ public:
         signalToGenerate = NULL;
         triggerToGenerate = NULL;
         elements = NULL;
+        interleave = false;
     }
 
     virtual ~DANSourceGAMTriggerTestHelper() {
@@ -91,6 +92,9 @@ public:
         uint32 absoluteTime = 0;
         data.Read("AbsoluteTime", absoluteTime);
         useAbsoluteTime = (absoluteTime == 1);
+        uint8 interleaveU8 = 0ul;
+        data.Read("Interleave", interleaveU8);
+        interleave = (interleaveU8 == 1);
         return ok;
     }
 
@@ -98,14 +102,23 @@ public:
         using namespace MARTe;
         elements = new uint32[GetNumberOfOutputSignals()];
         uint32 n;
-        for (n=0; n<GetNumberOfOutputSignals(); n++) {
+        bool ok = true;
+        uint32 lastElements = 0u;
+        for (n=0; (n<GetNumberOfOutputSignals()) && (ok); n++) {
             uint32 el;
             GetSignalNumberOfElements(OutputSignals, n, el);
             elements[n] = el;
+            if (lastElements == 0u) {
+                lastElements = elements[0u];
+            }
+            //If interleave all the signals shall have the same size, for the sake of simplicity!
+            if (interleave) {
+                ok = (lastElements == elements[n]);
+            }
         }
         (void) (tcn_get_time(&absTimeStamp) == TCN_SUCCESS);
 
-        return true;
+        return ok;
     }
 
     virtual bool Execute() {
@@ -129,71 +142,121 @@ public:
                 }
                 n = 2;
             }
-            for (; n<GetNumberOfOutputSignals(); n++) {
-                TypeDescriptor signalType = GetSignalType(OutputSignals, n);
-                if (signalType == UnsignedInteger16Bit) {
-                    uint16 *signalOut = reinterpret_cast<uint16 *>(GetOutputSignalMemory(n));
-                    uint32 e;
-                    for (e=0; e<elements[n]; e++) {
-                        signalOut[e] = static_cast<uint16>(signalToGenerate[counter]);
-                    }
-                }
-                else if (signalType == UnsignedInteger32Bit) {
-                    uint32 *signalOut = reinterpret_cast<uint32 *>(GetOutputSignalMemory(n));
-                    uint32 e;
-                    for (e=0; e<elements[n]; e++) {
-                        signalOut[e] = static_cast<uint32>(signalToGenerate[counter]);
-                    }
-                }
-                else if (signalType == UnsignedInteger64Bit) {
-                    uint64 *signalOut = reinterpret_cast<uint64 *>(GetOutputSignalMemory(n));
-                    uint64 e;
-                    for (e=0; e<elements[n]; e++) {
-                        signalOut[e] = static_cast<uint64>(signalToGenerate[counter]);
-                    }
-                }
-                else if (signalType == SignedInteger16Bit) {
-                    int16 *signalOut = reinterpret_cast<int16 *>(GetOutputSignalMemory(n));
-                    uint32 e;
-                    for (e=0; e<elements[n]; e++) {
-                        signalOut[e] = static_cast<int16>(signalToGenerate[counter]);
-                    }
-                }
-                else if (signalType == SignedInteger32Bit) {
-                    int32 *signalOut = reinterpret_cast<int32 *>(GetOutputSignalMemory(n));
-                    uint32 e;
-                    for (e=0; e<elements[n]; e++) {
-                        signalOut[e] = static_cast<int32>(signalToGenerate[counter]);
-                    }
-                }
-                else if (signalType == SignedInteger64Bit) {
-                    int64 *signalOut = reinterpret_cast<int64 *>(GetOutputSignalMemory(n));
-                    uint32 e;
-                    for (e=0; e<elements[n]; e++) {
-                        signalOut[e] = static_cast<int64>(signalToGenerate[counter]);
-                    }
-                }
-                else if (signalType == Float32Bit) {
-                    float32 *signalOut = reinterpret_cast<float32 *>(GetOutputSignalMemory(n));
-                    uint32 e;
-                    for (e=0; e<elements[n]; e++) {
-                        signalOut[e] = static_cast<float32>(signalToGenerate[counter]);
-                    }
-                }
-                else if (signalType == Float64Bit) {
-                    float64 *signalOut = reinterpret_cast<float64 *>(GetOutputSignalMemory(n));
-                    uint32 e;
-                    for (e=0; e<elements[n]; e++) {
-                        signalOut[e] = static_cast<float64>(signalToGenerate[counter]);
+            if (interleave) {
+                uint8 *outputSignalMemory = static_cast<uint8 *>(GetOutputSignalMemory(n));
+                for (uint32 e=0; e<elements[0u]; e++) {
+                    for (; n<GetNumberOfOutputSignals(); n++) {
+                        TypeDescriptor signalType = GetSignalType(OutputSignals, n);
+                        if (signalType == UnsignedInteger16Bit) {
+                            uint16 *signalOut = reinterpret_cast<uint16 *>(outputSignalMemory);
+                            *signalOut = static_cast<uint16>(signalToGenerate[counter]);
+                            outputSignalMemory += sizeof(uint16);
+                        }
+                        else if (signalType == UnsignedInteger32Bit) {
+                            uint32 *signalOut = reinterpret_cast<uint32 *>(outputSignalMemory);
+                            *signalOut = static_cast<uint32>(signalToGenerate[counter]);
+                            outputSignalMemory += sizeof(uint32);
+                        }
+                        else if (signalType == UnsignedInteger64Bit) {
+                            uint64 *signalOut = reinterpret_cast<uint64 *>(outputSignalMemory);
+                            *signalOut = static_cast<uint64>(signalToGenerate[counter]);
+                            outputSignalMemory += sizeof(uint64);
+                        }
+                        else if (signalType == SignedInteger16Bit) {
+                            int16 *signalOut = reinterpret_cast<int16 *>(outputSignalMemory);
+                            *signalOut = static_cast<int16>(signalToGenerate[counter]);
+                            outputSignalMemory += sizeof(int16);
+                        }
+                        else if (signalType == SignedInteger32Bit) {
+                            int32 *signalOut = reinterpret_cast<int32 *>(outputSignalMemory);
+                            *signalOut = static_cast<int32>(signalToGenerate[counter]);
+                            outputSignalMemory += sizeof(int32);
+                        }
+                        else if (signalType == SignedInteger64Bit) {
+                            int64 *signalOut = reinterpret_cast<int64 *>(outputSignalMemory);
+                            *signalOut = static_cast<int64>(signalToGenerate[counter]);
+                            outputSignalMemory += sizeof(int64);
+                        }
+                        else if (signalType == Float32Bit) {
+                            float32 *signalOut = reinterpret_cast<float32 *>(outputSignalMemory);
+                            *signalOut = static_cast<float32>(signalToGenerate[counter]);
+                            outputSignalMemory += sizeof(float32);
+                        }
+                        else if (signalType == Float64Bit) {
+                            float64 *signalOut = reinterpret_cast<float64 *>(outputSignalMemory);
+                            *signalOut = static_cast<float64>(signalToGenerate[counter]);
+                            outputSignalMemory += sizeof(float64);
+                        }
                     }
                 }
             }
-
+            else {
+                for (; n<GetNumberOfOutputSignals(); n++) {
+                    TypeDescriptor signalType = GetSignalType(OutputSignals, n);
+                    if (signalType == UnsignedInteger16Bit) {
+                        uint16 *signalOut = reinterpret_cast<uint16 *>(GetOutputSignalMemory(n));
+                        uint32 e;
+                        for (e=0; e<elements[n]; e++) {
+                            signalOut[e] = static_cast<uint16>(signalToGenerate[counter]);
+                        }
+                    }
+                    else if (signalType == UnsignedInteger32Bit) {
+                        uint32 *signalOut = reinterpret_cast<uint32 *>(GetOutputSignalMemory(n));
+                        uint32 e;
+                        for (e=0; e<elements[n]; e++) {
+                            signalOut[e] = static_cast<uint32>(signalToGenerate[counter]);
+                        }
+                    }
+                    else if (signalType == UnsignedInteger64Bit) {
+                        uint64 *signalOut = reinterpret_cast<uint64 *>(GetOutputSignalMemory(n));
+                        uint64 e;
+                        for (e=0; e<elements[n]; e++) {
+                            signalOut[e] = static_cast<uint64>(signalToGenerate[counter]);
+                        }
+                    }
+                    else if (signalType == SignedInteger16Bit) {
+                        int16 *signalOut = reinterpret_cast<int16 *>(GetOutputSignalMemory(n));
+                        uint32 e;
+                        for (e=0; e<elements[n]; e++) {
+                            signalOut[e] = static_cast<int16>(signalToGenerate[counter]);
+                        }
+                    }
+                    else if (signalType == SignedInteger32Bit) {
+                        int32 *signalOut = reinterpret_cast<int32 *>(GetOutputSignalMemory(n));
+                        uint32 e;
+                        for (e=0; e<elements[n]; e++) {
+                            signalOut[e] = static_cast<int32>(signalToGenerate[counter]);
+                        }
+                    }
+                    else if (signalType == SignedInteger64Bit) {
+                        int64 *signalOut = reinterpret_cast<int64 *>(GetOutputSignalMemory(n));
+                        uint32 e;
+                        for (e=0; e<elements[n]; e++) {
+                            signalOut[e] = static_cast<int64>(signalToGenerate[counter]);
+                        }
+                    }
+                    else if (signalType == Float32Bit) {
+                        float32 *signalOut = reinterpret_cast<float32 *>(GetOutputSignalMemory(n));
+                        uint32 e;
+                        for (e=0; e<elements[n]; e++) {
+                            signalOut[e] = static_cast<float32>(signalToGenerate[counter]);
+                        }
+                    }
+                    else if (signalType == Float64Bit) {
+                        float64 *signalOut = reinterpret_cast<float64 *>(GetOutputSignalMemory(n));
+                        uint32 e;
+                        for (e=0; e<elements[n]; e++) {
+                            signalOut[e] = static_cast<float64>(signalToGenerate[counter]);
+                        }
+                    }
+                }
+            }
         }
         counter++;
         return true;
     }
 
+    bool interleave;
     bool generateTrigger;
     bool useAbsoluteTime;
     MARTe::uint8 *triggerToGenerate;
@@ -1889,6 +1952,226 @@ static const MARTe::char8 * const config12 = ""
         "    }"
         "}";
 
+//Standard configuration with no trigger source
+static const MARTe::char8 * const config13 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            Interleave = 1"
+        "            OutputSignals = {"
+        "                SignalUInt16F_1 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt16F_2 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt32F_1 = {"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt32F_2 = {"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt64F_1 = {"
+        "                    Type = uint64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt64F_2 = {"
+        "                    Type = uint64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt16F_1 = {"
+        "                    Type = int16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt16F_2 = {"
+        "                    Type = int16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt32F_1 = {"
+        "                    Type = int32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt32F_2 = {"
+        "                    Type = int32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt64F_1 = {"
+        "                    Type = int64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt64F_2 = {"
+        "                    Type = int64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat32F_1 = {"
+        "                    Type = float32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat32F_2 = {"
+        "                    Type = float32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat64F_1 = {"
+        "                    Type = float64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat64F_2 = {"
+        "                    Type = float64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat64F_3 = {"
+        "                    Type = float64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat32F_3 = {"
+        "                    Type = float32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt64F_3 = {"
+        "                    Type = int64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt32F_3 = {"
+        "                    Type = int32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt16F_3 = {"
+        "                    Type = int16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt64F_3 = {"
+        "                    Type = uint64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt32F_3 = {"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt16F_3 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DANStreamTest = {"
+        "            Class = DANSource"
+        "            Interleave = 0"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            StoreOnTrigger = 0"
+        "            DanBufferMultiplier = 4"
+        "            Signals = {"
+        "                SignalUInt16F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt16F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt32F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt32F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt64F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt64F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt16F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt16F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt32F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt32F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt64F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt64F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalFloat32F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalFloat32F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalFloat64F_1 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalFloat64F_2 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt16F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt32F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalUInt64F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt16F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt32F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalInt64F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalFloat32F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "                SignalFloat64F_3 = {"
+        "                    Period = 2"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = DANSourceSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -2003,6 +2286,16 @@ bool DANSourceTest::TestIntegratedInApplication_NoTrigger() {
     const uint32 numberOfBuffers = 16;
     const float32 period = 1e-3;
     return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, NULL, numberOfElements, numberOfBuffers, 0, 0, period);
+}
+
+bool DANSourceTest::TestIntegratedInApplication_Interleave() {
+    using namespace MARTe;
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4,
+            5, 6, 7, 8, 9, 10, 11, 12 };
+    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
+    const uint32 numberOfBuffers = 16;
+    const float32 period = 1e-3;
+    return TestIntegratedExecution(config13, signalToGenerate, numberOfElements, NULL, signalToGenerate, NULL, numberOfElements, numberOfBuffers, 0, 0, period);
 }
 
 bool DANSourceTest::TestIntegratedInApplication_Trigger() {

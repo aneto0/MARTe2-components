@@ -22,7 +22,7 @@
 #
 #############################################################
 
-OBJSX=DANAPI.x DANSource.x DANStream.x
+OBJSX=DANAPI.x DANSource.x DANStream.x3
 
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../../

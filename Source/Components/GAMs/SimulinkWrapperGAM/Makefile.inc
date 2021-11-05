@@ -68,6 +68,9 @@ INCLUDES += -I$(MATLAB_DIR)/extern/include
 INCLUDES += -I$(MATLAB_DIR)/rtw/c/src/
 INCLUDES += -I$(MATLAB_DIR)/simulink/include/
 
+# Remember that no linking shall be performed against the matlab libraries, as this would prevent deploying it in an environment where no matlab is installed.
+
+
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/SimulinkWrapperGAM$(LIBEXT) \
 	$(BUILD_DIR)/SimulinkWrapperGAM$(DLLEXT)

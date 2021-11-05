@@ -116,6 +116,21 @@ TEST(LinuxTimerGTest, TestExecute_RTThread_WithPhase) {
     ASSERT_TRUE(test.TestExecute_RTThread_WithPhase());
 }
 
+TEST(LinuxTimerGTest, TestExecute_Phase) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestExecute_Phase());
+}
+
+TEST(LinuxTimerGTest, TestExecute_RePhase) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestExecute_RePhase());
+}
+
+TEST(LinuxTimerGTest, TestExecute_StateChange) {
+    LinuxTimerTest test;
+    ASSERT_TRUE(test.TestExecute_StateChange());
+}
+
 TEST(LinuxTimerGTest, TestInitialise_ExplicitTimeProvider) {
     LinuxTimerTest test;
     ASSERT_TRUE(test.TestInitialise_ExplicitTimeProvider());

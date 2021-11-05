@@ -36,15 +36,23 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 EPICSPVAInput::EPICSPVAInput() :
-        MemoryDataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
+        MemoryDataSourceI(),
+        EmbeddedServiceMethodBinderI(),
+        executor(*this) {
     numberOfChannels = 0u;
     channelList = NULL_PTR(EPICSPVAChannelWrapper *);
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
+    if (!synchSem.Create()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not create EventSem.");
+    }
 }
 
 /*lint -e{1551} must stop the SingleThreadService in the destructor.*/
 EPICSPVAInput::~EPICSPVAInput() {
+    if (!synchSem.Post()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "Could not post EventSem.");
+    }
     if (!executor.Stop()) {
         if (!executor.Stop()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
@@ -55,7 +63,7 @@ EPICSPVAInput::~EPICSPVAInput() {
     }
 }
 
-bool EPICSPVAInput::Initialise(StructuredDataI & data) {
+bool EPICSPVAInput::Initialise(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::Initialise(data);
     if (ok) {
         if (!data.Read("CPUs", cpuMask)) {
@@ -108,7 +116,7 @@ bool EPICSPVAInput::Initialise(StructuredDataI & data) {
     return ok;
 }
 
-bool EPICSPVAInput::SetConfiguredDatabase(StructuredDataI & data) {
+bool EPICSPVAInput::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
     //Check the signal index of the timing signal.
     uint32 nOfSignals = GetNumberOfSignals();
@@ -152,24 +160,49 @@ bool EPICSPVAInput::AllocateMemory() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
-const char8* EPICSPVAInput::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
-    const char8* brokerName = "";
+const char8* EPICSPVAInput::GetBrokerName(StructuredDataI &data,
+                                          const SignalDirection direction) {
+    const char8 *brokerName = "";
     if (direction == InputSignals) {
-        brokerName = "MemoryMapInputBroker";
+        float32 tempFrequency = 0.F;
+        if (!data.Read("Frequency", tempFrequency)) {
+            tempFrequency = -1.F;
+        }
+        if (tempFrequency > 0.F) {            
+            if (numberOfChannels > 1u) {
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                             "The number of channels shall be exactly 1 if using Synchronisation.");
+                brokerName = "Null";
+            }
+            else {
+                brokerName = "MemoryMapSynchronisedInputBroker";
+            }
+        }
+        else {
+            brokerName = "MemoryMapInputBroker";
+        }
     }
+
     return brokerName;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool EPICSPVAInput::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool EPICSPVAInput::PrepareNextState(const char8 *const currentStateName,
+                                     const char8 *const nextStateName) {
     return true;
 }
 
-ErrorManagement::ErrorType EPICSPVAInput::Execute(ExecutionInfo& info) {
+bool EPICSPVAInput::Synchronise() {
+    ErrorManagement::ErrorType err = synchSem.ResetWait(TTInfiniteWait);
+    return err.ErrorsCleared();
+}
+
+ErrorManagement::ErrorType EPICSPVAInput::Execute(ExecutionInfo &info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
         err.fatalError = !channelList[info.GetThreadNumber()].Monitor();
     }
+    (void) (synchSem.Post());
     return err;
 }
 
@@ -179,10 +212,6 @@ uint32 EPICSPVAInput::GetStackSize() const {
 
 uint32 EPICSPVAInput::GetCPUMask() const {
     return cpuMask;
-}
-
-bool EPICSPVAInput::Synchronise() {
-    return false;
 }
 
 CLASS_REGISTER(EPICSPVAInput, "1.0")

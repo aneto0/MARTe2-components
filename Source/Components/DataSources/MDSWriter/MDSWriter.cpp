@@ -203,14 +203,13 @@ bool MDSWriter::Initialise(StructuredDataI& data) {
         REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers shall be > 0u");
     }
     if (ok) {
-        // TODO (WARNING) change CPUMask type to support more than 32 cpus
-        uint32 cpuMaskIn;
+        uint64 cpuMaskIn;
         ok = data.Read("CPUMask", cpuMaskIn);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "CPUMask shall be specified");
         }
         else {
-            cpuMask = ProcessorType(cpuMaskIn);
+            cpuMask = BitSet(cpuMaskIn);
         }
     }
     if (ok) {

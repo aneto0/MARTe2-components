@@ -52,8 +52,9 @@ public:
      * @param[in] danBufferMultiplierIn the number of buffers that will be used by the DAN library to store the signals in order to avoid buffer overwrites after a PutData.
      * @param[in] samplingFrequencyIn the stream sampling frequency.
      * @param[in] numberOfSamplesIn the number of samples written on every PutData call.
+     * @param[in] interleaveIn if false the data will not be interleaved (i.e. it will be assumed to be already interleaved).
      */
-    DANStream(const TypeDescriptor & tdIn, StreamString baseNameIn, uint32 danBufferMultiplierIn, float64 samplingFrequencyIn, uint32 numberOfSamplesIn);
+    DANStream(const TypeDescriptor & tdIn, StreamString baseNameIn, uint32 danBufferMultiplierIn, float64 samplingFrequencyIn, uint32 numberOfSamplesIn, bool interleaveIn);
 
     /**
      * @brief Frees the allocated memory and calls dan_publisher_unpublishSource.
@@ -249,6 +250,11 @@ private:
      * The name of the DANSource that holds this DANStream.
      */
     StreamString danSourceName;
+
+    /**
+     * If false the data will be assumed to be already interleaved.
+     */
+    bool interleave;
 
     /*lint -e{1712} This class does not have a default constructor because
      * the constructor input parameters must be defined on construction and both remain constant

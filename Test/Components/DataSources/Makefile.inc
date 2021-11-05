@@ -85,52 +85,7 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-LIBRARIES_STATIC=$(BUILD_DIR)/EpicsDataSource/EpicsDataSourceTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/FileDataSource/FileDataSourceTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/LinuxTimer/LinuxTimerTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/LinkDataSource/LinkDataSourceTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/LoggerDataSource/LoggerDataSourceTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadAsyncBridge/RealTimeThreadAsyncBridgeTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/RealTimeThreadSynchronisation/RealTimeThreadSynchronisationTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/UDP/UDPTest$(LIBEXT)
-
-ifdef CODAC_ROOT
-LIBRARIES_STATIC+=$(BUILD_DIR)/DAN/DANTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/NI1588/NI1588Test$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/NI6259/NI6259Test$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/NI6368/NI6368Test$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/NI9157/NI9157Test$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/NI9157/Optim/NI9157MemoryOperationsHelperTest$(LIBEXT)
-endif
-
-ifdef MDSPLUS_DIR
-LIBRARIES_STATIC+=$(BUILD_DIR)/MDSWriter/MDSWriterTest$(LIBEXT)
-LIBRARIES_STATIC+=$(BUILD_DIR)/MDSReader/MDSReaderTest$(LIBEXT)
-endif
-
-# Inclusion of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
-ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
-LIBRARIES_STATIC+=$(BUILD_DIR)/SDN/SDNTest$(LIBEXT)
-endif
-
-ifdef EPICS_BASE
-LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSCA/EPICSCATest$(LIBEXT)
-endif
-
-ifdef EPICSPVA
-LIBRARIES_STATIC+=$(BUILD_DIR)/EPICSPVA/EPICSPVADataSourceTest$(LIBEXT)
-endif
-
-ifdef OPEN62541_INCLUDE
-LIBRARIES_STATIC+=$(BUILD_DIR)/OPCUADataSource/OPCUADataSourceTest$(LIBEXT)
-endif
-
-ifdef PROFINET_COMPILE
-LIBRARIES_STATIC+=$(BUILD_DIR)/ProfinetDataSource/ProfinetDataSourceTest$(LIBEXT)
-endif
-
-all: $(OBJS) $(SUBPROJ) \
-    $(BUILD_DIR)/DataSourcesTests$(LIBEXT)
+all: $(OBJS) $(SUBPROJ) 
 	echo  $(OBJS)
 
 include depends.$(TARGET)

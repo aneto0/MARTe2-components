@@ -23,23 +23,41 @@
 # $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
 #
 #############################################################
-SPB    = Source/Components/DataSources.x \
+#Subprojects w.r.t. the main directory only (important to allow setting SPBM as an export variable).
+#If SPB is directly exported as an environment variable it will also be evaluated as part of the subprojects SPB, thus
+#potentially overriding its value
+#Main target subprojects. May be overridden by shell definition.
+SPBM?=Source/Components/DataSources.x \
 	Source/Components/GAMs.x \
 	Source/Components/Interfaces.x
 
-SPB += Test/Components/DataSources.x \
+#Testing of the main target subprojects. May be overridden by shell definition.
+SPBMT?=Test/Components/DataSources.x \
     Test/Components/GAMs.x \
-    Test/Components/Interfaces.x
+    Test/Components/Interfaces.x \
+	Test/GTest.x
 
-SPB += Test/GTest.x
+#This really has to be defined locally.
+SUBPROJMAIN=$(SPBM:%.x=%.spb)
+SUBPROJMAINTEST=$(SPBMT:%.x=%.spb)
+SUBPROJMAINCLEAN=$(SPBM:%.x=%.spc)
+SUBPROJMAINTESTCLEAN=$(SPBMT:%.x=%.spc)
 
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 ROOT_DIR=.
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-all: $(OBJS) $(SUBPROJ) check-env
+all: $(OBJS) core test
 	echo  $(OBJS)
+
+core: $(SUBPROJMAIN) check-env
+	echo  $(SUBPROJMAIN)
+
+test: $(SUBPROJMAINTEST) check-env
+	echo  $(SUBPROJMAINTEST)
+
+clean:: $(SUBPROJMAINCLEAN) $(SUBPROJMAINTESTCLEAN) clean_wipe_old
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 

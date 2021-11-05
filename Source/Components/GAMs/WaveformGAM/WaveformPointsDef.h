@@ -74,8 +74,7 @@ namespace MARTe {
  * The minimum number of points must be two, otherwise it is impossible to interpolated and the GAM exits with an initialisation error
  */
 class WaveformPointsDef: public Waveform {
-public:
-    CLASS_REGISTER_DECLARATION()
+public:CLASS_REGISTER_DECLARATION()
 
     /**
      * @brief Default constructor
@@ -91,7 +90,7 @@ public:
      * beginningSequence = true\n
      * lastTimeValue = 0.0\n
      */
-WaveformPointsDef    ();
+    WaveformPointsDef ();
     /**
      * @brief default destructor
      * @details frees the memory allocated by this GAM and points the pointers to NULL
@@ -107,7 +106,7 @@ WaveformPointsDef    ();
      * Moreover, from Points and Times vector, the slope for each segment is calculated.
      * @return true if all parameters are valid
      */
-    virtual bool Initialise(StructuredDataI & data);
+    virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @brief computes the waveform interpolating points in uint8.
@@ -209,7 +208,21 @@ private:
     template<typename T>
     bool GetValue();
 
+    /**
+     * Binary search for preq in p.
+     * @param[in] preq the value to search.
+     * @param[in] p the array to be searched.
+     * @param[in] sizeOfArray the size of p.
+     * @param[out] index the index of preq in p, if found.
+     * @return true if preq is found.
+     */
+    bool SearchIndex(const float64 preq, const float64 * const p, const uint32 sizeOfArray, uint32& index) const;
+
+    /**
+     * Array to store the values.
+     */
     float64 *points;
+
     /**
      * times array to indicate at which time there is a new point. The first time must be 0
      */
@@ -278,7 +291,7 @@ private:
      * @details It checks that the first element is equal than 0.0 and the time is increasing.
      * @return true if the time is consistent with the previous listed conditions.
      */
-    bool VerifyTimes () const;
+    bool VerifyTimes() const;
 
     /**
      * @brief Using the time decides between which points the interpolation must be done.
@@ -304,11 +317,12 @@ namespace MARTe {
 
 template<typename T>
 bool WaveformPointsDef::GetValue() {
-for (uint32 i = 0u; (i < numberOfOutputElements); i++) {
-    static_cast<T *>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
+    for (uint32 i = 0u; (i < numberOfOutputElements); i++) {
+        static_cast<T*>(outputValue[indexOutputSignal])[i] = static_cast<T>(outputFloat64[i]);
+    }
+    return true;
 }
-return true;
-}
+
 }
 
 #endif /* WAVEFORMPOINTSDEFGAM_H_ */

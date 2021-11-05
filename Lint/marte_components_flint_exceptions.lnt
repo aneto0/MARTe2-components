@@ -75,6 +75,7 @@
 /* Notes related to functions that belong to external libraries*/
 -estring(1960,*MARTe::AnyType::*)
 -estring(1960,*MARTe::CRC*)
+-estring(1960,*MARTe::Matrix*)
 -estring(1960,*MARTe::Vector*)
 -estring(1960,*MARTe::StaticStack*)
 -estring(1960,*MARTe::Sleep::*)
@@ -90,6 +91,7 @@
 -estring(1960,*__gnu_cxx::*)
 -estring(1960,*__throw_*)
 -estring(1960,*epics*::*)
+-estring(1960,*MDSplus*::*)
 -estring(451,*NiFpga.h*)
 
 /* Exceptions related to the open62541*/

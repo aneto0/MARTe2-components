@@ -39,58 +39,59 @@
 namespace MARTe {
 
 /**
-* @brief Interface for TimeProvider plugins on the Linux Timer DataSource
-*/
+ * @brief Interface for TimeProvider plugins on the Linux Timer DataSource
+ */
 class TimeProvider: public Object {
-    public:
+public:
 
-        /**
-        * @brief Default constructor
-        */
-        TimeProvider();
+    /**
+     * @brief Default constructor
+     */
+    TimeProvider();
 
-        /**
-        * @brief Destructor
-        */
-        virtual ~TimeProvider();
+    /**
+     * @brief Destructor
+     */
+    virtual ~TimeProvider();
 
-        /**
-        * @brief Returns the actual ticks count, as elapsed nanoseconds
-        * @return The actual elapsed nanoseconds from the source
-        */
-        virtual uint64 Counter() = 0;
+    /**
+     * @brief Returns the actual ticks count, as elapsed nanoseconds
+     * @return The actual elapsed nanoseconds from the source
+     */
+    virtual uint64 Counter() = 0;
 
-        /**
-        * @brief Returns the actual period expressed in nanoseconds between ticks of the internal source
-        * @return The actual period between ticks, expressed in nanoseconds
-        */
-        virtual float64 Period() = 0;
+    /**
+     * @brief Returns the actual period expressed in nanoseconds between ticks of the internal source
+     * @return The actual period between ticks, expressed in nanoseconds
+     */
+    virtual float64 Period() = 0;
 
-        /**
-        * @brief Returns the actual cpu clock frequency in Hz
-        * @return The cpu clock frequency expressed in Hz
-        */
-        virtual uint64 Frequency() = 0;
+    /**
+     * @brief Returns the actual cpu clock frequency in Hz
+     * @return The cpu clock frequency expressed in Hz
+     */
+    virtual uint64 Frequency() = 0;
 
-        /**
-        * @brief Sleeps for a given amount of time, which starts at start and elapses for delta ticks
-        * The sleeping strategy is related to the plugin itself. The strategy can be fixed or user-selectable
-        * depending on the support offered by the plugin and its backings.
-        * @param[in] start Time marker for the sleep start
-        * @param[in] delta Amount of ticks to sleep for
-        */
-        virtual bool Sleep(const uint64 start, const uint64 delta) = 0;
+    /**
+     * @brief Sleeps for a given amount of time, which starts at start and elapses for delta ticks
+     * The sleeping strategy is related to the plugin itself. The strategy can be fixed or user-selectable
+     * depending on the support offered by the plugin and its backings.
+     * @param[in] start Time marker for the sleep start
+     * @param[in] delta Amount of ticks to sleep for
+     */
+    virtual bool Sleep(const uint64 start,
+                       const uint64 delta) = 0;
 
-        /**
-        * @brief Offers a way to maintain backward compatibility to current functionalities which require settings
-        *        to be written in the parent container. As the current approach is to have specific configuration data
-        *        inside the plugin instance, this function offers an entry point to bring configuration data to the inner
-        *        plugin, without breaking things nor violating new interface and op design.
-        * @param[in] compatibilityData Structured data where configuration is ported down to the plugin.
-        * @return True if configuration operation succeeds. False otherwise.
-        */
-        virtual bool BackwardCompatibilityInit(StructuredDataI &compatibilityData) = 0;
-    };
+    /**
+     * @brief Offers a way to maintain backward compatibility to current functionalities which require settings
+     *        to be written in the parent container. As the current approach is to have specific configuration data
+     *        inside the plugin instance, this function offers an entry point to bring configuration data to the inner
+     *        plugin, without breaking things nor violating new interface and op design.
+     * @param[in] compatibilityData Structured data where configuration is ported down to the plugin.
+     * @return True if configuration operation succeeds. False otherwise.
+     */
+    virtual bool BackwardCompatibilityInit(StructuredDataI &compatibilityData) = 0;
+};
 }
 
 /*---------------------------------------------------------------------------*/

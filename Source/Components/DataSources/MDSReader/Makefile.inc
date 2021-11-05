@@ -48,6 +48,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
 #TODO Temporary to fix problem in mdsplus include
 CPPFLAGS += -Wno-error=sign-compare
+LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
 
 all: $(OBJS)    \
     $(BUILD_DIR)/MDSReader$(LIBEXT) \

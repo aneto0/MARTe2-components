@@ -37,6 +37,7 @@
 #include "ConfigurationDatabase.h"
 #include "DataSourceI.h"
 #include "DjbHashFunction.h"
+#include "EPICSPVAFieldWrapper.h"
 #include "StreamString.h"
 #include "StructuredDataI.h"
 
@@ -45,6 +46,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+#if 0
 /**
  * Wraps a record signal memory
  */
@@ -70,7 +72,7 @@ struct EPICSPVAChannelWrapperCachedSignal {
      */
     epics::pvData::PVFieldPtr pvField;
 };
-
+#endif
 /**
  * @brief Helper class which encapsulates a PVA signal (record) and allows to put/monitor.
  */
@@ -143,28 +145,20 @@ private:
 
     /**
      * @brief Recursively populates the cachedSignals (flat list of the structure identified with the qualifiedName) array from the input structure.
-     * @param[in] pvStruct the structure to be resolved.
+     * @param[in] pvField the structure to be resolved.
      * @param[in] nodeName the name of structure.
+     * @param[in, out] absIndex absolute signal index of the cached signal. It is incremented every time a new leaf is found in the recursed structure.
      * @return true if the structure can be fully resolved with no errors.
      */
-    bool ResolveStructure(epics::pvData::PVFieldPtr pvField, const char8 * const nodeName);
-
+    bool ResolveStructure(epics::pvData::PVFieldPtr pvField, const char8 * const nodeName, uint32 &absIndex);
+    
     /**
-     * @brief Helper method which set signal at index \a in the \a putBuilder.
-     * @param[in] n the index of the signal to write.
-     */
-    template<typename T>
-    void PutHelper(uint32 n);
-
-    /**
-     * @brief Helper method which gets the value of the signal at index \a from the relevant field in the \a scalarArrayPtr.
-     * @param[in] scalarArrayPtr valid PVScalarArray from where to read the array values.
-     * @param[in] n the index of the signal to be updated with the read array values.
-     * @return true if the array was successfully read.
-     */
-    template<typename T>
-    bool GetArrayHelper(epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr, uint32 n);
-
+     * @brief Revisits the full structure (\a pvField) and updates the PVFieldPtr of all the cachedSignals.
+     * @param[in] pvField the structure to be resolved.
+     * @param[in, out] absIndex absolute signal index of the cached signal. It is incremented every time a new leaf is found in the recursed structure.
+     * @return true if the structure can be fully refreshed with no errors.
+     */ 
+    bool RefreshStructure(epics::pvData::PVFieldPtr pvField, uint32 &absIndex);
     /**
      * The EPICS PVA channel
      */
@@ -203,7 +197,7 @@ private:
     /**
      * The cached signals (flat list of the structure identified with the qualifiedName).
      */
-    EPICSPVAChannelWrapperCachedSignal *cachedSignals;
+    EPICSPVAFieldWrapperI **cachedSignals;
 
     /**
      * Was the structured resolved at least once?
@@ -229,68 +223,16 @@ private:
      * Cache the index of the signals.
      */
     ConfigurationDatabase signalsIndexCache;
+
+    /**
+     * Maps the absIndex of the recursed structure into the index of the cachedSignals where that signal is stored.
+     * See ResolveStructure and RefreshStructure
+     */
+    uint32 *resolvedStructIndexMap;
 };
 }
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
-namespace MARTe {
-template<typename T>
-void EPICSPVAChannelWrapper::PutHelper(uint32 n) {
-    if ((cachedSignals[n].numberOfElements) == 1u) {
-        epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar > (cachedSignals[n].pvField);
-        if (scalarFieldPtr ? true : false) {
-            scalarFieldPtr->putFrom<T>(*static_cast<T *>(cachedSignals[n].memory));
-        }
-        else {
-            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Signal %s has an invalid pv field", cachedSignals[n].qualifiedName.Buffer());
-        }
-    }
-    else {
-        epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast < epics::pvData::PVScalarArray > (cachedSignals[n].pvField);
-        if (scalarArrayPtr ? true : false) {
-            epics::pvData::shared_vector<T> out;
-            out.resize(cachedSignals[n].numberOfElements);
-            (void) MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), cachedSignals[n].memory, cachedSignals[n].numberOfElements * sizeof(T));
-            epics::pvData::shared_vector<const T> outF = freeze(out);
-            scalarArrayPtr->putFrom<T>(outF);
-        }
-        else {
-            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Signal %s has an invalid pv field", cachedSignals[n].qualifiedName.Buffer());
-        }
-    }
-}
-
-template<>
-inline void EPICSPVAChannelWrapper::PutHelper<char8>(uint32 n) {
-    epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast < epics::pvData::PVScalar > (cachedSignals[n].pvField);
-    if (scalarFieldPtr ? true : false) {
-        std::string value = reinterpret_cast<char8 *>(cachedSignals[n].memory);
-        scalarFieldPtr->putFrom<std::string>(value);
-    }
-    else {
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError,
-                            "Signal %s has an invalid pv field. Note that arrays of strings are not supported in the data-source yet",
-                            cachedSignals[n].qualifiedName.Buffer());
-    }
-}
-
-template<typename T>
-bool EPICSPVAChannelWrapper::GetArrayHelper(epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr, uint32 n) {
-    bool ok = true;
-    epics::pvData::shared_vector<const T> out;
-    scalarArrayPtr->getAs<T>(out);
-    uint32 i;
-    Vector<T> readVec(reinterpret_cast<T *>(cachedSignals[n].memory), cachedSignals[n].numberOfElements);
-    Vector<T> srcVec(const_cast<T *>(reinterpret_cast<const T *>(out.data())), cachedSignals[n].numberOfElements);
-    for (i = 0u; i < cachedSignals[n].numberOfElements; i++) {
-        readVec[i] = srcVec[i];
-    }
-
-    return ok;
-}
-
-}
-
 #endif /* EPICSPVA_EPICSPVACHANNELWRAPPER_H_ */

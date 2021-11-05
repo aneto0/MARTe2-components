@@ -43,14 +43,23 @@
 namespace MARTe {
 EPICSPVAChannelWrapper::EPICSPVAChannelWrapper() {
     numberOfSignals = 0u;
-    cachedSignals = NULL_PTR(EPICSPVAChannelWrapperCachedSignal *);
+    resolvedStructIndexMap = NULL_PTR(uint32 *);
+    cachedSignals = NULL_PTR(EPICSPVAFieldWrapperI **);
     structureResolved = false;
     putFinished = false;
 }
 
 EPICSPVAChannelWrapper::~EPICSPVAChannelWrapper() {
-    if (cachedSignals != NULL_PTR(EPICSPVAChannelWrapperCachedSignal *)) {
+    if (cachedSignals != NULL_PTR(EPICSPVAFieldWrapperI **)) {
+        for (uint32 n = 0u; (n < numberOfSignals); n++) {
+            if (cachedSignals[n] != NULL_PTR(EPICSPVAFieldWrapperI *)) {
+                delete cachedSignals[n];
+            }
+        }
         delete[] cachedSignals;
+    }
+    if (resolvedStructIndexMap != NULL_PTR(uint32 *)) {
+        delete [] resolvedStructIndexMap;
     }
     channel = pvac::ClientChannel();
     monitor = pvac::MonitorSync();
@@ -78,9 +87,9 @@ bool EPICSPVAChannelWrapper::SetAliasAndField(StructuredDataI &data) {
 bool EPICSPVAChannelWrapper::Setup(DataSourceI &dataSource) {
     bool ok = true;
     uint32 maxNumberOfSignals = dataSource.GetNumberOfSignals();
-    EPICSPVAChannelWrapperCachedSignal *tempCachedSignals = new EPICSPVAChannelWrapperCachedSignal[maxNumberOfSignals];
-    numberOfSignals = 0u;
+    EPICSPVAFieldWrapperI **tempCachedSignals = new EPICSPVAFieldWrapperI*[maxNumberOfSignals];
     uint32 n;
+    numberOfSignals = 0u;
     for (n = 0u; (n < maxNumberOfSignals) && (ok); n++) {
         StreamString signalName;
         ok = dataSource.GetSignalName(n, signalName);
@@ -101,55 +110,102 @@ bool EPICSPVAChannelWrapper::Setup(DataSourceI &dataSource) {
             }
         }
         if (signalBelongsToThisWrapper) {
+            StreamString qualifiedName;
+            uint32 numberOfElements;
+            void *memory;
+            TypeDescriptor typeDescriptor;
             if (ok) {
-                tempCachedSignals[numberOfSignals].qualifiedName = "";
                 if (signalName.Position() == signalName.Size()) {
-                    ok = tempCachedSignals[numberOfSignals].qualifiedName.Printf("%s", fieldName.Buffer());
+                    ok = qualifiedName.Printf("%s", fieldName.Buffer());
                 }
                 else {
                     if (term == '.') {
-                        ok = tempCachedSignals[numberOfSignals].qualifiedName.Printf("%s.%s", fieldName.Buffer(), signalName);
+                        ok = qualifiedName.Printf("%s.%s", fieldName.Buffer(), signalName);
                     }
                     else {
-                        ok = tempCachedSignals[numberOfSignals].qualifiedName.Printf("%s[%s", fieldName.Buffer(), signalName);
+                        ok = qualifiedName.Printf("%s[%s", fieldName.Buffer(), signalName);
                     }
                 }
             }
             if (ok) {
-                tempCachedSignals[numberOfSignals].typeDescriptor = dataSource.GetSignalType(n);
-                ok = dataSource.GetSignalNumberOfElements(n, tempCachedSignals[numberOfSignals].numberOfElements);
+                typeDescriptor = dataSource.GetSignalType(n);
+                ok = dataSource.GetSignalNumberOfElements(n, numberOfElements);
             }
             if (ok) {
-                ok = signalsIndexCache.CreateAbsolute(tempCachedSignals[numberOfSignals].qualifiedName.Buffer());
+                ok = signalsIndexCache.CreateAbsolute(qualifiedName.Buffer());
                 if (ok) {
                     ok = signalsIndexCache.Write("Index", numberOfSignals);
                 }
                 else {
-                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed to add signal %s to signalsIndexCache [%d]", tempCachedSignals[numberOfSignals].qualifiedName.Buffer(), numberOfSignals);
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed to add signal %s to signalsIndexCache [%d]", qualifiedName.Buffer(), numberOfSignals);
                 }
             }
             if (ok) {
-                ok = dataSource.GetSignalMemoryBuffer(n, 0u, tempCachedSignals[numberOfSignals].memory);
+                ok = dataSource.GetSignalMemoryBuffer(n, 0u, memory);
             }
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s [%s]", tempCachedSignals[numberOfSignals].qualifiedName.Buffer(), channelName.Buffer());
+            if (ok) {
+                if (typeDescriptor == UnsignedInteger8Bit) {
+                    tempCachedSignals[numberOfSignals] = new EPICSPVAFieldWrapper<uint8>();
+                }
+                else if (typeDescriptor == UnsignedInteger16Bit) {
+                    tempCachedSignals[numberOfSignals] = new EPICSPVAFieldWrapper<uint16>();
+                }
+                else if (typeDescriptor == UnsignedInteger32Bit) {
+                    tempCachedSignals[numberOfSignals] = new EPICSPVAFieldWrapper<uint32>();
+                }
+                else if (typeDescriptor == UnsignedInteger64Bit) {
+                    tempCachedSignals[numberOfSignals] = new EPICSPVAFieldWrapper<unsigned long int>();
+                }
+                else if (typeDescriptor == SignedInteger8Bit) {
+                    tempCachedSignals[numberOfSignals] = new EPICSPVAFieldWrapper<int8>();
+                }
+                else if (typeDescriptor == SignedInteger16Bit) {
+                    tempCachedSignals[numberOfSignals] = new EPICSPVAFieldWrapper<int16>();
+                }
+                else if (typeDescriptor == SignedInteger32Bit) {
+                    tempCachedSignals[numberOfSignals] = new EPICSPVAFieldWrapper<int32>();
+                }
+                else if (typeDescriptor == SignedInteger64Bit) {
+                    tempCachedSignals[numberOfSignals] = new EPICSPVAFieldWrapper<long int>();
+                }
+                else if (typeDescriptor == Float32Bit) {
+                    tempCachedSignals[numberOfSignals] = new EPICSPVAFieldWrapper<float32>();
+                }
+                else if (typeDescriptor == Float64Bit) {
+                    tempCachedSignals[numberOfSignals] = new EPICSPVAFieldWrapper<float64>();
+                }
+                else if (typeDescriptor == Character8Bit) {
+                    tempCachedSignals[numberOfSignals] = new EPICSPVAFieldWrapper<char8>();
+                }
+                else if (typeDescriptor == CharString) {
+                    ok = false;
+                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "For strings use Type = char8; for bytes use Type = uint8");
+                }
+            }
+            if (ok) {
+                tempCachedSignals[numberOfSignals]->SetMemory(numberOfElements, qualifiedName.Buffer(), memory);
+            }
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "Registering signal %s [%s]", qualifiedName.Buffer(), channelName.Buffer());
             numberOfSignals++;
         }
     }
     if (ok) {
-        if (cachedSignals != NULL_PTR(EPICSPVAChannelWrapperCachedSignal *)) {
+        if (cachedSignals != NULL_PTR(EPICSPVAFieldWrapperI**)) {
             delete[] cachedSignals;
         }
         if (numberOfSignals > 0u) {
-            cachedSignals = new EPICSPVAChannelWrapperCachedSignal[numberOfSignals];
+            cachedSignals = new EPICSPVAFieldWrapperI*[numberOfSignals];
             for (n = 0u; (n < numberOfSignals); n++) {
                 cachedSignals[n] = tempCachedSignals[n];
             }
         }
-        if (tempCachedSignals != NULL_PTR(EPICSPVAChannelWrapperCachedSignal *)) {
+        if (tempCachedSignals != NULL_PTR(EPICSPVAFieldWrapperI **)) {
             delete[] tempCachedSignals;
         }
     }
-
+    if (ok) {
+        resolvedStructIndexMap = new uint32[numberOfSignals];
+    }
     return ok;
 }
 
@@ -177,10 +233,11 @@ bool EPICSPVAChannelWrapper::Put() {
 
         if (ok) {
             if (!structureResolved) {
+                uint32 absIndex = 0u;
                 epics::pvData::PVStructurePtr getPVStruct = std::const_pointer_cast<epics::pvData::PVStructure>(channel.get());
                 ok = (getPVStruct) ? true : false;
                 if (ok) {
-                    ok = ResolveStructure(getPVStruct, "");
+                    ok = ResolveStructure(getPVStruct, "", absIndex);
                     if (ok) {
                         putPVStruct = getPVStruct;
                     }
@@ -191,49 +248,7 @@ bool EPICSPVAChannelWrapper::Put() {
         if (ok) {
             uint32 n;
             for (n = 0u; n < numberOfSignals; n++) {
-                if (cachedSignals[n].typeDescriptor == UnsignedInteger8Bit) {
-                    PutHelper<uint8>(n);
-                }
-                else if (cachedSignals[n].typeDescriptor == UnsignedInteger16Bit) {
-                    PutHelper<uint16>(n);
-                }
-                else if (cachedSignals[n].typeDescriptor == UnsignedInteger32Bit) {
-                    PutHelper<uint32>(n);
-                }
-                else if (cachedSignals[n].typeDescriptor == UnsignedInteger64Bit) {
-                    PutHelper<unsigned long int>(n);
-                }
-                else if (cachedSignals[n].typeDescriptor == SignedInteger8Bit) {
-                    PutHelper<int8>(n);
-                }
-                else if (cachedSignals[n].typeDescriptor == SignedInteger16Bit) {
-                    PutHelper<int16>(n);
-                }
-                else if (cachedSignals[n].typeDescriptor == SignedInteger32Bit) {
-                    PutHelper<int32>(n);
-                }
-                else if (cachedSignals[n].typeDescriptor == SignedInteger64Bit) {
-                    PutHelper<long int>(n);
-                }
-                else if (cachedSignals[n].typeDescriptor == Float32Bit) {
-                    PutHelper<float32>(n);
-                }
-                else if (cachedSignals[n].typeDescriptor == Float64Bit) {
-                    PutHelper<float64>(n);
-                }
-                else if (cachedSignals[n].typeDescriptor == Character8Bit) {
-                    PutHelper<char8>(n);
-                }
-                else if (cachedSignals[n].typeDescriptor == CharString) {
-                    ok = false;
-                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "For strings use Type = char8; for bytes use Type = uint8");
-                }
-                else {
-                    //Should never reach here...
-                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported type");
-                    ok = false;
-                }
-
+                cachedSignals[n]->Put();
             }
         }
         putFinished = false;
@@ -252,7 +267,43 @@ bool EPICSPVAChannelWrapper::Put() {
     return ok;
 }
 
-bool EPICSPVAChannelWrapper::ResolveStructure(epics::pvData::PVFieldPtr pvField, const char8 * const nodeName) {
+bool EPICSPVAChannelWrapper::RefreshStructure(epics::pvData::PVFieldPtr pvField, uint32 &absIndex) {
+    epics::pvData::PVStructurePtr pvStruct = std::dynamic_pointer_cast<epics::pvData::PVStructure>(pvField);
+    bool ok = (pvStruct ? true : false);
+    if (ok) {
+        const epics::pvData::PVFieldPtrArray & fields = pvStruct->getPVFields();
+        uint32 nOfFields = fields.size();
+        uint32 n;
+
+        for (n = 0u; (n < nOfFields) && (ok); n++) {
+            epics::pvData::PVFieldPtr field = fields[n];
+            epics::pvData::Type fieldType = field->getField()->getType();
+            if (fieldType == epics::pvData::structureArray) {
+                epics::pvData::PVStructureArray::const_svector arr(static_cast<const epics::pvData::PVStructureArray*>(field.operator ->())->view());
+                uint32 z;
+                ok = (arr.size() > 0);
+                for (z = 0u; (z < arr.size()) && (ok); z++) {
+                    //This assumes that only linear arrays are supported, otherwise the field name will be wrong.
+                    ok = RefreshStructure(arr[z], absIndex);
+                }
+            }
+            else {
+                if ((fieldType == epics::pvData::scalar) || (fieldType == epics::pvData::scalarArray)) {
+                    uint32 index = resolvedStructIndexMap[absIndex];
+                    cachedSignals[index]->SetPVAField(field);
+                    ok = cachedSignals[index]->Get();
+                    absIndex++;
+                }
+                else if (fieldType == epics::pvData::structure) {
+                    ok = RefreshStructure(field, absIndex);
+                }
+            }
+        }
+    }
+    return ok;
+}
+
+bool EPICSPVAChannelWrapper::ResolveStructure(epics::pvData::PVFieldPtr pvField, const char8 * const nodeName, uint32 &absIndex) {
     epics::pvData::PVStructurePtr pvStruct = std::dynamic_pointer_cast<epics::pvData::PVStructure>(pvField);
     bool ok = (pvStruct ? true : false);
     if (ok) {
@@ -281,7 +332,7 @@ bool EPICSPVAChannelWrapper::ResolveStructure(epics::pvData::PVFieldPtr pvField,
                     indexFullFieldName = fullFieldName;
                     indexFullFieldName.Printf("[%d]", z);
                     //This assumes that only linear arrays are supported, otherwise the field name will be wrong.
-                    ok = ResolveStructure(arr[z], indexFullFieldName.Buffer());
+                    ok = ResolveStructure(arr[z], indexFullFieldName.Buffer(), absIndex);
                 }
             }
             else {
@@ -294,7 +345,9 @@ bool EPICSPVAChannelWrapper::ResolveStructure(epics::pvData::PVFieldPtr pvField,
                     }
                     ok = found;
                     if (ok) {
-                        cachedSignals[index].pvField = field;
+                        resolvedStructIndexMap[absIndex] = index;
+                        cachedSignals[index]->SetPVAField(field);
+                        absIndex++;
                         REPORT_ERROR_STATIC(ErrorManagement::Debug, "Assigned PV to signal with name [%s]", fullFieldName.Buffer());
                     }
                     if (!ok) {
@@ -303,7 +356,7 @@ bool EPICSPVAChannelWrapper::ResolveStructure(epics::pvData::PVFieldPtr pvField,
                 }
                 else if (fieldType == epics::pvData::structure) {
                     REPORT_ERROR_STATIC(ErrorManagement::Debug, "Resolving structure [%s]", fullFieldName.Buffer());
-                    ok = ResolveStructure(field, fullFieldName.Buffer());
+                    ok = ResolveStructure(field, fullFieldName.Buffer(), absIndex);
                 }
             }
         }
@@ -331,117 +384,24 @@ bool EPICSPVAChannelWrapper::Monitor() {
             }
         }
         if (ok) {
-            if (monitor.wait(0.2)) {
+            if (monitor.wait(2.0)) {
                 if (monitor.event.event == pvac::MonitorEvent::Data) {
                     while (monitor.poll()) {
                         structureResolved = (monitorRoot ? true : false);
                         if (structureResolved) {
                             structureResolved = (monitorRoot.get() == monitor.root.get());
                         }
+                        uint32 absIndex = 0u;
                         if (!structureResolved) {
                             if (ok) {
                                 monitorRoot = monitor.root;
-                                ok = ResolveStructure(std::const_pointer_cast<epics::pvData::PVStructure>(monitorRoot), "");
+                                ok = ResolveStructure(std::const_pointer_cast<epics::pvData::PVStructure>(monitorRoot), "", absIndex);
                             }
                             structureResolved = ok;
                         }
-                        uint32 n;
-                        for (n = 0u; (n < numberOfSignals) && (ok); n++) {
-                            epics::pvData::PVScalar::const_shared_pointer scalarFieldPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalar>(cachedSignals[n].pvField);
-                            if (cachedSignals[n].typeDescriptor == Character8Bit) {
-                                ok = (scalarFieldPtr ? true : false);
-                                if (ok) {
-                                    std::string value = scalarFieldPtr->getAs<std::string>();
-                                    uint32 maxSize = value.size();
-                                    if (maxSize > cachedSignals[n].numberOfElements) {
-                                        maxSize = cachedSignals[n].numberOfElements;
-                                    }
-                                    StringHelper::CopyN(reinterpret_cast<char8 *>(cachedSignals[n].memory), value.c_str(), maxSize);
-                                }
-                            }
-                            else if (cachedSignals[n].typeDescriptor == CharString) {
-                                ok = false;
-                                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "For strings use Type = char8; for bytes use Type = uint8");
-                            }
-                            else if ((cachedSignals[n].numberOfElements) == 1u) {
-                                ok = (scalarFieldPtr ? true : false);
-                                if (ok) {
-                                    if (cachedSignals[n].typeDescriptor == UnsignedInteger8Bit) {
-                                        *reinterpret_cast<uint8 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<uint8>();
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == UnsignedInteger16Bit) {
-                                        *reinterpret_cast<uint16 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<uint16>();
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == UnsignedInteger32Bit) {
-                                        *reinterpret_cast<uint32 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<uint32>();
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == UnsignedInteger64Bit) {
-                                        *reinterpret_cast<uint64 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<long unsigned int>();
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == SignedInteger8Bit) {
-                                        *reinterpret_cast<int8 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<int8>();
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == SignedInteger16Bit) {
-                                        *reinterpret_cast<int16 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<int16>();
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == SignedInteger32Bit) {
-                                        *reinterpret_cast<int32 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<int32>();
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == SignedInteger64Bit) {
-                                        *reinterpret_cast<int64 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<long int>();
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == Float32Bit) {
-                                        *reinterpret_cast<float32 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<float32>();
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == Float64Bit) {
-                                        *reinterpret_cast<float64 *>(cachedSignals[n].memory) = scalarFieldPtr->getAs<float64>();
-                                    }
-                                    else {
-                                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported read type for signal %s", cachedSignals[n].qualifiedName.Buffer());
-                                        ok = false;
-                                    }
-                                }
-                            }
-                            else {
-                                epics::pvData::PVScalarArray::const_shared_pointer scalarArrayPtr = std::dynamic_pointer_cast<const epics::pvData::PVScalarArray>(cachedSignals[n].pvField);
-                                ok = (scalarArrayPtr ? true : false);
-                                if (ok) {
-                                    if (cachedSignals[n].typeDescriptor == UnsignedInteger8Bit) {
-                                        ok = GetArrayHelper<uint8>(scalarArrayPtr, n);
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == UnsignedInteger16Bit) {
-                                        ok = GetArrayHelper<uint16>(scalarArrayPtr, n);
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == UnsignedInteger32Bit) {
-                                        ok = GetArrayHelper<uint32>(scalarArrayPtr, n);
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == UnsignedInteger64Bit) {
-                                        ok = GetArrayHelper<unsigned long int>(scalarArrayPtr, n);
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == SignedInteger8Bit) {
-                                        ok = GetArrayHelper<int8>(scalarArrayPtr, n);
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == SignedInteger16Bit) {
-                                        ok = GetArrayHelper<uint16>(scalarArrayPtr, n);
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == SignedInteger32Bit) {
-                                        ok = GetArrayHelper<int32>(scalarArrayPtr, n);
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == SignedInteger64Bit) {
-                                        ok = GetArrayHelper<long int>(scalarArrayPtr, n);
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == Float32Bit) {
-                                        ok = GetArrayHelper<float32>(scalarArrayPtr, n);
-                                    }
-                                    else if (cachedSignals[n].typeDescriptor == Float64Bit) {
-                                        ok = GetArrayHelper<float64>(scalarArrayPtr, n);
-                                    }
-                                    else {
-                                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Unsupported read array type for signal %s", cachedSignals[n].qualifiedName.Buffer());
-                                        ok = false;
-                                    }
-                                }
-                            }
+                        if (ok) {
+                            absIndex = 0u;
+                            ok = RefreshStructure(std::const_pointer_cast<epics::pvData::PVStructure>(monitorRoot), absIndex);
                         }
                     }
                 }

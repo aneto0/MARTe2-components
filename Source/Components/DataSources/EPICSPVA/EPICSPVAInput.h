@@ -53,6 +53,9 @@ namespace MARTe {
  *
  * Note that strings shall be specified with Type = string (also inside structured types).
  *
+ * The DataSource can be used as a synchronisation point (with at most one channel). The signal must have the property
+ * 'Frequency' setup to the value at which the values are expected to be produced.
+ *
  * <pre>
  * +EPICSPVAInput_1 = {
  *     Class = EPICSPVADataSource::EPICSPVAInput
@@ -151,7 +154,7 @@ EPICSPVAInput    ();
 
     /**
      * @brief See DataSourceI::Synchronise.
-     * @return false.
+     * @return true if being used as a synchronisation point and if the real-time thread successfully waits on the semaphore.
      */
     virtual bool Synchronise();
 
@@ -181,6 +184,12 @@ private:
      * The EmbeddedThread where the monitor is executed (one thread per record).
      */
     MultiThreadService executor;
+
+    /**
+     * @brief The semaphore for the synchronisation between the EmbeddedThread and the Synchronise method.
+     */
+    EventSem synchSem;
+
 
 };
 }

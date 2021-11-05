@@ -25,6 +25,7 @@
 #############################################################
 
 OBJSX +=  EPICSPVAChannelWrapperTest.x \
+	EPICSPVAFieldWrapperGTest.x \
 	EPICSPVAInputTest.x \
 	EPICSPVAOutputTest.x
 		

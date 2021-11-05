@@ -47,17 +47,25 @@ namespace MARTe {
  * @brief A DataSource which provides a timing source for a MARTe application.
  * @details The LinuxTimer provides a timing generation facility where generators can be conveniently plugged in.
  * The LinuxTimer itself comes with a default provider which is based on internal HighResolutionTimer.
- * The Timer can be configured with two, three or four signals and it shall
+ * The Timer can be configured with two, three, four or five signals and it shall
  * always have a frequency set in one of the signals.
+ *
+ * @details The default time provider (if no plugin is defined) is the HighResolutionTimeProvider. It relies on the implementation
+ * of HighResolutionTimer which reads from the cpu TSC register and retrieves the Frequency from /proc/cpuinfo in Linux. Note that
+ * the implementation is strictly architecture dependent and it might lead to undesired behavior if the system is not properly configured
+ * (cpu frequency scaling enabled, different cpu configurations, ecc)
+ *
+ * @details The signals are identified by their declaration order in the \a Signals sections. This means that if the user needs
+ * the last signal all the previous must be declared in the configuration.
 
  * The configuration syntax is (names are only given as an example):
  * <pre>
  * +Timer = {
  *     Class = LinuxTimer
+ *     ExecutionMode = IndependentThread //Optional. If not set ExecutionMode = IndependentThread.
  *     SleepNature = Busy|Default//If SleepNature is not specified then Default is set
  *     SleepPercentage = 0 //Only meaningful if SleepNature = Busy. The percentage of time to sleep using the OS sleep.
- *     ExecutionMode = IndependentThread //Optional. If not set ExecutionMode = IndependentThread. If ExecutionMode == IndependentThread a thread is spawned to generate the time events. ExecutionMode == RealTimeThread the time is generated in the context of the real-time thread.
- *     Phase = 1 //Optional, sets the phase of the timing generation, defaults to MAX_PHASE = 1000000u
+ *     Phase = 1 //Optional, sets the phase of the timing generation, defaults to 0u
  *     CPUMask = 0x8 //Optional and only relevant if ExecutionMode=IndependentThread
  *     +TimeProvider = { //Optional, if omitted defaults to HighResolutionTimeProvider
  *         //Can be any of the implementing types for the TimeProvider interface
@@ -73,18 +81,36 @@ namespace MARTe {
  *             Type = uint32 //int32 also supported
  *             Frequency = 1000
  *         }
- *           AbsoluteTime = { //Optional, can be omitted
- *               Type = uint64 //Only type supported
- *           }
- *           DeltaTime = { //Optional, can be omitted
- *               Type = uint64 //Only type supported
- *           }
+ *         AbsoluteTime = { //Optional, can be omitted
+ *             Type = uint64 //Only type supported
+ *         }
+ *         DeltaTime = { //Optional, can be omitted
+ *             Type = uint64 //Only type supported
+ *         }
+ *         TrigRephase = { //Optional, can be omitted
+ *             Type = uint8 //Only type supported
+ *         }*
  *     }
  * }
  * </pre>
  *
- * If the SleepNature=Busy a Sleep::Busy will be used to wait for the 1/Frequency period to elapse, otherwise
- *  a Sleep::NoMore will be used.
+ * @details ExecutionMode can be IndependentThread or RealTimeThread. In the first case a thread is spawned on the provided \a CPUMask and triggers the Synchronise() at every period.
+ * If RealTimeThread, the time synchronisation is performed in the same thread scope.
+ *
+ * @details SleepNature can be Busy or Default. If SleepNature=Default the TimeProvider would not busy sleep.
+ * If SleepNature=Busy the SleepPercentage is 0 by default (if not specified) suggesting the TimeProvider to busy sleep.
+ * If SleepPercentage is defined, the TimeProvider would sleep for the defined percentage of the period.
+ * By the way remember that this configuration is just forwarded to the TimeProvider so the behavior depends by its implementation.
+ *
+ * @details Follows a description of the signals
+ *   - Counter: cycle counter
+ *   - Time: Counter*Period
+ *   - AbsoluteTime: uses TimeProvider::Counter and TimeProvider::Period to get an absolute time
+ *   - DeltaTime: time difference between two cycles
+ *   - TrigRephase: if equal to 1 rephases the time synchronisation when the Execute method is called.
+ *
+ * @details When TrigRephase is equal to 1, the phase changes and it is kept across a state change if the data source is consumed in both current and next state.
+ * If the data source is not used in the current state the phase will be reset to the configured one before the next state execution.
  */
 class LinuxTimer: public DataSourceI, public EmbeddedServiceMethodBinderI {
 public:
@@ -167,16 +193,18 @@ public:
      *             Type = uint32 //int32 also supported
      *             Frequency = 1000
      *         }
-     *           AbsoluteTime = { //Optional
-     *               Type = uint64 //Only uint64 supported
-     *           }
-     *           DeltaTime = { //Optional
-     *               Type = uint64 //Only uint64 supported
-     *           }
+     *         AbsoluteTime = { //Optional
+     *             Type = uint64 //Only uint64 supported
+     *         }
+     *         DeltaTime = { //Optional
+     *             Type = uint64 //Only uint64 supported
+     *         }
+     *         TrigRephase = { //Optional, can be omitted
+     *             Type = uint8 //Only type supported
+     *         }
      *     }
      * }
-     * If the SleepNature=Busy a Sleep::Busy will be used to wait for the 1/Frequency period to elapse, otherwise
-     *  a Sleep::NoMore will be used.
+     * If the SleepNature=Busy a Sleep::Busy will be used to wait for the 1/Frequency period to elapse
      * @return true if SleepNature=Busy or SleepNature=Default
      */
     virtual bool Initialise(StructuredDataI & data);
@@ -323,18 +351,14 @@ private:
     uint32 phaseBackup;
 
     /**
-     * @brief Frequency of the currentState and nextState
-     */
-    float32 frequency[2];
-
-    /**
      * @brief The RealTime application reference
      */
     ReferenceT<RealTimeApplication> rtApp;
 
+    /**
+     * @brief Rephase triggering signals.
+     */
     uint8 trigRephase;
-
-    uint8 trigRephase_1;
 };
 }
 

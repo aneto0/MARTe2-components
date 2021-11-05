@@ -44,122 +44,127 @@
 
 namespace MARTe {
 
-    HighResolutionTimeProvider::HighResolutionTimeProvider() : TimeProvider() {
-        yieldSleepPercentage = 0u;        
-        SleepProvidingFunction = &HighResolutionTimeProvider::NullDelegate;
+HighResolutionTimeProvider::HighResolutionTimeProvider() :
+        TimeProvider() {
+    yieldSleepPercentage = 0u;
+    SleepProvidingFunction = &HighResolutionTimeProvider::NullDelegate;
+}
+
+HighResolutionTimeProvider::~HighResolutionTimeProvider() {
+}
+
+bool HighResolutionTimeProvider::Initialise(StructuredDataI &data) {
+    bool returnValue = Object::Initialise(data);
+    if (returnValue) {
+        returnValue = InnerInitialize(data);
     }
+    REPORT_ERROR(returnValue ? ErrorManagement::Information : ErrorManagement::FatalError, "Inner initialization %s", returnValue ? "succeeded" : "failed");
+    return returnValue;
+}
 
-    HighResolutionTimeProvider::~HighResolutionTimeProvider() {
+uint64 HighResolutionTimeProvider::Counter() {
+    return HighResolutionTimer::Counter();
+}
+
+float64 HighResolutionTimeProvider::Period() {
+    return HighResolutionTimer::Period();
+}
+
+uint64 HighResolutionTimeProvider::Frequency() {
+    return HighResolutionTimer::Frequency();
+}
+
+/*lint -e{1762} The function is a generic delegate which needs to match other signatures No const ca be added*/
+bool HighResolutionTimeProvider::BusySleep(const uint64 start,
+                                           const uint64 delta) {
+    while ((HighResolutionTimer::Counter() - start) < delta) {
+        ;
     }
+    //As long the HRT is based on the internals, there should be no way of failing
+    return true;
+}
 
-    bool HighResolutionTimeProvider::Initialise(StructuredDataI &data) {
-        bool returnValue = Object::Initialise(data);
-        if(returnValue) {
-            returnValue = InnerInitialize(data);
-        }
-        REPORT_ERROR(returnValue?ErrorManagement::Information:ErrorManagement::FatalError, "Inner initialization %s", returnValue?"succeeded":"failed");
-        return returnValue;
-    }
+/*lint -e{715} The start parameter is not used in semi-busy mode as it operates only in delta mode */
+bool HighResolutionTimeProvider::SemiBusy(const uint64 start,
+                                          const uint64 delta) {
+    float32 totalSleepTime = static_cast<float32>(static_cast<float32>(delta) * Period());
+    float32 nonBusyTime = totalSleepTime * (static_cast<float32>(yieldSleepPercentage) / 100.F);
+    Sleep::SemiBusy(totalSleepTime, nonBusyTime);
 
-    uint64 HighResolutionTimeProvider::Counter() {
-        return HighResolutionTimer::Counter();
-    }
+    //As long the HRT is based on the internals, there should be no way of failing
+    return true;
+}
 
-    float64 HighResolutionTimeProvider::Period() {
-        return HighResolutionTimer::Period();
-    }
+/*lint -e{715,1762} The function is a generic delegate which needs to match other signatures No const can be added. start is unused due to NoMore function nature */
+bool HighResolutionTimeProvider::NoMore(const uint64 start,
+                                        const uint64 delta) {
+    //We try to do the operation in full precision to decrease only in function call
+    float64 fullResSec = static_cast<float64>(delta) * Period();
 
-    uint64 HighResolutionTimeProvider::Frequency() {
-        return HighResolutionTimer::Frequency();
-    }
+    Sleep::NoMore(static_cast<float32>(fullResSec));
 
-    /*lint -e{1762} The function is a generic delegate which needs to match other signatures No const ca be added*/
-    bool HighResolutionTimeProvider::BusySleep(const uint64 start, const uint64 delta) {
-        while ((HighResolutionTimer::Counter() - start) < delta) {
-            ;
-        }
-        //As long the HRT is based on the internals, there should be no way of failing
-        return true;
-    }
+    //As long the HRT is based on the internals, there should be no way of failing
+    return true;
+}
 
-    /*lint -e{715} The start parameter is not used in semi-busy mode as it operates only in delta mode */
-    bool HighResolutionTimeProvider::SemiBusy(const uint64 start, const uint64 delta) {
-        float32 totalSleepTime = static_cast<float32> (static_cast<float32> (delta) * Period());
-        uint8 busyPercentage = (100u - yieldSleepPercentage);
-        float32 busyTime = totalSleepTime * (static_cast<float32> (busyPercentage) / 100.F);
-        Sleep::SemiBusy(totalSleepTime, busyTime);
-        
-        //As long the HRT is based on the internals, there should be no way of failing
-        return true;
-    }
+bool HighResolutionTimeProvider::Sleep(const uint64 start,
+                                       const uint64 delta) {
+    return (this->*SleepProvidingFunction)(start, delta);
+}
 
-    /*lint -e{715,1762} The function is a generic delegate which needs to match other signatures No const can be added. start is unused due to NoMore function nature */
-    bool HighResolutionTimeProvider::NoMore(const uint64 start, const uint64 delta) {
-        //We try to do the operation in full precision to decrease only in function call
-        float64 fullResSec = static_cast<float64>(delta) * Period();
-        
-        Sleep::NoMore(static_cast<float32>(fullResSec));
+/*lint -e{715,1762} The function is a generic delegate which needs to match other signatures No const can be added. The null delegate has no function, this is why start and delta are ignored*/
+bool HighResolutionTimeProvider::NullDelegate(const uint64 start,
+                                              const uint64 delta) {
+    REPORT_ERROR(ErrorManagement::FatalError, "Call to the null delegate with %d start and %d delta.", start, delta);
+    REPORT_ERROR(ErrorManagement::FatalError, "Reached uninitialized portion of the code");
+    return false;
+}
 
-        //As long the HRT is based on the internals, there should be no way of failing
-        return true;
-    }
+bool HighResolutionTimeProvider::BackwardCompatibilityInit(StructuredDataI &compatibilityData) {
+    bool returnValue = InnerInitialize(compatibilityData);
+    return returnValue;
+}
 
-    bool HighResolutionTimeProvider::Sleep(const uint64 start, const uint64 delta) {
-        return (this->*SleepProvidingFunction)(start, delta);  
-    }
+bool HighResolutionTimeProvider::InnerInitialize(StructuredDataI &data) {
+    bool returnValue = true;
+    StreamString tempSleepNature;
+    uint8 tempSleepPercentage = 0u;
 
-    /*lint -e{715,1762} The function is a generic delegate which needs to match other signatures No const can be added. The null delegate has no function, this is why start and delta are ignored*/
-    bool HighResolutionTimeProvider::NullDelegate(const uint64 start, const uint64 delta) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Call to the null delegate with %d start and %d delta.", start, delta);
-        REPORT_ERROR(ErrorManagement::FatalError, "Reached uninitialized portion of the code");
-        return false;
-    }
-
-    bool HighResolutionTimeProvider::BackwardCompatibilityInit(StructuredDataI &compatibilityData) {
-        bool returnValue = InnerInitialize(compatibilityData);
-        return returnValue;
-    }
-
-    bool HighResolutionTimeProvider::InnerInitialize(StructuredDataI &data) {
-        bool returnValue = true;
-        StreamString tempSleepNature;
-        uint8 tempSleepPercentage = 0u;
-
-        if(data.Read("SleepNature", tempSleepNature)) {
-            if(tempSleepNature == "Busy") {
-                if(data.Read("SleepPercentage", tempSleepPercentage)) {
-                    if(tempSleepPercentage > 100u) {
-                        REPORT_ERROR(ErrorManagement::Warning, "Sleep percentage over 100. Auto-adjusting from %d to 100", tempSleepPercentage);
-                        tempSleepPercentage = 100u;
-                    }
-                    yieldSleepPercentage = tempSleepPercentage;
-                    SleepProvidingFunction = &HighResolutionTimeProvider::SemiBusy;
-                    REPORT_ERROR(ErrorManagement::Information, "Sleep percentage was specified (%d)", yieldSleepPercentage);
-                    REPORT_ERROR(ErrorManagement::Information, "SemiBusy delegate selected");
+    if (data.Read("SleepNature", tempSleepNature)) {
+        if (tempSleepNature == "Busy") {
+            if (data.Read("SleepPercentage", tempSleepPercentage)) {
+                if (tempSleepPercentage > 100u) {
+                    REPORT_ERROR(ErrorManagement::Warning, "Sleep percentage over 100. Auto-adjusting from %d to 100", tempSleepPercentage);
+                    tempSleepPercentage = 100u;
                 }
-                else {
-                    SleepProvidingFunction = &HighResolutionTimeProvider::BusySleep;
-                    REPORT_ERROR(ErrorManagement::Information, "Sleep percentage parameter not specified, 0 assumed");
-                    REPORT_ERROR(ErrorManagement::Information, "BusySleep delegate selected");
-                }                
-            }
-            else if(tempSleepNature == "Default") {
-                SleepProvidingFunction = &HighResolutionTimeProvider::NoMore;
-                REPORT_ERROR(ErrorManagement::Information, "Default sleep nature selected (Sleep::NoMore mode)");
-                REPORT_ERROR(ErrorManagement::Information, "NoMore delegate selected");
+                yieldSleepPercentage = tempSleepPercentage;
+                SleepProvidingFunction = &HighResolutionTimeProvider::SemiBusy;
+                REPORT_ERROR(ErrorManagement::Information, "Sleep percentage was specified (%d)", yieldSleepPercentage);
+                REPORT_ERROR(ErrorManagement::Information, "SemiBusy delegate selected");
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Specified sleep nature [%s] is not valid", tempSleepNature.Buffer());
-                returnValue = false;
+                SleepProvidingFunction = &HighResolutionTimeProvider::BusySleep;
+                REPORT_ERROR(ErrorManagement::Information, "Sleep percentage parameter not specified, 0 assumed");
+                REPORT_ERROR(ErrorManagement::Information, "BusySleep delegate selected");
             }
         }
-        else {
+        else if (tempSleepNature == "Default") {
             SleepProvidingFunction = &HighResolutionTimeProvider::NoMore;
-            REPORT_ERROR(ErrorManagement::Information, "Sleep nature was not specified, falling back to default (Sleep::NoMore mode)");
+            REPORT_ERROR(ErrorManagement::Information, "Default sleep nature selected (Sleep::NoMore mode)");
+            REPORT_ERROR(ErrorManagement::Information, "NoMore delegate selected");
         }
-    
-        return returnValue;   
+        else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Specified sleep nature [%s] is not valid", tempSleepNature.Buffer());
+            returnValue = false;
+        }
+    }
+    else {
+        SleepProvidingFunction = &HighResolutionTimeProvider::NoMore;
+        REPORT_ERROR(ErrorManagement::Information, "Sleep nature was not specified, falling back to default (Sleep::NoMore mode)");
     }
 
-    CLASS_REGISTER(HighResolutionTimeProvider, "1.0")
+    return returnValue;
+}
+
+CLASS_REGISTER(HighResolutionTimeProvider, "1.0")
 }
