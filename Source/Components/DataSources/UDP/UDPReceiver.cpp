@@ -20,12 +20,25 @@
  * the class UDPReceiver (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
  */
+/*---------------------------------------------------------------------------*/
+/*                         Standard header includes                          */
+/*---------------------------------------------------------------------------*/
 
-#include "stdlib.h"
-
+/*---------------------------------------------------------------------------*/
+/*                         Project header includes                           */
+/*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "MemoryMapInputBroker.h"
 #include "UDPReceiver.h"
+
+/*---------------------------------------------------------------------------*/
+/*                           Static definitions                              */
+/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+/*                           Method definitions                              */
+/*---------------------------------------------------------------------------*/
+
 
 namespace MARTe {
 
@@ -38,8 +51,11 @@ UDPReceiver::UDPReceiver() :
     timeout = TTInfiniteWait;
     cpuMask = 0u;
     stackSize = THREADS_DEFAULT_STACKSIZE;
-    sync = 0u;
+    executionMode = UDPReceiverExecutionModeRealTime;
     socket = NULL_PTR(UDPSocket*);
+    (void)mux.Create();
+    copyInProgress = false;
+    memoryIndependentThread = NULL_PTR(void *);
 }
 
 /*lint -e{1551} the destructor must guarantee that the thread and servers are closed.*/
@@ -57,11 +73,15 @@ UDPReceiver::~UDPReceiver() {
             delete socket;
         }
     }
+    if (memoryIndependentThread != NULL_PTR(void *)) {
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(memoryIndependentThread);
+    }
 }
 
 bool UDPReceiver::AllocateMemory() {
     bool ok = MemoryDataSourceI::AllocateMemory();
-    if (sync == 0u) {
+    if (executionMode == UDPReceiverExecutionModeIndependent) {
+        memoryIndependentThread = GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(totalMemorySize);
         if (ok) {
             executor.SetName(GetName());
             ok = (executor.Start() == ErrorManagement::NoError);
@@ -70,16 +90,47 @@ bool UDPReceiver::AllocateMemory() {
     return ok;
 }
 
+bool UDPReceiver::BrokerCopyTerminated() {
+    if (mux.FastLock()) {
+        copyInProgress = false;
+    }
+    mux.FastUnLock();
+    return true;
+}
+
 bool UDPReceiver::Initialise(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::Initialise(data);
     if (ok) {
-        ok = data.Read("Address", address);
-        if (!ok) {
-            address = "NULL";
+        StreamString tempExecModeStr;
+        ok = data.Read("ExecutionMode", tempExecModeStr);
+        if(!ok) {
+            REPORT_ERROR(ErrorManagement::Information, "Execution mode was not specified, defaulting to IndependentThread mode");
+            executionMode = UDPReceiverExecutionModeRealTime;
             ok = true;
         }
         else {
-            REPORT_ERROR(ErrorManagement::Information, "Using Multicast interface.");
+            if(tempExecModeStr == "IndependentThread") {
+                executionMode = UDPReceiverExecutionModeIndependent;
+                REPORT_ERROR(ErrorManagement::Information, "Running in IndependentThread mode");
+            }
+            else if(tempExecModeStr == "RealTimeThread") {
+                executionMode = UDPReceiverExecutionModeRealTime;
+                REPORT_ERROR(ErrorManagement::Information, "Running in RealTimeThread mode");
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Specified execution mode is not allowed");
+                REPORT_ERROR(ErrorManagement::Information, "Allowed [IndependendThread, RealTimeThread], Specified %s", tempExecModeStr);
+                ok = false;
+            }
+        }
+    }
+
+    if (ok) {
+        ok = data.Read("Address", address);
+        if (!ok) {
+            address = "";
+            ok = true;
+            REPORT_ERROR(ErrorManagement::Information, "No Address specified");
         }
     }
     if (ok) {
@@ -106,18 +157,11 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
             timeout.SetTimeoutSec(timeoutVal);
         }
     }
-    if (ok) {
-        ok = data.Read("Sync", sync);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::Information, "No Synchronisation. Using Thread execution.");
-            ok = true;
-        }
-    }
-    if (sync == 0u) {
+    if (executionMode == UDPReceiverExecutionModeIndependent) {
         if (ok) {
-            ok = data.Read("CpuMask", cpuMask);
+            ok = data.Read("CPUMask", cpuMask);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::Information, "No CpuMask defined. Using default 0x1u.");
+                REPORT_ERROR(ErrorManagement::Information, "No CPUMask defined. Using default 0x1u.");
                 ok = true;
             }
         }
@@ -140,7 +184,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
         ok = socket->Open();
     }
     if (ok) {
-        if (address != "NULL") {
+        if (address.Size() > 0LLU) {
             ok = address.Seek(0LLU);
             if (ok) {
                 char8 ignore;
@@ -168,7 +212,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
             ok = socket->Listen(port);
         }
     }
-    if (sync == 0u) {
+    if (executionMode == UDPReceiverExecutionModeIndependent) {
         executor.SetCPUMask(cpuMask);
         executor.SetStackSize(stackSize);
     }
@@ -177,10 +221,18 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
 }
 
 bool UDPReceiver::Synchronise() {
-    bool ok = false;
-    char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
-    if (socket != NULL_PTR(UDPSocket*)) {
-        ok = socket->Read(dataBuffer, totalMemorySize, timeout);
+    bool ok = true;
+    if (executionMode == UDPReceiverExecutionModeIndependent) {
+        if (mux.FastLock()) {
+            copyInProgress = true;
+        }
+        mux.FastUnLock();
+    }
+    else {
+        char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
+        if (socket != NULL_PTR(UDPSocket*)) {
+            ok = socket->Read(dataBuffer, totalMemorySize, timeout);
+        }
     }
     return ok;
 }
@@ -188,17 +240,7 @@ bool UDPReceiver::Synchronise() {
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the data is independent of the broker name.*/
 const char8* UDPReceiver::GetBrokerName(StructuredDataI &data,
                                         const SignalDirection direction) {
-    const char8 *brokerName = NULL_PTR(const char8*);
-    if (sync == 0u) {
-        if (direction == InputSignals) {
-            brokerName = "MemoryMapInputBroker";
-        }
-    }
-    else {
-        if (direction == InputSignals) {
-            brokerName = "MemoryMapSynchronisedInputBroker";
-        }
-    }
+    const char8 *brokerName = "MemoryMapSynchronisedInputBroker";
     return brokerName;
 }
 
@@ -212,13 +254,17 @@ bool UDPReceiver::PrepareNextState(const char8 *const currentStateName,
 ErrorManagement::ErrorType UDPReceiver::Execute(ExecutionInfo &info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
-        char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
-        bool ok = false;
+        char8 *const dataBuffer = reinterpret_cast<char8*>(memoryIndependentThread);
         if (socket != NULL_PTR(UDPSocket*)) {
-            ok = socket->Read(dataBuffer, totalMemorySize, timeout);
+            err.timeout = !socket->Read(dataBuffer, totalMemorySize, timeout);
         }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::Information, "Connection Timeout.");
+        bool canCopyMemory = false;
+        if (mux.FastLock()) {
+            canCopyMemory = !copyInProgress;
+        }
+        mux.FastUnLock();
+        if (canCopyMemory) {
+            err.fatalError = !MemoryOperationsHelper::Copy(memory, dataBuffer, totalMemorySize);
         }
     }
     return err;
@@ -240,8 +286,8 @@ const uint32 UDPReceiver::GetCPUMask() const {
     return cpuMask;
 }
 
-const uint32 UDPReceiver::GetSync() const {
-    return sync;
+const UDPReceiverExecutionMode UDPReceiver::GetExecutionMode() const {
+    return executionMode;
 }
 
 CLASS_REGISTER(UDPReceiver, "1.0")

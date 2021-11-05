@@ -65,24 +65,24 @@ TEST(UDPReceiverGTest,TestInitialise_No_Timeout) {
     ASSERT_TRUE(test.TestInitialise_No_Timeout());
 }
 
-TEST(UDPReceiverGTest,TestInitialise_No_Sync) {
+TEST(UDPReceiverGTest,TestInitialise_No_ExecutionMode) {
     UDPReceiverTest test;
-    ASSERT_TRUE(test.TestInitialise_No_Sync());
+    ASSERT_TRUE(test.TestInitialise_No_ExecutionMode());
 }
 
-TEST(UDPReceiverGTest,TestInitialise_No_Sync_No_Cpu) {
+TEST(UDPReceiverGTest,TestInitialise_No_ExecutionMode_No_Cpu) {
     UDPReceiverTest test;
-    ASSERT_TRUE(test.TestInitialise_No_Sync_No_Cpu());
+    ASSERT_TRUE(test.TestInitialise_No_ExecutionMode_No_Cpu());
 }
 
-TEST(UDPReceiverGTest,TestInitialise_No_Sync_No_StackSize) {
+TEST(UDPReceiverGTest,TestInitialise_No_ExecutionMode_No_StackSize) {
     UDPReceiverTest test;
-    ASSERT_TRUE(test.TestInitialise_No_Sync_No_StackSize());
+    ASSERT_TRUE(test.TestInitialise_No_ExecutionMode_No_StackSize());
 }
 
-TEST(UDPReceiverGTest,TestInitialise_Sync) {
+TEST(UDPReceiverGTest,TestInitialise_IndependentThread) {
     UDPReceiverTest test;
-    ASSERT_TRUE(test.TestInitialise_Sync());
+    ASSERT_TRUE(test.TestInitialise_IndependentThread());
 }
 
 TEST(UDPReceiverGTest,TestSetConfiguredDatabase_ValidAddress) {
@@ -95,14 +95,9 @@ TEST(UDPReceiverGTest,TestSetConfiguredDatabase_InvalidAddress) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_InvalidAddress());
 }
 
-TEST(UDPReceiverGTest,TestGetBrokerName_MemoryMapInputBroker) {
+TEST(UDPReceiverGTest,TestGetBrokerName) {
     UDPReceiverTest test;
-    ASSERT_TRUE(test.TestGetBrokerName_MemoryMapInputBroker());
-}
-
-TEST(UDPReceiverGTest,TestGetBrokerName_MemoryMapSynchronisedInputBroker) {
-    UDPReceiverTest test;
-    ASSERT_TRUE(test.TestGetBrokerName_MemoryMapSynchronisedInputBroker());
+    ASSERT_TRUE(test.TestGetBrokerName());
 }
 
 TEST(UDPReceiverGTest,TestPrepareNextState) {

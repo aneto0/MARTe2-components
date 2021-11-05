@@ -148,6 +148,7 @@ bool UDPSender::Initialise(StructuredDataI &data) {
         uint32 cpuMaskIn;
         ok = data.Read("CPUMask", cpuMaskIn);
         if (!ok) {
+            ok = true;
             cpuMaskIn = 0xFFFFFFFFu;
             if(executionMode == UDPSenderExecutionModeIndependent) {
                 REPORT_ERROR(ErrorManagement::Information, "CPUMask was not specified, defaulting to 0xFFFFFFFFu");
@@ -165,6 +166,7 @@ bool UDPSender::Initialise(StructuredDataI &data) {
     if (ok) {
         ok = data.Read("StackSize", stackSize);
         if (!ok) {
+            ok = true;
             stackSize = THREADS_DEFAULT_STACKSIZE;
             if(executionMode == UDPSenderExecutionModeIndependent) {
                 REPORT_ERROR(ErrorManagement::Warning, "StackSize was not specified, defaulting to MARTe2 value (%d)", THREADS_DEFAULT_STACKSIZE);
@@ -191,30 +193,14 @@ bool UDPSender::Initialise(StructuredDataI &data) {
     }
     StreamString tempName = "";
     if (ok) {
-        tempName = signalsDatabase.GetChildName(0u);
-        if (tempName != "Trigger") {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot detect signal \"Trigger\".");
-            ok = false;
+        if (executionMode == UDPSenderExecutionModeIndependent) {
+            tempName = signalsDatabase.GetChildName(0u);
+            if (tempName != "Trigger") {
+                REPORT_ERROR(ErrorManagement::ParametersError, "Cannot detect signal \"Trigger\".");
+                ok = false;
+            }
         }
-        tempName = "";
     }
-    if (ok) {
-        tempName = signalsDatabase.GetChildName(1u);
-        if (tempName != "Counter") {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot detect signal \"Counter\".");
-            ok = false;
-        }
-        tempName = "";
-    }
-    if (ok) {
-        tempName = signalsDatabase.GetChildName(2u);
-        if (tempName != "Time") {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot detect signal \"Time\".");
-            ok = false;
-        }
-        tempName = "";
-    }
-
     return ok;
 }
 
@@ -229,20 +215,6 @@ bool UDPSender::Synchronise() {
 
 bool UDPSender::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
-    if (ok) {
-        /*lint -e{9007} Justification: no side effects on GetSignalType.*/
-        ok = ((GetSignalType(1u) == SignedInteger64Bit) || (GetSignalType(1u) == UnsignedInteger64Bit) || (GetSignalType(1u) == UnsignedInteger32Bit));
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Counter signal type not supported. Use uint64 or int64 or uint32");
-        }
-        if (ok) {
-            /*lint -e{9007} Justification: no side effects on GetSignalType.*/
-            ok = ((GetSignalType(2u) == SignedInteger64Bit) || (GetSignalType(2u) == UnsignedInteger64Bit) || (GetSignalType(2u) == UnsignedInteger32Bit));
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Time signal type not supported. Use uint64 or int64 or uint32");
-            }
-        }
-    }
     if (ok) {
         client = new UDPSocket();
         /*lint -e{613} Justification: the client cannot be a Null_PTR since it is allocated just before.*/

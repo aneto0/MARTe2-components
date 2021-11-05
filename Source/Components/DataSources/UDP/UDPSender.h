@@ -62,14 +62,8 @@ namespace MARTe {
  *         Ignored with a warning when ExecutionMode is RealTimeThread.
  *
  *     Signals = {
- *          Trigger = { //Mandatory. Must be in first position.
+ *          Trigger = { //Mandatory iff ExecutionMode ==  IndependentThread. Must be in first position.
  *              Type = uint8
- *          }
- *          Counter = { //Mandatory. Packet Counter. Must be in second position
- *              Type = uint64 //Mandatory (Note: Sender and Receiver must be same type),  int64 and uint32 also supported.
- *          }
- *          Time = { //Mandatory. Current cycle timestamp. Must be in third position
- *               Type = uint64 //Mandatory (Note: Sender and Receiver must be same type),  int64 and uint32 also supported.
  *          }
  *          Signal1 = { //One or more extra signals shall be defined
  *              Type = float32 //Mandatory (Note: Sender and Receiver must be same type). All other MARTe2 types are supported
@@ -85,7 +79,7 @@ namespace MARTe {
 typedef enum {
     UDPSenderExecutionModeIndependent,
     UDPSenderExecutionModeRealTime
-}UDPSenderExecutionMode;
+} UDPSenderExecutionMode;
 
 class UDPSender: public MemoryDataSourceI {
 public:CLASS_REGISTER_DECLARATION()
@@ -142,8 +136,7 @@ public:CLASS_REGISTER_DECLARATION()
 
     /**
      * @brief Final verification of all the parameters and opens the connection to the receiver server.
-     * @details Ensures that the client connection to the reciever is established, and that a counter and timer variable are
-     * defined and of the correct types/sizes
+     * @details Ensures that the client connection to the reciever is established
      * @return true if all parameters are correctly configured and connection opened to the receiver server.
      */
     virtual bool SetConfiguredDatabase(StructuredDataI &data);

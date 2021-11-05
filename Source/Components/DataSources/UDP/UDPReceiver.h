@@ -43,6 +43,13 @@
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 namespace MARTe{
+
+typedef enum {
+    UDPReceiverExecutionModeIndependent,
+    UDPReceiverExecutionModeRealTime
+} UDPReceiverExecutionMode;
+
+
 /**
  * @brief A DataSource which receives given signals via UDP with Multicast support.
  *
@@ -52,7 +59,9 @@ namespace MARTe{
  *     Address = "230.168.129.30" //Optional. Only for Multicast group
  *     Port = "44488" //Optional. Default: 44488
  *     Timeout = "5.0" //Optional (seconds) The time the receiver will wait while listening before timing out. Default: Infinite
- *     Sync = 0 //Optional. Default: 0. If 1, the UDP DataSource can be used as synchronisation unit on the packet arrival. Otherwise a decoupled thread is used.
+ *     ExecutionMode = RealTimeThread//Optional (default RealTimeThread)
+ *       If ExecutionMode == IndependentThread a thread is spawned to read from the socket and the memory copy is immediate (i.e. it will not block).
+ *       If ExecutionMode == RealTimeThread the DataSource socket read is blocking and handled in the context of the real-time thread.
  *     CPUMask = 0x1
  *     StackSize = 10000000
  *     Signals = {
@@ -90,7 +99,7 @@ public:
     /**
      * @brief See DataSourceI::GetBrokerName.
      * @details Only Input signals are supported.
-     * @return MemoryMapInputBroker
+     * @return MemoryMapSynchronisedInputBroker
      */
     virtual const char8* GetBrokerName(StructuredDataI& data,
                                             const SignalDirection direction);
@@ -118,7 +127,18 @@ public:
      */
     virtual bool Initialise(StructuredDataI &data);
 
+
+    /**
+     * @brief Allocates the MemoryDataSourceI memory buffer and spawns the thread if in IndependentThread mode.
+     * @return true if MemoryDataSourceI::AllocateMemory returns true and the Service is successfully started (in IndependentThread mode).
+     */
     virtual bool AllocateMemory();
+
+    /**
+     * @brief Indicates that the broker has finished to copy the data from the data source memory.
+     * @return true
+     */
+    virtual bool BrokerCopyTerminated();
 
     /**
      * @brief Recieve signals when UDP data is recieved.
@@ -154,7 +174,7 @@ public:
      * @brief Gets the mode selector value.
      * @return the mode selector value.
      */
-    const uint32 GetSync() const;
+    const UDPReceiverExecutionMode GetExecutionMode() const;
 
 private:
 
@@ -177,7 +197,6 @@ private:
      * The IP address to which the data will be received on
      */
     StreamString address;
-    
 
     /**
      * The socket that will connect to the sender
@@ -195,9 +214,24 @@ private:
     uint32 stackSize;
 
     /**
-     * Mode selector
+     * Holds the current execution mode of the datasource.
      */
-    uint32 sync;
+    UDPReceiverExecutionMode executionMode;
+
+    /**
+     * Mux for the IndependentThread implementation.
+     */
+    FastPollingMutexSem mux;
+
+    /**
+     * Copy in progres flag for the IndependentThread implementation.
+     */
+    bool copyInProgress;
+
+    /**
+     * Memory for the independent thread reading.
+     */
+    void *memoryIndependentThread;
 };
 }
 #endif

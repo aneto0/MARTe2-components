@@ -65,24 +65,24 @@ public:
     bool TestInitialise_No_Timeout();
 
     /**
-     * @brief Tests the Initialise method without Sync on.
+     * @brief Tests the Initialise method without ExecutionMode set.
      */
-    bool TestInitialise_No_Sync();
+    bool TestInitialise_No_ExecutionMode();
 
     /**
-     * @brief Tests the Initialise method without Sync on and No CPUMask set.
+     * @brief Tests the Initialise method without ExecutionMode set and No CPUMask set.
      */
-    bool TestInitialise_No_Sync_No_Cpu();
+    bool TestInitialise_No_ExecutionMode_No_Cpu();
 
     /**
-     * @brief Tests the Initialise method without Sync on and No StackSize set.
+     * @brief Tests the Initialise method without ExecutionMode set and No StackSize set.
      */
-    bool TestInitialise_No_Sync_No_StackSize();
+    bool TestInitialise_No_ExecutionMode_No_StackSize();
 
     /**
      * @brief Tests the Initialise method with Sync on.
      */
-    bool TestInitialise_Sync();
+    bool TestInitialise_IndependentThread();
 
     /**
      * @brief Tests the SetConfiguredDatabase method with Address for multicast.
@@ -95,14 +95,9 @@ public:
     bool TestSetConfiguredDatabase_InvalidAddress();
 
     /**
-     * @brief Tests the GetBrokerName method with MemoryMapInputBroker
+     * @brief Tests the GetBrokerName method.
      */
-    bool TestGetBrokerName_MemoryMapInputBroker();
-
-    /**
-     * @brief Tests the GetBrokerName method with MemoryMapSynchronisedInputBroker
-     */
-    bool TestGetBrokerName_MemoryMapSynchronisedInputBroker();
+    bool TestGetBrokerName();
 
     /**
      * @brief Tests the PrepareNextState method

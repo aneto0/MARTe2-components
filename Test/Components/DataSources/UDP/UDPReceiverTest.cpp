@@ -367,7 +367,7 @@ static const MARTe::char8 *const config1 = ""
         "        }"
         "        +UDP = {"
         "            Class = UDP::UDPReceiver"
-        "            Sync = 1"
+        "            ExecutionMode = RealTimeThread"
         "            Address = \"234.0.0.1\""
         "            Port = 45678"
         "            Timeout = 0.5"
@@ -430,7 +430,7 @@ static const MARTe::char8 *const config2 = ""
         "        }"
         "        +UDP = {"
         "            Class = UDP::UDPReceiver"
-        "            Sync = 1"
+        "            ExecutionMode = RealTimeThread"
         "            Address = \"223.0.0.1\""
         "            Port = 45678"
         "            Timeout = 0.5"
@@ -493,7 +493,7 @@ static const MARTe::char8 *const config3 = ""
         "        }"
         "        +UDP = {"
         "            Class = UDP::UDPReceiver"
-        "            Sync = 1"
+        "            ExecutionMode = RealTimeThread"
         "            Port = 45678"
         "            Timeout = 4"
         "            Signals = {"
@@ -556,7 +556,7 @@ static const MARTe::char8 *const config4 = ""
         "        +UDP = {"
         "            Class = UDP::UDPReceiver"
         "            CPUMask = 0x2"
-        "            Sync = 0"
+        "            ExecutionMode = IndependentThread"
         "            Port = 45678"
         "            Timeout = 10"
         "            Signals = {"
@@ -596,7 +596,7 @@ bool UDPReceiverTest::TestConstructor() {
     ok &= (test.GetStackSize() == THREADS_DEFAULT_STACKSIZE);
     ok &= (test.GetPort() == 0u);
     ok &= (test.GetAddress() == "");
-    ok &= (test.GetSync() == 0u);
+    ok &= (test.GetExecutionMode() == UDPReceiverExecutionModeRealTime);
     return ok;
 }
 
@@ -606,11 +606,11 @@ bool UDPReceiverTest::TestInitialise_No_Address() {
     ConfigurationDatabase cdb;
     cdb.Write("Port", 45678);
     cdb.Write("Timeout", 10);
-    cdb.Write("Sync", 1);
+    cdb.Write("ExecutionMode", "RealTimeThread");
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     bool ok = test.Initialise(cdb);
-    ok &= (test.GetAddress() == "NULL");
+    ok &= (test.GetAddress() == "");
     return ok;
 }
 
@@ -619,7 +619,7 @@ bool UDPReceiverTest::TestInitialise_No_Port() {
     UDPReceiver test;
     ConfigurationDatabase cdb;
     cdb.Write("Timeout", 10);
-    cdb.Write("Sync", 1);
+    cdb.Write("ExecutionMode", "RealTimeThread");
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     bool ok = test.Initialise(cdb);
@@ -633,7 +633,7 @@ bool UDPReceiverTest::TestInitialise_Forbidden_Port() {
     ConfigurationDatabase cdb;
     cdb.Write("Port", 500);
     cdb.Write("Timeout", 10);
-    cdb.Write("Sync", 1);
+    cdb.Write("ExecutionMode", "RealTimeThread");
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     bool ok = test.Initialise(cdb);
@@ -646,14 +646,14 @@ bool UDPReceiverTest::TestInitialise_No_Timeout() {
     UDPReceiver test;
     ConfigurationDatabase cdb;
     cdb.Write("Port", 500);
-    cdb.Write("Sync", 1);
+    cdb.Write("ExecutionMode", "RealTimeThread");
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     bool ok = test.Initialise(cdb);
     return ok;
 }
 
-bool UDPReceiverTest::TestInitialise_No_Sync() {
+bool UDPReceiverTest::TestInitialise_No_ExecutionMode() {
     using namespace MARTe;
     UDPReceiver test;
     ConfigurationDatabase cdb;
@@ -666,7 +666,7 @@ bool UDPReceiverTest::TestInitialise_No_Sync() {
     return ok;
 }
 
-bool UDPReceiverTest::TestInitialise_No_Sync_No_Cpu() {
+bool UDPReceiverTest::TestInitialise_No_ExecutionMode_No_Cpu() {
     using namespace MARTe;
     UDPReceiver test;
     ConfigurationDatabase cdb;
@@ -678,7 +678,7 @@ bool UDPReceiverTest::TestInitialise_No_Sync_No_Cpu() {
     return ok;
 }
 
-bool UDPReceiverTest::TestInitialise_No_Sync_No_StackSize() {
+bool UDPReceiverTest::TestInitialise_No_ExecutionMode_No_StackSize() {
     using namespace MARTe;
     UDPReceiver test;
     ConfigurationDatabase cdb;
@@ -690,16 +690,16 @@ bool UDPReceiverTest::TestInitialise_No_Sync_No_StackSize() {
     return ok;
 }
 
-bool UDPReceiverTest::TestInitialise_Sync() {
+bool UDPReceiverTest::TestInitialise_IndependentThread() {
     using namespace MARTe;
     UDPReceiver test;
     ConfigurationDatabase cdb;
     cdb.Write("Port", 500);
-    cdb.Write("Sync", 1);
+    cdb.Write("ExecutionMode", "IndependentThread");
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     bool ok = test.Initialise(cdb);
-    ok &= (test.GetSync() == 1u);
+    ok &= (test.GetExecutionMode() == UDPReceiverExecutionModeIndependent);
     return ok;
 }
 
@@ -711,34 +711,13 @@ bool UDPReceiverTest::TestSetConfiguredDatabase_InvalidAddress() {
     return !TestIntegratedExecution(config2);
 }
 
-bool UDPReceiverTest::TestGetBrokerName_MemoryMapInputBroker() {
+bool UDPReceiverTest::TestGetBrokerName() {
     using namespace MARTe;
     bool ok = true;
     UDPReceiver test;
     ConfigurationDatabase cdb;
     cdb.Write("Port", 45678);
-    cdb.Write("Sync", 0);
-    cdb.Write("Timeout", 0.5);
-    cdb.CreateRelative("Signals");
-    cdb.MoveRelative("Signals");
-    cdb.CreateRelative("Payload");
-    cdb.MoveRelative("Payload");
-    cdb.Write("Type", "uint32");
-    cdb.MoveToRoot();
-    ok = test.Initialise(cdb);
-    if (ok) {
-        ok = (StringHelper::Compare(test.GetBrokerName(cdb, InputSignals), "MemoryMapInputBroker") == 0);
-    }
-    return ok;
-}
-
-bool UDPReceiverTest::TestGetBrokerName_MemoryMapSynchronisedInputBroker() {
-    using namespace MARTe;
-    bool ok = true;
-    UDPReceiver test;
-    ConfigurationDatabase cdb;
-    cdb.Write("Port", 45678);
-    cdb.Write("Sync", 1);
+    cdb.Write("ExecutionMode", "RealTimeThread");
     cdb.Write("Timeout", 0.5);
     cdb.CreateRelative("Signals");
     cdb.MoveRelative("Signals");
