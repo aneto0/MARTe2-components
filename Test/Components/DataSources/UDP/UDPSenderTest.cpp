@@ -398,6 +398,7 @@ static const MARTe::char8 *const config1 = ""
         "            NumberOfPostTriggers = 0"
         "            Address = \"127.0.0.1\""
         "            Port = 45678"
+        "            ExecutionMode = IndependentThread"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
@@ -759,7 +760,7 @@ static const MARTe::char8 *const config3 = ""
 bool UDPSenderTest::TestConstructor() {
     using namespace MARTe;
     UDPSender us;
-    bool ok = (us.GetCPUMask() == 0xf);
+    bool ok = (us.GetCPUMask() == 0xffffffffu);
     ok &= (us.GetNumberOfPostTriggers() == 0u);
     ok &= (us.GetNumberOfPreTriggers() == 0u);
     ok &= (us.GetStackSize() == 0u);
@@ -953,6 +954,7 @@ bool UDPSenderTest::TestInitialise_Correct() {
     cdb.Write("NumberOfPostTriggers", 2);
     cdb.Write("Address", "234.0.0.1");
     cdb.Write("Port", 45678);
+    cdb.Write("ExecutionMode", "IndependentThread");
     cdb.CreateRelative("Signals");
     cdb.MoveRelative("Signals");
     cdb.CreateRelative("Trigger");
@@ -992,6 +994,7 @@ bool UDPSenderTest::TestGetBrokerName() {
     cdb.Write("NumberOfPostTriggers", 2);
     cdb.Write("Address", "234.0.0.1");
     cdb.Write("Port", 45678);
+    cdb.Write("ExecutionMode", "IndependentThread");
     cdb.CreateRelative("Signals");
     cdb.MoveRelative("Signals");
     cdb.CreateRelative("Trigger");
