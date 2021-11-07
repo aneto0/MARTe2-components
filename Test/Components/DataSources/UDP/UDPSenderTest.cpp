@@ -446,7 +446,6 @@ static const MARTe::char8 *const config1 = ""
         "    }"
         "}";
 
-//Wrong Counter type
 static const MARTe::char8 *const config2 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
@@ -522,7 +521,7 @@ static const MARTe::char8 *const config2 = ""
         "                    DataSource = UDP"
         "                }"
         "                Counter = {"
-        "                    Type = int32"
+        "                    Type = uint32"
         "                    DataSource = UDP"
         "                }"
         "                Time = {"
@@ -547,18 +546,15 @@ static const MARTe::char8 *const config2 = ""
         "        }"
         "        +UDP = {"
         "            Class = UDP::UDPSender"
-        "            CPUMask = 15"
-        "            StackSize = 10000000"
-        "            NumberOfPreTriggers = 0"
-        "            NumberOfPostTriggers = 0"
         "            Address = \"127.0.0.1\""
         "            Port = 45678"
+        "            ExecutionMode = RealTimeThread"
         "            Signals = {"
         "                Trigger = {"
         "                    Type = uint8"
         "                }"
         "                Counter = {"
-        "                    Type = int32"
+        "                    Type = uint32"
         "                }"
         "                Time = {"
         "                    Type = uint32"
@@ -600,159 +596,6 @@ static const MARTe::char8 *const config2 = ""
         "    }"
         "}";
 
-//Wrong Time type
-static const MARTe::char8 *const config3 = ""
-        "$Test = {"
-        "    Class = RealTimeApplication"
-        "    +Functions = {"
-        "        Class = ReferenceContainer"
-        "        +GAMTimer = {"
-        "            Class = IOGAM"
-        "            InputSignals = {"
-        "                Counter = {"
-        "                    Type = uint32"
-        "                    DataSource = Timer"
-        "                }"
-        "                Time = {"
-        "                    Type = uint32"
-        "                    DataSource = Timer"
-        "                    Frequency = 1"
-        "                }"
-        "            }"
-        "            OutputSignals = {"
-        "                Counter = {"
-        "                    Type = uint32"
-        "                    DataSource = DDB1"
-        "                }"
-        "                Time = {"
-        "                    Type = uint32"
-        "                    DataSource = DDB1"
-        "                }"
-        "            }"
-        "        }"
-        "        +TriggerGAM = {"
-        "            Class = ConstantGAM"
-        "            OutputSignals = {"
-        "                Trigger = {"
-        "                    Type = uint8"
-        "                    DataSource = DDB1"
-        "                    Default = 1"
-        "                }"
-        "            }"
-        "        }"
-        "        +PayloadGAM = {"
-        "            Class = ConstantGAM"
-        "            OutputSignals = {"
-        "                Payload = {"
-        "                    Type = uint32"
-        "                    DataSource = DDB1"
-        "                    Default = 99"
-        "                }"
-        "            }"
-        "        }"
-        "        +GAMSender = {"
-        "            Class = IOGAM"
-        "            InputSignals = {"
-        "                Trigger = {"
-        "                    Type = uint8"
-        "                    DataSource = DDB1"
-        "                }"
-        "                Counter = {"
-        "                    Type = uint32"
-        "                    DataSource = DDB1"
-        "                }"
-        "                Time = {"
-        "                    Type = uint32"
-        "                    DataSource = DDB1"
-        "                }"
-        "                Payload = {"
-        "                    Type = uint32"
-        "                    DataSource = DDB1"
-        "                }"
-        "            }"
-        "            OutputSignals = {"
-        "                Trigger = {"
-        "                    Type = uint8"
-        "                    DataSource = UDP"
-        "                }"
-        "                Counter = {"
-        "                    Type = uint32"
-        "                    DataSource = UDP"
-        "                }"
-        "                Time = {"
-        "                    Type = int32"
-        "                    DataSource = UDP"
-        "                }"
-        "                Payload = {"
-        "                    Type = uint32"
-        "                    DataSource = UDP"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +Data = {"
-        "        Class = ReferenceContainer"
-        "        DefaultDataSource = DDB1"
-        "        +DDB1 = {"
-        "            Class = GAMDataSource"
-        "        }"
-        "        +Timings = {"
-        "            Class = TimingDataSource"
-        "        }"
-        "        +UDP = {"
-        "            Class = UDP::UDPSender"
-        "            CPUMask = 15"
-        "            StackSize = 10000000"
-        "            NumberOfPreTriggers = 0"
-        "            NumberOfPostTriggers = 0"
-        "            Address = \"127.0.0.1\""
-        "            Port = 45678"
-        "            Signals = {"
-        "                Trigger = {"
-        "                    Type = uint8"
-        "                }"
-        "                Counter = {"
-        "                    Type = uint32"
-        "                }"
-        "                Time = {"
-        "                    Type = int32"
-        "                }"
-        "                Payload = {"
-        "                    Type = uint32"
-        "                }"
-        "            }"
-        "        }"
-        "        +Timer = {"
-        "            Class = LinuxTimer"
-        "            SleepNature = \"Default\""
-        "            Signals = {"
-        "                Counter = {"
-        "                    Type = uint32"
-        "                }"
-        "                Time = {"
-        "                    Type = uint32"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +States = {"
-        "        Class = ReferenceContainer"
-        "        +State1 = {"
-        "            Class = RealTimeState"
-        "            +Threads = {"
-        "                Class = ReferenceContainer"
-        "                +Thread1 = {"
-        "                    Class = RealTimeThread"
-        "                    Functions = {GAMTimer TriggerGAM PayloadGAM GAMSender}"
-        "                }"
-        "            }"
-        "        }"
-        "    }"
-        "    +Scheduler = {"
-        "        Class = UDPSenderSchedulerTestHelper"
-        "        TimingDataSource = Timings"
-        "    }"
-        "}";
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -902,49 +745,7 @@ bool UDPSenderTest::TestInitialise_No_TriggerSignal() {
     return !test.Initialise(cdb);
 }
 
-bool UDPSenderTest::TestInitialise_No_CounterSignal() {
-    using namespace MARTe;
-    UDPSender test;
-    ConfigurationDatabase cdb;
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 1000000);
-    cdb.Write("NumberOfPreTriggers", 3);
-    cdb.Write("NumberOfPostTriggers", 2);
-    cdb.Write("Address", "234.0.0.1");
-    cdb.Write("Port", 45678);
-    cdb.CreateRelative("Signals");
-    cdb.MoveRelative("Signals");
-    cdb.CreateRelative("Trigger");
-    cdb.MoveRelative("Trigger");
-    cdb.Write("Type", "uint8");
-    cdb.MoveToRoot();
-    return !test.Initialise(cdb);
-}
-
-bool UDPSenderTest::TestInitialise_No_TimeSignal() {
-    using namespace MARTe;
-    UDPSender test;
-    ConfigurationDatabase cdb;
-    cdb.Write("CPUMask", 15);
-    cdb.Write("StackSize", 1000000);
-    cdb.Write("NumberOfPreTriggers", 3);
-    cdb.Write("NumberOfPostTriggers", 2);
-    cdb.Write("Address", "234.0.0.1");
-    cdb.Write("Port", 45678);
-    cdb.CreateRelative("Signals");
-    cdb.MoveRelative("Signals");
-    cdb.CreateRelative("Trigger");
-    cdb.MoveRelative("Trigger");
-    cdb.Write("Type", "uint8");
-    cdb.MoveToAncestor(1u);
-    cdb.CreateRelative("Counter");
-    cdb.MoveRelative("Counter");
-    cdb.Write("Type", "uint32");
-    cdb.MoveToRoot();
-    return !test.Initialise(cdb);
-}
-
-bool UDPSenderTest::TestInitialise_Correct() {
+bool UDPSenderTest::TestInitialise() {
     using namespace MARTe;
     UDPSender test;
     ConfigurationDatabase cdb;
@@ -968,6 +769,46 @@ bool UDPSenderTest::TestInitialise_Correct() {
     cdb.CreateRelative("Time");
     cdb.MoveRelative("Time");
     cdb.Write("Type", "uint32");
+    cdb.MoveToRoot();
+    return test.Initialise(cdb);
+}
+
+bool UDPSenderTest::TestInitialise_RealTimeThread() {
+    using namespace MARTe;
+    UDPSender test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Address", "234.0.0.1");
+    cdb.Write("Port", 45678);
+    cdb.Write("ExecutionMode", "RealTimeThread");
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return test.Initialise(cdb);
+}
+
+bool UDPSenderTest::TestInitialise_Wrong_ExecutionMode() {
+    using namespace MARTe;
+    UDPSender test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Address", "234.0.0.1");
+    cdb.Write("Port", 45678);
+    cdb.Write("ExecutionMode", "RTThread");
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
+}
+
+bool UDPSenderTest::TestInitialise_RealTimeThread_IgnoreParameters() {
+    using namespace MARTe;
+    UDPSender test;
+    ConfigurationDatabase cdb;
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 1000000);
+    cdb.Write("NumberOfPreTriggers", 3);
+    cdb.Write("NumberOfPostTriggers", 2);
+    cdb.Write("Address", "234.0.0.1");
+    cdb.Write("Port", 45678);
+    cdb.Write("ExecutionMode", "RealTimeThread");
+    cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     return test.Initialise(cdb);
 }
@@ -1001,13 +842,6 @@ bool UDPSenderTest::TestGetBrokerName() {
     cdb.MoveRelative("Trigger");
     cdb.Write("Type", "uint8");
     cdb.MoveToAncestor(1u);
-    cdb.CreateRelative("Counter");
-    cdb.MoveRelative("Counter");
-    cdb.Write("Type", "uint32");
-    cdb.MoveToAncestor(1u);
-    cdb.CreateRelative("Time");
-    cdb.MoveRelative("Time");
-    cdb.Write("Type", "uint32");
     cdb.MoveToRoot();
     ok = us.Initialise(cdb);
     if (ok) {
@@ -1024,12 +858,8 @@ bool UDPSenderTest::TestSynchronise() {
     return TestSendReceiveApplication(config1);
 }
 
-bool UDPSenderTest::TestSetConfiguredDatabase_Wrong_CounterType() {
-    return !TestIntegratedExecution(config2);
-}
-
-bool UDPSenderTest::TestSetConfiguredDatabase_Wrong_TimeType() {
-    return !TestIntegratedExecution(config3);
+bool UDPSenderTest::TestSynchronise_RealTimeThread() {
+    return TestSendReceiveApplication(config2);
 }
 
 bool UDPSenderTest::TestSetConfiguredDatabase_Correct() {

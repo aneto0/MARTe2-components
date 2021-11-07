@@ -78,6 +78,7 @@ bool UDPSender::Initialise(StructuredDataI &data) {
         if(!ok) {
             REPORT_ERROR(ErrorManagement::Information, "Execution mode was not specified, defaulting to IndependentThread mode");
             executionMode = UDPSenderExecutionModeIndependent;
+            ok = true;
         }
         else {
             if(tempExecModeStr == "IndependentThread") {
@@ -90,7 +91,7 @@ bool UDPSender::Initialise(StructuredDataI &data) {
             }
             else {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Specified execution mode is not allowed");
-                REPORT_ERROR(ErrorManagement::Information, "Allowed [IndependendThread, RealTimeThread], Specified %s", tempExecModeStr);
+                REPORT_ERROR(ErrorManagement::Information, "Allowed [IndependendThread, RealTimeThread], Specified %s", tempExecModeStr.Buffer());
                 ok = false;
             }
         }
@@ -98,11 +99,9 @@ bool UDPSender::Initialise(StructuredDataI &data) {
     if (ok) {
         ok = data.Read("NumberOfPreTriggers", numberOfPreTriggers);
         if (!ok) {
-            if(executionMode == UDPSenderExecutionModeIndependent) {
+            ok = (executionMode == UDPSenderExecutionModeRealTime);
+            if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfPreTriggers shall be specified");
-            }
-            else {
-                ok = true;
             }
         }
         else {
@@ -114,11 +113,9 @@ bool UDPSender::Initialise(StructuredDataI &data) {
     if (ok) {
         ok = data.Read("NumberOfPostTriggers", numberOfPostTriggers);
         if (!ok) {
-            if(executionMode == UDPSenderExecutionModeIndependent) {
+            ok = (executionMode == UDPSenderExecutionModeRealTime);
+            if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfPostTriggers shall be specified");
-            }
-            else {
-                ok = true;
             }
         }
         else {
@@ -148,29 +145,27 @@ bool UDPSender::Initialise(StructuredDataI &data) {
         uint32 cpuMaskIn;
         ok = data.Read("CPUMask", cpuMaskIn);
         if (!ok) {
-            ok = true;
-            cpuMaskIn = 0xFFFFFFFFu;
             if(executionMode == UDPSenderExecutionModeIndependent) {
+                cpuMaskIn = 0xFFFFFFFFu;
                 REPORT_ERROR(ErrorManagement::Information, "CPUMask was not specified, defaulting to 0xFFFFFFFFu");
             }
+            ok = true;
         }
         else {
             if(executionMode == UDPSenderExecutionModeRealTime) {
                 REPORT_ERROR(ErrorManagement::Warning, "CPUMask parameter not expected when in RealTimeThread mode, ignoring");
             }
-            else {
-                cpuMask = cpuMaskIn;    
-            }
         }
+        cpuMask = cpuMaskIn;
     }
     if (ok) {
         ok = data.Read("StackSize", stackSize);
         if (!ok) {
-            ok = true;
-            stackSize = THREADS_DEFAULT_STACKSIZE;
             if(executionMode == UDPSenderExecutionModeIndependent) {
+                stackSize = THREADS_DEFAULT_STACKSIZE;
                 REPORT_ERROR(ErrorManagement::Warning, "StackSize was not specified, defaulting to MARTe2 value (%d)", THREADS_DEFAULT_STACKSIZE);
             }
+            ok = true;
         }
         else {
             if(executionMode == UDPSenderExecutionModeRealTime) {
@@ -179,9 +174,11 @@ bool UDPSender::Initialise(StructuredDataI &data) {
         }
     }
     if (ok) {
-        ok = (executionMode == UDPSenderExecutionModeRealTime) || (stackSize > 0u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u when running in IndependentThread mode");
+        if (executionMode == UDPSenderExecutionModeIndependent) {
+            ok = (stackSize > 0u);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "StackSize shall be > 0u when running in IndependentThread mode");
+            }
         }
     }
     //Do not allow to add signals in run-time

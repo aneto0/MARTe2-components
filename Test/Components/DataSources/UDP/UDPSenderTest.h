@@ -89,24 +89,24 @@ public:
     bool TestInitialise_No_TriggerSignal();
 
     /**
-     * @brief Tests the Initialise method without Counter Signal.
-     */
-    bool TestInitialise_No_CounterSignal();
-
-    /**
-     * @brief Tests the Initialise method without Time Signal.
-     */
-    bool TestInitialise_No_TimeSignal();
-
-    /**
      * @brief Tests the Initialise method.
      */
-    bool TestInitialise_Correct();
+    bool TestInitialise();
 
     /**
-     * @brief Tests the SetConfiguredDatabase method with wrong Counter Type.
+     * @brief Tests the Initialise with ExecutionMode RealTimeThread
      */
-    bool TestSetConfiguredDatabase_Wrong_CounterType();
+    bool TestInitialise_RealTimeThread();
+
+    /**
+     * @brief Tests the Initialise with ExecutionMode RealTimeThread and parameters that will be ignored
+     */
+    bool TestInitialise_RealTimeThread_IgnoreParameters();
+
+    /**
+     * @brief Tests the Initialise method with a wrong ExecutionMode.
+     */
+    bool TestInitialise_Wrong_ExecutionMode();
 
     /**
      * @brief Tests the GetInputBrokers method
@@ -134,9 +134,9 @@ public:
     bool TestSynchronise();
 
     /**
-     * @brief Tests the SetConfiguredDatabase method with wrong Time Type.
+     * @brief Tests the Synchronise method with ExecutionMode == RealTimeThread
      */
-    bool TestSetConfiguredDatabase_Wrong_TimeType();
+    bool TestSynchronise_RealTimeThread();
 
     /**
      * @brief Tests the SetConfiguredDatabase method.
