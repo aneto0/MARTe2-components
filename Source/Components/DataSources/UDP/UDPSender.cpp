@@ -91,7 +91,7 @@ bool UDPSender::Initialise(StructuredDataI &data) {
             }
             else {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Specified execution mode is not allowed");
-                REPORT_ERROR(ErrorManagement::Information, "Allowed [IndependendThread, RealTimeThread], Specified %s", tempExecModeStr.Buffer());
+                REPORT_ERROR(ErrorManagement::Information, "Allowed [IndependentThread, RealTimeThread], Specified %s", tempExecModeStr.Buffer());
                 ok = false;
             }
         }
@@ -235,6 +235,12 @@ const char8* UDPSender::GetBrokerName(StructuredDataI &data,
         else if(executionMode == UDPSenderExecutionModeRealTime) {
             brokerName = "MemoryMapSynchronisedOutputBroker";
         }
+        //Cannot be reached
+        else{
+        }
+    }
+    else {
+        REPORT_ERROR(ErrorManagement::ParametersError, "UDPSender does not support InputSignals");
     }
     return brokerName;
 }

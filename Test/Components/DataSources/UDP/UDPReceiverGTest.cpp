@@ -85,6 +85,11 @@ TEST(UDPReceiverGTest,TestInitialise_IndependentThread) {
     ASSERT_TRUE(test.TestInitialise_IndependentThread());
 }
 
+TEST(UDPReceiverGTest,TestInitialise_Wrong_ExecutionMode) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_Wrong_ExecutionMode());
+}
+
 TEST(UDPReceiverGTest,TestSetConfiguredDatabase_ValidAddress) {
     UDPReceiverTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_ValidAddress());

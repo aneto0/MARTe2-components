@@ -221,7 +221,7 @@ private:
     /**
      * Mux for the IndependentThread implementation.
      */
-    FastPollingMutexSem mux;
+    FastPollingMutexSem muxIThread;
 
     /**
      * Copy in progres flag for the IndependentThread implementation.

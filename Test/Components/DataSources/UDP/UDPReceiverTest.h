@@ -80,9 +80,14 @@ public:
     bool TestInitialise_No_ExecutionMode_No_StackSize();
 
     /**
-     * @brief Tests the Initialise method with Sync on.
+     * @brief Tests the Initialise method with ExecutionMode == IndependentThread.
      */
     bool TestInitialise_IndependentThread();
+
+    /**
+     * @brief Tests the Initialise method with a wrong ExecutionMode
+     */
+    bool TestInitialise_Wrong_ExecutionMode();
 
     /**
      * @brief Tests the SetConfiguredDatabase method with Address for multicast.
