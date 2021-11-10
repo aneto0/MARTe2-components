@@ -109,7 +109,7 @@ public:
 private:
     MARTe::SingleThreadService executor;
 
-    MARTe::UDPSocket socket;
+    MARTe::BasicUDPSocket socket;
 
     void *memory;
 

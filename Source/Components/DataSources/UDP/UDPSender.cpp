@@ -52,7 +52,7 @@ UDPSender::UDPSender() :
     numberOfPostTriggers = 0u;
     address = "";
     port = 44488u;
-    client = NULL_PTR(UDPSocket*);
+    client = NULL_PTR(BasicUDPSocket*);
     cpuMask = 0xffffffffu;
     stackSize = 0u;
     executionMode = UDPSenderExecutionModeIndependent;
@@ -60,7 +60,7 @@ UDPSender::UDPSender() :
 
 /*lint -e{1551} Justification: the destructor must guarantee that the client sending is closed.*/
 UDPSender::~UDPSender() {
-    if (client != NULL_PTR(UDPSocket*)) {
+    if (client != NULL_PTR(BasicUDPSocket*)) {
         if (!client->Close()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not close UDP sender.");
         }
@@ -204,7 +204,7 @@ bool UDPSender::Initialise(StructuredDataI &data) {
 bool UDPSender::Synchronise() {
     const char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
     bool ok = false;
-    if (client != NULL_PTR(UDPSocket*)) {
+    if (client != NULL_PTR(BasicUDPSocket*)) {
         ok = client->Write(dataBuffer, totalMemorySize);
     }
     return ok;
@@ -213,7 +213,7 @@ bool UDPSender::Synchronise() {
 bool UDPSender::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
     if (ok) {
-        client = new UDPSocket();
+        client = new BasicUDPSocket();
         /*lint -e{613} Justification: the client cannot be a Null_PTR since it is allocated just before.*/
         ok = client->Open();
     }

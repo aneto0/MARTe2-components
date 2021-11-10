@@ -34,7 +34,7 @@
 #include "CompilerTypes.h"
 #include "MemoryDataSourceI.h"
 #include "ProcessorType.h"
-#include "UDPSocket.h"
+#include "BasicUDPSocket.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -218,7 +218,7 @@ private:
     /**
      * The socket that will connect to the receiver
      */
-    UDPSocket *client;
+    BasicUDPSocket *client;
 
     /**
      * Holds the current execution mode of the datasource.
