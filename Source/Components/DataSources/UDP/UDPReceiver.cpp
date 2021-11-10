@@ -53,7 +53,7 @@ UDPReceiver::UDPReceiver() :
     stackSize = THREADS_DEFAULT_STACKSIZE;
     executionMode = UDPReceiverExecutionModeRealTime;
     socket = NULL_PTR(UDPSocket*);
-    (void)mux.Create();
+    muxIThread.Create();
     copyInProgress = false;
     memoryIndependentThread = NULL_PTR(void *);
 }
@@ -91,10 +91,10 @@ bool UDPReceiver::AllocateMemory() {
 }
 
 bool UDPReceiver::BrokerCopyTerminated() {
-    if (mux.FastLock()) {
+    if (muxIThread.FastLock() == ErrorManagement::NoError) {
         copyInProgress = false;
     }
-    mux.FastUnLock();
+    muxIThread.FastUnLock();
     return true;
 }
 
@@ -191,7 +191,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
                 StreamString networkBlock = "";
                 ok = address.GetToken(networkBlock, ".", ignore);
                 if (ok) {
-                    /*lint -e{1055} Justification: atoi returns int32*/
+                    /*lint -e{1055} -e{746} -e{526} Justification: atoi returns int32*/
                     int32 netValue = static_cast<int32>(strtol(networkBlock.Buffer(), NULL_PTR(char8**), 10));
                     if ((netValue >= 224) && (netValue <= 239)) {
                         /* The net address belongs to the multicast address range therefore it must be a multicast group */
@@ -223,10 +223,10 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
 bool UDPReceiver::Synchronise() {
     bool ok = true;
     if (executionMode == UDPReceiverExecutionModeIndependent) {
-        if (mux.FastLock()) {
+        if (muxIThread.FastLock() == ErrorManagement::NoError) {
             copyInProgress = true;
         }
-        mux.FastUnLock();
+        muxIThread.FastUnLock();
     }
     else {
         char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
@@ -259,10 +259,10 @@ ErrorManagement::ErrorType UDPReceiver::Execute(ExecutionInfo &info) {
             err.timeout = !socket->Read(dataBuffer, totalMemorySize, timeout);
         }
         bool canCopyMemory = false;
-        if (mux.FastLock()) {
+        if (muxIThread.FastLock() == ErrorManagement::NoError) {
             canCopyMemory = !copyInProgress;
         }
-        mux.FastUnLock();
+        muxIThread.FastUnLock();
         if (canCopyMemory) {
             err.fatalError = !MemoryOperationsHelper::Copy(memory, dataBuffer, totalMemorySize);
         }

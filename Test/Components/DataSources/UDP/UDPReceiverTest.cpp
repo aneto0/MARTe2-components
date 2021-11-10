@@ -703,6 +703,18 @@ bool UDPReceiverTest::TestInitialise_IndependentThread() {
     return ok;
 }
 
+bool UDPReceiverTest::TestInitialise_Wrong_ExecutionMode() {
+    using namespace MARTe;
+    UDPReceiver test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Port", 500);
+    cdb.Write("ExecutionMode", "IThread");
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    bool ok = test.Initialise(cdb);
+    return !ok;
+}
+
 bool UDPReceiverTest::TestSetConfiguredDatabase_ValidAddress() {
     return TestIntegratedExecution(config1);
 }

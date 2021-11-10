@@ -91,19 +91,24 @@ TEST(UDPSenderGTest,TestInitialise_No_TriggerSignal) {
     ASSERT_TRUE(test.TestInitialise_No_TriggerSignal());
 }
 
-TEST(UDPSenderGTest,TestInitialise_No_CounterSignal) {
+TEST(UDPSenderGTest,TestInitialise) {
     UDPSenderTest test;
-    ASSERT_TRUE(test.TestInitialise_No_CounterSignal());
+    ASSERT_TRUE(test.TestInitialise());
 }
 
-TEST(UDPSenderGTest,TestInitialise_No_TimeSignal) {
+TEST(UDPSenderGTest,TestInitialise_RealTimeThread) {
     UDPSenderTest test;
-    ASSERT_TRUE(test.TestInitialise_No_TimeSignal());
+    ASSERT_TRUE(test.TestInitialise_RealTimeThread());
 }
 
-TEST(UDPSenderGTest,TestInitialise_Correct) {
+TEST(UDPSenderGTest,TestInitialise_RealTimeThread_IgnoreParameters) {
     UDPSenderTest test;
-    ASSERT_TRUE(test.TestInitialise_Correct());
+    ASSERT_TRUE(test.TestInitialise_RealTimeThread_IgnoreParameters());
+}
+
+TEST(UDPSenderGTest,TestInitialise_Wrong_ExecutionMode) {
+    UDPSenderTest test;
+    ASSERT_TRUE(test.TestInitialise_Wrong_ExecutionMode());
 }
 
 TEST(UDPSenderGTest,TestGetInputBrokers) {
@@ -131,15 +136,8 @@ TEST(UDPSenderGTest,TestSynchronise) {
     ASSERT_TRUE(test.TestSynchronise());
 }
 
-TEST(UDPSenderGTest,TestSetConfiguredDatabase_Wrong_CounterType) {
+TEST(UDPSenderGTest,TestSynchronise_RealTimeThread) {
     UDPSenderTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_Wrong_CounterType());
+    ASSERT_TRUE(test.TestSynchronise_RealTimeThread());
 }
 
-TEST(UDPSenderGTest,TestSetConfiguredDatabase_Wrong_TimeType) {
-    UDPSenderTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_Wrong_TimeType());
-}
-
-
-	
