@@ -30,7 +30,8 @@ SPB = EpicsDataSource.x \
     LinkDataSource.x \
     LoggerDataSource.x \
     RealTimeThreadAsyncBridge.x \
-    RealTimeThreadSynchronisation.x
+    RealTimeThreadSynchronisation.x \
+    UDP.x
 
 ROOT_DIR=../../..
 include ProfinetDataSource/Makefile.detect
@@ -81,6 +82,7 @@ ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
+
 
 all: $(OBJS)  $(SUBPROJ)  
 	echo  $(OBJS)
