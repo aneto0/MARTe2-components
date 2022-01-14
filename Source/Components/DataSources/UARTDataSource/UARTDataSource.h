@@ -67,14 +67,21 @@ namespace MARTe {
  *     Timeout = 200000 //Maximum time to wait for data
  *     CPUMask = 8 //Affinity of the CPU of where to read data from
  *     Signals = {
- *       DataOK = { //Is the data valid?
+ *       DataOK = { //Compulsory - is the data valid?
  *         Type = uint8
+ *         NumberOfElements = 1
+ *       }
+ *       Time = {
+ *         Type = uint64 //Compulsory - time-stamp in nano-seconds at which the data was read.
  *         NumberOfElements = 1
  *       }
  *       Packet = { //Actual data to read
  *         Type = uint8
  *         NumberOfElements = 15
  *       }
+ *     }
+ *     +TimeProvider = { //Optional. If not provided HighResolutionTimestampProvider will be used.
+ *       Class = TimestampProvider //A class that provides the absolute time in ns. It shall inherit from TimestampProvider.
  *     }
  *   }
  */

@@ -40,20 +40,33 @@
 namespace MARTe {
 
 /**
- * @brief Default plugin which provides time to the LinuxTimer DataSource.
- Relies on underlying HighResolutionTimer Counter() / Period() and Frequency
- primitives and implements the sleep as a busy spin based on them.
+ * @brief Default plugin which provides time to the UARTDataSource.
+   Relies on the MARTe2 underlying TimeStamp component.
  */
 class HighResolutionTimestampProvider: public TimestampProvider {
 public:CLASS_REGISTER_DECLARATION()
 
+    /**
+     * @brief Constructor.
+     */
     HighResolutionTimestampProvider();
 
+    /**
+     * @brief Destructor.
+     */
     virtual ~HighResolutionTimestampProvider();
 
+    /**
+     * @brief return the time-stamp using the MARTe2 HighResolutionTimer.
+     * @return the time-stamp using the MARTe2 HighResolutionTimer.
+     */
     virtual uint64 Timestamp();
 
 private:
+
+    /**
+     * Last time-stamp provided.
+     */
     TimeStamp ts;
 };
 
