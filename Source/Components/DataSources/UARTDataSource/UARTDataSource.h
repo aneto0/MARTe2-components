@@ -33,6 +33,7 @@
 /*---------------------------------------------------------------------------*/
 #include "BasicUART.h"
 #include "EmbeddedServiceMethodBinderT.h"
+/*lint -efile(766,UARTDataSource.h) EventSem.h is used in this file*/
 #include "EventSem.h"
 #include "MemoryDataSourceI.h"
 #include "MessageI.h"
