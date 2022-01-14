@@ -467,11 +467,11 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
             if (ok) {
                 ok = GetSignalNumberOfElements(n, nElements);
             }
-            if(ok){
+            if(ok) {
                 ok = originalSignalInformation.MoveToChild(n);
             }
             bool customFormat = false;
-            if(ok){
+            if(ok) {
                 // set customFormat to true if a format is specified for this signal
                 customFormat = originalSignalInformation.Read("Format", format);
                 ok = originalSignalInformation.MoveToAncestor(1u);
@@ -487,25 +487,22 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
             }
 
             TypeDescriptor signalType = GetSignalType(n);
-            if (customFormat){
+            if (customFormat) {
                 // Initialize a FormatDescriptor object to check that the parameter is a legal type descriptor
                 FormatDescriptor fd;
                 const char8* format_str = format.Buffer();
                 ok = fd.InitialiseFromString(format_str);
-                if (ok)
-                {
+                if (ok) {
                     ok = csvPrintfFormat.Printf("%s%s", "%", format.Buffer());
                 }
-                else
-                {
+                else {
                     ok = false;
                     StreamString signalName;
                     GetSignalName(n, signalName);
                     REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported format specifier \"%s\" for signal %s", format.Buffer(), signalName.Buffer());
                 }
             }
-            else
-            {
+            else {
                 bool isUnsignedInteger = (signalType.type == UnsignedInteger);
                 bool isSignedInteger = (signalType.type == SignedInteger);
                 bool isFloat = (signalType.type == Float);
