@@ -35,6 +35,7 @@ LIBRARIES_STATIC+=LinkDataSource/cov/LinkDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSourceTest$(LIBEXT)
 LIBRARIES_STATIC+=RealTimeThreadAsyncBridge/cov/RealTimeThreadAsyncBridgeTest$(LIBEXT)
 LIBRARIES_STATIC+=RealTimeThreadSynchronisation/cov/RealTimeThreadSynchronisationTest$(LIBEXT)
+LIBRARIES_STATIC+=UDP/cov/UDPTest$(LIBEXT)
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=DAN/cov/DANTest$(LIBEXT)

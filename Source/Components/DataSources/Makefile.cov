@@ -33,6 +33,7 @@ LIBRARIES_STATIC+=LinuxTimer/cov/LinuxTimer$(LIBEXT)
 LIBRARIES_STATIC+=LoggerDataSource/cov/LoggerDataSource$(LIBEXT)
 LIBRARIES_STATIC+=RealTimeThreadAsyncBridge/cov/RealTimeThreadAsyncBridge$(LIBEXT)
 LIBRARIES_STATIC+=RealTimeThreadSynchronisation/cov/RealTimeThreadSynchronisation$(LIBEXT)
+LIBRARIES_STATIC+=UDP/cov/UDP$(LIBEXT)
 
 ifdef CODAC_ROOT
 LIBRARIES_STATIC+=DAN/cov/DAN$(LIBEXT)

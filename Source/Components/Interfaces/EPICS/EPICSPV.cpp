@@ -307,11 +307,18 @@ ErrorManagement::ErrorType EPICSPV::CAPut(StructuredDataI & data) {
     return err;
 }
 
+/*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
 ErrorManagement::ErrorType EPICSPV::CAPutRaw() {
     ErrorManagement::ErrorType err = (context != NULL_PTR(struct ca_client_context *));
     if (err.ErrorsCleared()) {
-        /*lint -e{9130} -e{835} -e{845} Several false positives. lint is getting confused here for some reason.*/
-        err = !(ca_attach_context(context) == ECA_NORMAL);
+        int32 caRet = ca_attach_context(context);
+        err = !(caRet == ECA_NORMAL);
+        if (!err.ErrorsCleared()) {
+            err = !(caRet == ECA_ISATTACHED);
+        }
+        if (!err.ErrorsCleared()) {
+            REPORT_ERROR(ErrorManagement::FatalError, "Failed to ca_attach_context, error: %s", ca_message(caRet)); 
+        }
     }
     if (err.ErrorsCleared()) {
         //Arrays of strings are encoded with space separated tokens!
@@ -348,9 +355,10 @@ ErrorManagement::ErrorType EPICSPV::CAPutRaw() {
             REPORT_ERROR(err, "ca_put failed for PV: %s", pvName.Buffer());
         }
         /*lint -e{9130} -e{835} -e{845} Several false positives. lint is getting confused here for some reason.*/
-        if (ca_pend_io(timeout) != ECA_NORMAL) {
+        int32 caRet = ca_pend_io(timeout);
+        if (caRet != ECA_NORMAL) {
             err = ErrorManagement::FatalError;
-            REPORT_ERROR(err, "ca_pend_io failed for PV: %s", pvName.Buffer());
+            REPORT_ERROR(err, "ca_pend_io failed for PV: %s . Error: %s", pvName.Buffer(), ca_message(caRet));
         }
         if (strArrayTemp != NULL_PTR(char8 *)) {
             delete[] strArrayTemp;

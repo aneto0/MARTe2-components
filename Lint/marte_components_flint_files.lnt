@@ -51,6 +51,7 @@
 -i./Source/Components/DataSources/SDN/
 -i./Source/Components/DataSources/ProfinetDataSource/
 -i./Source/Components/DataSources/UARTDataSource/
+-i./Source/Components/DataSources/UDP/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/ConstantGAM/
 -i./Source/Components/GAMs/ConversionGAM/
@@ -185,6 +186,8 @@ TimeCorrectionGAM.cpp
 TimeProvider.cpp
 TimestampProvider.cpp
 Types.h
+UDPSender.cpp
+UDPReceiver.cpp
 Waveform.cpp
 Waveform.h
 WaveformChirp.cpp
