@@ -54,6 +54,8 @@ namespace MARTe {
  * If the format is csv the first line will be a comment with each signal name, type and number of elements.
  * e.g."#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[4]", where ; is the CSVSeparator.
  * A new line will be added every time all the signal samples are written.
+ * The default number formats for a csv file are "%u" for unsigned integers, "%d" for signed integers and "%f" for floats.
+ * A custom format can be chosen for each signal via the parameter "Format" (see signal SignalUInt16F in the example below) 
  *
  * If the format is binary an header with the following information is created: the first 4 bytes
  * contain the number of signals. Then, for each signal, the signal type will be encoded in two bytes, followed
@@ -87,6 +89,7 @@ namespace MARTe {
  *         }
  *         SignalUInt16F = { //As many as required.
  *             Type = "uint16"
+ *             Format = "e" //Optional. Any format specifier supported by FormatDescriptor (without '%'). Without effect if FileFormat is "binary".
  *         }
  *         ...
  *     }
@@ -302,6 +305,12 @@ public:
     virtual void Purge(ReferenceContainer &purgeList);
 
 private:
+
+    /**
+     * Copy of the original signal information. 
+     * Needed to retrieve the "Format" parameter of the signals, not copied in configuredDatabase
+     */
+    ConfigurationDatabase originalSignalInformation;
 
     /**
      * True if the data is only to be stored in the output file following a trigger.
