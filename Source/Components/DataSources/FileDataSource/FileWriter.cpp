@@ -498,7 +498,7 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
                 else {
                     ok = false;
                     StreamString signalName;
-                    GetSignalName(n, signalName);
+                    (void)GetSignalName(n, signalName);
                     REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported format specifier \"%s\" for signal %s", format.Buffer(), signalName.Buffer());
                 }
             }
