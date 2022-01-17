@@ -78,7 +78,7 @@ public:
         ok &= config.CreateAbsolute(".Signals");
         ok &= config.CreateRelative("0");
         ok &= config.Write("NodeName", "S_uint8");
-        ok &= config.Write("QualifiedName", "LL");
+        ok &= config.Write("QualifiedName", "0");
         ok &= config.Write("Type", "uint8");
         ok &= config.Write("NumberOfElements", elementsRead);
         ok &= config.Write("ByteSize", elementsRead * 1);
@@ -87,6 +87,7 @@ public:
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("1");
         ok &= config.Write("NodeName", "S_int8");
+        ok &= config.Write("QualifiedName", "1");
         ok &= config.Write("Type", "int8");
         ok &= config.Write("NumberOfElements", elementsRead);
         ok &= config.Write("ByteSize", elementsRead * 1);
@@ -95,6 +96,7 @@ public:
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("2");
         ok &= config.Write("NodeName", "S_uint16");
+        ok &= config.Write("QualifiedName", "2");
         ok &= config.Write("Type", "uint16");
         ok &= config.Write("NumberOfElements", elementsRead);
         ok &= config.Write("ByteSize", elementsRead * 2);
@@ -103,6 +105,7 @@ public:
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("3");
         ok &= config.Write("NodeName", "S_int16");
+        ok &= config.Write("QualifiedName", "3");
         ok &= config.Write("Type", "int16");
         ok &= config.Write("NumberOfElements", elementsRead);
         ok &= config.Write("ByteSize", elementsRead * 2);
@@ -111,6 +114,7 @@ public:
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("4");
         ok &= config.Write("NodeName", "S_uint32");
+        ok &= config.Write("QualifiedName", "4");
         ok &= config.Write("Type", "uint32");
         ok &= config.Write("NumberOfElements", elementsRead);
         ok &= config.Write("ByteSize", elementsRead * 4);
@@ -119,6 +123,7 @@ public:
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("5");
         ok &= config.Write("NodeName", "S_int32");
+        ok &= config.Write("QualifiedName", "5");
         ok &= config.Write("Type", "int32");
         ok &= config.Write("NumberOfElements", elementsRead);
         ok &= config.Write("ByteSize", elementsRead * 4);
@@ -127,6 +132,7 @@ public:
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("6");
         ok &= config.Write("NodeName", "S_uint64");
+        ok &= config.Write("QualifiedName", "6");
         ok &= config.Write("Type", "uint64");
         ok &= config.Write("NumberOfElements", elementsRead);
         ok &= config.Write("ByteSize", elementsRead * 8);
@@ -135,6 +141,7 @@ public:
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("7");
         ok &= config.Write("NodeName", "S_int64");
+        ok &= config.Write("QualifiedName", "7");
         ok &= config.Write("Type", "int64");
         ok &= config.Write("NumberOfElements", elementsRead);
         ok &= config.Write("ByteSize", elementsRead * 8);
@@ -143,6 +150,7 @@ public:
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("8");
         ok &= config.Write("NodeName", "S_float32");
+        ok &= config.Write("QualifiedName", "8");
         ok &= config.Write("Type", "float32");
         ok &= config.Write("NumberOfElements", elementsRead);
         ok &= config.Write("ByteSize", elementsRead * 4);
@@ -151,6 +159,7 @@ public:
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("9");
         ok &= config.Write("NodeName", "S_float64");
+        ok &= config.Write("QualifiedName", "9");
         ok &= config.Write("Type", "float64");
         ok &= config.Write("NumberOfElements", elementsRead);
         ok &= config.Write("ByteSize", elementsRead * 8);
@@ -158,6 +167,7 @@ public:
         ok &= config.Write("HoleManagement", holeManagement);
         ok &= config.MoveToAncestor(1u);
         ok &= config.CreateRelative("10");
+        ok &= config.Write("QualifiedName", "10");
         ok &= config.Write("Type", typeTime.Buffer());
         ok &= config.Write("NumberOfElements", 1);
         if ((typeTime == "uint32") || (typeTime == "int32")) {
@@ -1584,8 +1594,10 @@ bool MDSReaderTest::TestSetConfiguredDatabase2Functions() {
     config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
+    config.Write("QualifiedName", "0");
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
+    config.Write("QualifiedName", "1");
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
     config.MoveToAncestor(1u);
@@ -1608,8 +1620,10 @@ bool MDSReaderTest::TestSetConfiguredDatabase0Signals() {
     config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
+    config.Write("QualifiedName", "0");
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
+    config.Write("QualifiedName", "1");
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
     config.MoveToRoot();
@@ -1632,8 +1646,10 @@ bool MDSReaderTest::TestSetConfiguredDatabaseWrongSamples() {
     config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
+    config.Write("QualifiedName", "0");
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
+    config.Write("QualifiedName", "1");
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
     config.CreateRelative("InputSignals");
@@ -1663,10 +1679,13 @@ bool MDSReaderTest::TestSetConfiguredDatabaseDiffSignalsAndFunctions() {
     config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
+    config.Write("QualifiedName", "0");
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
+    config.Write("QualifiedName", "1");
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
+    config.Write("QualifiedName", "2");
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
     config.CreateRelative("InputSignals");
@@ -1705,8 +1724,10 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoNodeName() {
     config.MoveToRoot();
     ok = dS.Initialise(config);
     config.CreateRelative("0");
+    config.Write("QualifiedName", "0");
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
+    config.Write("QualifiedName", "1");
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
     config.CreateRelative("InputSignals");
@@ -1736,8 +1757,10 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoNodeName_2() {
     config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
+    config.Write("QualifiedName", "0");
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
+    config.Write("QualifiedName", "1");
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
     config.CreateRelative("InputSignals");
@@ -1769,11 +1792,14 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidNodeName() {
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
+    config.Write("QualifiedName", "0");
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "InvalidNodeName"); //invalid name
+    config.Write("QualifiedName", "1");
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
+    config.Write("QualifiedName", "2");
 
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
@@ -1809,13 +1835,16 @@ bool MDSReaderTest::TestSetConfiguredDatabaseEqualNodeName() {
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
     config.Write("Type", "uint8");
+    config.Write("QualifiedName", "0");
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_uint8"); //repeated
     config.Write("Type", "uint32");
+    config.Write("QualifiedName", "1");
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
     config.Write("Type", "uint32");
+    config.Write("QualifiedName", "2");
 
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
@@ -1850,14 +1879,18 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidNodeType() {
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
+    config.Write("QualifiedName", "0");
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
+    config.Write("QualifiedName", "1");
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
     config.Write("NodeName", "Info");
+    config.Write("QualifiedName", "2");
     config.MoveToAncestor(1u);
     config.CreateRelative("3");
+    config.Write("QualifiedName", "3");
 
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
@@ -1895,12 +1928,15 @@ bool MDSReaderTest::TestSetConfiguredDatabaseWrongType() {
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
     config.Write("Type", "uint8");
+    config.Write("QualifiedName", "0");
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
     config.Write("Type", "WrongType");
+    config.Write("QualifiedName", "1");
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
+    config.Write("QualifiedName", "2");
 
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
@@ -1936,12 +1972,15 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInconsistentType() {
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
     config.Write("Type", "uint8");
+    config.Write("QualifiedName", "0");
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
     config.Write("Type", "float32");
+    config.Write("QualifiedName", "1");
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
+    config.Write("QualifiedName", "2");
 
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
@@ -1975,11 +2014,13 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoNumberOfElements() {
     config.Write("Frequency", 1000.0);
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
+    config.Write("QualifiedName", "0");
     config.Write("NodeName", "S_uint8");
     config.Write("Type", "uint8");
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("Type", "uint32");
+    config.Write("QualifiedName", "1");
 
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
@@ -2013,15 +2054,18 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidNumberOfElements() {
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
     config.Write("Type", "uint8");
+    config.Write("QualifiedName", "0");
     config.Write("NumberOfElements", 100);
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
     config.Write("Type", "int8");
+    config.Write("QualifiedName", "1");
     config.Write("NumberOfElements", 0);
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
     config.Write("Type", "int64");
+    config.Write("QualifiedName", "2");
 
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
@@ -2057,15 +2101,18 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoTimeNumberOfElements() {
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
     config.Write("Type", "uint8");
+    config.Write("QualifiedName", "0");
     config.Write("NumberOfElements", 3);
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
     config.Write("Type", "int8");
+    config.Write("QualifiedName", "1");
     config.Write("NumberOfElements", 3);
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
     config.Write("Type", "uint32");
+    config.Write("QualifiedName", "2");
 
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
@@ -2100,16 +2147,19 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidTimeNumberOfElements() {
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
+    config.Write("QualifiedName", "0");
     config.Write("Type", "uint8");
     config.Write("NumberOfElements", 100);
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
     config.Write("Type", "int8");
+    config.Write("QualifiedName", "1");
     config.Write("NumberOfElements", 5);
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
     config.Write("Type", "int64");
+    config.Write("QualifiedName", "2");
     config.Write("NumberOfElements", 3);
 
     config.CreateAbsolute("Functions");
@@ -2145,17 +2195,20 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidBytesSize() {
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
+    config.Write("QualifiedName", "0");
     config.Write("Type", "uint8");
     config.Write("NumberOfElements", 100);
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
     config.Write("Type", "int8");
+    config.Write("QualifiedName", "1");
     config.Write("NumberOfElements", 100);
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
     config.Write("Type", "int32");
     config.Write("NumberOfElements", 1);
+    config.Write("QualifiedName", "2");
 
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
@@ -2191,6 +2244,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidTimeBytesSize() {
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
     config.Write("Type", "uint8");
+    config.Write("QualifiedName", "0");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
     config.MoveToAncestor(1u);
@@ -2199,10 +2253,12 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidTimeBytesSize() {
     config.Write("Type", "int8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
+    config.Write("QualifiedName", "1");
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
     config.Write("Type", "int32");
     config.Write("NumberOfElements", 1);
+    config.Write("QualifiedName", "2");
 
     config.CreateAbsolute("Functions");
     config.CreateRelative("0");
@@ -2238,6 +2294,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoDataManagement() {
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
     config.Write("Type", "uint8");
+    config.Write("QualifiedName", "0");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
     config.Write("HoleManagement", 0);
@@ -2246,6 +2303,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoDataManagement() {
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
     config.Write("Type", "int8");
+    config.Write("QualifiedName", "1");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
     config.Write("DataManagement", 2);
@@ -2254,6 +2312,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoDataManagement() {
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
     config.Write("Type", "uint32");
+    config.Write("QualifiedName", "2");
     config.Write("NumberOfElements", 1);
     config.Write("ByteSize", 4);
 
@@ -2291,6 +2350,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidDataManagement() {
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
     config.Write("Type", "uint8");
+    config.Write("QualifiedName", "0");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
     config.Write("DataManagement", 4);
@@ -2299,6 +2359,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidDataManagement() {
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
     config.Write("Type", "int8");
+    config.Write("QualifiedName", "1");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
     config.Write("DataManagement", 2);
@@ -2306,6 +2367,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidDataManagement() {
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
     config.Write("NumberOfElements", 1);
+    config.Write("QualifiedName", "2");
     config.Write("ByteSize", 4);
     config.Write("Type", "uint32");
 
@@ -2342,6 +2404,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseDataManagement0() {
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
+    config.Write("QualifiedName", "0");
     config.Write("Type", "uint8");
     config.Write("NumberOfElements", 400);
     config.Write("ByteSize", 400);
@@ -2350,6 +2413,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseDataManagement0() {
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
+    config.Write("QualifiedName", "1");
     config.Write("Type", "int8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
@@ -2357,6 +2421,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseDataManagement0() {
     config.Write("HoleManagement", 0);
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
+    config.Write("QualifiedName", "2");
     config.Write("Type", "uint64");
     config.Write("NumberOfElements", 1);
     config.Write("ByteSize", 8);
@@ -2394,6 +2459,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoHoleManagement() {
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
+    config.Write("QualifiedName", "0");
     config.Write("Type", "uint8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
@@ -2402,6 +2468,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoHoleManagement() {
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
+    config.Write("QualifiedName", "1");
     config.Write("Type", "int8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
@@ -2410,6 +2477,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseNoHoleManagement() {
 
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
+    config.Write("QualifiedName", "2");
     config.Write("Type", "int32");
     config.Write("NumberOfElements", 1);
     config.Write("ByteSize", 4);
@@ -2447,6 +2515,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidHoleManagement() {
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
+    config.Write("QualifiedName", "0");
     config.Write("Type", "uint8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
@@ -2455,6 +2524,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidHoleManagement() {
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
+    config.Write("QualifiedName", "1");
     config.Write("Type", "int8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
@@ -2462,6 +2532,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidHoleManagement() {
     config.Write("HoleManagement", 0);
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
+    config.Write("QualifiedName", "2");
     config.Write("Type", "int32");
     config.Write("NumberOfElements", 1);
     config.Write("ByteSize", 4);
@@ -2499,6 +2570,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidTimeType() {
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
+    config.Write("QualifiedName", "0");
     config.Write("Type", "uint8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
@@ -2507,6 +2579,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidTimeType() {
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
+    config.Write("QualifiedName", "1");
     config.Write("Type", "int8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
@@ -2515,6 +2588,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidTimeType() {
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
     config.Write("Name", "Time");
+    config.Write("QualifiedName", "2");
     config.Write("Type", "int8");
     config.Write("NumberOfElements", 1);
     config.Write("ByteSize", 4);
@@ -2552,6 +2626,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidSamplingTime() {
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
+    config.Write("QualifiedName", "0");
     config.Write("Type", "uint8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
@@ -2560,6 +2635,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidSamplingTime() {
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
+    config.Write("QualifiedName", "1");
     config.Write("Type", "int8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
@@ -2567,6 +2643,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseInvalidSamplingTime() {
     config.Write("HoleManagement", 0);
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
+    config.Write("QualifiedName", "2");
     config.Write("Name", "Time");
     config.Write("Type", "int64");
     config.Write("NumberOfElements", 1);
@@ -2605,6 +2682,7 @@ bool MDSReaderTest::TestSetConfiguredDatabase() {
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
+    config.Write("QualifiedName", "0");
     config.Write("Type", "uint8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
@@ -2613,6 +2691,7 @@ bool MDSReaderTest::TestSetConfiguredDatabase() {
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
+    config.Write("QualifiedName", "1");
     config.Write("Type", "int8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
@@ -2620,6 +2699,7 @@ bool MDSReaderTest::TestSetConfiguredDatabase() {
     config.Write("HoleManagement", 0);
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
+    config.Write("QualifiedName", "2");
     config.Write("Type", "int32");
     config.Write("NumberOfElements", 1);
     config.Write("ByteSize", 4);
@@ -2657,6 +2737,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseShotNumber() {
     config.CreateAbsolute(".Signals");
     config.CreateRelative("0");
     config.Write("NodeName", "S_uint8");
+    config.Write("QualifiedName", "0");
     config.Write("Type", "uint8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
@@ -2665,6 +2746,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseShotNumber() {
     config.MoveToAncestor(1u);
     config.CreateRelative("1");
     config.Write("NodeName", "S_int8");
+    config.Write("QualifiedName", "1");
     config.Write("Type", "int8");
     config.Write("NumberOfElements", 100);
     config.Write("ByteSize", 100);
@@ -2673,6 +2755,7 @@ bool MDSReaderTest::TestSetConfiguredDatabaseShotNumber() {
     config.MoveToAncestor(1u);
     config.CreateRelative("2");
     config.Write("Type", "int32");
+    config.Write("QualifiedName", "2");
     config.Write("NumberOfElements", 1);
     config.Write("ByteSize", 4);
 
