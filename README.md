@@ -57,6 +57,9 @@ These include general purpose GAMs, support to off-the-shelf hardware and interf
 | [RealTimeThreadSynchronisation](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/DataSources/RealTimeThreadSynchronisation) | [Enables the synchronisation of multiple real-time threads.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1RealTimeThreadSynchronisation.html)|
 | [SDNSubscriber](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/DataSources/SDN) | [Receive signals transported over the ITER SDN.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1SDNSubscriber.html)|
 | [SDNPublisher](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/DataSources/SDN) | [Publish signals transported over the ITER SDN.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1SDNPublisher.html)|
+| [UARTDataSource](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/DataSources/UARTDataSource) | [Receive signals transported over UART.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1UARTDataSource.html)|
+| [UDPReceiver](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/DataSources/UDP) | [Receive signals transported over UDP.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1UDPReceiver.html)|
+| [UDPSender](https://vcis-gitlab.f4e.europa.eu/aneto/MARTe2-components/tree/master/Source/Components/DataSources/UDP) | [Transmit signals transported over UDP.](https://vcis-jenkins.f4e.europa.eu/job/MARTe2-Components-docs-master/doxygen/classMARTe_1_1UDPSender.html)|
 
 ## Interfaces
 
