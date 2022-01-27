@@ -55,7 +55,7 @@ typedef enum {
  *
  * The configuration syntax is (names are only given as an example):
  * +UDPReceiver = {
- *     Class = UDPDrv::UDPReceiver
+ *     Class = UDP::UDPReceiver
  *     Address = "230.168.129.30" //Optional. Only for Multicast group
  *     Port = "44488" //Optional. Default: 44488
  *     Timeout = "5.0" //Optional (seconds) The time the receiver will wait while listening before timing out. Default: Infinite
