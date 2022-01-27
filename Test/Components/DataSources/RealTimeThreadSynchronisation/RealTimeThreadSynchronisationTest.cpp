@@ -1772,3 +1772,9 @@ bool RealTimeThreadSynchronisationTest::TestSynchronise() {
     godb->Purge();
     return ok;
 }
+
+bool RealTimeThreadSynchronisationTest::TestGetNumberOfStatefulMemoryBuffers() {
+    using namespace MARTe;
+    RealTimeThreadSynchronisation rtt;
+    return (rtt.GetNumberOfStatefulMemoryBuffers() == 2u);
+}
