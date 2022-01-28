@@ -102,7 +102,7 @@ bool RealTimeThreadSynchBroker::AllocateMemory(char8 * const dataSourceMemoryIn,
         for (s = 0u; s < numberOfDataSourceSignals; s++) {
             signalMemory[s] = NULL_PTR(char8 *);
             //lint -e{679} not a truncation risk
-            signalMemory[s + numberOfFunctionSignals] = NULL_PTR(char8 *);
+            signalMemory[s + numberOfDataSourceSignals] = NULL_PTR(char8 *);
         }
         ok = dataSource->GetFunctionNumberOfSignals(InputSignals, functionIdx, numberOfFunctionSignals);
         if (ok) {
