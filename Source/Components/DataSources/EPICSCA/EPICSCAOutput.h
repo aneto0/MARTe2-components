@@ -61,10 +61,11 @@ namespace MARTe {
  *     CPUs = 0xff //Optional the affinity of the EmbeddedThread (where the EPICS context is attached).
  *     IgnoreBufferOverrun = 1 //Optional. If true no error will be triggered when the thread that writes into EPICS does not consume the data fast enough.
  *     NumberOfBuffers = 10 //Compulsory. Number of buffers in a circular buffer that asynchronously writes the PV values. Each buffer is capable of holding a copy of all the DataSourceI signals.
+ *     DBR64CastDouble = "yes" //Optional, default=yes. DBR does not support 64 bit integers. If a 64 bit signal is added and DBR64CastDouble is set to "yes", the uint64/int64 signals will be cast to DBR_DOUBLE.
  *     Signals = {
  *          PV1 = { //At least one shall be defined
  *             PVName = My::PV1 //Compulsory. Name of the PV.
- *             Type = uint32 //Compulsory. Supported types are char8[40], string[40], uint8, int8, uint16, int16, int32, uint32, float32 and float64
+ *             Type = uint32 //Compulsory. Supported types are char8[40], string[40], uint8, int8, uint16, int16, int32, uint32, float32 and float64. See note on DBR64CastDouble for uint64/int64.
  *          }
  *          ...
  *     }
@@ -248,6 +249,11 @@ private:
      * The output broker.
      */ 
     ReferenceT<MemoryMapAsyncOutputBroker> broker;
+
+    /**
+     * Allow to cast to uint64/int64 to double?
+     */
+    bool dbr64CastDouble;
 };
 }
 

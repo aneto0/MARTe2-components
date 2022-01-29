@@ -60,6 +60,8 @@ public:
         int32Signal = NULL;
         float32Signal = NULL;
         float64Signal = NULL;
+        int64Signal = NULL;
+        uint64Signal = NULL;
         numberOfElements = 1u;
     }
 
@@ -104,6 +106,12 @@ public:
             else if (GetSignalType(OutputSignals, n) == SignedInteger8Bit) {
                 int8Signal = reinterpret_cast<int8 *>(GetOutputSignalMemory(n));
             }
+            else if (GetSignalType(OutputSignals, n) == SignedInteger64Bit) {
+                int64Signal = reinterpret_cast<int64 *>(GetOutputSignalMemory(n));
+            }
+            else if (GetSignalType(OutputSignals, n) == UnsignedInteger64Bit) {
+                uint64Signal = reinterpret_cast<uint64 *>(GetOutputSignalMemory(n));
+            }
             else {
                 float64Signal = reinterpret_cast<float64 *>(GetOutputSignalMemory(n));
             }
@@ -127,6 +135,8 @@ public:
     MARTe::int32 *int32Signal;
     MARTe::float32 *float32Signal;
     MARTe::float64 *float64Signal;
+    MARTe::int64 *int64Signal;
+    MARTe::uint64 *uint64Signal;
     MARTe::uint32 numberOfElements;
 };
 CLASS_REGISTER(EPICSCAOutputGAMTestHelper, "1.0")
@@ -263,6 +273,14 @@ static const MARTe::char8 * const config1 = ""
         "                    Type = float32"
         "                    DataSource = EPICSCAOutputTest"
         "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = EPICSCAOutputTest"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = EPICSCAOutputTest"
+        "                }"
         "            }"
         "        }"
         "    }"
@@ -307,6 +325,12 @@ static const MARTe::char8 * const config1 = ""
         "                }"
         "                SignalFloat64 = {"
         "                    PVName = \"MARTe2::EPICSCAInput::Test::Float64\""
+        "                }"
+        "                SignalInt64 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Int64\""
+        "                }"
+        "                SignalUInt64 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt64\""
         "                }"
         "            }"
         "        }"
@@ -470,6 +494,18 @@ static const MARTe::char8 * const config3 = ""
         "                    NumberOfElements = 10"
         "                    DataSource = EPICSCAOutputTest"
         "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 10"
+        "                    DataSource = EPICSCAOutputTest"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 10"
+        "                    DataSource = EPICSCAOutputTest"
+        "                }"
         "            }"
         "        }"
         "    }"
@@ -508,6 +544,12 @@ static const MARTe::char8 * const config3 = ""
         "                }"
         "                SignalFloat64 = {"
         "                    PVName = \"MARTe2::EPICSCAInput::Test::Float64Arr\""
+        "                }"
+        "                SignalUInt64 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt64Arr\""
+        "                }"
+        "                SignalInt64 = {"
+        "                    PVName = \"MARTe2::EPICSCAInput::Test::Int64Arr\""
         "                }"
         "            }"
         "        }"
@@ -741,6 +783,7 @@ static const MARTe::char8 * const config6 = ""
         "            CPUMask = 15"
         "            StackSize = 10000000"
         "            NumberOfBuffers = 8"
+        "            DBR64CastDouble = no"
         "            Signals = {"
         "                SignalUInt64 = {"
         "                    PVName = \"MARTe2::EPICSCAInput::Test::UInt8\""
@@ -1356,12 +1399,12 @@ bool EPICSCAOutputTest::TestExecute() {
     if (ok) {
         ok = (ca_context_create(ca_enable_preemptive_callback));
     }
-    const uint32 NUMBER_OF_PVS = 10u;
+    const uint32 NUMBER_OF_PVS = 12u;
     chid pvChids[NUMBER_OF_PVS];
-    chtype pvTypes[] = { DBR_STRING, DBR_STRING, DBR_CHAR, DBR_CHAR, DBR_SHORT, DBR_SHORT, DBR_LONG, DBR_LONG, DBR_FLOAT, DBR_DOUBLE };
+    chtype pvTypes[] = { DBR_STRING, DBR_STRING, DBR_CHAR, DBR_CHAR, DBR_SHORT, DBR_SHORT, DBR_LONG, DBR_LONG, DBR_FLOAT, DBR_DOUBLE, DBR_DOUBLE, DBR_DOUBLE };
     const char8 *pvNames[] = { "MARTe2::EPICSCAInput::Test::String", "MARTe2::EPICSCAInput::Test::Char8", "MARTe2::EPICSCAInput::Test::UInt8",
             "MARTe2::EPICSCAInput::Test::Int8", "MARTe2::EPICSCAInput::Test::UInt16", "MARTe2::EPICSCAInput::Test::Int16", "MARTe2::EPICSCAInput::Test::UInt32",
-            "MARTe2::EPICSCAInput::Test::Int32", "MARTe2::EPICSCAInput::Test::Float32", "MARTe2::EPICSCAInput::Test::Float64" };
+            "MARTe2::EPICSCAInput::Test::Int32", "MARTe2::EPICSCAInput::Test::Float32", "MARTe2::EPICSCAInput::Test::Float64" , "MARTe2::EPICSCAInput::Test::Int64" , "MARTe2::EPICSCAInput::Test::UInt64"};
     char8 char8Value[40];
     char8 stringValue[40];
     uint8 uint8Value = 0;
@@ -1372,8 +1415,10 @@ bool EPICSCAOutputTest::TestExecute() {
     int32 int32Value = 0;
     float32 float32Value = 0;
     float64 float64Value = 0;
+    float64 int64Value = 0;
+    float64 uint64Value = 0;
     void *pvMemory[] = { &stringValue[0], &char8Value[0], &uint8Value, &int8Value, &uint16Value, &int16Value, &uint32Value, &int32Value, &float32Value,
-            &float64Value };
+            &float64Value, &int64Value , &uint64Value};
 
     if (ok) {
         uint32 n;
@@ -1398,6 +1443,8 @@ bool EPICSCAOutputTest::TestExecute() {
         *gam1->int16Signal = 4;
         *gam1->int32Signal = 5;
         *gam1->float32Signal = 6;
+        *gam1->int64Signal = 13;
+        *gam1->uint64Signal = 14;
 
         while ((!done) && (timeOutCounts > 0u) && (ok)) {
             scheduler->ExecuteThreadCycle(0);
@@ -1414,6 +1461,8 @@ bool EPICSCAOutputTest::TestExecute() {
             done = (*gam1->uint16Signal == uint16Value);
             done &= (*gam1->uint32Signal == uint32Value);
             done &= (*gam1->float64Signal == float64Value);
+            done &= (*gam1->int64Signal == (int64)int64Value);
+            done &= (*gam1->uint64Signal == (uint64)uint64Value);
             done &= (*gam1->int16Signal == int16Value);
             done &= (*gam1->int32Signal == int32Value);
             done &= (*gam1->float32Signal == float32Value);
@@ -1430,6 +1479,8 @@ bool EPICSCAOutputTest::TestExecute() {
                 *gam1->uint16Signal *= 2;
                 *gam1->uint32Signal *= 2;
                 *gam1->float64Signal *= 2;
+                *gam1->int64Signal *= 2;
+                *gam1->uint64Signal *= 2;
                 *gam1->int16Signal *= 2;
                 *gam1->int32Signal *= 2;
                 *gam1->float32Signal *= 2;
@@ -1493,12 +1544,12 @@ bool EPICSCAOutputTest::TestExecute_Arrays() {
     if (ok) {
         ok = (ca_context_create(ca_enable_preemptive_callback));
     }
-    const uint32 NUMBER_OF_PVS = 8u;
+    const uint32 NUMBER_OF_PVS = 10u;
     chid pvChids[NUMBER_OF_PVS];
-    chtype pvTypes[] = { DBR_CHAR, DBR_CHAR, DBR_SHORT, DBR_SHORT, DBR_LONG, DBR_LONG, DBR_FLOAT, DBR_DOUBLE };
+    chtype pvTypes[] = { DBR_CHAR, DBR_CHAR, DBR_SHORT, DBR_SHORT, DBR_LONG, DBR_LONG, DBR_FLOAT, DBR_DOUBLE, DBR_DOUBLE, DBR_DOUBLE };
     const char8 *pvNames[] = { "MARTe2::EPICSCAInput::Test::UInt8Arr", "MARTe2::EPICSCAInput::Test::Int8Arr", "MARTe2::EPICSCAInput::Test::UInt16Arr",
             "MARTe2::EPICSCAInput::Test::Int16Arr", "MARTe2::EPICSCAInput::Test::UInt32Arr", "MARTe2::EPICSCAInput::Test::Int32Arr",
-            "MARTe2::EPICSCAInput::Test::Float32Arr", "MARTe2::EPICSCAInput::Test::Float64Arr" };
+            "MARTe2::EPICSCAInput::Test::Float32Arr", "MARTe2::EPICSCAInput::Test::Float64Arr", "MARTe2::EPICSCAInput::Test::UInt64Arr", "MARTe2::EPICSCAInput::Test::Int64Arr" };
 
     uint8 *uint8Values = NULL;
     int8 *int8Values = NULL;
@@ -1508,6 +1559,8 @@ bool EPICSCAOutputTest::TestExecute_Arrays() {
     int32 *int32Values = NULL;
     float32 *float32Values = NULL;
     float64 *float64Values = NULL;
+    float64 *uint64Values = NULL;
+    float64 *int64Values = NULL;
     uint32 numberOfElements = 0;
     if (ok) {
         numberOfElements = gam1->numberOfElements;
@@ -1519,6 +1572,8 @@ bool EPICSCAOutputTest::TestExecute_Arrays() {
         int8Values = new int8[numberOfElements];
         float32Values = new float32[numberOfElements];
         float64Values = new float64[numberOfElements];
+        uint64Values = new float64[numberOfElements];
+        int64Values = new float64[numberOfElements];
         uint32 n;
         for (n = 0u; (n < numberOfElements); n++) {
             gam1->uint16Signal[n] = 2 * n + 1;
@@ -1529,9 +1584,11 @@ bool EPICSCAOutputTest::TestExecute_Arrays() {
             gam1->float64Signal[n] = 7 * n + 1;
             gam1->uint8Signal[n] = 10 * n + 1;
             gam1->int8Signal[n] = 9 * n + 1;
+            gam1->uint64Signal[n] = 13 * n + 1;
+            gam1->int64Signal[n] = 14 * n + 1;
         }
     }
-    void *pvMemory[] = { uint8Values, int8Values, uint16Values, int16Values, uint32Values, int32Values, float32Values, float64Values };
+    void *pvMemory[] = { uint8Values, int8Values, uint16Values, int16Values, uint32Values, int32Values, float32Values, float64Values, uint64Values, int64Values };
 
     if (ok) {
         uint32 n;
@@ -1566,6 +1623,12 @@ bool EPICSCAOutputTest::TestExecute_Arrays() {
             }
             for (n = 0u; (n < numberOfElements); n++) {
                 done &= (gam1->float64Signal[n] == float64Values[n]);
+            }
+            for (n = 0u; (n < numberOfElements); n++) {
+                done &= (gam1->int64Signal[n] == (int64)int64Values[n]);
+            }
+            for (n = 0u; (n < numberOfElements); n++) {
+                done &= (gam1->uint64Signal[n] == (uint64)uint64Values[n]);
             }
             for (n = 0u; (n < numberOfElements); n++) {
                 done &= (gam1->int8Signal[n] == int8Values[n]);
@@ -1609,6 +1672,8 @@ bool EPICSCAOutputTest::TestExecute_Arrays() {
         delete[] int32Values;
         delete[] float32Values;
         delete[] float64Values;
+        delete[] uint64Values;
+        delete[] int64Values;
     }
     godb->Purge();
     return ok;
