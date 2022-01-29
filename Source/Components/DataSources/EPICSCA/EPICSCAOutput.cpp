@@ -407,6 +407,7 @@ bool EPICSCAOutput::Synchronise() {
                         }
                         else {
                             //Handle 64 bit case with a cast to float64
+                            //lint -e{9013} else not meaningful, since this check only applies to uint64 and int64
                             if (pvs[n].td == UnsignedInteger64Bit) {
                                 float64 *pvMemF64 = static_cast<float64 *>(pvs[n].memory);
                                 uint64 *pvMemU64 = static_cast<uint64 *>(pvs[n].memory);
