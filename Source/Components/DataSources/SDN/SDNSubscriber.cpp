@@ -452,7 +452,8 @@ bool SDNSubscriber::GetInputBrokers(ReferenceContainer& inputBrokers,
     uint32 functionIdx = 0u;
     uint32 nOfFunctionSignals = 0u;
     uint32 signalIndex;
-    bool synchGAM = false;
+    //See https://vcis-redmine.f4e.europa.eu/issues/885 - if the executionMode is RealTimeThread force MemoryMapSynchronisedInputBroker
+    bool synchGAM = (executionMode == SDN_SUB_EXEC_MODE_RTTHREAD);
     bool ok = GetFunctionIndex(functionIdx, functionName);
 
     if (ok) {

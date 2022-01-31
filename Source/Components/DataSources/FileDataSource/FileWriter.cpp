@@ -341,6 +341,10 @@ bool FileWriter::Initialise(StructuredDataI& data) {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
         }
+        if (ok)
+        {
+            ok = data.Copy(originalSignalInformation);
+        }
         if (ok) {
             //Do not allow to add signals in run-time
             ok = data.Write("Locked", 1);
@@ -456,12 +460,23 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
             }
             uint8 nDimensions = 0u;
             uint32 nElements = 0u;
+            StreamString format;
             if (ok) {
                 ok = GetSignalNumberOfDimensions(n, nDimensions);
             }
             if (ok) {
                 ok = GetSignalNumberOfElements(n, nElements);
             }
+            if(ok) {
+                ok = originalSignalInformation.MoveToChild(n);
+            }
+            bool customFormat = false;
+            if(ok) {
+                // set customFormat to true if a format is specified for this signal
+                customFormat = originalSignalInformation.Read("Format", format);
+                ok = originalSignalInformation.MoveToAncestor(1u);
+            }
+
             /*lint -e{613} signalsAnyType, dataSourceMemory and offsets cannot be null as otherwise ok would be false*/
             if (ok) {
                 char8 *memPtr = &dataSourceMemory[offsets[n]];
@@ -472,22 +487,39 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
             }
 
             TypeDescriptor signalType = GetSignalType(n);
-            bool isUnsignedInteger = (signalType.type == UnsignedInteger);
-            bool isSignedInteger = (signalType.type == SignedInteger);
-            bool isFloat = (signalType.type == Float);
-            if (ok) {
-                if (isUnsignedInteger) {
-                    ok = csvPrintfFormat.Printf("%s", "%u");
-                }
-                else if (isSignedInteger) {
-                    ok = csvPrintfFormat.Printf("%s", "%d");
-                }
-                else if (isFloat) {
-                    ok = csvPrintfFormat.Printf("%s", "%f");
+            if (customFormat) {
+                // Initialize a FormatDescriptor object to check that the parameter is a legal type descriptor
+                FormatDescriptor fd;
+                const char8* format_str = format.Buffer();
+                ok = fd.InitialiseFromString(format_str);
+                if (ok) {
+                    ok = csvPrintfFormat.Printf("%s%s", "%", format.Buffer());
                 }
                 else {
                     ok = false;
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported signal type.");
+                    StreamString signalName;
+                    (void)GetSignalName(n, signalName);
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported format specifier \"%s\" for signal %s", format.Buffer(), signalName.Buffer());
+                }
+            }
+            else {
+                bool isUnsignedInteger = (signalType.type == UnsignedInteger);
+                bool isSignedInteger = (signalType.type == SignedInteger);
+                bool isFloat = (signalType.type == Float);
+                if (ok) {
+                    if (isUnsignedInteger) {
+                        ok = csvPrintfFormat.Printf("%s", "%u");
+                    }
+                    else if (isSignedInteger) {
+                        ok = csvPrintfFormat.Printf("%s", "%d");
+                    }
+                    else if (isFloat) {
+                        ok = csvPrintfFormat.Printf("%s", "%f");
+                    }
+                    else {
+                        ok = false;
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported signal type.");
+                    }
                 }
             }
         }
@@ -497,8 +529,10 @@ bool FileWriter::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
 
-    if (filename.Size() > 0u) {
-        ok = OpenFile(filename.Buffer());
+    if (ok){
+        if (filename.Size() > 0u) {
+            ok = OpenFile(filename.Buffer());
+        }
     }
 
     return ok;

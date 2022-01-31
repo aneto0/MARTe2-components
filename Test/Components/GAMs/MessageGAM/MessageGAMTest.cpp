@@ -962,8 +962,8 @@ bool MessageGAMTest::TestExecute() {
     ReferenceContainer inputBrokers;
     ReferenceContainer outputBrokers;
 
-    ReferenceT < MemoryMapSynchronisedInputBroker > brokerIn;
-    ReferenceT < MemoryMapInputBroker > brokerIn1;
+    ReferenceT < MemoryMapInputBroker > brokerIn;
+    ReferenceT < MemoryMapSynchronisedInputBroker > brokerIn1;
 
     ReferenceT < MemoryMapOutputBroker > brokerOut;
 
@@ -1064,9 +1064,9 @@ bool MessageGAMTest::TestExecute() {
     }
 
     iterationCount = 0u;
-    ds->ChangeCommand(0u, 3u);
         
     if (ret) {
+        ds->ChangeCommand(0u, 3u);
         ret = false;
         while(!ret && (iterationCount++ < 20)) {
             brokerIn->Execute();
@@ -1224,8 +1224,8 @@ bool MessageGAMTest::TestExecute_MoreCommands() {
     ReferenceContainer inputBrokers;
     ReferenceContainer outputBrokers;
 
-    ReferenceT < MemoryMapSynchronisedInputBroker > brokerIn;
-    ReferenceT < MemoryMapInputBroker > brokerIn1;
+    ReferenceT < MemoryMapInputBroker > brokerIn;
+    ReferenceT < MemoryMapSynchronisedInputBroker > brokerIn1;
 
     ReferenceT < MemoryMapOutputBroker > brokerOut;
 
@@ -1820,8 +1820,8 @@ bool MessageGAMTest::TestExecute_WithoutTriggerOnChange() {
     ReferenceContainer inputBrokers;
     ReferenceContainer outputBrokers;
 
-    ReferenceT < MemoryMapSynchronisedInputBroker > brokerIn;
-    ReferenceT < MemoryMapInputBroker > brokerIn1;
+    ReferenceT < MemoryMapInputBroker > brokerIn;
+    ReferenceT < MemoryMapSynchronisedInputBroker > brokerIn1;
 
     ReferenceT < MemoryMapOutputBroker > brokerOut;
 

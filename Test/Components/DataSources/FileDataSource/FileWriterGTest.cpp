@@ -317,3 +317,23 @@ TEST(FileWriterGTest,TestInvalidMessageType) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestInvalidMessageType());
 }
+
+TEST(FileWriterGTest,TestIntegratedInApplication_NumberFormat) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestIntegratedInApplication_NumberFormat());
+}
+
+TEST(FileWriterGTest,TestSetConfiguredDatabase_NumberFormat) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_NumberFormat());
+}
+
+TEST(FileWriterGTest,TestSetConfiguredDatabase_False_WrongNumberFormat) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_WrongNumberFormat());
+}
+
+TEST(FileWriterGTest,TestSetConfiguredDatabase_False_EmptyNumberFormat) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_EmptyNumberFormat());
+}

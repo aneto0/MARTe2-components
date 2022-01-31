@@ -31,6 +31,7 @@ SPB    = EpicsDataSource.x \
         LoggerDataSource.x \
         RealTimeThreadAsyncBridge.x \
         RealTimeThreadSynchronisation.x \
+        UARTDataSource.x \
         UDP.x
 
 ROOT_DIR=../../..
@@ -42,6 +43,7 @@ SPB+=NI1588.x
 SPB+=NI6259.x
 SPB+=NI6368.x
 SPB+=NI9157.x
+SPB+=NI9157/Optim.x
 SPB+=NI9157/Optim.x
 
 ## Only force EPICSPVA if CCS version is gt v6.1

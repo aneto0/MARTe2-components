@@ -61,6 +61,9 @@ ifdef OPEN62541_LIB
 SPB+=OPCUA.x
 endif
 
+ifdef EPICS_PCAS
+SPB+=MARTeIOC.x
+endif
 
 PACKAGE=Components
 ROOT_DIR=../../..

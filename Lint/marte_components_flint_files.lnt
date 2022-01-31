@@ -50,6 +50,7 @@
 -i./Source/Components/DataSources/RealTimeThreadSynchronisation/
 -i./Source/Components/DataSources/SDN/
 -i./Source/Components/DataSources/ProfinetDataSource/
+-i./Source/Components/DataSources/UARTDataSource/
 -i./Source/Components/DataSources/UDP/
 -i./Source/Components/GAMs/BaseLib2GAM/
 -i./Source/Components/GAMs/ConstantGAM/
@@ -120,6 +121,7 @@ FileReader.cpp
 FileWriter.cpp
 FilterGAM.cpp
 HighResolutionTimeProvider.cpp
+HighResolutionTimestampProvider.cpp
 HistogramComparator.cpp
 HistogramComparatorT.h
 HistogramGAM.cpp
@@ -182,6 +184,7 @@ SysLogger.cpp
 TcnTimeProvider.cpp
 TimeCorrectionGAM.cpp
 TimeProvider.cpp
+TimestampProvider.cpp
 Types.h
 UDPSender.cpp
 UDPReceiver.cpp
@@ -193,3 +196,6 @@ WaveformSin.cpp
 WaveformSin.h
 WaveformPointsDef.cpp
 WaveformPointsDef.h
+UARTDataSource.cpp
+UARTDataSource.h
+

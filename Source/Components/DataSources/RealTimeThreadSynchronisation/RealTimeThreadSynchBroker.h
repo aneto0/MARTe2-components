@@ -79,7 +79,7 @@ public:
     /**
      * @brief Proxy method to the DataSourceI::GetSignalMemoryBuffer
      */
-    bool GetSignalMemoryBuffer(const uint32 signalIdx, void *&signalAddress) const;
+    bool GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress) const;
 
     /**
      * @brief Adds a new sample of all the signals into the memory managed by this broker.
@@ -112,6 +112,11 @@ private:
      * Memory to hold N samples of all the DataSourceI signals.
      */
     char8 **signalMemory;
+
+    /**
+     * Dual-buffer pointer
+     */
+    uint32 currentBufferIdx;
 
     /**
      * Size of each signal to be copied.

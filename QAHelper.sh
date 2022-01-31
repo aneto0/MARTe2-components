@@ -15,7 +15,7 @@ do
 shift
 done
 
-GTEST_FILTER="Bare* Scheduler* FileS*"
+GTEST_FILTER="*"
 
 USERNAME=`whoami`
 USER_RECORD="$(getent passwd $USERNAME)"
@@ -23,7 +23,7 @@ USER_GECOS_FIELD="$(echo "$USER_RECORD" | cut -d ':' -f 5)"
 USER_FULL_NAME="$(echo "$USER_GECOS_FIELD" | cut -d ',' -f 1)"
 REMOTE_MARTe2_DIR=~/MARTe2-dev
 
-LINTER_IGNORE="EPICSPVAHelper.cpp DANAPI.cpp NI9157MemoryOperationsHelper.cpp SDNLoggerCallback.cpp ProfinetToMARTeLogAdapter.cpp ProfinetDataSourceAdapter.cpp"
+LINTER_IGNORE="EPICSPVAHelper.cpp DANAPI.cpp NI9157MemoryOperationsHelper.cpp SDNLoggerCallback.cpp ProfinetToMARTeLogAdapter.cpp ProfinetDataSourceAdapter.cpp MARTeChannel.cpp MARTePv.cpp MARTeCommonPv.cpp MARTePvField.cpp MARTeIocServer.cpp"
 TEST_EXCEPTIONS="SimulinkClasses.h"
 
 CMD="$MARTe2_DIR/Resources/QA/QAHelper.py"

@@ -145,6 +145,11 @@ public:
      */
     bool TestSynchronise();
 
+    /**
+     * @brief Tests that GetNumberOfStatefulMemoryBuffers returns 2
+     */
+    bool TestGetNumberOfStatefulMemoryBuffers();
+
 };
 
 /*---------------------------------------------------------------------------*/

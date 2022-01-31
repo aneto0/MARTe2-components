@@ -144,4 +144,9 @@ TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase_WaitForNext) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_WaitForNext());
 }
 
-	
+TEST(RealTimeThreadSynchronisationGTest,TestGetNumberOfStatefulMemoryBuffers) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestGetNumberOfStatefulMemoryBuffers());
+}
+
+

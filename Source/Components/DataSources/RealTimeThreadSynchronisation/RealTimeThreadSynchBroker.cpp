@@ -46,6 +46,7 @@ RealTimeThreadSynchBroker::RealTimeThreadSynchBroker() :
         MemoryMapInputBroker() {
     functionIdx = 0u;
     numberOfDataSourceSignals = 0u;
+    currentBufferIdx = 0u;
     signalMemory = NULL_PTR(char8 **);
     signalSize = NULL_PTR(uint32 *);
     dataSourceMemory = NULL_PTR(char8 *);
@@ -62,7 +63,7 @@ RealTimeThreadSynchBroker::RealTimeThreadSynchBroker() :
 RealTimeThreadSynchBroker::~RealTimeThreadSynchBroker() {
     if (signalMemory != NULL_PTR(char8 **)) {
         uint32 s;
-        for (s = 0u; s < numberOfDataSourceSignals; s++) {
+        for (s = 0u; s < (numberOfDataSourceSignals * 2u); s++) { //*2 -> dual-buffer
             if (signalMemory[s] != NULL_PTR(char8 *)) {
                 GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(signalMemory[s]));
             }
@@ -93,12 +94,15 @@ bool RealTimeThreadSynchBroker::AllocateMemory(char8 * const dataSourceMemoryIn,
         dataSourceMemory = dataSourceMemoryIn;
         dataSourceMemoryOffsets = dataSourceMemoryOffsetsIn;
         numberOfDataSourceSignals = dataSource->GetNumberOfSignals();
-        signalMemory = new char8*[numberOfDataSourceSignals];
+        //lint -e{647} -e{9114} numberOfDataSourceSignals * 2u does not have a truncation risk
+        signalMemory = new char8*[numberOfDataSourceSignals * 2u];//*2 -> dual-buffer
         signalSize = new uint32[numberOfDataSourceSignals];
-        uint32 numberOfFunctionSignals;
+        uint32 numberOfFunctionSignals = 0u;
         uint32 s;
         for (s = 0u; s < numberOfDataSourceSignals; s++) {
             signalMemory[s] = NULL_PTR(char8 *);
+            //lint -e{679} not a truncation risk
+            signalMemory[s + numberOfDataSourceSignals] = NULL_PTR(char8 *);
         }
         ok = dataSource->GetFunctionNumberOfSignals(InputSignals, functionIdx, numberOfFunctionSignals);
         if (ok) {
@@ -130,6 +134,8 @@ bool RealTimeThreadSynchBroker::AllocateMemory(char8 * const dataSourceMemoryIn,
                 //The memory has to be reordered so that each signal can store the numberOfSamples required.
                 if (ok) {
                     signalMemory[signalIdx] = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(signalSize[signalIdx] * numberOfSamples));
+                    //lint -e{679} signalIdx +  numberOfDataSourceSignals does not have a truncation risk
+                    signalMemory[signalIdx + numberOfDataSourceSignals] = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(signalSize[signalIdx] * numberOfSamples));
                 }
             }
         }
@@ -143,11 +149,11 @@ bool RealTimeThreadSynchBroker::AllocateMemory(char8 * const dataSourceMemoryIn,
     return ok;
 }
 
-bool RealTimeThreadSynchBroker::GetSignalMemoryBuffer(const uint32 signalIdx, void *&signalAddress) const {
+bool RealTimeThreadSynchBroker::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress) const {
     bool ok = (signalMemory != NULL_PTR(char8 **));
     if (ok) {
-        /*lint -e{613} signalMemory cannot be NULL as otherwise ok = false*/
-        signalAddress = reinterpret_cast<void *>(&signalMemory[signalIdx][0u]);
+        /*lint -e{613} -e{679} signalMemory cannot be NULL as otherwise ok = false*/
+        signalAddress = reinterpret_cast<void *>(&signalMemory[signalIdx + (bufferIdx * numberOfDataSourceSignals)][0u]);
     }
     return ok;
 }
@@ -159,7 +165,8 @@ bool RealTimeThreadSynchBroker::AddSample() {
         /*lint -e{613} All the memory must have been successfully allocated. For performance reasons the memory allocation is not checked at every iteration.*/
         if (signalMemory[s] != NULL_PTR(char8 *)) {
             uint32 signalIdx = currentSample * signalSize[s];
-            void *destination = &signalMemory[s][signalIdx];
+            //lint -e{679} not a truncation risk
+            void *destination = &signalMemory[s + (currentBufferIdx * numberOfDataSourceSignals)][signalIdx];
             const void *source = &dataSourceMemory[dataSourceMemoryOffsets[s]];
             ok = MemoryOperationsHelper::Copy(destination, source, signalSize[s]);
         }
@@ -168,6 +175,10 @@ bool RealTimeThreadSynchBroker::AddSample() {
     if (currentSample == numberOfSamples) {
         currentSample = 0u;
         if(mux.FastLock() == ErrorManagement::NoError) {
+            currentBufferIdx++;
+            if (currentBufferIdx > 1u) {
+                currentBufferIdx = 0u;
+            }
             ok = synchSem.Post();
         }
         mux.FastUnLock();
@@ -202,8 +213,17 @@ bool RealTimeThreadSynchBroker::Execute() {
             mux.FastUnLock();
         }
     }
-    if (ok) {
-        ok = MemoryMapInputBroker::Execute();
+    uint32 n;
+    /*lint -e{613} null pointer checked before.*/
+    uint32 idx = 0u;
+    if(currentBufferIdx == 0u) {
+        idx = 1u;
+    }
+    if (copyTable != NULL_PTR(MemoryMapBrokerCopyTableEntry *)) {
+        for (n = 0u; (n < numberOfCopies) && (ok); n++) {
+            uint32 dataSourceIndex = ((idx * numberOfCopies) + n);
+            ok = MemoryOperationsHelper::Copy(copyTable[n].gamPointer, copyTable[dataSourceIndex].dataSourcePointer, copyTable[n].copySize);
+        }
     }
     return ok;
 }

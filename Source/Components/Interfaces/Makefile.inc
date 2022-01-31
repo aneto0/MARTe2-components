@@ -61,6 +61,10 @@ ifdef EPICSPVA
 SPB+=EPICSPVA.x
 endif
 
+ifdef EPICS_PCAS
+SPB+=MARTeIOC.x
+endif
+
 PACKAGE=Components
 ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults

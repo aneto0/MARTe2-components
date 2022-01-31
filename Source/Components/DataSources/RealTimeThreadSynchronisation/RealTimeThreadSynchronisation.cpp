@@ -91,7 +91,7 @@ bool RealTimeThreadSynchronisation::GetSignalMemoryBuffer(const uint32 signalIdx
         }
         else {
             if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
-                ok = synchInputBrokers[currentInitBrokerIndex]->GetSignalMemoryBuffer(signalIdx, signalAddress);
+                ok = synchInputBrokers[currentInitBrokerIndex]->GetSignalMemoryBuffer(signalIdx, bufferIdx, signalAddress);
             }
         }
     }
@@ -266,6 +266,10 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
 
 TimeoutType RealTimeThreadSynchronisation::GetSynchroniseTimeout() const {
     return timeout;
+}
+
+uint32 RealTimeThreadSynchronisation::GetNumberOfStatefulMemoryBuffers() {
+    return 2u;
 }
 
 bool RealTimeThreadSynchronisation::Synchronise() {

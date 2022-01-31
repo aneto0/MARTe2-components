@@ -202,6 +202,21 @@ public:
     bool TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunction();
 
     /**
+     * @brief Tests that the application initialises successfully when a legal format specifier is set for a signal
+     */
+    bool TestSetConfiguredDatabase_NumberFormat();
+
+    /**
+     * @brief Tests that the application fails to initialise when an illegal format specifier is set for a signal
+     */
+    bool TestSetConfiguredDatabase_False_WrongNumberFormat();
+
+    /**
+     * @brief Tests that the application fails to initialise when an empty string is given as format specifier for a signal
+     */
+    bool TestSetConfiguredDatabase_False_EmptyNumberFormat();
+    
+    /**
      * @brief Tests the OpenFile method.
      */
     bool TestOpenFile();
@@ -240,6 +255,11 @@ public:
      * @brief Tests the FileWriter integrated in an application which asynchronously stores data based on a trigger event.
      */
     bool TestIntegratedInApplication_Trigger(const MARTe::char8 *filename, bool csv = true);
+
+    /**
+     * @brief Tests that a signal value is formatted accordingly to the "Format" parameter 
+     */
+    bool TestIntegratedInApplication_NumberFormat();
 
     /**
      * @brief Tests the GetCPUMask method.

@@ -50,6 +50,7 @@ EPICSCAOutput::EPICSCAOutput() :
     numberOfBuffers = 0u;
     ignoreBufferOverrun = 1u;
     threadContextSet = false;
+    dbr64CastDouble = true;
     signalFlag = NULL_PTR(uint8*);
     ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT < RegisteredMethodsMessageFilter > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
@@ -107,7 +108,21 @@ bool EPICSCAOutput::Initialise(StructuredDataI & data) {
         if (!data.Read("IgnoreBufferOverrun", ignoreBufferOverrun)) {
             REPORT_ERROR(ErrorManagement::Information, "No IgnoreBufferOverrun defined. Using default = %d", ignoreBufferOverrun);
         }
-
+        StreamString dbr64CastDoubleStr;
+        if (!data.Read("DBR64CastDouble", dbr64CastDoubleStr)) {
+            dbr64CastDoubleStr = "yes";
+            REPORT_ERROR(ErrorManagement::Information, "No DBR64CastDouble defined. Using default = %s", dbr64CastDoubleStr.Buffer());
+        }
+        if (dbr64CastDoubleStr == "yes") {
+            dbr64CastDouble = true;
+        }
+        else if (dbr64CastDoubleStr == "no") {
+            dbr64CastDouble = false;
+        }
+        else {
+            ok = false;
+            REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported DBR64CastDouble = %s", dbr64CastDoubleStr.Buffer());
+        }
     }
     if (ok) {
         ok = data.MoveRelative("Signals");
@@ -199,8 +214,8 @@ bool EPICSCAOutput::SetConfiguredDatabase(StructuredDataI & data) {
                 }
             }
             TypeDescriptor td = GetSignalType(n);
-
             if (ok) {
+                pvs[n].td = td;
                 (void) StringHelper::CopyN(&pvs[n].pvName[0], pvName.Buffer(), PV_NAME_MAX_SIZE);
                 if (td == CharString) {
                     pvs[n].pvType = DBR_STRING;
@@ -233,8 +248,22 @@ bool EPICSCAOutput::SetConfiguredDatabase(StructuredDataI & data) {
                     pvs[n].pvType = DBR_DOUBLE;
                 }
                 else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Type %s is not supported", TypeDescriptor::GetTypeNameFromTypeDescriptor(td));
-                    ok = false;
+                    bool is64Bit = (td == UnsignedInteger64Bit);
+                    if (!is64Bit) {
+                        is64Bit = (td == SignedInteger64Bit);
+                    }
+                    bool is64BitAllowed = false;
+                    if (is64Bit) {
+                       if (dbr64CastDouble) {
+                            REPORT_ERROR(ErrorManagement::Warning, "DB with name %s will be cast to double", pvs[n].pvName);
+                            pvs[n].pvType = DBR_DOUBLE;
+                            is64BitAllowed = true;
+                        }
+                    }
+                    if (!is64BitAllowed) {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Type %s is not supported", TypeDescriptor::GetTypeNameFromTypeDescriptor(td));
+                        ok = false;
+                    }
                 }
             }
             uint32 numberOfElements = 1u;
@@ -377,6 +406,22 @@ bool EPICSCAOutput::Synchronise() {
                             ok = (ca_put(pvs[n].pvType, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
                         }
                         else {
+                            //Handle 64 bit case with a cast to float64
+                            //lint -e{9013} else not meaningful, since this check only applies to uint64 and int64
+                            if (pvs[n].td == UnsignedInteger64Bit) {
+                                float64 *pvMemF64 = static_cast<float64 *>(pvs[n].memory);
+                                uint64 *pvMemU64 = static_cast<uint64 *>(pvs[n].memory);
+                                for (uint32 k=0u; k<pvs[n].numberOfElements; k++) {
+                                    pvMemF64[k] = static_cast<float64>(pvMemU64[k]);
+                                }
+                            }
+                            else if (pvs[n].td == SignedInteger64Bit) {
+                                float64 *pvMemF64 = static_cast<float64 *>(pvs[n].memory);
+                                int64 *pvMemI64 = static_cast<int64 *>(pvs[n].memory);
+                                for (uint32 k=0u; k<pvs[n].numberOfElements; k++) {
+                                    pvMemF64[k] = static_cast<float64>(pvMemI64[k]);
+                                }
+                            }
                             ok = (ca_array_put(pvs[n].pvType, pvs[n].numberOfElements, pvs[n].pvChid, pvs[n].memory) == ECA_NORMAL);
                         }
                         nRetries--;

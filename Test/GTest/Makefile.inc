@@ -83,6 +83,10 @@ ifdef EPICS_BASE
 LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lca
 endif
 
+ifdef EPICS_PCAS
+LIBRARIES += -L$(EPICS_PCAS)/lib/$(EPICS_HOST_ARCH) -lgdd -lcas
+endif
+
 ifdef EPICSPVA
 LIBRARIES += -lpvAccess -lpvData -lpvDatabase -lnt -lpvAccessIOC -lpvAccessCA -ldbRecStd -ldbCore -lca -lCom -lpvaClient 
 endif 

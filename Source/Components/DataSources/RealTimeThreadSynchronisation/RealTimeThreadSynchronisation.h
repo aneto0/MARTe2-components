@@ -238,6 +238,12 @@ RealTimeThreadSynchronisation    ();
     virtual bool Synchronise();
 
     /**
+     * @brief Returns 2 since this is a dual-buffer implementation.
+     * @return 2 buffers.
+     */
+    virtual uint32 GetNumberOfStatefulMemoryBuffers();
+
+    /**
      * @brief Gets the synchronisation timeout.
      * @return the synchronisation timeout.
      */

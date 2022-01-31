@@ -31,6 +31,7 @@ SPB = EpicsDataSource.x \
     LoggerDataSource.x \
     RealTimeThreadAsyncBridge.x \
     RealTimeThreadSynchronisation.x \
+    UARTDataSource.x \
     UDP.x
 
 ROOT_DIR=../../..

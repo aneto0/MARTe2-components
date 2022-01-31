@@ -48,6 +48,16 @@ record( ai, "MARTe2::EPICSCAInput::Test::Float64")
    field(DTYP, "Soft Channel")
 }
 
+record( ai, "MARTe2::EPICSCAInput::Test::Int64")
+{
+   field(DTYP, "Soft Channel")
+}
+
+record( ai, "MARTe2::EPICSCAInput::Test::UInt64")
+{
+   field(DTYP, "Soft Channel")
+}
+
 record( waveform, "MARTe2::EPICSCAInput::Test::Int8Arr")
 {
    field(DTYP, "Soft Channel")
@@ -103,3 +113,18 @@ record( waveform, "MARTe2::EPICSCAInput::Test::Float64Arr")
    field(NELM, 10)
    field(FTVL, "DOUBLE")
 }
+
+record( waveform, "MARTe2::EPICSCAInput::Test::Int64Arr")
+{
+   field(DTYP, "Soft Channel")
+   field(NELM, 10)
+   field(FTVL, "DOUBLE")
+}
+
+record( waveform, "MARTe2::EPICSCAInput::Test::UInt64Arr")
+{
+   field(DTYP, "Soft Channel")
+   field(NELM, 10)
+   field(FTVL, "DOUBLE")
+}
+
