@@ -178,6 +178,7 @@ bool UARTDataSource::Initialise(StructuredDataI &data) {
             cpuMask = 0xFFu;
             REPORT_ERROR(ErrorManagement::Warning, "CPUMask not specified using: %d", cpuMask);
         }
+        executor.SetPriorityClass(Threads::RealTimePriorityClass);
         executor.SetCPUMask(cpuMask);
     }
 

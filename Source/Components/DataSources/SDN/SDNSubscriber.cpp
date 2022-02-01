@@ -605,7 +605,8 @@ bool SDNSubscriber::PrepareNextState(const char8* const currentStateName,
                if (executionMode == SDN_SUB_EXEC_MODE_SPAWNED) {
                    if (executor.GetStatus() == EmbeddedThreadI::OffState) {
                        if (cpuMask != 0ull) {
-                           executor.SetCPUMask(BitSet(cpuMask));
+                            executor.SetPriorityClass(Threads::RealTimePriorityClass);
+                            executor.SetCPUMask(BitSet(cpuMask));
                        }
                        // Start the SingleThreadService
                        ok = executor.Start();

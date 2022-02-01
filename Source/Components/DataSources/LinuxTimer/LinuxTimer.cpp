@@ -197,6 +197,7 @@ bool LinuxTimer::Initialise(StructuredDataI &data) {
                 }
 
                 if (ok) {
+                    executor.SetPriorityClass(Threads::RealTimePriorityClass);
                     executor.SetCPUMask(cpuMask);
                     executor.SetStackSize(stackSize);
                 }
