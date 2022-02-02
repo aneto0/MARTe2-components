@@ -213,6 +213,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     if (executionMode == UDPReceiverExecutionModeIndependent) {
+        executor.SetPriorityClass(Threads::RealTimePriorityClass);
         executor.SetCPUMask(cpuMask);
         executor.SetStackSize(stackSize);
     }

@@ -290,6 +290,7 @@ bool NI6368ADC::PrepareNextState(const char8* const currentStateName, const char
             if (executor.GetStatus() == EmbeddedThreadI::OffState) {
                 keepRunning = true;
                 if (cpuMask != 0u) {
+                    executor.SetPriorityClass(Threads::RealTimePriorityClass);
                     executor.SetCPUMask(cpuMask);
                 }
                 executor.SetName(GetName());
