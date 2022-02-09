@@ -274,7 +274,7 @@ bool UDPSender::GetOutputBrokers(ReferenceContainer &outputBrokers,
         }
 
         if (ok) {
-            ok = memMapSynchOutBroker->Init(OutputSignals, *this, functionName, gamMemPtr);
+            ok = memMapSynchOutBroker->Init(OutputSignals, *this, functionName, gamMemPtr, true);
         }
         if(!ok) {
             REPORT_ERROR(ErrorManagement::FatalError, "Failure while initialising MemoryMapSynchronisedOutputBroker");
