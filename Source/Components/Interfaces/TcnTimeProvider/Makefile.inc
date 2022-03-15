@@ -45,7 +45,14 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
 INCLUDES += -I../../DataSources/LinuxTimer
+
+ifdef CODAC_ROOT
 INCLUDES += -I$(CODAC_ROOT)/include
+endif
+
+ifdef CODAC_ROOT
+LIBRARIES   += -L$(MARTe2_DIR)/Build/x86-linux/Core -lMARTe2 -L$(CODAC_ROOT)/lib -ltcn
+endif
 
 all: $(OBJS)    \
     $(BUILD_DIR)/TcnTimeProvider$(LIBEXT) \
