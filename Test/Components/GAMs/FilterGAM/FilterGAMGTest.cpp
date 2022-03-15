@@ -178,14 +178,34 @@ TEST(FilterGAMGTest,TestSetupWrongOutputDimension) {
     ASSERT_TRUE(test.TestSetupWrongOutputDimension());
 }
 
+TEST(FilterGAMGTest,TestExecuteNoFilter) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteNoFilter());
+}
+
 TEST(FilterGAMGTest,TestExecuteFIRConstantInput) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestExecuteFIRConstantInput());
 }
 
+TEST(FilterGAMGTest,TestExecuteFIRConstantInputInputElements1) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteFIRConstantInputInputElements1());
+}
+
 TEST(FilterGAMGTest,TestExecuteFIRRampInput) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestExecuteFIRRampInput());
+}
+
+TEST(FilterGAMGTest,TestExecuteFIRRampInputInputElements1) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteFIRRampInputInputElements1());
+}
+
+TEST(FilterGAMGTest,TestExecuteAVG10RampInputInputElements1) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteAVG10RampInputInputElements1());
 }
 
 TEST(FilterGAMGTest,TestExecuteFIRConstantInput2) {
@@ -206,6 +226,11 @@ TEST(FilterGAMGTest,TestExecuteFIRRampInput2DiffCoef) {
 TEST(FilterGAMGTest,TestExecuteIIRConstant) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestExecuteIIRConstant());
+}
+
+TEST(FilterGAMGTest,TestExecuteIIRInputRamp1InputElement) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestExecuteIIRInputRamp1InputElement());
 }
 
 TEST(FilterGAMGTest,TestExecuteIIRConstant2) {
