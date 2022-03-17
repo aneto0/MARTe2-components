@@ -231,10 +231,12 @@ bool FilterGAM::Setup() {
     if (!errorDetected) {
         lastInputs = new float32*[numberOfSignals];
         lastOutputs = new float32*[numberOfSignals];
-        MemoryOperationsHelper::Set(lastInputs, 0, sizeof(float32*) * numberOfSignals);
-        MemoryOperationsHelper::Set(lastOutputs, 0, sizeof(float32*) * numberOfSignals);
+        uint32 numberOfElementsToSet1 = static_cast<uint32>(sizeof(float32*) * numberOfSignals);
+        (void) MemoryOperationsHelper::Set(reinterpret_cast<void *>(lastInputs), '\0', numberOfElementsToSet1);
+        (void) MemoryOperationsHelper::Set(reinterpret_cast<void *>(lastOutputs), '\0', numberOfElementsToSet1);
         //if due to MISRA rules
         if ((lastInputs != NULL_PTR(float32**)) && (lastOutputs != NULL_PTR(float32**))) {
+            /*lint -e{9114} implicit conversion is safe*/
             for (uint32 m = 0u; (m < numberOfSignals) && (!errorDetected); m++) {
                 if (numberOfNumCoeff > 1u) {
                     lastInputs[m] = new float32[numberOfNumCoeff - 1u];
@@ -264,13 +266,14 @@ bool FilterGAM::Setup() {
         numberOfElementsInput = new uint32[numberOfSignals];
         numberOfSamplesOutput = new uint32[numberOfSignals];
         numberOfElementsOutput = new uint32[numberOfSignals];
-        ok = (numberOfSamplesInput != NULL_PTR(uint32) && numberOfElementsInput != NULL_PTR(uint32) && numberOfSamplesOutput != NULL_PTR(uint32)
-                && numberOfElementsOutput != NULL_PTR(uint32));
+        //lint -e{9113} -e{9131} allow multiple != in the same line since it has no effect and makes the code easier to read.
+        ok = (numberOfSamplesInput != NULL_PTR(uint32 *) && numberOfElementsInput != NULL_PTR(uint32 *) && numberOfSamplesOutput != NULL_PTR(uint32 *) && numberOfElementsOutput != NULL_PTR(uint32 *));
         if (ok) {
-            MemoryOperationsHelper::Set(numberOfSamplesInput, 0, numberOfSignals * sizeof(numberOfSignals));
-            MemoryOperationsHelper::Set(numberOfElementsInput, 0, numberOfSignals * sizeof(numberOfSignals));
-            MemoryOperationsHelper::Set(numberOfSamplesOutput, 0, numberOfSignals * sizeof(numberOfSignals));
-            MemoryOperationsHelper::Set(numberOfElementsOutput, 0, numberOfSignals * sizeof(numberOfSignals));
+            uint32 numberOfElementsToSet = static_cast<uint32>(numberOfSignals * sizeof(numberOfSignals));
+            (void) MemoryOperationsHelper::Set(reinterpret_cast<void *>(numberOfSamplesInput), '\0', numberOfElementsToSet);
+            (void) MemoryOperationsHelper::Set(reinterpret_cast<void *>(numberOfElementsInput), '\0', numberOfElementsToSet);
+            (void) MemoryOperationsHelper::Set(reinterpret_cast<void *>(numberOfSamplesOutput), '\0', numberOfElementsToSet);
+            (void) MemoryOperationsHelper::Set(reinterpret_cast<void *>(numberOfElementsOutput), '\0', numberOfElementsToSet);
         }
     }
 //if due to MISRA rules
@@ -485,6 +488,7 @@ bool FilterGAM::Execute() {
 
             //update the last values
             if (numberOfNumCoeff > 2u) {
+                /*lint -e{9117} implicit conversion is safe*/
                 for (uint32 k = (numberOfNumCoeff - 2u); k > 0u; k--) {
                     if (numberOfSamples > k) {
                         lastInputs[i][k] = input[i][(numberOfSamples - k) - 1u];
@@ -498,6 +502,7 @@ bool FilterGAM::Execute() {
                 lastInputs[i][0] = input[i][numberOfSamples - 1u];
             }
             if (numberOfDenCoeff > 2u) {
+                /*lint -e{9117} implicit conversion is safe*/
                 for (uint32 k = (numberOfDenCoeff - 2u); k > 0u; k--) {
                     if (numberOfSamples > k) {
                         lastOutputs[i][k] = output[i][(numberOfSamples - k) - 1u];
