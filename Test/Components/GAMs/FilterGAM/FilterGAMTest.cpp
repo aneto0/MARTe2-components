@@ -42,13 +42,13 @@
 /*---------------------------------------------------------------------------*/
 
 class FilterGAMTestHelper: public MARTe::FilterGAM {
-public:
-    CLASS_REGISTER_DECLARATION()
+public:CLASS_REGISTER_DECLARATION()
 
-FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
+    FilterGAMTestHelper(MARTe::uint32 elements = 10,
+                        MARTe::uint32 samples = 1) {
         numberOfElements = elements;
         numberOfSamples = samples;
-        if(numberOfElements > numberOfSamples) {
+        if (numberOfElements > numberOfSamples) {
             byteSize = numberOfElements * sizeof(MARTe::float32);
         }
         else {
@@ -59,33 +59,52 @@ FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
         isInitialised = false;
     }
 
-    virtual ~FilterGAMTestHelper () {
+    virtual ~FilterGAMTestHelper() {
 
-        if(numH != NULL) {
+        if (numH != NULL) {
             delete[] numH;
         }
-        if(denH != NULL) {
+        if (denH != NULL) {
             delete[] denH;
         }
 
     }
 
-    void *GetInputSignalsMemory() {
+    void* GetInputSignalsMemory() {
         return MARTe::GAM::GetInputSignalsMemory();
     }
-    void *GetOutputSignalsMemory() {
+    void* GetOutputSignalsMemory() {
         return MARTe::GAM::GetOutputSignalsMemory();
     }
-    void *GetInputSignalsMemory(MARTe::uint32 idx) {
+    void* GetInputSignalsMemory(MARTe::uint32 idx) {
         return MARTe::GAM::GetInputSignalMemory(idx);
     }
 
-    void *GetOutputSignalsMemory(MARTe::uint32 idx) {
+    void* GetOutputSignalsMemory(MARTe::uint32 idx) {
         return MARTe::GAM::GetOutputSignalMemory(idx);
+    }
+    bool InitialiseNoFilter() {
+        bool ret = true;
+        if (isInitialised == false) {
+            numH = new MARTe::float32[1];
+            numH[0] = 1.0;
+            denH = new MARTe::float32[1];
+            denH[0] = 1.0;
+            MARTe::Vector<MARTe::float32> numVec(numH, 1);
+            MARTe::Vector<MARTe::float32> denVec(denH, 1);
+            ret &= config.Write("Num", numVec);
+            ret &= config.Write("Den", denVec);
+            ret &= config.Write("ResetInEachState", false);
+            isInitialised = ret;
+        }
+        else {
+            ret = false;
+        }
+        return ret;
     }
     bool InitialiseFilterFIR() {
         bool ret = true;
-        if(isInitialised == false) {
+        if (isInitialised == false) {
             numH = new MARTe::float32[2];
             numH[0] = 0.5;
             numH[1] = 0.5;
@@ -104,9 +123,33 @@ FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
         return ret;
     }
 
+    bool InitialiseAVG10() {
+        bool ret = true;
+        if (isInitialised == false) {
+            MARTe::uint32 nOfNumerators = 10;
+            numH = new MARTe::float32[nOfNumerators];
+            MARTe::float32 coeff = 1.0 / nOfNumerators;
+            for (MARTe::uint32 i = 0u; i < nOfNumerators; i++) {
+                numH[i] = coeff;
+            }
+            denH = new MARTe::float32[1];
+            denH[0] = 1.0;
+            MARTe::Vector<MARTe::float32> numVec(numH, nOfNumerators);
+            MARTe::Vector<MARTe::float32> denVec(denH, 1);
+            ret &= config.Write("Num", numVec);
+            ret &= config.Write("Den", denVec);
+            ret &= config.Write("ResetInEachState", false);
+            isInitialised = ret;
+        }
+        else {
+            ret = false;
+        }
+        return ret;
+    }
+
     bool InitialiseFilterFIR2() {
         bool ret = true;
-        if(isInitialised == false) {
+        if (isInitialised == false) {
             numH = new MARTe::float32[2];
             numH[0] = 0.6;
             numH[1] = 0.4;
@@ -127,7 +170,7 @@ FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
     }
     bool InitialiseFilterIIR() {
         bool ret = true;
-        if(isInitialised == false) {
+        if (isInitialised == false) {
             numH = new MARTe::float32[1];
             numH[0] = 1;
             denH = new MARTe::float32[2];
@@ -135,6 +178,31 @@ FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
             denH[1] = -1;
             MARTe::Vector<MARTe::float32> numVec(numH, 1);
             MARTe::Vector<MARTe::float32> denVec(denH, 2);
+            ret &= config.Write("Num", numVec);
+            ret &= config.Write("Den", denVec);
+            bool resetInEachState = 0;
+            ret &= config.Write("ResetInEachState", resetInEachState);
+            isInitialised = ret;
+        }
+        else {
+            ret = false;
+        }
+        return ret;
+    }
+
+    bool InitialiseFilterIIR2() {
+        bool ret = true;
+        if (isInitialised == false) {
+            numH = new MARTe::float32[3];
+            numH[0] = 0.1;
+            numH[1] = 0.2;
+            numH[2] = 0.3;
+            denH = new MARTe::float32[3];
+            denH[0] = 1;
+            denH[1] = 0.5;
+            denH[2] = 0.2;
+            MARTe::Vector<MARTe::float32> numVec(numH, 3);
+            MARTe::Vector<MARTe::float32> denVec(denH, 3);
             ret &= config.Write("Num", numVec);
             ret &= config.Write("Den", denVec);
             bool resetInEachState = 0;
@@ -172,7 +240,7 @@ FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
         ok &= configSignals.Write("DataSource", "TestDataSource");
         ok &= configSignals.Write("Type", "float32");
         ok &= configSignals.Write("NumberOfDimensions", 1);
-        if(numberOfSamples > numberOfElements) {
+        if (numberOfSamples > numberOfElements) {
             ok &= configSignals.Write("NumberOfElements", numberOfSamples);
         }
         else {
@@ -238,7 +306,7 @@ FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
         ok &= configSignals.Write("Type", "float32");
         ok &= configSignals.Write("NumberOfDimensions", 1);
         //The Filter GAM only support numberOfSamples 1 and numberOfElements>=1
-        if(numberOfSamples > numberOfElements) {
+        if (numberOfSamples > numberOfElements) {
             ok &= configSignals.Write("NumberOfElements", numberOfSamples);
         }
         else {
@@ -253,7 +321,7 @@ FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
         ok &= configSignals.Write("Type", "float32");
         ok &= configSignals.Write("NumberOfDimensions", 1);
         //The Filter GAM only support numberOfSamples 1 and numberOfElements>=1
-        if(numberOfSamples > numberOfElements) {
+        if (numberOfSamples > numberOfElements) {
             ok &= configSignals.Write("NumberOfElements", numberOfSamples);
         }
         else {
@@ -315,7 +383,7 @@ FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
         ok &= configSignals.Write("DataSource", "TestDataSource");
         ok &= configSignals.Write("Type", "float32");
         ok &= configSignals.Write("NumberOfDimensions", 1);
-        if(numberOfSamples > numberOfElements) {
+        if (numberOfSamples > numberOfElements) {
             ok &= configSignals.Write("NumberOfElements", numberOfSamples);
         }
         else {
@@ -368,7 +436,7 @@ FilterGAMTestHelper    (MARTe::uint32 elements=10, MARTe::uint32 samples=1) {
         ok &= configSignals.Write("DataSource", "TestDataSource");
         ok &= configSignals.Write("Type", "uint32");
         ok &= configSignals.Write("NumberOfDimensions", 1);
-        if(numberOfSamples > numberOfElements) {
+        if (numberOfSamples > numberOfElements) {
             ok &= configSignals.Write("NumberOfElements", numberOfSamples);
         }
         else {
@@ -713,7 +781,6 @@ bool FilterGAMTest::TestSetupWrongInputSignalType() {
     return !ok;
 }
 
-
 bool FilterGAMTest::TestSetupWrongOutputSignalType() {
     using namespace MARTe;
     FilterGAMTestHelper gam;
@@ -803,6 +870,8 @@ bool FilterGAMTest::TestSetupNoInputSignal() {
     ok &= gam.AllocateOutputSignalsMemory();
 
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
@@ -877,6 +946,8 @@ bool FilterGAMTest::TestSetupNoOutputSignal() {
     ok &= gam.AllocateOutputSignalsMemory();
 
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
@@ -949,6 +1020,8 @@ bool FilterGAMTest::TestSetupNoInputSamples() {
     ok &= gam.AllocateOutputSignalsMemory();
 
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
@@ -1021,6 +1094,8 @@ bool FilterGAMTest::TestSetupNoOutputSamples() {
     ok &= gam.AllocateOutputSignalsMemory();
 
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
@@ -1092,6 +1167,8 @@ bool FilterGAMTest::TestSetupNoNumberOfElementsInput() {
     ok &= gam.AllocateOutputSignalsMemory();
 
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
@@ -1163,6 +1240,8 @@ bool FilterGAMTest::TestSetupNoNumberOfElementsOutput() {
     ok &= gam.AllocateOutputSignalsMemory();
 
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
@@ -1236,6 +1315,8 @@ bool FilterGAMTest::TestSetupNumberOfSamplesOutput2() {
     ok &= gam.AllocateOutputSignalsMemory();
 
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
@@ -1308,6 +1389,8 @@ bool FilterGAMTest::TestSetup0NumberOfElements() {
     gam.AllocateInputSignalsMemory();
     gam.AllocateOutputSignalsMemory();
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
@@ -1377,6 +1460,8 @@ bool FilterGAMTest::TestSetupFailNumberOfSamples() {
     gam.AllocateInputSignalsMemory();
     gam.AllocateOutputSignalsMemory();
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
@@ -1446,6 +1531,8 @@ bool FilterGAMTest::TestSetupDifferentInputOutputSamples() {
     gam.AllocateInputSignalsMemory();
     gam.AllocateOutputSignalsMemory();
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
@@ -1515,6 +1602,8 @@ bool FilterGAMTest::TestSetupNoInputDimension() {
     gam.AllocateInputSignalsMemory();
     gam.AllocateOutputSignalsMemory();
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
@@ -1584,6 +1673,8 @@ bool FilterGAMTest::TestSetupWrongInputDimension() {
     gam.AllocateInputSignalsMemory();
     gam.AllocateOutputSignalsMemory();
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
     return ok;
 }
 bool FilterGAMTest::TestSetupNoOutputDimension() {
@@ -1652,6 +1743,8 @@ bool FilterGAMTest::TestSetupNoOutputDimension() {
     gam.AllocateInputSignalsMemory();
     gam.AllocateOutputSignalsMemory();
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
     return ok;
 }
 
@@ -1721,6 +1814,41 @@ bool FilterGAMTest::TestSetupWrongOutputDimension() {
     gam.AllocateInputSignalsMemory();
     gam.AllocateOutputSignalsMemory();
     ok &= !gam.Setup();
+    delete[] num;
+    delete[] den;
+    return ok;
+}
+
+bool FilterGAMTest::TestExecuteNoFilter() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam;
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseNoFilter();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn[i] = 1;
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) {
+        gam.Execute();
+    }
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        ok &= (gamMemoryOut[i] == 1.0);
+    }
     return ok;
 }
 
@@ -1741,8 +1869,8 @@ bool FilterGAMTest::TestExecuteFIRConstantInput() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn[i] = 1;
@@ -1755,6 +1883,45 @@ bool FilterGAMTest::TestExecuteFIRConstantInput() {
     for (uint32 i = 1u; i < gam.numberOfElements; i++) {
         ok &= (gamMemoryOut[i] == 1.0);
     }
+    return ok;
+}
+
+bool FilterGAMTest::TestExecuteFIRConstantInputInputElements1() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam(1, 1);
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfElements; i++) {
+        gamMemoryIn[i] = 1;
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) { //Samples 1
+        gam.Execute();
+    }
+    ok &= (gamMemoryOut[0] == 0.5);
+    if (ok) { //Samples 2
+        gam.Execute();
+    }
+    ok &= (gamMemoryOut[0] == gamMemoryOut[0]);
+    if (ok) { //Samples 3
+        gam.Execute();
+    }
+    ok &= (gamMemoryOut[0] == gamMemoryOut[0]);
     return ok;
 }
 
@@ -1775,8 +1942,8 @@ bool FilterGAMTest::TestExecuteFIRRampInput() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
 
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfSamples; i++) {
@@ -1790,6 +1957,123 @@ bool FilterGAMTest::TestExecuteFIRRampInput() {
     for (uint32 i = 1u; i < gam.numberOfSamples; i++) {
         ok &= (gamMemoryOut[i] == i - 0.5);
     }
+    return ok;
+}
+
+bool FilterGAMTest::TestExecuteFIRRampInputInputElements1() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam(1, 1);
+    gam.SetName("Test");
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterFIR();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
+    float32 rampInput = 0.0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfSamples; i++) {
+        gamMemoryIn[i] = rampInput;
+        gamMemoryOut[i] = 0;
+    }
+    if (ok) { //sample 0
+        gam.Execute();
+    }
+    ok &= (gamMemoryOut[0] == 0);
+
+    rampInput += 1.0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfSamples; i++) {
+        gamMemoryIn[i] = rampInput;
+    }
+    if (ok) { //sample 1
+        gam.Execute();
+    }
+    for (uint32 i = 1u; i < gam.numberOfSamples; i++) {
+        ok &= (gamMemoryOut[i] == rampInput - 0.5);
+    }
+    rampInput += 1.0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfSamples; i++) {
+        gamMemoryIn[i] = rampInput;
+    }
+    if (ok) { //sample 2
+        gam.Execute();
+    }
+    for (uint32 i = 1u; i < gam.numberOfSamples; i++) {
+        ok &= (gamMemoryOut[i] == rampInput - 0.5);
+    }
+    rampInput += 1.0;
+    //assign inputs and outputs
+    for (uint32 i = 0u; i < gam.numberOfSamples; i++) {
+        gamMemoryIn[i] = rampInput;
+    }
+    if (ok) { //sample 3
+        gam.Execute();
+    }
+    for (uint32 i = 1u; i < gam.numberOfSamples; i++) {
+        ok &= (gamMemoryOut[i] == rampInput - 0.5);
+    }
+    return ok;
+}
+
+bool FilterGAMTest::TestExecuteAVG10RampInputInputElements1() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam(1, 1);
+    gam.SetName("Test");
+    uint32 nOfTestSamples = 50;
+    float32 *outputRef = new float32[nOfTestSamples];
+    float32 rampVal = 1.0;
+    float32 accum = 1.0 / 10.0;
+    for (uint32 i = 0; i < 10; i++) {
+        outputRef[i] = accum;
+        rampVal += 1.0;
+        accum += rampVal / 10.0;
+    }
+    for (uint32 i = 10; i < nOfTestSamples; i++) {
+        outputRef[i] = outputRef[i - 1] + 1.0;
+    }
+    bool ok = true;
+
+    ok &= gam.InitialiseAVG10();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
+    gamMemoryIn[0] = 0.0;
+    gamMemoryOut[0] = 0;
+    uint32 idxFail = 0;
+    for (uint32 i = 0u; (i < nOfTestSamples) && ok; i++) {
+        gamMemoryIn[0] += 1.0;
+        if (ok) { //sample 0
+            gam.Execute();
+        }
+        ok = MyIsEqual(gamMemoryOut[0], outputRef[i]);
+        if (!ok) {
+            idxFail = i;
+        }
+    }
+    if (idxFail > 0) {
+        ok = false;
+    }
+    delete[] outputRef;
     return ok;
 }
 
@@ -1810,8 +2094,8 @@ bool FilterGAMTest::TestExecuteFIRConstantInput2() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
 
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
@@ -1850,8 +2134,8 @@ bool FilterGAMTest::TestExecuteFIRRampInput2() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn[i] = i;
@@ -1892,8 +2176,8 @@ bool FilterGAMTest::TestExecuteFIRRampInput2DiffCoef() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn[i] = i;
@@ -1937,8 +2221,8 @@ bool FilterGAMTest::TestExecuteIIRConstant() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn[i] = 1;
@@ -1951,6 +2235,50 @@ bool FilterGAMTest::TestExecuteIIRConstant() {
     for (uint32 i = 1u; i < gam.numberOfElements; i++) {
         ok &= (gamMemoryOut[i] == 1 + i);
     }
+    return ok;
+}
+
+bool FilterGAMTest::TestExecuteIIRInputRamp1InputElement() {
+    using namespace MARTe;
+    FilterGAMTestHelper gam(1, 1);
+    gam.SetName("Test");
+    uint32 nOfIterations = 10;
+    float32 *expectedOutput = new float32[nOfIterations];
+    expectedOutput[0] = 0;
+    expectedOutput[1] = 0.1;
+    expectedOutput[2] = 0.35;
+    expectedOutput[3] = 0.805;
+    expectedOutput[4] = 1.1275;
+    expectedOutput[5] = 1.47525;
+    expectedOutput[6] = 1.836875;
+    expectedOutput[7] = 2.1865125;
+    expectedOutput[8] = 2.53936875;
+    expectedOutput[9] = 2.893013125;
+    bool ok = true;
+
+    ok &= gam.InitialiseFilterIIR2();
+    ok &= gam.Initialise(gam.config);
+
+    ok &= gam.InitialiseConfigDataBaseSignal1();
+    ok &= gam.SetConfiguredDatabase(gam.configSignals);
+
+    ok &= gam.AllocateInputSignalsMemory();
+    ok &= gam.AllocateOutputSignalsMemory();
+
+    ok &= gam.Setup();
+
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
+    //assign inputs and outputs
+    gamMemoryIn[0] = 0;
+    gamMemoryOut[0] = 0;
+    for (uint32 i = 0u; i < nOfIterations && ok; i++) {
+        gam.Execute();
+        ok &= MyIsEqual(gamMemoryOut[0], expectedOutput[i]);
+        gamMemoryIn[0] = gamMemoryIn[0] + 1.0;
+    }
+
+    delete[] expectedOutput;
     return ok;
 }
 
@@ -1971,8 +2299,8 @@ bool FilterGAMTest::TestExecuteIIRConstant2() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn[i] = 1;
@@ -2061,8 +2389,8 @@ bool FilterGAMTest::TestExecuteIIRConstantDimArray1() {
     ok &= gam.AllocateOutputSignalsMemory();
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
     //assign inputs and outputs
     for (uint32 i = 0u; i < numberOfElements; i++) {
         gamMemoryIn[i] = 1;
@@ -2104,8 +2432,8 @@ bool FilterGAMTest::TestExecuteElements1Samples10() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut = static_cast<float32 *>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut = static_cast<float32*>(gam.GetOutputSignalsMemory());
 
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfSamples; i++) {
@@ -2461,10 +2789,10 @@ bool FilterGAMTest::TestExecuteSeveralSignalsFIR() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
-    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
-    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    float32 *gamMemoryIn0 = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32*>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32*>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32*>(gam.GetOutputSignalsMemory(1));
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn0[i] = i;
@@ -2512,10 +2840,10 @@ bool FilterGAMTest::TestAlwaysResetFIR() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
-    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
-    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    float32 *gamMemoryIn0 = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32*>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32*>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32*>(gam.GetOutputSignalsMemory(1));
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn0[i] = i;
@@ -2567,10 +2895,10 @@ bool FilterGAMTest::TestAlwaysResetIIR() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
-    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
-    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    float32 *gamMemoryIn0 = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32*>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32*>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32*>(gam.GetOutputSignalsMemory(1));
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn0[i] = 1.0F;
@@ -2616,10 +2944,10 @@ bool FilterGAMTest::TestAlwaysResetMemoryNotInt() {
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
 
-    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
-    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
-    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    float32 *gamMemoryIn0 = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32*>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32*>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32*>(gam.GetOutputSignalsMemory(1));
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn0[i] = i;
@@ -2650,10 +2978,10 @@ bool FilterGAMTest::TestResetOnlyWhenRequired() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
-    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
-    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    float32 *gamMemoryIn0 = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32*>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32*>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32*>(gam.GetOutputSignalsMemory(1));
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn0[i] = i;
@@ -2707,10 +3035,10 @@ bool FilterGAMTest::TestResetOnlyWhenRequired2() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
-    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
-    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    float32 *gamMemoryIn0 = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32*>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32*>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32*>(gam.GetOutputSignalsMemory(1));
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn0[i] = i;
@@ -2761,10 +3089,10 @@ bool FilterGAMTest::TestResetOnlyWhenRequired3() {
 
     ok &= gam.Setup();
 
-    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
-    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
-    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    float32 *gamMemoryIn0 = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32*>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32*>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32*>(gam.GetOutputSignalsMemory(1));
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn0[i] = 1;
@@ -2810,10 +3138,10 @@ bool FilterGAMTest::TestResetOnlyWhenRequiredMemoryNotInit() {
     ok &= gam.AllocateInputSignalsMemory();
     ok &= gam.AllocateOutputSignalsMemory();
 
-    float32 *gamMemoryIn0 = static_cast<float32 *>(gam.GetInputSignalsMemory());
-    float32 *gamMemoryOut0 = static_cast<float32 *>(gam.GetOutputSignalsMemory());
-    float32 *gamMemoryIn1 = static_cast<float32 *>(gam.GetInputSignalsMemory(1));
-    float32 *gamMemoryOut1 = static_cast<float32 *>(gam.GetOutputSignalsMemory(1));
+    float32 *gamMemoryIn0 = static_cast<float32*>(gam.GetInputSignalsMemory());
+    float32 *gamMemoryOut0 = static_cast<float32*>(gam.GetOutputSignalsMemory());
+    float32 *gamMemoryIn1 = static_cast<float32*>(gam.GetInputSignalsMemory(1));
+    float32 *gamMemoryOut1 = static_cast<float32*>(gam.GetOutputSignalsMemory(1));
     //assign inputs and outputs
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn0[i] = i;
@@ -2826,5 +3154,17 @@ bool FilterGAMTest::TestResetOnlyWhenRequiredMemoryNotInit() {
         ok &= !gam.PrepareNextState("B", "C");
     }
     return ok;
+}
+
+bool FilterGAMTest::MyIsEqual(MARTe::float32 f1,
+                              MARTe::float32 f2) {
+    MARTe::float32 epsilon = 1e-5;
+    MARTe::float32 diff = f1 - f2;
+    bool ret;
+    if (diff < 0) {
+        diff = -diff;
+    }
+    ret = diff < epsilon;
+    return ret;
 }
 

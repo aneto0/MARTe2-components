@@ -99,7 +99,6 @@ public:
      */
     bool TestInitialiseWrongDenType();
 
-
     /**
      * @brief Tests that the static gain is set properly with FIR filter
      */
@@ -233,12 +232,27 @@ public:
     bool TestSetupWrongOutputDimension();
 
     /**
-     * @brief test the Execute() with a simple average filter.
+     * @brief test the Execute() with um = 1 den = 1.
+     * @details first Initialise() and Setup() the filter. Using a constant input, tests Execute() comparing the
+     * output against the expected values.
+     * @return true when the output is as expected.
+     */
+    bool TestExecuteNoFilter();
+    /**
+     * @brief test the Execute() with a simple two samples average filter.
      * @details first Initialise() and Setup() the filter. Using a constant input, tests Execute() comparing the
      * output against the expected values.
      * @return true when the output is as expected.
      */
     bool TestExecuteFIRConstantInput();
+
+    /**
+     * @brief test the Execute() with a simple two samples average filter.
+     * @details first Initialise() and Setup() the filter. Using a constant input, tests Execute() comparing the
+     * output against the expected values.
+     * @return true when the output is as expected.
+     */
+    bool TestExecuteFIRConstantInputInputElements1();
 
     /**
      * @brief test the Execute() with a simple average filter.
@@ -247,6 +261,22 @@ public:
      * @return true when the output is as expected.
      */
     bool TestExecuteFIRRampInput();
+
+    /**
+     * @brief test the Execute() with a simple average filter.
+     * @details first Initialise() and Setup() the filter. Using a ramp input, tests Execute() comparing the
+     * output against the expected values.
+     * @return true when the output is as expected.
+     */
+    bool TestExecuteFIRRampInputInputElements1();
+
+    /**
+     * @brief test the Execute() with a simple 10 samples average filter.
+     * @details first Initialise() and Setup() the filter. Using a ramp input, tests Execute() comparing the
+     * output against the expected values.
+     * @return true when the output is as expected.
+     */
+    bool TestExecuteAVG10RampInputInputElements1();
 
     /**
      * @brief test the Execute() with a simple average filter.
@@ -282,6 +312,17 @@ public:
      * @return true when the output is as expected.
      */
     bool TestExecuteIIRConstant();
+
+    /**
+     * @brief test the Execute() with an arbitrary IIR filter.
+     * @details Filter configuration :
+     *     - num [0.1 0.2 0.3]
+     *     - den [1 0.5 0.2]
+     * first Initialise() and Setup() the filter. Using a ramp input of slope 1, tests Execute() comparing the
+     * output against the expected values (computed from matlab).
+     * @return true when the output is as expected.
+     */
+    bool TestExecuteIIRInputRamp1InputElement();
 
     /**
      * @brief test the Execute() with a simple integrator (sum(inputs)) .
@@ -393,6 +434,9 @@ public:
      * @return true if PrepareNextState() fails.
      */
     bool TestResetOnlyWhenRequiredMemoryNotInit();
+private:
+    bool MyIsEqual(MARTe::float32 f1,
+                   MARTe::float32 f2);
 };
 
 /*---------------------------------------------------------------------------*/
