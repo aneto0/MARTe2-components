@@ -20,45 +20,9 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
-# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
-#
 #############################################################
 
-SPB=  IOGAM.x\
-    ConstantGAM.x\
-    ConversionGAM.x\
-    CRCGAM.x\
-    DoubleHandshakeGAM.x\
-    FilterGAM.x\
-    HistogramGAM.x\
-    Interleaved2FlatGAM.x\
-    MathExpressionGAM.x\
-    MessageGAM.x\
-    MuxGAM.x\
-    PIDGAM.x\
-    SSMGAM.x\
-    StatisticsGAM.x\
-    TimeCorrectionGAM.x\
-    TriggeredIOGAM.x\
-    WaveformGAM.x
+TARGET=cov
 
-ifdef EFDA_MARTe_DIR
-SPB += BaseLib2GAM.x
-endif
+include Makefile.inc
 
-ifdef MATLAB_DIR
-SPB += SimulinkWrapperGAM.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
-MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
-include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
-
-all: $(OBJS) $(SUBPROJ) 
-	echo  $(OBJS)
-
-include depends.$(TARGET)
-
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)

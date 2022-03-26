@@ -70,6 +70,7 @@
 -i./Source/Components/GAMs/SimulinkWrapperGAM/
 -i./Source/Components/GAMs/StatisticsGAM/
 -i./Source/Components/GAMs/TimeCorrectionGAM/
+-i./Source/Components/GAMs/TriggeredIOGAM/
 -i./Source/Components/Interfaces/BaseLib2Wrapper/
 -i./Source/Components/Interfaces/EPICS/
 -i./Source/Components/Interfaces/EPICSPVA/
@@ -185,6 +186,7 @@ TcnTimeProvider.cpp
 TimeCorrectionGAM.cpp
 TimeProvider.cpp
 TimestampProvider.cpp
+TriggeredIOGAM.cpp
 Types.h
 UDPSender.cpp
 UDPReceiver.cpp
