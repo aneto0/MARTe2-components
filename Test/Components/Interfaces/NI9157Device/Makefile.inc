@@ -65,6 +65,8 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 INCLUDES += -I$(CODAC_ROOT)/include
 INCLUDES += -I../../../../Source/Components/Interfaces/NI9157Device
 
+CPPFLAGS += -Wno-error=nonnull-compare
+
 all: $(OBJS) \
 	$(BUILD_DIR)/NI9157DeviceTest$(LIBEXT)
 	echo  $(OBJS)

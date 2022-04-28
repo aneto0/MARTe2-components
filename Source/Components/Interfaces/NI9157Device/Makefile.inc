@@ -58,6 +58,8 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L4LoggerService
 INCLUDES += -I$(CODAC_ROOT)/include
 
+CPPFLAGS+=-Wno-error=nonnull-compare
+
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/NI9157Device$(LIBEXT)\
     $(BUILD_DIR)/NI9157Device$(DLLEXT)
