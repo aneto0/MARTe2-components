@@ -22,44 +22,7 @@
 #
 #############################################################
 
-OBJSX= 
+TARGET=cov
 
-SPB=IOGAM.x\
-	ConstantGAM.x\
-	ConversionGAM.x\
-	CRCGAM.x\
-	DoubleHandshakeGAM.x\
-	FilterGAM.x\
-	FlattenedStructIOGAM.x\
-	HistogramGAM.x\
-	Interleaved2FlatGAM.x\
-	MathExpressionGAM.x\
-	MessageGAM.x\
-	MuxGAM.x\
-	PIDGAM.x\
-	SSMGAM.x\
-	StatisticsGAM.x\
-	TimeCorrectionGAM.x\
-	TriggeredIOGAM.x\
-	WaveformGAM.x
-
-ifdef EFDA_MARTe_DIR
-SPB+=BaseLib2GAM.x
-endif
-
-ifdef MATLAB_DIR
-SPB+=SimulinkWrapperGAM.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
-MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
-include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
-
-all: $(OBJS)  $(SUBPROJ)  
-	echo  $(OBJS)
-
-include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
-
+include Makefile.inc
 
