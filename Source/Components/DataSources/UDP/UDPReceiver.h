@@ -36,7 +36,7 @@
 #include "EmbeddedServiceMethodBinderI.h"
 #include "EventSem.h"
 #include "SingleThreadService.h"
-#include "UDPSocket.h"
+#include "BasicUDPSocket.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -153,14 +153,14 @@ public:
     uint32 GetStackSize() const;
 
     /**
-     * @brief Gets the port to be used by the UDPSocket.
-     * @return the port to be used by the UDPSocket.
+     * @brief Gets the port to be used by the BasicUDPSocket.
+     * @return the port to be used by the BasicUDPSocket.
      */
     uint16 GetPort() const;
 
     /**
-     * @brief Gets the address to be used by the UDPSocket.
-     * @return the address to be used by the UDPSocket.
+     * @brief Gets the address to be used by the BasicUDPSocket.
+     * @return the address to be used by the BasicUDPSocket.
      */
     StreamString GetAddress() const;
 
@@ -201,7 +201,7 @@ private:
     /**
      * The socket that will connect to the sender
      */ 
-    UDPSocket* socket;
+    BasicUDPSocket* socket;
     
     /**
      * CPU affinity number for the executor thread

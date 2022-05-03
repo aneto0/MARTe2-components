@@ -52,7 +52,7 @@ UDPReceiver::UDPReceiver() :
     cpuMask = 0u;
     stackSize = THREADS_DEFAULT_STACKSIZE;
     executionMode = UDPReceiverExecutionModeRealTime;
-    socket = NULL_PTR(UDPSocket*);
+    socket = NULL_PTR(BasicUDPSocket*);
     muxIThread.Create();
     copyInProgress = false;
     memoryIndependentThread = NULL_PTR(void *);
@@ -65,7 +65,7 @@ UDPReceiver::~UDPReceiver() {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
         }
     }
-    if (socket != NULL_PTR(UDPSocket*)) {
+    if (socket != NULL_PTR(BasicUDPSocket*)) {
         if (!socket->Close()) {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop the UDP receiver.");
         }
@@ -179,7 +179,7 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
 bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok) {
-        socket = new UDPSocket;
+        socket = new BasicUDPSocket;
 
         ok = socket->Open();
     }
@@ -195,7 +195,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
                     int32 netValue = static_cast<int32>(strtol(networkBlock.Buffer(), NULL_PTR(char8**), 10));
                     if ((netValue >= 224) && (netValue <= 239)) {
                         /* The net address belongs to the multicast address range therefore it must be a multicast group */
-                        if (socket != NULL_PTR(UDPSocket*)) {
+                        if (socket != NULL_PTR(BasicUDPSocket*)) {
                             ok = socket->Join(address.Buffer());
                         }
                     }
@@ -208,7 +208,7 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     if (ok) {
-        if (socket != NULL_PTR(UDPSocket*)) {
+        if (socket != NULL_PTR(BasicUDPSocket*)) {
             ok = socket->Listen(port);
         }
     }
@@ -231,8 +231,10 @@ bool UDPReceiver::Synchronise() {
     }
     else {
         char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
-        if (socket != NULL_PTR(UDPSocket*)) {
-            ok = socket->Read(dataBuffer, totalMemorySize, timeout);
+        if (socket != NULL_PTR(BasicUDPSocket*)) {
+            //Do not overwrite the read memory size
+            uint32 sizeToRead = totalMemorySize;
+            ok = socket->Read(dataBuffer, sizeToRead, timeout);
         }
     }
     return ok;
@@ -256,8 +258,10 @@ ErrorManagement::ErrorType UDPReceiver::Execute(ExecutionInfo &info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
         char8 *const dataBuffer = reinterpret_cast<char8*>(memoryIndependentThread);
-        if (socket != NULL_PTR(UDPSocket*)) {
-            err.timeout = !socket->Read(dataBuffer, totalMemorySize, timeout);
+        if (socket != NULL_PTR(BasicUDPSocket*)) {
+            //Do not overwrite the read memory size
+            uint32 sizeToRead = totalMemorySize;
+            err.timeout = !socket->Read(dataBuffer, sizeToRead, timeout);
         }
         bool canCopyMemory = false;
         if (muxIThread.FastLock() == ErrorManagement::NoError) {

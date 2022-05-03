@@ -44,63 +44,63 @@
 namespace MARTe {
 FilterGAM::FilterGAM() :
         GAM() {
-    num = NULL_PTR(float32 *);
-    den = NULL_PTR(float32 *);
+    num = NULL_PTR(float32*);
+    den = NULL_PTR(float32*);
     numberOfNumCoeff = 0u;
     numberOfDenCoeff = 0u;
     staticGain = 0.0F;
     numberOfSamples = 0u;
-    lastInputs = NULL_PTR(float32 **);
-    lastOutputs = NULL_PTR(float32 **);
-    output = NULL_PTR(float32 **);
-    input = NULL_PTR(float32 **);
+    lastInputs = NULL_PTR(float32**);
+    lastOutputs = NULL_PTR(float32**);
+    output = NULL_PTR(float32**);
+    input = NULL_PTR(float32**);
     numberOfSignals = 0u;
     gainInfinite = false;
     resetInEachState = true;
 }
 
 FilterGAM::~FilterGAM() {
-    if (num != NULL_PTR(float32 *)) {
+    if (num != NULL_PTR(float32*)) {
         delete[] num;
     }
-    if (den != NULL_PTR(float32 *)) {
+    if (den != NULL_PTR(float32*)) {
         delete[] den;
     }
-    if (lastInputs != NULL_PTR(float32 **)) {
+    if (lastInputs != NULL_PTR(float32**)) {
         for (uint32 i = 0u; i < numberOfSignals; i++) {
-            if (lastInputs[i] != NULL_PTR(float32 *)) {
+            if (lastInputs[i] != NULL_PTR(float32*)) {
                 delete[] lastInputs[i];
             }
         }
         delete[] lastInputs;
     }
-    if (lastOutputs != NULL_PTR(float32 **)) {
+    if (lastOutputs != NULL_PTR(float32**)) {
         for (uint32 i = 0u; i < numberOfSignals; i++) {
-            if (lastOutputs[i] != NULL_PTR(float32 *)) {
+            if (lastOutputs[i] != NULL_PTR(float32*)) {
                 delete[] lastOutputs[i];
             }
         }
         delete[] lastOutputs;
     }
-    if (input != NULL_PTR(float32 **)) {
+    if (input != NULL_PTR(float32**)) {
         for (uint32 i = 0u; i < numberOfSignals; i++) {
-            if (input[i] != NULL_PTR(float32 *)) {
-                input[i] = NULL_PTR(float32 *);
+            if (input[i] != NULL_PTR(float32*)) {
+                input[i] = NULL_PTR(float32*);
             }
         }
-        delete [] input;
+        delete[] input;
     }
-    if (output != NULL_PTR(float32 **)) {
+    if (output != NULL_PTR(float32**)) {
         for (uint32 i = 0u; i < numberOfSignals; i++) {
-            if (output[i] != NULL_PTR(float32 *)) {
-                output[i] = NULL_PTR(float32 *);
+            if (output[i] != NULL_PTR(float32*)) {
+                output[i] = NULL_PTR(float32*);
             }
         }
-        delete [] output;
+        delete[] output;
     }
 }
 
-bool FilterGAM::Initialise(StructuredDataI& data) {
+bool FilterGAM::Initialise(StructuredDataI &data) {
     AnyType functionsArray = data.GetType("Num");
     bool errorDetected = false;
     bool ok = GAM::Initialise(data);
@@ -166,14 +166,14 @@ bool FilterGAM::Initialise(StructuredDataI& data) {
         float32 sumNumerator = 0.0F;
         for (uint32 i = 0u; i < numberOfNumCoeff; i++) {
             //if due to MISRA rules however it is not necessary. At his line the initialization of num is guaranteed b the ok = true...
-            if (num != NULL_PTR(float32 *)) {
+            if (num != NULL_PTR(float32*)) {
                 sumNumerator += num[i];
             }
         }
         float32 sumDenominator = 0.0F;
         for (uint32 i = 0u; i < numberOfDenCoeff; i++) {
             //if due to MISRA rules however it is not necessary. At his line the initialization of den is guaranteed b the ok = true...
-            if (den != NULL_PTR(float32 *)) {
+            if (den != NULL_PTR(float32*)) {
                 sumDenominator += den[i];
             }
         }
@@ -222,46 +222,63 @@ bool FilterGAM::Setup() {
     if (!errorDetected) {
         numberOfOutputSignalsFilter = GetNumberOfOutputSignals();
         if (numberOfOutputSignalsFilter != numberOfSignals) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "numberOfOutputSignalsFilter = %u != %u = numberOfInputSignals", numberOfOutputSignalsFilter, numberOfSignals);
+            REPORT_ERROR(ErrorManagement::ParametersError, "numberOfOutputSignalsFilter = %u != %u = numberOfInputSignals", numberOfOutputSignalsFilter,
+                         numberOfSignals);
             errorDetected = true;
         }
     }
     //initialise lastInputs & lastOutputs
     if (!errorDetected) {
-        lastInputs = new float32 *[numberOfSignals];
+        lastInputs = new float32*[numberOfSignals];
         lastOutputs = new float32*[numberOfSignals];
+        uint32 numberOfElementsToSet1 = static_cast<uint32>(sizeof(float32*) * numberOfSignals);
+        (void) MemoryOperationsHelper::Set(reinterpret_cast<void *>(lastInputs), '\0', numberOfElementsToSet1);
+        (void) MemoryOperationsHelper::Set(reinterpret_cast<void *>(lastOutputs), '\0', numberOfElementsToSet1);
         //if due to MISRA rules
-        if ((lastInputs != NULL_PTR(float32 **)) && (lastOutputs != NULL_PTR(float32 **))) {
+        if ((lastInputs != NULL_PTR(float32**)) && (lastOutputs != NULL_PTR(float32**))) {
+            /*lint -e{9114} implicit conversion is safe*/
             for (uint32 m = 0u; (m < numberOfSignals) && (!errorDetected); m++) {
-                uint32 auxToTrickMISRA = numberOfNumCoeff - 1u;
-                uint32 aux2ToTrickMISRA = numberOfDenCoeff - 1u;
-                lastInputs[m] = new float32[auxToTrickMISRA];
-                lastOutputs[m] = new float32[aux2ToTrickMISRA];
-                if ((lastInputs[m] != NULL_PTR(float32 *)) && (lastOutputs[m] != NULL_PTR(float32 *))) {
-                    for (uint32 i = 0u; i < (numberOfDenCoeff - 1u); i++) {
-                        lastOutputs[m][i] = 0.0F;
+                if (numberOfNumCoeff > 1u) {
+                    lastInputs[m] = new float32[numberOfNumCoeff - 1u];
+                    if (lastInputs[m] != NULL_PTR(float32*)) {
+                        for (uint32 i = 0u; i < (numberOfNumCoeff - 1u); i++) {
+                            lastInputs[m][i] = 0.0F;
+                        }
                     }
-                    for (uint32 i = 0u; i < (numberOfNumCoeff - 1u); i++) {
-                        lastInputs[m][i] = 0.0F;
+                }
+                if (numberOfDenCoeff > 1u) {
+                    lastOutputs[m] = new float32[numberOfDenCoeff - 1u];
+                    if (lastOutputs[m] != NULL_PTR(float32*)) {
+                        for (uint32 i = 0u; i < (numberOfDenCoeff - 1u); i++) {
+                            lastOutputs[m][i] = 0.0F;
+                        }
                     }
                 }
             }
         }
     }
-
-    uint32 *numberOfSamplesInput = NULL_PTR(uint32 *);
-    uint32 *numberOfElementsInput = NULL_PTR(uint32 *);
-    uint32 *numberOfSamplesOutput = NULL_PTR(uint32 *);
-    uint32 *numberOfElementsOutput = NULL_PTR(uint32 *);
+    uint32 *numberOfSamplesInput = NULL_PTR(uint32*);
+    uint32 *numberOfElementsInput = NULL_PTR(uint32*);
+    uint32 *numberOfSamplesOutput = NULL_PTR(uint32*);
+    uint32 *numberOfElementsOutput = NULL_PTR(uint32*);
     if (!errorDetected) {
         numberOfSamplesInput = new uint32[numberOfSignals];
         numberOfElementsInput = new uint32[numberOfSignals];
         numberOfSamplesOutput = new uint32[numberOfSignals];
         numberOfElementsOutput = new uint32[numberOfSignals];
+        //lint -e{9113} -e{9131} allow multiple != in the same line since it has no effect and makes the code easier to read.
+        ok = (numberOfSamplesInput != NULL_PTR(uint32 *) && numberOfElementsInput != NULL_PTR(uint32 *) && numberOfSamplesOutput != NULL_PTR(uint32 *) && numberOfElementsOutput != NULL_PTR(uint32 *));
+        if (ok) {
+            uint32 numberOfElementsToSet = static_cast<uint32>(numberOfSignals * sizeof(numberOfSignals));
+            (void) MemoryOperationsHelper::Set(reinterpret_cast<void *>(numberOfSamplesInput), '\0', numberOfElementsToSet);
+            (void) MemoryOperationsHelper::Set(reinterpret_cast<void *>(numberOfElementsInput), '\0', numberOfElementsToSet);
+            (void) MemoryOperationsHelper::Set(reinterpret_cast<void *>(numberOfSamplesOutput), '\0', numberOfElementsToSet);
+            (void) MemoryOperationsHelper::Set(reinterpret_cast<void *>(numberOfElementsOutput), '\0', numberOfElementsToSet);
+        }
     }
-    //if due to MISRA rules
-    if ((numberOfSamplesInput != NULL_PTR(uint32 *)) && (numberOfElementsInput != NULL_PTR(uint32 *)) && (numberOfSamplesOutput != NULL_PTR(uint32 *))
-            && (numberOfElementsOutput != NULL_PTR(uint32 *))) {
+//if due to MISRA rules
+    if ((numberOfSamplesInput != NULL_PTR(uint32*)) && (numberOfElementsInput != NULL_PTR(uint32*)) && (numberOfSamplesOutput != NULL_PTR(uint32*))
+            && (numberOfElementsOutput != NULL_PTR(uint32*))) {
         //Read input-output samples and elements for each signal.
         if (!errorDetected) {
             for (uint32 i = 0u; i < numberOfSignals; i++) {
@@ -304,10 +321,10 @@ bool FilterGAM::Setup() {
             }
         }
     }
-    //Check that all the input signals have the same numberOfElementsInput
+//Check that all the input signals have the same numberOfElementsInput
     if (!errorDetected) {
         //if due to MISRA rules
-        if (numberOfElementsInput != NULL_PTR(uint32 *)) {
+        if (numberOfElementsInput != NULL_PTR(uint32*)) {
             for (uint32 i = 1u; (i < numberOfSignals) && ok; i++) {
                 ok = (numberOfElementsInput[0] == numberOfElementsInput[i]);
             }
@@ -317,10 +334,10 @@ bool FilterGAM::Setup() {
         REPORT_ERROR(ErrorManagement::ParametersError, "numberOfElementsInput is not the same for each input signal ");
         errorDetected = true;
     }
-    //Check that all the output signals have the same numberOfElementsOutput
+//Check that all the output signals have the same numberOfElementsOutput
     if (!errorDetected) {
         //if due to MISRA rules
-        if (numberOfElementsOutput != NULL_PTR(uint32 *)) {
+        if (numberOfElementsOutput != NULL_PTR(uint32*)) {
             for (uint32 i = 1u; (i < numberOfSignals) && ok; i++) {
                 ok = (numberOfElementsOutput[0] == numberOfElementsOutput[i]);
             }
@@ -330,10 +347,10 @@ bool FilterGAM::Setup() {
         REPORT_ERROR(ErrorManagement::ParametersError, "numberOfElementsOutput is not the same for each signal ");
         errorDetected = true;
     }
-    //Check that all the input signals have the same numberOfSamplesInput
+//Check that all the input signals have the same numberOfSamplesInput
     if (!errorDetected) {
         //if due to MISRA riles
-        if (numberOfSamplesInput != NULL_PTR(uint32 *)) {
+        if (numberOfSamplesInput != NULL_PTR(uint32*)) {
             for (uint32 i = 1u; (i < numberOfSignals) && ok; i++) {
                 ok = (numberOfSamplesInput[0] == numberOfSamplesInput[i]);
             }
@@ -343,27 +360,28 @@ bool FilterGAM::Setup() {
         REPORT_ERROR(ErrorManagement::ParametersError, "numberOfSamplesInput is not the same for each signal ");
         errorDetected = true;
     }
-    //Only the numberOfSamplesInput[0] have to be checked because, previously, it is check that the input dimensions etc are the same for each input signal.
+//Only the numberOfSamplesInput[0] have to be checked because, previously, it is check that the input dimensions etc are the same for each input signal.
     if (!errorDetected) {
         //if due to MISRA rules
-        if ((numberOfSamplesInput != NULL_PTR(uint32 *)) && (numberOfElementsInput != NULL_PTR(uint32 *))) {
+        if ((numberOfSamplesInput != NULL_PTR(uint32*)) && (numberOfElementsInput != NULL_PTR(uint32*))) {
             if (numberOfSamplesInput[0] == 1u) {
                 numberOfSamples = numberOfElementsInput[0];
             }
             else {
                 ok = (numberOfElementsInput[0] == 1u);
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "numberOfSamplesInput = %u and numberOfElementsInput = %u (should be 1) ", numberOfSamplesInput[0], numberOfElementsInput[0]);
+                    REPORT_ERROR(ErrorManagement::ParametersError, "numberOfSamplesInput = %u and numberOfElementsInput = %u (should be 1) ",
+                                 numberOfSamplesInput[0], numberOfElementsInput[0]);
                     errorDetected = true;
                 }
                 numberOfSamples = numberOfSamplesInput[0];
             }
         }
     }
-    //Input and output size must be the same
-    //Check that all the signals have the same number of input & outputs
+//Input and output size must be the same
+//Check that all the signals have the same number of input & outputs
     if (!errorDetected) {
-        if (numberOfElementsOutput != NULL_PTR(uint32 *)) {
+        if (numberOfElementsOutput != NULL_PTR(uint32*)) {
             for (uint32 i = 0u; (i < numberOfSignals) && ok; i++) {
                 ok = (numberOfSamples == numberOfElementsOutput[i]);
                 if (!ok) {
@@ -411,26 +429,26 @@ bool FilterGAM::Setup() {
         }
     }
     if (!errorDetected) {
-        input = new float32 *[numberOfSignals];
-        output = new float32 *[numberOfSignals];
-        if ((input != NULL_PTR(float32 **)) && (output != NULL_PTR(float32 **))) {
+        input = new float32*[numberOfSignals];
+        output = new float32*[numberOfSignals];
+        if ((input != NULL_PTR(float32**)) && (output != NULL_PTR(float32**))) {
             for (uint32 i = 0u; i < numberOfSignals; i++) {
-                input[i] = static_cast<float32 *>(GetInputSignalMemory(i));
-                output[i] = static_cast<float32 *>(GetOutputSignalMemory(i));
+                input[i] = static_cast<float32*>(GetInputSignalMemory(i));
+                output[i] = static_cast<float32*>(GetOutputSignalMemory(i));
             }
         }
     }
-    //Free pointers MISRA rules
-    if (numberOfSamplesInput != NULL_PTR(uint32 *)) {
+//Free pointers MISRA rules
+    if (numberOfSamplesInput != NULL_PTR(uint32*)) {
         delete[] numberOfSamplesInput;
     }
-    if (numberOfElementsInput != NULL_PTR(uint32 *)) {
+    if (numberOfElementsInput != NULL_PTR(uint32*)) {
         delete[] numberOfElementsInput;
     }
-    if (numberOfSamplesOutput != NULL_PTR(uint32 *)) {
+    if (numberOfSamplesOutput != NULL_PTR(uint32*)) {
         delete[] numberOfSamplesOutput;
     }
-    if (numberOfElementsOutput != NULL_PTR(uint32 *)) {
+    if (numberOfElementsOutput != NULL_PTR(uint32*)) {
         delete[] numberOfElementsOutput;
     }
     return !errorDetected;
@@ -439,44 +457,63 @@ bool FilterGAM::Setup() {
 bool FilterGAM::Execute() {
     uint32 n = 0u;
     float32 accumulator;
-    //if due to MISRA rules...
-    if ((input != NULL_PTR(float32 **)) && (output != NULL_PTR(float32 **)) && (lastInputs != NULL_PTR(float32 **)) && (lastOutputs != NULL_PTR(float32 **)) && (num != NULL_PTR(float32 *))
-            && (den != NULL_PTR(float32 *))) {
+//if due to MISRA rules...
+    if ((input != NULL_PTR(float32**)) && (output != NULL_PTR(float32**)) && (lastInputs != NULL_PTR(float32**)) && (lastOutputs != NULL_PTR(float32**))
+            && (num != NULL_PTR(float32*)) && (den != NULL_PTR(float32*))) {
         for (uint32 i = 0u; i < numberOfSignals; i++) {
-            //if de to MISRA rules
-            if ((input[i] != NULL_PTR(float32 *)) && (output[i] != NULL_PTR(float32 *)) && (lastInputs[i] != NULL_PTR(float32 *)) && (lastOutputs[i] != NULL_PTR(float32 *))) {
-                n = 0u;
-                while (n < numberOfSamples) {
-                    accumulator = 0.0F;
-                    //sum inputs
-                    for (uint32 k = 0u; k < numberOfNumCoeff; k++) {
-                        if (n >= k) {
-                            accumulator += input[i][n - k] * num[k];
-                        }
-                        else {
-                            accumulator += (lastInputs[i][(k - n) - 1u]) * num[k];
-                        }
+            n = 0u;
+            while (n < numberOfSamples) {
+                accumulator = 0.0F;
+                //sum inputs
+                for (uint32 k = 0u; k < numberOfNumCoeff; k++) {
+                    if (n >= k) {
+                        accumulator += input[i][n - k] * num[k];
                     }
-                    //Sum outputs
-                    for (uint32 k = 1u; k < numberOfDenCoeff; k++) {
-                        if (n >= k) {
-                            accumulator -= output[i][n - k] * den[k];
-                        }
-                        else {
-                            accumulator -= lastOutputs[i][(k - n) - 1u] * den[k];
-                        }
+                    else {
+                        accumulator += (lastInputs[i][(k - n) - 1u]) * num[k];
                     }
-                    output[i][n] = accumulator;
-                    n++;
                 }
+                //Sum outputs
+                for (uint32 k = 1u; k < numberOfDenCoeff; k++) {
+                    if (n >= k) {
+                        accumulator -= output[i][n - k] * den[k];
+                    }
+                    else {
+                        accumulator -= lastOutputs[i][(k - n) - 1u] * den[k];
+                    }
+                }
+                output[i][n] = accumulator;
+                n++;
+            }
 
-                //update the last values
-                for (uint32 k = 0u; k < (numberOfNumCoeff - 1u); k++) {
-                    lastInputs[i][k] = input[i][(numberOfSamples - k) - 1u];
+            //update the last values
+            if (numberOfNumCoeff > 2u) {
+                /*lint -e{9117} implicit conversion is safe*/
+                for (uint32 k = (numberOfNumCoeff - 2u); k > 0u; k--) {
+                    if (numberOfSamples > k) {
+                        lastInputs[i][k] = input[i][(numberOfSamples - k) - 1u];
+                    }
+                    else {
+                        lastInputs[i][k] = lastInputs[i][k - 1];
+                    }
                 }
-                for (uint32 k = 0u; k < (numberOfDenCoeff - 1u); k++) {
-                    lastOutputs[i][k] = output[i][(numberOfSamples - k) - 1u];
+            }
+            if (numberOfNumCoeff > 1u) {
+                lastInputs[i][0] = input[i][numberOfSamples - 1u];
+            }
+            if (numberOfDenCoeff > 2u) {
+                /*lint -e{9117} implicit conversion is safe*/
+                for (uint32 k = (numberOfDenCoeff - 2u); k > 0u; k--) {
+                    if (numberOfSamples > k) {
+                        lastOutputs[i][k] = output[i][(numberOfSamples - k) - 1u];
+                    }
+                    else {
+                        lastOutputs[i][k] = lastOutputs[i][k - 1];
+                    }
                 }
+            }
+            if (numberOfDenCoeff > 1u) {
+                lastOutputs[i][0] = output[i][numberOfSamples - 1u];
             }
         }
     }
@@ -486,17 +523,18 @@ bool FilterGAM::Execute() {
 bool FilterGAM::GetResetInEachState() const {
     return resetInEachState;
 }
-bool FilterGAM::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName) {
+bool FilterGAM::PrepareNextState(const char8 *const currentStateName,
+                                 const char8 *const nextStateName) {
     bool ret = true;
     if (resetInEachState) {
-        if ((lastInputs != NULL_PTR(float32 **)) && (lastOutputs != NULL_PTR(float32 **))) {
+        if ((lastInputs != NULL_PTR(float32**)) && (lastOutputs != NULL_PTR(float32**))) {
             for (uint32 i = 0u; i < numberOfSignals; i++) {
-                if (lastInputs[i] != NULL_PTR(float32 *)) {
+                if (lastInputs[i] != NULL_PTR(float32*)) {
                     for (uint32 n = 0u; n < (numberOfNumCoeff - 1u); n++) {
                         lastInputs[i][n] = 0.0F;
                     }
                 }
-                if (lastOutputs[i] != NULL_PTR(float32 *)) {
+                if (lastOutputs[i] != NULL_PTR(float32*)) {
                     for (uint32 n = 0u; n < (numberOfDenCoeff - 1u); n++) {
                         lastOutputs[i][n] = 0.0F;
                     }
@@ -511,14 +549,14 @@ bool FilterGAM::PrepareNextState(const char8 * const currentStateName, const cha
     else {
         //If the currentStateName and lastStateExecuted are different-> rest values
         if (lastStateExecuted != currentStateName) {
-            if ((lastInputs != NULL_PTR(float32 **)) && (lastOutputs != NULL_PTR(float32 **))) {
+            if ((lastInputs != NULL_PTR(float32**)) && (lastOutputs != NULL_PTR(float32**))) {
                 for (uint32 i = 0u; i < numberOfSignals; i++) {
-                    if (lastInputs[i] != NULL_PTR(float32 *)) {
+                    if (lastInputs[i] != NULL_PTR(float32*)) {
                         for (uint32 n = 0u; n < (numberOfNumCoeff - 1u); n++) {
                             lastInputs[i][n] = 0.0F;
                         }
                     }
-                    if (lastOutputs[i] != NULL_PTR(float32 *)) {
+                    if (lastOutputs[i] != NULL_PTR(float32*)) {
                         for (uint32 n = 0u; n < (numberOfDenCoeff - 1u); n++) {
                             lastOutputs[i][n] = 0.0F;
                         }
@@ -543,9 +581,9 @@ uint32 FilterGAM::GetNumberOfDenCoeff() const {
     return numberOfDenCoeff;
 }
 
-bool FilterGAM::GetNumCoeff(float32 * const coeff) const {
+bool FilterGAM::GetNumCoeff(float32 *const coeff) const {
     bool ret = false;
-    if (num != NULL_PTR(float32 *)) {
+    if (num != NULL_PTR(float32*)) {
         for (uint32 i = 0U; i < numberOfNumCoeff; i++) {
             coeff[i] = num[i];
         }
@@ -554,9 +592,9 @@ bool FilterGAM::GetNumCoeff(float32 * const coeff) const {
     return ret;
 }
 
-bool FilterGAM::GetDenCoeff(float32 * const coeff) const {
+bool FilterGAM::GetDenCoeff(float32 *const coeff) const {
     bool ret = false;
-    if (den != NULL_PTR(float32 *)) {
+    if (den != NULL_PTR(float32*)) {
         for (uint32 i = 0u; i < numberOfDenCoeff; i++) {
             coeff[i] = den[i];
         }
@@ -567,13 +605,13 @@ bool FilterGAM::GetDenCoeff(float32 * const coeff) const {
 
 bool FilterGAM::CheckNormalisation() const {
     bool ret = false;
-    if (den != NULL_PTR(float32 *)) {
+    if (den != NULL_PTR(float32*)) {
         ret = (IsEqual(static_cast<float32>(1.0), den[0]));
     }
     return ret;
 }
 
-float32 FilterGAM::GetStaticGain(bool & isInfinite) const {
+float32 FilterGAM::GetStaticGain(bool &isInfinite) const {
     isInfinite = gainInfinite;
     return staticGain;
 }

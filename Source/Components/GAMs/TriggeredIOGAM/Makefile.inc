@@ -23,45 +23,31 @@
 # $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
 #
 #############################################################
+OBJSX=TriggeredIOGAM.x
 
-OBJSX=CreateNI9157DeviceOperator.x\
-	CreateNI9157DeviceOperatorI.x\
-	NI9157Device.x\
-	NI9157DeviceOperatorDatabase.x\
-	NI9157DeviceOperatorT.x\
-	NI9157DeviceOperatorTI.x
-
-MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
-include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
-
-PACKAGE=Components/Interfaces
+PACKAGE=Components/GAMs
 
 ROOT_DIR=../../../../
+MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
+include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs/
+INCLUDES += -I.
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4LoggerService
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4StateMachine
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L4LoggerService
-INCLUDES += -I$(CODAC_ROOT)/include
 
-CPPFLAGS+=-Wno-error=nonnull-compare
 
 all: $(OBJS) $(SUBPROJ) \
-	$(BUILD_DIR)/NI9157Device$(LIBEXT)\
-    $(BUILD_DIR)/NI9157Device$(DLLEXT)
+	$(BUILD_DIR)/TriggeredIOGAM$(LIBEXT) \
+	$(BUILD_DIR)/TriggeredIOGAM$(DLLEXT)
+	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+

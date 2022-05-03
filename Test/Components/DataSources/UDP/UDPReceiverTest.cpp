@@ -36,6 +36,7 @@
 #include "ObjectRegistryDatabase.h"
 #include "StandardParser.h"
 #include "StreamString.h"
+#include "UDPSocket.h"
 #include "UDPReceiver.h"
 #include "UDPReceiverTest.h"
 /*---------------------------------------------------------------------------*/

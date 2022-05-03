@@ -1,7 +1,7 @@
 /**
- * @file IOGAM.h
- * @brief Header file for class IOGAM
- * @date 06/08/2016
+ * @file TriggeredIOGAMTest.h
+ * @brief Header file for class TriggeredIOGAMTest
+ * @date 25/03/2022
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class IOGAM
+ * @details This header file contains the declaration of the class TriggeredIOGAMTest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef IOGAM_H_
-#define IOGAM_H_
+#ifndef TRIGGEREDIOGAMTEST_H_
+#define TRIGGEREDIOGAMTEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -31,79 +31,59 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "GAM.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
-namespace MARTe {
 /**
- * @brief GAM which copies its inputs to its outputs. Allows to plug different DataSources (e.g. driver with a DDB).
- * @details This GAM copies its inputs to its outputs. The total input and output memory sizes shall be the same (but the types and number of signals may be different).
- *  Given that the DataSources cannot interchange data directly between them the main scope of the IOGAM is to
- *  serve as a (direct) connector between DataSources.
- *
- * The configuration syntax is (names and signal quantity are only given as an example):
- * <pre>
- * +Buffer = {
- *     Class = IOGAM
- *     InputSignals = {
- *         Signal1 = {
- *             DataSource = "Drv1"
- *             Type = uint64
- *         }
- *     }
- *     OutputSignals = {
- *         Signal1O = {
- *             DataSource = "LCD"
- *             Type = uint32
- *         }
- *         Signal2O = {
- *             DataSource = "LCD"
- *             Type = int32
- *         }
- *     }
- * }
- * </pre>
+ * @brief Tests the TriggeredIOGAM public methods.
  */
-class IOGAM: public GAM {
+class TriggeredIOGAMTest {
 public:
-    CLASS_REGISTER_DECLARATION()
+    /**
+     * @brief Tests the constructor.
+     */
+    bool TestConstructor();
 
     /**
-     * @brief Constructor. NOOP.
+     * @brief Tests the Setup method.
      */
-    IOGAM();
+    bool TestSetup();
 
     /**
-     * @brief Destructor. NOOP.
+     * @brief Tests the Setup method with no Trigger signal.
      */
-    virtual ~IOGAM();
+    bool TestSetup_NoTrigger();
 
     /**
-     * @brief Checks that the total input signal memory size is equal to the total output signal memory size.
-     * @return true is the pre-conditions are met.
+     * @brief Tests the Setup method with a different number of inputs and output signals.
      */
-    virtual bool Setup();
+    bool TestSetup_LessInputs();
 
     /**
-     * @brief Copies the input signals memory to the output signal memory.
-     * @return true if all the signals memory can be successfully copied.
+     * @brief Tests the Setup method with different signal types.
      */
-    virtual bool Execute();
+    bool TestSetup_DifferentType();
 
-private:
     /**
-     * Total number of bytes to copy.
+     * @brief Tests the Setup method with different signal sizes.
      */
-    uint32 totalSignalsByteSize;
+    bool TestSetup_False_DifferentSize();
+
+    /**
+     * @brief Tests the Execute method.
+     */
+    bool TestExecute();
+
+    /**
+     * @brief Tests the Execute method with samples > 0.
+     */
+    bool TestExecute_Samples();
 };
-}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* IOGAM_H_ */
+#endif /* TRIGGEREDIOGAMTEST_H_ */
 

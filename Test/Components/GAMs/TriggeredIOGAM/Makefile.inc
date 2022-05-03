@@ -2,7 +2,7 @@
 #
 # Copyright 2015 F4E | European Joint Undertaking for ITER 
 #  and the Development of Fusion Energy ('Fusion for Energy')
-#
+# 
 # Licensed under the EUPL, Version 1.1 or - as soon they 
 # will be approved by the European Commission - subsequent  
 # versions of the EUPL (the "Licence"); 
@@ -24,44 +24,36 @@
 #
 #############################################################
 
-OBJSX=CreateNI9157DeviceOperator.x\
-	CreateNI9157DeviceOperatorI.x\
-	NI9157Device.x\
-	NI9157DeviceOperatorDatabase.x\
-	NI9157DeviceOperatorT.x\
-	NI9157DeviceOperatorTI.x
-
+OBJSX +=  TriggeredIOGAMTest.x
+		
+PACKAGE=Components/GAMs
+ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-PACKAGE=Components/Interfaces
-
-ROOT_DIR=../../../../
-
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages/
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4LoggerService
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4StateMachine
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L4LoggerService
-INCLUDES += -I$(CODAC_ROOT)/include
 
-CPPFLAGS+=-Wno-error=nonnull-compare
+INCLUDES += -I../../../../Source/Components/GAMs/TriggeredIOGAM
 
-all: $(OBJS) $(SUBPROJ) \
-	$(BUILD_DIR)/NI9157Device$(LIBEXT)\
-    $(BUILD_DIR)/NI9157Device$(DLLEXT)
+
+all: $(OBJS) \
+                $(BUILD_DIR)/TriggeredIOGAMTest$(LIBEXT)
+	echo  $(OBJS)
+
+include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+

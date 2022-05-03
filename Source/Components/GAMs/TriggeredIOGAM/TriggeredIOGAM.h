@@ -1,7 +1,7 @@
 /**
- * @file IOGAM.h
- * @brief Header file for class IOGAM
- * @date 06/08/2016
+ * @file TriggeredIOGAM.h
+ * @brief Header file for class TriggeredIOGAM
+ * @date 25/03/2022
  * @author Andre Neto
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class IOGAM
+ * @details This header file contains the declaration of the class TriggeredIOGAM
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef IOGAM_H_
-#define IOGAM_H_
+#ifndef TRIGGEREDIOGAM_H_
+#define TRIGGEREDIOGAM_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -31,7 +31,9 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "BrokerI.h"
 #include "GAM.h"
+#include "StatefulI.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -39,16 +41,20 @@
 
 namespace MARTe {
 /**
- * @brief GAM which copies its inputs to its outputs. Allows to plug different DataSources (e.g. driver with a DDB).
- * @details This GAM copies its inputs to its outputs. The total input and output memory sizes shall be the same (but the types and number of signals may be different).
- *  Given that the DataSources cannot interchange data directly between them the main scope of the IOGAM is to
- *  serve as a (direct) connector between DataSources.
+ * @brief A "triggered" IOGAM. This GAM will copy its inputs to its outputs AND will
+ *  only enabled its output brokers iff a trigger signal is set to 1.
  *
+ * @details The Trigger signal shall exist, shall be of type uint8 and shall be in position 0.
+ * 
  * The configuration syntax is (names and signal quantity are only given as an example):
  * <pre>
  * +Buffer = {
- *     Class = IOGAM
+ *     Class = TriggeredIOGAM
  *     InputSignals = {
+ *         Trigger = {
+ *             DataSource = "DDB1"
+ *             Type = uint8
+ *         }
  *         Signal1 = {
  *             DataSource = "Drv1"
  *             Type = uint64
@@ -67,37 +73,70 @@ namespace MARTe {
  * }
  * </pre>
  */
-class IOGAM: public GAM {
+class TriggeredIOGAM: public GAM, public StatefulI {
 public:
     CLASS_REGISTER_DECLARATION()
 
     /**
      * @brief Constructor. NOOP.
      */
-    IOGAM();
+    TriggeredIOGAM();
 
     /**
      * @brief Destructor. NOOP.
      */
-    virtual ~IOGAM();
+    virtual ~TriggeredIOGAM();
 
     /**
-     * @brief Checks that the total input signal memory size is equal to the total output signal memory size.
+     * @brief Checks that the total input signal memory size is equal to the total output signal memory size, without taking into 
+     * account the Trigger signal.
+     * Verifies that a Trigger signal of type uint8 exists in the zero position.
      * @return true is the pre-conditions are met.
      */
     virtual bool Setup();
 
     /**
-     * @brief Copies the input signals memory to the output signal memory.
+     * @brief Checks if the trigger signal is set to 1. If so, it enables the OutputBrokers and copies the input 
+     * memory to the output memory (without including the Trigger signal). If the trigger signal is set to zero, the OutputBrokers are disabled and the memory is not copied.
      * @return true if all the signals memory can be successfully copied.
      */
     virtual bool Execute();
+
+
+    /**
+     * @brief Initialise the broker accelerators.
+     * @param[in] currentStateName ignored.
+     * @param[in] nextStateName ignored.
+     * @return true.
+     */
+    virtual bool PrepareNextState(const char8 * const currentStateName,
+                                  const char8 * const nextStateName);
 
 private:
     /**
      * Total number of bytes to copy.
      */
     uint32 totalSignalsByteSize;
+
+    /**
+     * Output brokers - accelerator.
+     */
+    BrokerI **outputBrokersAccel;
+
+    /**
+     * Number of output brokers.
+     */
+    uint32 nOfOutputBrokers;
+
+    /**
+     * Trigger signal.
+     */
+    uint8 *triggerSignal;
+
+    /**
+     * The input signal memory source without taking into account the Trigger signal
+     */
+    uint8 *inputSignalsMemoryNoTrigger;
 };
 }
 
@@ -105,5 +144,5 @@ private:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* IOGAM_H_ */
+#endif /* TRIGGEREDIOGAM_H_ */
 
