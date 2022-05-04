@@ -58,7 +58,13 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L4LoggerService
 INCLUDES += -I$(CODAC_ROOT)/include
 
+ifdef CODAC_ROOT
+## Only apply for CCS gt 7.0
+CCSGT70 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 70 ]; then echo 1; else echo 0; fi)
+ifeq "$(CCSGT70)" "1"
 CPPFLAGS+=-Wno-error=nonnull-compare
+endif
+endif
 
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/NI9157Device$(LIBEXT)\
