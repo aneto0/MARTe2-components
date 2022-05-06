@@ -58,6 +58,7 @@
 -i./Source/Components/GAMs/CRCGAM/
 -i./Source/Components/GAMs/DoubleHandshakeGAM/
 -i./Source/Components/GAMs/FilterGAM/
+-i./Source/Components/GAMs/FlattenedStructIOGAM/
 -i./Source/Components/GAMs/HistogramGAM/
 -i./Source/Components/GAMs/Interleaved2FlatGAM/
 -i./Source/Components/GAMs/IOGAM/
@@ -121,6 +122,7 @@ EventConditionTrigger.cpp
 FileReader.cpp
 FileWriter.cpp
 FilterGAM.cpp
+FlattenedStructIOGAM.cpp
 HighResolutionTimeProvider.cpp
 HighResolutionTimestampProvider.cpp
 HistogramComparator.cpp
