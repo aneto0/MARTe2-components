@@ -40,7 +40,7 @@
 
 namespace MARTe {
 /**
- * @brief An IOGAM that flattens (and copies) an input signal with arrays of structures into arrays of basic type.
+ * @brief An IOGAM that flattens (and copies) an input signal with arrays of structures into arrays of basic types.
  *
  * The configuration syntax is (names and signal quantity are only given as an example):
  * <pre>
