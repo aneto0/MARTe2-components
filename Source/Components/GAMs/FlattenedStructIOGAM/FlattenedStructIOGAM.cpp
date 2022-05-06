@@ -59,8 +59,19 @@ bool FlattenedStructIOGAM::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Exactly one structured signal shall be set.");
         }
     }
+    if (ret) {
+        ret = data.MoveToChild(0u);
+    }
+    StreamString signalName;
+    if (ret) {
+        signalName = data.GetName();
+    }
+    uint32 numberOfElements = 1u;
     StreamString structType;
     if (ret) {
+        if (!data.Read("NumberOfElements", numberOfElements)) {
+            numberOfElements = 1u;
+        }
         ret = data.Read("Type", structType);
         if (!ret) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "The signal Type shall be set.");
@@ -73,33 +84,32 @@ bool FlattenedStructIOGAM::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "The signal DataSource shall be set.");
         }
     }
-    StreamString signalName;
     if (ret) {
-        signalName = data.GetName();
+        ret = data.MoveToAncestor(1u);
+    }
+    if (ret) {
+        ret = data.Delete(signalName.Buffer());
     }
     const Introspection *memberIntro = NULL_PTR(const Introspection *);
     const ClassRegistryItem *cri = NULL_PTR(const ClassRegistryItem *);
     if (ret) {
-        const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structType.Buffer());
+        cri = ClassRegistryDatabase::Instance()->Find(structType.Buffer());
         ret = (cri != NULL_PTR(const ClassRegistryItem *));
     }
     if (ret) {
         memberIntro = cri->GetIntrospection();
         ret = (memberIntro != NULL_PTR(const Introspection *));
     }
-    ConfigurationDatabase cdbIn;
+    ConfigurationDatabase signalPathCDB;
     if (ret) {
-        ret = cdbIn.CreateAbsolute(signalName.Buffer());
+        ret = signalPathCDB.CreateAbsolute(signalName.Buffer());
     }
     if (ret) {
-        ret = TransverseStructure(memberIntro, cdbIn);
+        ret = signalPathCDB.Write("NumberOfElements", numberOfElements);
     }
     if (ret) {
         uint32 signalCounter = 0u;
-        ret = WriteTransversedStructure(cdbIn, "", data, signalCounter, dataSourceName.Buffer());
-        if (ret) {
-            REPORT_ERROR(ErrorManagement::Information, "Added %d signals to root signal %s in data source %s", signalCounter, signalName.Buffer(), dataSourceName.Buffer());
-        }
+        ret = TransverseStructure(memberIntro, signalPathCDB, data, signalCounter, dataSourceName.Buffer());
     }
     if (ret) {
         ret = data.MoveToAncestor(1u);
@@ -125,6 +135,8 @@ bool FlattenedStructIOGAM::Setup() {
             inByteSize *= inSamples;
             inTotalSignalsByteSize += inByteSize;
         }
+        StreamString tmp;
+        GetSignalName(InputSignals, n, tmp);
     }
     uint32 outTotalSignalsByteSize = 0u;
     for (n = 0u; (n < GetNumberOfOutputSignals()) && (ret); n++) {
@@ -180,71 +192,75 @@ uint32 FlattenedStructIOGAM::GetNumberOfElements(const IntrospectionEntry &entry
     return numberOfElements;
 }
 
-bool FlattenedStructIOGAM::WriteTransversedStructure(ConfigurationDatabase &cdbIn, const char8 * const fullPathName, StructuredDataI &cdbOut, uint32 &signalCounter, const char8 * const dataSourceName) {
-    uint32 numberOfChildren = cdbIn.GetNumberOfChildren();
+bool FlattenedStructIOGAM::WriteSignal(ConfigurationDatabase &path, const char8 * const fullPathName, StructuredDataI &gamInputSignals, uint32 &signalCounter, const char8 * const dataSourceName) {
     bool ok = true;
     StreamString fullPathNameS = fullPathName;
-    if (fullPathNameS.Size() > 0u) {
-        fullPathNameS += ".";
+    if (fullPathNameS.Size() == 0u) {
+        fullPathNameS = path.GetName();
     }
-    fullPathNameS += cdbIn.GetName();
     fullPathNameS += ".";
+    uint32 numberOfChildren = path.GetNumberOfChildren();
     for(uint32 i=0u; (i<numberOfChildren) && (ok); i++) {
-        ok = cdbIn.MoveToChild(i);
-        StreamString fullPathNameP = fullPathNameS;
-        if (ok) {
-            fullPathNameP += cdbIn.GetName();
-        }
-        if (ok) {
-            StreamString typeName;
-            bool isStructured = !cdbIn.Read("Type", typeName);
-            uint32 numberOfElements = 1u;
-            (void) cdbIn.Read("NumberOfElements", numberOfElements);
-            if (isStructured) {
-                if (numberOfElements > 1u) {
-                    for (uint32 j=0u; (j<numberOfElements) && (ok); j++) {
-                        StreamString arrValue;
-                        (void) arrValue.Printf("[%d]", j);
-                        StreamString tempPathName = fullPathNameP.Buffer();
-                        tempPathName += arrValue.Buffer();
-                        ok = WriteTransversedStructure(cdbIn, tempPathName.Buffer(), cdbOut, signalCounter, dataSourceName);
+        bool isChildAStruct = path.MoveToChild(i); //Ignore the nodes like NumberOfElements
+        if (isChildAStruct) {
+            StreamString fullPathNameP = fullPathNameS;
+            if (ok) {
+                fullPathNameP += path.GetName();
+            }
+            if (ok) {
+                StreamString typeName;
+                bool isStructured = !path.Read("Type", typeName);
+                uint32 numberOfElements = 1u;
+                (void) path.Read("NumberOfElements", numberOfElements);
+                if (isStructured) {
+                    if (numberOfElements > 1u) {
+                        for (uint32 j=0u; (j<numberOfElements) && (ok); j++) {
+                            StreamString arrValue;
+                            (void) arrValue.Printf("[%d]", j);
+                            StreamString tempPathName = fullPathNameP.Buffer();
+                            tempPathName += arrValue.Buffer();
+                            ok = WriteSignal(path, tempPathName.Buffer(), gamInputSignals, signalCounter, dataSourceName);
+                        }
+                    }
+                    else {
+                        ok = WriteSignal(path, fullPathNameP.Buffer(), gamInputSignals, signalCounter, dataSourceName);
                     }
                 }
                 else {
-                    ok = WriteTransversedStructure(cdbIn, fullPathNameP.Buffer(), cdbOut, signalCounter, dataSourceName);
+                    if (ok) {
+                        StreamString nName;
+                        (void)nName.Printf("S%d", signalCounter);
+                        ok = gamInputSignals.CreateRelative(nName.Buffer());
+                    }
+                    if (ok) {
+                        ok = gamInputSignals.Write("Type", typeName.Buffer());
+                    }
+                    if (ok) {
+                        ok = gamInputSignals.Write("DataSource", dataSourceName);
+                    }
+                    if (ok) {
+                        ok = gamInputSignals.Write("NumberOfElements", numberOfElements);
+                    }
+                    if (ok) {
+                        ok = gamInputSignals.Write("Alias", fullPathNameP.Buffer());
+                    }
+                    if (ok) {
+                        ok = gamInputSignals.MoveToAncestor(1u);
+                    }
+                    if (ok) {
+                        signalCounter++;
+                    }
                 }
             }
-            else {
-                if (ok) {
-                    StreamString nName;
-                    (void)nName.Printf("S%d", signalCounter);
-                    ok = cdbOut.CreateRelative(nName.Buffer());
-                }
-                if (ok) {
-                    ok = cdbOut.Write("Type", typeName.Buffer());
-                }
-                if (ok) {
-                    ok = cdbOut.Write("DataSource", dataSourceName);
-                }
-                if (ok) {
-                    ok = cdbOut.Write("NumberOfElements", numberOfElements);
-                }
-                if (ok) {
-                    ok = cdbOut.Write("Alias", fullPathNameP.Buffer());
-                }
-                if (ok) {
-                    ok = cdbOut.MoveToAncestor(1u);
-                }
+            if (ok) {
+                ok = path.MoveToAncestor(1u);
             }
-        }
-        if (ok) {
-            ok = cdbIn.MoveToAncestor(1u);
         }
     }
     return ok;
 }
 
-bool FlattenedStructIOGAM::TransverseStructure(const Introspection *intro, ConfigurationDatabase &cdb) {
+bool FlattenedStructIOGAM::TransverseStructure(const Introspection *intro, ConfigurationDatabase &signalPathCDB, StructuredDataI &gamInputSignals, uint32 &signalCounter, const char8 * const dataSourceName) {
     bool ok = (intro != NULL_PTR(const Introspection *));
 
     uint32 numberOfMembers = 0u;
@@ -260,9 +276,9 @@ bool FlattenedStructIOGAM::TransverseStructure(const Introspection *intro, Confi
         const char8 * const memberTypeName = entry.GetMemberTypeName();
         uint32 numberOfElements = GetNumberOfElements(entry);
 
-        ok = cdb.CreateRelative(memberName);
+        ok = signalPathCDB.CreateRelative(memberName);
         if (ok) {
-            ok = cdb.Write("NumberOfElements", numberOfElements);
+            ok = signalPathCDB.Write("NumberOfElements", numberOfElements);
         }
         bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
         if (ok) {
@@ -275,18 +291,35 @@ bool FlattenedStructIOGAM::TransverseStructure(const Introspection *intro, Confi
                     ok = (memberIntro != NULL_PTR(const Introspection *));
                 }
                 if (ok) {
-                    ok = TransverseStructure(memberIntro, cdb);
+                    ok = TransverseStructure(memberIntro, signalPathCDB, gamInputSignals, signalCounter, dataSourceName);
                 }
                 else {
                     REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Type %s is not registered", memberTypeName);
                 }
             }
             else {
-                ok = cdb.Write("Type", memberTypeName);
+                ok = signalPathCDB.Write("Type", memberTypeName);
+                ConfigurationDatabase cdbSignal = signalPathCDB;
+                if (ok) {
+                    ok = cdbSignal.MoveToRoot();
+                }
+                //Move to the first node. The cdbSignal should be a unique path.
+                if (ok) {
+                    ok = cdbSignal.MoveToChild(0u);
+                }
+                if (ok) {
+                    ok = WriteSignal(cdbSignal, "", gamInputSignals, signalCounter, dataSourceName);
+                }
             }
         }
+        StreamString nodeName;
         if (ok) {
-            ok = cdb.MoveToAncestor(1u);
+            nodeName = signalPathCDB.GetName();
+            ok = signalPathCDB.MoveToAncestor(1u);
+        }
+        if (ok) {
+            //Delete the leaf member.
+            ok = signalPathCDB.Delete(nodeName.Buffer());
         }
 
     }

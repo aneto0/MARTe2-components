@@ -40,10 +40,7 @@
 
 namespace MARTe {
 /**
- * @brief TODO GAM which copies its inputs to its outputs. Allows to plug different DataSources (e.g. driver with a DDB).
- * @details This GAM copies its inputs to its outputs. The total input and output memory sizes shall be the same (but the types and number of signals may be different).
- *  Given that the DataSources cannot interchange data directly between them the main scope of the FlattenedStructIOGAM is to
- *  serve as a (direct) connector between DataSources.
+ * @brief An IOGAM that flattens (and copies) an input signal with arrays of structures into arrays of basic type.
  *
  * The configuration syntax is (names and signal quantity are only given as an example):
  * <pre>
@@ -86,11 +83,11 @@ namespace MARTe {
  * }
  * 
  * +FlatIOGAM = {
- *   Class = FlattenStructIOGAM
+ *   Class = FlattenedStructIOGAM
  *   InputSignals = {
- *     StructArrayType = {
- *       Type = MyType2
- *       DataSource = DDB1
+ *     StructArrayType = { //Exactly one structure signal shall be defined.
+ *       Type = MyType2 //The Type shall be structured and is required.
+ *       DataSource = DDB1 //Compulsory.
  *     } 
  *   }
  *   OutputSignals = {
@@ -114,9 +111,9 @@ namespace MARTe {
  * }
  * </pre>
  * <pre>
- * Will be "transformed" into:
+ * Will be "automatically transformed" into:
  * +FlatIOGAM = {
- *   Class = FlattenStructIOGAM
+ *   Class = FlattenedStructIOGAM
  *   InputSignals = {
  *     S0 = {
  *       Type = float64
@@ -186,7 +183,8 @@ public:
 
     /**
      * @brief see GAM::Initialise.
-     * @details TODO.
+     * @details Flattens the input structured signal with the rules described above.
+     * @return true if the signal is successfully flattened.
      */
     virtual bool Initialise(StructuredDataI &data);
 
@@ -204,19 +202,33 @@ public:
 
 private:
     /**
-     * TODO
+     * @brief Helper method that returns the number of elements of an IntrospectionEntry.
+     * @param[in] entry the element to query.
+     * @return the number of elements.
      */
     uint32 GetNumberOfElements(const IntrospectionEntry &entry);
 
     /**
-     * TODO
+     * @brief Recursively transverses the input structure and stores the path leading to each basic type member on the signalPathCDB. Once a basic type member is found, it is added to the gamInputSignals.
+     * @param[in] intro the structure to visit.
+     * @param[in, out] signalPathCDB stores the path leading to each basic type member (which will be the Alias).
+     * @param[out] gamInputSignals where to write the discovered signal members.
+     * @param[in,out] signalCounter number of signals found.
+     * @param[in] dataSourceName the signals DataSource.
+     * @return true if all the signals are successfully added.
      */
-    bool TransverseStructure(const Introspection *intro, ConfigurationDatabase &cdb);
+    bool TransverseStructure(const Introspection *intro, ConfigurationDatabase &signalPathCDB, StructuredDataI &gamInputSignals, uint32 &signalCounter, const char8 * const dataSourceName);
 
     /**
-     * TODO
+     * @brief Helper recursive method called by the TransverseStructure everytime a basic type member is found. The path is visited, until the BasicType is found, in order to construct the Alias field.
+     * @param[in] path the full signal path (as a tree).
+     * @param[in] fullPathName the full signal path (as a string).
+     * @param[out] cdbOut where to write the signal (and its properties).
+     * @param[in, out] signalCounter the number of the signal to add. Once its added it will be incremented by one.
+     * @param[in] dataSourceName the name of the DataSource.
+     * @return true if the signal is successfully written.
      */
-    bool WriteTransversedStructure(ConfigurationDatabase &cdbIn, const char8 * const fullPathName, StructuredDataI &cdbOut, uint32 &signalCounter, const char8 * const dataSourceName);
+    bool WriteSignal(ConfigurationDatabase &path, const char8 * const fullPathName, StructuredDataI &cdbOut, uint32 &signalCounter, const char8 * const dataSourceName);
 
     /**
      * Total number of bytes to copy.
