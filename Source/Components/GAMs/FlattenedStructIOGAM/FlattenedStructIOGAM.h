@@ -206,7 +206,7 @@ private:
      * @param[in] entry the element to query.
      * @return the number of elements.
      */
-    uint32 GetNumberOfElements(const IntrospectionEntry &entry);
+    uint32 GetNumberOfElements(const IntrospectionEntry &entry) const;
 
     /**
      * @brief Recursively transverses the input structure and stores the path leading to each basic type member on the signalPathCDB. Once a basic type member is found, it is added to the gamInputSignals.
@@ -223,12 +223,12 @@ private:
      * @brief Helper recursive method called by the TransverseStructure everytime a basic type member is found. The path is visited, until the BasicType is found, in order to construct the Alias field.
      * @param[in] path the full signal path (as a tree).
      * @param[in] fullPathName the full signal path (as a string).
-     * @param[out] cdbOut where to write the signal (and its properties).
+     * @param[out] gamInputSignals where to write the signal (and its properties).
      * @param[in, out] signalCounter the number of the signal to add. Once its added it will be incremented by one.
      * @param[in] dataSourceName the name of the DataSource.
      * @return true if the signal is successfully written.
      */
-    bool WriteSignal(ConfigurationDatabase &path, const char8 * const fullPathName, StructuredDataI &cdbOut, uint32 &signalCounter, const char8 * const dataSourceName);
+    bool WriteSignal(ConfigurationDatabase &path, const char8 * const fullPathName, StructuredDataI &gamInputSignals, uint32 &signalCounter, const char8 * const dataSourceName);
 
     /**
      * Total number of bytes to copy.

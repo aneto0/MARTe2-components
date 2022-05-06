@@ -97,6 +97,7 @@ bool FlattenedStructIOGAM::Initialise(StructuredDataI &data) {
         ret = (cri != NULL_PTR(const ClassRegistryItem *));
     }
     if (ret) {
+        //lint -e{613} cri cannot be NULL as it is checked above.
         memberIntro = cri->GetIntrospection();
         ret = (memberIntro != NULL_PTR(const Introspection *));
     }
@@ -135,8 +136,6 @@ bool FlattenedStructIOGAM::Setup() {
             inByteSize *= inSamples;
             inTotalSignalsByteSize += inByteSize;
         }
-        StreamString tmp;
-        GetSignalName(InputSignals, n, tmp);
     }
     uint32 outTotalSignalsByteSize = 0u;
     for (n = 0u; (n < GetNumberOfOutputSignals()) && (ret); n++) {
@@ -170,7 +169,7 @@ bool FlattenedStructIOGAM::Execute() {
     return MemoryOperationsHelper::Copy(GetOutputSignalsMemory(), GetInputSignalsMemory(), totalSignalsByteSize);
 }
 
-uint32 FlattenedStructIOGAM::GetNumberOfElements(const IntrospectionEntry &entry) {
+uint32 FlattenedStructIOGAM::GetNumberOfElements(const IntrospectionEntry &entry) const {
     uint32 numberOfElements = 1u;
     uint8 nOfDimensions = entry.GetNumberOfDimensions();
     if (nOfDimensions > 0u) {
@@ -204,52 +203,47 @@ bool FlattenedStructIOGAM::WriteSignal(ConfigurationDatabase &path, const char8 
         bool isChildAStruct = path.MoveToChild(i); //Ignore the nodes like NumberOfElements
         if (isChildAStruct) {
             StreamString fullPathNameP = fullPathNameS;
-            if (ok) {
-                fullPathNameP += path.GetName();
-            }
-            if (ok) {
-                StreamString typeName;
-                bool isStructured = !path.Read("Type", typeName);
-                uint32 numberOfElements = 1u;
-                (void) path.Read("NumberOfElements", numberOfElements);
-                if (isStructured) {
-                    if (numberOfElements > 1u) {
-                        for (uint32 j=0u; (j<numberOfElements) && (ok); j++) {
-                            StreamString arrValue;
-                            (void) arrValue.Printf("[%d]", j);
-                            StreamString tempPathName = fullPathNameP.Buffer();
-                            tempPathName += arrValue.Buffer();
-                            ok = WriteSignal(path, tempPathName.Buffer(), gamInputSignals, signalCounter, dataSourceName);
-                        }
-                    }
-                    else {
-                        ok = WriteSignal(path, fullPathNameP.Buffer(), gamInputSignals, signalCounter, dataSourceName);
+            fullPathNameP += path.GetName();
+            StreamString typeName;
+            bool isStructured = !path.Read("Type", typeName);
+            uint32 numberOfElements = 1u;
+            (void) path.Read("NumberOfElements", numberOfElements);
+            if (isStructured) {
+                if (numberOfElements > 1u) {
+                    for (uint32 j=0u; (j<numberOfElements) && (ok); j++) {
+                        StreamString arrValue;
+                        uint32 jj = j;
+                        (void) arrValue.Printf("[%d]", jj);
+                        StreamString tempPathName = fullPathNameP.Buffer();
+                        tempPathName += arrValue.Buffer();
+                        ok = WriteSignal(path, tempPathName.Buffer(), gamInputSignals, signalCounter, dataSourceName);
                     }
                 }
                 else {
-                    if (ok) {
-                        StreamString nName;
-                        (void)nName.Printf("S%d", signalCounter);
-                        ok = gamInputSignals.CreateRelative(nName.Buffer());
-                    }
-                    if (ok) {
-                        ok = gamInputSignals.Write("Type", typeName.Buffer());
-                    }
-                    if (ok) {
-                        ok = gamInputSignals.Write("DataSource", dataSourceName);
-                    }
-                    if (ok) {
-                        ok = gamInputSignals.Write("NumberOfElements", numberOfElements);
-                    }
-                    if (ok) {
-                        ok = gamInputSignals.Write("Alias", fullPathNameP.Buffer());
-                    }
-                    if (ok) {
-                        ok = gamInputSignals.MoveToAncestor(1u);
-                    }
-                    if (ok) {
-                        signalCounter++;
-                    }
+                    ok = WriteSignal(path, fullPathNameP.Buffer(), gamInputSignals, signalCounter, dataSourceName);
+                }
+            }
+            else {
+                StreamString nName;
+                (void)nName.Printf("S%d", signalCounter);
+                ok = gamInputSignals.CreateRelative(nName.Buffer());
+                if (ok) {
+                    ok = gamInputSignals.Write("Type", typeName.Buffer());
+                }
+                if (ok) {
+                    ok = gamInputSignals.Write("DataSource", dataSourceName);
+                }
+                if (ok) {
+                    ok = gamInputSignals.Write("NumberOfElements", numberOfElements);
+                }
+                if (ok) {
+                    ok = gamInputSignals.Write("Alias", fullPathNameP.Buffer());
+                }
+                if (ok) {
+                    ok = gamInputSignals.MoveToAncestor(1u);
+                }
+                if (ok) {
+                    signalCounter++;
                 }
             }
             if (ok) {
@@ -260,11 +254,13 @@ bool FlattenedStructIOGAM::WriteSignal(ConfigurationDatabase &path, const char8 
     return ok;
 }
 
+/*lint -e{952} intro cannot be declared const*/
 bool FlattenedStructIOGAM::TransverseStructure(const Introspection *intro, ConfigurationDatabase &signalPathCDB, StructuredDataI &gamInputSignals, uint32 &signalCounter, const char8 * const dataSourceName) {
     bool ok = (intro != NULL_PTR(const Introspection *));
 
     uint32 numberOfMembers = 0u;
     if (ok) {
+        //lint -e{613} intro cannot be NULL as it is checked above.
         numberOfMembers = intro->GetNumberOfMembers();
     }
     uint32 i;
