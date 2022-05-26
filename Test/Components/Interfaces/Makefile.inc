@@ -42,6 +42,7 @@ endif
 
 ifdef CODAC_ROOT
 SPB+=NI9157Device.x
+SPB+=TcnTimeProvider.x
 ## Only force EPICSPVA if CCS version is gt v6.1
 CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
 ifeq "$(CCSGT61)" "1"
@@ -50,8 +51,13 @@ endif
 endif
 
 ifdef CODAC_ROOT
-SPB+=TcnTimeProvider.x
+## Only force CCSHelpers if CCS version is gt v7.0
+CCSGT70 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 70 ]; then echo 1; else echo 0; fi)
+ifeq "$(CCSGT70)" "1"
+SPB+=CCSHelpers.x
 endif
+endif
+
 
 ifdef EPICSPVA
 SPB   += EPICSPVA.x
