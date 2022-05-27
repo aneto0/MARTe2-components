@@ -254,3 +254,214 @@ bool CCSHelpersTest::TestGetMARTeBasicType() {
     return ret;
 }
 
+bool CCSHelpersTest::TestCCSToMARTeAnyObject() {
+    using namespace MARTe;
+    ccs::types::AnyType *inputType = new ccs::types::ArrayType("uint32Array", ccs::types::UnsignedInteger32, 2u);
+
+    ccs::types::AnyValue input(inputType);
+    uint32 *mem = (uint32*) input.GetInstance();
+    mem[0] = 10u;
+    mem[1] = 11u;
+
+    AnyObject valOut;
+    bool ret = CCSHelpers::CCSToMARTeAnyObject(valOut, input);
+
+    AnyType at = valOut.GetType();
+    if (ret) {
+        ret = !at.IsVoid();
+    }
+    if (ret) {
+        ret = (at.GetNumberOfElements(0u) == 2u);
+    }
+    if (ret) {
+        TypeDescriptor td = at.GetTypeDescriptor();
+        ret = (td == UnsignedInteger32Bit);
+    }
+    if (ret) {
+        uint32 *memOut = (uint32*) at.GetDataPointer();
+        ret = (memOut[0] == mem[0]);
+        ret &= (memOut[1] == mem[1]);
+    }
+
+    return ret;
+}
+
+bool CCSHelpersTest::TestCCSToMARTeAnyObject_IntrospectedType() {
+    using namespace MARTe;
+    ccs::types::CompoundType *inputType = new ccs::types::CompoundType("IntrospectedType");
+
+    ccs::types::AnyType *aType = new ccs::types::ArrayType("uint32Array", ccs::types::UnsignedInteger32, 2u);
+    inputType->AddAttribute("A", aType);
+    inputType->AddAttribute("B", ccs::types::UnsignedInteger16);
+
+    ccs::types::CompoundType *cType = new ccs::types::CompoundType("CType");
+    cType->AddAttribute("D", ccs::types::Float32);
+    cType->AddAttribute("E", ccs::types::SignedInteger8);
+    inputType->AddAttribute("C", cType);
+
+    struct CTypeStruct {
+        float32 D;
+        int8 E;
+    } __attribute__((packed));
+
+    struct InputTypeStruct {
+        uint32 A[2];
+        uint16 B;
+        CTypeStruct C;
+    } __attribute__((packed));
+
+    ccs::types::AnyValue input(inputType);
+    InputTypeStruct *mem = (InputTypeStruct*) input.GetInstance();
+    mem->A[0] = 10u;
+    mem->A[1] = 11u;
+
+    mem->B = 2u;
+    mem->C.D = 2.5;
+    mem->C.E = -1;
+
+    AnyObject valOut;
+    bool ret = CCSHelpers::CCSToMARTeAnyObject(valOut, input);
+
+    AnyType at = valOut.GetType();
+    if (ret) {
+        ret = !at.IsVoid();
+    }
+    if (ret) {
+        InputTypeStruct *memOut = (InputTypeStruct*) at.GetDataPointer();
+        ret = (memOut->A[0] == mem->A[0]);
+        ret &= (memOut->A[1] == mem->A[1]);
+        ret &= (memOut->B == mem->B);
+        ret &= (memOut->C.D == mem->C.D);
+        ret &= (memOut->C.E == mem->C.E);
+    }
+    return ret;
+}
+
+bool CCSHelpersTest::TestGetCCSBasicType() {
+    using namespace MARTe;
+    ccs::types::AnyType *at = CCSHelpers::GetCCSBasicType(UnsignedInteger8Bit, 0u, 1u);
+    bool ret = (at != NULL);
+    if (ret) {
+        ret = (*at == *ccs::types::UnsignedInteger8);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(UnsignedInteger16Bit, 0u, 1u);
+    ret &= (at != NULL);
+    if (ret) {
+        ret = (*at == *ccs::types::UnsignedInteger16);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(UnsignedInteger32Bit, 0u, 1u);
+    ret &= (at != NULL);
+    if (ret) {
+        ret = (*at == *ccs::types::UnsignedInteger32);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(UnsignedInteger64Bit, 0u, 1u);
+    ret &= (at != NULL);
+    if (ret) {
+        ret = (*at == *ccs::types::UnsignedInteger64);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(SignedInteger8Bit, 0u, 1u);
+    ret = (at != NULL);
+    if (ret) {
+        ret = (*at == *ccs::types::SignedInteger8);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(SignedInteger16Bit, 0u, 1u);
+    ret &= (at != NULL);
+    if (ret) {
+        ret = (*at == *ccs::types::SignedInteger16);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(SignedInteger32Bit, 0u, 1u);
+    ret &= (at != NULL);
+    if (ret) {
+        ret = (*at == *ccs::types::SignedInteger32);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(SignedInteger64Bit, 0u, 1u);
+    ret &= (at != NULL);
+    if (ret) {
+        ret = (*at == *ccs::types::SignedInteger64);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(Float32Bit, 0u, 1u);
+    ret &= (at != NULL);
+    if (ret) {
+        ret = (*at == *ccs::types::Float32);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(Float64Bit, 0u, 1u);
+    ret &= (at != NULL);
+    if (ret) {
+        ret = (*at == *ccs::types::Float64);
+    }
+
+    //array
+    at = CCSHelpers::GetCCSBasicType(UnsignedInteger8Bit, 1u, 2u);
+
+    ret &= (at != NULL);
+    if (ret) {
+        ccs::types::ArrayType test("uint8Array", ccs::types::UnsignedInteger8, 2u);
+        ret = (*at == test);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(UnsignedInteger16Bit, 1u, 2u);
+
+    ret &= (at != NULL);
+    if (ret) {
+        ccs::types::ArrayType test("uint16Array", ccs::types::UnsignedInteger16, 2u);
+        ret = (*at == test);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(UnsignedInteger32Bit, 1u, 2u);
+
+    ret &= (at != NULL);
+    if (ret) {
+        ccs::types::ArrayType test("uint32Array", ccs::types::UnsignedInteger32, 2u);
+        ret = (*at == test);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(UnsignedInteger64Bit, 1u, 2u);
+
+    ret &= (at != NULL);
+    if (ret) {
+        ccs::types::ArrayType test("uint64Array", ccs::types::UnsignedInteger64, 2u);
+        ret = (*at == test);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(SignedInteger8Bit, 1u, 2u);
+
+    ret &= (at != NULL);
+    if (ret) {
+        ccs::types::ArrayType test("int8Array", ccs::types::SignedInteger8, 2u);
+        ret = (*at == test);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(SignedInteger16Bit, 1u, 2u);
+
+    ret &= (at != NULL);
+    if (ret) {
+        ccs::types::ArrayType test("int16Array", ccs::types::SignedInteger16, 2u);
+        ret = (*at == test);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(SignedInteger32Bit, 1u, 2u);
+
+    ret &= (at != NULL);
+    if (ret) {
+        ccs::types::ArrayType test("int32Array", ccs::types::SignedInteger32, 2u);
+        ret = (*at == test);
+    }
+
+    at = CCSHelpers::GetCCSBasicType(SignedInteger64Bit, 1u, 2u);
+
+    ret &= (at != NULL);
+    if (ret) {
+        ccs::types::ArrayType test("int64Array", ccs::types::SignedInteger64, 2u);
+        ret = (*at == test);
+    }
+    return ret;
+}

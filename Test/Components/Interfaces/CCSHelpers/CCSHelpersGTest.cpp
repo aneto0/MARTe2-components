@@ -39,11 +39,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-TEST(CCSHelpersTest, TestCCSToMARTeStructuredDataI) {
-    CCSHelpersTest test;
-    ASSERT_TRUE(test.TestCCSToMARTeStructuredDataI());
-}
-
 TEST(CCSHelpersTest, TestMARTeToCCSAnyValue) {
     CCSHelpersTest test;
     ASSERT_TRUE(test.TestMARTeToCCSAnyValue());
@@ -59,7 +54,23 @@ TEST(CCSHelpersTest, TestGetMARTeBasicType) {
     ASSERT_TRUE(test.TestGetMARTeBasicType());
 }
 
+TEST(CCSHelpersTest, TestCCSToMARTeAnyObject) {
+    CCSHelpersTest test;
+    ASSERT_TRUE(test.TestCCSToMARTeAnyObject());
+}
 
+TEST(CCSHelpersTest, TestCCSToMARTeAnyObject_IntrospectedType) {
+    CCSHelpersTest test;
+    ASSERT_TRUE(test.TestCCSToMARTeAnyObject_IntrospectedType());
+}
 
+TEST(CCSHelpersTest, TestCCSToMARTeStructuredDataI) {
+    CCSHelpersTest test;
+    ASSERT_TRUE(test.TestCCSToMARTeStructuredDataI());
+}
 
+TEST(CCSHelpersTest, TestGetCCSBasicType) {
+    CCSHelpersTest test;
+    ASSERT_TRUE(test.TestGetMARTeBasicType());
+}
 

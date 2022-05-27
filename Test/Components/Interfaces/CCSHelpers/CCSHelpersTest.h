@@ -74,6 +74,16 @@ public:
     bool TestCCSToMARTeAnyObject();
 
     /**
+     * @brief Tests the CCSToMARTeAnyObject method with an input structure.
+     */
+    bool TestCCSToMARTeAnyObject_IntrospectedType();
+
+    /**
+     * @brief Tests the CCSToMARTeAnyObject method with a StructuredDataI output.
+     */
+    bool TestCCSToMARTeAnyObject_StructuredData();
+
+    /**
      * @brief Tests the CCSToMARTeStructuredDataI method.
      */
     bool TestCCSToMARTeStructuredDataI();
