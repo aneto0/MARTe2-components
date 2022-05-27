@@ -40,37 +40,57 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 /**
- * @brief Wraps CCS AnyValue as a StructuredDataI.
+ * @brief Helpers functions to convert from CODAC Core System (structured) types to MARTe (structured) types.
  */
 namespace CCSHelpers {
 
 /**
- * TODO
+ * @brief Converts a MARTe::AnyType to a ccs::types::AnyValue.
+ * @param[out] valueOut the destination (serialised) ccs::types::AnyValue. It shall exist and have a compatible type with the input MARTe::AnyType.
+ * @param[in] valueIn the source MARTe::AnyType.
+ * @return true if the valueIn type can be converted into a ccs::types::AnyValue.
  */
 bool MARTeToCCSAnyValue(ccs::types::AnyValue &valueOut, MARTe::AnyType &valueIn);
 
 /**
- * TODO
+ * @brief As MARTeToCCSAnyValue, but using as an input a MARTe::StructuredDataI. 
+ * @details If the valueOut is not valid (i.e. !valueOut.GetType().IsValid()), it will be created using the structure and the types from the valueIn.
+  * @param[out] valueOut the destination (serialised) ccs::types::AnyValue.
+ * @param[in] valueIn the source MARTe::StructuredDataI.
+ * @return true if the valueIn type can be converted into a ccs::types::AnyValue.
  */
 bool MARTeToCCSAnyValue(ccs::types::AnyValue &valueOut, MARTe::StructuredDataI &valueIn);
 
 /**
- * TODO
+ * @brief Converts a ccs::types::ScalarType to a MARTe::TypeDescriptor.
+ * @param[in] typeScalar the ccs::types::ScalarType to be converted.
+ * @return the converted MARTe::TypeDescriptor or InvalidType if the input type is not convertable.
  */
 MARTe::TypeDescriptor GetMARTeBasicType(ccs::base::SharedReference<const ccs::types::ScalarType> typeScalar);
 
 /**
- * TODO
+ * @brief Converts a ccs::types::AnyValue into a MARTe::AnyObject.
+ * @param[out] valueOut the converted MARTe::AnyObject.
+ * @paran[in] valueIn the input ccs::types::AnyValue (to be converted).
+ * @return true if the input ccs::types::AnyValue is successfully converted.
  */
 bool CCSToMARTeAnyObject(MARTe::AnyObject &valueOut, const ccs::types::AnyValue &valueIn);
 
 /**
- * TODO
+ * @brief Converts a ccs::types::AnyValue into a MARTe::StructuredDataI.
+ * @param[out] valueOut the converted MARTe::StructuredDataI.
+ * @paran[in] valueIn the input ccs::types::AnyValue (to be converted).
+ * @return true if the input ccs::types::AnyValue is successfully converted.
  */
 bool CCSToMARTeStructuredDataI(MARTe::StructuredDataI &valueOut, const ccs::types::AnyValue &valueIn);
 
 /**
- * TODO
+ * @brief Converts a MARTe::TypeDescriptor to a ccs::types::ScalarType.
+ * @details A new ccs::types::ScalarType is allocated. If the numberOfDimensions is greater than 0 a ccs::types::ArrayType is zero.
+ * @param[in] td the MARTe::TypeDescriptor to be converted.
+ * @param[in] numberOfDimensions the number of dimensions of the input type.
+ * @param[in] numberOfElements the number of elements of the intput type.
+ * @return the converted ccs::types::AnyType or NULL if the input type is not convertable.
  */
 ccs::types::AnyType *GetCCSBasicType(MARTe::TypeDescriptor td, ccs::types::uint32 numberOfDimensions, ccs::types::uint32 numberOfElements);
 }
