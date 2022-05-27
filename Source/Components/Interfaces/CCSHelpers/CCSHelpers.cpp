@@ -80,8 +80,9 @@ static bool CCSCompoundTypeFromStructuredDataI(ccs::types::CompoundType *retType
                 if (ret) {
                     retType->AddAttribute(childName, memberType);
                 }
-                sdi->MoveToAncestor(1u);
-
+                if (ret) {
+                    ret = sdi->MoveToAncestor(1u);
+                }
             }
             else {
                 MARTe::AnyType leaf = sdi->GetType(childName);
@@ -134,7 +135,7 @@ static bool MARTeToCCSBasicType(ccs::types::AnyValue &valueOut,
                 ret = MARTeToCCSAnyValue(valueOut, *sdi);
             }
             else {
-                memcpy(valueOut.GetInstance(), element.GetDataPointer(), (element.GetByteSize() * numberOfElements));
+                ret = MemoryOperationsHelper::Copy(valueOut.GetInstance(), element.GetDataPointer(), (element.GetByteSize() * numberOfElements));
             }
         }
     }
@@ -148,7 +149,6 @@ static ccs::types::CompoundType* GetStructuredType(MARTe::TypeDescriptor td) {
     bool ret = (item != NULL);
     ccs::types::CompoundType *structuredType = NULL;
     if (ret) {
-
         structuredType = new ccs::types::CompoundType;
         const MARTe::ClassProperties *classProp = item->GetClassProperties();
         if (classProp != NULL) {
@@ -251,23 +251,21 @@ static bool MARTeToCCSStructuredType(ccs::types::AnyValue &valueOut,
                         if (numberOfDimensions > 0u) {
                             ccs::types::uint32 numberOfElements = introEntry.GetNumberOfElements(0u);
                             ccs::types::uint32 supMemberSize = innerType->GetSize();
-                            for (ccs::types::uint32 k = 0u; k < numberOfElements; k++) {
+                            for (ccs::types::uint32 k = 0u; (k < numberOfElements) && (ret); k++) {
                                 ccs::types::AnyValue newVal(innerType, &dstMemberPtr[k * supMemberSize]);
                                 MARTe::AnyType newElement(memberTd, 0u, &sourceMemberPtr[k * memberSize]);
-                                MARTeToCCSStructuredType(newVal, newElement);
+                                ret = MARTeToCCSStructuredType(newVal, newElement);
                             }
                         }
                         else {
-
                             ccs::types::AnyValue newVal(innerType, dstMemberPtr);
                             MARTe::AnyType newElement(memberTd, 0u, sourceMemberPtr);
-
-                            MARTeToCCSStructuredType(newVal, newElement);
+                            ret = MARTeToCCSStructuredType(newVal, newElement);
                         }
                     }
                     else {
                         //it takes into account numberOfElements
-                        memcpy(dstMemberPtr, sourceMemberPtr, memberSize);
+                        ret = MemoryOperationsHelper::Copy(dstMemberPtr, sourceMemberPtr, memberSize);
                     }
                 }
             }
@@ -293,7 +291,7 @@ static bool CCSToMARTeScalarType(MARTe::AnyObject &valueOut,
     if (ret) {
         ccs::types::uint32 memSize = (td.numberOfBits / 8u);
         ccs::types::uint8 *memory = new MARTe::uint8[memSize * numberOfElements];
-        memcpy(memory, valueIn.GetInstance(), memSize * numberOfElements);
+        ret = MemoryOperationsHelper::Copy(memory, valueIn.GetInstance(), memSize * numberOfElements);
         MARTe::AnyType tempType(td, 0, memory);
         tempType.SetNumberOfDimensions(numberOfDimensions);
         tempType.SetNumberOfElements(0u, numberOfElements);
@@ -350,16 +348,24 @@ static bool CreateMARTeStructType(ccs::base::SharedReference<const ccs::types::C
                     ret = CreateMARTeStructType(compType, globalCdb);
                 }
                 else {
-                    newTypeCdb.Write("Type", memberType->GetName());
+                    ret = newTypeCdb.Write("Type", memberType->GetName());
                 }
-                newTypeCdb.MoveToAncestor(1u);
+                if (ret) {
+                    newTypeCdb.MoveToAncestor(1u);
+                }
             }
         }
-        newTypeCdb.MoveToRoot();
+        if (ret) {
+            ret = newTypeCdb.MoveToRoot();
+        }
 
         //do this to keep the references?
-        globalCdb.MoveToRoot();
-        newTypeCdb.Copy(globalCdb);
+        if (ret) {
+            ret = globalCdb.MoveToRoot();
+        }
+        if (ret) {
+            ret = newTypeCdb.Copy(globalCdb);
+        }
     }
     return ret;
 }
@@ -422,14 +428,14 @@ static bool CCSToMARTeIntrospectableType(MARTe::AnyObject &valueOut,
                         ccs::base::SharedReference<const ccs::types::ScalarType> typeScalar = memberType;
                         ccs::base::SharedReference<const ccs::types::ArrayType> typeArray = memberType;
                         if (typeScalar.IsValid()) {
-                            memcpy(&dstMem[dstOffset], &srcMem[srcOffset], marteMemberSize);
+                            ret = MemoryOperationsHelper::Copy(&dstMem[dstOffset], &srcMem[srcOffset], marteMemberSize);
                         }
                         else if (typeArray.IsValid())  {
                             ccs::base::SharedReference<const ccs::types::AnyType> innerType(typeArray->GetElementType());
                             ccs::base::SharedReference<const ccs::types::ScalarType> inScalarType = innerType;
                             if (inScalarType) {
                                 //it is the same since number of elements is considered in the size
-                                memcpy(&dstMem[dstOffset], &srcMem[srcOffset], typeArray->GetSize());
+                                ret = MemoryOperationsHelper::Copy(&dstMem[dstOffset], &srcMem[srcOffset], typeArray->GetSize());
                             }
                             else {
                                 ccs::base::SharedReference<const ccs::types::ArrayType> inArrayType = innerType;
@@ -562,7 +568,7 @@ bool MARTeToCCSAnyValue(ccs::types::AnyValue &valueOut, MARTe::StructuredDataI &
                 if (ret) {
                     ccs::types::uint32 memberSize = outType->GetAttributeSize(childName);
                     ccs::types::uint32 memberOffset = outType->GetAttributeOffset(childName);
-                    memcpy(&memPtr[memberOffset], srcPtr, memberSize);
+                    ret = MemoryOperationsHelper::Copy(&memPtr[memberOffset], srcPtr, memberSize);
                 }
             }
         }
@@ -769,7 +775,7 @@ bool CCSToMARTeStructuredDataI(MARTe::StructuredDataI &valueOut,
                 td = GetMARTeBasicType(arrType->GetElementType());
                 numberOfElements = arrType->GetMultiplicity();
                 ccs::types::uint8 *destMem = new ccs::types::uint8[size];
-                memcpy(destMem, &valMem[offset], size);
+                ret = MemoryOperationsHelper::Copy(destMem, &valMem[offset], size);
                 MARTe::AnyType destType(td, 0u, destMem);
                 destType.SetNumberOfDimensions(1u);
                 destType.SetNumberOfElements(0u, numberOfElements);
@@ -791,7 +797,7 @@ bool CCSToMARTeStructuredDataI(MARTe::StructuredDataI &valueOut,
                 td = GetMARTeBasicType(scalarType);
 
                 ccs::types::uint8 *destMem = new ccs::types::uint8[size];
-                memcpy(destMem, &valMem[offset], size);
+                ret = MemoryOperationsHelper::Copy(destMem, &valMem[offset], size);
                 MARTe::AnyType destType(td, 0u, destMem);
                 //it serialises the AnyType inside so we are free to destroy the mem
                 valueOut.Write(memberName, destType);
