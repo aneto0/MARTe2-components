@@ -271,7 +271,12 @@ TEST(EPICSPVAStructureDataIGTest,TestGetType_Float32) {
 
 TEST(EPICSPVAStructureDataIGTest,TestGetType_Float64) {
     EPICSPVAStructureDataITest test;
-    ASSERT_TRUE(test.TestGetType_Int64());
+    ASSERT_TRUE(test.TestGetType_Float64());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestGetType_Boolean) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestGetType_Boolean());
 }
 
 TEST(EPICSPVAStructureDataIGTest,TestGetType_StreamString) {
@@ -327,6 +332,11 @@ TEST(EPICSPVAStructureDataIGTest,TestGetType_Float32_Array) {
 TEST(EPICSPVAStructureDataIGTest,TestGetType_Float64_Array) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestGetType_Float64_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestGetType_Boolean_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestGetType_Boolean_Array());
 }
 
 TEST(EPICSPVAStructureDataIGTest,TestGetType_StreamString_Array) {
@@ -394,6 +404,11 @@ TEST(EPICSPVAStructureDataIGTest,TestWrite_Float64) {
     ASSERT_TRUE(test.TestWrite_Float64());
 }
 
+TEST(EPICSPVAStructureDataIGTest,TestWrite_Boolean) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestWrite_Boolean());
+}
+
 TEST(EPICSPVAStructureDataIGTest,TestWrite_StreamString) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestWrite_StreamString());
@@ -452,6 +467,11 @@ TEST(EPICSPVAStructureDataIGTest,TestWrite_Float32_Array) {
 TEST(EPICSPVAStructureDataIGTest,TestWrite_Float64_Array) {
     EPICSPVAStructureDataITest test;
     ASSERT_TRUE(test.TestWrite_Float64_Array());
+}
+
+TEST(EPICSPVAStructureDataIGTest,TestWrite_Boolean_Array) {
+    EPICSPVAStructureDataITest test;
+    ASSERT_TRUE(test.TestWrite_Boolean_Array());
 }
 
 TEST(EPICSPVAStructureDataIGTest,TestWrite_StreamString_Array) {

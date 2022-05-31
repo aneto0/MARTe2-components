@@ -284,6 +284,11 @@ public:
     bool TestGetType_Float64();
 
     /**
+     * @brief Tests the GetType with a bool.
+     */
+    bool TestGetType_Boolean();
+
+    /**
      * @brief Tests the GetType with a StreamString.
      */
     bool TestGetType_StreamString();
@@ -337,6 +342,11 @@ public:
      * @brief Tests the GetType with a float64[].
      */
     bool TestGetType_Float64_Array();
+
+    /**
+     * @brief Tests the GetType with a bool[].
+     */
+    bool TestGetType_Boolean_Array();
 
     /**
      * @brief Tests the GetType with a StreamString[].
@@ -404,6 +414,11 @@ public:
     bool TestWrite_Float64();
 
     /**
+     * @brief Tests the Write method for a boolean.
+     */
+    bool TestWrite_Boolean();
+
+    /**
      * @brief Tests the Write method for a StreamString.
      */
     bool TestWrite_StreamString();
@@ -462,6 +477,11 @@ public:
      * @brief Tests the Write method for a float64[].
      */
     bool TestWrite_Float64_Array();
+
+    /**
+     * @brief Tests the Write method for a bool[].
+     */
+    bool TestWrite_Boolean_Array();
 
     /**
      * @brief Tests the Write method for a StreamString[].
