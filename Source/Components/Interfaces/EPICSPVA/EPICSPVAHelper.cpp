@@ -70,6 +70,22 @@ void EPICSPVAHelperInitArrayT<std::string>(epics::pvData::PVScalarArrayPtr scala
 }
 
 /**
+ * @brief Helper function to initialise an array entry.
+ * @param[in] scalarArrayPtr the array to initialise.
+ * @param[in] size the size of the array to be initialised.
+ */
+template<>
+void EPICSPVAHelperInitArrayT<bool>(epics::pvData::PVScalarArrayPtr scalarArrayPtr, const uint32 &size) {
+    epics::pvData::shared_vector<epics::pvData::boolean> out(size);
+    uint32 n;
+    for (n = 0u; n < size; n++) {
+        out[n] = false; 
+    }
+    epics::pvData::shared_vector<const epics::pvData::boolean> outF = freeze(out);
+    scalarArrayPtr->putFrom<epics::pvData::boolean>(outF);
+}
+
+/**
  * @brief Helper function to compute the number of elements in a given structure entry.
  * @param[in] entry the input structure element.
  * @return the number of elements in the structure element.
@@ -130,6 +146,9 @@ bool EPICSPVAHelper::InitArray(epics::pvData::PVScalarArrayPtr pvScalarArr, cons
         else if (epicsType == epics::pvData::pvDouble) {
             EPICSPVAHelperInitArrayT<float64>(pvScalarArr, numberOfElements);
         }
+        else if (epicsType == epics::pvData::pvBoolean) {
+            EPICSPVAHelperInitArrayT<bool>(pvScalarArr, numberOfElements);
+        }
         else if (epicsType == epics::pvData::pvString) {
             EPICSPVAHelperInitArrayT<std::string>(pvScalarArr, numberOfElements);
         }
@@ -172,6 +191,9 @@ bool EPICSPVAHelper::GetType(TypeDescriptor typeDesc, epics::pvData::ScalarType 
     }
     else if (typeDesc == Float64Bit) {
         epicsType = epics::pvData::pvDouble;
+    }
+    else if (typeDesc == BooleanType) {
+        epicsType = epics::pvData::pvBoolean;
     }
     else if ((typeDesc.type == CArray) || (typeDesc.type == BT_CCString) || (typeDesc.type == PCString) || (typeDesc.type == SString)) {
         epicsType = epics::pvData::pvString;

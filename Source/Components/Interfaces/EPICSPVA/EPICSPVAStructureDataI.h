@@ -326,6 +326,9 @@ inline bool EPICSPVAStructureDataI::ReadValue<bool>(epics::pvData::PVScalarPtr s
     else if ((value.GetTypeDescriptor() == UnsignedInteger64Bit) || (value.GetTypeDescriptor() == SignedInteger64Bit)) {
         *reinterpret_cast<uint64 *>(value.GetDataPointer()) = (readVal ? 1u : 0u);
     }
+    else if (value.GetTypeDescriptor() == BooleanType) {
+        *reinterpret_cast<bool *>(value.GetDataPointer()) = (readVal);
+    }
     else {
         ok = false;
     }
@@ -394,6 +397,12 @@ inline bool EPICSPVAStructureDataI::ReadArray<bool>(epics::pvData::PVScalarArray
         Vector<uint64> readVec(reinterpret_cast<uint64 *>(value.GetDataPointer()), numberOfElements);
         for (i = 0u; i < numberOfElements; i++) {
             readVec[i] = (srcVec[i] ? 1u : 0u);
+        }
+    }
+    else if (value.GetTypeDescriptor() == BooleanType) {
+        Vector<bool> readVec(reinterpret_cast<bool *>(value.GetDataPointer()), numberOfElements);
+        for (i = 0u; i < numberOfElements; i++) {
+            readVec[i] = srcVec[i];
         }
     }
     else {

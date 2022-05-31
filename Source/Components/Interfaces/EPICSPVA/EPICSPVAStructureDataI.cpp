@@ -114,6 +114,9 @@ bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value
                 else if (value.GetTypeDescriptor() == Float64Bit) {
                     ok = ReadValue<float64>(scalarFieldPtr, value);
                 }
+                else if (value.GetTypeDescriptor() == BooleanType) {
+                    ok = ReadValue<bool>(scalarFieldPtr, value);
+                }
                 else if (value.GetTypeDescriptor().type == SString) {
                     std::string src = scalarFieldPtr->getAs<std::string>();
                     StreamString *dst = static_cast<StreamString *>(value.GetDataPointer());
@@ -130,55 +133,52 @@ bool EPICSPVAStructureDataI::Read(const char8 * const name, const AnyType &value
         else {
             ok = (storedType.GetNumberOfElements(0u) == value.GetNumberOfElements(0u));
             if (ok) {
-                bool isBoolean = (scalarArrayPtr->getScalarArray()->getElementType() == epics::pvData::pvBoolean);
-                if (isBoolean) {
+                if (value.GetTypeDescriptor() == UnsignedInteger8Bit) {
+                    ok = ReadArray<uint8>(scalarArrayPtr, storedType, value);
+                }
+                else if (value.GetTypeDescriptor() == UnsignedInteger16Bit) {
+                    ok = ReadArray<uint16>(scalarArrayPtr, storedType, value);
+                }
+                else if (value.GetTypeDescriptor() == UnsignedInteger32Bit) {
+                    ok = ReadArray<uint32>(scalarArrayPtr, storedType, value);
+                }
+                else if (value.GetTypeDescriptor() == UnsignedInteger64Bit) {
+                    ok = ReadArray<unsigned long int>(scalarArrayPtr, storedType, value);
+                }
+                else if (value.GetTypeDescriptor() == SignedInteger8Bit) {
+                    ok = ReadArray<int8>(scalarArrayPtr, storedType, value);
+                }
+                else if (value.GetTypeDescriptor() == SignedInteger16Bit) {
+                    ok = ReadArray<int16>(scalarArrayPtr, storedType, value);
+                }
+                else if (value.GetTypeDescriptor() == SignedInteger32Bit) {
+                    ok = ReadArray<int32>(scalarArrayPtr, storedType, value);
+                }
+                else if (value.GetTypeDescriptor() == SignedInteger64Bit) {
+                    ok = ReadArray<long int>(scalarArrayPtr, storedType, value);
+                }
+                else if (value.GetTypeDescriptor() == Float32Bit) {
+                    ok = ReadArray<float32>(scalarArrayPtr, storedType, value);
+                }
+                else if (value.GetTypeDescriptor() == Float64Bit) {
+                    ok = ReadArray<float64>(scalarArrayPtr, storedType, value);
+                }
+                else if (value.GetTypeDescriptor() == BooleanType) {
                     ok = ReadArray<bool>(scalarArrayPtr, storedType, value);
                 }
+                else if (value.GetTypeDescriptor().type == SString) {
+                    epics::pvData::shared_vector<const std::string> srcStr;
+                    scalarArrayPtr->getAs<std::string>(srcStr);
+                    uint32 numberOfElements = storedType.GetNumberOfElements(0u);
+                    uint32 i;
+                    Vector<StreamString> dst(static_cast<StreamString *>(value.GetDataPointer()), numberOfElements);
+                    for (i = 0u; i < numberOfElements; i++) {
+                        dst[i] = srcStr[i].c_str();
+                    }
+                }
                 else {
-                    if (value.GetTypeDescriptor() == UnsignedInteger8Bit) {
-                        ok = ReadArray<uint8>(scalarArrayPtr, storedType, value);
-                    }
-                    else if (value.GetTypeDescriptor() == UnsignedInteger16Bit) {
-                        ok = ReadArray<uint16>(scalarArrayPtr, storedType, value);
-                    }
-                    else if (value.GetTypeDescriptor() == UnsignedInteger32Bit) {
-                        ok = ReadArray<uint32>(scalarArrayPtr, storedType, value);
-                    }
-                    else if (value.GetTypeDescriptor() == UnsignedInteger64Bit) {
-                        ok = ReadArray<unsigned long int>(scalarArrayPtr, storedType, value);
-                    }
-                    else if (value.GetTypeDescriptor() == SignedInteger8Bit) {
-                        ok = ReadArray<int8>(scalarArrayPtr, storedType, value);
-                    }
-                    else if (value.GetTypeDescriptor() == SignedInteger16Bit) {
-                        ok = ReadArray<int16>(scalarArrayPtr, storedType, value);
-                    }
-                    else if (value.GetTypeDescriptor() == SignedInteger32Bit) {
-                        ok = ReadArray<int32>(scalarArrayPtr, storedType, value);
-                    }
-                    else if (value.GetTypeDescriptor() == SignedInteger64Bit) {
-                        ok = ReadArray<long int>(scalarArrayPtr, storedType, value);
-                    }
-                    else if (value.GetTypeDescriptor() == Float32Bit) {
-                        ok = ReadArray<float32>(scalarArrayPtr, storedType, value);
-                    }
-                    else if (value.GetTypeDescriptor() == Float64Bit) {
-                        ok = ReadArray<float64>(scalarArrayPtr, storedType, value);
-                    }
-                    else if (value.GetTypeDescriptor().type == SString) {
-                        epics::pvData::shared_vector<const std::string> srcStr;
-                        scalarArrayPtr->getAs<std::string>(srcStr);
-                        uint32 numberOfElements = storedType.GetNumberOfElements(0u);
-                        uint32 i;
-                        Vector<StreamString> dst(static_cast<StreamString *>(value.GetDataPointer()), numberOfElements);
-                        for (i = 0u; i < numberOfElements; i++) {
-                            dst[i] = srcStr[i].c_str();
-                        }
-                    }
-                    else {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type");
-                        ok = false;
-                    }
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported type");
+                    ok = false;
                 }
             }
             else {
@@ -266,7 +266,7 @@ AnyType EPICSPVAStructureDataI::GetType(const char8 * const name) {
                 marte2Type = CharString;
             }
             else if (epicsScalarType == epics::pvData::pvBoolean) {
-                marte2Type = UnsignedInteger8Bit;
+                marte2Type = BooleanType;
             }
             else {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported EPICS type");
@@ -362,6 +362,9 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
             else if (value.GetTypeDescriptor() == Float64Bit) {
                 scalarFieldPtr->putFrom<float64>(*reinterpret_cast<float64 *>(value.GetDataPointer()));
             }
+            else if (value.GetTypeDescriptor() == BooleanType) {
+                scalarFieldPtr->putFrom<epics::pvData::boolean>(*reinterpret_cast<bool *>(value.GetDataPointer()));
+            }
             else if ((value.GetTypeDescriptor().type == CArray) || (value.GetTypeDescriptor().type == BT_CCString) || (value.GetTypeDescriptor().type == PCString)
                     || (value.GetTypeDescriptor().type == SString)) {
                 if (value.GetTypeDescriptor().type == SString) {
@@ -411,6 +414,9 @@ bool EPICSPVAStructureDataI::WriteStoredType(const char8 * const name, AnyType &
                 }
                 else if (value.GetTypeDescriptor() == Float64Bit) {
                     ok = WriteArray<float64>(scalarArrayPtr, storedType, value, size);
+                }
+                else if (value.GetTypeDescriptor() == BooleanType) {
+                    ok = WriteArray<epics::pvData::boolean>(scalarArrayPtr, storedType, value, size);
                 }
                 else if ((value.GetTypeDescriptor().type == CArray) || (value.GetTypeDescriptor().type == BT_CCString) || (value.GetTypeDescriptor().type == PCString)
                         || (value.GetTypeDescriptor().type == SString)) {

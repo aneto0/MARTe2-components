@@ -125,6 +125,12 @@ TEST(EPICSPVAHelperGTest,TestInitArray_String) {
     ASSERT_TRUE(test.TestInitArray<MARTe::char8>(static_cast<MARTe::char8>(0)));
 }
 
+TEST(EPICSPVAHelperGTest,TestInitArray_Boolean) {
+    EPICSPVAHelperTest test;
+    ASSERT_TRUE(test.TestInitArray<bool>(bool(true)));
+}
+
+
 TEST(EPICSPVAHelperGTest,TestGetType_TypeDescriptor_UInt8) {
     EPICSPVAHelperTest test;
     ASSERT_TRUE(test.TestGetType_TypeDescriptor<MARTe::uint8>(static_cast<MARTe::uint8>(0)));
@@ -173,6 +179,11 @@ TEST(EPICSPVAHelperGTest,TestGetType_TypeDescriptor_Float32) {
 TEST(EPICSPVAHelperGTest,TestGetType_TypeDescriptor_Float64) {
     EPICSPVAHelperTest test;
     ASSERT_TRUE(test.TestGetType_TypeDescriptor<MARTe::float64>(static_cast<MARTe::float64>(0)));
+}
+
+TEST(EPICSPVAHelperGTest,TestGetType_TypeDescriptor_Boolean) {
+    EPICSPVAHelperTest test;
+    ASSERT_TRUE(test.TestGetType_TypeDescriptor<bool>(bool(false)));
 }
 
 TEST(EPICSPVAHelperGTest,TestGetType_TypeDescriptor_String) {
@@ -233,6 +244,11 @@ TEST(EPICSPVAHelperGTest,TestGetType_TypeName_Float64) {
 TEST(EPICSPVAHelperGTest,TestGetType_TypeName_String) {
     EPICSPVAHelperTest test;
     ASSERT_TRUE(test.TestGetType_TypeName("char8"));
+}
+
+TEST(EPICSPVAHelperGTest,TestGetType_TypeName_Boolean) {
+    EPICSPVAHelperTest test;
+    ASSERT_TRUE(test.TestGetType_TypeName("bool"));
 }
 
 TEST(EPICSPVAHelperGTest,TestGetType_TypeName_BadType) {
