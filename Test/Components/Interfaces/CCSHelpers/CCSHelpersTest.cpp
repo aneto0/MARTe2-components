@@ -249,7 +249,7 @@ bool CCSHelpersTest::TestGetMARTeBasicType() {
     ret &= CCSHelpers::GetMARTeBasicType(ccs::types::String) == CharString;
 
     //missing boolean...
-    ret &= CCSHelpers::GetMARTeBasicType(ccs::types::Boolean) == InvalidType;
+    ret &= CCSHelpers::GetMARTeBasicType(ccs::types::Boolean) == BooleanType;
 
     return ret;
 }
@@ -399,6 +399,12 @@ bool CCSHelpersTest::TestGetCCSBasicType() {
         ret = (*at == *ccs::types::Float64);
     }
 
+    at = CCSHelpers::GetCCSBasicType(BooleanType, 0u, 1u);
+    ret &= (at != NULL);
+    if (ret) {
+        ret = (*at == *ccs::types::Boolean);
+    }
+
     //array
     at = CCSHelpers::GetCCSBasicType(UnsignedInteger8Bit, 1u, 2u);
 
@@ -463,5 +469,14 @@ bool CCSHelpersTest::TestGetCCSBasicType() {
         ccs::types::ArrayType test("int64Array", ccs::types::SignedInteger64, 2u);
         ret = (*at == test);
     }
+
+    at = CCSHelpers::GetCCSBasicType(BooleanType, 1u, 2u);
+
+    ret &= (at != NULL);
+    if (ret) {
+        ccs::types::ArrayType test("boolArray", ccs::types::Boolean, 2u);
+        ret = (*at == test);
+    }
+
     return ret;
 }

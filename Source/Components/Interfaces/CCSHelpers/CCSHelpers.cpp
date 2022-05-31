@@ -631,6 +631,9 @@ MARTe::TypeDescriptor GetMARTeBasicType(ccs::base::SharedReference<const ccs::ty
     else if (typeName == "string") {
         ret = MARTe::CharString;
     }
+    else if (typeName == "bool") {
+        ret = MARTe::BooleanType;
+    }
     else {
 
     }
@@ -740,6 +743,14 @@ ccs::types::AnyType* GetCCSBasicType(MARTe::TypeDescriptor td,
         }
         else {
             ret = (new ccs::types::ScalarTypeT<ccs::types::string>);
+        }
+    }
+    else if (td == MARTe::BooleanType) {
+        if (numberOfDimensions > 0u) {
+            ret = (new ccs::types::ArrayType("BooleanArray", ccs::types::Boolean, numberOfElements));
+        }
+        else {
+            ret = (new ccs::types::ScalarTypeT<ccs::types::boolean>);
         }
     }
     else if (td == MARTe::StructuredDataInterfaceType) {
