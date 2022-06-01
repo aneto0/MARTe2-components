@@ -177,6 +177,9 @@ bool EPICSPVAChannelWrapper::Setup(DataSourceI &dataSource) {
                 else if (typeDescriptor == Character8Bit) {
                     tempCachedSignals[numberOfSignals] = new EPICSPVAFieldWrapper<char8>();
                 }
+                else if (typeDescriptor == BooleanType) {
+                    tempCachedSignals[numberOfSignals] = new EPICSPVAFieldWrapper<bool>();
+                }
                 else if (typeDescriptor == CharString) {
                     ok = false;
                     REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "For strings use Type = char8; for bytes use Type = uint8");

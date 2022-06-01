@@ -112,6 +112,32 @@ void EPICSPVAFieldWrapper<T>::Put() {
 }
 
 template<>
+inline void EPICSPVAFieldWrapper<bool>::Put() {
+    if (numberOfElements == 1u) {
+        epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast<epics::pvData::PVScalar>(pvField);
+        if (scalarFieldPtr ? true : false) {
+            scalarFieldPtr->putFrom<epics::pvData::boolean>(*static_cast<epics::pvData::boolean *>(memory));
+        }
+        else {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Signal %s has an invalid pv field", qualifiedName);
+        }
+    }
+    else {
+        epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast<epics::pvData::PVScalarArray>(pvField);
+        if (scalarArrayPtr ? true : false) {
+            epics::pvData::shared_vector<epics::pvData::boolean> out;
+            out.resize(numberOfElements);
+            (void) MemoryOperationsHelper::Copy(reinterpret_cast<void *>(out.data()), memory, numberOfElements * sizeof(bool));
+            epics::pvData::shared_vector<const epics::pvData::boolean> outF = freeze(out);
+            scalarArrayPtr->putFrom<epics::pvData::boolean>(outF);
+        }
+        else {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Signal %s has an invalid pv field", qualifiedName);
+        }
+    }
+}
+
+template<>
 inline void EPICSPVAFieldWrapper<char8>::Put() {
     epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast<epics::pvData::PVScalar>(pvField);
     if (scalarFieldPtr ? true : false) {
@@ -151,6 +177,35 @@ bool EPICSPVAFieldWrapper<T>::Get() {
     }
     return ok;
 }
+
+template<>
+inline bool EPICSPVAFieldWrapper<bool>::Get() {
+    bool ok = true;
+    if (numberOfElements == 1u) {
+        epics::pvData::PVScalarPtr scalarFieldPtr = std::dynamic_pointer_cast<epics::pvData::PVScalar>(pvField);
+        ok = (scalarFieldPtr ? true : false);
+        if (ok) {
+            *reinterpret_cast<bool *>(memory) = scalarFieldPtr->getAs<epics::pvData::boolean>();
+        }
+    }
+    else {
+        epics::pvData::PVScalarArrayPtr scalarArrayPtr = std::dynamic_pointer_cast<epics::pvData::PVScalarArray>(pvField);
+        ok = (scalarArrayPtr ? true : false);
+        if (ok) {
+            epics::pvData::shared_vector<const epics::pvData::boolean> out;
+            scalarArrayPtr->getAs<epics::pvData::boolean>(out);
+            uint32 i;
+            Vector<bool> readVec(reinterpret_cast<bool *>(memory), numberOfElements);
+            Vector<bool> srcVec(const_cast<bool *>(reinterpret_cast<const bool *>(out.data())), numberOfElements);
+            for (i = 0u; i < numberOfElements; i++) {
+                readVec[i] = srcVec[i];
+            }
+        }
+    }
+    return ok;
+}
+
+
 
 template<>
 inline bool EPICSPVAFieldWrapper<char8>::Get() {
