@@ -32,6 +32,7 @@
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
 #include "EPICSPVAChannelWrapper.h"
+#include "MutexSem.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -222,7 +223,7 @@ void EPICSPVAChannelWrapper::putDone(const pvac::PutEvent& evt) {
 }
 
 bool EPICSPVAChannelWrapper::Put() {
-    bool ok = false;
+    bool ok = true;
     try {
         if (!channel.valid()) {
             provider = pvac::ClientProvider("pva");
@@ -234,8 +235,21 @@ bool EPICSPVAChannelWrapper::Put() {
         if (ok) {
             if (!structureResolved) {
                 uint32 absIndex = 0u;
-                epics::pvData::PVStructurePtr getPVStruct = std::const_pointer_cast<epics::pvData::PVStructure>(channel.get());
-                ok = (getPVStruct) ? true : false;
+                epics::pvData::PVStructurePtr getPVStruct;
+                try {
+                    getPVStruct  = std::const_pointer_cast<epics::pvData::PVStructure>(channel.get());
+                }
+                catch (std::runtime_error &ignored) {
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed to get() channel: %s - %s", channelName.Buffer(), ignored.what());
+                    ok = false;
+                }
+                /*catch (pvac::Timeout &ignored) {
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed to get() channel: %s - %s", channelName.Buffer(), ignored.what());
+                    ok = false;
+                }*/
+                if (ok) {
+                    ok = (getPVStruct) ? true : false;
+                }
                 if (ok) {
                     ok = ResolveStructure(getPVStruct, "", absIndex);
                     if (ok) {
@@ -260,10 +274,15 @@ bool EPICSPVAChannelWrapper::Put() {
             ok = (timeout > 0u);
         }
     }
-    catch (epics::pvData::detail::ExceptionMixed<epics::pvData::BaseException> &ignored) {
-        REPORT_ERROR_STATIC(ErrorManagement::Information, "Failed to connect to channel %s [s]", channelName.Buffer(), ignored.what());
+    catch (std::runtime_error &ignored) {
+        REPORT_ERROR_STATIC(ErrorManagement::Information, "Failed to connect to channel %s [%s]", channelName.Buffer(), ignored.what());
         ok = false;
     }
+    /*catch (pvac::Timeout &ignored) {
+        REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed to connect to channel: %s - [%s]", channelName.Buffer(), ignored.what());
+        ok = false;
+    }*/
+
     return ok;
 }
 
@@ -351,7 +370,7 @@ bool EPICSPVAChannelWrapper::ResolveStructure(epics::pvData::PVFieldPtr pvField,
                         REPORT_ERROR_STATIC(ErrorManagement::Debug, "Assigned PV to signal with name [%s]", fullFieldName.Buffer());
                     }
                     if (!ok) {
-                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Could not find signal with name [%s]", fullFieldName.Buffer());
+                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Could not find signal with name [%s] [%s]", fullFieldName.Buffer(), channelName.Buffer());
                     }
                 }
                 else if (fieldType == epics::pvData::structure) {
@@ -365,7 +384,7 @@ bool EPICSPVAChannelWrapper::ResolveStructure(epics::pvData::PVFieldPtr pvField,
 }
 
 bool EPICSPVAChannelWrapper::Monitor() {
-    bool ok = false;
+    bool ok = true;
     try {
         ok = (channel ? true : false);
         if (!ok) {
@@ -395,6 +414,7 @@ bool EPICSPVAChannelWrapper::Monitor() {
                         if (!structureResolved) {
                             if (ok) {
                                 monitorRoot = monitor.root;
+                                REPORT_ERROR_STATIC(ErrorManagement::Information, "Resolving structure for channel %s", channelName.Buffer());
                                 ok = ResolveStructure(std::const_pointer_cast<epics::pvData::PVStructure>(monitorRoot), "", absIndex);
                             }
                             structureResolved = ok;
@@ -408,7 +428,7 @@ bool EPICSPVAChannelWrapper::Monitor() {
             }
         }
     }
-    catch (epics::pvData::detail::ExceptionMixed<epics::pvData::BaseException> &ignored) {
+    catch (std::runtime_error &ignored) {
         REPORT_ERROR_STATIC(ErrorManagement::Information, "Failed to connect to channel %s [s]", channelName.Buffer(), ignored.what());
         ok = false;
     }
