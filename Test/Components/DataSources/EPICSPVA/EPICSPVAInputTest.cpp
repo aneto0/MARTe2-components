@@ -58,6 +58,7 @@ public:CLASS_REGISTER_DECLARATION()EPICSPVAInputGAMTestHelper() {
         int64Signal = NULL;
         float32Signal = NULL;
         float64Signal = NULL;
+        boolSignal = NULL;
         numberOfElements = 1u;
     }
 
@@ -105,6 +106,9 @@ public:CLASS_REGISTER_DECLARATION()EPICSPVAInputGAMTestHelper() {
             else if (GetSignalType(InputSignals, n) == Float32Bit) {
                 float32Signal = reinterpret_cast<float32*>(GetInputSignalMemory(n));
             }
+            else if (GetSignalType(InputSignals, n) == BooleanType) {
+                boolSignal = reinterpret_cast<bool *>(GetInputSignalMemory(n));
+            }
             else {
                 float64Signal = reinterpret_cast<float64*>(GetInputSignalMemory(n));
             }
@@ -129,6 +133,7 @@ public:CLASS_REGISTER_DECLARATION()EPICSPVAInputGAMTestHelper() {
     MARTe::int64 *int64Signal;
     MARTe::float32 *float32Signal;
     MARTe::float64 *float64Signal;
+    bool *boolSignal;
     MARTe::uint32 numberOfElements;
 };
 CLASS_REGISTER(EPICSPVAInputGAMTestHelper, "1.0")
@@ -235,6 +240,7 @@ struct EPICSPVADatabaseTestInputTypesS {
     struct EPICSPVAInputTestUInt UInts;
     struct EPICSPVAInputTestInt Ints;
     struct EPICSPVAInputTestFloat Floats;
+    bool BooleanValue;
 };
 //The strategy is identical to the class registration
 DECLARE_CLASS_MEMBER(EPICSPVAInputTestUInt, UInt8, uint8, "", "");
@@ -263,8 +269,9 @@ DECLARE_STRUCT_INTROSPECTION(EPICSPVAInputTestFloat, EPICSPVAInputTestFloatStruc
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesS, UInts, EPICSPVAInputTestUInt, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesS, Ints, EPICSPVAInputTestInt, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesS, Floats, EPICSPVAInputTestFloat, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestInputTypesS, BooleanValue, bool, "", "");
 static const MARTe::IntrospectionEntry *EPICSPVADatabaseTestInputTypesSStructEntries[] = { &EPICSPVADatabaseTestInputTypesS_UInts_introspectionEntry,
-        &EPICSPVADatabaseTestInputTypesS_Ints_introspectionEntry, &EPICSPVADatabaseTestInputTypesS_Floats_introspectionEntry, 0 };
+        &EPICSPVADatabaseTestInputTypesS_Ints_introspectionEntry, &EPICSPVADatabaseTestInputTypesS_Floats_introspectionEntry, &EPICSPVADatabaseTestInputTypesS_BooleanValue_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestInputTypesS, EPICSPVADatabaseTestInputTypesSStructEntries)
 
 struct EPICSPVAInputTestUIntA {
@@ -491,6 +498,15 @@ bool EPICSPVAInputTest::TestExecute() {
             "            }\n"
             "       }\n"
             "    }\n"
+            "    +RecordIn7 = {\n"
+            "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Structure = {\n"
+            "            ElementBool = {\n"
+            "                Type = bool\n"
+            "                NumberOfElements = 1\n"
+            "            }\n"
+            "       }\n"
+            "    }\n"
             "}\n"
             "$Test = {\n"
             "    Class = RealTimeApplication\n"
@@ -555,6 +571,12 @@ bool EPICSPVAInputTest::TestExecute() {
             "                    Alias = RecordIn6\n"
             "                    NumberOfElements = 12\n"
             "                }\n"
+            "                SignalBool = {\n"
+            "                    Type = bool\n"
+            "                    DataSource = EPICSPVAInputTest\n"
+            "                    Alias = RecordIn7\n"
+            "                    NumberOfElements = 1\n"
+            "                }\n"
             "            }\n"
             "        }\n"
             "    }\n"
@@ -593,6 +615,11 @@ bool EPICSPVAInputTest::TestExecute() {
             "                    Field = ElementString"
             "                    Type = char8\n"
             "                    NumberOfElements = 12\n"
+            "                }\n"
+            "                RecordIn7 = {\n"
+            "                    Field = ElementBool"
+            "                    Type = bool\n"
+            "                    NumberOfElements = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -652,6 +679,7 @@ bool EPICSPVAInputTest::TestExecute() {
         *gam1->int64Signal = 0;
         *gam1->float32Signal = 0;
         *gam1->float64Signal = 0;
+        *gam1->boolSignal = false;
 
         pvac::ClientProvider provider("pva");
         uint32 timeOutCounts = 50;
@@ -661,11 +689,13 @@ bool EPICSPVAInputTest::TestExecute() {
         pvac::ClientChannel record3(provider.connect("RecordIn3"));
         pvac::ClientChannel record4(provider.connect("RecordIn4"));
         pvac::ClientChannel record6(provider.connect("RecordIn6"));
+        pvac::ClientChannel record7(provider.connect("RecordIn7"));
         pvac::detail::PutBuilder putBuilder1 = record1.put();
         pvac::detail::PutBuilder putBuilder2 = record2.put();
         pvac::detail::PutBuilder putBuilder3 = record3.put();
         pvac::detail::PutBuilder putBuilder4 = record4.put();
         pvac::detail::PutBuilder putBuilder6 = record6.put();
+        pvac::detail::PutBuilder putBuilder7 = record7.put();
 
         while ((!ok) && (timeOutCounts != 0u)) {
             putBuilder1.set("UnsignedIntegers.UInt8", 1);
@@ -682,12 +712,14 @@ bool EPICSPVAInputTest::TestExecute() {
             const char8 *stringValueOut = "HELLOSTRING;HELLOSTRING,HELLOSTRING";
             const char8 *stringValueExpected = "HELLOSTRING;";
             putBuilder6.set("ElementString", stringValueOut);
+            putBuilder7.set("ElementBool", epics::pvData::boolean(true));
 
             putBuilder1.exec();
             putBuilder2.exec();
             putBuilder3.exec();
             putBuilder4.exec();
             putBuilder6.exec();
+            putBuilder7.exec();
 
             scheduler->ExecuteThreadCycle(0u);
             ok = (1 == *gam1->uint8Signal);
@@ -700,8 +732,8 @@ bool EPICSPVAInputTest::TestExecute() {
             ok &= (-4 == *gam1->int64Signal);
             ok &= (32 == *gam1->float32Signal);
             ok &= (64 == *gam1->float64Signal);
-            StreamString tmpString = gam1->char8Signal;
-            ok &= (tmpString == stringValueExpected);
+            ok &= (*gam1->boolSignal);
+            ok &= (StringHelper::CompareN(gam1->char8Signal, stringValueExpected, StringHelper::Length(stringValueExpected)) == 0);
 
             Sleep::Sec(0.1);
             timeOutCounts--;
@@ -817,6 +849,7 @@ bool EPICSPVAInputTest::TestExecute_StructuredType() {
         gam1->testStruct->Ints.Int64 = 0;
         gam1->testStruct->Floats.Float32 = 0;
         gam1->testStruct->Floats.Float64 = 0;
+        gam1->testStruct->BooleanValue = false;
 
         pvac::ClientProvider provider("pva");
         uint32 timeOutCounts = 50;
@@ -835,6 +868,7 @@ bool EPICSPVAInputTest::TestExecute_StructuredType() {
             putBuilder1.set("SignalTypes.Ints.Int64", -4);
             putBuilder1.set("SignalTypes.Floats.Float32", 32);
             putBuilder1.set("SignalTypes.Floats.Float64", 64);
+            putBuilder1.set("SignalTypes.BooleanValue", epics::pvData::boolean(true));
             putBuilder1.exec();
             scheduler->ExecuteThreadCycle(0u);
             ok = (1 == gam1->testStruct->UInts.UInt8);
@@ -847,6 +881,7 @@ bool EPICSPVAInputTest::TestExecute_StructuredType() {
             ok &= (-4 == gam1->testStruct->Ints.Int64);
             ok &= (32 == gam1->testStruct->Floats.Float32);
             ok &= (64 == gam1->testStruct->Floats.Float64);
+            ok &= (gam1->testStruct->BooleanValue);
             Sleep::Sec(0.1);
             timeOutCounts--;
         }

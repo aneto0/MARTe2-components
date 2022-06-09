@@ -58,6 +58,7 @@ public:
         int64Signal = NULL;
         float32Signal = NULL;
         float64Signal = NULL;
+        boolSignal = NULL;
         numberOfElements = 1u;
     }
 
@@ -105,6 +106,10 @@ public:
             else if (GetSignalType(OutputSignals, n) == Float32Bit) {
                 float32Signal = reinterpret_cast<float32 *>(GetOutputSignalMemory(n));
             }
+            else if (GetSignalType(OutputSignals, n) == BooleanType) {
+                boolSignal = reinterpret_cast<bool *>(GetOutputSignalMemory(n));
+                *boolSignal = false;
+            }
             else {
                 float64Signal = reinterpret_cast<float64 *>(GetOutputSignalMemory(n));
             }
@@ -129,6 +134,7 @@ public:
     MARTe::int64 *int64Signal;
     MARTe::float32 *float32Signal;
     MARTe::float64 *float64Signal;
+    bool *boolSignal;
     MARTe::uint32 numberOfElements;
 };
 CLASS_REGISTER(EPICSPVAOutputGAMTestHelper, "1.0")
@@ -240,6 +246,7 @@ struct EPICSPVADatabaseTestOutputTypesS {
     struct EPICSPVAOutputTestInt Ints;
     struct EPICSPVAOutputTestFloat Floats;
     struct EPICSPVAOutputTestString Strings;
+    bool BooleanValue;
 };
 
 //The strategy is identical to the class registration
@@ -273,8 +280,9 @@ DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, UInts, EPICSPVAOutputTest
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, Ints, EPICSPVAOutputTestInt, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, Floats, EPICSPVAOutputTestFloat, "", "");
 DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, Strings, EPICSPVAOutputTestString, "", "");
+DECLARE_CLASS_MEMBER(EPICSPVADatabaseTestOutputTypesS, BooleanValue, bool, "", "");
 static const MARTe::IntrospectionEntry* EPICSPVADatabaseTestOutputTypesSStructEntries[] = { &EPICSPVADatabaseTestOutputTypesS_UInts_introspectionEntry,
-        &EPICSPVADatabaseTestOutputTypesS_Ints_introspectionEntry, &EPICSPVADatabaseTestOutputTypesS_Floats_introspectionEntry, &EPICSPVADatabaseTestOutputTypesS_Strings_introspectionEntry, 0 };
+        &EPICSPVADatabaseTestOutputTypesS_Ints_introspectionEntry, &EPICSPVADatabaseTestOutputTypesS_Floats_introspectionEntry, &EPICSPVADatabaseTestOutputTypesS_Strings_introspectionEntry, &EPICSPVADatabaseTestOutputTypesS_BooleanValue_introspectionEntry, 0 };
 DECLARE_STRUCT_INTROSPECTION(EPICSPVADatabaseTestOutputTypesS, EPICSPVADatabaseTestOutputTypesSStructEntries)
 
 struct EPICSPVAOutputTestUIntA {
@@ -613,7 +621,7 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase() {
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    Alias = RecordOut2.Int32\n"
             "                }\n"
-            "                SignalIn64 = {\n"
+            "                SignalInt64 = {\n"
             "                    Type = int64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    Alias = RecordOut2.Int64\n"
@@ -810,7 +818,7 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_NoSignals() {
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    Alias = RecordOut2.Int32\n"
             "                }\n"
-            "                SignalIn64 = {\n"
+            "                SignalInt64 = {\n"
             "                    Type = int64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    Alias = RecordOut2.Int64\n"
@@ -1016,7 +1024,7 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_Samples() {
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    Alias = RecordOut2.Int32\n"
             "                }\n"
-            "                SignalIn64 = {\n"
+            "                SignalInt64 = {\n"
             "                    Type = int64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    Alias = RecordOut2.Int64\n"
@@ -1224,7 +1232,7 @@ bool EPICSPVAOutputTest::TestSetConfiguredDatabase_False_MoreThanOneGAM() {
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    Alias = RecordOut2.Int32\n"
             "                }\n"
-            "                SignalIn64 = {\n"
+            "                SignalInt64 = {\n"
             "                    Type = int64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    Alias = RecordOut2.Int64\n"
@@ -1408,6 +1416,15 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             "             }\n"
             "        }\n"
             "    }\n"
+            "    +RecordOut6 = {\n"
+            "        Class = EPICSPVA::EPICSPVARecord\n"
+            "        Alias = \"TEST::RECORDOUT6\"\n"
+            "        Structure = {\n"
+            "             Boolean = {\n"
+            "                  Type = bool\n"
+            "             }\n"
+            "        }\n"
+            "    }\n"
             "}\n"
             "$Test = {\n"
             "    Class = RealTimeApplication\n"
@@ -1456,7 +1473,7 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    Alias = RecordOut2.Int32\n"
             "                }\n"
-            "                SignalIn64 = {\n"
+            "                SignalInt64 = {\n"
             "                    Type = int64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    Alias = RecordOut2.Int64\n"
@@ -1471,6 +1488,12 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    NumberOfElements = 128\n"
             "                    Alias = RecordOut5.SString\n"
+            "                }\n"
+            "                Boolean = {\n"
+            "                    Type = bool\n"
+            "                    DataSource = EPICSPVAOutputTest\n"
+            "                    NumberOfElements = 1\n"
+            "                    Alias = RecordOut6\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1510,6 +1533,11 @@ bool EPICSPVAOutputTest::TestSynchronise() {
             "                    Alias = \"TEST::RECORDOUT5\""
             "                    Field = Strings\n"
             "                    Type = EPICSPVAOutputTestString\n"
+            "                }\n"
+            "                RecordOut6 = {\n"
+            "                    Alias = \"TEST::RECORDOUT6\""
+            "                    Field = Boolean\n"
+            "                    Type = bool\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1569,6 +1597,7 @@ bool EPICSPVAOutputTest::TestSynchronise() {
         *gam1->int64Signal = -4;
         *gam1->float32Signal = 32;
         *gam1->float64Signal = 64;
+        *gam1->boolSignal = true;
         StreamString expectedStringValue = "STRINGSIGNAL";
 
         StringHelper::CopyN(&gam1->char8Signal[0], expectedStringValue.Buffer(), expectedStringValue.Size());
@@ -1635,6 +1664,16 @@ bool EPICSPVAOutputTest::TestSynchronise() {
                 if (ok) {
                     std::string val = stringValue->get();
                     ok = (expectedStringValue == val.c_str());
+                }
+            }
+            {
+                pvac::ClientChannel record6(provider.connect("TEST::RECORDOUT6"));
+                epics::pvData::PVStructure::const_shared_pointer getStruct = record6.get();
+                std::shared_ptr<const epics::pvData::PVBoolean> boolValue = getStruct->getSubField<epics::pvData::PVBoolean>("Boolean");
+
+                ok &= (boolValue ? true : false);
+                if (ok) {
+                    ok = boolValue->get();
                 }
             }
             Sleep::Sec(0.1);
@@ -1782,7 +1821,7 @@ bool EPICSPVAOutputTest::TestSynchronise_Arrays() {
             "                    Alias = RecordOut2Arr.Int32\n"
             "                    NumberOfElements = 4\n"
             "                }\n"
-            "                SignalIn64 = {\n"
+            "                SignalInt64 = {\n"
             "                    Type = int64\n"
             "                    DataSource = EPICSPVAOutputTest\n"
             "                    Alias = RecordOut2Arr.Int64\n"
@@ -2080,6 +2119,7 @@ bool EPICSPVAOutputTest::TestSynchronise_StructuredType() {
     if (ok) {
         ok = application->StartNextStateExecution();
     }
+    gam1->testStruct->BooleanValue = false;
     if (ok) {
         gam1->testStruct->UInts.UInt8 = 1;
         gam1->testStruct->UInts.UInt16 = 2;
@@ -2091,6 +2131,7 @@ bool EPICSPVAOutputTest::TestSynchronise_StructuredType() {
         gam1->testStruct->Ints.Int64 = -4;
         gam1->testStruct->Floats.Float32 = 32;
         gam1->testStruct->Floats.Float64 = 64;
+        gam1->testStruct->BooleanValue = true;
 
         scheduler->ExecuteThreadCycle(0u);
         pvac::ClientProvider provider("pva");
@@ -2110,6 +2151,7 @@ bool EPICSPVAOutputTest::TestSynchronise_StructuredType() {
                 std::shared_ptr<const epics::pvData::PVLong> int64Value = getStruct->getSubField<epics::pvData::PVLong>("SignalTypes.Ints.Int64");
                 std::shared_ptr<const epics::pvData::PVFloat> float32Value = getStruct->getSubField<epics::pvData::PVFloat>("SignalTypes.Floats.Float32");
                 std::shared_ptr<const epics::pvData::PVDouble> float64Value = getStruct->getSubField<epics::pvData::PVDouble>("SignalTypes.Floats.Float64");
+                std::shared_ptr<const epics::pvData::PVBoolean> boolValue = getStruct->getSubField<epics::pvData::PVBoolean>("SignalTypes.BooleanValue");
 
                 ok = (uint8Value ? true : false);
                 if (ok) {
@@ -2123,6 +2165,7 @@ bool EPICSPVAOutputTest::TestSynchronise_StructuredType() {
                     ok &= (int64Value->get() == gam1->testStruct->Ints.Int64);
                     ok &= (float32Value->get() == gam1->testStruct->Floats.Float32);
                     ok &= (float64Value->get() == gam1->testStruct->Floats.Float64);
+                    ok &= (boolValue->get() == gam1->testStruct->BooleanValue);
                 }
             }
             Sleep::Sec(0.1);

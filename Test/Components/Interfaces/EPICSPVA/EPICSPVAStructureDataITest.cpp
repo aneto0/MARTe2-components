@@ -93,6 +93,9 @@ bool EPICSPVAStructureDataITest::TestRead_Boolean() {
     int64 value64i;
     test.Read("Test", value64i);
     ok &= (value64i == 1);
+    bool valueb;
+    test.Read("Test", valueb);
+    ok &= (valueb);
     float32 value32f;
     ok &= !test.Read("Test", value32f);
     val = false;
@@ -233,6 +236,11 @@ bool EPICSPVAStructureDataITest::TestRead_Boolean_Array() {
     ok &= test.Read("Test", rvalue64i);
     for (i = 0; (i < vsize) && (ok); i++) {
         ok = (rvalue64i[i] == (int64) (!(bool) (i % 2)));
+    }
+    MARTe::Vector<bool> rvalue64b(vsize);
+    ok &= test.Read("Test", rvalue64b);
+    for (i = 0; (i < vsize) && (ok); i++) {
+        ok = (rvalue64b[i] == (!(bool) (i % 2)));
     }
     MARTe::Vector<float32> rvalue32f(vsize);
     ok &= !test.Read("Test", rvalue32f);
@@ -620,6 +628,12 @@ bool EPICSPVAStructureDataITest::TestGetType_Float64() {
     return TestGetType(wvalue);
 }
 
+bool EPICSPVAStructureDataITest::TestGetType_Boolean() {
+    using namespace MARTe;
+    bool wvalue = true;
+    return TestGetType(wvalue);
+}
+
 bool EPICSPVAStructureDataITest::TestGetType_StreamString() {
     using namespace MARTe;
     StreamString wvalue = "EPICSPVAStructureDataITest";
@@ -746,6 +760,18 @@ bool EPICSPVAStructureDataITest::TestGetType_Float64_Array() {
     return TestGetTypeArray(wvalue);
 }
 
+bool EPICSPVAStructureDataITest::TestGetType_Boolean_Array() {
+    using namespace MARTe;
+    uint32 vsize = 8u;
+    Vector<bool> wvalue(vsize);
+    uint32 i;
+    for (i = 0u; i < vsize; i++) {
+        wvalue[i] = ((i % 2) == 0);
+    }
+
+    return TestGetTypeArray(wvalue);
+}
+
 bool EPICSPVAStructureDataITest::TestGetType_StreamString_Array() {
     using namespace MARTe;
     uint32 vsize = 8u;
@@ -845,6 +871,13 @@ bool EPICSPVAStructureDataITest::TestWrite_Float64() {
     using namespace MARTe;
     uint8 wvalue1 = -16;
     uint8 wvalue2 = -9;
+    return TestWrite(wvalue1, wvalue2);
+}
+
+bool EPICSPVAStructureDataITest::TestWrite_Boolean() {
+    using namespace MARTe;
+    bool wvalue1 = true;
+    bool wvalue2 = false;
     return TestWrite(wvalue1, wvalue2);
 }
 
@@ -1005,6 +1038,20 @@ bool EPICSPVAStructureDataITest::TestWrite_Float64_Array() {
     for (i = 0u; i < vsize; i++) {
         wvalue1[i] = i + 1;
         wvalue2[i] = (i + 1) * 2;
+    }
+
+    return TestWriteArray(wvalue1, wvalue2);
+}
+
+bool EPICSPVAStructureDataITest::TestWrite_Boolean_Array() {
+    using namespace MARTe;
+    uint32 vsize = 8u;
+    Vector<bool> wvalue1(vsize);
+    Vector<bool> wvalue2(vsize);
+    uint32 i;
+    for (i = 0u; i < vsize; i++) {
+        wvalue1[i] = ((i % 2) == 0);
+        wvalue2[i] = !wvalue1[i];
     }
 
     return TestWriteArray(wvalue1, wvalue2);

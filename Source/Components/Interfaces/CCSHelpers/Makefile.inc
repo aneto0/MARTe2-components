@@ -20,66 +20,40 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
-# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
-#
 #############################################################
 
-SPB=MemoryGate.x\
-	SysLogger.x
+OBJSX=CCSHelpers.x
 
-ifdef EFDA_MARTe_DIR
-SPB += BaseLib2Wrapper.x
-endif
+PACKAGE=Components/Interfaces
 
-ifdef EPICS_BASE
-SPB   += EPICS.x
-endif
+ROOT_DIR=../../../../
 
-
-ifdef MDSPLUS_DIR
-SPB += MDSStructuredDataI.x
-endif
-
-ifdef CODAC_ROOT
-SPB+=NI9157Device.x
-SPB+=TcnTimeProvider.x
-## Only force EPICSPVA if CCS version is gt v6.1
-CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
-ifeq "$(CCSGT61)" "1"
-EPICSPVA = "1"
-endif
-endif
-
-ifdef CODAC_ROOT
-## Only force CCSHelpers if CCS version is gt v7.0
-CCSGT70 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 70 ]; then echo 1; else echo 0; fi)
-ifeq "$(CCSGT70)" "1"
-SPB+=CCSHelpers.x
-endif
-endif
-
-
-ifdef EPICSPVA
-SPB   += EPICSPVA.x
-endif
-
-ifdef OPEN62541_LIB
-SPB+=OPCUA.x
-endif
-
-ifdef EPICS_PCAS
-SPB+=MARTeIOC.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-all: $(OBJS) $(SUBPROJ)
+INCLUDES += -I.
+INCLUDES += -I$(CODAC_ROOT)/include/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
+
+LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-common -lccs-types
+
+all: $(OBJS)    \
+    $(BUILD_DIR)/CCSHelpers$(LIBEXT) \
+    $(BUILD_DIR)/CCSHelpers$(DLLEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+
