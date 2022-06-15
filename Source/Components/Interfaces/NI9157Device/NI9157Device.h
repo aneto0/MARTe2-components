@@ -62,6 +62,8 @@ namespace MARTe {
  *              // Run = 0 is assumed if this parameter is not set.
  *     Run = 0  // specifies if the device should be set into run mode after being opened.
  *              // Run = 0 is assumed if this parameter is not set.
+ *     ResetPostSleepMs = 120   // (optional, default is zero) specifies the amount of time in milliseconds to wait after the initial reset call().
+ *                              // This method is intended for cards (i.e. NI9401) where the NI reset method afects output readiness.
  *     Configuration = {
  *         ConfigureBool_stop = 0
  *         ConfigureBool_use_dsfifo_data = 0
@@ -815,6 +817,11 @@ protected:
      * Specifies if the NI-9157 device should be reseted after opening.
      */
     uint8 reset;
+
+    /**
+     * Specifies the number of miliseconds to sleep after the NI-9157 is reseted.
+     */
+    uint32 resetPostSleepMs;
 
     /**
      * Holds the path to the LabVIEW generated header file.

@@ -49,6 +49,7 @@ NI9157Device::NI9157Device() :
         ReferenceContainer(), MessageI() {
     isOpened = 0u;
     reset = 0u;
+    resetPostSleepMs = 0u;
     isRunning = 0u;
     run = 0u;
     status = 0;
@@ -104,6 +105,11 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
             }
         }
         if (ret) {
+            if (!data.Read("ResetPostSleepMs", resetPostSleepMs)) {
+                resetPostSleepMs = 0u;
+            }
+        }
+        if (ret) {
             if (!data.Read("Run", run)) {
                 run = 0u;
             }
@@ -128,7 +134,13 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
                         if (reset == 1u) {
                             status = NiFpga_Reset(session);
                             ret = (status == 0);
-                            REPORT_ERROR_PARAMETERS(ErrorManagement::FatalError, "NI9157Device::Initialise Reset() with status=%d", static_cast<int32> (status));
+                            REPORT_ERROR_PARAMETERS(ret ? ErrorManagement::Information : ErrorManagement::FatalError, "NI9157Device::Initialise Reset() with status=%d", static_cast<int32> (status));
+                            if (ret) {
+                                if (resetPostSleepMs != 0u) {
+                                    REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157Device::Initialise - Sleeping for %u ms after NiFpga_Reset().", resetPostSleepMs);
+                                    Sleep::MSec(resetPostSleepMs);
+                                }
+                            }
                             if (ret) {
                                 isRunning = 0u;
                             }
