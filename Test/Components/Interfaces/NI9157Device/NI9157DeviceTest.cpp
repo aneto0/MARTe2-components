@@ -12,13 +12,13 @@
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
  *
- * @warning Unless required by applicable law or agreed to in writing, 
+ * @warning Unless required by applicable law or agreed to in writing,
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
  *
  * @details This source file contains the definition of all the methods for
- * the class NI9157DeviceTest (public, protected, and private). Be aware that some 
+ * the class NI9157DeviceTest (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -289,8 +289,8 @@ bool NI9157DeviceTest::TestInitialise_FalseNoGenSignature(uint32 model) {
         pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
         ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Delete("NiRioGenSignature");
-		ret &= cdb.Delete("Open");
-		ret &= cdb.Delete("Run");
+        ret &= cdb.Delete("Open");
+        ret &= cdb.Delete("Run");
         ret &= cdb.MoveRelative("Configuration");
         // Change....
         ret &= cdb.MoveToRoot();
@@ -460,9 +460,9 @@ bool NI9157DeviceTest::TestInitialise_NoOpenResetRun(uint32 model) {
         pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
         ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
-		ret &= cdb.Delete("Open");
-		ret &= cdb.Delete("Reset");
-		ret &= cdb.Delete("Run");
+        ret &= cdb.Delete("Open");
+        ret &= cdb.Delete("Reset");
+        ret &= cdb.Delete("Run");
         ret &= cdb.MoveRelative("Configuration");
         // Change....
         ret &= cdb.MoveToRoot();
@@ -502,9 +502,9 @@ bool NI9157DeviceTest::TestInitialise_FalseNoConfig(uint32 model) {
         pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
         ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
         ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
-		ret &= cdb.Write("Open", "1");
+        ret &= cdb.Write("Open", "1");
         ret &= cdb.Write("Reset", "1");
-		ret &= cdb.Write("Run", "1");
+        ret &= cdb.Write("Run", "1");
         ret &= cdb.Delete("Configuration");
         // Change....
         ret &= cdb.MoveToRoot();
@@ -514,6 +514,62 @@ bool NI9157DeviceTest::TestInitialise_FalseNoConfig(uint32 model) {
     if (ret) {
         god->Purge();
         ret = !god->Initialise(cdb);
+    }
+
+    return ret;
+}
+
+bool NI9157DeviceTest::TestInitialise_ResetPostSleepMs(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIoConfig;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.Write("Open", 1);
+        ret &= cdb.Write("Reset", 1);
+        ret &= cdb.Write("Run", 1);
+        ret &= cdb.Write("ResetPostSleepMs", 120);
+        ret &= cdb.MoveRelative("Configuration");
+        // Change....
+        ret &= cdb.MoveToRoot();
+    }
+
+    uint64 startTime = 0ull;
+    uint64 stopTime = 0ull;
+    float64 minDeltaTime = 120.0e-3f;
+    float64 deltaTime = 0.f;
+    // float64 minDeltaTimeS = 10.0e-3f;
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        startTime = HighResolutionTimer::Counter();
+        ret = god->Initialise(cdb);
+        stopTime = HighResolutionTimer::Counter();
+    }
+    if (ret) {
+        deltaTime = HighResolutionTimer::TicksToTime(stopTime, startTime); 
+        ret = (deltaTime > minDeltaTime);
+        // printf("deltaTime=%f > minDeltaTime=%f\n", static_cast<float32>(deltaTime), static_cast<float32>(minDeltaTime));
+    }
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+        if (ret) {
+            ret &= interface->Reset() == 0;
+            ret &= interface->Close() == 0;
+        }
     }
 
     return ret;
@@ -816,7 +872,7 @@ bool NI9157DeviceTest::TestGetSession(uint32 model) {
             status = NiFpga_MergeStatus(&status, NiFpga_Run(session, 0));
             ret = (status == 0);
         }
-        ret &= interface->Reset() == 0;    
+        ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
 
@@ -941,7 +997,7 @@ bool NI9157DeviceTest::TestCrioStart(uint32 model) {
         ret = interface.IsValid();
     }
     if (ret) {
-		ErrorManagement::ErrorType err;
+        ErrorManagement::ErrorType err;
         err = interface->CrioStart();
         ret = err.ErrorsCleared();
     }
@@ -2573,7 +2629,7 @@ bool NI9157DeviceTest::TestNiReadFifo_U64(uint32 model) {
 }
 
 bool NI9157DeviceTest::TestNiWriteFifo_I8(uint32 model) {
- 
+
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
     StreamString configStream = fifoLoopConfig;
@@ -2635,7 +2691,7 @@ bool NI9157DeviceTest::TestNiWriteFifo_I8(uint32 model) {
 }
 
 bool NI9157DeviceTest::TestNiReadFifo_I8(uint32 model) {
- 
+
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
     StreamString configStream = fifoLoopConfig;
