@@ -59,7 +59,7 @@ ifeq "$(FEATURE_10840)" "0"
 # Override CPPFLAGS due to scoped enums
 CPPFLAGS += -std=c++0x
 else
-CPPFLAGS += -DFEATURE_10840
+CPPFLAGS += -DFEATURE_10840 -std=c++0x
 endif
 else
 CPPFLAGS += -std=c++0x
