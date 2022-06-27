@@ -131,7 +131,7 @@ bool NI9157CircularFifoReader::Initialise(StructuredDataI &data) {
             acqTimeout = 0xFFFFFFFFu;
         }
         if (!data.Read("NonBlockSleepT", nonBlockSleepT)) {
-            acqTimeout = 0xFFFFFFFFu;
+            nonBlockSleepT = 0.F;
         }
         if (checkFrame > 0u) {
             ret = false;
@@ -235,8 +235,7 @@ bool NI9157CircularFifoReader::PrepareNextState(const char8 * const currentState
         numberOfReadWriteCurrent += numberOfConsumersCurrentState;
         numberOfReadWriteNext += numberOfConsumersNextState;
     }
-    prepare = ((numberOfReadWriteNext > 0u) && (numberOfReadWriteCurrent == 0u)) ||
-            ((numberOfReadWriteNext == numberOfReadWriteCurrent) && (numberOfReadWriteCurrent > 0u));
+    prepare = ((numberOfReadWriteNext > 0u) && (numberOfReadWriteCurrent == 0u));
     if (prepare){
         ret = eventSem.Post();
         for (uint32 i = 0u; (i < numberOfSignals); i++) {
