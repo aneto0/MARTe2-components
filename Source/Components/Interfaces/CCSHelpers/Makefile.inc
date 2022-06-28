@@ -47,6 +47,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
 LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-common -lccs-types
+CPPFLAGS += -std=c++0x
 
 all: $(OBJS)    \
     $(BUILD_DIR)/CCSHelpers$(LIBEXT) \
