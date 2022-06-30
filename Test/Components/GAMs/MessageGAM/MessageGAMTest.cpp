@@ -962,8 +962,8 @@ bool MessageGAMTest::TestExecute() {
     ReferenceContainer inputBrokers;
     ReferenceContainer outputBrokers;
 
-    ReferenceT < MemoryMapInputBroker > brokerIn;
-    ReferenceT < MemoryMapSynchronisedInputBroker > brokerIn1;
+    ReferenceT < BrokerI > brokerIn;
+    ReferenceT < BrokerI > brokerIn1;
 
     ReferenceT < MemoryMapOutputBroker > brokerOut;
 
@@ -1044,7 +1044,9 @@ bool MessageGAMTest::TestExecute() {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failing after change command 0, 1 %d %d %d %d %d %d", outMem[0], outMem[1], retBrokerIn, retBrokerIn1, retTest, retBrokerOut);
     }
 
-    ds->ChangeCommand(0u, 2u);
+    if(ret) {
+        ds->ChangeCommand(0u, 2u);
+    }
 
     if(ret) {
         ret = false;
@@ -1224,8 +1226,8 @@ bool MessageGAMTest::TestExecute_MoreCommands() {
     ReferenceContainer inputBrokers;
     ReferenceContainer outputBrokers;
 
-    ReferenceT < MemoryMapInputBroker > brokerIn;
-    ReferenceT < MemoryMapSynchronisedInputBroker > brokerIn1;
+    ReferenceT < BrokerI > brokerIn;
+    ReferenceT < BrokerI > brokerIn1;
 
     ReferenceT < MemoryMapOutputBroker > brokerOut;
 
@@ -1472,8 +1474,8 @@ bool MessageGAMTest::TestExecute_CommandsAndStates() {
     ReferenceContainer inputBrokers;
     ReferenceContainer outputBrokers;
 
-    ReferenceT < MemoryMapSynchronisedInputBroker > brokerIn;
-    ReferenceT < MemoryMapInputBroker > brokerIn1;
+    ReferenceT < BrokerI > brokerIn;
+    ReferenceT < BrokerI > brokerIn1;
 
     ReferenceT < MemoryMapOutputBroker > brokerOut;
 
@@ -1642,8 +1644,8 @@ bool MessageGAMTest::TestExecute_Commands() {
     ReferenceContainer inputBrokers;
     ReferenceContainer outputBrokers;
 
-    ReferenceT < MemoryMapSynchronisedInputBroker > brokerIn;
-    ReferenceT < MemoryMapInputBroker > brokerIn1;
+    ReferenceT < BrokerI > brokerIn;
+    ReferenceT < BrokerI > brokerIn1;
 
     ReferenceT < MemoryMapOutputBroker > brokerOut;
 
@@ -1820,8 +1822,8 @@ bool MessageGAMTest::TestExecute_WithoutTriggerOnChange() {
     ReferenceContainer inputBrokers;
     ReferenceContainer outputBrokers;
 
-    ReferenceT < MemoryMapInputBroker > brokerIn;
-    ReferenceT < MemoryMapSynchronisedInputBroker > brokerIn1;
+    ReferenceT < BrokerI > brokerIn;
+    ReferenceT < BrokerI > brokerIn1;
 
     ReferenceT < MemoryMapOutputBroker > brokerOut;
 
