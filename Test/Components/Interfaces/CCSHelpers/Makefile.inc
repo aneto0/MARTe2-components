@@ -51,7 +51,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 INCLUDES += -I../../../../Source/Components/Interfaces/CCSHelpers
 
 #TODO Temporary to fix problem in mdsplus include
-CPPFLAGS += -Wno-error=sign-compare
+CPPFLAGS += -Wno-error=sign-compare -std=c++0x
 
 all: $(OBJS) \
 	$(BUILD_DIR)/CCSHelpersTest$(LIBEXT)
