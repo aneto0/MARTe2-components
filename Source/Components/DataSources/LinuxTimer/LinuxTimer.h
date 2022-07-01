@@ -359,6 +359,11 @@ private:
      * @brief Rephase triggering signals.
      */
     uint8 trigRephase;
+
+    /**
+     * @brief Trigger a phase resync
+     */
+    bool resyncPhase;
 };
 }
 
