@@ -60,11 +60,14 @@ bool CCSHelpersTest::TestCCSToMARTeStructuredDataI() {
     ccs::types::CompoundType *cType = new ccs::types::CompoundType("CType");
     cType->AddAttribute("D", ccs::types::Float32);
     cType->AddAttribute("E", ccs::types::SignedInteger8);
+    ccs::types::AnyType *sType = new ccs::types::ArrayType("StringArray", ccs::types::String, 2u);
+    cType->AddAttribute("S", sType);
     inputType->AddAttribute("C", cType);
 
     struct CTypeStruct {
         float32 D;
         int8 E;
+        char8 S[2][::ccs::types::MaxStringLength];
     } __attribute__((packed));
 
     struct InputTypeStruct {
@@ -81,6 +84,9 @@ bool CCSHelpersTest::TestCCSToMARTeStructuredDataI() {
     mem->B = 2u;
     mem->C.D = 2.5;
     mem->C.E = -1;
+
+    StringHelper::Copy(&mem->C.S[0][0], "STRING1");
+    StringHelper::Copy(&mem->C.S[1][0], "STRING2");
 
     ConfigurationDatabase cdb;
     bool ret = CCSHelpers::CCSToMARTeStructuredDataI(cdb, input);
@@ -114,6 +120,14 @@ bool CCSHelpersTest::TestCCSToMARTeStructuredDataI() {
                     ret=(eOut==mem->C.E);
                 }
             }
+            if (ret) {
+                Vector<StreamString> sOut(2u);
+                ret = cdb.Read("S", sOut);
+                if(ret){
+                    ret = (sOut[0] == mem->C.S[0]);
+                    ret &= (sOut[1] == mem->C.S[1]);
+                }
+            }
         }
     }
     return ret;
@@ -124,6 +138,8 @@ bool CCSHelpersTest::TestMARTeToCCSAnyValue() {
     ConfigurationDatabase cdb;
     cdb.CreateAbsolute("A");
     cdb.Write("Type", "uint32");
+    uint32 nElements0[] = {2};
+    cdb.Write("NumberOfElements", nElements0); 
     cdb.MoveToAncestor(1u);
 
     cdb.CreateAbsolute("B");
@@ -132,6 +148,12 @@ bool CCSHelpersTest::TestMARTeToCCSAnyValue() {
 
     cdb.CreateAbsolute("C");
     cdb.Write("Type", "float32");
+    cdb.MoveToAncestor(1u);
+
+    cdb.CreateAbsolute("S");
+    cdb.Write("Type", "char8");
+    uint32 nElements[] = {2, 64};
+    cdb.Write("NumberOfElements", nElements); 
     cdb.MoveToAncestor(1u);
 
     IntrospectionStructure type1;
@@ -154,9 +176,10 @@ bool CCSHelpersTest::TestMARTeToCCSAnyValue() {
     ccs::types::AnyValue valOut;
 
     struct type1Struct {
-        uint32 A;
+        uint32 A[2];
         uint16 B;
         float32 C;
+        char8 S[2][::ccs::types::MaxStringLength];
     } __attribute__((packed));
 
     struct type2Struct {
@@ -166,11 +189,15 @@ bool CCSHelpersTest::TestMARTeToCCSAnyValue() {
 
     type2Struct toConvertData;
 
-    toConvertData.E.A = 1u;
+    toConvertData.E.A[0] = 1u;
+    toConvertData.E.A[1] = 2u;
     toConvertData.E.B = 2u;
     toConvertData.E.C = 1.5;
 
     toConvertData.D = -1;
+
+    StringHelper::Copy(&toConvertData.E.S[0][0], "STRING1");
+    StringHelper::Copy(&toConvertData.E.S[1][0], "STRING2");
 
     ClassRegistryItem *type2Item = ClassRegistryDatabase::Instance()->Find("Type2");
     bool ret = (type2Item != NULL);
@@ -181,15 +208,24 @@ bool CCSHelpersTest::TestMARTeToCCSAnyValue() {
 
         ret = CCSHelpers::MARTeToCCSAnyValue(valOut, toConvert);
 
-        uint32 *aOut = (uint32*) ccs::HelperTools::GetAttributeReference(&valOut, "E.A");
-        uint16 *bOut = (uint16*) ccs::HelperTools::GetAttributeReference(&valOut, "E.B");
-        float32 *cOut = (float32*) ccs::HelperTools::GetAttributeReference(&valOut, "E.C");
-        int32 *dOut = (int32*) ccs::HelperTools::GetAttributeReference(&valOut, "D");
+        if (ret) {
+            uint32 *aOut = (uint32*) ccs::HelperTools::GetAttributeReference(&valOut, "E.A");
+            uint16 *bOut = (uint16*) ccs::HelperTools::GetAttributeReference(&valOut, "E.B");
+            float32 *cOut = (float32*) ccs::HelperTools::GetAttributeReference(&valOut, "E.C");
+            int32 *dOut = (int32*) ccs::HelperTools::GetAttributeReference(&valOut, "D");
+            
+            ret &= (aOut[0] == toConvertData.E.A[0]);
+            ret &= (aOut[1] == toConvertData.E.A[1]);
+            ret &= (*bOut == toConvertData.E.B);
+            ret &= (*cOut == toConvertData.E.C);
+            ret &= (*dOut == toConvertData.D);
 
-        ret &= (*aOut == toConvertData.E.A);
-        ret &= (*bOut == toConvertData.E.B);
-        ret &= (*cOut == toConvertData.E.C);
-        ret &= (*dOut == toConvertData.D);
+            type2Struct *mem = (type2Struct *) valOut.GetInstance();
+            StreamString sOut0 = mem->E.S[0];
+            StreamString sOut1 = mem->E.S[1];
+            ret &= (sOut0 == "STRING1");
+            ret &= (sOut1 == "STRING2");
+        }
     }
 
     return ret;
@@ -217,17 +253,18 @@ bool CCSHelpersTest::TestMARTeToCCSAnyValue_StructuredDataI() {
 
     ccs::types::AnyValue valOut;
     bool ret = CCSHelpers::MARTeToCCSAnyValue(valOut, cdb);
+    if (ret) {
+        uint32 *aOut = (uint32*) ccs::HelperTools::GetAttributeReference(&valOut, "A");
+        float32 *bOut = (float32*) ccs::HelperTools::GetAttributeReference(&valOut, "B");
 
-    uint32 *aOut = (uint32*) ccs::HelperTools::GetAttributeReference(&valOut, "A");
-    float32 *bOut = (float32*) ccs::HelperTools::GetAttributeReference(&valOut, "B");
+        int16 *dOut = (int16*) ccs::HelperTools::GetAttributeReference(&valOut, "C.D");
 
-    int16 *dOut = (int16*) ccs::HelperTools::GetAttributeReference(&valOut, "C.D");
-
-    ret &= (a == *aOut);
-    ret &= (b == *bOut);
-    ret &= (d[0] == dOut[0]);
-    ret &= (d[1] == dOut[1]);
-    ret &= (d[2] == dOut[2]);
+        ret &= (a == *aOut);
+        ret &= (b == *bOut);
+        ret &= (d[0] == dOut[0]);
+        ret &= (d[1] == dOut[1]);
+        ret &= (d[2] == dOut[2]);
+    }
     return ret;
 }
 
@@ -286,6 +323,44 @@ bool CCSHelpersTest::TestCCSToMARTeAnyObject() {
     return ret;
 }
 
+bool CCSHelpersTest::TestCCSToMARTeAnyObject_StringArray() {
+    using namespace MARTe;
+    ccs::types::AnyType *inputType = new ccs::types::ArrayType("StringArray", ccs::types::String, 2u);
+
+    ccs::types::AnyValue input(inputType);
+    (void)::ccs::HelperTools::SafeStringCopy(
+        static_cast<char8 *>(::ccs::HelperTools::GetElementReference(&input, 0)),
+        "STRING1", ::ccs::types::MaxStringLength);
+    (void)::ccs::HelperTools::SafeStringCopy(
+        static_cast<char8 *>(::ccs::HelperTools::GetElementReference(&input, 1)),
+        "STRING2", ::ccs::types::MaxStringLength);
+
+    AnyObject valOut;
+    bool ret = CCSHelpers::CCSToMARTeAnyObject(valOut, input);
+
+    AnyType at = valOut.GetType();
+    if (ret) {
+        ret = !at.IsVoid();
+    }
+    if (ret) {
+        ret = (at.GetNumberOfElements(0u) == 2u);
+    }
+    if (ret) {
+        TypeDescriptor td = at.GetTypeDescriptor();
+        ret = (td == CharString);
+    }
+    if (ret) {
+        ConfigurationDatabase cdb;
+        cdb.Write("Test", at);
+        cdb.MoveToRoot();
+        Vector<StreamString> ss(2);
+        cdb.Read("Test", ss);
+        ret = (ss[0] == "STRING1");
+        ret &= (ss[1] == "STRING2");
+    }
+
+    return ret;
+}
 bool CCSHelpersTest::TestCCSToMARTeAnyObject_IntrospectedType() {
     using namespace MARTe;
     ccs::types::CompoundType *inputType = new ccs::types::CompoundType("IntrospectedType");
