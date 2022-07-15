@@ -76,7 +76,7 @@ LIBRARIES   += -L$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter/linux -lBaseLib2Ad
 endif
 
 ifdef MDSPLUS_DIR
-LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
+LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsShr -lTdiShr -lTreeShr -lMdsIpShr -lMdsObjectsCppShr
 endif
 
 ifdef EPICS_BASE
