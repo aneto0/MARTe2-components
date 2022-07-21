@@ -199,7 +199,8 @@ void DANStream::Finalise() {
     (void) danSourceName.Seek(0LLU);
     (void) danSourceName.Printf("%s_%s", baseName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(td));
     (void) danSourceName.Seek(0LLU);
-    uint32 danBufferSize = blockSize * danBufferMultiplier;
+    uint64 danBufferSize = static_cast<uint64>(blockSize);
+    danBufferSize *= static_cast<uint64>(danBufferMultiplier);
     danSource = DANAPI::PublishSource(danSourceName.Buffer(), danBufferSize);
 }
 
