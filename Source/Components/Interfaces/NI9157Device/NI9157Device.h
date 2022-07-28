@@ -54,6 +54,7 @@ namespace MARTe {
  * +NiDevice = {
  *     Class = NI9157Device
  *     NiRioDeviceName = RIO0
+ *     NiRioSerialNumber = "0x01E4B4D5" // if NiRioDeviceNumber not defined, it will search the device from the SN
  *     NiRioGenFile = "/path/to/the/NiRio/Gen/file/NiFpga_firmware.lvbitx"
  *     NiRioGenSignature = "CCF43684FE70CCDB4E23B1D2DF50940C"
  *     Open = 1 // specifies if the device must be opened or not. If 0, the Configuration block has no meaning.
@@ -838,6 +839,10 @@ protected:
      */
     StreamString niRioDeviceName;
 
+    /**
+     * Holds the Ni-9157 serial number.
+     */
+    StreamString niRioSerialNumber;
 };
 
 }
