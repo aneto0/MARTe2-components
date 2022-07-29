@@ -35,19 +35,48 @@ MARTe2_MAKEDEFAULT_DIR?=$(MARTe2_DIR)/MakeDefaults
 M2_RPM_VERSION?=$(shell git tag | sort -V | tail -1 | cut -c2-)
 M2_RPM_NAME?=MARTe2_Components
 M2_RPM_ID?=marte2-components
-M2_RPM_ID_TEST=$(M2_RPM_ID)-test
+M2_RPM_ID_FULL=$(M2_RPM_ID)-test
 M2_RPM_BUILD_OPTIONS?=core
 M2_RPM_REQUIRES?=marte2-core
-M2_RPM_CONFLICTS?=$(M2_RPM_ID_TEST)
+M2_RPM_CONFLICTS?=$(M2_RPM_ID_FULL)
 M2_RPM_SPEC_FILE_PATH=$(MARTe2_DIR)/Resources/RPM/
+M2_RPM_BIN_LIST=none
+M2_RPM_LIB_LIST=libFileDataSource.so \
+	libLinkDataSource.so \
+	libLinuxTimer.so \
+	libLoggerDataSource.so \
+	libRealTimeThreadSynchronisation.so \
+	libRealTimeThreadAsyncBridge.so \
+	libConstantGAM.so \
+	libConversionGAM.so \
+	libCRCGAM.so \
+	libDoubleHandshakeGAM.so \
+	libFilterGAM.so \
+	libHistogramGAM.so \
+	libInterleaved2FlatGAM.so \
+	libIOGAM.so \
+	libMuxGAM.so \
+	libMathExpressionGAM.so \
+	libPIDGAM.so \
+	libSSMGAM.so \
+	libStatisticsGAM.so \
+	libTimeCorrectionGAM.so \
+	libWaveform.so \
+	libMessageGAM.so \
+	libMemoryGate.so \
+	libSysLogger.so
+
 
 include $(MARTe2_MAKEDEFAULT_DIR)/MakeStdLibDefs.$(TARGET)
 
 all: $(OBJS) $(BUILD_DIR)/$(M2_RPM_ID)-$(M2_RPM_VERSION).rpm check-env
 	echo  $(OBJS)
 
-test: 
-	make -f Makefile.$(TARGET) M2_RPM_ID=$(M2_RPM_ID_TEST) FOLDERSX='$(FOLDERSX) Test.x' M2_RPM_REQUIRES=marte2-core-test M2_RPM_BUILD_OPTIONS=all M2_RPM_CONFLICTS=$(M2_RPM_ID)
+full: 
+	make -f Makefile.$(TARGET) M2_RPM_ID=$(M2_RPM_ID_FULL) FOLDERSX='$(FOLDERSX) Test.x' M2_RPM_BUILD_OPTIONS=all M2_RPM_CONFLICTS=$(M2_RPM_ID)
+
+dan: 
+	make -f Makefile.$(TARGET) M2_RPM_ID=$(RPM_ID)-dan M2_RPM_BUILD_EXTRA_ARGS='SPBM=Source/Components/DataSources/DAN.x SPBMT=' M2_RPM_LIB_LIST='libDAN.so'
 
 check-env:
 ifndef MARTe2_DIR

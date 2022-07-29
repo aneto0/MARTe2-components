@@ -51,7 +51,7 @@ INCLUDES += -I$(CODAC_ROOT)/include
 endif
 
 ifdef CODAC_ROOT
-LIBRARIES   += -L$(MARTe2_DIR)/Build/x86-linux/Core -lMARTe2 -L$(CODAC_ROOT)/lib -ltcn
+LIBRARIES   += -L$(CODAC_ROOT)/lib -ltcn
 endif
 
 all: $(OBJS)    \
