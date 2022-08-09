@@ -71,6 +71,10 @@ epics-v3:
 epics-v3-test:
 	$(call build-component-test,epics,Source/Components/DataSources/EPICSCA.x Source/Components/Interfaces/EPICS.x,Test/Components/DataSources/EPICSCA.x Test/Components/Interfaces/EPICS.x,MARTeEPICSCAInputOutputTest.db MARTeEPICSCATest.db)
 
+all: epics-v3
+
+test: epics-v3-test
+
 check-env:
 ifndef MARTe2_DIR
     $(error MARTe2_DIR is undefined)

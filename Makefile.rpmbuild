@@ -48,6 +48,7 @@ test:
 	make -f Makefile.$(TARGET) \
 		M2_RPM_ID=$(M2_RPM_ID)-test \
 		FOLDERSX='$(FOLDERSX) Test.x' \
+		M2_RPM_REQUIRES?=marte2-components \
 		M2_RPM_SRC_DIR=Test \
 		M2_RPM_BIN_LIST=MainGTest.ex \
 		M2_RPM_LIB_LIST='*Test.a' \
