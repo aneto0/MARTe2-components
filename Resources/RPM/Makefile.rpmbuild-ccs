@@ -1,0 +1,80 @@
+#############################################################
+#
+# Copyright 2015 EFDA | European Joint Undertaking for ITER
+# and the Development of Fusion Energy ("Fusion for Energy")
+#
+# Licensed under the EUPL, Version 1.1 or - as soon they 
+# will be approved by the European Commission - subsequent  
+# versions of the EUPL (the "Licence"); 
+# You may not use this work except in compliance with the 
+# Licence. 
+# You may obtain a copy of the Licence at: 
+#  
+# http://ec.europa.eu/idabc/eupl
+#
+# Unless required by applicable law or agreed to in 
+# writing, software distributed under the Licence is 
+# distributed on an "AS IS" basis, 
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
+# express or implied. 
+# See the Licence for the specific language governing 
+# permissions and limitations under the Licence. 
+#
+# $Id: Makefile.gcc 3 2015-01-15 16:26:07Z aneto $
+#
+#############################################################
+
+TARGET=rpmbuild
+TOP_DIR=../..
+
+MARTe2_MAKEDEFAULT_DIR?=$(MARTe2_DIR)/MakeDefaults
+
+M2_RPM_TOPDIR_DIRECTIVE=$(PWD)/$(TOP_DIR)/Build/rpmbuild
+M2_RPM_BUILD_DIR=$(M2_RPM_TOPDIR_DIRECTIVE)/BUILD
+M2_RPM_ID=marte2-components
+M2_RPM_TOP_DIR=/opt/marte2-components
+
+define build-component
+	make -C $(TOP_DIR) -f Makefile.$(TARGET) \
+		M2_RPM_ID=$(M2_RPM_ID)-$(1) \
+		M2_RPM_NAME=MARTe2_Components-$(1) \
+		FOLDERSX='$(2) Makefile.x86-linux.x Makefile.inc.x Source/Components/DataSources/LinuxTimer.x Test/Components/DataSources/LinuxTimer.x' \
+		M2_RPM_BUILD_EXTRA_ARGS='SPBM=\"$(2)\" SPBMT=""' M2_RPM_LIB_LIST='$(3)' \
+		M2_RPM_REQUIRES='marte2-core $(4)' \
+		M2_RPM_TOPDIR_DIRECTIVE=$(M2_RPM_TOPDIR_DIRECTIVE) \
+		M2_RPM_TOP_DIR=$(M2_RPM_TOP_DIR) \
+		M2_RPM_BUILD_DIR=$(M2_RPM_BUILD_DIR) \
+		M2_RPM_DEVEL_LIST="" 
+endef
+
+define build-component-test
+	make -C $(TOP_DIR) -f Makefile.$(TARGET) SKIP_PROFINET=1 \
+		M2_RPM_ID=$(M2_RPM_ID)-$(1)-test \
+		M2_RPM_NAME=MARTe2_Components-$(1) \
+		M2_RPM_BUILD_EXTRA_ARGS='SPBM="" SPBMT=\"Source/Components/DataSources/LinuxTimer.x Test/Components/DataSources/LinuxTimer.x $(2) $(3) Test/GTest.x\"' \
+		FOLDERSX='$(2) $(3) Makefile.x86-linux.x Makefile.inc.x Source/Components/DataSources/LinuxTimer.x Test/Components/DataSources/LinuxTimer.x Test/GTest.x' \
+		M2_RPM_BIN_LIST='MainGTest-$(1).ex $(4)' \
+		M2_RPM_REQUIRES='$(M2_RPM_ID)-$(1)' \
+		M2_RPM_BUILD_OPTIONS='all RENAME_GTEST_EX=MainGTest-$(1).ex' \
+		M2_RPM_TOP_DIR=$(M2_RPM_TOP_DIR)-test \
+		M2_RPM_TOPDIR_DIRECTIVE=$(M2_RPM_TOPDIR_DIRECTIVE) \
+		M2_RPM_BUILD_DIR=$(M2_RPM_BUILD_DIR) \
+		M2_RPM_SRC_DIR="Test" \
+		M2_RPM_LIB_LIST="*Test.a" \
+		M2_RPM_PROFILE_D="" \
+		M2_RPM_LIB_DIR="" 
+endef
+
+epics-v3:
+	$(call build-component,epics,Source/Components/DataSources/EPICSCA.x Source/Components/Interfaces/EPICS.x,EPICS.a EPICSCA.a libEPICSCA.so EPICSCA.so libEPICS.so EPICS.so,codac-core-$(shell codac-version -v)-epics)
+
+epics-v3-test:
+	$(call build-component-test,epics,Source/Components/DataSources/EPICSCA.x Source/Components/Interfaces/EPICS.x,Test/Components/DataSources/EPICSCA.x Test/Components/Interfaces/EPICS.x,MARTeEPICSCAInputOutputTest.db MARTeEPICSCATest.db)
+
+check-env:
+ifndef MARTe2_DIR
+    $(error MARTe2_DIR is undefined)
+endif
+
+include $(MARTe2_MAKEDEFAULT_DIR)/MakeStdLibRules.$(TARGET)
+

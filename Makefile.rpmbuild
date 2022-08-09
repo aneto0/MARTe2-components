@@ -35,155 +35,24 @@ MARTe2_MAKEDEFAULT_DIR?=$(MARTe2_DIR)/MakeDefaults
 M2_RPM_VERSION?=$(shell git tag | sort -V | tail -1 | cut -c2-)
 M2_RPM_NAME?=MARTe2_Components
 M2_RPM_ID?=marte2-components
-M2_RPM_ID_FULL=$(M2_RPM_ID)-test
 M2_RPM_BUILD_OPTIONS?=core
 M2_RPM_REQUIRES?=marte2-core
-#M2_RPM_CONFLICTS?=$(M2_RPM_ID_FULL)
 M2_RPM_SPEC_FILE_PATH=$(MARTe2_DIR)/Resources/RPM/
-M2_RPM_BIN_LIST=none
-M2_RPM_LIB_LIST=libBaseLib2Wrapper.so BaseLib2Wrapper.so libFileDataSource.so FileDataSource.so \
-	libLinkDataSource.so \
-	LinkDataSource.so \
-	libLinuxTimer.so \
-	LinuxTimer.so \
-	libLoggerDataSource.so \
-	LoggerDataSource.so \
-	libRealTimeThreadSynchronisation.so \
-	RealTimeThreadSynchronisation.so \
-	libRealTimeThreadAsyncBridge.so \
-	RealTimeThreadAsyncBridge.so \
-	libConstantGAM.so \
-	ConstantGAM.so \
-	libConversionGAM.so \
-	ConversionGAM.so \
-	libCRCGAM.so \
-	CRCGAM.so \
-	libDoubleHandshakeGAM.so \
-	DoubleHandshakeGAM.so \
-	libFilterGAM.so \
-	FilterGAM.so \
-	libFlattenedStructIOGAM.so \
-	FlattenedStructIOGAM.so \
-	libHistogramGAM.so \
-	HistogramGAM.so \
-	libInterleaved2FlatGAM.so \
-	Interleaved2FlatGAM.so \
-	libIOGAM.so \
-	IOGAM.so \
-	libMemoryGate.so \
-	MemoryGate.so \
-	libMuxGAM.so \
-	MuxGAM.so \
-	libMathExpressionGAM.so \
-	MathExpressionGAM.so \
-	libPIDGAM.so \
-	PIDGAM.so \
-	libSSMGAM.so \
-	SSMGAM.so \
-	libStatisticsGAM.so \
-	StatisticsGAM.so \
-	libTimeCorrectionGAM.so \
-	TimeCorrectionGAM.so \
-	libWaveform.so \
-	Waveform.so \
-	libMessageGAM.so \
-	MessageGAM.so \
-	libMemoryGate.so \
-	MemoryGate.so \
-	libSysLogger.so \
-	SysLogger.so \
-    libTriggeredIOGAM.so \
-    TriggeredIOGAM.so \
-	libUARTDataSource.so \
-	UARTDataSource.so \
-	libUDP.so \
-	UDP.so
-
-M2_RPM_DEVEL_LIST=FileDataSource.h \
-    LinkDataSource.h \
-    LinuxTimer.h \
-    TimeProvider.h \
-    HighResolutionTimeProvider.h \
-    LoggerDataSource.h \
-    LoggerBroker.h \
-    RealTimeThreadSynchBroker.h \
-    RealTimeThreadSynchronisation.h \
-    RealTimeThreadAsyncBridge.h \
-    ConstantGAM.h \
-    ConversionGAM.h \
-    CRCGAM.h \
-    DoubleHandshakeGAM.h \
-    FilterGAM.h \
-    HistogramGAM.h \
-    HistogramComparator.h \
-    HistogramComparatorT.h \
-    Interleaved2FlatGAM.h \
-    IOGAM.h \
-    MuxGAM.h \
-    MathExpressionGAM.h \
-    MessageGAM.h \
-    EventConditionTrigger.h \
-    PIDGAM.h \
-    SSMGAM.h \
-    StatisticsGAM.h \
-    StatisticsHelperT.h \
-    TimeCorrectionGAM.h \
-    Waveform.h \
-    MessageGAM.h \
-    MemoryGate.h \
-    SysLogger.h \
-    TimestampProvider.h \
-    HighResolutionTimeProvider.h \
-    UARTDataSource.h \
-    UDPSender.h \
-    UDPReceiver.h \
-    TriggeredIOGAM.h \
-    FlattenedStructIOGAM.h \
-    BaseLib2Wrapper.h \
-    BaseLib2WrapperMessageFilter.h \
-    MemoryGate.h 
-
-
 
 include $(MARTe2_MAKEDEFAULT_DIR)/MakeStdLibDefs.$(TARGET)
 
 all: $(OBJS) $(BUILD_DIR)/$(M2_RPM_ID)-$(M2_RPM_VERSION).rpm check-env
 	echo  $(OBJS)
 
-#full: 
-#	make -f Makefile.$(TARGET) M2_RPM_ID=$(M2_RPM_ID_FULL) M2_RPM_TOP_DIR='/opt/marte2-components' FOLDERSX='$(FOLDERSX) Test.x' M2_RPM_BUILD_OPTIONS=all M2_RPM_CONFLICTS=$(M2_RPM_ID) M2_RPM_DEVEL_LIST="" M2_RPM_LIB_LIST=""
-
-matlab:
-	make -f Makefile.$(TARGET) M2_RPM_ID=$(M2_RPM_ID)-matlab M2_RPM_TOP_DIR='/opt/marte2-components' M2_RPM_NAME="" FOLDERSX='Source/Components/GAMs/SimulinkWrapperGAM.x Makefile.x86-linux.x Makefile.inc.x' M2_RPM_BUILD_EXTRA_ARGS='SPBM=Source/Components/GAMs/SimulinkWrapperGAM.x SPBMT=' M2_RPM_LIB_LIST='libSimulinkWrapperGAM.so SimulinkWrapperGAM.so' M2_RPM_DEVEL_LIST="" 
-
-opcua:
-	make -f Makefile.$(TARGET) M2_RPM_ID=$(M2_RPM_ID)-opcua M2_RPM_TOP_DIR='/opt/marte2-components' M2_RPM_NAME="" FOLDERSX='Source/Components/DataSources/OPCUADataSource.x Source/Components/Interfaces/OPCUA.x Makefile.x86-linux.x Makefile.inc.x' M2_RPM_BUILD_EXTRA_ARGS='SPBM=\"Source/Components/DataSources/OPCUADataSource.x Source/Components/Interfaces/OPCUA.x\" SPBMT=' M2_RPM_LIB_LIST='libOPCUADataSource.so OPCUADataSource.so libOPCUA.so OPCUA.so' M2_RPM_DEVEL_LIST="" M2_RPM_REQUIRES='codac-core-$(shell codac-version -v)-open62541'
-
-dan: 
-	make -f Makefile.$(TARGET) M2_RPM_ID=$(M2_RPM_ID)-dan M2_RPM_TOP_DIR='/opt/marte2-components' M2_RPM_NAME="" FOLDERSX='Source/Components/DataSources/DAN.x Makefile.x86-linux.x Makefile.inc.x' M2_RPM_BUILD_EXTRA_ARGS='SPBM=Source/Components/DataSources/DAN.x SPBMT=' M2_RPM_LIB_LIST='libDAN.so DAN.so' M2_RPM_DEVEL_LIST="" M2_RPM_REQUIRES='codac-core-$(shell codac-version -v)-dan-daq'   
-
-sdn: 
-	make -f Makefile.$(TARGET) M2_RPM_ID=$(M2_RPM_ID)-sdn M2_RPM_TOP_DIR='/opt/marte2-components' M2_RPM_NAME="" FOLDERSX='Source/Components/DataSources/SDN.x Makefile.x86-linux.x Makefile.inc.x' M2_RPM_BUILD_EXTRA_ARGS='SPBM=Source/Components/DataSources/SDN.x SPBMT=' M2_RPM_LIB_LIST='libSDN.so SDN.so' M2_RPM_DEVEL_LIST="" M2_RPM_REQUIRES='codac-core-$(shell codac-version -v)-sdn-core'
-
-epics: 
-	make -f Makefile.$(TARGET) M2_RPM_ID=$(M2_RPM_ID)-epics M2_RPM_TOP_DIR='/opt/marte2-components' M2_RPM_NAME="" FOLDERSX='Source/Components/DataSources/EPICSCA.x Source/Components/DataSources/EPICSPVA.x Source/Components/Interfaces/EPICS.x Source/Components/Interfaces/EPICSPVA.x Makefile.x86-linux.x Makefile.inc.x' M2_RPM_BUILD_EXTRA_ARGS='SPBM=\"Source/Components/DataSources/EPICSCA.x Source/Components/DataSources/EPICSPVA.x Source/Components/Interfaces/EPICS.x Source/Components/Interfaces/EPICSPVA.x\" SPBMT=' M2_RPM_LIB_LIST='libEPICSCA.so EPICSCA.so libEPICSPVADataSource.so EPICSPVADataSource.so libEPICS.so EPICS.so libEPICSPVA.so EPICSPVA.so' M2_RPM_DEVEL_LIST="" M2_RPM_REQUIRES='codac-core-$(shell codac-version -v)-epics'
-
-rio:
-	make -f Makefile.$(TARGET) M2_RPM_ID=$(M2_RPM_ID)-rio M2_RPM_TOP_DIR='/opt/marte2-components' M2_RPM_NAME="" FOLDERSX='Source/Components/DataSources/NI9157.x Source/Components/Interfaces/NI9157Device.x Makefile.x86-linux.x Makefile.inc.x' M2_RPM_BUILD_EXTRA_ARGS='SPBM=\"Source/Components/DataSources/NI9157.x Source/Components/Interfaces/NI9157Device.x\" SPBMT=' M2_RPM_LIB_LIST='libNI9157.so NI9157.so libNI9157Device.so NI9157Device.so' M2_RPM_DEVEL_LIST="" M2_RPM_REQUIRES='codac-core-$(shell codac-version -v)-kmod-nirio-lib' 
-
-pxi:
-	make -f Makefile.$(TARGET) M2_RPM_ID=$(M2_RPM_ID)-pxi M2_RPM_TOP_DIR='/opt/marte2-components' M2_RPM_NAME="" FOLDERSX='Source/Components/DataSources/NI1588.x Source/Components/DataSources/NI6259.x Source/Components/DataSources/NI6368.x Makefile.x86-linux.x Makefile.inc.x' M2_RPM_BUILD_EXTRA_ARGS='SPBM=\"Source/Components/DataSources/NI1588.x Source/Components/DataSources/NI6259.x Source/Components/DataSources/NI6368.x\" SPBMT=' M2_RPM_LIB_LIST='libNI1588.so NI1588.so libNI6259.so NI6259.so libNI6368.so NI6368.so' M2_RPM_DEVEL_LIST="" M2_RPM_REQUIRES='codac-core-$(shell codac-version -v)-kmod-nisync-lib codac-core-$(shell codac-version -v)-kmod-pxi6259-lib codac-core-$(shell codac-version -v)-kmod-pxie6368-lib'   
-
-tcn:
-	make -f Makefile.$(TARGET) M2_RPM_ID=$(M2_RPM_ID)-tcn M2_RPM_TOP_DIR='/opt/marte2-components' M2_RPM_NAME="" FOLDERSX='Source/Components/Interfaces/TcnTimeProvider.x Source/Components/DataSources/LinuxTimer.x Makefile.x86-linux.x Makefile.inc.x' M2_RPM_BUILD_EXTRA_ARGS='SPBM=Source/Components/Interfaces/TcnTimeProvider.x SPBMT=' M2_RPM_LIB_LIST='libTcnTimeProvider.so TcnTimeProvider.so' M2_RPM_DEVEL_LIST="TcnTimeProvider.h" M2_RPM_REQUIRES='codac-core-$(shell codac-version -v)-tcn-lib'   
-
-ccs:
-	make -f Makefile.$(TARGET) M2_RPM_ID=$(M2_RPM_ID)-ccs M2_RPM_TOP_DIR='/opt/marte2-components' M2_RPM_NAME="" FOLDERSX='Source/Components/Interfaces/CCSHelpers.x Makefile.x86-linux.x Makefile.inc.x' M2_RPM_BUILD_EXTRA_ARGS='SPBM=Source/Components/Interfaces/CCSHelpers.x SPBMT=' M2_RPM_LIB_LIST='libCCSHelpers.so CCSHelpers.so' M2_RPM_DEVEL_LIST="" M2_RPM_REQUIRES='codac-core-$(shell codac-version -v)-cpp-common'   
-
 test: 
-	make -f Makefile.$(TARGET) M2_RPM_NAME="" M2_RPM_TOP_DIR='/opt/$(M2_RPM_ID)' M2_RPM_ID=$(M2_RPM_ID)-test FOLDERSX='$(FOLDERSX) Test.x' M2_RPM_BUILD_OPTIONS=all M2_RPM_BIN_LIST=MainGTest.ex M2_RPM_DEVEL_LIST="" M2_RPM_LIB_LIST='*Test.a *Test.so' M2_RPM_SRC_DIR=Test M2_RPM_REQUIRES='marte2-components marte2-components-dan marte2-components-opcua marte2-components-matlab marte2-components-sdn marte2-components-epics marte2-components-rio marte2-components-pxi marte2-components-tcn marte2-components-ccs'
- 
-
+	make -f Makefile.$(TARGET) \
+		M2_RPM_ID=$(M2_RPM_ID)-test \
+		FOLDERSX='$(FOLDERSX) Test.x' \
+		M2_RPM_SRC_DIR=Test \
+		M2_RPM_BIN_LIST=MainGTest.ex \
+		M2_RPM_LIB_LIST='*Test.a' \
+		M2_RPM_PROFILE_D="" \
+		M2_RPM_BUILD_OPTIONS=all 
 
 check-env:
 ifndef MARTe2_DIR
