@@ -60,12 +60,26 @@
 namespace MARTe {
 namespace CCSHelpers {
 
+static bool IsStringArray(MARTe::TypeDescriptor td, uint32 numberOfDimensions) {
+    bool isStringArray = (td == MARTe::Character8Bit);
+    if (!isStringArray) {
+        isStringArray = (td == MARTe::CharString);
+    }
+    if (isStringArray) {
+        isStringArray = (numberOfDimensions > 0u);
+    }
+    return isStringArray;
+}
+
 static bool CCSCompoundTypeFromStructuredDataI(ccs::types::CompoundType *retType,
                                               MARTe::StructuredDataI *sdi) {
     bool ret = (sdi != NULL);
     if (ret) {
         if (sdi->GetName() != NULL) {
-            retType->SetName(sdi->GetName());
+            StreamString nname;
+            //Need to guarantee that have branch "type" is uniquely identified
+            (void) nname.Printf("%s_%d", sdi->GetName(), HighResolutionTimer::Counter());
+            retType->SetName(nname.Buffer());
         }
         else {
             retType->SetName("Root");
@@ -91,12 +105,11 @@ static bool CCSCompoundTypeFromStructuredDataI(ccs::types::CompoundType *retType
                     MARTe::TypeDescriptor td = leaf.GetTypeDescriptor();
                     ccs::types::AnyType *leafType = NULL;
                     uint32 nElems = leaf.GetNumberOfElements(0u);
-                    if (nElems == 1u) {
-                        leafType = GetCCSBasicType(td, 0u, 1u);
+                    uint32 nDims = leaf.GetNumberOfDimensions();
+                    if (nElems == 0u) {
+                        nElems = 1u;
                     }
-                    else {
-                        leafType = GetCCSBasicType(td, 1u, nElems);
-                    }
+                    leafType = GetCCSBasicType(td, nDims, nElems);
                     ret = (leafType != NULL);
                     if (ret) {
                         retType->AddAttribute(childName, leafType);
@@ -129,10 +142,21 @@ static bool MARTeToCCSBasicType(ccs::types::AnyValue &valueOut,
             ret = basicType.IsValid();
         }
         if (ret) {
+            bool isStringArray = IsStringArray(td, element.GetNumberOfDimensions());
             valueOut = ccs::types::AnyValue(basicType);
             if (td == MARTe::StructuredDataInterfaceType) {
                 MARTe::StructuredDataI *sdi = reinterpret_cast<MARTe::StructuredDataI*>(element.GetDataPointer());
                 ret = MARTeToCCSAnyValue(valueOut, *sdi);
+            }
+            else if (isStringArray) {
+                const char8 **mStrings = static_cast<const char8 **>(element.GetDataPointer());
+                const ::ccs::base::SharedReference<const ::ccs::types::ArrayType> atype = valueOut.GetType();
+                uint32 asize = atype->GetMultiplicity();
+                for (uint32 index = 0u; index < asize; index++) {
+                    (void)::ccs::HelperTools::SafeStringCopy(
+                            static_cast<char8 *>(::ccs::HelperTools::GetElementReference(&valueOut, index)),
+                            mStrings[index], ::ccs::types::MaxStringLength);
+                }
             }
             else {
                 ret = MemoryOperationsHelper::Copy(valueOut.GetInstance(), element.GetDataPointer(), (element.GetByteSize() * numberOfElements));
@@ -163,12 +187,18 @@ static ccs::types::CompoundType* GetStructuredType(MARTe::TypeDescriptor td) {
                 const ccs::types::char8 *memberTypeName = introEntry.GetMemberTypeName();
 
                 ccs::types::uint8 numberOfDimensions = introEntry.GetNumberOfDimensions();
-                //above vectors not supported
+                ccs::types::uint32 numberOfElements = introEntry.GetNumberOfElements(0u);
+                MARTe::TypeDescriptor memberTd = introEntry.GetMemberTypeDescriptor();
+                //above vectors not supported (exception for array of char8 *)
+                bool isStringArray = IsStringArray(memberTd, numberOfDimensions);
                 ret = (numberOfDimensions < 2u);
+                if (!ret) {
+                    //Allow for char[][]
+                    if (numberOfDimensions == 2u) {
+                        ret = isStringArray;
+                    }
+                }
                 if (ret) {
-                    ccs::types::uint32 numberOfElements = introEntry.GetNumberOfElements(0u);
-
-                    MARTe::TypeDescriptor memberTd = introEntry.GetMemberTypeDescriptor();
                     if (memberTd.isStructuredData) {
                         //go recursive
                         ccs::base::SharedReference < ccs::types::AnyType > newType(GetStructuredType(memberTd));
@@ -188,6 +218,10 @@ static ccs::types::CompoundType* GetStructuredType(MARTe::TypeDescriptor td) {
                     }
                     else {
                         //basic type, get Scalar or Array
+                        if (isStringArray) {
+                            //Force the type for string arrays to guarantee that it works for char8[][], char8[] and string *
+                            memberTd = MARTe::CharString;
+                        }
                         ccs::base::SharedReference<const ccs::types::AnyType> newType(GetCCSBasicType(memberTd, numberOfDimensions, numberOfElements));
                         structuredType->AddAttribute(memberName, newType);
                     }
@@ -241,11 +275,11 @@ static bool MARTeToCCSStructuredType(ccs::types::AnyValue &valueOut,
                     ccs::types::uint32 srcMemberOffset = introEntry.GetMemberByteOffset();
                     ccs::types::uint8 *sourceMemberPtr = &sourcePtr[srcMemberOffset];
 
+                    //create a new AnyValue with the right pointer
+                    ccs::base::SharedReference<const ccs::types::AnyType> innerType = structuredType->GetAttributeType(memberName);
+                    //consider number of elements
                     if (memberTd.isStructuredData) {
                         //wrap the memory and go recursive!
-                        //create a new AnyValue with the right pointer
-                        ccs::base::SharedReference<const ccs::types::AnyType> innerType = structuredType->GetAttributeType(memberName);
-                        //consider number of elements
                         ccs::types::uint8 numberOfDimensions = introEntry.GetNumberOfDimensions();
 
                         if (numberOfDimensions > 0u) {
@@ -264,8 +298,31 @@ static bool MARTeToCCSStructuredType(ccs::types::AnyValue &valueOut,
                         }
                     }
                     else {
-                        //it takes into account numberOfElements
-                        ret = MemoryOperationsHelper::Copy(dstMemberPtr, sourceMemberPtr, memberSize);
+                        bool isStringArray = IsStringArray(memberTd, introEntry.GetNumberOfDimensions());
+                        if (isStringArray) {
+                            uint32 numberOfElements = introEntry.GetNumberOfElements(0u);
+                            ccs::base::SharedReference<const ccs::types::ArrayType> strArrType = innerType;
+                            ret = strArrType.IsValid();
+                            uint32 sOffset = 0u;
+                            for (uint32 index = 0u; (index < numberOfElements) && (ret); index++) {
+                                const char8 *mString = reinterpret_cast<const char8 *>(&sourceMemberPtr[sOffset]);
+                                ret = ::ccs::HelperTools::SafeStringCopy(
+                                    static_cast<char8 *>(strArrType->GetElementReference(dstMemberPtr, index)),
+                                    mString, ::ccs::types::MaxStringLength);
+                                sOffset += introEntry.GetNumberOfElements(1u);
+                            }
+                        }
+                        else {
+                            uint32 ne = 1u;
+                            for (uint32 d=0u; d<introEntry.GetNumberOfDimensions(); d++) {
+                                uint32 ned = introEntry.GetNumberOfElements(d);
+                                if (ned > 0u) {
+                                    ne *= ned;
+                                }
+                            }
+                            //Take into account numberOfElements
+                            ret = MemoryOperationsHelper::Copy(dstMemberPtr, sourceMemberPtr, memberSize * ne);
+                        }
                     }
                 }
             }
@@ -289,15 +346,27 @@ static bool CCSToMARTeScalarType(MARTe::AnyObject &valueOut,
 
     bool ret = (td != MARTe::InvalidType);
     if (ret) {
-        ccs::types::uint32 memSize = (td.numberOfBits / 8u);
-        ccs::types::uint8 *memory = new MARTe::uint8[memSize * numberOfElements];
-        ret = MemoryOperationsHelper::Copy(memory, valueIn.GetInstance(), memSize * numberOfElements);
-        MARTe::AnyType tempType(td, 0, memory);
-        tempType.SetNumberOfDimensions(numberOfDimensions);
-        tempType.SetNumberOfElements(0u, numberOfElements);
-        valueOut.Serialise(tempType);
-
-        delete[] memory;
+        bool isStringArray = IsStringArray(td, numberOfDimensions);
+        if (isStringArray) {
+            ccs::base::SharedReference<const ccs::types::ArrayType> strArrayType(valueIn.GetType());
+            Vector<StreamString> destMem(numberOfElements);
+            for (uint32 index=0; index<numberOfElements; index++) {
+                const char8 *src = static_cast<const char8 *>(strArrayType->GetElementReference(valueIn.GetInstance(), index));
+                destMem[index] = src;
+            }
+            MARTe::AnyType tempType(destMem);
+            valueOut.Serialise(tempType);
+        }
+        else {
+            ccs::types::uint32 memSize = (td.numberOfBits / 8u);
+            ccs::types::uint8 *memory = new MARTe::uint8[memSize * numberOfElements];
+            ret = MemoryOperationsHelper::Copy(memory, valueIn.GetInstance(), memSize * numberOfElements);
+            MARTe::AnyType tempType(td, 0, memory);
+            tempType.SetNumberOfDimensions(numberOfDimensions);
+            tempType.SetNumberOfElements(0u, numberOfElements);
+            valueOut.Serialise(tempType);
+            delete[] memory;
+        }
     }
     return ret;
 }
@@ -434,8 +503,14 @@ static bool CCSToMARTeIntrospectableType(MARTe::AnyObject &valueOut,
                             ccs::base::SharedReference<const ccs::types::AnyType> innerType(typeArray->GetElementType());
                             ccs::base::SharedReference<const ccs::types::ScalarType> inScalarType = innerType;
                             if (inScalarType) {
-                                //it is the same since number of elements is considered in the size
-                                ret = MemoryOperationsHelper::Copy(&dstMem[dstOffset], &srcMem[srcOffset], typeArray->GetSize());
+                                ret = !IsStringArray((*intro)[i].GetMemberTypeDescriptor(), 1u);
+                                if (ret) {
+                                    //it is the same since number of elements is considered in the size
+                                    ret = MemoryOperationsHelper::Copy(&dstMem[dstOffset], &srcMem[srcOffset], typeArray->GetSize());
+                                }
+                                else {
+                                    REPORT_ERROR_STATIC_0(ErrorManagement::FatalError, "Array of strings serialisation currently not implemented for Instrospectable types");
+                                }
                             }
                             else {
                                 ccs::base::SharedReference<const ccs::types::ArrayType> inArrayType = innerType;
@@ -563,12 +638,28 @@ bool MARTeToCCSAnyValue(ccs::types::AnyValue &valueOut, MARTe::StructuredDataI &
             }
             else {
                 MARTe::AnyType leaf = valueIn.GetType(childName);
-                ccs::types::uint8 *srcPtr = reinterpret_cast<ccs::types::uint8*>(leaf.GetDataPointer());
-                ret = (srcPtr != NULL);
-                if (ret) {
-                    ccs::types::uint32 memberSize = outType->GetAttributeSize(childName);
-                    ccs::types::uint32 memberOffset = outType->GetAttributeOffset(childName);
-                    ret = MemoryOperationsHelper::Copy(&memPtr[memberOffset], srcPtr, memberSize);
+                ccs::types::uint32 memberSize = outType->GetAttributeSize(childName);
+                ccs::types::uint32 memberOffset = outType->GetAttributeOffset(childName);
+                bool isStringArray = IsStringArray(leaf.GetTypeDescriptor(), leaf.GetNumberOfDimensions());
+                if (isStringArray) {
+                    ccs::base::SharedReference<const ::ccs::types::ArrayType> atype = outType->GetAttributeType(childName);
+                    ret = atype.IsValid();
+                    if (ret) {
+                        const char8 **leafStrings = static_cast<const char8 **>(leaf.GetDataPointer());
+                        uint32 asize = atype->GetMultiplicity();
+                        for (uint32 index = 0u; (index < asize) && (ret); index++) {
+                            ret = ::ccs::HelperTools::SafeStringCopy(
+                                static_cast<char8 *>(atype->GetElementReference(&memPtr[memberOffset], index)),
+                                leafStrings[index], ::ccs::types::MaxStringLength);
+                        }
+                    }
+                }
+                else {
+                    ccs::types::uint8 *srcPtr = reinterpret_cast<ccs::types::uint8*>(leaf.GetDataPointer());
+                    ret = (srcPtr != NULL);
+                    if (ret) {
+                        ret = MemoryOperationsHelper::Copy(&memPtr[memberOffset], srcPtr, memberSize);
+                    }
                 }
             }
         }
@@ -781,18 +872,29 @@ bool CCSToMARTeStructuredDataI(MARTe::StructuredDataI &valueOut,
             ccs::base::SharedReference<const ccs::types::ArrayType> arrType(memberType);
             if(arrType.IsValid()){
                 ccs::types::uint32 size = typeIn->GetAttributeSize(i);
-                MARTe::TypeDescriptor td;
-                uint32 numberOfElements = 1u;
-                td = GetMARTeBasicType(arrType->GetElementType());
-                numberOfElements = arrType->GetMultiplicity();
-                ccs::types::uint8 *destMem = new ccs::types::uint8[size];
-                ret = MemoryOperationsHelper::Copy(destMem, &valMem[offset], size);
-                MARTe::AnyType destType(td, 0u, destMem);
-                destType.SetNumberOfDimensions(1u);
-                destType.SetNumberOfElements(0u, numberOfElements);
-                //it serialises the AnyType inside so we are free to destroy the mem
-                valueOut.Write(memberName, destType);
-                delete[] destMem;
+                MARTe::TypeDescriptor td = GetMARTeBasicType(arrType->GetElementType());
+                uint32 numberOfElements = arrType->GetMultiplicity();
+                bool isStringArray = IsStringArray(td, 1u);
+                if (isStringArray) {
+                    Vector<StreamString> destMem(numberOfElements);
+                    for (uint32 index=0; index<numberOfElements; index++) {
+                        const char8 *src = static_cast<const char8 *>(arrType->GetElementReference(&valMem[offset], index));
+                        destMem[index] = src;
+                    }
+                    MARTe::AnyType destType(destMem);
+                    //it serialises the AnyType inside so we are free to destroy the mem
+                    valueOut.Write(memberName, destType);
+                }
+                else {
+                    ccs::types::uint8 *destMem = new ccs::types::uint8[size];
+                    ret = MemoryOperationsHelper::Copy(destMem, &valMem[offset], size);
+                    MARTe::AnyType destType(td, 0u, destMem);
+                    destType.SetNumberOfDimensions(1u);
+                    destType.SetNumberOfElements(0u, numberOfElements);
+                    //it serialises the AnyType inside so we are free to destroy the mem
+                    valueOut.Write(memberName, destType);
+                    delete[] destMem;
+                }
             }
             else if (nodeType) {
                 valueOut.CreateRelative(memberName);

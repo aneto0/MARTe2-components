@@ -74,6 +74,11 @@ public:
     bool TestCCSToMARTeAnyObject();
 
     /**
+     * @brief Tests the CCSToMARTeAnyObject method with a string array.
+     */
+    bool TestCCSToMARTeAnyObject_StringArray();
+
+    /**
      * @brief Tests the CCSToMARTeAnyObject method with an input structure.
      */
     bool TestCCSToMARTeAnyObject_IntrospectedType();

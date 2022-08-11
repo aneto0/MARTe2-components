@@ -59,6 +59,11 @@ TEST(CCSHelpersTest, TestCCSToMARTeAnyObject) {
     ASSERT_TRUE(test.TestCCSToMARTeAnyObject());
 }
 
+TEST(CCSHelpersTest, TestCCSToMARTeAnyObject_StringArray) {
+    CCSHelpersTest test;
+    ASSERT_TRUE(test.TestCCSToMARTeAnyObject_StringArray());
+}
+
 TEST(CCSHelpersTest, TestCCSToMARTeAnyObject_IntrospectedType) {
     CCSHelpersTest test;
     ASSERT_TRUE(test.TestCCSToMARTeAnyObject_IntrospectedType());

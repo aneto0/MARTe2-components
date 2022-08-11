@@ -47,7 +47,7 @@ namespace MARTe {
  * <pre>
  * +SysLogger = {
  *     Class = SysLogger
- *     Format = ItOoFm //Compulsory. As described in LoggerConsumerI::LoadPrintPreferences
+ *     Format = EtOoFm //Compulsory. As described in LoggerConsumerI::LoadPrintPreferences
  *     PrintKeys = 1 //Optional. As described in LoggerConsumerI::LoadPrintPreferences
  *     Ident = myapp //Compulsory. Name of the syslog ident.
  * }

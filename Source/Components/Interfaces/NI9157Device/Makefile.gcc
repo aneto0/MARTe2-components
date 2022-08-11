@@ -26,4 +26,4 @@
 
 include Makefile.inc
 
-LIBRARIES   += -L$(MARTe2_DIR)/Build/x86-linux/Core -lMARTe2 -L$(CODAC_ROOT)/lib -lNiFpga
+LIBRARIES   += -L$(CODAC_ROOT)/lib -lNiFpga

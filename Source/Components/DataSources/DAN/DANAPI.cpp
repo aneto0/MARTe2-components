@@ -91,8 +91,8 @@ bool CloseStream(void * danSource) {
     return (dan_publisher_closeStream(reinterpret_cast<dan_Source>(danSource)) == 0);
 }
 
-void * PublishSource(const char8 * const sourceName, uint32 bufferSize) {
-    return dan_publisher_publishSource_withDAQBuffer(danDataCore, sourceName, static_cast<int32>(bufferSize));
+void * PublishSource(const char8 * const sourceName, uint64 bufferSize) {
+    return dan_publisher_publishSource_withDAQBuffer(danDataCore, sourceName, bufferSize);
 }
 
 void UnpublishSource(void *danSource) {

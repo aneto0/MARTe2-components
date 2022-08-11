@@ -78,7 +78,7 @@ bool CloseStream(void * danSource);
 /**
  * @brief see dan_publisher_publishSource_withDAQBuffer
  */
-void *PublishSource(const char8 * const sourceName, uint32 bufferSize);
+void *PublishSource(const char8 * const sourceName, uint64 bufferSize);
 
 /**
  * @brief see dan_publisher_unpublishSource
