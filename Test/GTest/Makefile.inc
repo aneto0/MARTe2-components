@@ -26,7 +26,9 @@ PACKAGE=
 ROOT_DIR=../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
+ifndef SKIP_PROFINET
 include $(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource/Makefile.detect
+endif
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
@@ -95,7 +97,13 @@ ifdef MATLAB_DIR
 LIBRARIES += -Wl,-rpath-link,$(MATLAB_DIR)/bin/glnxa64 "$(MATLAB_DIR)/sys/os/glnxa64/libstdc++.so.6" -L$(MATLAB_DIR)/extern/bin/glnxa64/ -L$(MATLAB_DIR)/bin/glnxa64/ -lMatlabDataArray -lMatlabEngine -lmx -lmex -lmat -lm -lstdc++ -leng
 endif
 
+#Allow to rename the MainGTest.ex 
+ifndef RENAME_GTEST_EX
 all: $(BUILD_DIR)/MainGTest$(EXEEXT)
+else
+all: $(BUILD_DIR)/MainGTest$(EXEEXT)
+	mv $(BUILD_DIR)/MainGTest$(EXEEXT) $(BUILD_DIR)/$(RENAME_GTEST_EX)
+endif
 
 include depends.$(TARGET)
 
