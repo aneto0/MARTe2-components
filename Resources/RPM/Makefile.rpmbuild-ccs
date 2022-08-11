@@ -65,13 +65,18 @@ define build-component-test
 		M2_RPM_LIB_DIR="" 
 endef
 
+CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
 #EPICS v3 only for older versions of CCS - it is incompatible with epics v7 RPM (below)
 epics-ca:
+ifeq "$(CCSGT61)" "0"
 	$(call build-component,epics-ca,Source/Components/DataSources/EPICSCA.x Source/Components/Interfaces/EPICS.x,EPICS.a EPICSCA.a libEPICSCA.so EPICSCA.so libEPICS.so EPICS.so,codac-core-$(shell codac-version -v)-epics)
+endif
 
 #EPICS v7 for newer versions of CCS is it incompatible with epics-ca (above)
 epics:
+ifeq "$(CCSGT61)" "1"
 	$(call build-component,epics,Source/Components/DataSources/EPICSCA.x Source/Components/Interfaces/EPICS.x Source/Components/DataSources/EPICSPVA.x Source/Components/Interfaces/EPICSPVA.x,EPICS.a EPICSCA.a libEPICSCA.so EPICSCA.so libEPICS.so EPICS.so EPICSPVADataSource.a EPICSPVA.a libEPICSPVADataSource.so EPICSPVADataSource.so libEPICSPVA.so EPICSPVA.so,codac-core-$(shell codac-version -v)-epics)
+endif
 
 sdn:
 	$(call build-component,sdn,Source/Components/DataSources/SDN.x,SDN.a libSDN.so SDN.so,codac-core-$(shell codac-version -v)-sdn-core)
@@ -96,10 +101,14 @@ ifeq "$(CCSGT70)" "1"
 endif
 
 epics-ca-test:
+ifeq "$(CCSGT61)" "0"
 	$(call build-component-test,epics-ca,,Source/Components/DataSources/EPICSCA.x Source/Components/Interfaces/EPICS.x,Test/Components/DataSources/EPICSCA.x Test/Components/Interfaces/EPICS.x,MARTeEPICSCAInputOutputTest.db MARTeEPICSCATest.db)
+endif
 
 epics-test:
+ifeq "$(CCSGT61)" "1"
 	$(call build-component-test,epics,,Source/Components/DataSources/EPICSCA.x Source/Components/Interfaces/EPICS.x Source/Components/DataSources/EPICSPVA.x Source/Components/Interfaces/EPICSPVA.x,Test/Components/DataSources/EPICSCA.x Test/Components/Interfaces/EPICS.x Test/Components/DataSources/EPICSPVA.x Test/Components/Interfaces/EPICSPVA.x,MARTeEPICSCAInputOutputTest.db MARTeEPICSCATest.db EPICSPVA2V3ServiceTest.db)
+endif
 
 sdn-test:
 	$(call build-component-test,sdn,,Source/Components/DataSources/SDN.x,Test/Components/DataSources/SDN.x,)
