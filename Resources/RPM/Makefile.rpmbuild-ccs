@@ -131,6 +131,51 @@ ifeq "$(CCSGT70)" "1"
 	$(call build-component-test,tcn,,Source/Components/Interfaces/CCSHelpers.x,Test/Components/Interfaces/CCSHelpers.x,)
 endif
 
+CCS_COMPS_DEPS=$(M2_RPM_ID)-sdn $(M2_RPM_ID)-dan $(M2_RPM_ID)-rio $(M2_RPM_ID)-pxi $(M2_RPM_ID)-tcn
+CCS_TEST_COMPS_DEPS=$(M2_RPM_ID)-sdn-test $(M2_RPM_ID)-dan-test $(M2_RPM_ID)-rio-test $(M2_RPM_ID)-pxi-test $(M2_RPM_ID)-tcn-test
+
+ifeq "$(CCSGT61)" "1"
+CCS_COMPS_DEPS := $(CCS_COMPS_DEPS) $(M2_RPM_ID)-epics
+CCS_TEST_COMPS_DEPS_F := $(CCS_TEST_COMPS_DEPS) $(M2_RPM_ID)-epics-test
+else
+CCS_COMPS_DEPS := $(CCS_COMPS_DEPS) $(M2_RPM_ID)-epics-ca
+CCS_TEST_COMPS_DEPS_F := $(CCS_TEST_COMPS_DEPS) $(M2_RPM_ID)-epics-ca-test
+endif
+
+ifeq "$(CCSGT70)" "1"
+CCS_COMPS_DEPS := $(CCS_COMPS_DEPS) $(M2_RPM_ID)-ccsh
+CCS_TEST_COMPS_DEPS := $(CCS_TEST_COMPS_DEPS) $(M2_RPM_ID)-ccsh-test
+endif
+
+
+ccs-comps:
+	make -C $(TOP_DIR) -f Makefile.$(TARGET) SKIP_PROFINET=1 \
+		M2_RPM_ID=$(M2_RPM_ID)-ccs \
+		M2_RPM_NAME=MARTe2_Components-ccs \
+		M2_RPM_BUILD_EXTRA_ARGS='SPBM=\"\" SPBMT=\"\"' \
+		FOLDERSX='Makefile.inc.x Makefile.x86-linux.x Source.x' \
+		M2_RPM_REQUIRES='$(CCS_COMPS_DEPS)' \
+		M2_RPM_TOP_DIR=$(M2_RPM_TOP_DIR) \
+		M2_RPM_TOPDIR_DIRECTIVE=$(M2_RPM_TOPDIR_DIRECTIVE) \
+		M2_RPM_BUILD_DIR=$(M2_RPM_BUILD_DIR) \
+		M2_RPM_SRC_DIR="Source" \
+		M2_RPM_PROFILE_D="" \
+		M2_RPM_LIB_DIR="" 
+
+ccs-comps-test:
+	make -C $(TOP_DIR) -f Makefile.$(TARGET) SKIP_PROFINET=1 \
+		M2_RPM_ID=$(M2_RPM_ID)-ccs-test \
+		M2_RPM_NAME=MARTe2_Components-ccs-test \
+		M2_RPM_BUILD_EXTRA_ARGS='SPBM=\"\" SPBMT=\"\"' \
+		FOLDERSX='Makefile.inc.x Makefile.x86-linux.x Source.x' \
+		M2_RPM_REQUIRES='$(CCS_TEST_COMPS_DEPS)' \
+		M2_RPM_TOP_DIR=$(M2_RPM_TOP_DIR) \
+		M2_RPM_TOPDIR_DIRECTIVE=$(M2_RPM_TOPDIR_DIRECTIVE) \
+		M2_RPM_BUILD_DIR=$(M2_RPM_BUILD_DIR) \
+		M2_RPM_SRC_DIR="Source" \
+		M2_RPM_PROFILE_D="" \
+		M2_RPM_LIB_DIR="" 
+
 all: epics-ca \
 	epics \
 	sdn \
@@ -138,7 +183,8 @@ all: epics-ca \
 	rio \
 	pxi \
 	tcn \
-	ccsh
+	ccsh \
+	ccs-comps
 
 test: all\
 	epics-ca-test \
@@ -148,7 +194,8 @@ test: all\
 	rio-test \
 	pxi-test \
 	tcn-test \
-	ccsh-test
+	ccsh-test \
+	ccs-comps-test
 
 check-env:
 ifndef MARTe2_DIR
