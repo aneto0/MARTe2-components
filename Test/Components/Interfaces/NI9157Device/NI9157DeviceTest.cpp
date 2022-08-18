@@ -575,6 +575,92 @@ bool NI9157DeviceTest::TestInitialise_ResetPostSleepMs(uint32 model) {
     return ret;
 }
 
+bool NI9157DeviceTest::TestInitialise_ClearTrue(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIoConfig;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.Write("Open", 1);
+        ret &= cdb.Write("Reset", 1);
+        ret &= cdb.Write("Run", 1);
+        ret &= cdb.Write("Clear", 1);
+        ret &= cdb.MoveRelative("Configuration");
+        // Change....
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+        if (ret) {
+            ret &= interface->Reset() == 0;
+            ret &= interface->Close() == 0;
+        }
+    }
+
+    return ret;
+}
+
+bool NI9157DeviceTest::TestInitialise_ClearFalse(uint32 model) {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = multiIoConfig;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    if (ret) {
+        ret = cdb.MoveAbsolute("+NiDevice");
+        ret &= cdb.Write("NiRioDeviceName", multiIOFirmware[nParams*model + 0]);
+        StreamString pathAndFile = "";
+        pathAndFile.Printf("%s/%s", firmwarePath, multiIOFirmware[nParams*model + 1]);
+        ret &= cdb.Write("NiRioGenFile", pathAndFile.Buffer());
+        ret &= cdb.Write("NiRioGenSignature", multiIOFirmware[nParams*model + 2]);
+        ret &= cdb.Write("Open", 1);
+        ret &= cdb.Write("Reset", 1);
+        ret &= cdb.Write("Run", 1);
+        ret &= cdb.Write("Clear", 0);
+        ret &= cdb.MoveRelative("Configuration");
+        // Change....
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<NI9157DeviceTestIF> interface;
+    if (ret) {
+        interface = ObjectRegistryDatabase::Instance()->Find("NiDevice");
+        ret = interface.IsValid();
+        if (ret) {
+            ret &= interface->Reset() == 0;
+            ret &= interface->Close() == 0;
+        }
+    }
+
+    return ret;
+}
+
 bool NI9157DeviceTest::TestOpen(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());

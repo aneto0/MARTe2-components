@@ -162,6 +162,20 @@ public:
     bool TestInitialise_ResetPostSleepMs(uint32 model);
 
     /**
+     * @brief Tests the NI9157Device::Initialise method with the
+     * 'Clear' parameter set to one.
+     * @param model the NI crate model being used.
+     */
+    bool TestInitialise_ClearTrue(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::Initialise method with the
+     * 'Clear' parameter set to zero.
+     * @param model the NI crate model being used.
+     */
+    bool TestInitialise_ClearFalse(uint32 model);
+
+    /**
      * @brief Tests the NI9157Device::Open method.
      * @param model the NI crate model being used.
      */

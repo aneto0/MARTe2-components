@@ -76,7 +76,10 @@ NI9157Device::~NI9157Device() {
 }
 
 bool NI9157Device::Initialise(StructuredDataI & data) {
-    bool ret = ReferenceContainer::Initialise(data);
+
+    uint8 clear = static_cast<uint8>(0u);
+    bool ret    = ReferenceContainer::Initialise(data);
+
     if (ret) {
         ret = data.Read("NiRioDeviceName", niRioDeviceName);
         if (!ret) {
@@ -100,7 +103,6 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
                     }
                     devN++;
                 }
-
             }
             else {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "NI9157Device::Initialise Please specify NiRioDeviceName or NiRioSerialNumber");
@@ -138,6 +140,11 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
                 run = 0u;
             }
         }
+        if (ret) {
+            if (!data.Read("Clear", clear)) {
+                clear = static_cast<uint8>(0u);
+            }
+        }
     }
     if (ret) {
         if (isOpened > 0u) {
@@ -145,6 +152,14 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
             uint32 cnt = 0u;
             while (condition) {
                 if (isOpened == 1u) {
+                    if (clear) {
+                        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157Device::Initialise - Calling clear fpga method on device %s.", niRioDeviceName.Buffer());
+                        status = NiFpgaEx_ClearFpga(niRioDeviceName.Buffer());
+                        REPORT_ERROR_PARAMETERS((status == 0) ? ErrorManagement::Information : ErrorManagement::Warning,
+                            "NI9157Device::Initialise - Clear fpga method on device %s returning with status %d.", niRioDeviceName.Buffer(), static_cast<int32>(status));
+                        status = 0;
+                        Sleep::MSec(100u);
+                    }
                     REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157Device::Initialise Opening %s %s %s", niRioDeviceName.Buffer(), niRioGenSignature.Buffer(),
                                             niRioGenFile.Buffer());
                     /*lint -e{930} allow conversion from enum to int*/
