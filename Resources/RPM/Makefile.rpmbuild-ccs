@@ -37,7 +37,7 @@ M2_RPM_TOP_DIR=/opt/marte2-components
 define build-component
 	make -C $(TOP_DIR) -f Makefile.$(TARGET) \
 		M2_RPM_ID=$(M2_RPM_ID)-$(1) \
-		M2_RPM_NAME=MARTe2_Components-$(1) \
+		M2_RPM_NAME=MARTe2_Components_$(1) \
 		FOLDERSX='$(2) Makefile.x86-linux.x Makefile.inc.x' \
 		M2_RPM_BUILD_EXTRA_ARGS='SPBM=\"$(2)\" SPBMT=""' M2_RPM_LIB_LIST='$(3)' \
 		M2_RPM_REQUIRES='marte2-core $(4)' \
@@ -50,7 +50,7 @@ endef
 define build-component-test
 	make -C $(TOP_DIR) -f Makefile.$(TARGET) SKIP_PROFINET=1 \
 		M2_RPM_ID=$(M2_RPM_ID)-$(1)-test \
-		M2_RPM_NAME=MARTe2_Components-$(1) \
+		M2_RPM_NAME=MARTe2_Components_$(1) \
 		M2_RPM_BUILD_EXTRA_ARGS='SPBM=\"$(2)\" SPBMT=\"$(3) $(4) Test/GTest.x\"' \
 		FOLDERSX='$(3) $(4) Makefile.x86-linux.x Makefile.inc.x Source/Components/DataSources/LinuxTimer.x Test/Components/DataSources/LinuxTimer.x Test/GTest.x' \
 		M2_RPM_BIN_LIST='MainGTest-ccs-$(1).ex $(5)' \
