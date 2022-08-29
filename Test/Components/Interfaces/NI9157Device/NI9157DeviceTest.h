@@ -12,7 +12,7 @@
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
  *
- * @warning Unless required by applicable law or agreed to in writing, 
+ * @warning Unless required by applicable law or agreed to in writing,
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
@@ -92,43 +92,43 @@ public:
     bool TestInitialiseRandomConfig(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method that fails if 
-	 * NiRioDeviceName is not specified.
+     * @brief Tests the NI9157Device::Initialise method that fails if
+     * NiRioDeviceName is not specified.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_FalseNoDeviceName(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::Initialise method that fails if
-	 * NiRioGenFile is not specified.
+     * NiRioGenFile is not specified.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_FalseNoGenFile(uint32 model);
 
     /**
-     * @brief Tests the NI9157Device::Initialise method that fails if 
-	 * NiRioGenSignature is not specified.
+     * @brief Tests the NI9157Device::Initialise method that fails if
+     * NiRioGenSignature is not specified.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_FalseNoGenSignature(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::Initialise method that fails if
-	 * the type id is not found in the variable to be initialised.
+     * the type id is not found in the variable to be initialised.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_FalseNoType(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::Initialise method that fails if the type
-	 * id is not found in the variable is not found in the Labview project.
+     * id is not found in the variable is not found in the Labview project.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_FalseVariableNotFound(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::Initialise method that fails with a device
-	 * that is not found when Open in set.
+     * that is not found when Open in set.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_FalseOpenFakeDevice(uint32 model);
@@ -142,17 +142,24 @@ public:
 
     /**
      * @brief Tests the NI9157Device::Initialise method does not fail without
-	 * Open, Reset and Run parameters set.
+     * Open, Reset and Run parameters set.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_NoOpenResetRun(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::Initialise method that does not fail without
-	 * Configuration.
+     * Configuration.
      * @param model the NI crate model being used.
      */
     bool TestInitialise_FalseNoConfig(uint32 model);
+
+    /**
+     * @brief Tests the NI9157Device::Initialise method with the
+     * 'ResetPostSleepMs' parameter set to a value greather than zero.
+     * @param model the NI crate model being used.
+     */
+    bool TestInitialise_ResetPostSleepMs(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::Open method.
@@ -167,7 +174,7 @@ public:
      */
     bool TestOpen_FalseParams(uint32 model);
 
-	/**
+    /**
      * @brief Tests the NI9157Device::IsOpened method.
      * @param model the NI crate model being used.
      */

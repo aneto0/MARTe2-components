@@ -250,6 +250,23 @@ TEST(NI9157DeviceGTest,TestInitialise_FalseNoConfig) {
     ASSERT_TRUE(ret);
 }
 
+TEST(NI9157DeviceGTest,TestInitialise_ResetPostSleepMs) {
+    NI9157DeviceTest test;
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAllRetTrue) {
+            ret &= test.TestInitialise_ResetPostSleepMs(idx);
+        }
+        else {
+            ret = test.TestInitialise_ResetPostSleepMs(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
+}
+
 TEST(NI9157DeviceGTest,TestOpen) {
     NI9157DeviceTest test;
     bool ret = true;

@@ -125,9 +125,9 @@ CreateNI9157DeviceOperator<T>::CreateNI9157DeviceOperator(const char8 * const id
     identifier = id;
     //discover the type descriptor
     if (dynamic_cast<CreateNI9157DeviceOperator<bool>*>(this) != NULL) {
-        typeDes = UnsignedInteger32Bit;
+        typeDes = BooleanType;
     }
-    if (dynamic_cast<CreateNI9157DeviceOperator<uint8>*>(this) != NULL) {
+    else if (dynamic_cast<CreateNI9157DeviceOperator<uint8>*>(this) != NULL) {
         typeDes = UnsignedInteger8Bit;
     }
     else if (dynamic_cast<CreateNI9157DeviceOperator<int8>*>(this) != NULL) {
