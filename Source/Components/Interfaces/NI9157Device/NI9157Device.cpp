@@ -89,14 +89,14 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
                 uint32 devN = 0u;
                 while ((!found) && (ret)) {
                     StreamString candidateDev;
-                    candidateDev.Printf("RIO%d", devN);
+                    (void) candidateDev.Printf("RIO%d", devN);
                     char8 serialNumber[128u] = { '\0' };
                     uint32 size = 128u;
-                    status = NiFpgaEx_GetAttributeString(candidateDev.Buffer(), NiFpgaEx_AttributeString_SerialNumber, serialNumber, static_cast<size_t>(size));
-                    ret=(status == 0);
+                    status = NiFpgaEx_GetAttributeString(candidateDev.Buffer(), NiFpgaEx_AttributeString_SerialNumber, &serialNumber[0u], static_cast<size_t>(size));
+                    ret = (status == 0);
                     if (ret) {
                         niRioDeviceName = candidateDev;
-                        found = (niRioSerialNumber == serialNumber);
+                        found = (niRioSerialNumber == reinterpret_cast<char8 *>(&serialNumber[0u]));
                     }
                     else {
                         REPORT_ERROR(ErrorManagement::InitialisationError, "NI9157Device::Initialise Device with SN = %s not found", niRioSerialNumber.Buffer());
@@ -152,7 +152,7 @@ bool NI9157Device::Initialise(StructuredDataI & data) {
             uint32 cnt = 0u;
             while (condition) {
                 if (isOpened == 1u) {
-                    if (clear) {
+                    if (clear == 1u) {
                         REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "NI9157Device::Initialise - Calling clear fpga method on device %s.", niRioDeviceName.Buffer());
                         status = NiFpgaEx_ClearFpga(niRioDeviceName.Buffer());
                         REPORT_ERROR_PARAMETERS((status == 0) ? ErrorManagement::Information : ErrorManagement::Warning,
