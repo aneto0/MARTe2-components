@@ -1342,17 +1342,18 @@ bool NI9157MxiDataSourceTest::TestAsyncRead(uint32 model) {
     int32 store = 0u;
     StreamString varName = "ticks_counter";
     uint64 varValue = 0u;
-    for (uint32 i = 0u; (i < nReads) && (ret); i++) {
-        ret = dataSource->AsyncRead(varName, varValue);
-        if (i > 0u) {
-            delta = (static_cast<int32>(varValue) - store);
-            ret = ((delta - deltaExpected) < tol) || ((delta - deltaExpected) > -tol);
+    if (ret) {
+        for (uint32 i = 0u; (i < nReads) && (ret); i++) {
+            ret = dataSource->AsyncRead(varName, varValue);
+            if (i > 0u) {
+                delta = (static_cast<int32>(varValue) - store);
+                ret = ((delta - deltaExpected) < tol) || ((delta - deltaExpected) > -tol);
+            }
+            Sleep::Sec(1e-3);
+            store = static_cast<int32>(varValue);
         }
-        Sleep::Sec(1e-3);
-        store = static_cast<int32>(varValue);
+        ret &= !dataSource->AsyncRead("someVariable", varValue);
     }
-    ret &= !dataSource->AsyncRead("someVariable", varValue);
-
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
@@ -1418,8 +1419,8 @@ bool NI9157MxiDataSourceTest::TestAsyncWrite(uint32 model) {
                 Sleep::Sec(1e-3);
             }
         }
+        ret &= !dataSource->AsyncWrite("someVariable", varValue);
     }
-    ret &= !dataSource->AsyncWrite("someVariable", varValue);
 
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
