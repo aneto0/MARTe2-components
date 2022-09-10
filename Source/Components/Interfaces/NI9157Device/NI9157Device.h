@@ -63,6 +63,7 @@ namespace MARTe {
  *              // Run = 0 is assumed if this parameter is not set.
  *     Run = 0  // specifies if the device should be set into run mode after being opened.
  *              // Run = 0 is assumed if this parameter is not set.
+ *     Clear = 0  // calls clear on the FPGA to ensure that nothing is running before a new firmware is loaded and /or a new application is started.
  *     ResetPostSleepMs = 120   // (optional, default is zero) specifies the amount of time in milliseconds to wait after the initial reset call().
  *                              // This method is intended for cards (i.e. NI9401) where the NI reset method afects output readiness.
  *     Configuration = {

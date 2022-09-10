@@ -267,6 +267,40 @@ TEST(NI9157DeviceGTest,TestInitialise_ResetPostSleepMs) {
     ASSERT_TRUE(ret);
 }
 
+TEST(NI9157DeviceGTest,TestInitialise_ClearTrue) {
+    NI9157DeviceTest test;
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAllRetTrue) {
+            ret &= test.TestInitialise_ClearTrue(idx);
+        }
+        else {
+            ret = test.TestInitialise_ClearTrue(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
+}
+
+TEST(NI9157DeviceGTest,TestInitialise_ClearFalse) {
+    NI9157DeviceTest test;
+    bool ret = true;
+    for (uint32 idx = 0; idx < nDevices; idx++) {
+        if(testAllRetTrue) {
+            ret &= test.TestInitialise_ClearFalse(idx);
+        }
+        else {
+            ret = test.TestInitialise_ClearFalse(idx);
+            if (ret) {
+                break;
+            }
+        }
+    }
+    ASSERT_TRUE(ret);
+}
+
 TEST(NI9157DeviceGTest,TestOpen) {
     NI9157DeviceTest test;
     bool ret = true;
