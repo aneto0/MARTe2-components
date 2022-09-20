@@ -56,6 +56,8 @@ namespace MARTe{
  *                            that every state change (e.g. PrepareNextState) the GAM stores the current value to wait for a change happening in the future, by comparing
  *                            past value with current, during that specific state context. In other words, the GAM has to see and "edge" in the command value to trigger a message.
  * - TriggerOnChange disabled: the GAM does not need to see an edge in command value to trigger the message, even across state changes.
+ * - FirstTime: For the first execution of this GAM, regard previousValue as 0. This causes a trigger on change to be true even if this is the first iteration of the Message being
+ * executed. By disabling this it will ignore the first iteration if TriggerOnChange is enabled and subsequent iterations the previousValue will be what it started with.
  * As the GAM keeps track of sent messages and received replies, if the message sent as a consequence of a triggering event is still awaiting for a reply, no further message will
  * be sent until the reply acknowledgement.
  * Constraints:\n
@@ -67,6 +69,7 @@ namespace MARTe{
  *   +GAM1 = {
  *       Class = TriggerOnChangeGAM
  *       TriggerOnChange = 1 //Defaults to 1 = true if not present. Allowed values 0 == false or disabled, != 0 == true or enabled (see above)
+ *       FirstTime = 1 // Defaults to 1 = true if not present.  Allowed values 0 == false or disabled, != 0 == true or enabled (see above)
  *       +Events = {
  *           Class = ReferenceContainer
  *           +Event1 = {
