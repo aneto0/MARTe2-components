@@ -83,6 +83,15 @@ bool MessageGAM::Initialise(StructuredDataI &data) {
             trigOnChange = (tempTrigOnChange != 0u);
         }
     }
+    if (ret) {
+        uint8 tempfirstTime;
+        if (!data.Read("FirstTime", tempfirstTime)) {
+            firstTime = true;
+        }
+        else {
+            firstTime = (tempfirstTime != 0u);
+        }
+    }
     return ret;
 }
 
