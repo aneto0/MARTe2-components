@@ -377,6 +377,12 @@ private:
      * Ignore timeout flag
      */
     uint8 ignoreTimeoutError;
+
+
+    /**
+     * How many topics in the socket buffer
+     */
+    uint32 socketBufferCapacity;
 };
 
 }

@@ -83,6 +83,7 @@ SDNSubscriber::SDNSubscriber() :
     payloadAddresses = NULL_PTR(void **);
     internalTimeout = 0u;
     ignoreTimeoutError = 0u;
+    socketBufferCapacity=0u;
 }
 
 /*lint -e{1551} the destructor must guarantee that the SDNSubscriber SingleThreadService is stopped and that all the SDN objects are destroyed.*/
@@ -174,6 +175,10 @@ bool SDNSubscriber::Initialise(StructuredDataI &data) {
     if (data.Read("Timeout", timeout)) {
         REPORT_ERROR(ErrorManagement::Information, "Explicit subscriber timeout '%u'", timeout);
         TTTimeout = timeout;
+    }
+
+    if(!data.Read("SocketBufferCapacity", socketBufferCapacity)){
+        socketBufferCapacity=0u;
     }
 
     if (!data.Read("InternalTimeout", internalTimeout)) {
@@ -330,6 +335,13 @@ bool SDNSubscriber::AllocateMemory() {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         ok = (subscriber->SetInterface(ifaceName.Buffer()) == STATUS_SUCCESS);
     }
+
+    if(ok){
+        if(socketBufferCapacity > 0u){
+            ok = (subscriber->SetBufferDepth(socketBufferCapacity*topic->GetSize()) == STATUS_SUCCESS);
+        }
+    }
+
 
     if (ok) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/

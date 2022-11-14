@@ -327,6 +327,7 @@ const MARTe::char8 * const config_default = ""
         "            Class = SDNPublisher"
         "            Topic = Default"
         "            Interface = lo"
+        "            SocketBufferCapacity = 100"
         "            Signals = {"
         "                Counter = {"
         "                    Type = uint64"
@@ -514,6 +515,7 @@ bool SDNPublisherTest::TestInitialise_Missing_Interface() {
     bool ok = test.Initialise(cdb);
     return !ok; // Expect failure
 }
+
 
 bool SDNPublisherTest::TestInitialise_False_Interface_1() {
     using namespace MARTe;
