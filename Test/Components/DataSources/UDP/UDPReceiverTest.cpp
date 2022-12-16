@@ -586,6 +586,71 @@ static const MARTe::char8 *const config4 = ""
         "    }"
         "}";
 
+static const MARTe::char8 *const config5 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMReceiver = {"
+        "            Class = TestHelperGAM"
+        "            InputSignals = {"
+        "                Payload = {"
+        "                    Type = uint32"
+        "                    DataSource = UDP"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                Payload = {"
+        "                    Type = uint32"
+        "                    DataSource = DDB1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +DDB1 = {"
+        "            Class = GAMDataSource"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +UDP = {"
+        "            Class = UDP::UDPReceiver"
+        "            ExecutionMode = RealTimeThread"
+        "            Address = \"234.0.0.1\""
+        "            InterfaceAddress = \"0.0.0.0\""
+        "            Port = 45678"
+        "            Timeout = 0.5"
+        "            Signals = {"
+        "                Payload = {"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMReceiver}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = UDPReceiverSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -691,6 +756,22 @@ bool UDPReceiverTest::TestInitialise_No_ExecutionMode_No_StackSize() {
     return ok;
 }
 
+bool UDPReceiverTest::TestInitialise_InterfaceAddress() {
+    using namespace MARTe;
+    UDPReceiver test;
+    ConfigurationDatabase cdb;
+    cdb.Write("Port", 45678);
+    cdb.Write("Timeout", 10);
+    cdb.Write("ExecutionMode", "RealTimeThread");
+    cdb.Write("Address", "127.0.0.1");
+    cdb.Write("InterfaceAddress", "0.0.0.0");
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    bool ok = test.Initialise(cdb);
+    return ok;
+
+}
+
 bool UDPReceiverTest::TestInitialise_IndependentThread() {
     using namespace MARTe;
     UDPReceiver test;
@@ -718,6 +799,10 @@ bool UDPReceiverTest::TestInitialise_Wrong_ExecutionMode() {
 
 bool UDPReceiverTest::TestSetConfiguredDatabase_ValidAddress() {
     return TestIntegratedExecution(config1);
+}
+
+bool UDPReceiverTest::TestSetConfiguredDatabase_MulticastAddress_Interface() {
+    return TestIntegratedExecution(config5);
 }
 
 bool UDPReceiverTest::TestSetConfiguredDatabase_InvalidAddress() {
