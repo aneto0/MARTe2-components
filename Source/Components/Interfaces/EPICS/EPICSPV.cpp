@@ -493,9 +493,8 @@ void EPICSPV::TriggerEventMessage() {
         }
         else {
             uint32 numberOfMessages = Size();
-            ReferenceT < Message > message;
             for (uint32 i = 0u; (i < numberOfMessages) && ok; i++) {
-                message = Get(i);
+                ReferenceT < Message > message = Get(i);
                 if (message.IsValid()) {
                     ReferenceT < ConfigurationDatabase > parameters = message->Get(0u);
                     if (parameters.IsValid()) {
@@ -535,16 +534,16 @@ void EPICSPV::TriggerEventMessage() {
                         }
                     }
                 }
-            }
-            StreamString messageDestination;
-            messageDestination = message->GetDestination();
-            StreamString val;
-            (void) val.Printf("%!", pvAnyType);
-            if (MessageI::SendMessage(message, this) != ErrorManagement::NoError) {
-                REPORT_ERROR(ErrorManagement::FatalError, "Could not send message to %s with value %s", messageDestination.Buffer(), val.Buffer());
-            }
-            else{
-                REPORT_ERROR(ErrorManagement::Information, "Sent message to %s with value %s", messageDestination.Buffer(), val.Buffer());
+                StreamString messageDestination;
+                messageDestination = message->GetDestination();
+                StreamString val;
+                (void) val.Printf("%!", pvAnyType);
+                if (MessageI::SendMessage(message, this) != ErrorManagement::NoError) {
+                    REPORT_ERROR(ErrorManagement::FatalError, "Could not send message to %s with value %s", messageDestination.Buffer(), val.Buffer());
+                }
+                else{
+                    REPORT_ERROR(ErrorManagement::Information, "Sent message to %s with value %s", messageDestination.Buffer(), val.Buffer());
+                }
             }
         }
         if (handlePVEventNthTime > 2u) {
