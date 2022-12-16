@@ -80,6 +80,11 @@ public:
     bool TestInitialise_No_ExecutionMode_No_StackSize();
 
     /**
+     * @brief Tests the Initialise method with InterfaceAddress.
+     */
+    bool TestInitialise_InterfaceAddress();
+
+    /**
      * @brief Tests the Initialise method with ExecutionMode == IndependentThread.
      */
     bool TestInitialise_IndependentThread();
@@ -98,6 +103,11 @@ public:
      * @brief Tests the SetConfiguredDatabase method with invalid Address for multicast.
      */
     bool TestSetConfiguredDatabase_InvalidAddress();
+
+    /**
+     * @brief Tests the SetConfiguredDatabase method with an InterfaceAddress for multicast binding.
+     */
+    bool TestSetConfiguredDatabase_MulticastAddress_Interface();
 
     /**
      * @brief Tests the GetBrokerName method.

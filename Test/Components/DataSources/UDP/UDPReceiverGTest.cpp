@@ -50,6 +50,11 @@ TEST(UDPReceiverGTest,TestInitialise_No_Address) {
     ASSERT_TRUE(test.TestInitialise_No_Address());
 }
 
+TEST(UDPReceiverGTest,TestInitialise_InterfaceAddress) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestInitialise_InterfaceAddress());
+}
+
 TEST(UDPReceiverGTest,TestInitialise_No_Port) {
     UDPReceiverTest test;
     ASSERT_TRUE(test.TestInitialise_No_Port());
@@ -93,6 +98,11 @@ TEST(UDPReceiverGTest,TestInitialise_Wrong_ExecutionMode) {
 TEST(UDPReceiverGTest,TestSetConfiguredDatabase_ValidAddress) {
     UDPReceiverTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_ValidAddress());
+}
+
+TEST(UDPReceiverGTest,TestSetConfiguredDatabase_MulticastAddress_Interface) {
+    UDPReceiverTest test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_MulticastAddress_Interface());
 }
 
 TEST(UDPReceiverGTest,TestSetConfiguredDatabase_InvalidAddress) {

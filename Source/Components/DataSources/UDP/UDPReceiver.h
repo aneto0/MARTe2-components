@@ -57,6 +57,7 @@ typedef enum {
  * +UDPReceiver = {
  *     Class = UDP::UDPReceiver
  *     Address = "230.168.129.30" //Optional. Only for Multicast group
+ *     InterfaceAddress = "192.168.2.30" //Optional. Only for Multicast. Bind to the specific local address. If not set, the default IPv4 multicast interface will be used and packets may not be received.
  *     Port = "44488" //Optional. Default: 44488
  *     Timeout = "5.0" //Optional (seconds) The time the receiver will wait while listening before timing out. Default: Infinite
  *     ExecutionMode = RealTimeThread//Optional (default RealTimeThread)
@@ -194,9 +195,14 @@ private:
     uint16 port;
 
     /**
-     * The IP address to which the data will be received on
+     * The multicast IP address to which the data will be received on
      */
     StreamString address;
+
+    /**
+     * The local IP address of the interface to which the socket will bind.
+     */
+    StreamString interfaceAddress;
 
     /**
      * The socket that will connect to the sender
