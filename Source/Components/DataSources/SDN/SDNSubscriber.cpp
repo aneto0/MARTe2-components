@@ -83,7 +83,7 @@ SDNSubscriber::SDNSubscriber() :
     payloadAddresses = NULL_PTR(void **);
     internalTimeout = 0u;
     ignoreTimeoutError = 0u;
-    socketBufferCapacity=0u;
+    socketBufferCapacity = 0u;
 }
 
 /*lint -e{1551} the destructor must guarantee that the SDNSubscriber SingleThreadService is stopped and that all the SDN objects are destroyed.*/
@@ -339,10 +339,12 @@ bool SDNSubscriber::AllocateMemory() {
     if(ok){
         if(socketBufferCapacity > 0u){
 //After 6.0.0
+#ifndef LINT
 #if UNIT_VERSION > UNIT_VERSION_UID(1,2,2)
             ok = (subscriber->SetBufferDepth(socketBufferCapacity*topic->GetSize()) == STATUS_SUCCESS);
 #else
             REPORT_ERROR(ErrorManagement::Warning, "SetBufferDepth not supported in this version of CCS");
+#endif
 #endif
         }
     }

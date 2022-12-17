@@ -67,6 +67,7 @@ SDNPublisher::SDNPublisher() :
     payloadNumberOfElements = NULL_PTR(uint32*);
     payloadAddresses = NULL_PTR(void**);
     sdnHeaderAsSignal = false;
+    socketBufferCapacity = 0u;
 }
 
 /*lint -e{1551} the destructor must guarantee that all the SDN objects are destroyed.*/
@@ -312,10 +313,12 @@ bool SDNPublisher::AllocateMemory() {
     if (ok) {
         if (socketBufferCapacity > 0u) {
 //After 6.0.0
+#ifndef LINT
 #if UNIT_VERSION > UNIT_VERSION_UID(1,2,2)
             ok = (publisher->SetBufferDepth(socketBufferCapacity * topic->GetSize()) == STATUS_SUCCESS);
 #else
             REPORT_ERROR(ErrorManagement::Warning, "SetBufferDepth not supported in this version of CCS");
+#endif
 #endif
         }
     }
