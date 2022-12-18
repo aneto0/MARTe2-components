@@ -32,7 +32,6 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
-
 #include "AdvancedErrorManagement.h"
 #include "BrokerI.h"
 #include "Endianity.h"
@@ -62,34 +61,35 @@ SDNPublisher::SDNPublisher() :
     nOfTriggers = 0u;
     sourcePort = 0u;
     networkByteOrder = false; // Assume host native byte order used for SDN payload
-    topic = NULL_PTR(sdn::Topic *);
-    publisher = NULL_PTR(sdn::Publisher *);
-    payloadNumberOfBits = NULL_PTR(uint16 *);
-    payloadNumberOfElements = NULL_PTR(uint32 *);
-    payloadAddresses = NULL_PTR(void **);
+    topic = NULL_PTR(sdn::Topic*);
+    publisher = NULL_PTR(sdn::Publisher*);
+    payloadNumberOfBits = NULL_PTR(uint16*);
+    payloadNumberOfElements = NULL_PTR(uint32*);
+    payloadAddresses = NULL_PTR(void**);
     sdnHeaderAsSignal = false;
+    socketBufferCapacity = 0u;
 }
 
 /*lint -e{1551} the destructor must guarantee that all the SDN objects are destroyed.*/
 SDNPublisher::~SDNPublisher() {
 
-    if (publisher != NULL_PTR(sdn::Publisher *)) {
+    if (publisher != NULL_PTR(sdn::Publisher*)) {
         delete publisher;
-        publisher = NULL_PTR(sdn::Publisher *);
+        publisher = NULL_PTR(sdn::Publisher*);
     }
 
-    if (topic != NULL_PTR(sdn::Topic *)) {
+    if (topic != NULL_PTR(sdn::Topic*)) {
         delete topic;
-        topic = NULL_PTR(sdn::Topic *);
+        topic = NULL_PTR(sdn::Topic*);
     }
 
-    if (payloadNumberOfBits != NULL_PTR(uint16 *)) {
+    if (payloadNumberOfBits != NULL_PTR(uint16*)) {
         delete[] payloadNumberOfBits;
     }
-    if (payloadNumberOfElements != NULL_PTR(uint32 *)) {
+    if (payloadNumberOfElements != NULL_PTR(uint32*)) {
         delete[] payloadNumberOfElements;
     }
-    if (payloadAddresses != NULL_PTR(void **)) {
+    if (payloadAddresses != NULL_PTR(void**)) {
         delete[] payloadAddresses;
     }
 
@@ -143,6 +143,10 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::Information, "Valid destination address '%s'", destAddr.Buffer());
         }
     }
+    if (!data.Read("SocketBufferCapacity", socketBufferCapacity)) {
+        socketBufferCapacity = 0u;
+    }
+
     // Read optional source port
     if (data.Read("SourcePort", sourcePort)) {
         REPORT_ERROR(ErrorManagement::Information, "Source port is '%!'", sourcePort);
@@ -158,7 +162,7 @@ bool SDNPublisher::Initialise(StructuredDataI &data) {
     return ok;
 }
 
-bool SDNPublisher::SetConfiguredDatabase(StructuredDataI& data) {
+bool SDNPublisher::SetConfiguredDatabase(StructuredDataI &data) {
 
     bool ok = DataSourceI::SetConfiguredDatabase(data);
 
@@ -184,8 +188,7 @@ bool SDNPublisher::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Missing trigger signal");
         }
         else {
-            REPORT_ERROR(ErrorManagement::ParametersError,
-                         "DataSource not compatible with multiple synchronising signals");
+            REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with multiple synchronising signals");
         }
     }
     if (ok) {
@@ -218,7 +221,7 @@ bool SDNPublisher::AllocateMemory() {
     bool ok = true;
     payloadNumberOfBits = new uint16[nOfSignals];
     payloadNumberOfElements = new uint32[nOfSignals];
-    payloadAddresses = new void *[nOfSignals];
+    payloadAddresses = new void*[nOfSignals];
 
     uint32 signalIndex = 0u;
     if (sdnHeaderAsSignal) {
@@ -257,12 +260,10 @@ bool SDNPublisher::AllocateMemory() {
         }
         if (ok) {
             if (sdnHeaderAsSignal) {
-                ok = (topic->AddAttribute(signalIndex - 1u, signalName.Buffer(), signalTypeName.Buffer(),
-                                          signalNOfElements) == STATUS_SUCCESS);
+                ok = (topic->AddAttribute(signalIndex - 1u, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements) == STATUS_SUCCESS);
             }
             else {
-                ok = (topic->AddAttribute(signalIndex, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements)
-                        == STATUS_SUCCESS);
+                ok = (topic->AddAttribute(signalIndex, signalName.Buffer(), signalTypeName.Buffer(), signalNOfElements) == STATUS_SUCCESS);
             }
         }
 
@@ -310,6 +311,19 @@ bool SDNPublisher::AllocateMemory() {
     }
 #endif
     if (ok) {
+        if (socketBufferCapacity > 0u) {
+//After 6.0.0
+#ifndef LINT
+#if UNIT_VERSION > UNIT_VERSION_UID(1,2,2)
+            ok = (publisher->SetBufferDepth(socketBufferCapacity * topic->GetSize()) == STATUS_SUCCESS);
+#else
+            REPORT_ERROR(ErrorManagement::Warning, "SetBufferDepth not supported in this version of CCS");
+#endif
+#endif
+        }
+    }
+
+    if (ok) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
         ok = (publisher->Configure() == STATUS_SUCCESS);
     }
@@ -326,15 +340,15 @@ bool SDNPublisher::AllocateMemory() {
     if (ok) {
         if (sdnHeaderAsSignal) {
             /*lint -e{613} header cannot be NULL in this portion of the code as otherwise ok would be false.*/
-            sdn::Header_t * header = static_cast<sdn::Header_t *>(publisher->GetTopicHeader());
+            sdn::Header_t *header = static_cast<sdn::Header_t*>(publisher->GetTopicHeader());
             uint32 expectedSdnHeaderSize = header->header_size;
             uint32 sdnHeaderSignalSize;
             ok = GetSignalByteSize(0u, sdnHeaderSignalSize);
             if (ok) {
                 ok = (expectedSdnHeaderSize == sdnHeaderSignalSize);
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Incompatible header size. Expected %d and read %d",
-                                 expectedSdnHeaderSize, sdnHeaderSignalSize);
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Incompatible header size. Expected %d and read %d", expectedSdnHeaderSize,
+                                 sdnHeaderSignalSize);
                 }
             }
         }
@@ -351,7 +365,9 @@ uint32 SDNPublisher::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
-bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
+bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                         const uint32 bufferIdx,
+                                         void *&signalAddress) {
 
     bool ok = (signalIdx < nOfSignals);
 
@@ -384,9 +400,10 @@ bool SDNPublisher::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bu
 }
 
 // The method is called for each signal connected to the DataSource
-const char8* SDNPublisher::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
+const char8* SDNPublisher::GetBrokerName(StructuredDataI &data,
+                                         const SignalDirection direction) {
 
-    const char8 *brokerName = NULL_PTR(const char8 *);
+    const char8 *brokerName = NULL_PTR(const char8*);
 
     if (direction == OutputSignals) {
 
@@ -423,11 +440,12 @@ const char8* SDNPublisher::GetBrokerName(StructuredDataI& data, const SignalDire
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns false irrespectively of the input parameters.*/
-bool SDNPublisher::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName,
-                                   void* const gamMemPtr) {
+bool SDNPublisher::GetInputBrokers(ReferenceContainer &inputBrokers,
+                                   const char8 *const functionName,
+                                   void *const gamMemPtr) {
     bool ok = false;
     if (sdnHeaderAsSignal) {
-        ReferenceT<MemoryMapInputBroker> broker("MemoryMapInputBroker");
+        ReferenceT < MemoryMapInputBroker > broker("MemoryMapInputBroker");
         ok = broker.IsValid();
 
         if (ok) {
@@ -442,8 +460,9 @@ bool SDNPublisher::GetInputBrokers(ReferenceContainer& inputBrokers, const char8
 }
 
 // The method is called for each GAM connected to the DataSource
-bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName,
-                                    void* const gamMemPtr) {
+bool SDNPublisher::GetOutputBrokers(ReferenceContainer &outputBrokers,
+                                    const char8 *const functionName,
+                                    void *const gamMemPtr) {
 
     uint32 functionIdx = 0u;
     uint32 nOfFunctionSignals = 0u; // Number of signals associated to the function
@@ -493,7 +512,7 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers, const cha
             // a standard broker.
             // Must add the signals which are not triggering but that belong to the same GAM...
             if (nOfFunctionSignals > 1u) {
-                ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
+                ReferenceT < MemoryMapOutputBroker > brokerNotSync("MemoryMapOutputBroker");
                 ok = brokerNotSync.IsValid();
 
                 if (ok) {
@@ -506,7 +525,7 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers, const cha
             }
 
             // Instantiate appropriate output broker
-            ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
+            ReferenceT < MemoryMapSynchronisedOutputBroker > broker("MemoryMapSynchronisedOutputBroker");
 
             if (ok) {
                 ok = broker.IsValid();
@@ -523,7 +542,7 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers, const cha
         }
         else {
             // Instantiate appropriate output broker
-            ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
+            ReferenceT < MemoryMapOutputBroker > brokerNotSync("MemoryMapOutputBroker");
             ok = brokerNotSync.IsValid();
 
             if (ok) {
@@ -544,7 +563,8 @@ bool SDNPublisher::GetOutputBrokers(ReferenceContainer& outputBrokers, const cha
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns true irrespectively of the input parameters.*/
-bool SDNPublisher::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool SDNPublisher::PrepareNextState(const char8 *const currentStateName,
+                                    const char8 *const nextStateName) {
     return true;
 }
 
@@ -598,7 +618,7 @@ bool SDNPublisher::Synchronise() {
     // Perform housekeeping activities .. irrespective of status
     if (NULL_PTR(sdn::Publisher *) != publisher) {
         /*lint -e{613} The reference can not be NULL in this portion of the code.*/
-	(void)publisher->DoBackgroundActivity();
+        (void)publisher->DoBackgroundActivity();
     }
 #endif
 

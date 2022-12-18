@@ -166,8 +166,8 @@ CCS_TEST_COMPS_DEPS_F := $(CCS_TEST_COMPS_DEPS) $(M2_RPM_ID)-epics-ca-test
 endif
 
 ifeq "$(CCSGT70)" "1"
-CCS_COMPS_DEPS := $(CCS_COMPS_DEPS) $(M2_RPM_ID)-ccsh
-CCS_TEST_COMPS_DEPS := $(CCS_TEST_COMPS_DEPS) $(M2_RPM_ID)-ccsh-test
+CCS_COMPS_DEPS := $(CCS_COMPS_DEPS) $(M2_RPM_ID)-helpers
+CCS_TEST_COMPS_DEPS := $(CCS_TEST_COMPS_DEPS) $(M2_RPM_ID)-helpers-test
 endif
 
 

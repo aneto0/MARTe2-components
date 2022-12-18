@@ -134,6 +134,15 @@ bool UDPReceiver::Initialise(StructuredDataI &data) {
         }
     }
     if (ok) {
+        ok = data.Read("InterfaceAddress", interfaceAddress);
+        if (!ok) {
+            interfaceAddress = "";
+            ok = true;
+            REPORT_ERROR(ErrorManagement::Information, "No InterfaceAddress specified");
+        }
+    }
+
+    if (ok) {
         ok = data.Read("Port", port);
         if (!ok) {
             port = 44488u;
@@ -196,7 +205,12 @@ bool UDPReceiver::SetConfiguredDatabase(StructuredDataI &data) {
                     if ((netValue >= 224) && (netValue <= 239)) {
                         /* The net address belongs to the multicast address range therefore it must be a multicast group */
                         if (socket != NULL_PTR(BasicUDPSocket*)) {
-                            ok = socket->Join(address.Buffer());
+                            if (interfaceAddress.Size() > 0LLU) {
+                                ok = socket->Join(address.Buffer(), interfaceAddress.Buffer());
+                            }
+                            else {
+                                ok = socket->Join(address.Buffer());
+                            }
                         }
                     }
                     else {

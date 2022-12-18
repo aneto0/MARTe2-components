@@ -334,6 +334,11 @@ private:
      * Read the SDN header as a signal?
     */
     bool sdnHeaderAsSignal;
+
+    /**
+     * How many topics in the socket buffer
+     */
+    uint32 socketBufferCapacity;
 };
 
 }
