@@ -66,8 +66,8 @@ MDSWriterNode::MDSWriterNode() {
     timeSignalMemory = NULL_PTR(void*);
     timeSignalType = UnsignedInteger32Bit;
     timeSignalMultiplier = 1e-6;
-    lastWriteTimeSignal = 0u;
-    executePeriod = 0u;
+    lastWriteTimeSignal = 0;
+    executePeriod = 0;
     useTimeVector = false;
     automaticSegmentation = false;
 
@@ -353,7 +353,7 @@ bool MDSWriterNode::Execute() {
     //discontinuityFound only meaningful when useTimeVector = true and tracks event that might not be continuous but that would
     //otherwise fit inside the same segment.
     bool discontinuityFound = false;
-    uint64 timeSignalTime = lastWriteTimeSignal;
+    int64 timeSignalTime = lastWriteTimeSignal;
     if ((ok) && (!flush)) {
         //If we are using a triggering source get the signal from a time source, as samples might not be continuous
         if (useTimeVector) {
@@ -372,8 +372,8 @@ bool MDSWriterNode::Execute() {
                     if (timeSignalMemory != NULL_PTR(uint32 *)) {
                         float64 executePeriodF = static_cast<float64>(executePeriod);
                         float64 rangeF = executePeriodF * discontinuityFactor;
-                        uint64 range = static_cast<uint64>(rangeF);
-                        if (lastWriteTimeSignal > 0u) {
+                        int64 range = static_cast<int64>(rangeF);
+                        if (lastWriteTimeSignal > 0) {
                             discontinuityFound = ((timeSignalTime - lastWriteTimeSignal) > (executePeriod + range));
                             if (!discontinuityFound) {
                                 if (range > executePeriod) {
@@ -674,32 +674,32 @@ bool MDSWriterNode::AddDataToSegment() {
     return ok;
 }
 
-uint64 MDSWriterNode::GetTimeSignalMemoryTime() const {
-    uint64 ret = 0u;
+int64 MDSWriterNode::GetTimeSignalMemoryTime() const {
+    int64 ret = 0;
     if (timeSignalMemory != NULL_PTR(void*)) {
         if (timeSignalType == UnsignedInteger32Bit) {
-            ret = *(reinterpret_cast<uint32*>(timeSignalMemory));
+            ret = static_cast<int64>(*(reinterpret_cast<uint32*>(timeSignalMemory)));
         }
         else if (timeSignalType == UnsignedInteger64Bit) {
-            ret = *(reinterpret_cast<uint64*>(timeSignalMemory));
+            ret = *(reinterpret_cast<int64*>(timeSignalMemory));
         }
         else if (timeSignalType == SignedInteger32Bit) {
-            ret = static_cast<uint64>(*(reinterpret_cast<int32*>(timeSignalMemory)));
+            ret = static_cast<int64>(*(reinterpret_cast<int32*>(timeSignalMemory)));
         }
         else if (timeSignalType == SignedInteger64Bit) {
-            ret = static_cast<uint64>(*(reinterpret_cast<int64*>(timeSignalMemory)));
+            ret = static_cast<int64>(*(reinterpret_cast<int64*>(timeSignalMemory)));
         }
         else if (timeSignalType == UnsignedInteger16Bit) {
-            ret = *(reinterpret_cast<uint16*>(timeSignalMemory));
+            ret = static_cast<int64>(*(reinterpret_cast<uint16*>(timeSignalMemory)));
         }
         else if (timeSignalType == UnsignedInteger8Bit) {
-            ret = static_cast<uint64>(*(reinterpret_cast<uint8*>(timeSignalMemory)));
+            ret = static_cast<int64>(*(reinterpret_cast<uint8*>(timeSignalMemory)));
         }
         else if (timeSignalType == SignedInteger16Bit) {
-            ret = static_cast<uint64>(*(reinterpret_cast<int16*>(timeSignalMemory)));
+            ret = static_cast<int64>(*(reinterpret_cast<int16*>(timeSignalMemory)));
         }
         else if (timeSignalType == SignedInteger8Bit) {
-            ret = static_cast<uint64>(*(reinterpret_cast<int8*>(timeSignalMemory)));
+            ret = static_cast<int64>(*(reinterpret_cast<int8*>(timeSignalMemory)));
         }
         else {
             //Should not be reachable
@@ -725,7 +725,7 @@ void MDSWriterNode::SetTimeSignalMemory(void *const timeSignalMemoryIn,
         executePeriodF /= timeSignalMultiplierIn;
     }
     executePeriodF += 0.5F;
-    executePeriod = static_cast<uint32>(executePeriodF);
+    executePeriod = static_cast<int32>(executePeriodF);
 
 }
 
@@ -741,7 +741,7 @@ const StreamString& MDSWriterNode::GetDecimatedNodeName() const {
     return decimatedNodeName;
 }
 
-uint32 MDSWriterNode::GetExecutePeriod() const {
+int32 MDSWriterNode::GetExecutePeriod() const {
     return executePeriod;
 }
 

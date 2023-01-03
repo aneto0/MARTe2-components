@@ -155,7 +155,7 @@ public:
      * @brief Returns the period of a segment.
      * @return GetNumberOfElements()  * (GetPeriod() * GetMultiplier(see SetTimeSignalMemory));
      */
-    uint32 GetExecutePeriod() const;
+    int32 GetExecutePeriod() const;
 
     /**
      * @brief A segment will be created after the Execute has been called GetMakeSegmentAfterNWrites()
@@ -230,7 +230,7 @@ private:
      * @brief Gets the time from the TimeSignalMemory.
      * @return  the time from the TimeSignalMemory.
      */
-    uint64 GetTimeSignalMemoryTime() const;
+    int64 GetTimeSignalMemoryTime() const;
 
     /**
      * The name of the MDSplus node
@@ -282,7 +282,7 @@ private:
     /**
      * Period at which the Execute gets called
      */
-    uint32 executePeriod;
+    int32 executePeriod;
 
     /**
      * True if the time vector is to be fed through an external signal.
@@ -368,7 +368,7 @@ private:
     /**
      * Time at which the time signal was read for the last time.
      */
-    uint64 lastWriteTimeSignal;
+    int64 lastWriteTimeSignal;
 
     /**
      * Set to true when all the data shall be flushed into MDSPlus, irrespectively of the fact that
