@@ -35,6 +35,9 @@
 /*---------------------------------------------------------------------------*/
 
 #include "MDSReaderTest.h"
+#include "MDSReaderTestHelper.h"
+#include "CreateTree.h"
+#include "AdvancedErrorManagement.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -43,1307 +46,6 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
-class MDSReaderTestHelper: public MDSReader {
-public:
-    MDSReaderTestHelper(StreamString name) {
-        treeName = name;
-        elementsRead = 10;
-        sum_uint8 = 0;
-        sum_int8 = -20;
-        sum_uint16 = 0;
-        sum_int16 = -40;
-        sum_uint32 = 0;
-        sum_int32 = -80;
-        sum_uint64 = 0;
-        sum_int64 = -160;
-        sum_float32 = 0;
-        sum_float64 = 0;
-    }
-
-    virtual ~MDSReaderTestHelper() {
-
-    }
-    bool CreateConfigurationFile(float64 samplingTime = 0.1,
-                                 uint8 dataManagement = 0u,
-                                 uint8 holeManagement = 0u,
-                                 int32 shot = 1,
-                                 StreamString typeTime = "uint32") { //DataManagement = 0, HoleManagement = 0
-        bool ok = true;
-        ok &= config.Write("TreeName", treeName.Buffer());
-        ok &= config.Write("ShotNumber", shot);
-        float64 CycleFrequnecy = 1 / (samplingTime * elementsRead);
-        ok &= config.Write("Frequency", CycleFrequnecy); //0.1 is the sample time of test_tree pulse 1
-
-        ok &= config.CreateAbsolute(".Signals");
-        ok &= config.CreateRelative("0");
-        ok &= config.Write("NodeName", "S_uint8");
-        ok &= config.Write("QualifiedName", "0");
-        ok &= config.Write("Type", "uint8");
-        ok &= config.Write("NumberOfElements", elementsRead);
-        ok &= config.Write("ByteSize", elementsRead * 1);
-        ok &= config.Write("DataManagement", dataManagement);
-        ok &= config.Write("HoleManagement", holeManagement);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("1");
-        ok &= config.Write("NodeName", "S_int8");
-        ok &= config.Write("QualifiedName", "1");
-        ok &= config.Write("Type", "int8");
-        ok &= config.Write("NumberOfElements", elementsRead);
-        ok &= config.Write("ByteSize", elementsRead * 1);
-        ok &= config.Write("DataManagement", dataManagement);
-        ok &= config.Write("HoleManagement", holeManagement);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("2");
-        ok &= config.Write("NodeName", "S_uint16");
-        ok &= config.Write("QualifiedName", "2");
-        ok &= config.Write("Type", "uint16");
-        ok &= config.Write("NumberOfElements", elementsRead);
-        ok &= config.Write("ByteSize", elementsRead * 2);
-        ok &= config.Write("DataManagement", dataManagement);
-        ok &= config.Write("HoleManagement", holeManagement);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("3");
-        ok &= config.Write("NodeName", "S_int16");
-        ok &= config.Write("QualifiedName", "3");
-        ok &= config.Write("Type", "int16");
-        ok &= config.Write("NumberOfElements", elementsRead);
-        ok &= config.Write("ByteSize", elementsRead * 2);
-        ok &= config.Write("DataManagement", dataManagement);
-        ok &= config.Write("HoleManagement", holeManagement);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("4");
-        ok &= config.Write("NodeName", "S_uint32");
-        ok &= config.Write("QualifiedName", "4");
-        ok &= config.Write("Type", "uint32");
-        ok &= config.Write("NumberOfElements", elementsRead);
-        ok &= config.Write("ByteSize", elementsRead * 4);
-        ok &= config.Write("DataManagement", dataManagement);
-        ok &= config.Write("HoleManagement", holeManagement);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("5");
-        ok &= config.Write("NodeName", "S_int32");
-        ok &= config.Write("QualifiedName", "5");
-        ok &= config.Write("Type", "int32");
-        ok &= config.Write("NumberOfElements", elementsRead);
-        ok &= config.Write("ByteSize", elementsRead * 4);
-        ok &= config.Write("DataManagement", dataManagement);
-        ok &= config.Write("HoleManagement", holeManagement);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("6");
-        ok &= config.Write("NodeName", "S_uint64");
-        ok &= config.Write("QualifiedName", "6");
-        ok &= config.Write("Type", "uint64");
-        ok &= config.Write("NumberOfElements", elementsRead);
-        ok &= config.Write("ByteSize", elementsRead * 8);
-        ok &= config.Write("DataManagement", dataManagement);
-        ok &= config.Write("HoleManagement", holeManagement);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("7");
-        ok &= config.Write("NodeName", "S_int64");
-        ok &= config.Write("QualifiedName", "7");
-        ok &= config.Write("Type", "int64");
-        ok &= config.Write("NumberOfElements", elementsRead);
-        ok &= config.Write("ByteSize", elementsRead * 8);
-        ok &= config.Write("DataManagement", dataManagement);
-        ok &= config.Write("HoleManagement", holeManagement);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("8");
-        ok &= config.Write("NodeName", "S_float32");
-        ok &= config.Write("QualifiedName", "8");
-        ok &= config.Write("Type", "float32");
-        ok &= config.Write("NumberOfElements", elementsRead);
-        ok &= config.Write("ByteSize", elementsRead * 4);
-        ok &= config.Write("DataManagement", dataManagement);
-        ok &= config.Write("HoleManagement", holeManagement);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("9");
-        ok &= config.Write("NodeName", "S_float64");
-        ok &= config.Write("QualifiedName", "9");
-        ok &= config.Write("Type", "float64");
-        ok &= config.Write("NumberOfElements", elementsRead);
-        ok &= config.Write("ByteSize", elementsRead * 8);
-        ok &= config.Write("DataManagement", dataManagement);
-        ok &= config.Write("HoleManagement", holeManagement);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("10");
-        ok &= config.Write("QualifiedName", "10");
-        ok &= config.Write("Type", typeTime.Buffer());
-        ok &= config.Write("NumberOfElements", 1);
-        if ((typeTime == "uint32") || (typeTime == "int32")) {
-            ok &= config.Write("ByteSize", 4);
-        }
-        else if ((typeTime == "uint64") || (typeTime == "int64")) {
-            ok &= config.Write("ByteSize", 8);
-        }
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateAbsolute("Functions");
-        ok &= config.CreateRelative("0");
-        ok &= config.Write("QualifiedName", "GAMNameLL");
-        ok &= config.CreateRelative("InputSignals");
-        ok &= config.CreateRelative("0");
-        ok &= config.Write("Samples", 1);
-        ok &= config.Write("Broker", "MemoryMapSynchronisedInputBroker");
-        ok &= config.Write("GAMMemoryOffset", 0);
-        ok &= config.Write("Alias", "LL");
-        uint32 byteOffset[1][2] = { { 0, elementsRead * 1 } };
-        ok &= config.Write("ByteOffset", byteOffset);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("1");
-        ok &= config.Write("Broker", "MemoryMapSynchronisedInputBroker");
-        ok &= config.Write("GAMMemoryOffset", 0);
-        ok &= config.Write("Alias", "LL");
-        byteOffset[0][1] = elementsRead * 1;
-        ok &= config.Write("ByteOffset", byteOffset);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("2");
-        ok &= config.Write("Broker", "MemoryMapSynchronisedInputBroker");
-        ok &= config.Write("GAMMemoryOffset", 0);
-        ok &= config.Write("Alias", "LL");
-        byteOffset[0][1] = elementsRead * 2;
-        ok &= config.Write("ByteOffset", byteOffset);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("3");
-        ok &= config.Write("Broker", "MemoryMapSynchronisedInputBroker");
-        ok &= config.Write("GAMMemoryOffset", 0);
-        ok &= config.Write("Alias", "LL");
-        byteOffset[0][1] = elementsRead * 2;
-        ok &= config.Write("ByteOffset", byteOffset);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("4");
-        ok &= config.Write("Broker", "MemoryMapSynchronisedInputBroker");
-        ok &= config.Write("GAMMemoryOffset", 0);
-        ok &= config.Write("Alias", "LL");
-        byteOffset[0][1] = elementsRead * 24;
-        ok &= config.Write("ByteOffset", byteOffset);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("5");
-        ok &= config.Write("Broker", "MemoryMapSynchronisedInputBroker");
-        ok &= config.Write("GAMMemoryOffset", 0);
-        ok &= config.Write("Alias", "LL");
-        byteOffset[0][1] = elementsRead * 4;
-        ok &= config.Write("ByteOffset", byteOffset);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("6");
-        ok &= config.Write("Broker", "MemoryMapSynchronisedInputBroker");
-        ok &= config.Write("GAMMemoryOffset", 0);
-        ok &= config.Write("Alias", "LL");
-        byteOffset[0][1] = elementsRead * 8;
-        ok &= config.Write("ByteOffset", byteOffset);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("7");
-        ok &= config.Write("Broker", "MemoryMapSynchronisedInputBroker");
-        ok &= config.Write("GAMMemoryOffset", 0);
-        ok &= config.Write("Alias", "LL");
-        byteOffset[0][1] = elementsRead * 8;
-        ok &= config.Write("ByteOffset", byteOffset);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("8");
-        ok &= config.Write("Broker", "MemoryMapSynchronisedInputBroker");
-        ok &= config.Write("GAMMemoryOffset", 0);
-        ok &= config.Write("Alias", "LL");
-        byteOffset[0][1] = elementsRead * 4;
-        ok &= config.Write("ByteOffset", byteOffset);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("9");
-        ok &= config.Write("Broker", "MemoryMapSynchronisedInputBroker");
-        ok &= config.Write("GAMMemoryOffset", 0);
-        ok &= config.Write("Alias", "LL");
-        byteOffset[0][1] = elementsRead * 8;
-        ok &= config.Write("ByteOffset", byteOffset);
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.CreateRelative("10");
-        ok &= config.Write("Broker", "MemoryMapSynchronisedInputBroker");
-        if ((typeTime == "uint32") || (typeTime == "int32")) {
-            ok &= config.Write("GAMMemoryOffset", 0);
-            ok &= config.Write("Alias", "LL");
-            byteOffset[0][1] = elementsRead * 4;
-            ok &= config.Write("ByteOffset", byteOffset);
-        }
-        else if ((typeTime == "uint64") || (typeTime == "int64")) {
-            ok &= config.Write("GAMMemoryOffset", 0);
-            ok &= config.Write("Alias", "LL");
-            byteOffset[0][1] = elementsRead * 8;
-            ok &= config.Write("ByteOffset", byteOffset);
-        }
-        ok &= config.MoveToAncestor(1u);
-        ok &= config.Write("ByteSize", 10);
-        ok &= config.MoveToRoot();
-        return ok;
-    }
-
-    bool CompareS_uint8Hold(uint8 *ptr,
-                            uint32 iteration,
-                            float64 increment = +1,
-                            uint32 every = 32,
-                            uint32 elementsToCompare = 10u) {
-        bool ok = true;
-        static uint32 countEveryuint8 = 2;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = (ptr[i] == static_cast<uint8>(round(sum_uint8)));
-            if (!ok) {
-                printf("uint8 value = %u != ref = %u. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<uint8>(round(sum_uint8)),
-                       iteration, i);
-            }
-            countEveryuint8++;
-            if (countEveryuint8 == every) {
-                sum_uint8 += increment;
-                countEveryuint8 = 0;
-            }
-        }
-        return ok;
-    }
-    bool CompareS_int8Hold(int8 *ptr,
-                           uint32 iteration,
-                           float64 increment = +1,
-                           uint32 every = 32,
-                           uint32 elementsToCompare = 10u) {
-        bool ok = true;
-        static uint32 countEveryint8 = 2;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = (ptr[i] == static_cast<int8>(round(sum_int8)));
-            if (!ok) {
-                printf("int8 value = %d != ref = %u. iteration = %d, position in the iteration = %d\n", ptr[i], static_cast<int8>(round(sum_int8)), iteration,
-                       i);
-            }
-            countEveryint8++;
-            if (countEveryint8 == every) {
-                sum_int8 += increment;
-                countEveryint8 = 0;
-            }
-        }
-        return ok;
-    }
-    bool CompareS_uint16Hold(uint16 *ptr,
-                             uint32 iteration,
-                             float64 increment = +1,
-                             uint32 every = 32,
-                             uint32 elementsToCompare = 10u) {
-        bool ok = true;
-        static uint32 countEveryuint16 = 2;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = (ptr[i] == static_cast<uint16>(round(sum_uint16)));
-            if (!ok) {
-                printf("uint16 value = %u != ref = %u. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<uint16>(round(sum_uint16)),
-                       iteration, i);
-            }
-            countEveryuint16++;
-            if (countEveryuint16 == every) {
-                sum_uint16 += increment;
-                countEveryuint16 = 0;
-            }
-        }
-        return ok;
-    }
-
-    bool CompareS_int16Hold(int16 *ptr,
-                            uint32 iteration,
-                            float64 increment = +1,
-                            uint32 every = 32,
-                            uint32 elementsToCompare = 10u) {
-        bool ok = true;
-        static uint32 countEveryint16 = 2;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = (ptr[i] == static_cast<int16>(round(sum_int16)));
-            if (!ok) {
-                printf("int16 value = %d != ref = %d. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<int16>(round(sum_int16)),
-                       iteration, i);
-            }
-            countEveryint16++;
-            if (countEveryint16 == every) {
-                sum_int16 += increment;
-                countEveryint16 = 0;
-            }
-        }
-        return ok;
-    }
-
-    bool CompareS_uint32Hold(uint32 *ptr,
-                             uint32 iteration,
-                             float64 increment = +1,
-                             uint32 every = 32,
-                             uint32 elementsToCompare = 10u) {
-        bool ok = true;
-        static uint32 countEveryuint32 = 2;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = (ptr[i] == static_cast<uint32>(round(sum_uint32)));
-            if (!ok) {
-                printf("uint8 value = %u != ref = %u. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<uint32>(round(sum_uint32)),
-                       iteration, i);
-            }
-            countEveryuint32++;
-            if (countEveryuint32 == every) {
-                sum_uint32 += increment;
-                countEveryuint32 = 0;
-            }
-        }
-        return ok;
-    }
-
-    bool CompareS_int32Hold(int32 *ptr,
-                            uint32 iteration,
-                            float64 increment = +1,
-                            uint32 every = 32,
-                            uint32 elementsToCompare = 10u) {
-        bool ok = true;
-        static uint32 countEveryint32 = 2;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = (ptr[i] == static_cast<int32>(round(sum_int32)));
-            if (!ok) {
-                printf("int32 value = %d != ref = %d. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<int32>(round(sum_int32)),
-                       iteration, i);
-            }
-            countEveryint32++;
-            if (countEveryint32 == every) {
-                sum_int32 += increment;
-                countEveryint32 = 0;
-            }
-        }
-        return ok;
-    }
-
-    bool CompareS_uint64Hold(uint64 *ptr,
-                             uint32 iteration,
-                             float64 increment = +1,
-                             uint32 every = 32,
-                             uint32 elementsToCompare = 10u) {
-        bool ok = true;
-        static uint32 countEveryuint64 = 2;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = (ptr[i] == static_cast<uint64>(round(sum_uint64)));
-            if (!ok) {
-                printf("uint64 value = %llu != ref = %llu. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<uint64>(round(sum_uint64)),
-                       iteration, i);
-            }
-            countEveryuint64++;
-            if (countEveryuint64 == every) {
-                sum_uint64 += increment;
-                countEveryuint64 = 0;
-            }
-        }
-        return ok;
-    }
-
-    bool CompareS_int64Hold(int64 *ptr,
-                            uint32 iteration,
-                            float64 increment = +1,
-                            uint32 every = 32,
-                            uint32 elementsToCompare = 10u) {
-        bool ok = true;
-        static uint32 countEveryint64 = 2;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = (ptr[i] == static_cast<int64>(round(sum_int64)));
-            if (!ok) {
-                printf("int64 value = %lld != ref = %lld. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<int64>(round(sum_int64)),
-                       iteration, i);
-            }
-            countEveryint64++;
-            if (countEveryint64 == every) {
-                sum_int64 += increment;
-                countEveryint64 = 0;
-            }
-        }
-        return ok;
-    }
-
-    bool CompareS_float32Hold(float32 *ptr,
-                              uint32 iteration,
-                              float64 increment = +1,
-                              uint32 every = 32,
-                              uint32 elementsToCompare = 10u) {
-        bool ok = true;
-        static uint32 countEveryfloat32 = 2;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = IsEqualLargeMargins(ptr[i], static_cast<float32>(sum_float32));
-            if (!ok) {
-                printf("float32 value = %f != ref = %f. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<float32>(sum_float32), iteration,
-                       i);
-            }
-            countEveryfloat32++;
-            if (countEveryfloat32 == every) {
-                sum_float32 += increment;
-                countEveryfloat32 = 0;
-            }
-        }
-        return ok;
-    }
-
-    bool CompareS_float64Hold(float64 *ptr,
-                              uint32 iteration,
-                              float64 increment = +1,
-                              uint32 every = 32,
-                              uint32 elementsToCompare = 10u) {
-        bool ok = true;
-        static uint32 countEveryfloat64 = 2;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = IsEqualLargeMargins(ptr[i], sum_float64);
-            if (!ok) {
-                printf("float64 value = %lf != ref = %lf. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<float64>(sum_float64),
-                       iteration, i);
-            }
-            countEveryfloat64++;
-            if (countEveryfloat64 == every) {
-                sum_float64 += increment;
-                countEveryfloat64 = 0;
-            }
-        }
-        return ok;
-    }
-
-    bool CompareS_uint8(uint8 *ptr,
-                        uint32 iteration,
-                        float64 increment = +1,
-                        uint32 elementsToCompare = 10u) {
-        bool ok = true;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = (ptr[i] == static_cast<uint8>(round(sum_uint8)));
-            if (!ok) {
-                printf("uint8 value = %u != ref = %u. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<uint8>(round(sum_uint8)),
-                       iteration, i);
-            }
-            sum_uint8 += increment;
-        }
-        return ok;
-    }
-    bool CompareS_int8(int8 *ptr,
-                       uint32 iteration,
-                       float64 increment = +1,
-                       uint32 elementsToCompare = 0u) {
-        bool ok = true;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = ptr[i] == static_cast<int8>(round(sum_int8));
-            if (!ok) {
-                printf("int8 value = %d != ref = %d. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<int8>(round(sum_int8)), iteration,
-                       i);
-            }
-            sum_int8 += increment;
-        }
-
-        return ok;
-    }
-    bool CompareS_uint16(uint16 * ptr,
-                         uint32 iteration,
-                         float64 increment = +2,
-                         uint32 elementsToCompare = 0u) {
-        bool ok = true;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = ptr[i] == static_cast<uint16>(round(sum_uint16));
-            if (!ok) {
-                printf("uint16 value = %u != ref = %u. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<uint16>(round(sum_uint16)),
-                       iteration, i);
-            }
-            sum_uint16 += increment;
-        }
-        return ok;
-    }
-    bool CompareS_int16(int16 * ptr,
-                        uint32 iteration,
-                        float64 increment = +2,
-                        uint32 elementsToCompare = 0u) {
-        bool ok = true;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = ptr[i] == static_cast<int16>(round(sum_int16));
-            if (!ok) {
-                printf("int16 value = %d != ref = %d. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<int16>(round(sum_int16)),
-                       iteration, i);
-            }
-            sum_int16 += increment;
-        }
-        return ok;
-    }
-    bool CompareS_uint32(uint32 * ptr,
-                         uint32 iteration,
-                         float64 increment = +4,
-                         uint32 elementsToCompare = 0u) {
-        bool ok = true;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = ptr[i] == static_cast<uint32>(round(sum_uint32));
-            if (!ok) {
-                printf("uint32 value = %u != ref = %u. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<uint32>(round(sum_uint32)),
-                       iteration, i);
-            }
-            sum_uint32 += increment;
-        }
-        return ok;
-    }
-    bool CompareS_int32(int32 * ptr,
-                        uint32 iteration,
-                        float64 increment = +4,
-                        uint32 elementsToCompare = 0u) {
-        bool ok = true;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = ptr[i] == static_cast<int32>(round(sum_int32));
-            if (!ok) {
-                printf("int32 value = %d != ref = %d. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<int32>(round(sum_int32)),
-                       iteration, i);
-            }
-            sum_int32 += increment;
-        }
-        return ok;
-    }
-    bool CompareS_uint64(uint64 * ptr,
-                         uint32 iteration,
-                         float64 increment = +8,
-                         uint32 elementsToCompare = 0u) {
-        bool ok = true;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = ptr[i] == static_cast<uint64>(round(sum_uint64));
-            if (!ok) {
-                printf("uint64 value = %llu != ref = %llu. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<uint64>(round(sum_uint64)),
-                       iteration, i);
-            }
-            sum_uint64 += increment;
-        }
-        return ok;
-    }
-    bool CompareS_int64(int64 * ptr,
-                        uint32 iteration,
-                        float64 increment = +8,
-                        uint32 elementsToCompare = 0u) {
-        bool ok = true;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-//            ok = ptr[i] == static_cast<int64>(round(sum_int64));
-            if (!ok) {
-                printf("int64 value = %lld!= ref = %lld. iteration = %u, position in the iteration = %d\n", ptr[i], static_cast<uint64>(round(sum_uint64)),
-                       iteration, i);
-            }
-            sum_int64 += increment;
-        }
-        return ok;
-    }
-    bool CompareS_float32(float32 * ptr,
-                          uint32 iteration,
-                          float64 increment = 0.1,
-                          uint32 elementsToCompare = 0u) {
-        bool ok = true;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = IsEqualLargeMargins(ptr[i], static_cast<float32>(sum_float32));
-            if (!ok) {
-                printf("float32 value = %.15f != ref = %.15f, iteration = %u, position in the iteration = %u\n", ptr[i],  static_cast<float32>(sum_float32), iteration, i);
-            }
-            sum_float32 += increment;
-        }
-        return ok;
-    }
-    bool CompareS_float64(float64 * ptr,
-                          uint32 iteration,
-                          float64 increment = 0.1,
-                          uint32 elementsToCompare = 0u) {
-        bool ok = true;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = IsEqualLargeMargins(ptr[i], sum_float64);
-            if (!ok) {
-                printf("float64 value = %.17lf != ref = %.17lf, iteration = %u, position in the iteration = %u\n", ptr[i], sum_float64, iteration, i);
-            }
-            sum_float64 += increment;
-        }
-        return ok;
-    }
-
-    template<typename T>
-    bool CompareIntegerValue(T *ptr,
-                             uint32 iteration,
-                             T value,
-                             uint32 elementsToCompare) {
-        bool ok = true;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = (ptr[i] == value);
-            if (!ok) {
-                printf("iteration = %u, position in the iteration = %u\n", iteration, i);
-            }
-        }
-        return ok;
-    }
-
-    template<typename T>
-    bool CompareFloatPointValue(T *ptr,
-                                uint32 iteration,
-                                T value,
-                                uint32 elementsToCompare) {
-        bool ok = true;
-        for (uint32 i = 0u; (i < elementsToCompare) && ok; i++) {
-            ok = IsEqualLargeMargins(ptr[i], value);
-
-            if (!ok) {
-                printf("iteration = %u, position in the iteration = %u\n", iteration, i);
-            }
-        }
-        return ok;
-    }
-    bool IsEqualLargeMargins(float32 f1,
-                             float32 f2) {
-        bool ret;
-        float32 margin = 0.005;
-        float32 diff = f1 - f2;
-        ret = (diff < margin) && (diff > -margin);
-        return ret;
-    }
-
-    bool IsEqualLargeMargins(float64 f1,
-                             float64 f2) {
-        bool ret;
-        float64 margin = 0.0000005;
-        float64 diff = f1 - f2;
-        ret = (diff < margin) && (diff > -margin);
-        return ret;
-    }
-    ConfigurationDatabase config;
-    uint32 elementsRead;
-
-private:
-    StreamString treeName;
-    float64 sum_uint8;
-    float64 sum_int8;
-    float64 sum_uint16;
-    float64 sum_int16;
-    float64 sum_uint32;
-    float64 sum_int32;
-    float64 sum_uint64;
-    float64 sum_int64;
-    float64 sum_float32;
-    float64 sum_float64;
-};
-
-/**
- * @brief Create a tree for testing
- * @details Create a tree called test_tree with the following nodes (in parenthesis the  type of the data and the type of node):
- *    S_uint8   (uint8, SIGNAL)
- *    S_int8    (int8, SIGNAL)
- *    S_uint16  (uint16, SIGNAL)
- *    S_int16   (int16, SIGNAL)
- *    S_uint32  (uint32, SIGNAL)
- *    S_int32   (int32, SIGNAL)
- *    S_uint64  (uint64, SIGNAL)
- *    S_int64   (int64, SIGNAL)
- *    S_float32 (float32, SIGNAL)
- *    S_float64 (float64, SIGNAL)
- *    Info      (String, TEXT)
- * A pulse 1, 2, 3 and 4 are created filling the SIGNAL nodes with ramps (with different step increments).
- * The environmental variable test_tree_path is automatically created in the scope of the tests.
- * In each test a tree with two poses are created and then are removed.
- */
-class CreateTree {
-public:
-    CreateTree(StreamString name,
-               uint32 nElementsPerSeg = 20,//200000,//20,
-               uint32 nSegments = 100,//1000,//100,
-               float64 elapsetTimeSeg = 2.0) {
-        treeName = name;
-        pulseNumber = 1;
-        numberOfElementsPerSeg = nElementsPerSeg; //400000000;
-        numberOfSegments = nSegments; //100;
-        elapsedTimeSegment = elapsetTimeSeg;
-        period = elapsedTimeSegment / numberOfElementsPerSeg;
-        CreateModel();
-        CreatePulseNumber();
-        AddSignal_uint8();
-        AddSignal_int8();
-        AddSignal_uint16();
-        AddSignal_int16();
-        AddSignal_uint32();
-        AddSignal_int32();
-        AddSignal_uint64();
-        AddSignal_int64();
-        AddSignal_float32();
-        AddSignal_float64();
-        AddSignal_Info();
-
-        //1 segment with data and the other empty
-        pulseNumber++;
-        CreatePulseNumber();
-        AddSignal_uint8(true);
-        AddSignal_int8(true);
-        AddSignal_uint16(true);
-        AddSignal_int16(true);
-        AddSignal_uint32(true);
-        AddSignal_int32(true);
-        AddSignal_uint64(true);
-        AddSignal_int64(true);
-        AddSignal_float32(true);
-        AddSignal_float64(true);
-
-        //1 segment empty another with data
-        pulseNumber++; // shotNumber = 3
-        CreatePulseNumber();
-        AddSignal_uint8(true, false, 1);
-        AddSignal_int8(true, false, 1);
-        AddSignal_uint16(true, false, 1);
-        AddSignal_int16(true, false, 1);
-        AddSignal_uint32(true, false, 1);
-        AddSignal_int32(true, false, 1);
-        AddSignal_uint64(true, false, 1);
-        AddSignal_int64(true, false, 1);
-        AddSignal_float32(true, false, 1);
-        AddSignal_float64(true, false, 1);
-
-        //2 segment with data and 2 segment empty
-        pulseNumber++;
-        CreatePulseNumber();
-        AddSignal_uint8(true, true, 2);
-        AddSignal_int8(true, true, 2);
-        AddSignal_uint16(true, true, 2);
-        AddSignal_int16(true, true, 2);
-        AddSignal_uint32(true, true, 2);
-        AddSignal_int32(true, true, 2);
-        AddSignal_uint64(true, true, 2);
-        AddSignal_int64(true, true, 2);
-        AddSignal_float32(true, true, 2);
-        AddSignal_float64(true, true, 2);
-    }
-    virtual ~CreateTree() {
-    }
-private:
-    void CreateModel() {
-        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), -1, "NEW");
-        tree->addNode("S_uint8", "SIGNAL");
-        tree->addNode("S_int8", "SIGNAL");
-        tree->addNode("S_uint16", "SIGNAL");
-        tree->addNode("S_int16", "SIGNAL");
-        tree->addNode("S_uint32", "SIGNAL");
-        tree->addNode("S_int32", "SIGNAL");
-        tree->addNode("S_uint64", "SIGNAL");
-        tree->addNode("S_int64", "SIGNAL");
-        tree->addNode("S_float32", "SIGNAL");
-        tree->addNode("S_float64", "SIGNAL");
-        tree->addNode("EmptyNode", "SIGNAL");
-        tree->addNode("Info", "TEXT");
-        tree->write();
-        delete tree;
-    }
-
-    void CreatePulseNumber() {
-        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), -1);
-        uint32 shotNumber = tree->getCurrent(treeName.Buffer());
-        shotNumber++;
-        tree->setCurrent(treeName.Buffer(), shotNumber);
-        tree->createPulse(shotNumber);
-        delete tree;
-    }
-
-    void AddSignal_uint8(bool toggle = false,
-                         bool initialTrigger = true,
-                         uint32 segmentsOn = 1u) {
-        //printf("uint8 node\n");
-        MARTe::uint8 *data = new MARTe::uint8[numberOfElementsPerSeg];
-        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-        MDSplus::TreeNode *node1 = tree->getNode("S_uint8");
-        MARTe::float64 start = 0.0;
-        MDSplus::Data *Dstart = NULL_PTR(MDSplus::Data *);
-        MARTe::float64 end = period * (numberOfElementsPerSeg - 1u);
-        MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
-        MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
-        MARTe::uint8 accum = 0u;
-        uint32 countSegments = 0;
-        bool trigger = initialTrigger;
-        for (uint32 j = 0u; j < numberOfSegments; j++) {
-            if (trigger) {
-                Dstart = new MDSplus::Float64(start);
-                Dend = new MDSplus::Float64(end);
-                MDSplus::Data *dimension = new MDSplus::Range(Dstart, Dend, new MDSplus::Float64(period));
-                for (MARTe::uint32 i = 0u; i < numberOfElementsPerSeg; i++) {
-                    data[i] = accum;
-                    accum += 1;
-
-                }
-                dataArray = new MDSplus::Uint8Array(data, numberOfElementsPerSeg);
-                //std::cout << "dataArray uin8 = " << dataArray << std::endl;
-                node1->makeSegment(Dstart, Dend, dimension, dataArray);
-                MDSplus::deleteData(dimension); //it deletes Dstart and Dend as well!!!!
-                MDSplus::deleteData(dataArray);
-            }
-            start = start + elapsedTimeSegment;
-            end = end + elapsedTimeSegment;
-            if (toggle) {
-                countSegments++;
-                if (countSegments == segmentsOn) {
-                    if (trigger) {
-                        trigger = false;
-                    }
-                    else {
-                        trigger = true;
-                    }
-                    countSegments = 0u;
-                }
-            }
-
-        }
-        delete[] data;
-        delete tree;
-        delete node1;
-        return;
-    }
-
-    void AddSignal_int8(bool toggle = false,
-                        bool initialTrigger = true,
-                        uint32 segmentsOn = 1u) {
-        //printf("int8 node\n");
-        MARTe::int8 *data = new MARTe::int8[numberOfElementsPerSeg];
-        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-        MDSplus::TreeNode *node1 = tree->getNode("S_int8");
-        MARTe::float64 start = 0.0;
-        MDSplus::Data *Dstart = NULL_PTR(MDSplus::Data *);
-        MARTe::float64 end = period * (numberOfElementsPerSeg - 1u);
-        MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
-        MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
-        MARTe::int8 accum = -20;
-        uint32 countSegments = 0;
-        bool trigger = initialTrigger;
-        for (uint32 j = 0u; j < numberOfSegments; j++) {
-            if (trigger == 1) {
-                Dstart = new MDSplus::Float64(start);
-                Dend = new MDSplus::Float64(end);
-                MDSplus::Data *dimension = new MDSplus::Range(Dstart, Dend, new MDSplus::Float64(period));
-                for (MARTe::uint32 i = 0u; i < numberOfElementsPerSeg; i++) {
-                    data[i] = accum;
-                    accum += 1;
-                }
-                dataArray = new MDSplus::Int8Array((const char*) (data), numberOfElementsPerSeg); // int8 * give an error, so const char * convertion was done
-                node1->makeSegment(Dstart, Dend, dimension, dataArray);
-                MDSplus::deleteData(dimension); //it deletes Dstart and Dend as well!!!!
-                MDSplus::deleteData(dataArray);
-            }
-            start = start + elapsedTimeSegment;
-            end = end + elapsedTimeSegment;
-            if (toggle) {
-                countSegments++;
-                if (countSegments == segmentsOn) {
-                    if (trigger) {
-                        trigger = false;
-                    }
-                    else {
-                        trigger = true;
-                    }
-                    countSegments = 0u;
-                }
-            }
-        }
-        delete[] data;
-        delete tree;
-        delete node1;
-        return;
-    }
-
-    void AddSignal_uint16(bool toggle = false,
-                          bool initialTrigger = true,
-                          uint32 segmentsOn = 1u) {
-        //printf("uint16 node\n");
-        MARTe::uint16 *data = new MARTe::uint16[numberOfElementsPerSeg];
-        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-        MDSplus::TreeNode *node1 = tree->getNode("S_uint16");
-        MARTe::float64 start = 0.0;
-        MDSplus::Data *Dstart = NULL_PTR(MDSplus::Data *);
-        MARTe::float64 end = period * (numberOfElementsPerSeg - 1u);
-        MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
-        MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
-        MARTe::uint16 accum = 0u;
-        uint32 countSegments = 0;
-        bool trigger = initialTrigger;
-        for (uint32 j = 0u; j < numberOfSegments; j++) {
-            if (trigger == 1) {
-                Dstart = new MDSplus::Float64(start);
-                Dend = new MDSplus::Float64(end);
-                MDSplus::Data *dimension = new MDSplus::Range(Dstart, Dend, new MDSplus::Float64(period));
-                for (MARTe::uint32 i = 0u; i < numberOfElementsPerSeg; i++) {
-                    data[i] = accum;
-                    accum += 2;
-                }
-                dataArray = new MDSplus::Uint16Array(data, numberOfElementsPerSeg);
-                node1->makeSegment(Dstart, Dend, dimension, dataArray);
-                MDSplus::deleteData(dimension); //it deletes Dstart and Dend as well!!!!
-                MDSplus::deleteData(dataArray);
-            }
-            start = start + elapsedTimeSegment;
-            end = end + elapsedTimeSegment;
-            if (toggle) {
-                countSegments++;
-                if (countSegments == segmentsOn) {
-                    if (trigger) {
-                        trigger = false;
-                    }
-                    else {
-                        trigger = true;
-                    }
-                    countSegments = 0u;
-                }
-            }
-        }
-        delete[] data;
-        delete tree;
-        delete node1;
-        return;
-    }
-
-    void AddSignal_int16(bool toggle = false,
-                         bool initialTrigger = true,
-                         uint32 segmentsOn = 1u) {
-        //printf("int16 node\n");
-        MARTe::int16 *data = new MARTe::int16[numberOfElementsPerSeg];
-        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-        MDSplus::TreeNode *node1 = tree->getNode("S_int16");
-        MARTe::float64 start = 0.0;
-        MDSplus::Data *Dstart = NULL_PTR(MDSplus::Data *);
-        MARTe::float64 end = period * (numberOfElementsPerSeg - 1u);
-        MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
-        MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
-        MARTe::int16 accum = -40;
-        uint32 countSegments = 0;
-        bool trigger = initialTrigger;
-        for (uint32 j = 0u; j < numberOfSegments; j++) {
-            if (trigger == 1) {
-                Dstart = new MDSplus::Float64(start);
-                Dend = new MDSplus::Float64(end);
-                MDSplus::Data *dimension = new MDSplus::Range(Dstart, Dend, new MDSplus::Float64(period));
-                for (MARTe::uint32 i = 0u; i < numberOfElementsPerSeg; i++) {
-                    data[i] = accum;
-                    accum += 2;
-                }
-                dataArray = new MDSplus::Int16Array(data, numberOfElementsPerSeg);
-                node1->makeSegment(Dstart, Dend, dimension, dataArray);
-                MDSplus::deleteData(dimension); //it deletes Dstart and Dend as well!!!!
-                MDSplus::deleteData(dataArray);
-            }
-            start = start + elapsedTimeSegment;
-            end = end + elapsedTimeSegment;
-            if (toggle) {
-                countSegments++;
-                if (countSegments == segmentsOn) {
-                    if (trigger) {
-                        trigger = false;
-                    }
-                    else {
-                        trigger = true;
-                    }
-                    countSegments = 0u;
-                }
-            }
-        }
-        delete[] data;
-        delete tree;
-        delete node1;
-        return;
-    }
-
-    void AddSignal_uint32(bool toggle = false,
-                          bool initialTrigger = true,
-                          uint32 segmentsOn = 1u) {
-        //printf("uint32 node\n");
-        MARTe::uint32 *data = new MARTe::uint32[numberOfElementsPerSeg];
-        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-        MDSplus::TreeNode *node1 = tree->getNode("S_uint32");
-        MARTe::float64 start = 0.0;
-        MDSplus::Data *Dstart = NULL_PTR(MDSplus::Data *);
-        MARTe::float64 end = period * (numberOfElementsPerSeg - 1u);
-        MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
-        MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
-        MARTe::uint32 accum = 0;
-        uint32 countSegments = 0;
-        bool trigger = initialTrigger;
-        for (uint32 j = 0u; j < numberOfSegments; j++) {
-            if (trigger == 1) {
-                Dstart = new MDSplus::Float64(start);
-                Dend = new MDSplus::Float64(end);
-                MDSplus::Data *dimension = new MDSplus::Range(Dstart, Dend, new MDSplus::Float64(period));
-                for (MARTe::uint32 i = 0u; i < numberOfElementsPerSeg; i++) {
-                    data[i] = accum;
-                    accum += 4;
-                }
-                dataArray = new MDSplus::Uint32Array(data, numberOfElementsPerSeg);
-                node1->makeSegment(Dstart, Dend, dimension, dataArray);
-                MDSplus::deleteData(dimension); //it deletes Dstart and Dend as well!!!!
-                MDSplus::deleteData(dataArray);
-            }
-            start = start + elapsedTimeSegment;
-            end = end + elapsedTimeSegment;
-            if (toggle) {
-                countSegments++;
-                if (countSegments == segmentsOn) {
-                    if (trigger) {
-                        trigger = false;
-                    }
-                    else {
-                        trigger = true;
-                    }
-                    countSegments = 0u;
-                }
-            }
-        }
-        delete[] data;
-        delete tree;
-        delete node1;
-        return;
-    }
-
-    void AddSignal_int32(bool toggle = false,
-                         bool initialTrigger = true,
-                         uint32 segmentsOn = 1u) {
-        //printf("int32 node\n");
-        MARTe::int32 *data = new MARTe::int32[numberOfElementsPerSeg];
-        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-        MDSplus::TreeNode *node1 = tree->getNode("S_int32");
-        MARTe::float64 start = 0.0;
-        MDSplus::Data *Dstart = NULL_PTR(MDSplus::Data *);
-        MARTe::float64 end = period * (numberOfElementsPerSeg - 1u);
-        MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
-        MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
-        MARTe::int32 accum = -80;
-        uint32 countSegments = 0;
-        bool trigger = initialTrigger;
-        for (uint32 j = 0u; j < numberOfSegments; j++) {
-            if (trigger == 1) {
-                Dstart = new MDSplus::Float64(start);
-                Dend = new MDSplus::Float64(end);
-                MDSplus::Data *dimension = new MDSplus::Range(Dstart, Dend, new MDSplus::Float64(period));
-                for (MARTe::uint32 i = 0u; i < numberOfElementsPerSeg; i++) {
-                    data[i] = accum;
-                    accum += 4;
-                }
-                dataArray = new MDSplus::Int32Array(data, numberOfElementsPerSeg);
-                node1->makeSegment(Dstart, Dend, dimension, dataArray);
-                MDSplus::deleteData(dimension); //it deletes Dstart and Dend as well!!!!
-                MDSplus::deleteData(dataArray);
-            }
-            start = start + elapsedTimeSegment;
-            end = end + elapsedTimeSegment;
-            if (toggle) {
-                countSegments++;
-                if (countSegments == segmentsOn) {
-                    if (trigger) {
-                        trigger = false;
-                    }
-                    else {
-                        trigger = true;
-                    }
-                    countSegments = 0u;
-                }
-            }
-        }
-        delete[] data;
-        delete tree;
-        delete node1;
-        return;
-    }
-
-    void AddSignal_uint64(bool toggle = false,
-                          bool initialTrigger = true,
-                          uint32 segmentsOn = 1u) {
-        //printf("uint64 node\n");
-        MARTe::uint64 *data = new MARTe::uint64[numberOfElementsPerSeg];
-        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-        MDSplus::TreeNode *node1 = tree->getNode("S_uint64");
-        MARTe::float64 start = 0.0;
-        MDSplus::Data *Dstart = NULL_PTR(MDSplus::Data *);
-        MARTe::float64 end = period * (numberOfElementsPerSeg - 1u);
-        MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
-        MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
-        MARTe::uint64 accum = 0;
-        uint32 countSegments = 0;
-        bool trigger = initialTrigger;
-        for (uint32 j = 0u; j < numberOfSegments; j++) {
-            if (trigger == 1) {
-                Dstart = new MDSplus::Float64(start);
-                Dend = new MDSplus::Float64(end);
-                MDSplus::Data *dimension = new MDSplus::Range(Dstart, Dend, new MDSplus::Float64(period));
-                for (MARTe::uint32 i = 0u; i < numberOfElementsPerSeg; i++) {
-                    data[i] = accum;
-                    accum += 8;
-                }
-                dataArray = new MDSplus::Uint64Array((const long unsigned int *) (data), numberOfElementsPerSeg);
-                node1->makeSegment(Dstart, Dend, dimension, dataArray);
-                MDSplus::deleteData(dimension); //it deletes Dstart and Dend as well!!!!
-                MDSplus::deleteData(dataArray);
-            }
-            start = start + elapsedTimeSegment;
-            end = end + elapsedTimeSegment;
-            if (toggle) {
-                countSegments++;
-                if (countSegments == segmentsOn) {
-                    if (trigger) {
-                        trigger = false;
-                    }
-                    else {
-                        trigger = true;
-                    }
-                    countSegments = 0u;
-                }
-            }
-        }
-        delete[] data;
-        delete tree;
-        delete node1;
-        return;
-    }
-
-    void AddSignal_int64(bool toggle = false,
-                         bool initialTrigger = true,
-                         uint32 segmentsOn = 1u) {
-        //printf("int64 node\n");
-        MARTe::int64 *data = new MARTe::int64[numberOfElementsPerSeg];
-        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-        MDSplus::TreeNode *node1 = tree->getNode("S_int64");
-        MARTe::float64 start = 0.0;
-        MDSplus::Data *Dstart = NULL_PTR(MDSplus::Data *);
-        MARTe::float64 end = period * (numberOfElementsPerSeg - 1u);
-        MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
-        MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
-        MARTe::int64 accum = -160;
-        uint32 countSegments = 0;
-        bool trigger = initialTrigger;
-        for (uint32 j = 0u; j < numberOfSegments; j++) {
-            if (trigger == 1) {
-                Dstart = new MDSplus::Float64(start);
-                Dend = new MDSplus::Float64(end);
-                MDSplus::Data *dimension = new MDSplus::Range(Dstart, Dend, new MDSplus::Float64(period));
-                for (MARTe::uint32 i = 0u; i < numberOfElementsPerSeg; i++) {
-                    data[i] = accum;
-                    accum += 8;
-                }
-                dataArray = new MDSplus::Int64Array((const long int *) (data), numberOfElementsPerSeg);
-                node1->makeSegment(Dstart, Dend, dimension, dataArray);
-                MDSplus::deleteData(dimension); //it deletes Dstart and Dend as well!!!!
-                MDSplus::deleteData(dataArray);
-            }
-            start = start + elapsedTimeSegment;
-            end = end + elapsedTimeSegment;
-            if (toggle) {
-                countSegments++;
-                if (countSegments == segmentsOn) {
-                    if (trigger) {
-                        trigger = false;
-                    }
-                    else {
-                        trigger = true;
-                    }
-                    countSegments = 0u;
-                }
-            }
-        }
-        delete[] data;
-        delete tree;
-        delete node1;
-        return;
-    }
-
-    void AddSignal_float32(bool toggle = false,
-                           bool initialTrigger = true,
-                           uint32 segmentsOn = 1u) {
-        //printf("float32 node\n");
-        MARTe::float32 *data = new MARTe::float32[numberOfElementsPerSeg];
-        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-        MDSplus::TreeNode *node1 = tree->getNode("S_float32");
-        MARTe::float64 start = 0.0;
-        MDSplus::Data *Dstart = NULL_PTR(MDSplus::Data *);
-        MARTe::float64 end = period * (numberOfElementsPerSeg - 1u);
-        MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
-        MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
-        MARTe::float32 accum = 0.0;
-        uint32 countSegments = 0;
-        bool trigger = initialTrigger;
-        for (uint32 j = 0u; j < numberOfSegments; j++) {
-            if (trigger == 1) {
-                Dstart = new MDSplus::Float64(start);
-                Dend = new MDSplus::Float64(end);
-                MDSplus::Data *dimension = new MDSplus::Range(Dstart, Dend, new MDSplus::Float64(period));
-                for (MARTe::uint32 i = 0u; i < numberOfElementsPerSeg; i++) {
-                    data[i] = accum;
-                    accum += 0.1;
-                }
-                dataArray = new MDSplus::Float32Array(data, numberOfElementsPerSeg);
-                node1->makeSegment(Dstart, Dend, dimension, dataArray);
-                MDSplus::deleteData(dimension); //it deletes Dstart and Dend as well!!!!
-                MDSplus::deleteData(dataArray);
-            }
-            start = start + elapsedTimeSegment;
-            end = end + elapsedTimeSegment;
-            if (toggle) {
-                countSegments++;
-                if (countSegments == segmentsOn) {
-                    if (trigger) {
-                        trigger = false;
-                    }
-                    else {
-                        trigger = true;
-                    }
-                    countSegments = 0u;
-                }
-            }
-        }
-        delete[] data;
-        delete tree;
-        delete node1;
-        return;
-    }
-
-    void AddSignal_float64(bool toggle = false,
-                           bool initialTrigger = true,
-                           uint32 segmentsOn = 1u) {
-        //printf("float64 node\n");
-        MARTe::float64 *data = new MARTe::float64[numberOfElementsPerSeg];
-        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-        MDSplus::TreeNode *node1 = tree->getNode("S_float64");
-        MARTe::float64 start = 0.0;
-        MDSplus::Data *Dstart = NULL_PTR(MDSplus::Data *);
-        MARTe::float64 end = period * (numberOfElementsPerSeg - 1u);
-        MDSplus::Data *Dend = NULL_PTR(MDSplus::Data *);
-        MDSplus::Array *dataArray = NULL_PTR(MDSplus::Array *);
-        MARTe::float64 accum = 0.0;
-        uint32 countSegments = 0;
-        bool trigger = initialTrigger;
-        for (uint32 j = 0u; j < numberOfSegments; j++) {
-            if (trigger == 1) {
-                Dstart = new MDSplus::Float64(start);
-                Dend = new MDSplus::Float64(end);
-                MDSplus::Data *dimension = new MDSplus::Range(Dstart, Dend, new MDSplus::Float64(period));
-                for (MARTe::uint32 i = 0u; i < numberOfElementsPerSeg; i++) {
-                    data[i] = accum;
-                    accum += 0.1;
-                }
-                dataArray = new MDSplus::Float64Array(data, numberOfElementsPerSeg);
-                node1->makeSegment(Dstart, Dend, dimension, dataArray);
-                MDSplus::deleteData(dimension); //it deletes Dstart and Dend as well!!!!
-                MDSplus::deleteData(dataArray);
-            }
-            start = start + elapsedTimeSegment;
-            end = end + elapsedTimeSegment;
-            if (toggle) {
-                countSegments++;
-                if (countSegments == segmentsOn) {
-                    if (trigger) {
-                        trigger = false;
-                    }
-                    else {
-                        trigger = true;
-                    }
-                    countSegments = 0u;
-                }
-            }
-        }
-        delete[] data;
-        delete tree;
-        delete node1;
-        return;
-    }
-
-    void AddSignal_Info(bool toggle = false) {
-        //printf("AddInfo node\n");
-        MARTe::StreamString data = "It is a tree for testing MDSReader\nThis node will be used to check an error of unsupported type";
-        MDSplus::Tree *tree = new MDSplus::Tree(treeName.Buffer(), pulseNumber);
-        MDSplus::TreeNode *node1 = tree->getNode("Info");
-        MDSplus::Data *Ddata = new MDSplus::String(data.Buffer());
-        node1->putData(Ddata);
-
-        MDSplus::deleteData(Ddata);
-        delete node1;
-        delete tree;
-
-        return;
-    }
-    MARTe::StreamString treeName;
-    MARTe::uint32 pulseNumber;
-    MARTe::uint32 numberOfElementsPerSeg;
-    MARTe::uint32 numberOfSegments;
-    MARTe::float64 period;
-    MARTe::float64 elapsedTimeSegment;
-};
 
 MDSReaderTest::MDSReaderTest() {
     treeName = "test_tree";
@@ -1411,11 +113,11 @@ MDSReaderTest::MDSReaderTest(MARTe::StreamString name = "test_tree",
 }
 
 MDSReaderTest::~MDSReaderTest() {
-    if(allNodeNames != NULL_PTR(StreamString *)){
+    if (allNodeNames != NULL_PTR(StreamString *)) {
         delete[] allNodeNames;
         allNodeNames = NULL_PTR(StreamString *);
     }
-    if(allValidNodeNames != NULL_PTR(StreamString *)){
+    if (allValidNodeNames != NULL_PTR(StreamString *)) {
         delete[] allValidNodeNames;
         allValidNodeNames = NULL_PTR(StreamString *);
     }
@@ -2890,7 +1592,7 @@ bool MDSReaderTest::TestSynchronise() {
 bool MDSReaderTest::TestSynchronise1() {
     MDSReaderTestHelper dS(treeName);
     bool ok;
-    dS.elementsRead = 20;//200000;//20
+    dS.elementsRead = 20; //200000;//20
     ok = dS.CreateConfigurationFile(0.1);
     if (ok) {
         ok = dS.Initialise(dS.config);
@@ -7803,8 +6505,11 @@ bool MDSReaderTest::TestSynchronise55() {
         ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
     }
     if (ok) {
-        for (uint32 i = 0u; (i < 199) && ok; i++) {
+        for (uint32 i = 0u; (i < 200) && ok; i++) {
             ok = dS.Synchronise();
+            if (!ok) {
+                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Synchronise failed in reading = %u (last segment idx = %u)", i, 199);
+            }
             if (ok) {
                 ok &= dS.CompareS_uint8(((uint8 *) ptr[0]), i, 1, dS.elementsRead);
                 ok &= dS.CompareS_int8(((int8 *) ptr[1]), i, 1, dS.elementsRead);
@@ -7819,23 +6524,25 @@ bool MDSReaderTest::TestSynchronise55() {
             }
         }
     }
-    uint32 iteration = 199;
+//    uint32 iteration = 199;
+//    if (ok) {
+//        ok = !dS.Synchronise();
+//        if (ok) {
+//            ok &= dS.CompareS_uint8(((uint8 *) ptr[0]), iteration, 1, dS.elementsRead);
+//            ok &= dS.CompareS_int8(((int8 *) ptr[1]), iteration, 1, dS.elementsRead);
+//            ok &= dS.CompareS_uint16(((uint16 *) ptr[2]), iteration, 2, dS.elementsRead);
+//            ok &= dS.CompareS_int16(((int16 *) ptr[3]), iteration, 2, dS.elementsRead);
+//            ok &= dS.CompareS_uint32(((uint32 *) ptr[4]), iteration, 4, dS.elementsRead);
+//            ok &= dS.CompareS_int32(((int32 *) ptr[5]), iteration, 4, dS.elementsRead);
+//            ok &= dS.CompareS_uint64(((uint64 *) ptr[6]), iteration, 8, dS.elementsRead);
+//            ok &= dS.CompareS_int64(((int64 *) ptr[7]), iteration, 8, dS.elementsRead);
+//            ok &= dS.CompareS_float32(((float32 *) ptr[8]), iteration, 0.1, dS.elementsRead);
+//            ok &= dS.CompareS_float64(((float64 *) ptr[9]), iteration, 0.1, dS.elementsRead);
+//        }
+//    }
+
     if (ok) {
-        ok = !dS.Synchronise();
-        if (ok) {
-            ok &= dS.CompareS_uint8(((uint8 *) ptr[0]), iteration, 1, dS.elementsRead);
-            ok &= dS.CompareS_int8(((int8 *) ptr[1]), iteration, 1, dS.elementsRead);
-            ok &= dS.CompareS_uint16(((uint16 *) ptr[2]), iteration, 2, dS.elementsRead);
-            ok &= dS.CompareS_int16(((int16 *) ptr[3]), iteration, 2, dS.elementsRead);
-            ok &= dS.CompareS_uint32(((uint32 *) ptr[4]), iteration, 4, dS.elementsRead);
-            ok &= dS.CompareS_int32(((int32 *) ptr[5]), iteration, 4, dS.elementsRead);
-            ok &= dS.CompareS_uint64(((uint64 *) ptr[6]), iteration, 8, dS.elementsRead);
-            ok &= dS.CompareS_int64(((int64 *) ptr[7]), iteration, 8, dS.elementsRead);
-            ok &= dS.CompareS_float32(((float32 *) ptr[8]), iteration, 0.1, dS.elementsRead);
-            ok &= dS.CompareS_float64(((float64 *) ptr[9]), iteration, 0.1, dS.elementsRead);
-        }
-    }
-    if (ok) {
+        uint32 iteration = 200;
         iteration++;
         ok = !dS.Synchronise();
         uint32 from = 0;
@@ -7873,9 +6580,12 @@ bool MDSReaderTest::TestSynchronise56() {
     uint32 iteration;
     uint32 from = 0;
     if (ok) {
-        for (uint32 i = 0u; (i < 49) && ok; i += 1) {
+        for (uint32 i = 0u; (i < 50) && ok; i += 1) {
             for (uint32 j = 0; (j < 2) && ok; j++) {
                 ok = dS.Synchronise();
+                if (!ok) {
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Synchronise failed in read i = %u, j = %u", i, j);
+                }
                 if (ok) {
                     ok &= dS.CompareS_uint8(((uint8 *) ptr[0]), i * 4 + j, 1, dS.elementsRead);
                     ok &= dS.CompareS_int8(((int8 *) ptr[1]), i * 4 + j, 1, dS.elementsRead);
@@ -7890,90 +6600,35 @@ bool MDSReaderTest::TestSynchronise56() {
                 }
             }
             for (uint32 j = 0; (j < 2) && ok; j++) {
-                ok = dS.Synchronise();
-                iteration = i * 4 + j + 2;
-                if (ok) {
-                    ok &= dS.CompareIntegerValue<uint8>(&(((uint8 *) (ptr[0]))[from]), iteration, 0, dS.elementsRead);
-                    ok &= dS.CompareIntegerValue<int8>(&(((int8 *) ptr[1])[from]), iteration, 0, dS.elementsRead);
-                    ok &= dS.CompareIntegerValue<uint16>(&(((uint16 *) ptr[2])[from]), iteration, 0, dS.elementsRead);
-                    ok &= dS.CompareIntegerValue<int16>(&(((int16 *) ptr[3])[from]), iteration, 0, dS.elementsRead);
-                    ok &= dS.CompareIntegerValue<uint32>(&(((uint32 *) ptr[4])[from]), iteration, 0, dS.elementsRead);
-                    ok &= dS.CompareIntegerValue<int32>(&(((int32 *) ptr[5])[from]), iteration, 0, dS.elementsRead);
-                    ok &= dS.CompareIntegerValue<uint64>(&(((uint64 *) ptr[6])[from]), iteration, 0, dS.elementsRead);
-                    ok &= dS.CompareIntegerValue<int64>(&(((int64 *) ptr[7])[from]), iteration, 0, dS.elementsRead);
-                    ok &= dS.CompareFloatPointValue<float32>(&(((float32 *) ptr[8])[from]), iteration, 0, dS.elementsRead);
-                    ok &= dS.CompareFloatPointValue<float64>(&(((float64 *) ptr[9])[from]), iteration, 0, dS.elementsRead);
+                if (i == 49) { // the last two reads (which is the last segment) is a hole of data..
+                    ok = !dS.Synchronise();
+                }
+                else {
+                    ok = dS.Synchronise();
+                    if (!ok) {
+                        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Synchronise 2 failed in read i = %u, j = %u", i, j);
+                    }
+                    iteration = i * 4 + j + 2;
+                    if (ok) {
+                        ok &= dS.CompareIntegerValue<uint8>(&(((uint8 *) (ptr[0]))[from]), iteration, 0, dS.elementsRead);
+                        ok &= dS.CompareIntegerValue<int8>(&(((int8 *) ptr[1])[from]), iteration, 0, dS.elementsRead);
+                        ok &= dS.CompareIntegerValue<uint16>(&(((uint16 *) ptr[2])[from]), iteration, 0, dS.elementsRead);
+                        ok &= dS.CompareIntegerValue<int16>(&(((int16 *) ptr[3])[from]), iteration, 0, dS.elementsRead);
+                        ok &= dS.CompareIntegerValue<uint32>(&(((uint32 *) ptr[4])[from]), iteration, 0, dS.elementsRead);
+                        ok &= dS.CompareIntegerValue<int32>(&(((int32 *) ptr[5])[from]), iteration, 0, dS.elementsRead);
+                        ok &= dS.CompareIntegerValue<uint64>(&(((uint64 *) ptr[6])[from]), iteration, 0, dS.elementsRead);
+                        ok &= dS.CompareIntegerValue<int64>(&(((int64 *) ptr[7])[from]), iteration, 0, dS.elementsRead);
+                        ok &= dS.CompareFloatPointValue<float32>(&(((float32 *) ptr[8])[from]), iteration, 0, dS.elementsRead);
+                        ok &= dS.CompareFloatPointValue<float64>(&(((float64 *) ptr[9])[from]), iteration, 0, dS.elementsRead);
+                    }
                 }
             }
         }
     }
-    iteration = 196;
-    if (ok) {
-        ok = dS.Synchronise();
-        if (ok) {
-            ok &= dS.CompareS_uint8(((uint8 *) ptr[0]), iteration, 1, dS.elementsRead);
-            ok &= dS.CompareS_int8(((int8 *) ptr[1]), iteration, 1, dS.elementsRead);
-            ok &= dS.CompareS_uint16(((uint16 *) ptr[2]), iteration, 2, dS.elementsRead);
-            ok &= dS.CompareS_int16(((int16 *) ptr[3]), iteration, 2, dS.elementsRead);
-            ok &= dS.CompareS_uint32(((uint32 *) ptr[4]), iteration, 4, dS.elementsRead);
-            ok &= dS.CompareS_int32(((int32 *) ptr[5]), iteration, 4, dS.elementsRead);
-            ok &= dS.CompareS_uint64(((uint64 *) ptr[6]), iteration, 8, dS.elementsRead);
-            ok &= dS.CompareS_int64(((int64 *) ptr[7]), iteration, 8, dS.elementsRead);
-            ok &= dS.CompareS_float32(((float32 *) ptr[8]), iteration, 0.1, dS.elementsRead);
-            ok &= dS.CompareS_float64(((float64 *) ptr[9]), iteration, 0.1, dS.elementsRead);
-        }
-    }
-    iteration = 197;
-    if (ok) {
+    if (ok) { //read 200
+        iteration = 200;
         ok = !dS.Synchronise();
-        if (ok) {
-            ok &= dS.CompareS_uint8(((uint8 *) ptr[0]), iteration, 1, dS.elementsRead);
-            ok &= dS.CompareS_int8(((int8 *) ptr[1]), iteration, 1, dS.elementsRead);
-            ok &= dS.CompareS_uint16(((uint16 *) ptr[2]), iteration, 2, dS.elementsRead);
-            ok &= dS.CompareS_int16(((int16 *) ptr[3]), iteration, 2, dS.elementsRead);
-            ok &= dS.CompareS_uint32(((uint32 *) ptr[4]), iteration, 4, dS.elementsRead);
-            ok &= dS.CompareS_int32(((int32 *) ptr[5]), iteration, 4, dS.elementsRead);
-            ok &= dS.CompareS_uint64(((uint64 *) ptr[6]), iteration, 8, dS.elementsRead);
-            ok &= dS.CompareS_int64(((int64 *) ptr[7]), iteration, 8, dS.elementsRead);
-            ok &= dS.CompareS_float32(((float32 *) ptr[8]), iteration, 0.1, dS.elementsRead);
-            ok &= dS.CompareS_float64(((float64 *) ptr[9]), iteration, 0.1, dS.elementsRead);
-        }
     }
-    if (ok) {
-        iteration = 198;
-        ok = !dS.Synchronise();
-        uint32 from = 0;
-        if (ok) {
-            ok &= dS.CompareIntegerValue<uint8>(&(((uint8 *) (ptr[0]))[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<int8>(&(((int8 *) ptr[1])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<uint16>(&(((uint16 *) ptr[2])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<int16>(&(((int16 *) ptr[3])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<uint32>(&(((uint32 *) ptr[4])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<int32>(&(((int32 *) ptr[5])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<uint64>(&(((uint64 *) ptr[6])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<int64>(&(((int64 *) ptr[7])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareFloatPointValue<float32>(&(((float32 *) ptr[8])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareFloatPointValue<float64>(&(((float64 *) ptr[9])[from]), iteration, 0, dS.elementsRead);
-        }
-    }
-    if (ok) {
-        iteration = 199;
-        ok = !dS.Synchronise();
-        uint32 from = 0;
-        if (ok) {
-            ok &= dS.CompareIntegerValue<uint8>(&(((uint8 *) (ptr[0]))[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<int8>(&(((int8 *) ptr[1])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<uint16>(&(((uint16 *) ptr[2])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<int16>(&(((int16 *) ptr[3])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<uint32>(&(((uint32 *) ptr[4])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<int32>(&(((int32 *) ptr[5])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<uint64>(&(((uint64 *) ptr[6])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareIntegerValue<int64>(&(((int64 *) ptr[7])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareFloatPointValue<float32>(&(((float32 *) ptr[8])[from]), iteration, 0, dS.elementsRead);
-            ok &= dS.CompareFloatPointValue<float64>(&(((float64 *) ptr[9])[from]), iteration, 0, dS.elementsRead);
-        }
-    }
-
     delete[] ptr;
     return ok;
 }
@@ -8445,12 +7100,20 @@ bool MDSReaderTest::TestSynchronise66() {
     uint32 from = 0;
     uint32 elementsToCompare = 0;
     uint32 iteration = 0u;
-    for (uint32 i = 0u; (i < 249) && ok; i++) {
+    for (uint32 i = 0u; (i < 250) && ok; i++) { //each read are 8 saved samples. there are 20*100 samples saved--> to consume all data 250 reads are needed
         ok = dS.Synchronise();
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Synchronise failed in read = %u", i);
+        }
         iteration = i;
         if (ok) {
             from = 0;
-            elementsToCompare = 40;
+            if (i == 249) {
+                elementsToCompare = 40 - 4; //The last interpolation is not check due boundary elements, but can be done in the future.
+            }
+            else {
+                elementsToCompare = 40;
+            }
             ok &= dS.CompareS_uint8Hold(&((uint8 *) ptr[0])[from], iteration, 1, 5, elementsToCompare);
             ok &= dS.CompareS_int8Hold(&((int8 *) ptr[1])[from], iteration, 1, 5, elementsToCompare);
             ok &= dS.CompareS_uint16Hold(&((uint16 *) ptr[2])[from], iteration, 2, 5, elementsToCompare);
@@ -8463,36 +7126,8 @@ bool MDSReaderTest::TestSynchronise66() {
             ok &= dS.CompareS_float64Hold(&((float64 *) ptr[9])[from], iteration, 0.1, 5, elementsToCompare);
         }
     }
-    if(ok){
-        ok = !dS.Synchronise();//end nodecreate
-        if (ok) {
-            from = 0;
-            elementsToCompare = 35;
-            ok &= dS.CompareS_uint8Hold(&((uint8 *) ptr[0])[from], iteration, 1, 5, elementsToCompare);
-            ok &= dS.CompareS_int8Hold(&((int8 *) ptr[1])[from], iteration, 1, 5, elementsToCompare);
-            ok &= dS.CompareS_uint16Hold(&((uint16 *) ptr[2])[from], iteration, 2, 5, elementsToCompare);
-            ok &= dS.CompareS_int16Hold(&((int16 *) ptr[3])[from], iteration, 2, 5, elementsToCompare);
-            ok &= dS.CompareS_uint32Hold(&((uint32 *) ptr[4])[from], iteration, 4, 5, elementsToCompare);
-            ok &= dS.CompareS_int32Hold(&((int32 *) ptr[5])[from], iteration, 4, 5, elementsToCompare);
-            ok &= dS.CompareS_uint64Hold(&((uint64 *) ptr[6])[from], iteration, 8, 5, elementsToCompare);
-            ok &= dS.CompareS_int64Hold(&((int64 *) ptr[7])[from], iteration, 8, 5, elementsToCompare);
-            ok &= dS.CompareS_float32Hold(&((float32 *) ptr[8])[from], iteration, 0.1, 5, elementsToCompare);
-            ok &= dS.CompareS_float64Hold(&((float64 *) ptr[9])[from], iteration, 0.1, 5, elementsToCompare);
-        }
-        if(ok){
-            for(uint32 i = elementsToCompare+1; i < dS.elementsRead; i++){
-                ((uint8 *) ptr[0])[i] = 0;
-                ((int8 *) ptr[1])[i] = 0;
-                ((uint16 *) ptr[2])[i] = 0;
-                ((int16 *) ptr[3])[i] = 0;
-                ((uint32 *) ptr[4])[i] = 0;
-                ((int32 *) ptr[5])[i] = 0;
-                ((uint64 *) ptr[6])[i] = 0;
-                ((int64 *) ptr[7])[i] = 0;
-                dS.IsEqualLargeMargins(((float32 *) ptr[7])[i], float32(0.0));
-                dS.IsEqualLargeMargins(((float64 *) ptr[8])[i], 0.0);
-            }
-        }
+    if (ok) {
+        ok = !dS.Synchronise(); //end nodecreate
     }
 
     delete[] ptr;
@@ -8526,13 +7161,51 @@ bool MDSReaderTest::TestSynchronise67() {
             //ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 0.2, elementsToCompare);
             //ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 0.2, elementsToCompare);
             ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 0.4, elementsToCompare);
-            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2.0/5, elementsToCompare);
-            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4.0/5, elementsToCompare);
-            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4.0/5, elementsToCompare);
-            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8.0/5, elementsToCompare);
-            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8.0/5, elementsToCompare);
+            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2.0 / 5, elementsToCompare);
+            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4.0 / 5, elementsToCompare);
+            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4.0 / 5, elementsToCompare);
+            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8.0 / 5, elementsToCompare);
+            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8.0 / 5, elementsToCompare);
             ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.02, elementsToCompare);
-            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1/5, elementsToCompare);
+            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1 / 5, elementsToCompare);
+        }
+    }
+
+    delete[] ptr;
+    return ok;
+}
+
+bool MDSReaderTest::TestSynchronise68(uint32 nOfSegments) {
+    MDSReaderTestHelper dS(treeName);
+    dS.elementsRead = 128;
+    bool ok;
+    ok = dS.CreateConfigurationFile(1 / 2e6, 0, 0, 1);
+    if (ok) {
+        ok = dS.Initialise(dS.config);
+    }
+    if (ok) {
+        ok = dS.SetConfiguredDatabase(dS.config);
+    }
+    void **ptr = new void *[numberOfValidNodes];
+    for (uint32 i = 0u; (i < numberOfValidNodes) && ok; i++) {
+        ok = dS.GetSignalMemoryBuffer(i, 0, ptr[i]);
+    }
+    for (uint32 i = 0u; (i < nOfSegments) && ok; i++) {
+        ok = dS.Synchronise();
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Synchronise failed in segment = %u (last segment idx = %u)", i, nOfSegments - 1);
+        }
+        if (ok) {
+            //ok &= dS.CompareS_uint8(&((uint8 *) ptr[0])[from], iteration, 0.2, elementsToCompare);
+            //ok &= dS.CompareS_int8(&((int8 *) ptr[1])[from], iteration, 0.2, elementsToCompare);
+//            ok &= dS.CompareS_uint16(&((uint16 *) ptr[2])[from], iteration, 0.4, elementsToCompare);
+//            ok &= dS.CompareS_int16(&((int16 *) ptr[3])[from], iteration, 2.0 / 5, elementsToCompare);
+//            ok &= dS.CompareS_uint32(&((uint32 *) ptr[4])[from], iteration, 4.0 / 5, elementsToCompare);
+//            ok &= dS.CompareS_int32(&((int32 *) ptr[5])[from], iteration, 4.0 / 5, elementsToCompare);
+//            ok &= dS.CompareS_uint64(&((uint64 *) ptr[6])[from], iteration, 8.0 / 5, elementsToCompare);
+//            ok &= dS.CompareS_int64(&((int64 *) ptr[7])[from], iteration, 8.0 / 5, elementsToCompare);
+//            ok &= dS.CompareS_float32(&((float32 *) ptr[8])[from], iteration, 0.02, elementsToCompare);
+//            ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1 / 5, elementsToCompare);
         }
     }
 

@@ -931,7 +931,7 @@ bool MDSReader::GetDataNode(const uint32 nodeNumber) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Error while copying data from the node = %s to the dynamic memory", nodeName[nodeNumber]);
             }
             //end node
-            ok = false;
+            //ok = false;
         }
         else {
         }
@@ -963,7 +963,7 @@ int8 MDSReader::FindSegment(const float64 t,
         if (t <= tmax) {
             find = true;
             tmin = tminD->getDouble();
-            if (t < tmin) {
+            if (t < (tmin - (nodeSamplingTime[nodeIdx] / 2.0))) { // (nodeSamplingTime[nodeIdx] / 2.0)) is due to float64 numeric errors
                 //look the tmax Previous segment and verify if the difference is smaller than the
                 if (i < 2u) {
                     retVal = 0;
@@ -1400,9 +1400,9 @@ bool MDSReader::CopyDataAddValuesCopyData(const uint32 nodeNumber,
 
 //lint -e{613} Possible use of null pointer. Not possible.If initialisation fails this function is not called
 bool MDSReader::FindDiscontinuity(const uint32 nodeNumber,
-                                 uint32 &segment,
-                                 float64 &beginningTime,
-                                 float64 &endTime) const {
+                                  uint32 &segment,
+                                  float64 &beginningTime,
+                                  float64 &endTime) const {
     bool find = false;
 //    bool error;
     MDSplus::Data *tminD = NULL_PTR(MDSplus::Data *);
@@ -1485,8 +1485,6 @@ uint32 MDSReader::MakeRawCopy(const uint32 nodeNumber,
     return samplesCopied;
 }
 
-
-
 //lint -e{613} Possible use of null pointer. Not possible. If initialisation fails LinearInterpolationCopy() is not called.
 uint32 MDSReader::LinearInterpolationCopy(const uint32 nodeNumber,
                                           const uint32 minSeg,
@@ -1530,7 +1528,6 @@ uint32 MDSReader::LinearInterpolationCopy(const uint32 nodeNumber,
     }
     return samplesCopied;
 }
-
 
 //lint -e{613} Possible use of null pointer. If initialisation fails the Synchronise is not called neither HoldCopy()
 uint32 MDSReader::HoldCopy(const uint32 nodeNumber,

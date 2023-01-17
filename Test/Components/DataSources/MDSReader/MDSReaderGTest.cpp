@@ -40,7 +40,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-
 TEST(MDSReaderGTest, TestInitialiseNoTreeName) {
     MDSReaderTest test;
     ASSERT_TRUE(test.TestInitialiseNoTreeName());
@@ -156,7 +155,6 @@ TEST(MDSReaderGTest, TestSetConfiguredDatabaseInvalidNumberOfElements) {
     ASSERT_TRUE(test.TestSetConfiguredDatabaseInvalidNumberOfElements());
 }
 
-
 TEST(MDSReaderGTest, TestSetConfiguredDatabaseNoTimeNumberOfElements) {
     MDSReaderTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabaseNoTimeNumberOfElements());
@@ -246,7 +244,6 @@ TEST(MDSReaderGTest, TestGetOutputBroker) {
     MDSReaderTest test;
     ASSERT_TRUE(test.TestGetOutputBroker());
 }
-
 
 TEST(MDSReaderGTest, TestGetNumberOfMemoryBuffers) {
     MDSReaderTest test;
@@ -548,7 +545,6 @@ TEST(MDSReaderGTest, TestSynchronise51) {
     ASSERT_TRUE(test.TestSynchronise51());
 }
 
-
 TEST(MDSReaderGTest, TestSynchronise52) {
     MDSReaderTest test;
     ASSERT_TRUE(test.TestSynchronise52());
@@ -583,7 +579,6 @@ TEST(MDSReaderGTest, TestSynchronise58) {
     MDSReaderTest test;
     ASSERT_TRUE(test.TestSynchronise58());
 }
-
 
 TEST(MDSReaderGTest, TestSynchronise59) {
     MDSReaderTest test;
@@ -630,7 +625,11 @@ TEST(MDSReaderGTest, TestSynchronise67) {
     ASSERT_TRUE(test.TestSynchronise67());
 }
 
-
+TEST(MDSReaderGTest, TestSynchronise68) {
+    uint32 nOfSegments = 1000;
+    MDSReaderTest test("test_tree", 128, nOfSegments, 0.000064000); //treeName failes to create.. who knows why...
+    ASSERT_TRUE(test.TestSynchronise68(nOfSegments));
+}
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

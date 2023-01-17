@@ -24,8 +24,8 @@
 #
 #############################################################
 
-OBJSX +=  MDSReaderTest.x
-		
+OBJSX +=  MDSReaderTest.x MDSReaderTestHelper.x CreateTree.x
+
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
