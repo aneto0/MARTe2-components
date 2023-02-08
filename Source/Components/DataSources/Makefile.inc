@@ -32,7 +32,8 @@ SPB = EpicsDataSource.x \
     RealTimeThreadAsyncBridge.x \
     RealTimeThreadSynchronisation.x \
     UARTDataSource.x \
-    UDP.x
+    UDP.x \
+    UEIAI217DataSource.x
 
 ROOT_DIR=../../..
 include ProfinetDataSource/Makefile.detect
