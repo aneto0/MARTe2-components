@@ -45,6 +45,12 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
+INCLUDES += -I $(PDNA_INCLUDE)
+
+LIBRARIES_STATIC += $(PDNA_LIB)/libpowerdna$(LIBEXT)
+
+LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB)
+
 
 all: $(OBJS)    \
     $(BUILD_DIR)/UEIAI217DataSource$(LIBEXT) \

@@ -38,6 +38,7 @@
 #include "SingleThreadService.h"
 #include "StructuredDataI.h"
 #include "StreamString.h"
+#include "PDNA.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -159,6 +160,8 @@ private:
      * Variable to store the selected ip of UEIAI217
      */
     StreamString ip;
+    
+    uint8 hd;
 
 };
 

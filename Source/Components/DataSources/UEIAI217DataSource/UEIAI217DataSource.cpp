@@ -142,6 +142,7 @@ bool UEIAI217DataSource::SetConfiguredDatabase(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The first signal (Trigger) must have only one element");
         }
     }
+    DqOpenIOM((char *) "127.0.0.1", DQ_UDP_DAQ_PORT, 200, (int *)&hd, NULL);
     return ok;
 }
 
