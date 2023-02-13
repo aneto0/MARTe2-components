@@ -46,6 +46,10 @@ UEIAI217DataSource::UEIAI217DataSource() :
     MessageI(),
     EmbeddedServiceMethodBinderT<UEIAI217DataSource>(*this, &UEIAI217DataSource::UEIAI217ThreadCallback),
     executor(*this) {
+        poll_sleep_period = 200;
+        input_map = NULL_PTR(uint32*);
+        mapid = 0u;
+        hd = 0u;
         ReferenceT < RegisteredMethodsMessageFilter > filter = ReferenceT < RegisteredMethodsMessageFilter > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
         filter->SetDestination(this);
         ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
@@ -60,40 +64,9 @@ UEIAI217DataSource::~UEIAI217DataSource() {
 
 bool UEIAI217DataSource::Initialise(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::Initialise(data);
-    StreamString DAQmode_;
-    if (ok) {
-        ok = data.Read("Mode", DAQmode_);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The Mode property must be set!");
-        }
-    }
-
-    if (ok){
-        if (DAQmode_ == StreamString("Point-by-Point")){
-            DAQmode = POINT_BY_POINT;
-        }else if(DAQmode_ == StreamString("RtDMap")){
-            DAQmode = RTDMAP;
-        }else if(DAQmode_ == StreamString("RtVMap")){
-            DAQmode = RTVMAP;
-        }else if(DAQmode_ == StreamString("ADMap")){
-            DAQmode = ADMAP;
-        }else if(DAQmode_ == StreamString("AVMap")){
-            DAQmode = AVMAP;
-        }else{
-            ok = false;
-            REPORT_ERROR(ErrorManagement::ParametersError, "Unrecognized DAQ mode!");
-        }
-        if (ok){
-            REPORT_ERROR(ErrorManagement::Information, "UEI DAQ mode set to %s", DAQmode_.Buffer());
-        }
-        if (DAQmode == ADMAP || DAQmode == AVMAP){
-            ok = false;
-            REPORT_ERROR(ErrorManagement::ParametersError, "DAQ mode not supported!");
-        }
-    }
     StreamString loopback = StreamString("127.0.0.1");
     StreamString localhost = StreamString("localhost");
-    if (ok) {
+/*   if (ok) {
         ok = data.Read("IP", ip);
         if (ok) {
             if (ip == loopback || ip == localhost){
@@ -109,40 +82,79 @@ bool UEIAI217DataSource::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "IP of UEI DAQ must be set!");
         }
     }
+*/
     return ok;
 }
 
 bool UEIAI217DataSource::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
     if (ok) {
-        ok = (GetNumberOfSignals() == 2u);
+        ok = (GetNumberOfSignals() == 1u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Exactly two signals must be defined (Trigger and OutputData)");
+            REPORT_ERROR(ErrorManagement::ParametersError, "Exactly one signal must be defined (OutputData)");
         }
     }
     if (ok) {
-        ok = (GetSignalType(0u) == UnsignedInteger8Bit);
+        ok = (GetSignalType(0u) == UnsignedInteger32Bit);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The type of the first signal (Trigger) must be UnsignedInteger8");
-        }
-    }
-    if (ok) {
-        ok = (GetSignalType(1u) == UnsignedInteger32Bit);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The type of the second signal (OutputData) must be UnsignedInteger32");
         }
     }
     if (ok) {
         uint32 elements;
         ok = GetSignalNumberOfElements(0u, elements);
         if (ok) {
-            ok = (elements == 1u);
+            ok = (elements == 10u);
         }
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The first signal (Trigger) must have only one element");
+            REPORT_ERROR(ErrorManagement::ParametersError, "The first signal (Trigger) must have 10 elements");
         }
     }
-    DqOpenIOM((char *) "127.0.0.1", DQ_UDP_DAQ_PORT, 200, (int *)&hd, NULL);
+    if (ok){
+        ok = (DqInitDAQLib() == DQ_SUCCESS);
+        if (!ok){
+           REPORT_ERROR(ErrorManagement::ParametersError, "Unable to init DAQ Lib."); 
+        }
+    }
+    if (ok){
+        ok = (DqOpenIOM((char *) "127.0.0.1", 1u, 200, (int *)&hd, NULL) >= 0);
+        if(!ok){
+            REPORT_ERROR(ErrorManagement::ParametersError, "Unable to contact IOM");  
+        }
+    }
+    REPORT_ERROR(ErrorManagement::ParametersError, "%d", ok);
+    if (ok){
+        REPORT_ERROR(ErrorManagement::ParametersError, "%d", ok);
+        ok = (DqRtDmapInit(hd, (int *)&mapid, 10.0) >= 0);
+        REPORT_ERROR(ErrorManagement::ParametersError, "%d", ok);
+        if(!ok){
+            REPORT_ERROR(ErrorManagement::ParametersError, "Unable to initialize DMap");  
+        }
+    }
+    REPORT_ERROR(ErrorManagement::ParametersError, "%d", ok);
+    if(ok){
+        uint32 chentry;
+        for (uint8 i = 0u; i < 10u && ok; i++){
+            chentry = (uint32)i | DQ_LNCL_GAIN(DQ_AI217_GAIN_1) | DQ_LNCL_DIFF;
+            ok = (DqRtDmapAddChannel((int) hd, (int) mapid, 0u, DQ_SS0IN, &chentry, 1) >=0 );
+        }
+        if(!ok){
+            REPORT_ERROR(ErrorManagement::ParametersError, "Error adding channels");  
+        }
+    }
+    if (ok){
+        ok = (DqRtDmapStart((int) hd, (int) mapid) >= 0);
+        if(!ok){
+            REPORT_ERROR(ErrorManagement::ParametersError, "Unable to start DMap");  
+        }
+    }
+    REPORT_ERROR(ErrorManagement::ParametersError, "%d", ok);
+    if (ok){
+        ok = GetMapAddr();
+        if(!ok){
+            REPORT_ERROR(ErrorManagement::ParametersError, "Unable to get DMap memory address");  
+        }
+    }
     return ok;
 }
 
@@ -166,11 +178,67 @@ bool UEIAI217DataSource::TerminateInputCopy(const uint32 signalIdx, const uint32
 
 const char8* UEIAI217DataSource::GetBrokerName(StructuredDataI &data,
         const SignalDirection direction) {
-    return "MemoryMapMultiBufferInputBroker";
+    return "MemoryMapSynchronousInputBroker";
+}
+
+bool UEIAI217DataSource::GetMapAddr(){
+    unsigned char* map_pointer = NULL;
+    uint16 counter = 0u;
+    bool ok = true;
+    while((((uint32*) map_pointer) == NULL)&& ok){
+        counter++;
+        ok = (DqRtDmapRefresh(hd, mapid) >= 0);
+        if (ok){
+            Sleep::MSec(10);
+            ok = (DqRtDmapGetInputMap(hd, mapid, 0, &(map_pointer)) >=0);
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::ParametersError, "GetInputMap failed during the GetMapAddr method");   
+            }
+        }else{
+            REPORT_ERROR(ErrorManagement::ParametersError, "Refresh failed during the GetMapAddr method");
+        }
+        if (counter > 200) break; //If NULL map is still present during 2s abort the initialisation of the DS
+    }
+    if (((uint32*) map_pointer) != NULL){
+        input_map = ((uint32*)map_pointer);
+        return true;
+    }else{
+        return false;
+    }
 }
 
 bool UEIAI217DataSource::Synchronise() {
-    return true;
+    return PollForNextPacket();
+}
+
+bool UEIAI217DataSource::PollForNextPacket(){
+    bool next_packet = false;
+    bool ok = true;
+    while(!next_packet && ok){
+        //Poll for next packet from UEIDAQ
+        ok = (DqRtDmapRefresh(hd, mapid) >= 0);
+        if (ok){
+            //Check if the response is a new packet or a rerequest.
+            //The 0x80000000 bit on the recived samples lets us know if the packet has
+            //been previously requested.
+            if (*((uint32*)input_map) & 0x80000000){ 
+                uint32 mask = 0x00FFFFFF; 
+                //The recived packet is a newly converted one not requested yet.
+                //Make the signals available to the broker.
+                for (uint8 i = 0; i < 10u; i++){
+                    *((uint32*)input_map) = *((uint32*)input_map) & mask;
+                }
+                //End the while loop to unlock the Synchronize method.
+                next_packet = true;
+            }else{
+                //The packet recived is a re-request, sleep the RT-thread to avoid starving other threads
+                Sleep::MSec(poll_sleep_period);
+            }
+        }else{
+            REPORT_ERROR(ErrorManagement::ParametersError, "Refresh failed during Poll for conversion");
+        }
+    }
+    return ok;
 }
 
 bool UEIAI217DataSource::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName){

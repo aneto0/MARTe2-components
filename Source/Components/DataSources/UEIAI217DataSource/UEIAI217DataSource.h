@@ -66,16 +66,11 @@ namespace MARTe {
  * <pre>
  *   +UEIAI217 = {
  *     Class = UEIAI217DataSource
- *     Mode = "Point-to-Point"
- *     IP = "192.168.100.2"
+ *     Ip = {127.0.0.1}
  *     Signals = {
- *       TriggerInput = {
- *         Type = uint8
- *         NumberOfElements = 1
- *       }
  *       OutputData = {
  *         Type = uint32
- *         NumberOfElements = 3
+ *         NumberOfElements = 10
  *       }
  *     }
  *   }
@@ -143,6 +138,8 @@ public:
 
     virtual bool PrepareNextState(const char8 * const currentStateName,
                                   const char8 * const nextStateName);
+    bool GetMapAddr();
+    bool PollForNextPacket();
 
 private:
 
@@ -160,8 +157,14 @@ private:
      * Variable to store the selected ip of UEIAI217
      */
     StreamString ip;
-    
-    uint8 hd;
+
+    /**
+     * Variable to store the selected ip of UEIAI217
+     */
+    uint32* input_map;
+    int32 mapid;
+    int32 hd;
+    uint32 poll_sleep_period;
 
 };
 

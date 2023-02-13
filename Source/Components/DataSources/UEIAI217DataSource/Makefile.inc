@@ -22,7 +22,9 @@
 #
 #############################################################
 
-OBJSX=UEIAI217DataSource.x
+OBJSX=  UEIAI217DataSource.x 
+#         DAQMasterObject.x \
+#        UEIAI217_803.x
 
 PACKAGE=Components/DataSources
 
@@ -47,6 +49,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
 INCLUDES += -I $(PDNA_INCLUDE)
 
+
 ifeq ($(TARGET), ppc-linux)
 LIBRARIES_STATIC += $(PDNA_LIB_PPC)/libpowerdna$(LIBEXT)
 LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB_PPC)
@@ -59,8 +62,11 @@ endif
 
 all: $(OBJS)    \
     $(BUILD_DIR)/UEIAI217DataSource$(LIBEXT) \
-    $(BUILD_DIR)/UEIAI217DataSource$(DLLEXT)
+    $(BUILD_DIR)/UEIAI217DataSource$(DLLEXT) 
+#    $(BUILD_DIR)/DAQMasterObject$(DLLEXT) \
+#    $(BUILD_DIR)/UEIAI217_803$(DLLEXT)
 	echo  $(OBJS)
+
 
 include depends.$(TARGET)
 
