@@ -21,9 +21,7 @@
 # permissions and limitations under the Licence. 
 #
 #############################################################
-OBJSX=  UEIAI217DataSource.x 
-#         DAQMasterObject.x \
-#        UEIAI217_803.x
+OBJSX=  UEIAI217DataSource.x DAQMasterObject.x UEIAI217_803.x DAQMapContainer.x
 
 PACKAGE=Components/DataSources
 
@@ -62,11 +60,12 @@ LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB)
 endif
 
 all: $(OBJS)    \
-    $(BUILD_DIR)/UEIAI217DataSource$(LIBEXT) \
-    $(BUILD_DIR)/UEIAI217DataSource$(DLLEXT) 
-#    $(BUILD_DIR)/DAQMasterObject$(DLLEXT) \
-#    $(BUILD_DIR)/UEIAI217_803$(DLLEXT)
-	echo  $(OBJS)
+	$(BUILD_DIR)/UEIAI217DataSource$(LIBEXT) \
+	$(BUILD_DIR)/UEIAI217DataSource$(DLLEXT) \
+	$(BUILD_DIR)/DAQMasterObject$(DLLEXT)	\
+	$(BUILD_DIR)/UEIAI217_803$(DLLEXT)	\
+	$(BUILD_DIR)/DAQMapContainer$(DLLEXT)
+		echo  $(OBJS)
 
 
 include depends.$(TARGET)
