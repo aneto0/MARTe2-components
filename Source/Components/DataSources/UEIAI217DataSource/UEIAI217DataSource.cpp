@@ -46,7 +46,7 @@ UEIAI217DataSource::UEIAI217DataSource() :
     MessageI(),
     EmbeddedServiceMethodBinderT<UEIAI217DataSource>(*this, &UEIAI217DataSource::UEIAI217ThreadCallback),
     executor(*this) {
-        poll_sleep_period = 200;
+        poll_sleep_period = 100;
         input_map = NULL_PTR(uint32*);
         mapid = 0u;
         hd = 0u;
@@ -59,30 +59,25 @@ UEIAI217DataSource::UEIAI217DataSource() :
 }
 
 UEIAI217DataSource::~UEIAI217DataSource() {
-
+/*    if (mapid != 0){
+       DqRtDmapStop(hd, mapid);
+       DqRtDmapClose(hd, mapid);
+    }
+    if(hd){
+        DqCloseIOM(hd);
+    }
+    DqCleanUpDAQLib();
+*/
 }
 
 bool UEIAI217DataSource::Initialise(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::Initialise(data);
-    StreamString loopback = StreamString("127.0.0.1");
-    StreamString localhost = StreamString("localhost");
-/*   if (ok) {
+   if (ok) {
         ok = data.Read("IP", ip);
-        if (ok) {
-            if (ip == loopback || ip == localhost){
-                REPORT_ERROR(ErrorManagement::Information, "UEI DAQ device set to local");
-            }else{
-                //ok = (1 != -1);
-                if (!ok){
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Invalid IP supplied!");    
-                }
-            }
-        }
-        else {
+        if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "IP of UEI DAQ must be set!");
         }
     }
-*/
     return ok;
 }
 
@@ -103,9 +98,9 @@ bool UEIAI217DataSource::SetConfiguredDatabase(StructuredDataI &data) {
     if (ok) {
         uint32 elements;
         ok = GetSignalNumberOfElements(0u, elements);
-        if (ok) {
-            ok = (elements == 10u);
-        }
+//        if (ok) {
+//            ok = (elements == 3u);
+//        }
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The first signal (Trigger) must have 10 elements");
         }
@@ -117,7 +112,7 @@ bool UEIAI217DataSource::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     if (ok){
-        ok = (DqOpenIOM((char *) "127.0.0.1", 1u, 200, (int *)&hd, NULL) >= 0);
+        ok = (DqOpenIOM((char *) "127.0.0.1", 6334, 200, (int *)&hd, NULL) >= 0);
         if(!ok){
             REPORT_ERROR(ErrorManagement::ParametersError, "Unable to contact IOM");  
         }
@@ -125,7 +120,7 @@ bool UEIAI217DataSource::SetConfiguredDatabase(StructuredDataI &data) {
     REPORT_ERROR(ErrorManagement::ParametersError, "%d", ok);
     if (ok){
         REPORT_ERROR(ErrorManagement::ParametersError, "%d", ok);
-        ok = (DqRtDmapInit(hd, (int *)&mapid, 10.0) >= 0);
+        ok = (DqRtDmapInit(hd, (int *)&mapid, 5.0) >= 0);
         REPORT_ERROR(ErrorManagement::ParametersError, "%d", ok);
         if(!ok){
             REPORT_ERROR(ErrorManagement::ParametersError, "Unable to initialize DMap");  
@@ -178,7 +173,7 @@ bool UEIAI217DataSource::TerminateInputCopy(const uint32 signalIdx, const uint32
 
 const char8* UEIAI217DataSource::GetBrokerName(StructuredDataI &data,
         const SignalDirection direction) {
-    return "MemoryMapSynchronousInputBroker";
+    return "MemoryMapSynchronisedInputBroker";
 }
 
 bool UEIAI217DataSource::GetMapAddr(){
@@ -208,7 +203,8 @@ bool UEIAI217DataSource::GetMapAddr(){
 }
 
 bool UEIAI217DataSource::Synchronise() {
-    return PollForNextPacket();
+    bool ok = PollForNextPacket();
+    return ok;
 }
 
 bool UEIAI217DataSource::PollForNextPacket(){
@@ -225,8 +221,9 @@ bool UEIAI217DataSource::PollForNextPacket(){
                 uint32 mask = 0x00FFFFFF; 
                 //The recived packet is a newly converted one not requested yet.
                 //Make the signals available to the broker.
-                for (uint8 i = 0; i < 10u; i++){
-                    *((uint32*)input_map) = *((uint32*)input_map) & mask;
+		uint32* const destination = reinterpret_cast<uint32*>(memory);
+                for (uint8 i = 0; i < 3u; i++){
+                    destination[i] = ((uint32*)input_map)[i] & mask;
                 }
                 //End the while loop to unlock the Synchronize method.
                 next_packet = true;
