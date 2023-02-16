@@ -128,20 +128,12 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
         //Check if there's Outputs section in the configuration
         outputSignalsDefined = data.MoveRelative("Outputs");
         if (outputSignalsDefined){
-            //if there's Outputs section access the Devices subsection
-            ok = data.MoveRelative("Devices");
+            //Get and check the number of devices defined into the Devices subsection
+            nDevices = data.GetNumberOfChildren();
+            ok = (nDevices > 0u && nDevices < MAX_IO_SLOTS);
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMapContainer::Initialise - "
-                "Could not retrieve output devices container for map %s.", name.Buffer());    
-            }
-            if (ok){
-                //Get and check the number of devices defined into the Devices subsection
-                nDevices = data.GetNumberOfChildren();
-                ok = (nDevices > 0u && nDevices < MAX_IO_SLOTS);
-                if (!ok){
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMapContainer::Initialise - "
-                    "Invalid device number for map %s.", name.Buffer());    
-                }
+                "Invalid device number for map %s.", name.Buffer());    
             }
             if (ok){
                 //Traverse each of the devices leaf to list the device used and the channels within such device
@@ -156,7 +148,7 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
                     }
                     if (!ok){
                         REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMapContainer::Initialise - "
-                        "Could not retrieve device %s for map %s.", node_name.Buffer(), name.Buffer());                
+                        "Could not retrieve device %s at Outputs block for map %s.", i, name.Buffer());                
                     }
                     if (ok){
                         //Get and check the device identifier for this map member
@@ -164,7 +156,7 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
                         ok &= (devn_>=0u && devn_<MAX_IO_SLOTS);
                         if (!ok){
                             REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMapContainer::Initialise - "
-                            "Could not retrieve Devn for device %s for map %s.", node_name.Buffer(), name.Buffer());  
+                            "Could not retrieve Devn for device %s  for map %s.", node_name.Buffer(), name.Buffer());  
                         }
                         //Check that this devn is not already used for a member of this map
                         if (ok){
@@ -179,6 +171,9 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
                                 //Device is not repeated, check if it is within allowed devn limits
                                 ok = (devn_ < MAX_IO_SLOTS);
                                 if (ok){
+                                    //Mark this device (member) as needed by the map
+                                    members[devn_].defined = true;
+                                    //Mark this device (member) as needing output signals by the map
                                     members[devn_].Outputs.defined = true;
                                 }
                                 if (!ok){
@@ -197,18 +192,16 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
                             "Could not retrieve Channels for device number %d for map %s.", i, name.Buffer());
                         }
                     }
-                    //Move back to "Devices" leaf
+                    //Move back to "Outputs" leaf
                     ok &= data.MoveToAncestor(1u);
-                }
+                }     
             }
-            //Move back to "Outputs" leaf
+            //Move back to "Map" leaf
             ok &= data.MoveToAncestor(1u);
             if (ok){
                 REPORT_ERROR(ErrorManagement::Information, "DAQMapContainer::Initialise - "
                 "%s map initialised with %d devices.", name.Buffer(), nDevices);
             }
-            //Move back to "Map" node
-            ok &= data.MoveToAncestor(1u);
         }
 
         if (!outputSignalsDefined){
@@ -222,20 +215,12 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
         //Check if there's Inputs section in the configuration
         inputSignalsDefined = data.MoveRelative("Inputs");
         if (inputSignalsDefined){
-            //if there's Inputs section access the Devices subsection
-            ok = data.MoveRelative("Devices");
+            //Get and check the number of devices defined into the Devices subsection
+            nDevices = data.GetNumberOfChildren();
+            ok = (nDevices > 0u && nDevices < MAX_IO_SLOTS);
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMapContainer::Initialise - "
-                "Could not retrieve input devices container for map %s.", name.Buffer());    
-            }
-            if (ok){
-                //Get and check the number of devices defined into the Devices subsection
-                nDevices = data.GetNumberOfChildren();
-                ok = (nDevices > 0u && nDevices < MAX_IO_SLOTS);
-                if (!ok){
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMapContainer::Initialise - "
-                    "Invalid device number for map %s.", name.Buffer());    
-                }
+                "Invalid device number for map %s.", name.Buffer());    
             }
             if (ok){
                 //Traverse each of the devices leaf to list the device used and the channels within such device
@@ -250,7 +235,7 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
                     }
                     if (!ok){
                         REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMapContainer::Initialise - "
-                        "Could not retrieve device %s for map %s.", node_name.Buffer(), name.Buffer());                
+                        "Could not retrieve device %s at Inputs block for map %s.", i, name.Buffer());                
                     }
                     if (ok){
                         //Get and check the device identifier for this map member
@@ -272,6 +257,9 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
                                 //Device is not repeated, chec if it is within allowed devn limits
                                 ok = (devn_ < MAX_IO_SLOTS);
                                 if (ok){
+                                    //Mark this device (member) as needed by the map
+                                    members[devn_].defined = true;
+                                    //Mark this device (member) as needing output signals by the map
                                     members[devn_].Inputs.defined = true;
                                 }
                                 if (!ok){
@@ -290,12 +278,10 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
                             "Could not retrieve Channels for device number %d for map %s.", i, name.Buffer());
                         }
                     }
-                    //Move back to "Devices" leaf
+                    //Move back to "Inputs" leaf
                     ok &= data.MoveToAncestor(1u);
                 }
             }
-            //Move back to "Inputs" leaf
-            ok &= data.MoveToAncestor(1u);
             if (ok){
                 REPORT_ERROR(ErrorManagement::Information, "DAQMapContainer::Initialise - "
                 "%s map initialised with %d devices.", name.Buffer(), nDevices);
@@ -325,8 +311,54 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
     return ok;
 }
 
-uint8 DAQMapContainer::GetDevDefined(uint32 devn){
-    return members[devn].defined;
+bool DAQMapContainer::GetDevDefined(uint32 devn){
+    bool defined = false;
+    if (devn< MAX_IO_SLOTS){
+        defined = members[devn].defined;
+    }
+    return defined;
+}
+
+bool DAQMapContainer::GetDevDefined(uint32 devn, uint8 direction){
+    bool defined = false;
+    if (devn<MAX_IO_SLOTS){
+        if (direction == INPUT_CHANNEL){
+            defined = members[devn].Inputs.defined;
+        }else if (direction == OUTPUT_CHANNEL){
+            defined = members[devn].Outputs.defined;
+        }else{
+            defined = false;
+        }
+    }
+    return defined;
+}
+
+bool DAQMapContainer::GetNumberOfChannels(uint32 devn, uint8 direction, uint32* nChannels){
+    bool valid = false;
+    if (devn<MAX_IO_SLOTS){
+        if (direction == INPUT_CHANNEL){
+            *nChannels = members[devn].Inputs.nChannels;
+            valid = true;
+        }else if (direction == OUTPUT_CHANNEL){
+            *nChannels = members[devn].Outputs.nChannels;
+            valid = true;
+        }
+    }
+    return valid;
+}
+
+bool DAQMapContainer::GetChannelOfMember(uint32 devn, uint8 direction, uint32 channelIdx, uint32* channelNumber){
+    bool valid = false;
+    if (devn<MAX_IO_SLOTS){
+        if (direction == INPUT_CHANNEL && (channelIdx<members[devn].Inputs.nChannels)){
+            *channelNumber = members[devn].Inputs.channels[channelIdx];
+            valid = true;
+        }else if (direction == OUTPUT_CHANNEL && (channelIdx<members[devn].Outputs.nChannels)){
+            *channelNumber = members[devn].Outputs.channels[channelIdx];
+            valid = true;
+        }
+    }
+    return valid;
 }
 
 CLASS_REGISTER(DAQMapContainer, "1.0")

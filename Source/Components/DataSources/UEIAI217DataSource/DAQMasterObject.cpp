@@ -106,7 +106,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
         }
     }
     //Check the configuration of the listed device
-   if (ok){
+    if (ok){
         //Try to retrieve the Devices ReferenceContainer
         devicesContainer = (ReferenceT<ReferenceContainer>)this->Find("Devices");
         //ok = ReferenceContainer.isContainer(devicesContainer);
@@ -186,7 +186,9 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
     //Check coherency for the Maps (devices cannot be in two memory maps at the same time and scan frequency should be lower
     //than device sampling rate, otherwise a warning is thrown).
     if (ok){
+        //Traverse the list of maps defiend for this UEIDAQ object.
         for (uint32 i = 0u; i<nMaps && ok; i++){
+            //For each map, traverse the list of devices (or map members) defined for it.
             for (uint32 devn = 0u; devn < MAX_IO_SLOTS && ok; devn++){
                 //For each of the possible devn identifiers (0 to MAX_IO_SLOTS) Check if the selected map needs the device (devn)
                 bool neededDev = maps[i]->GetDevDefined(devn); //Check if the device is defined in the Map Members
@@ -207,18 +209,86 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
                         REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
                         "Device dev%d requested in Map %d is not configured for UEIDAQ device %s.", devn, i, name.Buffer()); //TODO put map name instead of index
                     }
-
-                    //Check that the channels requested by the member for the map are actually available on the required device
-                // if (ok){
-                        
-                // }
+                    //Check that the channels requested by the member for the map are actually available on the required device and the required direction (Input or Output)
+                    if (ok){
+                        //Check if output signals are defined for this member
+                        if (maps[i]->GetDevDefined(devn, OUTPUT_CHANNEL)){
+                            //Output signals are defined for this map member, lets check if the device configured in the UEIDAQ device can accept
+                            //such channels in such direction
+                            uint32 channelsForThisMember = 0u;
+                            //Try to get the number of channels for this member in this direction
+                            ok = maps[i]->GetNumberOfChannels(devn, OUTPUT_CHANNEL, &channelsForThisMember);
+                            if (ok){
+                                for (uint32 j = 0u; j < channelsForThisMember && ok; j++){
+                                    //try to get the signal for this map and its member and direction at position j
+                                    uint32 channelNumber = 0u;
+                                    ok = maps[i]->GetChannelOfMember(devn, OUTPUT_CHANNEL, j, &channelNumber); 
+                                    //ok will check if the channel requested is part of the member
+                                    if (!ok){
+                                        REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
+                                        "Error requesting output signal %d for dev%d in Map %d for UEIDAQ device %s.", j, devn, name.Buffer()); 
+                                    }
+                                    if (ok){
+                                        //Check if this channel number and direction can be accepted for the required layer
+                                        //no need to check if the device exists in the UEIDAQ device as it has already been checked in previous if condition
+                                        ok = devices[devn]->CheckChannelAndDirection(channelNumber, OUTPUT_CHANNEL);
+                                        if (!ok){
+                                            REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
+                                            "Invalid output signal %d for dev%d in Map %d for UEIDAQ device %s.", channelNumber, devn, name.Buffer());  
+                                        }
+                                        //if this returns ok = true the channel is fit to use in this layer in this direction for this map
+                                    }
+                                }
+                            }else{
+                                REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
+                                "Error getting numberOfChannels for output Device dev%d requested in Map %d for UEIDAQ device %s.", devn, i, name.Buffer());
+                            }
+                        }
+                        //Check if input signals are defined for this member
+                        if (maps[i]->GetDevDefined(devn, INPUT_CHANNEL)){
+                            //Input signals are defined for this map member, lets check if the device configured in the UEIDAQ device can accept
+                            //such channels in such direction
+                            uint32 channelsForThisMember = 0u;
+                            //Try to get the number of channels for this member in this direction
+                            ok = maps[i]->GetNumberOfChannels(devn, INPUT_CHANNEL, &channelsForThisMember);
+                            if (ok){
+                                for (uint32 j = 0u; j < channelsForThisMember && ok; j++){
+                                    //try to get the signal for this map and its member and direction at position j
+                                    uint32 channelNumber = 0u;
+                                    ok = maps[i]->GetChannelOfMember(devn, INPUT_CHANNEL, j, &channelNumber); 
+                                    //ok will check if the channel requested is part of the member
+                                    if (!ok){
+                                        REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
+                                        "Error requesting input signal %d for dev%d in Map %d for UEIDAQ device %s.", j, devn, name.Buffer()); 
+                                    }
+                                    if (ok){
+                                        //Check if this channel number and direction can be accepted for the required layer
+                                        //no need to check if the device exists in the UEIDAQ device as it has already been checked in previous if condition
+                                        ok = devices[devn]->CheckChannelAndDirection(channelNumber, INPUT_CHANNEL);
+                                        if (!ok){
+                                            REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
+                                            "Invalid input signal %d for dev%d in Map %d for UEIDAQ device %s.", channelNumber, devn, name.Buffer());  
+                                        }
+                                        //if this returns ok = true the channel is fit to use in this layer in this direction for this map
+                                    }
+                                }
+                            }else{
+                                REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
+                                "Error getting numberOfChannels for input Device dev%d requested in Map %d for UEIDAQ device %s.", devn, i, name.Buffer());
+                            }
+                        }
+                    }
                     //Check that the scan rate for the map is lower than each of the required devices
-                // if (ok){
+                    //if (ok){
 
-                // }
+                    //}
                 }
             }
         }
+    }
+    if (ok){
+        REPORT_ERROR(ErrorManagement::Information, "DAQMasterObject::Initialise - "
+        "Maps correctly initialised for UEIDAQ device %s.", name.Buffer());
     }
     //Perfrom the initialisation for the IOM structure for the PDNA library
     if (ok){

@@ -32,6 +32,11 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 
-#define MAX_IO_SLOTS    12u
+//Chassis definitions
+#define MAX_IO_SLOTS    12u   //Maximum number of layers across the UEIDAQ chassis catalogue
+
+//Channel direction definition
+#define OUTPUT_CHANNEL  0u
+#define INPUT_CHANNEL   1u
 
 #endif /*UEIDefinitions_H_*/

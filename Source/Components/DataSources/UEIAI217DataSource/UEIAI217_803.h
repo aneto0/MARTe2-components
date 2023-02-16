@@ -83,6 +83,17 @@ class UEIAI217_803 : public Object {
     void SetMapAssignment();
     bool GetMapAssignment();
     uint32 GetDeviceChannels();
+    
+    /**
+     * @brief Initialise the Object from a configuration file.
+     * @details Reads the parameters from a ConfigurationDatabase and check
+     * their validity.
+     * @param[in] channelNumber the channel number to be checked. First channel of a layer is always 0
+     * @param[in] direction the channel direction, definition according to UEIDefinitions.h (INPUT_CHANNEL and OUTPUT_CHANNEL)
+     * @return true the specified channel is valid within AI-217-803 layer with the direction provided.
+     */
+    bool CheckChannelAndDirection(uint32 channelNumber, uint8 direction);
+
 private:
     StreamString name;              //name of the device object
     uint8 deviceId;                 //devn

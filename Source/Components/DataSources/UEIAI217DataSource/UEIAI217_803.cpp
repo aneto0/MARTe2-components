@@ -152,6 +152,26 @@ bool UEIAI217_803::Initialise(StructuredDataI &data){
     return ok;
 }
 
+bool UEIAI217_803::CheckChannelAndDirection(uint32 channelNumber, uint8 direction){
+    //For AI-217-803 all the channels (0 to 15 as only 16 channels are available) are inputs
+    bool validChannel = false;
+    //Channel only valid if it is configured as an output
+    if (direction == OUTPUT_CHANNEL){
+        //Channel only valid if within range [0,15]
+        if (channelNumber>=0u && channelNumber<16){
+            validChannel = true;
+        }else{
+            REPORT_ERROR(ErrorManagement::ParametersError, "DAQMasterObject::Initialise - "
+            "AI-217-803 layer only accepts channels 0 to 15.");
+        }
+    }else{
+        REPORT_ERROR(ErrorManagement::ParametersError, "DAQMasterObject::Initialise - "
+        "AI-217-803 layer only accepts output signals!.");
+    }
+
+    return validChannel;
+}
+
 uint8 UEIAI217_803::GetDevN(){
     return deviceId;
 }

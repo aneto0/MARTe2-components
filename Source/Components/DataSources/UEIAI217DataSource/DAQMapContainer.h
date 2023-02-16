@@ -142,7 +142,18 @@ class DAQMapContainer : public ReferenceContainer {
      * @param[in] MemberIdx the id of the member of which the devn is to be retrieved.
      * @return devn for the device at the selected member of this Map Container.
      */    
-    uint8 GetDevDefined(uint32 devn);
+    bool GetDevDefined(uint32 devn);
+
+    /**
+     * @brief Getter for the device number of a member of this Map Container.
+     * @param[in] MemberIdx the id of the member of which the devn is to be retrieved.
+     * @return devn for the device at the selected member of this Map Container.
+     */    
+    bool GetDevDefined(uint32 devn, uint8 direction);
+
+    bool GetNumberOfChannels(uint32 devn, uint8 direction, uint32* nChannels);
+
+    bool GetChannelOfMember(uint32 devn, uint8 direction, uint32 channelIdx, uint32* channelNumber);
 
 private:
 
