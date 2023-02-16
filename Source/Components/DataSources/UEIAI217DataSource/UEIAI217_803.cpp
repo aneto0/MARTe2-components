@@ -226,6 +226,13 @@ bool UEIAI217_803::GetMapAssignment(){
 uint32 UEIAI217_803::GetDeviceChannels(){
     return CHANNEL_NUMBER;
 }
+bool UEIAI217_803::ConfigureChannel(uint32* channel){
+    *channel = (*channel | DQ_LNCL_GAIN(gains[*channel]) | DQ_LNCL_DIFF); //AI-217 can only operate in differential mode
+    return true;
+}
 
+float UEIAI217_803::GetSamplingFrequency(){
+    return samplingFrequency;
+}
 CLASS_REGISTER(UEIAI217_803, "1.0")
 }

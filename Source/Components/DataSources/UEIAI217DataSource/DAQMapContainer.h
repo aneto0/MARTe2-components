@@ -37,16 +37,11 @@
 #include "StreamString.h"
 #include "PDNA.h"
 #include "UEIDefinitions.h"
+#include "UEIAI217_803.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-
-#define RTDMAP          1u
-#define RTVMAP          2u
-#define ADMAP           3u
-#define AVMAP           4u
-
 
 namespace MARTe {
 
@@ -100,6 +95,8 @@ typedef struct{
 
 typedef struct{
     bool defined;
+    ReferenceT<UEIAI217_803> reference;
+    uint8 devn;
     IOMapMember Inputs;
     IOMapMember Outputs;
 }mapMember;
@@ -155,6 +152,12 @@ class DAQMapContainer : public ReferenceContainer {
 
     bool GetChannelOfMember(uint32 devn, uint8 direction, uint32 channelIdx, uint32* channelNumber);
 
+    bool SetDevReference(uint32 devn, ReferenceT<UEIAI217_803> reference); //TODO
+
+    bool StartMap(int32 DAQ_handle);
+
+    float GetScanRate();
+
 private:
 
     /**
@@ -191,10 +194,26 @@ private:
     uint32 nDevices;
     
     /**
-    *   Pointer the array containing the members of this map regarding output signals (the ones coming from IOM).
+    *   Array containing the members of this map regarding output signals (the ones coming from IOM) (indexed by devn).
     */
     mapMember members [MAX_IO_SLOTS];
+
+    /**
+    *   Pointer to array of references of output members (in configuration order).
+    */
+    mapMember** outputMembersOrdered;
+
+    uint32 nOutputMembers;
+    uint32 nOutputChannels;
     
+    /**
+    *   Pointer to array of references of input members (in configuration order).
+    */
+    mapMember** inputMembersOrdered;
+
+    uint32 nInputMembers;
+    uint32 nInputChannels;
+
 };
 }
 #endif /* DAQMapContainer_H_ */

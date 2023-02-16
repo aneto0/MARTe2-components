@@ -39,4 +39,10 @@
 #define OUTPUT_CHANNEL  0u
 #define INPUT_CHANNEL   1u
 
+//Map definitions
+#define RTDMAP          1u
+#define RTVMAP          2u
+#define ADMAP           3u
+#define AVMAP           4u
+
 #endif /*UEIDefinitions_H_*/

@@ -204,6 +204,8 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
                         }else{
                             //The device is still free to assign to the map, we do so. Once set, the device can only be exclusively used by this map
                             devices[devn]->SetMapAssignment();
+                            //Since this member seems to be correct, set the reference of the device to the member for later use (the map needs access to each device).
+                            maps[i]->SetDevReference(devn, devices[devn]);
                         }
                     }else{
                         REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
@@ -265,11 +267,11 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
                                         //Check if this channel number and direction can be accepted for the required layer
                                         //no need to check if the device exists in the UEIDAQ device as it has already been checked in previous if condition
                                         ok = devices[devn]->CheckChannelAndDirection(channelNumber, INPUT_CHANNEL);
+                                        //if this returns ok = true the channel is fit to use in this layer in this direction for this map
                                         if (!ok){
                                             REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
                                             "Invalid input signal %d for dev%d in Map %d for UEIDAQ device %s.", channelNumber, devn, name.Buffer());  
                                         }
-                                        //if this returns ok = true the channel is fit to use in this layer in this direction for this map
                                     }
                                 }
                             }else{
@@ -279,13 +281,21 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
                         }
                     }
                     //Check that the scan rate for the map is lower than each of the required devices
-                    //if (ok){
-
-                    //}
+                    //Scan rate (frequency in Hz) of a map must be at least half of that of the devices to which it interfaces to allow for stable data acquisition
+                    if (ok){
+                        float scanRate = maps[i]->GetScanRate();                //Retrieve the scan rate for the map
+                        float sampleRate = devices[devn]->GetSamplingFrequency();   //Retrieve the sampling frequency of the device
+                        ok = (2*scanRate <= sampleRate);                            //Check, for now it must be lower or EQUAL (check this) TODO
+                        if (!ok){
+                            REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
+                            "UEIDAQ device %s's Map %d scan frequency is too high (higher than half sampling rate from device dev%s)",name.Buffer(), i, devn);
+                        }
+                    }
                 }
             }
         }
     }
+    //Message congratulating you if Maps are coherent and devices well set
     if (ok){
         REPORT_ERROR(ErrorManagement::Information, "DAQMasterObject::Initialise - "
         "Maps correctly initialised for UEIDAQ device %s.", name.Buffer());

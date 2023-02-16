@@ -93,6 +93,8 @@ class UEIAI217_803 : public Object {
      * @return true the specified channel is valid within AI-217-803 layer with the direction provided.
      */
     bool CheckChannelAndDirection(uint32 channelNumber, uint8 direction);
+    bool ConfigureChannel(uint32* channel);
+    float GetSamplingFrequency();
 
 private:
     StreamString name;              //name of the device object
