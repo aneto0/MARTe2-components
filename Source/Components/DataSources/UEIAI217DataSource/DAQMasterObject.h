@@ -60,7 +60,7 @@ namespace MARTe {
  * @details 
  *
  * <pre>
- *   +UEIDAQ = {
+ *   +UEIDAQ1 = {
  *     Class    = DAQMasterObject
  *     Ip       = {127, 0, 0, 1}        //Set 127.0.0.1 for local operation
  *     Port     =  6334  
@@ -125,7 +125,6 @@ class DAQMasterObject : public ReferenceContainer {
      * @return true if every parameter has been read correctly and validated.
      */
     virtual bool Initialise(StructuredDataI &data);
-
 
 private:
     
