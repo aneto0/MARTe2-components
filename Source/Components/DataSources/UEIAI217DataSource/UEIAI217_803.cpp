@@ -133,6 +133,20 @@ bool UEIAI217_803::Initialise(StructuredDataI &data){
             "Too many gains defined for channels at device %s. Maximum channel number = %d.", name.Buffer(), CHANNEL_NUMBER);
         }
     }
+    //Read and choose ADC Mode (DEFAULT mode by default)
+    if (ok){
+        StreamString ADC_mode_string;
+        helper.Read("ADC_mode", ADC_mode_string, "DEFAULT");
+        if (ADC_mode_string == StreamString("ENHANCED")){
+            ADCMode = DQ_AI217_SET_ADC_ENH;
+        }else if (ADC_mode_string == StreamString("DEFAULT")){
+            ADCMode = DQ_AI217_SET_ADC_DEFAULT;
+        }else{
+            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIAI217_803::Initialise - "
+            "Invalid ADC_mode provided for device %s.", name.Buffer());
+            ok = false;  
+        }
+    }
     //Read and validate FIR taps
 /*    if (ok){
         ok = helper.ReadArray("FIR_taps", firTaps, numOfTaps);
@@ -166,11 +180,25 @@ bool UEIAI217_803::CheckChannelAndDirection(uint32 channelNumber, uint8 directio
         }
     }else{
         REPORT_ERROR(ErrorManagement::ParametersError, "DAQMasterObject::Initialise - "
-        "AI-217-803 layer only accepts output signals!.");
+        "AI-217-803 layer only accepts output signals!");
     }
-
     return validChannel;
 }
+/*
+bool UEIAI217_803::ConfigureDevice(int32 DAQ_handle){
+    bool ok = true;
+    //Configure all the channels in the layer at the same time (for now no custom channel configuration is allowed)
+    ok = (DqAdv217SetCfgLayer(DAQ_handle, deviceId, DQ_AI217_SETCFG_ALL_CHAN, DQ_SET_CFG_LAYER_ADC, ADCMode) >= 0);
+    if (!ok){
+        REPORT_ERROR(ErrorManagement::ParametersError, "DAQMasterObject::Initialise - "
+        "Unable to configure ADC CfgLayer for Device %s.", name.Buffer());
+    }
+    if (ok){
+
+    }
+    return ok;
+}
+*/
 
 uint8 UEIAI217_803::GetDevN(){
     return deviceId;

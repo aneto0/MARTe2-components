@@ -103,6 +103,7 @@ private:
     uint16* gains;                  //Sets the sampling frequency of the device (only one per device)
     bool hardwareCorrespondence;    //Signals if this device has been identified to an installed layer
     bool assignedToMap;             //Signals if this device has been assigned to a DAQ map
+    int32 ADCMode;                  //Stores the advanced configuration for the ADC on the AI-217-803, can be set to ENHANCED or DEFAULT
 };
 
 }

@@ -74,7 +74,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
                 "IOM connection timout set to default %dms for device %s.", IOMTimeOut, name.Buffer());
         }
     }
-    //Check Ip of the UEIDAQ - 127.0.0.1 is recognized as local device
+    //Check Ip and port of the UEIDAQ - 127.0.0.1 is recognized as local device
     if (ok) {
         uint32 ip_length;
         ok = data.Read("Ip", ip);
@@ -297,7 +297,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
            REPORT_ERROR(ErrorManagement::ParametersError, "Unable to initialise DAQ Lib."); 
         }
     }
-    //Initialise the handle to the configured IOM
+ /*   //Initialise the handle to the configured IOM
     if (ok){
         ok = (DqOpenIOM(ip_string, port, IOMTimeOut, &DAQ_handler, NULL) >= 0);
         if(!ok){
@@ -370,8 +370,17 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
         }
     }
     // At this point, if ok is valid we've checked connection to the IOM, hardware configuration matching and device configuration
+*/
     return ok;
 }
+/*
+bool DAQMasterObject::ConfigureDevice(uint8 devn){
+    
+}
 
+bool DAQMasterObject::ConfigureMap(uint8 map){
+
+}
+*/
 CLASS_REGISTER(DAQMasterObject, "1.0")
 }
