@@ -49,6 +49,7 @@ DAQMapContainer::DAQMapContainer() : ReferenceContainer() {
     inputMapPtr = NULL_PTR(uint32*);
     nInputChannels = 0u;
     nOutputChannels = 0u;
+    DAQ_handle = 0;
     //Set the members of the map to a non-set state for safety
     for (uint32 i = 0u; i < MAX_IO_SLOTS; i++){
         //Set the member as not defined
@@ -67,6 +68,10 @@ DAQMapContainer::DAQMapContainer() : ReferenceContainer() {
 DAQMapContainer::~DAQMapContainer(){
     if (inputMapPtr != NULL_PTR(uint32*)){
         free(inputMapPtr);
+    }
+    if (DAQ_handle != 0){
+        DqRtDmapStop(DAQ_handle, mapid);
+        DqRtDmapClose(DAQ_handle, mapid);
     }
 }
 bool DAQMapContainer::CleanupMap(int32 DAQ_handle){
@@ -407,8 +412,15 @@ float DAQMapContainer::GetScanRate(){
     return scanRate;
 }
 
-bool DAQMapContainer::StartMap(int32 DAQ_handle){
+char8* DAQMapContainer::GetName(){
+    return (char8*) name.Buffer();
+}
+
+bool DAQMapContainer::StartMap(int32 DAQ_handle_){
     bool ok = true;
+    //Now that the map is to be started it is valuable to make a copy of the DAQ handle reference for deallocating the map upon
+    //destruction of this object.
+    DAQ_handle = DAQ_handle_;   
     ok = (DqRtDmapInit(DAQ_handle, &mapid, scanRate) >= 0);
     if (!ok){
         REPORT_ERROR(ErrorManagement::InitialisationError, "Error on Initialising Map %s", name.Buffer());

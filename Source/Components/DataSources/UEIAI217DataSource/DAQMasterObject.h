@@ -131,7 +131,7 @@ private:
     /**
     *   Variable holding the DAQ IOM reference
     */
-    int32 DAQ_handler;
+    int32 DAQ_handle;
 
     /**
     *   Variable holding the number of defined devices

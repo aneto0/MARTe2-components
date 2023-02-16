@@ -45,13 +45,16 @@
 namespace MARTe {
 
 DAQMasterObject::DAQMasterObject() : ReferenceContainer() {
-    DAQ_handler = 0u;
+    DAQ_handle = 0u;
     port = 0u;
     ip_string = NULL_PTR(char8*);  
 }
 
 DAQMasterObject::~DAQMasterObject(){
-
+    if (DAQ_handle != 0){
+        DqCloseIOM(DAQ_handle);
+    }
+    DqCleanUpDAQLib();    
 }
 
 bool DAQMasterObject::Initialise(StructuredDataI &data){
@@ -307,11 +310,11 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
            REPORT_ERROR(ErrorManagement::ParametersError, "Unable to initialise DAQ Lib."); 
         }
     }
- /*   //Initialise the handle to the configured IOM
+    //Initialise the handle to the configured IOM
     if (ok){
-        ok = (DqOpenIOM(ip_string, port, IOMTimeOut, &DAQ_handler, NULL) >= 0);
+        ok = (DqOpenIOM(ip_string, port, IOMTimeOut, &DAQ_handle, NULL) >= 0);
         if(!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to contact IOM");  
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to contact IOM for Device %s", name.Buffer());
         }
     }
     //Check that the configured devices correspond to the IOM hardware configuration
@@ -326,7 +329,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
             //Set devn and model to 0 to avoid errors
             devn = 0;
             model = 0;
-            int32 queryResult = DqGetDevnBySlot(DAQ_handler, i, &devn, &serial, &address, &model);
+            int32 queryResult = DqGetDevnBySlot(DAQ_handle, i, &devn, &serial, &address, &model);
             ok = (queryResult != DQ_ILLEGAL_HANDLE);
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to query IOM for layer information.");   
@@ -345,7 +348,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
             //Set devn and model to 0 to avoid errors
             devn = 0;
             model = 0;
-            int32 queryResult = DqGetDevnBySlot(DAQ_handler, i, &devn, &serial, &address, &model);
+            int32 queryResult = DqGetDevnBySlot(DAQ_handle, i, &devn, &serial, &address, &model);
             ok = (queryResult != DQ_ILLEGAL_HANDLE);
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to query IOM for layer information.");   
@@ -379,8 +382,16 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
             }
         }
     }
+    //Start the DAQ Maps
+    if (ok){
+        for (uint32 i = 0u; i < nMaps && ok; i++){
+            ok = maps[i]->StartMap(DAQ_handle);
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to start Map %s for UEIDAQ Device %s", maps[i]->GetName(), name.Buffer());
+            }
+        }
+    }
     // At this point, if ok is valid we've checked connection to the IOM, hardware configuration matching and device configuration
-*/
     return ok;
 }
 /*

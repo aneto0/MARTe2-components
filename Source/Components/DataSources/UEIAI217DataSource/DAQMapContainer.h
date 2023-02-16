@@ -154,8 +154,10 @@ class DAQMapContainer : public ReferenceContainer {
 
     bool SetDevReference(uint32 devn, ReferenceT<UEIAI217_803> reference); //TODO
 
-    bool StartMap(int32 DAQ_handle);
+    bool StartMap(int32 DAQ_handle_);
 
+    char8* GetName();
+    
     float GetScanRate();
 
 private:
@@ -213,7 +215,7 @@ private:
 
     uint32 nInputMembers;
     uint32 nInputChannels;
-
+    int32 DAQ_handle;
 };
 }
 #endif /* DAQMapContainer_H_ */
