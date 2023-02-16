@@ -145,7 +145,7 @@ private:
     uint16 ip [4];
 
     /**
-    *   Array containing the ip of the device
+    *   Character array containing the ip of the device for PDNA library usage
     */
     char8* ip_string;
 
@@ -159,12 +159,36 @@ private:
     */
     StreamString name;
 
+    /**
+    *   Variable holding a reference to the ReferenceContainer containing the devices.
+    */
     ReferenceT<ReferenceContainer> devicesContainer;
+    
+    /**
+    *   Array of references to the device objects defined for this device. In this array, the index
+    *   represents the devn of the device. If a slot is empty/not recognized, the reference is NULL,
+    *   to be checked with IsValid() method before usage.
+    */
+    ReferenceT<UEIAI217_803> devices [MAX_IO_SLOTS];
+    
+    /**
+    *   Variable holding a reference to the ReferenceContainer containing the maps.
+    */
     ReferenceT<ReferenceContainer> mapsContainer;
-    uint32 nMaps;
-    ReferenceT<UEIAI217_803> devices [12];
-    ReferenceT<DAQMapContainer>* maps;
 
+    /**
+    *   Array of references to the maps declared for this UEIDAQ device.
+    */
+    ReferenceT<DAQMapContainer>* maps;
+    
+    /**
+    *   Variable holding the number of maps defined for this UEIDAQ device.
+    */
+    uint32 nMaps;
+
+    /**
+    *   Variable holding the Timeout period for the IOM connection process (default to 200ms).
+    */
     uint32 IOMTimeOut;
 };
 }

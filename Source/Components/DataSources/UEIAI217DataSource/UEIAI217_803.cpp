@@ -40,6 +40,7 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+
 namespace MARTe {
 
 UEIAI217_803::UEIAI217_803() : Object() {
@@ -172,6 +173,10 @@ void UEIAI217_803::SetMapAssignment(){
 
 bool UEIAI217_803::GetMapAssignment(){
     return assignedToMap;
+}
+
+uint32 UEIAI217_803::GetDeviceChannels(){
+    return CHANNEL_NUMBER;
 }
 
 CLASS_REGISTER(UEIAI217_803, "1.0")

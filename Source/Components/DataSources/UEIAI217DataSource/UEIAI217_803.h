@@ -82,6 +82,7 @@ class UEIAI217_803 : public Object {
     bool GetHardwareCorrespondence();
     void SetMapAssignment();
     bool GetMapAssignment();
+    uint32 GetDeviceChannels();
 private:
     StreamString name;              //name of the device object
     uint8 deviceId;                 //devn

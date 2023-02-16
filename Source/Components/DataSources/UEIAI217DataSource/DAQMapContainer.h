@@ -61,32 +61,50 @@ namespace MARTe {
  * @details 
  *
  * <pre>
-*    +Maps = { 
- *      Class=ReferenceContainer
- *      + Map1 = {
- *          Class           = DAQMapContainer
- *          Type            = "RtDMap"            //Map type, currently supported : RtDMap and RtVMap
- *          ScanRate        = 1.0                 //internal Map scan frequency in Hz
- *          Devices = {                
- *              dev0 = {
- *                  Devn        = 0
- *                  Channels    = {0, 1, 2}
- *              }
- *              dev1 = {
- *                  Devn        = 1
- *                  Channels    = {0, 1, 2}   
- *              }
- *          }
- *       }
+ *    +Map1 = {
+ *        Class           = DAQMapContainer
+          Type            = "RtDMap"            
+          ScanRate        = 1.0    
+          Inputs = {
+            Devices = {                
+              dev0 = {
+                  Devn        = 0
+                  Channels    = {0, 1, 2}
+              }
+              dev1 = {
+                  Devn        = 1
+                  Channels    = {0, 1, 2}   
+              }
+            }
+          }
+          Outputs = {
+            Devices = {                
+              dev0 = {
+                  Devn        = 0
+                  Channels    = {5, 6}
+              }
+              dev1 = {
+                  Devn        = 1
+                  Channels    = {7, 8}   
+              }
+            }
+          }
+       }
  */
 
- typedef struct{
-    uint8 devn;
+typedef struct{
+    bool defined;
     uint32* channels;
     uint32 nChannels;
- }mapMember;
+}IOMapMember;
 
- class DAQMapContainer : public ReferenceContainer {
+typedef struct{
+    bool defined;
+    IOMapMember Inputs;
+    IOMapMember Outputs;
+}mapMember;
+
+class DAQMapContainer : public ReferenceContainer {
     public:
     CLASS_REGISTER_DECLARATION()
 
@@ -109,19 +127,63 @@ namespace MARTe {
      * @return true if every parameter has been read correctly and validated.
      */
     virtual bool Initialise(StructuredDataI &data);
-    bool CleanupMap(int32 DAQ_handle);
-    uint32 GetNMembers();
-    uint8 GetDevInMember(uint32 MemberIdx);
 
+    /**
+     * @brief Close the DAQ Map structure in a clean way.
+     * @details This function must be called by DAQMasterObject upon before
+     * of the IOM handle to ensure clean closing of the DAQ Map.
+     * @param[in] DAQ_handle handler of the IOM to which the map belongs.
+     * @return true if the map has been closed correctly and cleanly.
+     */
+    bool CleanupMap(int32 DAQ_handle);
+    
+    /**
+     * @brief Getter for the device number of a member of this Map Container.
+     * @param[in] MemberIdx the id of the member of which the devn is to be retrieved.
+     * @return devn for the device at the selected member of this Map Container.
+     */    
+    uint8 GetDevDefined(uint32 devn);
 
 private:
+
+    /**
+    *   Variable holding the name of the Map Container (node name).
+    */
     StreamString name;
+
+    /**
+    *   Variable holding the map type defined in configuration and translated
+    *   to numerical value (see defines in DAQMapContainer.h).
+    */
     uint8 mapType;
+    
+    /**
+    *   Variable holding the configured scan rate for this specific map.
+    */
     float scanRate;
+
+    /**
+    *   Id of this map as assigned during map initialisation.
+    */
     int32 mapid;
+    
+    /**
+    *   Pointer to the start of the input memory map for this map.
+    */
     uint32* inputMapPtr;
+    
+    /**
+    *   Variable holding the number of devices configured for this map. The number 
+    *   of configured devices for this map must be equal to the number of members
+    *   of the map.
+    */
     uint32 nDevices;
-    mapMember* members;
+    
+    /**
+    *   Pointer the array containing the members of this map regarding output signals (the ones coming from IOM).
+    */
+    mapMember members [MAX_IO_SLOTS];
+    
 };
 }
 #endif /* DAQMapContainer_H_ */

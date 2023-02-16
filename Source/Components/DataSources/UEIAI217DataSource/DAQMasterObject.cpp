@@ -187,18 +187,35 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
     //than device sampling rate, otherwise a warning is thrown).
     if (ok){
         for (uint32 i = 0u; i<nMaps && ok; i++){
-            uint32 nMembersInMap = maps[i]->GetNMembers();
-            for (uint32 j = 0u; j < nMembersInMap && ok; j++){
-                //For each of the map members, check if the required device is already in use by other map
-                uint8 deviceForMapMember = maps[i]->GetDevInMember(j);
-                ok = !(devices[deviceForMapMember]->GetMapAssignment());
-                if (!ok){
-                    //The need device for this map member is already in use, this is an error
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
-                    "Device dev%d is requested for multiple DAQ Maps in UEIDAQ device %s.", deviceForMapMember, name.Buffer()); 
-                }else{
-                    //The device is still free to assign to a map, we do so
-                    devices[deviceForMapMember]->SetMapAssignment();
+            for (uint32 devn = 0u; devn < MAX_IO_SLOTS && ok; devn++){
+                //For each of the possible devn identifiers (0 to MAX_IO_SLOTS) Check if the selected map needs the device (devn)
+                bool neededDev = maps[i]->GetDevDefined(devn); //Check if the device is defined in the Map Members
+                if (neededDev){     //If and only if the device (devn) is needed, check if it can actually be assigned to the map
+                    //First check if the device requested in the map member is actually defined in the configuration for the UEIDAQ
+                    ok = devices[devn].IsValid();    //IsValid will return False if the device is not set in configuration
+                    if (ok){
+                        ok = !(devices[devn]->GetMapAssignment());    //Check if the device has already been assigned to a map
+                        if (!ok){
+                            //The needed device for this map member is already in use, this is an error
+                            REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
+                            "Device dev% is requested for multiple DAQ Maps in UEIDAQ device %s.", devn, name.Buffer()); 
+                        }else{
+                            //The device is still free to assign to the map, we do so. Once set, the device can only be exclusively used by this map
+                            devices[devn]->SetMapAssignment();
+                        }
+                    }else{
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
+                        "Device dev%d requested in Map %d is not configured for UEIDAQ device %s.", devn, i, name.Buffer()); //TODO put map name instead of index
+                    }
+
+                    //Check that the channels requested by the member for the map are actually available on the required device
+                // if (ok){
+                        
+                // }
+                    //Check that the scan rate for the map is lower than each of the required devices
+                // if (ok){
+
+                // }
                 }
             }
         }
@@ -214,7 +231,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
     if (ok){
         ok = (DqOpenIOM(ip_string, port, IOMTimeOut, &DAQ_handler, NULL) >= 0);
         if(!ok){
-            REPORT_ERROR(ErrorManagement::ParametersError, "Unable to contact IOM");  
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to contact IOM");  
         }
     }
     //Check that the configured devices correspond to the IOM hardware configuration
@@ -232,7 +249,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
             int32 queryResult = DqGetDevnBySlot(DAQ_handler, i, &devn, &serial, &address, &model);
             ok = (queryResult != DQ_ILLEGAL_HANDLE);
             if (!ok){
-                REPORT_ERROR(ErrorManagement::ParametersError, "Unable to query IOM for layer information.");   
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to query IOM for layer information.");   
             }else{
                 if (queryResult == DQ_BAD_PARAMETER){
                     //The queried slot is empty or non-existent. Check that no device is configured on that slot.
@@ -251,7 +268,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
             int32 queryResult = DqGetDevnBySlot(DAQ_handler, i, &devn, &serial, &address, &model);
             ok = (queryResult != DQ_ILLEGAL_HANDLE);
             if (!ok){
-                REPORT_ERROR(ErrorManagement::ParametersError, "Unable to query IOM for layer information.");   
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to query IOM for layer information.");   
             }else{
                 if (queryResult == DQ_SUCCESS){
                     //The queried slot is not empty -> Check that the configured device is the same model at the given devn
@@ -261,7 +278,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
                         devices[devn]->SetHardwareCorrespondence();
                     }else{
                         //The model of the actual hardware layer does not match the configured device at devn.
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Device configured at dev%d in device %s does not match hardware layer model.", devn, name.Buffer());
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Device configured at dev%d in device %s does not match hardware layer model.", devn, name.Buffer());
                     }
                 }
             }
@@ -276,7 +293,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
                     if (!ok){
                         //The device is configured but has not been validated to have hardware correspondece, meaning it is not installed or
                         //recognized by the IOM.
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Device configured at dev%d in UEIDAQ device %s is not installed/recognised in IOM.", i, name.Buffer());
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Device configured at dev%d in UEIDAQ device %s is not installed/recognised in IOM.", i, name.Buffer());
                     }
                 }
             }
