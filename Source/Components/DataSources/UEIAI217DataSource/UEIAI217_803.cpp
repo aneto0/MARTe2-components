@@ -204,8 +204,8 @@ uint8 UEIAI217_803::GetDevN(){
     return deviceId;
 }
 
-uint16 UEIAI217_803::GetModel(){
-    return 0x217;
+int32 UEIAI217_803::GetModel(){
+    return 535; //217 in hexadecimal
 }
 void UEIAI217_803::SetHardwareCorrespondence(){
     hardwareCorrespondence = true;

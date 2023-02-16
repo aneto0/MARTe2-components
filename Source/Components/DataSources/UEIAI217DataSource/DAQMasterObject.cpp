@@ -51,8 +51,13 @@ DAQMasterObject::DAQMasterObject() : ReferenceContainer() {
 }
 
 DAQMasterObject::~DAQMasterObject(){
+    bool ok = true;
     if (DAQ_handle != 0){
-        DqCloseIOM(DAQ_handle);
+        ok &= (DqCloseIOM(DAQ_handle) >= 0);
+    }
+    if (!ok){
+        REPORT_ERROR(ErrorManagement::CommunicationError, "DAQMasterObject::Destructor - "
+        "Device %s could not close properly the IOM!", name.Buffer());
     }
     DqCleanUpDAQLib();    
 }
@@ -339,7 +344,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
                     REPORT_ERROR(ErrorManagement::Information, "Slot %2d on %s is EMPTY.", i, name.Buffer());
                 }else{
                     //The queried slot is populated by a layer
-                    REPORT_ERROR(ErrorManagement::Information, "Slot %2d on %s is dev%2d, layer model %d.", i, devn, model); 
+                    REPORT_ERROR(ErrorManagement::Information, "Slot %2d on %s is dev%2d, layer model %x.", i, name.Buffer(),  devn, model); 
                 }
             }
         }
@@ -353,9 +358,11 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to query IOM for layer information.");   
             }else{
-                if (queryResult == DQ_SUCCESS){
+                //Check if the query did not return void and moreover the device at such position is defined in our device (if it is not defined there's
+                // no problem, but the application cannot use it).
+                if (queryResult == DQ_SUCCESS && devices[devn].IsValid()){
                     //The queried slot is not empty -> Check that the configured device is the same model at the given devn
-                    ok = (model != devices[devn]->GetModel());
+                    ok = (model == devices[devn]->GetModel());
                     if (ok){
                         //The model of the hardware layer corresponds to the one configured, mark this device as correctly set
                         devices[devn]->SetHardwareCorrespondence();

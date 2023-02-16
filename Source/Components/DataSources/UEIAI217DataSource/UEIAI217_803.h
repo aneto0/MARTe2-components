@@ -77,7 +77,7 @@ class UEIAI217_803 : public Object {
     virtual bool Initialise(StructuredDataI &data);
 
     uint8 GetDevN();
-    uint16 GetModel();
+    int32 GetModel();
     void SetHardwareCorrespondence();
     bool GetHardwareCorrespondence();
     void SetMapAssignment();

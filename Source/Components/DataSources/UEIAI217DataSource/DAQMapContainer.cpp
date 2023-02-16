@@ -69,9 +69,14 @@ DAQMapContainer::~DAQMapContainer(){
     if (inputMapPtr != NULL_PTR(uint32*)){
         free(inputMapPtr);
     }
+    bool ok = true;
     if (DAQ_handle != 0){
-        DqRtDmapStop(DAQ_handle, mapid);
-        DqRtDmapClose(DAQ_handle, mapid);
+        ok &= (DqRtDmapStop(DAQ_handle, mapid)>=0);
+        ok &= (DqRtDmapClose(DAQ_handle, mapid)>=0);
+    }
+    if (!ok){
+        REPORT_ERROR(ErrorManagement::CommunicationError, "DAQMapContainer::Destructor - "
+        "Map %s could not clean the started map!", name.Buffer());
     }
 }
 bool DAQMapContainer::CleanupMap(int32 DAQ_handle){
