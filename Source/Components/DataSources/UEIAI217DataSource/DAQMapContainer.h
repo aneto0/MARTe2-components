@@ -157,11 +157,13 @@ class DAQMapContainer : public ReferenceContainer {
     bool StartMap(int32 DAQ_handle_);
 
     char8* GetName();
-    
+
     float GetScanRate();
 
-private:
+    bool PollForNewPacket(uint32* destinationAddr);
 
+private:
+  bool GetMapPointers();
     /**
     *   Variable holding the name of the Map Container (node name).
     */
@@ -216,6 +218,9 @@ private:
     uint32 nInputMembers;
     uint32 nInputChannels;
     int32 DAQ_handle;
+    uint32* outputMap;
+    uint32* inputMap;
+    uint32 poll_sleep_period;
 };
 }
 #endif /* DAQMapContainer_H_ */

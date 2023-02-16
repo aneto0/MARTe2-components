@@ -130,8 +130,14 @@ bool UEIDAQDataSource::TerminateInputCopy(const uint32 signalIdx, const uint32 o
 }
 
 bool UEIDAQDataSource::Synchronise() {
-    //bool ok = PollForNextPacket();
-    //return ok;
+    //Start to poll for next packet to the Map. The memory access is handled by the Map Container
+    bool ok = false;
+    while(!ok){
+        ok = (map->PollForNewPacket((uint32*)&memory));
+        if (!ok){
+            Sleep::MSec(10);    //To change
+        }
+    }
     return true;
 }
 

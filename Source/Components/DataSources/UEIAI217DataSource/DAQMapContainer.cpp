@@ -50,6 +50,7 @@ DAQMapContainer::DAQMapContainer() : ReferenceContainer() {
     nInputChannels = 0u;
     nOutputChannels = 0u;
     DAQ_handle = 0;
+    poll_sleep_period = 200u;
     //Set the members of the map to a non-set state for safety
     for (uint32 i = 0u; i < MAX_IO_SLOTS; i++){
         //Set the member as not defined
@@ -486,11 +487,77 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
     if (ok){
         if (mapType == RTDMAP){
             ok = (DqRtDmapStart(DAQ_handle, mapid) >= 0);
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::CommunicationError, "Could not start Map %s", name.Buffer());
+            }
+            if (ok){
+                //Try to acquire the memory map pointers
+                ok = GetMapPointers();
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "Could not retrieve the memory map pointers for Map %s", name.Buffer());
+                }
+            }
         }else{
             REPORT_ERROR(ErrorManagement::InitialisationError, "Map type still not supported on Map %s", name.Buffer());
         }
     }
     return ok;
+}
+
+bool DAQMapContainer::GetMapPointers(){
+    //Function just valid for output signals (the ones enternig into IOM) TODO extended to input maps
+    unsigned char* map_pointer = NULL;
+    uint16 counter = 0u;
+    bool ok = true;
+    while((((uint32*) map_pointer) == NULL)&& ok){
+        counter++;
+        ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
+        if (ok){
+            Sleep::MSec(10);
+            ok = (DqRtDmapGetInputMap(DAQ_handle, mapid, 0, &(map_pointer)) >=0);
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::CommunicationError, "GetOutputMap failed during the GetMapAddr method");   
+            }
+        }else{
+            REPORT_ERROR(ErrorManagement::CommunicationError, "Refresh failed during the GetMapAddr method");
+        }
+        if (counter > 200) break; //If NULL map is still present during 2s abort the initialisation of the DS
+    }
+    if (((uint32*) map_pointer) != NULL){
+        outputMap = ((uint32*)map_pointer);
+        return true;
+    }else{
+        return false;
+    }
+    return ok;
+}
+
+bool DAQMapContainer::PollForNewPacket(uint32* destinationAddr){
+    bool next_packet = false;
+    bool ok = true;
+    uint32 nSamples = nOutputChannels; //For now, to be changed
+    //Poll for next packet from UEIDAQ
+    ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
+    if (ok){
+        //Check if the response is a new packet or a rerequest.
+        //The 0x80000000 bit on the recived samples lets us know if the packet has
+        //been previously requested.
+        if (*((uint32*)outputMap) & 0x80000000){ 
+            uint32 mask = 0x00FFFFFF; 
+            //The recived packet is a newly converted one not requested yet.
+            //Make the signals available to the broker.
+            uint32* const destination = reinterpret_cast<uint32*>(destinationAddr);
+            //TODO implement this using memcopy
+            for (uint8 i = 0; i < nSamples; i++){
+                destination[i] = ((uint32*)outputMap)[i] & mask;
+            }
+            //End the while loop to unlock the Synchronize method.
+            next_packet = true;
+        }
+    }else{
+        REPORT_ERROR(ErrorManagement::ParametersError, "Refresh failed during Poll for conversion in Map %s", name.Buffer());
+    }
+    return next_packet;
 }
 
 
