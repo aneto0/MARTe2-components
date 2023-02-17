@@ -133,7 +133,7 @@ bool UEIDAQDataSource::Synchronise() {
     //Start to poll for next packet to the Map. The memory access is handled by the Map Container
     bool ok = false;
     while(!ok){
-        ok = (map->PollForNewPacket((uint32*)&memory));
+        ok = (map->PollForNewPacket(reinterpret_cast<uint32*>(memory)));
         if (!ok){
             Sleep::MSec(10);    //To change
         }

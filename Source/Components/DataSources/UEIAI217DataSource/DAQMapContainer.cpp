@@ -220,6 +220,9 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
                             REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMapContainer::Initialise - "
                             "Could not retrieve Channels for device number %d for map %s.", i, name.Buffer());
                         }
+                        if (ok){
+                            nOutputChannels += members[devn_].Outputs.nChannels;
+                        }
                     }
                     //Move back to "Outputs" leaf
                     ok &= data.MoveToAncestor(1u);
@@ -319,6 +322,9 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
                         if (!ok){
                             REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMapContainer::Initialise - "
                             "Could not retrieve Channels for device number %d for map %s.", i, name.Buffer());
+                        }
+                        if (ok){
+                            nInputChannels += members[devn_].Inputs.nChannels;
                         }
                     }
                     //Move back to "Inputs" leaf
@@ -547,10 +553,9 @@ bool DAQMapContainer::PollForNewPacket(uint32* destinationAddr){
             uint32 mask = 0x00FFFFFF; 
             //The recived packet is a newly converted one not requested yet.
             //Make the signals available to the broker.
-            uint32* const destination = reinterpret_cast<uint32*>(destinationAddr);
             //TODO implement this using memcopy
             for (uint8 i = 0; i < nSamples; i++){
-                destination[i] = ((uint32*)outputMap)[i] & mask;
+                destinationAddr[i] = ((uint32)outputMap[i]) & mask;
             }
             //End the while loop to unlock the Synchronize method.
             next_packet = true;
