@@ -51,6 +51,18 @@ DAQMasterObject::DAQMasterObject() : ReferenceContainer() {
 }
 
 DAQMasterObject::~DAQMasterObject(){
+    //Clean the defined DAQ maps for this UEIDAQ device
+    for (uint32 i = 0u; i < nMaps; i++){
+        bool mapClenaupOk = true;
+        if (maps[i].IsValid()){
+            mapClenaupOk &= maps[i]->CleanupMap();
+            if (!mapClenaupOk){
+                REPORT_ERROR(ErrorManagement::CommunicationError, "DAQMasterObject::Destructor - "
+                "Could not clean properly map %s!", name.Buffer());
+            }
+        }
+    }
+    //Clean the IOM structures
     bool ok = true;
     if (DAQ_handle != 0){
         ok &= (DqCloseIOM(DAQ_handle) >= 0);
@@ -59,7 +71,10 @@ DAQMasterObject::~DAQMasterObject(){
         REPORT_ERROR(ErrorManagement::CommunicationError, "DAQMasterObject::Destructor - "
         "Device %s could not close properly the IOM!", name.Buffer());
     }
-    DqCleanUpDAQLib();    
+    //Clean the PDNA library structures
+    DqCleanUpDAQLib();
+    REPORT_ERROR(ErrorManagement::CommunicationError, "DAQMasterObject::Destructor - "
+    "Destroying %s!", name.Buffer());    
 }
 
 bool DAQMasterObject::Initialise(StructuredDataI &data){
@@ -308,6 +323,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
         REPORT_ERROR(ErrorManagement::Information, "DAQMasterObject::Initialise - "
         "Maps correctly initialised for UEIDAQ device %s.", name.Buffer());
     }
+    /*
     //Perfrom the initialisation for the IOM structure for the PDNA library
     if (ok){
         ok = (DqInitDAQLib() == DQ_SUCCESS);
@@ -398,6 +414,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
             }
         }
     }
+    */
     // At this point, if ok is valid we've checked connection to the IOM, hardware configuration matching and device configuration
     return ok;
 }

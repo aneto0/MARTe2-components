@@ -132,7 +132,7 @@ class DAQMapContainer : public ReferenceContainer {
      * @param[in] DAQ_handle handler of the IOM to which the map belongs.
      * @return true if the map has been closed correctly and cleanly.
      */
-    bool CleanupMap(int32 DAQ_handle);
+    bool CleanupMap();
     
     /**
      * @brief Getter for the device number of a member of this Map Container.

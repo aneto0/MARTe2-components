@@ -70,21 +70,22 @@ DAQMapContainer::~DAQMapContainer(){
     if (inputMapPtr != NULL_PTR(uint32*)){
         free(inputMapPtr);
     }
+    //try to clean the maps in case it was not already done beforehand
+    CleanupMap();
+}
+bool DAQMapContainer::CleanupMap(){
     bool ok = true;
     if (DAQ_handle != 0){
-        ok &= (DqRtDmapStop(DAQ_handle, mapid)>=0);
-        ok &= (DqRtDmapClose(DAQ_handle, mapid)>=0);
-    }
-    if (!ok){
-        REPORT_ERROR(ErrorManagement::CommunicationError, "DAQMapContainer::Destructor - "
-        "Map %s could not clean the started map!", name.Buffer());
-    }
-}
-bool DAQMapContainer::CleanupMap(int32 DAQ_handle){
-    bool ok = true;
-    if(mapid){
-        ok &= (DqRtDmapStop(DAQ_handle, mapid) >= 0u);
-        ok &= (DqRtDmapClose(DAQ_handle, mapid) >= 0u);
+        REPORT_ERROR(ErrorManagement::Information, "DAQMapContainer::CleanupMap - "
+        "Cleaning Map %s", name.Buffer());
+        if(mapid){
+            ok &= (DqRtDmapStop(DAQ_handle, mapid) >= 0);
+            ok &= (DqRtDmapClose(DAQ_handle, mapid) >= 0);
+        }
+        DAQ_handle = 0;
+    }else{
+        REPORT_ERROR(ErrorManagement::Information, "DAQMapContainer::CleanupMap - "
+        "Map %s was not started, skipping cleanup!", name.Buffer());
     }
     return ok;
 }
