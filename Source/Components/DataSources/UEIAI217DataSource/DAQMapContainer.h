@@ -162,6 +162,12 @@ class DAQMapContainer : public ReferenceContainer {
 
     bool PollForNewPacket(uint32* destinationAddr);
 
+    void RegisterDS();
+
+    bool GetDSRegistered();
+    //Function to check if a signal spanning from firstElementIdx to lastElementIdx and of type signalType would be allowed
+    bool IsSignalAllowed(uint32 firstElementIdx, uint32 lastElementIdx, TypeDescriptor signalType, uint8 direction);
+
 private:
   bool GetMapPointers();
     /**
@@ -221,6 +227,7 @@ private:
     uint32* outputMap;
     uint32* inputMap;
     uint32 poll_sleep_period;
+    bool assignedToDS;
 };
 }
 #endif /* DAQMapContainer_H_ */

@@ -95,7 +95,8 @@ class UEIAI217_803 : public Object {
     bool CheckChannelAndDirection(uint32 channelNumber, uint8 direction);
     bool ConfigureChannel(uint32* channel);
     float GetSamplingFrequency();
-
+    bool AcceptedSignalType(TypeDescriptor signalType);
+    
 private:
     StreamString name;              //name of the device object
     uint8 deviceId;                 //devn

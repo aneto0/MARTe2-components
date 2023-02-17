@@ -227,8 +227,44 @@ uint32 UEIAI217_803::GetDeviceChannels(){
     return CHANNEL_NUMBER;
 }
 bool UEIAI217_803::ConfigureChannel(uint32* channel){
-    *channel = (*channel | DQ_LNCL_GAIN(gains[*channel]) | DQ_LNCL_DIFF); //AI-217 can only operate in differential mode
+    uint32 gain = 0u;
+    switch(gains[*channel]){
+        case 1:
+            gain = DQ_AI217_GAIN_1;
+            break;
+        case 2:
+            gain = DQ_AI217_GAIN_2;
+            break;
+        case 4:
+            gain = DQ_AI217_GAIN_4;
+            break;
+        case 8:
+            gain = DQ_AI217_GAIN_8;
+            break;
+        case 16:
+            gain = DQ_AI217_GAIN_16;
+            break;
+        case 32:
+            gain = DQ_AI217_GAIN_32;
+            break;
+        case 64:
+            gain = DQ_AI217_GAIN_64;
+            break;
+        default:
+            return false;
+            break;
+    }
+    *channel = (*channel | DQ_LNCL_GAIN(gain) | DQ_LNCL_DIFF); //AI-217 can only operate in differential mode
     return true;
+}
+
+bool UEIAI217_803::AcceptedSignalType(TypeDescriptor signalType){
+    //Check the datatypes this device can output. Return true for the datatypes accepted as a valid output of this device
+    bool accepted = false;
+    if (signalType == UnsignedInteger32Bit || signalType == Float64Bit){
+        accepted = true;
+    }
+    return accepted;
 }
 
 float UEIAI217_803::GetSamplingFrequency(){

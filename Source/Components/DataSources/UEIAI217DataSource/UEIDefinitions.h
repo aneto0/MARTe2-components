@@ -45,4 +45,8 @@
 #define ADMAP           3u
 #define AVMAP           4u
 
+//Signal Types definitions
+#define  ANALOG_SIGNAL  1u //The output of this signal is either 
+#define DIGITAL_SIGNAL  2u
+
 #endif /*UEIDefinitions_H_*/

@@ -45,6 +45,7 @@ namespace MARTe {
 
 DAQMapContainer::DAQMapContainer() : ReferenceContainer() {
     mapType = 0u;
+    assignedToDS = false;
     mapid = 0u;
     inputMapPtr = NULL_PTR(uint32*);
     nInputChannels = 0u;
@@ -73,6 +74,7 @@ DAQMapContainer::~DAQMapContainer(){
     //try to clean the maps in case it was not already done beforehand
     CleanupMap();
 }
+
 bool DAQMapContainer::CleanupMap(){
     bool ok = true;
     if (DAQ_handle != 0){
@@ -565,7 +567,57 @@ bool DAQMapContainer::PollForNewPacket(uint32* destinationAddr){
     }
     return next_packet;
 }
+/*
+bool DAQMapContainer::PollForNewPacket(float64* destinationAddr){
+    bool next_packet = false;
+    bool ok = true;
+    uint32 nSamples = nOutputChannels; //For now, to be changed
+    //Poll for next packet from UEIDAQ
+    ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
+    if (ok){
+        //Check if the response is a new packet or a rerequest.
+        //The 0x80000000 bit on the recived samples lets us know if the packet has
+        //been previously requested.
+        if (*((uint32*)outputMap) & 0x80000000){ 
+            //In this case, the returned signals are of double type
+            for (uint32 i = 0u; i < nOutputMembers)
+            next_packet = true;
+        }
+    }else{
+        REPORT_ERROR(ErrorManagement::ParametersError, "Refresh failed during Poll for conversion in Map %s", name.Buffer());
+    }
+    return next_packet;
+}
+*/
 
+void DAQMapContainer::RegisterDS(){
+    assignedToDS = true;
+}
+
+bool DAQMapContainer::GetDSRegistered(){
+    return assignedToDS;
+}
+
+bool DAQMapContainer::IsSignalAllowed(uint32 firstElementIdx, uint32 lastElementIdx, TypeDescriptor signalType, uint8 direction){
+    bool ok = true;
+    uint32 currentSignalIndex = 0u;
+    if (direction == OUTPUT_CHANNEL){
+        //Traverse the outputMembers in an ordered fashion
+        for (uint32 i = 0u; i < nOutputMembers && ok; i++){
+            //Check if the member is needed for the supplied signal
+            if (!(currentSignalIndex > lastElementIdx || (currentSignalIndex+outputMembersOrdered[i]->Outputs.nChannels-1) < firstElementIdx)){
+                //In this case the current member is used by the signal, check if the device allows the supplied signal Type
+                ok = outputMembersOrdered[i]->reference->AcceptedSignalType(signalType);
+            }
+            currentSignalIndex += outputMembersOrdered[i]->Outputs.nChannels;
+        }
+        //Check if the requested signal overflows the maximum number of channels this map has
+        if (ok){
+            ok = (lastElementIdx <= nOutputChannels);
+        }
+    }
+    return ok;
+}
 
 CLASS_REGISTER(DAQMapContainer, "1.0")
 }

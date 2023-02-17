@@ -35,6 +35,7 @@
 #include "CLASSMETHODREGISTER.h"
 #include "MemoryDataSourceI.h"
 #include "StructuredDataI.h"
+#include "StructuredDataIHelper.h"
 #include "StreamString.h"
 #include "ObjectRegistryDatabase.h"
 

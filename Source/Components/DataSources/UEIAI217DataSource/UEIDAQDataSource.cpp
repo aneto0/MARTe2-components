@@ -47,19 +47,12 @@ UEIDAQDataSource::UEIDAQDataSource() : MemoryDataSourceI() {
 }
 
 UEIDAQDataSource::~UEIDAQDataSource() {
-/*    if (mapid != 0){
-       DqRtDmapStop(hd, mapid);
-       DqRtDmapClose(hd, mapid);
-    }
-    if(hd){
-        DqCloseIOM(hd);
-    }
-    DqCleanUpDAQLib();
-*/
 }
 
 bool UEIDAQDataSource::Initialise(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::Initialise(data);
+    StructuredDataIHelper helper = StructuredDataIHelper(data, this);
+    //Get the name of the DataSource
     name = data.GetName();
     ok = data.Read("Device", deviceName);
     if (!ok){
@@ -71,6 +64,11 @@ bool UEIDAQDataSource::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "No map specified for UEIDAQDataSource %s", name.Buffer());        
         }
     }
+    //Retrieve PollSleepPeriod (optional)
+    if (ok){
+        helper.Read("PollSleepPeriod", poll_sleep_period, 100);
+    }
+    //Retrieve the reference to the UEIDAQ device
     ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
     if (ok){
         device = ord->Find(deviceName.Buffer());
@@ -81,6 +79,7 @@ bool UEIDAQDataSource::Initialise(StructuredDataI &data) {
            REPORT_ERROR(ErrorManagement::ParametersError, "Unable to find device %s (at UEIDAQDataSource %s)", deviceName.Buffer(), name.Buffer());
         }
     }
+    //Retrieve the reference to the selected map within the UEIDAQ device
     if (ok){
         StreamString mapPath = StreamString("");
         mapPath += deviceName;
@@ -94,34 +93,44 @@ bool UEIDAQDataSource::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Unable to find map %s (at UEIDAQDataSource %s, path: %s)", mapName.Buffer(), name.Buffer(), mapPath.Buffer());
         }
     }
+    //Only one DataSource can be associated with a map, check that the map is not being used by another DataSource
+    if (ok){
+        ok = (!map->GetDSRegistered());     //Check if the Map has already been assigned to a DS
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::ParametersError, "The map %s requested by DataSource %s is already assigned to another DataSource!", mapName.Buffer(), name.Buffer());
+        }else{
+            map->RegisterDS();              //If the map is not assigned to a DS, assign it now so no other DS can access this Map
+        }
+    }
     return ok;
 }
 
 bool UEIDAQDataSource::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
-    /*if (ok) {
-        ok = (GetNumberOfSignals() == 1u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Exactly one signal must be defined (OutputData)");
+    //Check the output signals (the ones coming from UEIDAQ into the MARTe application)
+    //The signal types for each signal must be in accordance to that of the device the channel
+    //is being read from, e.g. a uint8 cannot be read from an analog device of 24 bit resolution
+    if (ok){
+        uint32 currentSignalElement = 0;
+        uint32 numberOfSignals = GetNumberOfSignals();
+        for (uint32 i = 0u; i < numberOfSignals && ok; i++){ //TODO change when input signals are allowed
+            uint32 signalNOfElements = 0u;
+            ok = (GetSignalNumberOfElements(i, signalNOfElements));
+            if (!ok){
+                //Could not get number of elements for signal
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not retrieve signal numberOfElements for signal %d in DataSource %s", i+1, name.Buffer());
+            }
+            if (ok){
+                ok = (map->IsSignalAllowed(currentSignalElement, currentSignalElement+signalNOfElements, GetSignalType(i), OUTPUT_CHANNEL));
+                currentSignalElement += signalNOfElements; //Update the counter taking in ming the already allowed (or not) signal
+                if (!ok){
+                    //Invalid signal type or range for signal regarding the IO signal type
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Mismatch in signal %d for DataSource %s (check type/signal length)", i+1, name.Buffer());
+                }
+            }
         }
     }
-    if (ok) {
-        ok = (GetSignalType(0u) == UnsignedInteger32Bit);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The type of the first signal (Trigger) must be UnsignedInteger8");
-        }
-    }
-    if (ok) {
-        uint32 elements;
-        ok = GetSignalNumberOfElements(0u, elements);
-//        if (ok) {
-//            ok = (elements == 3u);
-//        }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The first signal (Trigger) must have 10 elements");
-        }
-    }*/
-
+    //TODO more checks
     return ok;
 }
 
@@ -135,13 +144,14 @@ bool UEIDAQDataSource::Synchronise() {
     while(!ok){
         ok = (map->PollForNewPacket(reinterpret_cast<uint32*>(memory)));
         if (!ok){
-            Sleep::MSec(10);    //To change
+            Sleep::MSec(poll_sleep_period);    //To change
         }
     }
     return true;
 }
 
 const char8* UEIDAQDataSource::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
+    //The Datasource is synchronous to the Reception of data from UEIDAQ device
         return "MemoryMapSynchronisedInputBroker";
 }
 
