@@ -32,6 +32,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "SingleThreadService.h"
+#include "MemoryDataSourceI.h"
 #include "StructuredDataI.h"
 #include "StructuredDataIHelper.h"
 #include "StreamString.h"
@@ -160,11 +161,10 @@ class DAQMapContainer : public ReferenceContainer {
 
     float GetScanRate();
 
-    bool PollForNewPacket(uint32* destinationAddr);
+    bool PollForNewPacket(float64* destinationAddr);
 
-    void RegisterDS();
+    bool RegisterDS(SignalDirection direction);
 
-    bool GetDSRegistered();
     //Function to check if a signal spanning from firstElementIdx to lastElementIdx and of type signalType would be allowed
     bool IsSignalAllowed(uint32 firstElementIdx, uint32 lastElementIdx, TypeDescriptor signalType, uint8 direction);
 
@@ -227,7 +227,8 @@ private:
     uint32* outputMap;
     uint32* inputMap;
     uint32 poll_sleep_period;
-    bool assignedToDS;
+    bool outputAssignedToDS;
+    bool inputAssignedToDS;
 };
 }
 #endif /* DAQMapContainer_H_ */

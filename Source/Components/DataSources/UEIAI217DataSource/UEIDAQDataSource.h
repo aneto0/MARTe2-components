@@ -50,36 +50,6 @@
 
 namespace MARTe {
 
-/**
- * @brief TODO
- *
- *
- *
- *
- *
- *
- * <pre>
- *  +UEIDAQDS = {
- *      Class   = UEIDAQDataSource
- *      Device  = UEIDevice1
- *      Map     = Map1
- *  }
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
-*/
-
 class UEIDAQDataSource: public MemoryDataSourceI {
 public:
 
@@ -114,18 +84,18 @@ public:
                                     const uint32 numberOfSamples);
 
     /**
-     * @return "MemoryMapMultiBufferInputBroker"
+     * @brief Assigns the correct broker for the connected signals. Checks that only input signals are provided, this
+     * datasource does only support input signals.
+     * @return "MemoryMapSychronisedInputBroker" if the signal is an input signal.
      */
     virtual const char8* GetBrokerName(StructuredDataI &data,
                                        const SignalDirection direction);
 
     /**
+     * @brief Sycnhronise method for the DataSource. Performs the new data petition through the assigned MapContainer object.
      * @return true.
      */
     virtual bool Synchronise();
-
-    bool GetMapAddr();
-    bool PollForNextPacket();
 
     virtual bool PrepareNextState(const char8 * const currentStateName,
                                   const char8 * const nextStateName);
@@ -133,10 +103,17 @@ public:
 private:
 
     /**
-     * Variable to store the selected DAQ mode
+     * Variable to store the name of this DataSource
      */
     StreamString name;
+    /**
+     * Variable to store the identifier (name) of the UEIDAQ device to which connect
+     */
     StreamString deviceName;
+    
+    /**
+     * Variable to store the identifier (name) of the MapContainer object which this DataSource is connected to
+     */
     StreamString mapName;
 
     /**
@@ -149,6 +126,10 @@ private:
      */
     ReferenceT<DAQMapContainer> map;
 
+    /**
+     * Variable to store the selected polling sleep period configured for this datasource. This is the period of MARTe sleep
+     * between an unsuccessful poll request to the UEIDAQ device and the next poll request. 
+     */
     uint32 poll_sleep_period;
 
 };

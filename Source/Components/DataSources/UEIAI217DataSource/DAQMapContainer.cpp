@@ -45,7 +45,8 @@ namespace MARTe {
 
 DAQMapContainer::DAQMapContainer() : ReferenceContainer() {
     mapType = 0u;
-    assignedToDS = false;
+    outputAssignedToDS  = false;
+    inputAssignedToDS   = false;
     mapid = 0u;
     inputMapPtr = NULL_PTR(uint32*);
     nInputChannels = 0u;
@@ -353,6 +354,9 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
             REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMapContainer::Initialise - "
             "No Inputs or Outputs blocks defined for map %s.", name.Buffer());
         }
+        //Set the input/outputAssignedToDs variables to the value of input/outputSignalsDefined value.
+        inputAssignedToDS = inputSignalsDefined;
+        outputAssignedToDS = outputSignalsDefined;
     }
     //Acknowledge the successful initialisation of the Object
     if (ok){
@@ -541,7 +545,7 @@ bool DAQMapContainer::GetMapPointers(){
     return ok;
 }
 
-bool DAQMapContainer::PollForNewPacket(uint32* destinationAddr){
+bool DAQMapContainer::PollForNewPacket(float64* destinationAddr){
     bool next_packet = false;
     bool ok = true;
     uint32 nSamples = nOutputChannels; //For now, to be changed
@@ -556,31 +560,19 @@ bool DAQMapContainer::PollForNewPacket(uint32* destinationAddr){
             //The recived packet is a newly converted one not requested yet.
             //Make the signals available to the broker.
             //TODO implement this using memcopy
-            for (uint8 i = 0; i < nSamples; i++){
-                destinationAddr[i] = ((uint32)outputMap[i]) & mask;
+            uint32 iterator = 0;
+            for (uint32 i = 0; i < nOutputMembers && ok; i++ ){
+                for (uint32 j = 0; j < outputMembersOrdered[i]->Outputs.nChannels && ok; j++){
+                ok = DqAdvRawToScaleValue(DAQ_handle, outputMembersOrdered[i]->devn, outputMembersOrdered[i]->Outputs.channels[i], ((uint32)outputMap[iterator]), &destinationAddr[iterator]);
+                iterator ++;
+                }
             }
-            //End the while loop to unlock the Synchronize method.
-            next_packet = true;
-        }
-    }else{
-        REPORT_ERROR(ErrorManagement::ParametersError, "Refresh failed during Poll for conversion in Map %s", name.Buffer());
-    }
-    return next_packet;
-}
 /*
-bool DAQMapContainer::PollForNewPacket(float64* destinationAddr){
-    bool next_packet = false;
-    bool ok = true;
-    uint32 nSamples = nOutputChannels; //For now, to be changed
-    //Poll for next packet from UEIDAQ
-    ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
-    if (ok){
-        //Check if the response is a new packet or a rerequest.
-        //The 0x80000000 bit on the recived samples lets us know if the packet has
-        //been previously requested.
-        if (*((uint32*)outputMap) & 0x80000000){ 
-            //In this case, the returned signals are of double type
-            for (uint32 i = 0u; i < nOutputMembers)
+            for (uint8 i = 0; i < nSamples; i++){
+                
+                //destinationAddr[i] = ((uint32)outputMap[i]) & mask;
+            }
+*/          //End the while loop to unlock the Synchronize method.
             next_packet = true;
         }
     }else{
@@ -588,14 +580,28 @@ bool DAQMapContainer::PollForNewPacket(float64* destinationAddr){
     }
     return next_packet;
 }
-*/
 
-void DAQMapContainer::RegisterDS(){
-    assignedToDS = true;
-}
-
-bool DAQMapContainer::GetDSRegistered(){
-    return assignedToDS;
+bool DAQMapContainer::RegisterDS(SignalDirection direction){
+    //
+    bool ok = false;
+    switch(direction){
+        case OutputSignals:
+            if (!outputAssignedToDS){
+                outputAssignedToDS = true;
+                ok = true;
+            }
+        break;
+        case InputSignals:
+            if (!inputAssignedToDS){
+                inputAssignedToDS = true;
+                ok = true;
+            }
+        break;
+        default:
+            ok = false;
+        break;
+    }
+    return ok;
 }
 
 bool DAQMapContainer::IsSignalAllowed(uint32 firstElementIdx, uint32 lastElementIdx, TypeDescriptor signalType, uint8 direction){

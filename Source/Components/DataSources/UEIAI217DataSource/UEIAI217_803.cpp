@@ -261,7 +261,10 @@ bool UEIAI217_803::ConfigureChannel(uint32* channel){
 bool UEIAI217_803::AcceptedSignalType(TypeDescriptor signalType){
     //Check the datatypes this device can output. Return true for the datatypes accepted as a valid output of this device
     bool accepted = false;
-    if (signalType == UnsignedInteger32Bit || signalType == Float64Bit){
+    /*if (signalType == UnsignedInteger32Bit || signalType == Float64Bit){
+        accepted = true;
+    }*/
+    if (signalType == Float64Bit){
         accepted = true;
     }
     return accepted;

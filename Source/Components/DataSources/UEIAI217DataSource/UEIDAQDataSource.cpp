@@ -95,11 +95,9 @@ bool UEIDAQDataSource::Initialise(StructuredDataI &data) {
     }
     //Only one DataSource can be associated with a map, check that the map is not being used by another DataSource
     if (ok){
-        ok = (!map->GetDSRegistered());     //Check if the Map has already been assigned to a DS
+        ok = (!map->RegisterDS(OutputSignals));     //Check if the Map has already been assigned to a DS (and assign it if not)
         if (!ok){
             REPORT_ERROR(ErrorManagement::ParametersError, "The map %s requested by DataSource %s is already assigned to another DataSource!", mapName.Buffer(), name.Buffer());
-        }else{
-            map->RegisterDS();              //If the map is not assigned to a DS, assign it now so no other DS can access this Map
         }
     }
     return ok;
@@ -142,7 +140,7 @@ bool UEIDAQDataSource::Synchronise() {
     //Start to poll for next packet to the Map. The memory access is handled by the Map Container
     bool ok = false;
     while(!ok){
-        ok = (map->PollForNewPacket(reinterpret_cast<uint32*>(memory)));
+        ok = (map->PollForNewPacket(reinterpret_cast<float64*>(memory)));
         if (!ok){
             Sleep::MSec(poll_sleep_period);    //To change
         }
@@ -152,17 +150,13 @@ bool UEIDAQDataSource::Synchronise() {
 
 const char8* UEIDAQDataSource::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
     //The Datasource is synchronous to the Reception of data from UEIDAQ device
+    if (direction == InputSignals){
         return "MemoryMapSynchronisedInputBroker";
-}
-
-bool UEIDAQDataSource::GetMapAddr(){
-    return true;
-}
-
-bool UEIDAQDataSource::PollForNextPacket(){
-    bool next_packet = false;
-    bool ok = true;
-    return ok;
+    }else{
+        //Only input signals are supported for this DataSource
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "UEIDAQDataSource::GetBrokerName - DataSource %s only supports input signals", name.Buffer());
+        return "";
+    }
 }
 
 bool UEIDAQDataSource::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName){
