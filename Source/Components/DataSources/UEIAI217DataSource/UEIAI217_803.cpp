@@ -133,15 +133,25 @@ bool UEIAI217_803::Initialise(StructuredDataI &data){
     //Read and choose ADC Mode (DEFAULT mode by default)
     if (ok){
         StreamString ADC_mode_string;
-        helper.Read("ADC_mode", ADC_mode_string, "DEFAULT");
-        if (ADC_mode_string == StreamString("ENHANCED")){
-            ADCMode = DQ_AI217_SET_ADC_ENH;
-        }else if (ADC_mode_string == StreamString("DEFAULT")){
-            ADCMode = DQ_AI217_SET_ADC_DEFAULT;
+        bool adcModeFound = data.Read("ADC_mode", ADC_mode_string);
+        if (adcModeFound){
+            if (ADC_mode_string == StreamString("ENHANCED")){
+                ADCMode = DQ_AI217_SET_ADC_ENH;
+                REPORT_ERROR(ErrorManagement::Information, "UEIAI217_803::Initialise - "
+                "Set ADC_mode to ENHANCED for device %s.", name.Buffer());
+            }else if (ADC_mode_string == StreamString("DEFAULT")){
+                ADCMode = DQ_AI217_SET_ADC_DEFAULT;
+                REPORT_ERROR(ErrorManagement::Information, "UEIAI217_803::Initialise - "
+                "Set ADC_mode to DEFAULT for device %s.", name.Buffer());
+            }else{
+                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIAI217_803::Initialise - "
+                "Invalid ADC_mode provided for device %s.", name.Buffer());
+                ok = false;  
+            }
         }else{
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIAI217_803::Initialise - "
-            "Invalid ADC_mode provided for device %s.", name.Buffer());
-            ok = false;  
+           ADCMode = DQ_AI217_SET_ADC_DEFAULT;
+           REPORT_ERROR(ErrorManagement::Information, "UEIAI217_803::Initialise - "
+           "Set ADC_mode to DEFAULT for device %s.", name.Buffer());
         }
     }
     //Read and validate FIR taps (optional parameters)
@@ -229,18 +239,15 @@ bool UEIAI217_803::CheckChannelAndDirection(uint32 channelNumber, uint8 directio
 bool UEIAI217_803::ConfigureDevice(int32 DAQ_handle){
     bool ok = true;
     //Configure all the channels in the layer at the same time (for now no custom channel configuration is allowed)
-    /*ok = (DqAdv217SetCfgLayer(DAQ_handle, deviceId, DQ_AI217_SETCFG_ALL_CHAN, DQ_SET_CFG_LAYER_ADC, ADCMode) >= 0);
+    ok = (DqAdv217SetCfgLayer(DAQ_handle, deviceId, DQ_AI217_SETCFG_ALL_CHAN, DQ_AI217_SET_CFG_LAYER_ADC, ADCMode) >= 0);
     if (!ok){
         REPORT_ERROR(ErrorManagement::ParametersError, "DAQMasterObject::Initialise - "
         "Unable to configure ADC CfgLayer for Device %s.", name.Buffer());
     }
-    if (ok){
-
-    }*/
     //Configure the FIR filters as required
     if (ok){
         //As described in the API, set all the FIR banks to default state prior to custom initialisation
-        ok = (DqAdv217SetFIR(DAQ_handle, deviceId, 0x0f, 0x08,0,0,NULL,NULL) >= 0);
+        ok = (DqAdv217SetFIR(DAQ_handle, deviceId, DQ_AI217_SEL_QFIR_ALL, DQ_AI217_FIR_SET_DEFAULT,0,0,NULL,NULL) >= 0);
         //All the FIR banks are initialised to their default value and enabled, no need to re enable them
         if (!ok){
             REPORT_ERROR(ErrorManagement::ParametersError, "UEIAI217_803::ConfigureDevice - "
@@ -259,15 +266,15 @@ bool UEIAI217_803::ConfigureDevice(int32 DAQ_handle){
             switch(FIRBanks[i].bankState){
                 case BANK_NOT_ENABLED:
                     //Disable the FIR filter
-                    action = 0x00;                  //FIR Disable flag
+                    action = DQ_AI217_FIR_DISABLE;                  //FIR Disable flag
                 break;
                 case DEFAULT_FIR_SETTING:
                     //Change the FIR filter setting to a new setting
-                    action = 0x01 | 0x80;           // FIR Enable flag + Set Index flag
+                    action = DQ_AI217_FIR_ENABLE | DQ_AI217_FIR_SET_INDEX;           // FIR Enable flag + Set Index flag
                     tapsize = FIRBanks[i].defaultBankSetting;
                 break;
                 case CUSTOM_FIR_SETTING:
-                    action = 0x01 | 0x04;           // FIR Enable flag + Load Coeffs flag
+                    action = DQ_AI217_FIR_ENABLE | DQ_AI217_FIR_COEFF_LOAD;           // FIR Enable flag + Load Coeffs flag
                     tapsize = FIRBanks[i].nTaps;
                     taps = FIRBanks[i].taps;
                 break;

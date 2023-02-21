@@ -36,6 +36,7 @@
 #include "StructuredDataI.h"
 #include "StructuredDataIHelper.h"
 #include "PDNA.h"
+#include "powerdna.h"
 
 
  /*
