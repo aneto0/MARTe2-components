@@ -105,6 +105,8 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
             if (ip[0] == 127u &&ip[1] == 0u && ip[2] == 0u && ip[3] == 1u && ok){
                 REPORT_ERROR(ErrorManagement::Information, "DAQMasterObject::Initialise - "
                 "UEIDAQ %s set as local device.", name.Buffer());
+                ip_string = new char8[9];
+                snprintf(ip_string, 10, "127.0.0.1");
             }else if (ip[0] <= 255u && ip[1] <= 255u && ip[2] <= 255 && ip[3] <= 255u){
                 ok = data.Read("Port", port);
                 if (ok) {
@@ -336,6 +338,13 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
         ok = (DqOpenIOM(ip_string, port, IOMTimeOut, &DAQ_handle, NULL) >= 0);
         if(!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to contact IOM for Device %s", name.Buffer());
+        }
+    }
+    //Check if the IOM handle is valid, if it is 0 it will not be valid
+    if (ok){
+        ok = (DAQ_handle != 0);
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to initialise IOM handle for Device %s", name.Buffer());
         }
     }
     //Check that the configured devices correspond to the IOM hardware configuration
