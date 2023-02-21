@@ -40,17 +40,44 @@
 
  /*
 *       + dev0={
-*          Class               = UEIAI217_803
-*          Devn                = 0
-*          FIR_taps            = {0, 1, 0}
-*          Sampling_ferquency  = 1000.0     //in Hz
+*           Class               = UEIAI217_803
+*           Devn                = 0
+*           Sampling_ferquency  = 1000.0     //in Hz
+*           Filters = {         //This Structure is optional, only those banks specified will be activated (either with default FIR settings or
+*                               // specified FIR by taps vector).
+*               A = {
+*                   Taps = {0,1,0,2,0,3,0,4,0,5,6}
+*               }
+*               B = {
+*                   Default_filter = 0
+*               }
+*               C = {
+*                   Default_filter = 1
+*               }
+*               D = {
+*                   Default_filter = 2
+*               }
+*           }
 *       }
  */
 
 #define MAX_FIR_TAPS_803 512u
+#define FIR_BANK_NUMBER 4u
 #define CHANNEL_NUMBER 16u
 
+//FIR bank state description
+#define BANK_NOT_ENABLED        0u
+#define DEFAULT_FIR_SETTING     1u
+#define CUSTOM_FIR_SETTING      2u
+
 namespace MARTe {
+
+typedef struct{
+    uint8 bankState;
+    uint32 defaultBankSetting;
+    uint32 nTaps;
+    float64* taps;
+}AI217_803FIRBank;
 
 class UEIAI217_803 : public Object {
     public:
@@ -94,19 +121,19 @@ class UEIAI217_803 : public Object {
      */
     bool CheckChannelAndDirection(uint32 channelNumber, uint8 direction);
     bool ConfigureChannel(uint32* channel);
+    bool ConfigureDevice(int32 DAQ_handle);
     float GetSamplingFrequency();
     bool AcceptedSignalType(TypeDescriptor signalType);
     
 private:
     StreamString name;              //name of the device object
     uint8 deviceId;                 //devn
-    uint32* firTaps;                //Array containing the FIR taps for the device
-    uint32 numOfTaps;               //Number of taps set in firTaps
     float samplingFrequency;        //Sets the sampling frequency of the device (only one per device)
     uint16* gains;                  //Sets the sampling frequency of the device (only one per device)
     bool hardwareCorrespondence;    //Signals if this device has been identified to an installed layer
     bool assignedToMap;             //Signals if this device has been assigned to a DAQ map
     int32 ADCMode;                  //Stores the advanced configuration for the ADC on the AI-217-803, can be set to ENHANCED or DEFAULT
+    AI217_803FIRBank FIRBanks [FIR_BANK_NUMBER];  //Stores the structure defining the FIR settings for each of the four banks (A,B,C or D, identified by the index)
 };
 
 }

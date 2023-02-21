@@ -563,8 +563,8 @@ bool DAQMapContainer::PollForNewPacket(float64* destinationAddr){
             uint32 iterator = 0;
             for (uint32 i = 0; i < nOutputMembers && ok; i++ ){
                 for (uint32 j = 0; j < outputMembersOrdered[i]->Outputs.nChannels && ok; j++){
-                ok = DqAdvRawToScaleValue(DAQ_handle, outputMembersOrdered[i]->devn, outputMembersOrdered[i]->Outputs.channels[i], ((uint32)outputMap[iterator]), &destinationAddr[iterator]);
-                iterator ++;
+                    ok = DqAdvRawToScaleValue(DAQ_handle, outputMembersOrdered[i]->devn, outputMembersOrdered[i]->Outputs.channels[i], ((uint32)outputMap[iterator]), &destinationAddr[iterator]);
+                    iterator ++;
                 }
             }
 /*

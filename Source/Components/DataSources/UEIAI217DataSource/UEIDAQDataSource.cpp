@@ -108,6 +108,7 @@ bool UEIDAQDataSource::SetConfiguredDatabase(StructuredDataI &data) {
     //Check the output signals (the ones coming from UEIDAQ into the MARTe application)
     //The signal types for each signal must be in accordance to that of the device the channel
     //is being read from, e.g. a uint8 cannot be read from an analog device of 24 bit resolution
+    //All the signals within a DataSource must be the same type
     if (ok){
         uint32 currentSignalElement = 0;
         uint32 numberOfSignals = GetNumberOfSignals();

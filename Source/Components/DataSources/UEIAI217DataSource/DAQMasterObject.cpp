@@ -325,7 +325,6 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
         REPORT_ERROR(ErrorManagement::Information, "DAQMasterObject::Initialise - "
         "Maps correctly initialised for UEIDAQ device %s.", name.Buffer());
     }
-    /*
     //Perfrom the initialisation for the IOM structure for the PDNA library
     if (ok){
         ok = (DqInitDAQLib() == DQ_SUCCESS);
@@ -414,6 +413,19 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
             }
         }
     }
+    //Configure the different devices
+    if (ok){
+        for (uint8 i = 0u; i < MAX_IO_SLOTS && ok; i++){
+            if (devices[i].IsValid()){
+                //The device is configured in MARTe and its validity has been checked
+                ok = (devices[i]->ConfigureDevice(DAQ_handle));
+                if (!ok){
+                    //The device cannot be correctly configured, report error
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Device configured at dev%d in UEIDAQ device %s cannot be correctly configured in IOM.", i, name.Buffer());
+                }
+            }
+        }
+    }
     //Start the DAQ Maps
     if (ok){
         for (uint32 i = 0u; i < nMaps && ok; i++){
@@ -424,17 +436,8 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
         }
     }
     // At this point, if ok is valid we've checked connection to the IOM, hardware configuration matching and device configuration
-    */
     return ok;
 }
-/*
-bool DAQMasterObject::ConfigureDevice(uint8 devn){
-    
-}
 
-bool DAQMasterObject::ConfigureMap(uint8 map){
-
-}
-*/
 CLASS_REGISTER(DAQMasterObject, "1.0")
 }

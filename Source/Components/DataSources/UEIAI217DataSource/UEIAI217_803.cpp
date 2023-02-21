@@ -45,7 +45,6 @@ namespace MARTe {
 
 UEIAI217_803::UEIAI217_803() : Object() {
     deviceId = 0u;
-    firTaps = NULL;
     samplingFrequency = 0.0;
     hardwareCorrespondence = false;
     assignedToMap = false;
@@ -53,9 +52,7 @@ UEIAI217_803::UEIAI217_803() : Object() {
 
 UEIAI217_803::~UEIAI217_803(){
     
-    if (firTaps != NULL){
-        delete(firTaps);
-    }
+    //Destroy the FIRBanks strcutures
 }
 
 bool UEIAI217_803::Initialise(StructuredDataI &data){ 
@@ -147,22 +144,66 @@ bool UEIAI217_803::Initialise(StructuredDataI &data){
             ok = false;  
         }
     }
-    //Read and validate FIR taps
-/*    if (ok){
-        ok = helper.ReadArray("FIR_taps", firTaps, numOfTaps);
-        if (ok){
-            ok = numOfTaps < MAX_FIR_TAPS_803;
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIAI217_803::Initialise - "
-                "Number of FIR_taps exceed maximum (%d) for device %s.", MAX_FIR_TAPS_803, name.Buffer());
+    //Read and validate FIR taps (optional parameters)
+    if (ok){
+        bool requestedFilters = data.MoveRelative("Filters");
+        if (!requestedFilters){
+            REPORT_ERROR(ErrorManagement::Information, "UEIAI217_803::Initialise - "
+            "No FIR filters specified for device %s, banks A,B,C and D deactivated.", name.Buffer());
+            //Set the FIR bank configuration structures to not enabled
+            for (uint32 i = 0; i < FIR_BANK_NUMBER; i++){
+                FIRBanks[i].bankState = BANK_NOT_ENABLED;
+            }      
+        }else{
+            //Filters structure is found, go through the different banks settings
+            StreamString banks [FIR_BANK_NUMBER] = {"A","B","C","D"};
+            //loop over the four different FIR banks structure
+            for (uint32 i = 0; i < FIR_BANK_NUMBER && ok; i++){
+                //Loop to setup a single FIR bank (A,B,C or D)
+                bool bankDefined = data.MoveRelative(banks[i].Buffer());
+                if (bankDefined){
+                    //This bank is defined, search the parameters to configure the bank
+                    //Check wether we wish to configure it as default or custom configuration
+                    bool defaultConfiguration = data.Read("Default_filter", FIRBanks[i].defaultBankSetting);
+                    bool customConfiguration = helper.ReadArray("Taps", FIRBanks[i].taps, FIRBanks[i].nTaps);
+                    ok = (defaultConfiguration != customConfiguration);
+                    if (ok){
+                        if (customConfiguration){
+                            FIRBanks[i].bankState = CUSTOM_FIR_SETTING;
+                            ok = FIRBanks[i].nTaps <= MAX_FIR_TAPS_803;
+                            if (!ok){
+                                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIAI217_803::Initialise - "
+                                "Invalid FIR bank %s configuration for device %s, the number of taps must be equal or lower than %d.", banks[i].Buffer() ,name.Buffer(), MAX_FIR_TAPS_803);     
+                            }else{
+                                REPORT_ERROR(ErrorManagement::Information, "UEIAI217_803::Initialise - "
+                                "FIR bank %s for device %s will be enabled as custom FIR filter.", banks[i].Buffer() ,name.Buffer());
+                            }
+                        }else if (defaultConfiguration){
+                            FIRBanks[i].bankState = DEFAULT_FIR_SETTING;
+                            ok = (FIRBanks[i].defaultBankSetting <= 9);     //Possible Default FIR settings as defined in documentation for this layer
+                            if (!ok){
+                                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIAI217_803::Initialise - "
+                                "Invalid FIR bank %s configuration for device %s, the default FIR configuration index must be in 0-9 range.", banks[i].Buffer() ,name.Buffer());     
+                            }else{
+                                REPORT_ERROR(ErrorManagement::Information, "UEIAI217_803::Initialise - "
+                                "FIR bank %s for device %s will be enabled as default FIR filter (setting %d).", banks[i].Buffer() ,name.Buffer(), FIRBanks[i].defaultBankSetting);
+                            }                      
+                        }
+                    }else{
+                       REPORT_ERROR(ErrorManagement::InitialisationError, "UEIAI217_803::Initialise - "
+                        "Invalid FIR bank %s configuration for device %s, a bank must contain either a custom or default configuration.", banks[i].Buffer() ,name.Buffer()); 
+                    }
+                    ok &= data.MoveToAncestor(1u);
+                }else{
+                    FIRBanks[i].bankState = BANK_NOT_ENABLED;
+                    REPORT_ERROR(ErrorManagement::Information, "UEIAI217_803::Initialise - "
+                    "FIR bank %s not defined for device %s, this bank will be disabled.", banks[i].Buffer() ,name.Buffer());
+                }
             }
-        }
-        else{
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIAI217_803::Initialise - "
-            "Could not retrive FIR_taps parameter for device %s.", name.Buffer());
+            //Return to the device node
+            ok &= data.MoveToAncestor(1u);
         }
     }
-*/
     return ok;
 }
 
@@ -184,21 +225,73 @@ bool UEIAI217_803::CheckChannelAndDirection(uint32 channelNumber, uint8 directio
     }
     return validChannel;
 }
-/*
+
 bool UEIAI217_803::ConfigureDevice(int32 DAQ_handle){
     bool ok = true;
     //Configure all the channels in the layer at the same time (for now no custom channel configuration is allowed)
-    ok = (DqAdv217SetCfgLayer(DAQ_handle, deviceId, DQ_AI217_SETCFG_ALL_CHAN, DQ_SET_CFG_LAYER_ADC, ADCMode) >= 0);
+    /*ok = (DqAdv217SetCfgLayer(DAQ_handle, deviceId, DQ_AI217_SETCFG_ALL_CHAN, DQ_SET_CFG_LAYER_ADC, ADCMode) >= 0);
     if (!ok){
         REPORT_ERROR(ErrorManagement::ParametersError, "DAQMasterObject::Initialise - "
         "Unable to configure ADC CfgLayer for Device %s.", name.Buffer());
     }
     if (ok){
 
+    }*/
+    //Configure the FIR filters as required
+    if (ok){
+        //As described in the API, set all the FIR banks to default state prior to custom initialisation
+        ok = (DqAdv217SetFIR(DAQ_handle, deviceId, 0x0f, 0x08,0,0,NULL,NULL) >= 0);
+        //All the FIR banks are initialised to their default value and enabled, no need to re enable them
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::ParametersError, "UEIAI217_803::ConfigureDevice - "
+            "Unable to set default FIR parameters for device %s.", name.Buffer());  
+        }
+    }
+    if (ok){
+        //Set custom configuration for ach FIR filter
+        StreamString banks [FIR_BANK_NUMBER] = {"A","B","C","D"};
+        for (uint8 i = 0u; i < FIR_BANK_NUMBER && ok; i++){
+            int32 bank = (0x01<<i);
+            int32 action = 0;
+            int32 decrat = 0;
+            int32 tapsize = 0;
+            float64* taps = NULL;
+            switch(FIRBanks[i].bankState){
+                case BANK_NOT_ENABLED:
+                    //Disable the FIR filter
+                    action = 0x00;                  //FIR Disable flag
+                break;
+                case DEFAULT_FIR_SETTING:
+                    //Change the FIR filter setting to a new setting
+                    action = 0x01 | 0x80;           // FIR Enable flag + Set Index flag
+                    tapsize = FIRBanks[i].defaultBankSetting;
+                break;
+                case CUSTOM_FIR_SETTING:
+                    action = 0x01 | 0x04;           // FIR Enable flag + Load Coeffs flag
+                    tapsize = FIRBanks[i].nTaps;
+                    taps = FIRBanks[i].taps;
+                break;
+                default:
+                    ok = false;
+                break;
+            }
+            int32 totalFilterResult;
+            ok = (DqAdv217SetFIR(DAQ_handle, deviceId, bank, action, decrat, tapsize,&totalFilterResult,  taps) >= 0);
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::CommunicationError, "UEIAI217_803::ConfigureDevice - "
+                "Error trying to program FIR configuration for bank %s for device %s.", banks[i].Buffer() ,name.Buffer()); 
+            }
+            if (ok){
+                if (totalFilterResult != 8388608){
+                    REPORT_ERROR(ErrorManagement::Warning, "UEIAI217_803::ConfigureDevice - "
+                    "Inaccurate return value for bank %s for device %s (expected 8388608, got %d).",banks[i].Buffer() ,name.Buffer(),totalFilterResult);  
+                }
+            }
+        }
     }
     return ok;
 }
-*/
+
 
 uint8 UEIAI217_803::GetDevN(){
     return deviceId;
