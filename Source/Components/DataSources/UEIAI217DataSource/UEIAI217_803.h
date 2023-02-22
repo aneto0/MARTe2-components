@@ -125,6 +125,7 @@ class UEIAI217_803 : public Object {
     bool ConfigureDevice(int32 DAQ_handle);
     float GetSamplingFrequency();
     bool AcceptedSignalType(TypeDescriptor signalType);
+    bool GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32* pgaStatusArray);
     
 private:
     StreamString name;              //name of the device object

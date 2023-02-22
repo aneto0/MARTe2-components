@@ -105,30 +105,63 @@ bool UEIDAQDataSource::Initialise(StructuredDataI &data) {
 
 bool UEIDAQDataSource::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
-    //Check the output signals (the ones coming from UEIDAQ into the MARTe application)
-    //The signal types for each signal must be in accordance to that of the device the channel
-    //is being read from, e.g. a uint8 cannot be read from an analog device of 24 bit resolution
-    //All the signals within a DataSource must be the same type
+    //Check the number of signals into the datasource
     if (ok){
-        uint32 currentSignalElement = 0;
-        uint32 numberOfSignals = GetNumberOfSignals();
-        for (uint32 i = 0u; i < numberOfSignals && ok; i++){ //TODO change when input signals are allowed
-            uint32 signalNOfElements = 0u;
-            ok = (GetSignalNumberOfElements(i, signalNOfElements));
+        ok = (numberOfSignals > 0);
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "At least one signal must be provided for DataSource %s", name.Buffer());
+        }
+    }
+    //All signals within a DataSource must be of the same type (simplification condition). Therefore, no mismatch in the 
+    // type of different signals is allowed
+    if (ok){
+        //Get the type of the first signal (we know we do have at least 1 signal)
+        signalType = GetSignalType(0);
+        ok = (signalType == Float64Bit); //TODO, for now we only support scaled float64 data, we'll update on this later
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Signal type inconsistency in DataSource %s (all signals must be float64 bit for now)", name.Buffer());        
+        }
+    }
+    if(ok){
+        //Traverse all the signals defined for this DataSource
+        for (uint32 i = 0; i < numberOfSignals && ok; i++){
+            //Check that all the signals do have the same type as the selected one (the first signal)
+            ok = (signalType == GetSignalType(i));
+        }
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Signal type inconsistency in DataSource %s (all signals must be of same type)", name.Buffer());
+        }
+    }
+    //Check that all the devices of the map assigned to this DS support the selected signal Type
+    if (ok){
+        //Check if the map does support the signal type specified
+        ok = map->IsSignalAllowed(signalType,OUTPUT_CHANNEL); //TODO as the current DS only supports OUTPUT signals
+        if(!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Signal type provided for DataSource %s is incompatible with specified map", name.Buffer());
+        }
+    }
+    //Check the number of elements of all the signals combined, which cannot be larger than the number of channels in the map
+    if (ok){
+        uint32 nChan = 0;
+        for (uint32 i = 0u; i < numberOfSignals && ok; i++){
+            uint32 nElements;
+            ok = GetSignalNumberOfElements(i, nElements);
+            nOutputChannels += nElements;
+        }
+        if (ok){ 
+            ok = (map->GetNumberOfChannels(OUTPUT_CHANNEL, nChan));
             if (!ok){
-                //Could not get number of elements for signal
-                REPORT_ERROR(ErrorManagement::ParametersError, "Could not retrieve signal numberOfElements for signal %d in DataSource %s", i+1, name.Buffer());
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve the number of channels in map for DataSource %s", name.Buffer());
             }
-            if (ok){
-                ok = (map->IsSignalAllowed(currentSignalElement, currentSignalElement+signalNOfElements, GetSignalType(i), OUTPUT_CHANNEL));
-                currentSignalElement += signalNOfElements; //Update the counter taking in ming the already allowed (or not) signal
-                if (!ok){
-                    //Invalid signal type or range for signal regarding the IO signal type
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Mismatch in signal %d for DataSource %s (check type/signal length)", i+1, name.Buffer());
-                }
+        }
+        if (ok){
+            ok = (nOutputChannels <= nChan);
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::InitialisationError, "DataSource %s cannot have more signal elements than channels read from IOM", name.Buffer());
             }
         }
     }
+    //Check NumberOfSamples for all the signals to be equal and 1 if the Map is XDMap or coherent with XVMap.
     //TODO more checks
     return ok;
 }
@@ -141,7 +174,7 @@ bool UEIDAQDataSource::Synchronise() {
     //Start to poll for next packet to the Map. The memory access is handled by the Map Container
     bool ok = false;
     while(!ok){
-        ok = (map->PollForNewPacket(reinterpret_cast<float64*>(memory)));
+        ok = (map->PollForNewPacket(reinterpret_cast<float64*>(memory), nOutputChannels));
         if (!ok){
             Sleep::MSec(poll_sleep_period);    //To change
         }

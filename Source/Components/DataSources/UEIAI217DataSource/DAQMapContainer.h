@@ -48,52 +48,61 @@ namespace MARTe {
 
 /**
  * @brief TODO
- * Modes:
- * * Point-to-Point
- * * RtDMap
- * * RtVMap
- * * ADMap
- * * AVMap
- * @details 
+ * @details TODO
  *
  * <pre>
  *    +Map1 = {
  *        Class           = DAQMapContainer
-          Type            = "RtDMap"            
-          ScanRate        = 1.0    
-          Inputs = {
-            Devices = {                
-              dev0 = {
-                  Devn        = 0
-                  Channels    = {0, 1, 2}
-              }
-              dev1 = {
-                  Devn        = 1
-                  Channels    = {0, 1, 2}   
-              }
-            }
-          }
-          Outputs = {
-            Devices = {                
-              dev0 = {
-                  Devn        = 0
-                  Channels    = {5, 6}
-              }
-              dev1 = {
-                  Devn        = 1
-                  Channels    = {7, 8}   
-              }
-            }
-          }
-       }
+ *         Type            = "RtDMap"            
+ *         ScanRate        = 1.0    
+ *         Inputs = {
+ *           Devices = {                
+ *             dev0 = {
+ *                 Devn        = 0
+ *                 Channels    = {0, 1, 2}
+ *             }
+ *             dev1 = {
+ *                 Devn        = 1
+ *                 Channels    = {0, 1, 2}   
+ *             }
+ *           }
+ *         }
+ *         Outputs = {
+ *           Devices = {                
+ *             dev0 = {
+ *                 Devn        = 0
+ *                 Channels    = {5, 6}
+ *             }
+ *             dev1 = {
+ *                 Devn        = 1
+ *                 Channels    = {7, 8}   
+ *             }
+ *           }
+ *         }
+ *      }
+ * </pre>
  */
 
+/** @struct IOMapMember
+ *  @brief This structure contains the information of a map member on a specific directio (input/output)
+ *  @var defined boolean defining if this direction for the map member is configured.
+ *  @var channels pointer to an array containing the channel identifier list for this specific map member and direction.
+ *  @var nChannels variable stating the number of different channel identifiers present in channels variable of this structure.
+ */
 typedef struct{
     bool defined;
     uint32* channels;
     uint32 nChannels;
 }IOMapMember;
 
+/** @struct mapMember
+ *  @brief This structure contains the information of a map member (hardware layer defined within the map)
+ *  @var defined boolean defining if this map member (hardware layer) is configured.
+ *  @var reference smart pointer to the object holding the device configuration and configuration methods.
+ *  @var devn identifier of the device or hardware layer to which this specific member is associated.
+ *  @var Inputs IOMapMember structure containing the configured channels of this map member as input channels.
+ *  @var Outputs IOMapMember structure containing the configured channels of this map member as output channels
+ */
 typedef struct{
     bool defined;
     ReferenceT<UEIAI217_803> reference;
@@ -128,7 +137,7 @@ class DAQMapContainer : public ReferenceContainer {
 
     /**
      * @brief Close the DAQ Map structure in a clean way.
-     * @details This function must be called by DAQMasterObject upon before
+     * @details This function must be called by DAQMasterObject before destruction
      * of the IOM handle to ensure clean closing of the DAQ Map.
      * @param[in] DAQ_handle handler of the IOM to which the map belongs.
      * @return true if the map has been closed correctly and cleanly.
@@ -136,37 +145,98 @@ class DAQMapContainer : public ReferenceContainer {
     bool CleanupMap();
     
     /**
-     * @brief Getter for the device number of a member of this Map Container.
-     * @param[in] MemberIdx the id of the member of which the devn is to be retrieved.
-     * @return devn for the device at the selected member of this Map Container.
+     * @brief Getter for defiened devices (by devn) in a map.
+     * @param[in] devn device number to be checked for use in the map.
+     * @return true if the specified device is used in this map and false if not.
      */    
     bool GetDevDefined(uint32 devn);
 
     /**
-     * @brief Getter for the device number of a member of this Map Container.
-     * @param[in] MemberIdx the id of the member of which the devn is to be retrieved.
-     * @return devn for the device at the selected member of this Map Container.
+     * @brief Getter for defiened devices (by devn and direction) in a map.
+     * @param[in] devn device number to be checked for use in the map.
+     * @param[in] direction direction of the device to be checked for use in the map.
+     * @return true if the device specified by the user is used in the map in the specified direction, false otherwise.
      */    
     bool GetDevDefined(uint32 devn, uint8 direction);
 
+    /**
+     * @brief Getter for number of defined channels in the map for a device in a specific direction.
+     * @param[in] devn device number to be checked.
+     * @param[in] direction direction of the signals to be checked for the selected device.
+     * @param[out] nChannels number of channels defined for the specified device and direction on this map.
+     * @return true if the device is valid and defined within the map and the direction of the signal is valid, false otherwise.
+     */
     bool GetNumberOfChannels(uint32 devn, uint8 direction, uint32* nChannels);
 
+    /**
+     * @brief Getter for number of defined channels in the map for a specific direction.
+     * @param[in] direction direction of the signals to be checked for the map.
+     * @param[out] nChannels number of channels defined for the specified direction on this map.
+     * @return true if direction of the signal is valid, false otherwise.
+     */
+    bool GetNumberOfChannels(uint8 direction, uint32 &nChannels);
+
+    /**
+     * @brief Getter for specifiec channel identifier of a map member (device within map) in a specified direction.
+     * @param[in] devn device number (member identifier) from which to get channel identifier.
+     * @param[in] direction direction of the signal to be retrieved.
+     * @param[in] channelIdx index within channel list of the selected device and direction.
+     * @param[out] channelNumber channel identifier for the selected channel index, device and direction in the map.
+     * @return true if the specified device, direction and channelIdx are valid, false otherwise.
+     */
     bool GetChannelOfMember(uint32 devn, uint8 direction, uint32 channelIdx, uint32* channelNumber);
 
+    /**
+     * @brief Setter for the reference of a device object into the map member.
+     * @param[in] devn device number (member identifier) to which the reference is pointing.
+     * @param[in] reference reference of the device object to be set in the specified map member.
+     * @return true if the specified map member and reference are valid.
+     */
     bool SetDevReference(uint32 devn, ReferenceT<UEIAI217_803> reference); //TODO
 
+    /**
+     * @brief Method to perform map initialisation and start in the IOM.
+     * @param[in] DAQ_handle_ handle to the IOM, must be provided by DAQMasterObject to this method.
+     * @return true if the initialisation and starting procedure succeeds for this map.
+     */
     bool StartMap(int32 DAQ_handle_);
 
+    /**
+     * @brief Getter for the name of this map object.
+     * @return The name of the map as a char8 array pointer.
+     */
     char8* GetName();
 
+    /**
+     * @brief Getter for the specified scan rate of this map.
+     * @return The scan rate of this map (in Hz).
+     */
     float GetScanRate();
 
-    bool PollForNewPacket(float64* destinationAddr);
+    /**
+     * @brief Method to poll the IOM for new data on the map.
+     * @param[out] destinationAddr pointer to the memory region where the contents of the newly recived (if so) map packet are copied.
+     * @return true if a new packet has been recieved, false otherwise.
+     */
+    bool PollForNewPacket(float64* destinationAddr, uint32 nChannels);
 
+    /**
+     * @brief Method to lock the map access by a DataSource in a certain direction.
+     * @details This method is used to ensure that the map is only used by one DataSource in a given direction at a time to prevent uncontrolled access
+     * by multiple DataSources. It is responsibility of the DataSource to check this method once upon initialisation to check for correct usage. Upon
+     * usage of this method, the map gets locked in the specified direction for the calling DataSource.
+     * @param[in] direction direction of the map access to be blocked.
+     * @return true if the map has not been yet assigned to DataSource on the specified direction, false otherwise.
+     */
     bool RegisterDS(SignalDirection direction);
 
-    //Function to check if a signal spanning from firstElementIdx to lastElementIdx and of type signalType would be allowed
-    bool IsSignalAllowed(uint32 firstElementIdx, uint32 lastElementIdx, TypeDescriptor signalType, uint8 direction);
+    /**
+     * @brief Method to check if the specified signal type is accepted as an output/input to the map in the specified direction.
+     * @param[in] signalType type of the signal to be queried to the map for acceptance.
+     * @param[in] direction direction of the signal to be queried to the map for acceptance.
+     * @return true if the map accepts the signal type in the specified direction.
+     */
+    bool IsSignalAllowed(TypeDescriptor signalType, uint8 direction);
 
 private:
   bool GetMapPointers();

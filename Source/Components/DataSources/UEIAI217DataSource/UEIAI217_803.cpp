@@ -299,6 +299,18 @@ bool UEIAI217_803::ConfigureDevice(int32 DAQ_handle){
     return ok;
 }
 
+bool UEIAI217_803::GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32* pgaStatusArray){
+    bool ok = (DAQ_handle != 0); 
+    if (!ok){
+        REPORT_ERROR(ErrorManagement::ParametersError, "DAQMasterObject::GetChannelStatus - "
+        "Unable to get Channel status for Device %s. Invalid IOM handle", name.Buffer());
+    }
+    if (ok){
+        uint32 newdata;
+        ok = (DqAdv217GetPgaStatus(DAQ_handle, deviceId, errorBitField, &newdata, pgaStatusArray) >= 0);
+    }
+    return ok;
+}
 
 uint8 UEIAI217_803::GetDevN(){
     return deviceId;

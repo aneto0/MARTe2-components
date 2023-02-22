@@ -40,7 +40,6 @@
 #include "UEIAI217_803.h"
 #include "DAQMapContainer.h"
 #include "PDNA.h"
-
 //#include "PDNA.h"
 
 /*---------------------------------------------------------------------------*/
@@ -51,12 +50,6 @@ namespace MARTe {
 
 /**
  * @brief TODO
- * Modes:
- * * Point-to-Point
- * * RtDMap
- * * RtVMap
- * * ADMap
- * * AVMap
  * @details 
  *
  * <pre>

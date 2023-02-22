@@ -131,6 +131,16 @@ private:
      * between an unsuccessful poll request to the UEIDAQ device and the next poll request. 
      */
     uint32 poll_sleep_period;
+    
+    /**
+     * Variable to store the signal type for all the signals on this DataSource 
+     */
+    TypeDescriptor signalType;
+    
+    /**
+     * Variable to store the signal type for all the signals on this DataSource 
+     */
+    uint32 nOutputChannels;
 
 };
 

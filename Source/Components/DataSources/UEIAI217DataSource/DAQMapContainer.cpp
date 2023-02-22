@@ -358,6 +358,7 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
         inputAssignedToDS = inputSignalsDefined;
         outputAssignedToDS = outputSignalsDefined;
     }
+
     //Acknowledge the successful initialisation of the Object
     if (ok){
         REPORT_ERROR(ErrorManagement::Information, "DAQMapContainer::Initialise - "
@@ -391,12 +392,14 @@ bool DAQMapContainer::GetDevDefined(uint32 devn, uint8 direction){
 bool DAQMapContainer::GetNumberOfChannels(uint32 devn, uint8 direction, uint32* nChannels){
     bool valid = false;
     if (devn<MAX_IO_SLOTS){
-        if (direction == INPUT_CHANNEL){
-            *nChannels = members[devn].Inputs.nChannels;
-            valid = true;
-        }else if (direction == OUTPUT_CHANNEL){
-            *nChannels = members[devn].Outputs.nChannels;
-            valid = true;
+        if (members[devn].defined == true){
+            if (direction == INPUT_CHANNEL){
+                *nChannels = members[devn].Inputs.nChannels;
+                valid = true;
+            }else if (direction == OUTPUT_CHANNEL){
+                *nChannels = members[devn].Outputs.nChannels;
+                valid = true;
+            }
         }
     }
     return valid;
@@ -405,12 +408,14 @@ bool DAQMapContainer::GetNumberOfChannels(uint32 devn, uint8 direction, uint32* 
 bool DAQMapContainer::GetChannelOfMember(uint32 devn, uint8 direction, uint32 channelIdx, uint32* channelNumber){
     bool valid = false;
     if (devn<MAX_IO_SLOTS){
-        if (direction == INPUT_CHANNEL && (channelIdx<members[devn].Inputs.nChannels)){
-            *channelNumber = members[devn].Inputs.channels[channelIdx];
-            valid = true;
-        }else if (direction == OUTPUT_CHANNEL && (channelIdx<members[devn].Outputs.nChannels)){
-            *channelNumber = members[devn].Outputs.channels[channelIdx];
-            valid = true;
+        if (members[devn].defined){
+            if (direction == INPUT_CHANNEL && (channelIdx<members[devn].Inputs.nChannels)){
+                *channelNumber = members[devn].Inputs.channels[channelIdx];
+                valid = true;
+            }else if (direction == OUTPUT_CHANNEL && (channelIdx<members[devn].Outputs.nChannels)){
+                *channelNumber = members[devn].Outputs.channels[channelIdx];
+                valid = true;
+            }
         }
     }
     return valid;
@@ -439,80 +444,157 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
     bool ok = true;
     //Now that the map is to be started it is valuable to make a copy of the DAQ handle reference for deallocating the map upon
     //destruction of this object.
-    DAQ_handle = DAQ_handle_;   
-    ok = (DqRtDmapInit(DAQ_handle, &mapid, scanRate) >= 0);
-    if (!ok){
-        REPORT_ERROR(ErrorManagement::InitialisationError, "Error on Initialising Map %s", name.Buffer());
-    }
-    if (ok){
-        //Once the map is initialized correctly, the I/O channels need to be checked into the map itself
-        //First the output channels are checked. The outputMembersOrdered pointer array is traversed in order,
-        // yielding the ordered list of channels to sequence into the output map
-        for (uint32 i = 0u; i < nOutputMembers && ok; i++){
-            ReferenceT<UEIAI217_803> devReference = outputMembersOrdered[i]->reference;
-            ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
+    DAQ_handle = DAQ_handle_;
+    switch(mapType){
+        case RTDMAP:
+            ok = (DqRtDmapInit(DAQ_handle, &mapid, scanRate) >= 0);
             if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on outputMember %i on Map %s", i, name.Buffer());
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Error on Initialising Map %s", name.Buffer());
             }
             if (ok){
-                for (uint32 j = 0; j < outputMembersOrdered[i]->Outputs.nChannels && ok; j++){
-                    uint32 channel = outputMembersOrdered[i]->Outputs.channels[j];
-                    uint8 devn = outputMembersOrdered[i]->devn;
-                    ok = (devReference->ConfigureChannel(&channel));
-                    if (ok){
-                        ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, &channel, 1));
-                    }
+                //Once the map is initialized correctly, the I/O channels need to be checked into the map itself
+                //First the output channels are checked. The outputMembersOrdered pointer array is traversed in order,
+                // yielding the ordered list of channels to sequence into the output map
+                for (uint32 i = 0u; i < nOutputMembers && ok; i++){
+                    ReferenceT<UEIAI217_803> devReference = outputMembersOrdered[i]->reference;
+                    ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
                     if (!ok){
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding output channels for dev%d on Map %s", devn, name.Buffer());
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on outputMember %i on Map %s", i, name.Buffer());
+                    }
+                    if (ok){
+                        for (uint32 j = 0; j < outputMembersOrdered[i]->Outputs.nChannels && ok; j++){
+                            uint32 channel = outputMembersOrdered[i]->Outputs.channels[j];
+                            uint8 devn = outputMembersOrdered[i]->devn;
+                            ok = (devReference->ConfigureChannel(&channel));
+                            if (ok){
+                                ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, &channel, 1));
+                            }
+                            if (!ok){
+                                REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding output channels for dev%d on Map %s", devn, name.Buffer());
+                            }
+                        }
+                    }
+                }
+                
+            }
+            if (ok){
+                //Once the map is initialized correctly, the I/O channels need to be checked into the map itself
+                //First the input channels are checked. The inputMembersOrdered pointer array is traversed in order,
+                // yielding the ordered list of channels to sequence into the input map
+                for (uint32 i = 0u; i < nInputMembers && ok; i++){
+                    ReferenceT<UEIAI217_803> devReference = inputMembersOrdered[i]->reference;
+                    ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
+                    if (!ok){
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on inputMember %i on Map %s", i, name.Buffer());
+                    }
+                    if (ok){
+                        for (uint32 j = 0; j < inputMembersOrdered[i]->Inputs.nChannels && ok; j++){
+                            uint32 channel = inputMembersOrdered[i]->Inputs.channels[j];
+                            uint8 devn = inputMembersOrdered[i]->devn;
+                            ok = (devReference->ConfigureChannel(&channel));
+                            if (ok){
+                                ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0OUT, &channel, 1));
+                            }
+                            if (!ok){
+                                REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding input channels for dev%d on Map %s", devn, name.Buffer());
+                            }
+                        }
                     }
                 }
             }
-        }
-        
-    }
-    if (ok){
-        //Once the map is initialized correctly, the I/O channels need to be checked into the map itself
-        //First the input channels are checked. The inputMembersOrdered pointer array is traversed in order,
-        // yielding the ordered list of channels to sequence into the input map
-        for (uint32 i = 0u; i < nInputMembers && ok; i++){
-            ReferenceT<UEIAI217_803> devReference = inputMembersOrdered[i]->reference;
-            ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on inputMember %i on Map %s", i, name.Buffer());
-            }
+            //If we reach here with ok=true, then the channels are correctly placed into the V/Dmap sctructure
+            //Let's start the layers to start acquiring data
             if (ok){
-                for (uint32 j = 0; j < inputMembersOrdered[i]->Inputs.nChannels && ok; j++){
-                    uint32 channel = inputMembersOrdered[i]->Inputs.channels[j];
-                    uint8 devn = inputMembersOrdered[i]->devn;
-                    ok = (devReference->ConfigureChannel(&channel));
-                    if (ok){
-                        ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0OUT, &channel, 1));
-                    }
-                    if (!ok){
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding input channels for dev%d on Map %s", devn, name.Buffer());
-                    }
-                }
-            }
-        }
-    }
-    //If we reach here with ok=true, then the channels are correctly placed into the V/Dmap sctructure
-    //Let's start the layers to start acquiring data
-    if (ok){
-        if (mapType == RTDMAP){
-            ok = (DqRtDmapStart(DAQ_handle, mapid) >= 0);
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::CommunicationError, "Could not start Map %s", name.Buffer());
-            }
-            if (ok){
-                //Try to acquire the memory map pointers
-                ok = GetMapPointers();
+                ok = (DqRtDmapStart(DAQ_handle, mapid) >= 0);
                 if (!ok){
-                    REPORT_ERROR(ErrorManagement::CommunicationError, "Could not retrieve the memory map pointers for Map %s", name.Buffer());
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "Could not start Map %s", name.Buffer());
+                }
+                if (ok){
+                    //Try to acquire the memory map pointers
+                    ok = GetMapPointers();
+                    if (!ok){
+                        REPORT_ERROR(ErrorManagement::CommunicationError, "Could not retrieve the memory map pointers for Map %s", name.Buffer());
+                    }
                 }
             }
-        }else{
+        break;
+        case RTVMAP:
+            ok = (DqRtVmapInit(DAQ_handle, &mapid, scanRate) >= 0);
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Error on Initialising Map %s", name.Buffer());
+            }
+            if (ok){
+                //Once the map is initialized correctly, the I/O channels need to be checked into the map itself
+                //First the output channels are checked. The outputMembersOrdered pointer array is traversed in order,
+                // yielding the ordered list of channels to sequence into the output map
+                for (uint32 i = 0u; i < nOutputMembers && ok; i++){
+                    ReferenceT<UEIAI217_803> devReference = outputMembersOrdered[i]->reference;
+                    ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
+                    if (!ok){
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on outputMember %i on Map %s", i, name.Buffer());
+                    }
+                    if (ok){
+                        uint32 channels [outputMembersOrdered[i]->Outputs.nChannels];
+                        uint8 devn = outputMembersOrdered[i]->devn;
+                        for (uint32 j = 0; j < outputMembersOrdered[i]->Outputs.nChannels && ok; j++){
+                            channels[j] = outputMembersOrdered[i]->Outputs.channels[j];
+                            ok = (devReference->ConfigureChannel(&channels[j]));
+                        }
+                        if (ok){
+                            //ok = (DqRtVmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, &channels, 0, 1));   //TODO add support for FIFO functions
+                        }
+                        if (!ok){
+                            REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding output channels for dev%d on Map %s", devn, name.Buffer());
+                        }
+                    }
+                }
+                
+            }
+            if (ok){
+                //Once the map is initialized correctly, the I/O channels need to be checked into the map itself
+                //First the input channels are checked. The inputMembersOrdered pointer array is traversed in order,
+                // yielding the ordered list of channels to sequence into the input map
+                for (uint32 i = 0u; i < nInputMembers && ok; i++){
+                    ReferenceT<UEIAI217_803> devReference = inputMembersOrdered[i]->reference;
+                    ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
+                    if (!ok){
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on inputMember %i on Map %s", i, name.Buffer());
+                    }
+                    if (ok){
+                        for (uint32 j = 0; j < inputMembersOrdered[i]->Inputs.nChannels && ok; j++){
+                            uint32 channel = inputMembersOrdered[i]->Inputs.channels[j];
+                            uint8 devn = inputMembersOrdered[i]->devn;
+                            ok = (devReference->ConfigureChannel(&channel));
+                            if (ok){
+                                ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0OUT, &channel, 1));
+                            }
+                            if (!ok){
+                                REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding input channels for dev%d on Map %s", devn, name.Buffer());
+                            }
+                        }
+                    }
+                }
+            }
+            //If we reach here with ok=true, then the channels are correctly placed into the V/Dmap sctructure
+            //Let's start the layers to start acquiring data
+            if (ok){
+                ok = (DqRtDmapStart(DAQ_handle, mapid) >= 0);
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "Could not start Map %s", name.Buffer());
+                }
+                if (ok){
+                    //Try to acquire the memory map pointers
+                    ok = GetMapPointers();
+                    if (!ok){
+                        REPORT_ERROR(ErrorManagement::CommunicationError, "Could not retrieve the memory map pointers for Map %s", name.Buffer());
+                    }
+                }
+            }
+        break;
+        default:
+            ok = false;
             REPORT_ERROR(ErrorManagement::InitialisationError, "Map type still not supported on Map %s", name.Buffer());
-        }
+        break;
     }
     return ok;
 }
@@ -545,9 +627,11 @@ bool DAQMapContainer::GetMapPointers(){
     return ok;
 }
 
-bool DAQMapContainer::PollForNewPacket(float64* destinationAddr){
+bool DAQMapContainer::PollForNewPacket(float64* destinationAddr, uint32 nChannels){
     bool next_packet = false;
     bool ok = true;
+    bool copy_done = false;
+    uint32 iterator = 0u;
     uint32 nSamples = nOutputChannels; //For now, to be changed
     //Poll for next packet from UEIDAQ
     ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
@@ -560,19 +644,20 @@ bool DAQMapContainer::PollForNewPacket(float64* destinationAddr){
             //The recived packet is a newly converted one not requested yet.
             //Make the signals available to the broker.
             //TODO implement this using memcopy
-            uint32 iterator = 0;
-            for (uint32 i = 0; i < nOutputMembers && ok; i++ ){
-                for (uint32 j = 0; j < outputMembersOrdered[i]->Outputs.nChannels && ok; j++){
-                    ok = DqAdvRawToScaleValue(DAQ_handle, outputMembersOrdered[i]->devn, outputMembersOrdered[i]->Outputs.channels[i], ((uint32)outputMap[iterator]), &destinationAddr[iterator]);
-                    iterator ++;
+            for (uint32 mem = 0; mem < nOutputMembers && ok && !copy_done; mem++){
+                //min function
+                uint32 samples_to_copy = !(nChannels<outputMembersOrdered[mem]->Outputs.nChannels)?outputMembersOrdered[mem]->Outputs.nChannels:nChannels;
+                //Copy the scaled values obtained in the hardware layer into the destination buffer
+                ok = (DqRtDmapReadScaledData(DAQ_handle, mapid, outputMembersOrdered[mem]->devn, &destinationAddr[iterator], samples_to_copy) >= 0);
+                nChannels -= samples_to_copy;
+                //The channels requested have already been copied, stop the loop
+                if (nChannels == 0u){
+                    copy_done = true;
+                }
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "Error while translating the channels to scaled values on Map %s.", name.Buffer());
                 }
             }
-/*
-            for (uint8 i = 0; i < nSamples; i++){
-                
-                //destinationAddr[i] = ((uint32)outputMap[i]) & mask;
-            }
-*/          //End the while loop to unlock the Synchronize method.
             next_packet = true;
         }
     }else{
@@ -604,23 +689,33 @@ bool DAQMapContainer::RegisterDS(SignalDirection direction){
     return ok;
 }
 
-bool DAQMapContainer::IsSignalAllowed(uint32 firstElementIdx, uint32 lastElementIdx, TypeDescriptor signalType, uint8 direction){
+bool DAQMapContainer::IsSignalAllowed(TypeDescriptor signalType, uint8 direction){
     bool ok = true;
-    uint32 currentSignalIndex = 0u;
     if (direction == OUTPUT_CHANNEL){
         //Traverse the outputMembers in an ordered fashion
         for (uint32 i = 0u; i < nOutputMembers && ok; i++){
             //Check if the member is needed for the supplied signal
-            if (!(currentSignalIndex > lastElementIdx || (currentSignalIndex+outputMembersOrdered[i]->Outputs.nChannels-1) < firstElementIdx)){
-                //In this case the current member is used by the signal, check if the device allows the supplied signal Type
-                ok = outputMembersOrdered[i]->reference->AcceptedSignalType(signalType);
-            }
-            currentSignalIndex += outputMembersOrdered[i]->Outputs.nChannels;
+            ok = outputMembersOrdered[i]->reference->AcceptedSignalType(signalType);
         }
-        //Check if the requested signal overflows the maximum number of channels this map has
-        if (ok){
-            ok = (lastElementIdx <= nOutputChannels);
-        }
+    }else{
+        ok = false;
+    }
+    return ok;
+}
+
+bool DAQMapContainer::GetNumberOfChannels(uint8 direction, uint32 &nChannels){
+    bool ok = true;
+    nChannels = 0;
+    switch(direction){
+        case OUTPUT_CHANNEL:
+            nChannels = nOutputChannels;
+        break;
+        case INPUT_CHANNEL:
+            nChannels = nInputChannels;
+        break;
+        default:
+            ok = false;
+        break;
     }
     return ok;
 }

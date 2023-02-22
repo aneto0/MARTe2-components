@@ -61,16 +61,22 @@ class DAQDevice : public Object {
      * their validity.
      * @return true if every parameter has been read correctly and validated.
      */
+
+    /**
+     * @brief Initialise the Object from a configuration file.
+     * @details Reads the parameters from a ConfigurationDatabase and check
+     * their validity.
+     * @return true if every parameter has been read correctly and validated.
+     */
     virtual bool Initialise(StructuredDataI &data);
 
     virtual uint8 GetDevN();
-    virtual uint16 GetModel();
+    virtual int32 GetModel();
     virtual void SetHardwareCorrespondence();
     virtual bool GetHardwareCorrespondence();
     virtual void SetMapAssignment();
     virtual bool GetMapAssignment();
     virtual uint32 GetDeviceChannels();
-    virtual bool ConfigureDevice(int32 DAQ_handle);
     
     /**
      * @brief Initialise the Object from a configuration file.
@@ -81,6 +87,11 @@ class DAQDevice : public Object {
      * @return true the specified channel is valid within AI-217-803 layer with the direction provided.
      */
     virtual bool CheckChannelAndDirection(uint32 channelNumber, uint8 direction);
+    virtual bool ConfigureChannel(uint32* channel);
+    virtual bool ConfigureDevice(int32 DAQ_handle);
+    virtual float GetSamplingFrequency();
+    virtual bool AcceptedSignalType(TypeDescriptor signalType);
+    virtual bool GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32* pgaStatusArray);
 
 private:
     StreamString name;              //name of the device object
