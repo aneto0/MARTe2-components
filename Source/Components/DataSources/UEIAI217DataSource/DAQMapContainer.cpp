@@ -549,9 +549,15 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                         for (uint32 j = 0; j < outputMembersOrdered[i]->Outputs.nChannels && ok; j++){
                             channels[j] = (int32)(outputMembersOrdered[i]->Outputs.channels[j]);
                             ok = (devReference->ConfigureChannel(&channels[j]));
+                            if (!ok){
+                                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not configure channels in outputMember %i on Map %s", i, name.Buffer());
+                            }
                         }
                         if (ok){
-                            ok = (DqRtVmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, channels, 0, 1));   //TODO add support for FIFO functions
+                            ok = (DqRtVmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, channels, 0, 1) >= 0);   //TODO add support for FIFO functions
+                            if (!ok){
+                                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not add channels from outputMember %i on Map %s", i, name.Buffer());
+                            }
                         }
                         if (ok){
                             //In the case of AI, AO, AIO or DIO, the channels are interleaved into a signle FIFO, we need to check the number of channels into
@@ -564,8 +570,14 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                                 int32 mapNumberOfChannels = (int32)outputMembersOrdered[i]->Outputs.nChannels;
                                 ok = (DqRtVmapSetChannelList(DAQ_handle, mapid, devn,DQ_SS0IN, channels, mapNumberOfChannels) >=0);
                                 //Set the scan rate for the device on this channel
+                                if (!ok){
+                                    REPORT_ERROR(ErrorManagement::InitialisationError, "Could set channel list in outputMember %i on Map %s", i, name.Buffer());
+                                }
                                 if (ok){
-                                    ok = DqRtVmapSetScanRate(DAQ_handle, mapid, devn, DQ_SS0IN, scanRate);
+                                    ok = (DqRtVmapSetScanRate(DAQ_handle, mapid, devn, DQ_SS0IN, scanRate) >= 0);
+                                    if (!ok){
+                                        REPORT_ERROR(ErrorManagement::InitialisationError, "Could not set scan rate in outputMember %i on Map %s", i, name.Buffer());
+                                    }
                                 }    
                             }
                         }
