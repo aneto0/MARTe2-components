@@ -107,6 +107,11 @@ public:
     bool TestInitialise_Binary();
 
     /**
+     * @brief Tests the Initialise method setting overwrite to 'no' and file format to binary.
+     */
+    bool TestInitialise_False_Binary_No_Overwrite();
+
+    /**
      * @brief Tests the Initialise method without specifying the overwrite parameter.
      */
     bool TestInitialise_False_Overwrite();
@@ -220,11 +225,6 @@ public:
      * @brief Tests the OpenFile method.
      */
     bool TestOpenFile();
-
-    /**
-     * @brief Tests that the OpenFile does not overwrite.
-     */
-    bool TestOpenFile_Overwrite();
 
     /**
      * @brief Tests the CloseFile method.
@@ -360,6 +360,11 @@ public:
      * @brief Tests that an Invalid message type is correctly captured.
      */
     bool TestInvalidMessageType();
+
+    /**
+     * @brief Tests that new data is saved into an existing csv file by setting overwrite to no.
+     */
+    bool TestNoOverwrite_CSV();
 
 };
 

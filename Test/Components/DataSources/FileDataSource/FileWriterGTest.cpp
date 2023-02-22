@@ -68,6 +68,11 @@ TEST(FileWriterGTest,TestInitialise_Binary) {
     ASSERT_TRUE(test.TestInitialise_Binary());
 }
 
+TEST(FileWriterGTest,TestInitialise_False_Binary_No_Overwrite) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_False_Binary_No_Overwrite());
+}
+
 TEST(FileWriterGTest,TestInitialise_False_NumberOfBuffers) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestInitialise_False_NumberOfBuffers());
@@ -166,11 +171,6 @@ TEST(FileWriterGTest,TestSetConfiguredDatabase_False_TimeSignal_MoreThanOneFunct
 TEST(FileWriterGTest,TestOpenFile) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestOpenFile());
-}
-
-TEST(FileWriterGTest,TestOpenFile_Overwrite) {
-    FileWriterTest test;
-    ASSERT_TRUE(test.TestOpenFile_Overwrite());
 }
 
 TEST(FileWriterGTest,TestCloseFile) {
@@ -336,4 +336,9 @@ TEST(FileWriterGTest,TestSetConfiguredDatabase_False_WrongNumberFormat) {
 TEST(FileWriterGTest,TestSetConfiguredDatabase_False_EmptyNumberFormat) {
     FileWriterTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_EmptyNumberFormat());
+}
+
+TEST(FileWriterGTest,TestNoOverwrite_CSV) {
+    FileWriterTest test;
+    ASSERT_TRUE(test.TestNoOverwrite_CSV());
 }
