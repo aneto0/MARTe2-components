@@ -343,6 +343,10 @@ uint32 UEIAI217_803::GetDeviceChannels(){
     return CHANNEL_NUMBER;
 }
 
+uint8 UEIAI217_803::GetSampleSize(){
+    return sizeof(uint32);
+}
+
 bool UEIAI217_803::ConfigureChannel(uint32* channel){
     uint32 gain = 0u;
     switch(gains[*channel]){

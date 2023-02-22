@@ -107,6 +107,8 @@ class UEIAI217_803 : public Object {
     uint8 GetDevN();
     int32 GetModel();
     uint8 GetType();
+    //Returns the number of bytes a single sample of this device occupies
+    uint8 GetSampleSize();
     void SetHardwareCorrespondence();
     bool GetHardwareCorrespondence();
     void SetMapAssignment();

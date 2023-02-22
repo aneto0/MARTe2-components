@@ -90,11 +90,13 @@ namespace MARTe {
  *  @var defined boolean defining if this direction for the map member is configured.
  *  @var channels pointer to an array containing the channel identifier list for this specific map member and direction.
  *  @var nChannels variable stating the number of different channel identifiers present in channels variable of this structure.
+ *  @var samples number of samples to obtain from a VMap for a specific member (device).
  */
 typedef struct{
     bool defined;
     uint32* channels;
     uint32 nChannels;
+    uint32 samples;
 }IOMapMember;
 
 /** @struct mapMember

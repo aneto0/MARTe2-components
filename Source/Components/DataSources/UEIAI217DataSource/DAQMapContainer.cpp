@@ -210,6 +210,13 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
                                 //Device is not repeated, check if it is within allowed devn limits
                                 ok = (devn_ < MAX_IO_SLOTS);
                                 if (ok){
+                                    //Read the data for this device
+                                    if (mapType == RTVMAP){
+                                        ok = data.Read("Samples",members[devn_].Outputs.samples);
+                                        if (!ok){
+                                            REPORT_ERROR(ErrorManagement::ParametersError, "Device %d in Map %s does not provide Samples parameter for selected VMap mode.", devn_, name.Buffer());
+                                        }
+                                    }
                                     //Mark this device (member) as needed by the map
                                     members[devn_].defined = true;
                                     //Mark this device (member) as needing output signals by the map
@@ -313,6 +320,13 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
                                 //Device is not repeated, chec if it is within allowed devn limits
                                 ok = (devn_ < MAX_IO_SLOTS);
                                 if (ok){
+                                    //Read the data for this device
+                                    if (mapType == RTVMAP){
+                                        ok = data.Read("Samples",members[devn_].Inputs.samples);
+                                        if (!ok){
+                                            REPORT_ERROR(ErrorManagement::ParametersError, "Device %d in Map %s does not provide Samples parameter for selected VMap mode.", devn_, name.Buffer());
+                                        }
+                                    }
                                     //Mark this device (member) as needed by the map
                                     members[devn_].defined = true;
                                     //Mark this device (member) as needing output signals by the map
@@ -529,7 +543,7 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
             }
         break;
         case RTVMAP:
-            ok = (DqRtVmapInit(DAQ_handle, &mapid, scanRate) >= 0);
+            ok = (DqRtVmapInit(DAQ_handle, &mapid, 0) >= 0); //This scan rate is the rate at which the IOM refreshes the version of VMap (Bullshit, this scan rate is not valid)
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Error on Initialising Map %s", name.Buffer());
             }
@@ -544,17 +558,20 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                         REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on outputMember %i on Map %s", i, name.Buffer());
                     }
                     if (ok){
-                        int32 channels [outputMembersOrdered[i]->Outputs.nChannels];
+                        uint32 nChannels_ = outputMembersOrdered[i]->Outputs.nChannels; 
+                        int32 channels [nChannels_];
+                        int32 flags [nChannels_];
                         uint8 devn = outputMembersOrdered[i]->devn;
-                        for (uint32 j = 0; j < outputMembersOrdered[i]->Outputs.nChannels && ok; j++){
+                        for (uint32 j = 0; j < nChannels_ && ok; j++){
                             channels[j] = (int32)(outputMembersOrdered[i]->Outputs.channels[j]);
+                            flags[j] = DQ_VMAP_FIFO_STATUS;
                             ok = (devReference->ConfigureChannel(&channels[j]));
                             if (!ok){
                                 REPORT_ERROR(ErrorManagement::InitialisationError, "Could not configure channels in outputMember %i on Map %s", i, name.Buffer());
                             }
                         }
                         if (ok){
-                            ok = (DqRtVmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, channels, 0, 1) >= 0);   //TODO add support for FIFO functions
+                            ok = (DqRtVmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, channels, flags, 1) >= 0);   //TODO add support for FIFO functions
                             if (!ok){
                                 REPORT_ERROR(ErrorManagement::InitialisationError, "Could not add channels from outputMember %i on Map %s", i, name.Buffer());
                             }
@@ -573,10 +590,26 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                                 if (!ok){
                                     REPORT_ERROR(ErrorManagement::InitialisationError, "Could set channel list in outputMember %i on Map %s", i, name.Buffer());
                                 }
+                                //Set the scan rate of the hardware layer to the sampling rate of the device
                                 if (ok){
-                                    ok = (DqRtVmapSetScanRate(DAQ_handle, mapid, devn, DQ_SS0IN, scanRate) >= 0);
+                                    float32 devSamplingFrequency = devReference->GetSamplingFrequency();
+                                    ok = (DqRtVmapSetScanRate(DAQ_handle, mapid, devn, DQ_SS0IN, devSamplingFrequency) >= 0);
                                     if (!ok){
                                         REPORT_ERROR(ErrorManagement::InitialisationError, "Could not set scan rate in outputMember %i on Map %s", i, name.Buffer());
+                                    }
+                                }
+                                //Now set how many samples do we wish to recieve for this devices channels
+                                if (ok){
+                                    uint32 samples = outputMembersOrdered[i]->Outputs.samples;
+                                    uint32 byteSize = devReference->GetSampleSize();
+                                    ok = (samples > 0);
+                                    if (!ok){
+                                        REPORT_ERROR(ErrorManagement::InitialisationError, "Error while starting VMap channels, Samples parameter must be provided and greater than 0 (at Map)", name.Buffer());
+                                    }
+                                    if (ok){
+                                        //With this method we set the ammount of samples we want to obtain from this member's device
+                                        int32 act_size;
+                                        ok = (DqRtVmapRqInputDataSz(DAQ_handle, mapid, i, nChannels_*samples*byteSize , &act_size, NULL) >= 0);
                                     }
                                 }    
                             }
@@ -596,13 +629,6 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                 ok = (DqRtVmapStart(DAQ_handle, mapid) >= 0);
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::CommunicationError, "Could not start Map %s", name.Buffer());
-                }
-                if (ok){
-                    //Try to acquire the memory map pointers
-                //    ok = GetMapPointers();
-                //    if (!ok){
-                //        REPORT_ERROR(ErrorManagement::CommunicationError, "Could not retrieve the memory map pointers for Map %s", name.Buffer());
-                //    }
                 }
             }
         break;
@@ -646,38 +672,69 @@ bool DAQMapContainer::PollForNewPacket(float64* destinationAddr, uint32 nChannel
     bool next_packet = false;
     bool ok = true;
     bool copy_done = false;
-    uint32 iterator = 0u;
-    uint32 nSamples = nOutputChannels; //For now, to be changed
-    //Poll for next packet from UEIDAQ
-    ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
-    if (ok){
-        //Check if the response is a new packet or a rerequest.
-        //The 0x80000000 bit on the recived samples lets us know if the packet has
-        //been previously requested.
-        if (*((uint32*)outputMap) & 0x80000000){ 
-            uint32 mask = 0x00FFFFFF; 
-            //The recived packet is a newly converted one not requested yet.
-            //Make the signals available to the broker.
-            //TODO implement this using memcopy
-            for (uint32 mem = 0; mem < nOutputMembers && ok && !copy_done; mem++){
-                //min function
-                uint32 samples_to_copy = !(nChannels<outputMembersOrdered[mem]->Outputs.nChannels)?outputMembersOrdered[mem]->Outputs.nChannels:nChannels;
-                //Copy the scaled values obtained in the hardware layer into the destination buffer
-                ok = (DqRtDmapReadScaledData(DAQ_handle, mapid, outputMembersOrdered[mem]->devn, &destinationAddr[iterator], samples_to_copy) >= 0);
-                nChannels -= samples_to_copy;
-                iterator += samples_to_copy;
-                //The channels requested have already been copied, stop the loop
-                if (nChannels == 0u){
-                    copy_done = true;
+    switch (mapType){
+        case RTDMAP:
+            //Poll for next packet from UEIDAQ
+            ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
+            if (ok){
+                //Check if the response is a new packet or a rerequest.
+                //The 0x80000000 bit on the recived samples lets us know if the packet has
+                //been previously requested.
+                if (*((uint32*)outputMap) & 0x80000000){ 
+                    uint32 mask = 0x00FFFFFF;
+                    uint32 iterator = 0; 
+                    //The recived packet is a newly converted one not requested yet.
+                    //Make the signals available to the broker.
+                    //TODO implement this using memcopy
+                    for (uint32 mem = 0; mem < nOutputMembers && ok && !copy_done; mem++){
+                        //min function
+                        uint32 samples_to_copy = !(nChannels<outputMembersOrdered[mem]->Outputs.nChannels)?outputMembersOrdered[mem]->Outputs.nChannels:nChannels;
+                        //Copy the scaled values obtained in the hardware layer into the destination buffer
+                        ok = (DqRtDmapReadScaledData(DAQ_handle, mapid, outputMembersOrdered[mem]->devn, &destinationAddr[iterator], samples_to_copy) >= 0);
+                        nChannels -= samples_to_copy;
+                        iterator += samples_to_copy;
+                        //The channels requested have already been copied, stop the loop
+                        if (nChannels == 0u){
+                            copy_done = true;
+                        }
+                        if (!ok){
+                            REPORT_ERROR(ErrorManagement::CommunicationError, "Error while translating the channels to scaled values on Map %s.", name.Buffer());
+                        }
+                    }
+                    next_packet = true;
                 }
+            }else{
+                REPORT_ERROR(ErrorManagement::ParametersError, "Refresh failed during Poll for conversion in Map %s", name.Buffer());
+            }
+        break;
+        case RTVMAP:
+            //Check the input map pointer
+            uint8* inputMap; 
+            ok = (DqRtVmapGetInputMap(DAQ_handle, mapid, 0,&inputMap) >= 0);
+            if (ok){
+                printf("Input map value : 0x%8x", (uint32)*inputMap);
+            }
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::CommunicationError, "Error retrieving the input map pointer for Map %s", name.Buffer());
+            }
+            //Refresh the VMap
+            ok = (DqRtVmapRefresh(DAQ_handle, mapid, 0) >= 0);
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::CommunicationError, "Error while refreshing VMap for Map %s", name.Buffer());
+            }
+            //Then access the VMap channels
+/*            for (uint32 i = 0; i < nOutputMembers && ok; i++){ 
                 if (!ok){
-                    REPORT_ERROR(ErrorManagement::CommunicationError, "Error while translating the channels to scaled values on Map %s.", name.Buffer());
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "DAQMapContainer::PollForNewPacket - Could not retrieve VMap data from Map %s", name.Buffer());
                 }
             }
-            next_packet = true;
-        }
-    }else{
-        REPORT_ERROR(ErrorManagement::ParametersError, "Refresh failed during Poll for conversion in Map %s", name.Buffer());
+*/
+        break;
+        default:
+        //Just in case, we should never get here
+            REPORT_ERROR(ErrorManagement::ParametersError, "DAQMapContainer::PollForNewPacket - Invalid map type for  Map %s", name.Buffer());
+            return false;
+        break;
     }
     return next_packet;
 }
