@@ -319,6 +319,10 @@ uint8 UEIAI217_803::GetDevN(){
 int32 UEIAI217_803::GetModel(){
     return 535; //217 in hexadecimal
 }
+
+uint8 UEIAI217_803::GetType(){
+    return HARDWARE_LAYER_ANALOG_I;
+}
 void UEIAI217_803::SetHardwareCorrespondence(){
     hardwareCorrespondence = true;
 }
@@ -338,6 +342,7 @@ bool UEIAI217_803::GetMapAssignment(){
 uint32 UEIAI217_803::GetDeviceChannels(){
     return CHANNEL_NUMBER;
 }
+
 bool UEIAI217_803::ConfigureChannel(uint32* channel){
     uint32 gain = 0u;
     switch(gains[*channel]){
@@ -368,6 +373,12 @@ bool UEIAI217_803::ConfigureChannel(uint32* channel){
     }
     *channel = (*channel | DQ_LNCL_GAIN(gain) | DQ_LNCL_DIFF); //AI-217 can only operate in differential mode
     return true;
+}
+bool UEIAI217_803::ConfigureChannel(int32* channel){
+    uint32 channel_ = (int32)(*channel);
+    bool ok = ConfigureChannel(&channel_); 
+    (*channel) = (int32)(channel_);
+    return ok;
 }
 
 bool UEIAI217_803::AcceptedSignalType(TypeDescriptor signalType){

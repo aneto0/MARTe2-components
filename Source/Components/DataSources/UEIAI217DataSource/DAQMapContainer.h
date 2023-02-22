@@ -60,10 +60,12 @@ namespace MARTe {
  *             dev0 = {
  *                 Devn        = 0
  *                 Channels    = {0, 1, 2}
+ *                 Samples     = 10
  *             }
  *             dev1 = {
  *                 Devn        = 1
  *                 Channels    = {0, 1, 2}   
+ *                 Samples     = 10
  *             }
  *           }
  *         }

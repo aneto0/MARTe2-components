@@ -106,6 +106,7 @@ class UEIAI217_803 : public Object {
 
     uint8 GetDevN();
     int32 GetModel();
+    uint8 GetType();
     void SetHardwareCorrespondence();
     bool GetHardwareCorrespondence();
     void SetMapAssignment();
@@ -122,6 +123,7 @@ class UEIAI217_803 : public Object {
      */
     bool CheckChannelAndDirection(uint32 channelNumber, uint8 direction);
     bool ConfigureChannel(uint32* channel);
+    bool ConfigureChannel(int32* channel);
     bool ConfigureDevice(int32 DAQ_handle);
     float GetSamplingFrequency();
     bool AcceptedSignalType(TypeDescriptor signalType);

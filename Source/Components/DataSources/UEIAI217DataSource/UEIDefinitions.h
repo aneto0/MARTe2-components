@@ -49,4 +49,11 @@
 #define  ANALOG_SIGNAL  1u //The output of this signal is either 
 #define DIGITAL_SIGNAL  2u
 
+//Hardware layer type definitions
+#define HARDWARE_LAYER_ANALOG_I     1u
+#define HARDWARE_LAYER_ANALOG_O     2u
+#define HARDWARE_LAYER_ANALOG_IO    3u
+#define HARDWARE_LAYER_DIGITAL_IO   4u
+#define HARDWARE_LAYER_MESSAGING    5u
+
 #endif /*UEIDefinitions_H_*/
