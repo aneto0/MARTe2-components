@@ -597,20 +597,6 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                                     if (!ok){
                                         REPORT_ERROR(ErrorManagement::InitialisationError, "Could not set scan rate in outputMember %i on Map %s", i, name.Buffer());
                                     }
-                                }
-                                //Now set how many samples do we wish to recieve for this devices channels
-                                if (ok){
-                                    uint32 samples = outputMembersOrdered[i]->Outputs.samples;
-                                    uint32 byteSize = devReference->GetSampleSize();
-                                    ok = (samples > 0);
-                                    if (!ok){
-                                        REPORT_ERROR(ErrorManagement::InitialisationError, "Error while starting VMap channels, Samples parameter must be provided and greater than 0 (at Map)", name.Buffer());
-                                    }
-                                    if (ok){
-                                        //With this method we set the ammount of samples we want to obtain from this member's device
-                                        int32 act_size;
-                                        ok = (DqRtVmapRqInputDataSz(DAQ_handle, mapid, i, nChannels_*samples*byteSize , &act_size, NULL) >= 0);
-                                    }
                                 }    
                             }
                         }
@@ -629,6 +615,29 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                 ok = (DqRtVmapStart(DAQ_handle, mapid) >= 0);
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::CommunicationError, "Could not start Map %s", name.Buffer());
+                }
+            }
+            //Now set how many samples do we wish to recieve for this devices channels (this needs to be done AFTER map start, otherwise, you guessed it -> segfault)
+            if (ok){
+                for (uint32 i = 0u; i < nOutputMembers && ok; i++){
+                    ReferenceT<UEIAI217_803> devReference = outputMembersOrdered[i]->reference;
+                    ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
+                    uint32 nChannels_ = outputMembersOrdered[i]->Outputs.nChannels;
+                    uint32 samples = outputMembersOrdered[i]->Outputs.samples;
+                    uint32 byteSize = devReference->GetSampleSize();
+                    if (ok){
+                        ok = (samples > 0);
+                        if (!ok){
+                            REPORT_ERROR(ErrorManagement::InitialisationError, "Error while starting VMap channels, Samples parameter must be provided and greater than 0 (at Map %s)", name.Buffer());
+                        }
+                        if (ok){
+                            //With this method we set the ammount of samples we want to obtain from this member's device
+                            int32 act_size;
+                            ok = (DqRtVmapRqInputDataSz(DAQ_handle, mapid, i, nChannels_*samples*byteSize , &act_size, NULL) >= 0);
+                        }
+                    }else{
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "could not retrieve devReference for device %d on Map %s while setting sample number", i, name.Buffer());
+                    }
                 }
             }
         break;
