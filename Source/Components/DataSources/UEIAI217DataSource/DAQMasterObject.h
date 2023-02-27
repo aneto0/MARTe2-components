@@ -119,6 +119,8 @@ class DAQMasterObject : public ReferenceContainer {
      */
     virtual bool Initialise(StructuredDataI &data);
 
+    bool GetDeviceReference(uint8 devn, ReferenceT<UEIAI217_803> &reference);
+
 private:
     
     /**

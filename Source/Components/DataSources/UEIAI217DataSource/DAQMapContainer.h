@@ -36,9 +36,13 @@
 #include "StructuredDataI.h"
 #include "StructuredDataIHelper.h"
 #include "StreamString.h"
+#include <algorithm>
 #include "PDNA.h"
 #include "UEIDefinitions.h"
 #include "UEIAI217_803.h"
+#include "DAQCircularBuffer.h"
+#include "ClassRegistryDatabase.h"
+
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -52,20 +56,19 @@ namespace MARTe {
  *
  * <pre>
  *    +Map1 = {
- *        Class           = DAQMapContainer
- *         Type            = "RtDMap"            
- *         ScanRate        = 1.0    
+ *        Class             = DAQMapContainer
+ *         Type             = "RtDMap"            
+ *         sampleRate         = 1.0   //Only meaningfull for RtDMap (VMap is synchronous to refresh function)    
+ *         Samples          = 10    //Only meaningfull for VMap
  *         Inputs = {
  *           Devices = {                
  *             dev0 = {
  *                 Devn        = 0
  *                 Channels    = {0, 1, 2}
- *                 Samples     = 10
  *             }
  *             dev1 = {
  *                 Devn        = 1
  *                 Channels    = {0, 1, 2}   
- *                 Samples     = 10
  *             }
  *           }
  *         }
@@ -89,14 +92,17 @@ namespace MARTe {
  *  @brief This structure contains the information of a map member on a specific directio (input/output)
  *  @var defined boolean defining if this direction for the map member is configured.
  *  @var channels pointer to an array containing the channel identifier list for this specific map member and direction.
+ *  @var channels correctionIndexes array of correction coefficients to translate the channel order from natural order (VMap return order) to user-configured order.
  *  @var nChannels variable stating the number of different channel identifiers present in channels variable of this structure.
  *  @var samples number of samples to obtain from a VMap for a specific member (device).
  */
 typedef struct{
     bool defined;
     uint32* channels;
-    uint32 nChannels;
-    uint32 samples;
+    int8*   correctionIndexes;
+    uint32  nChannels;
+    ReferenceT<DAQCircularBuffer> buffer;
+    uint32 requestSize;
 }IOMapMember;
 
 /** @struct mapMember
@@ -196,7 +202,7 @@ class DAQMapContainer : public ReferenceContainer {
      * @param[in] reference reference of the device object to be set in the specified map member.
      * @return true if the specified map member and reference are valid.
      */
-    bool SetDevReference(uint32 devn, ReferenceT<UEIAI217_803> reference); //TODO
+    bool SetDevices(ReferenceT<UEIAI217_803>* referenceList); //TODO
 
     /**
      * @brief Method to perform map initialisation and start in the IOM.
@@ -215,7 +221,7 @@ class DAQMapContainer : public ReferenceContainer {
      * @brief Getter for the specified scan rate of this map.
      * @return The scan rate of this map (in Hz).
      */
-    float GetScanRate();
+    float GetsampleRate();
 
     /**
      * @brief Method to poll the IOM for new data on the map.
@@ -242,8 +248,24 @@ class DAQMapContainer : public ReferenceContainer {
      */
     bool IsSignalAllowed(TypeDescriptor signalType, uint8 direction);
 
+    bool CheckMapCoherency();
+    uint8 GetType();
+
 private:
+    /**
+     * @brief Private method to calculate the correction indexes for the channels on a VMap.
+     * @param[in] configuredChannelList pointer to an array of channels for which to generate the correction indexes.
+     * @param[out] correctionCoefficientsList pointer to an array containing the correction indexes for the channel list provided.
+     * @return true if the calculation was performed correclty, false otherwise.
+     */
+    bool CalculateCorrectionIndexes(uint32* configuredChannelList, int8* correctionCoefficientsList);
+
   bool GetMapPointers();
+
+    //Private function to calculate and correct the timestamp of the recieved Data packet and extend it to 64 bit precision
+    //For example, a 32 bit time-stamp can only reach up to 1.2h on maximum resolution (0.1 us), but with 64 bit, up to 60000 years can be reached
+    uint64 GetTiemstamp(uint32 timestamp);
+    
     /**
     *   Variable holding the name of the Map Container (node name).
     */
@@ -255,6 +277,12 @@ private:
     */
     uint8 mapType;
     
+    /**
+    *   Variable holding the configured sample rate for this specific map's IO layers (for XVMap).
+    */
+    float sampleRate;
+
+
     /**
     *   Variable holding the configured scan rate for this specific map.
     */
@@ -303,6 +331,23 @@ private:
     uint32 poll_sleep_period;
     bool outputAssignedToDS;
     bool inputAssignedToDS;
+    
+    /**
+    *   Variable holding the max number of outputs to be retrieved for each VMap query.
+    */
+    uint32 sampleNumber; 
+
+    /**
+    *   Variable holding the corrector factor to the timestamp (the 32 MSB of the timestamp)
+    *   This variable gets increased by 1 every time the recived timestamp decreases respective to its last value 
+    *   (32-bit timestamp overflow).
+    */
+    uint32 timestampCorrector;
+    
+    /**
+    *   Variable holding the last processed timestamp, used to detect timestamp overflow.
+    */
+    uint32 lastTimestamp;
 };
 }
 #endif /* DAQMapContainer_H_ */

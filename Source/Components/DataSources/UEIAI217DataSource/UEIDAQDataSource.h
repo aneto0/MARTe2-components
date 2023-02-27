@@ -100,6 +100,8 @@ public:
     virtual bool PrepareNextState(const char8 * const currentStateName,
                                   const char8 * const nextStateName);
 
+    bool AllocateMemory();
+
 private:
 
     /**
@@ -141,6 +143,12 @@ private:
      * Variable to store the signal type for all the signals on this DataSource 
      */
     uint32 nOutputChannels;
+    
+    /**
+     * Variable to store the signal type for all the signals on this DataSource 
+     */
+    uint32 nSamples;
+
 
 };
 

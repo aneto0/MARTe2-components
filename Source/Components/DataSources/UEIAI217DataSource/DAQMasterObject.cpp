@@ -208,115 +208,24 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
             "No maps found for UEIDAQ device %s.", name.Buffer());
         }
     }
-    //Check coherency for the Maps (devices cannot be in two memory maps at the same time and scan frequency should be lower
-    //than device sampling rate, otherwise a warning is thrown).
+    //Set devices references for Maps and check coherency of them
     if (ok){
         //Traverse the list of maps defiend for this UEIDAQ object.
         for (uint32 i = 0u; i<nMaps && ok; i++){
-            //For each map, traverse the list of devices (or map members) defined for it.
-            for (uint32 devn = 0u; devn < MAX_IO_SLOTS && ok; devn++){
-                //For each of the possible devn identifiers (0 to MAX_IO_SLOTS) Check if the selected map needs the device (devn)
-                bool neededDev = maps[i]->GetDevDefined(devn); //Check if the device is defined in the Map Members
-                if (neededDev){     //If and only if the device (devn) is needed, check if it can actually be assigned to the map
-                    //First check if the device requested in the map member is actually defined in the configuration for the UEIDAQ
-                    ok = devices[devn].IsValid();    //IsValid will return False if the device is not set in configuration
-                    if (ok){
-                        ok = !(devices[devn]->GetMapAssignment());    //Check if the device has already been assigned to a map
-                        if (!ok){
-                            //The needed device for this map member is already in use, this is an error
-                            REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
-                            "Device dev% is requested for multiple DAQ Maps in UEIDAQ device %s.", devn, name.Buffer()); 
-                        }else{
-                            //The device is still free to assign to the map, we do so. Once set, the device can only be exclusively used by this map
-                            devices[devn]->SetMapAssignment();
-                            //Since this member seems to be correct, set the reference of the device to the member for later use (the map needs access to each device).
-                            maps[i]->SetDevReference(devn, devices[devn]);
-                        }
-                    }else{
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
-                        "Device dev%d requested in Map %d is not configured for UEIDAQ device %s.", devn, i, name.Buffer()); //TODO put map name instead of index
-                    }
-                    //Check that the channels requested by the member for the map are actually available on the required device and the required direction (Input or Output)
-                    if (ok){
-                        //Check if output signals are defined for this member
-                        if (maps[i]->GetDevDefined(devn, OUTPUT_CHANNEL)){
-                            //Output signals are defined for this map member, lets check if the device configured in the UEIDAQ device can accept
-                            //such channels in such direction
-                            uint32 channelsForThisMember = 0u;
-                            //Try to get the number of channels for this member in this direction
-                            ok = maps[i]->GetNumberOfChannels(devn, OUTPUT_CHANNEL, &channelsForThisMember);
-                            if (ok){
-                                for (uint32 j = 0u; j < channelsForThisMember && ok; j++){
-                                    //try to get the signal for this map and its member and direction at position j
-                                    uint32 channelNumber = 0u;
-                                    ok = maps[i]->GetChannelOfMember(devn, OUTPUT_CHANNEL, j, &channelNumber); 
-                                    //ok will check if the channel requested is part of the member
-                                    if (!ok){
-                                        REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
-                                        "Error requesting output signal %d for dev%d in Map %d for UEIDAQ device %s.", j, devn, name.Buffer()); 
-                                    }
-                                    if (ok){
-                                        //Check if this channel number and direction can be accepted for the required layer
-                                        //no need to check if the device exists in the UEIDAQ device as it has already been checked in previous if condition
-                                        ok = devices[devn]->CheckChannelAndDirection(channelNumber, OUTPUT_CHANNEL);
-                                        if (!ok){
-                                            REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
-                                            "Invalid output signal %d for dev%d in Map %d for UEIDAQ device %s.", channelNumber, devn, name.Buffer());  
-                                        }
-                                        //if this returns ok = true the channel is fit to use in this layer in this direction for this map
-                                    }
-                                }
-                            }else{
-                                REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
-                                "Error getting numberOfChannels for output Device dev%d requested in Map %d for UEIDAQ device %s.", devn, i, name.Buffer());
-                            }
-                        }
-                        //Check if input signals are defined for this member
-                        if (maps[i]->GetDevDefined(devn, INPUT_CHANNEL)){
-                            //Input signals are defined for this map member, lets check if the device configured in the UEIDAQ device can accept
-                            //such channels in such direction
-                            uint32 channelsForThisMember = 0u;
-                            //Try to get the number of channels for this member in this direction
-                            ok = maps[i]->GetNumberOfChannels(devn, INPUT_CHANNEL, &channelsForThisMember);
-                            if (ok){
-                                for (uint32 j = 0u; j < channelsForThisMember && ok; j++){
-                                    //try to get the signal for this map and its member and direction at position j
-                                    uint32 channelNumber = 0u;
-                                    ok = maps[i]->GetChannelOfMember(devn, INPUT_CHANNEL, j, &channelNumber); 
-                                    //ok will check if the channel requested is part of the member
-                                    if (!ok){
-                                        REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
-                                        "Error requesting input signal %d for dev%d in Map %d for UEIDAQ device %s.", j, devn, name.Buffer()); 
-                                    }
-                                    if (ok){
-                                        //Check if this channel number and direction can be accepted for the required layer
-                                        //no need to check if the device exists in the UEIDAQ device as it has already been checked in previous if condition
-                                        ok = devices[devn]->CheckChannelAndDirection(channelNumber, INPUT_CHANNEL);
-                                        //if this returns ok = true the channel is fit to use in this layer in this direction for this map
-                                        if (!ok){
-                                            REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
-                                            "Invalid input signal %d for dev%d in Map %d for UEIDAQ device %s.", channelNumber, devn, name.Buffer());  
-                                        }
-                                    }
-                                }
-                            }else{
-                                REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
-                                "Error getting numberOfChannels for input Device dev%d requested in Map %d for UEIDAQ device %s.", devn, i, name.Buffer());
-                            }
-                        }
-                    }
-                    //Check that the scan rate for the map is lower than each of the required devices
-                    //Scan rate (frequency in Hz) of a map must be at least half of that of the devices to which it interfaces to allow for stable data acquisition
-                    if (ok){
-                        float scanRate = maps[i]->GetScanRate();                //Retrieve the scan rate for the map
-                        float sampleRate = devices[devn]->GetSamplingFrequency();   //Retrieve the sampling frequency of the device
-                        ok = (2*scanRate <= sampleRate);                            //Check, for now it must be lower or EQUAL (check this) TODO
-                        if (!ok){
-                            REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMasterObject::Initialise - "
-                            "UEIDAQ device %s's Map %d scan frequency is too high (higher than half sampling rate from device dev%s)",name.Buffer(), i, devn);
-                        }
-                    }
+            //Give access to the devices objects to the mapContainers, and let them check for coherency
+            //This operation is responsability of the mapContainer, since the coherency of the map is
+            //something between the map and device
+            
+            //First make the device list avaialble for the MapContainer
+            ok = (maps[i]->SetDevices(devices));
+            if (ok){
+                //Then ask the map to check for coherency
+                ok = (maps[i]->CheckMapCoherency());
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Inconsistency detected in Map %s", maps[i]->GetName());
                 }
+            }else{
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not assign devices list for Map %s", i, maps[i]->GetName());
             }
         }
     }
@@ -439,6 +348,17 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
     */
     // At this point, if ok is valid we've checked connection to the IOM, hardware configuration matching and device configuration
 
+    return ok;
+}
+
+bool DAQMasterObject::GetDeviceReference(uint8 devn, ReferenceT<UEIAI217_803> &reference){
+    bool ok = false;
+    if (devn < MAX_IO_SLOTS){
+        if (devices[devn].IsValid()){
+            reference = devices[devn];
+            ok = true;
+        }
+    }
     return ok;
 }
 
