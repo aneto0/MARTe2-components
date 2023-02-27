@@ -661,9 +661,9 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                     }
                     if (ok){
                         //The first channel of the first device in the map must be the timestamp
-
+                        uint8 offset = (i == 0) ? 1u:0u;
                         uint32 nChannels_ = outputMembersOrdered[i]->Outputs.nChannels;
-                        nChannels_ = (i == 0u) ? nChannels_+1:nChannels_;
+                        nChannels_ = nChannels_+offset;
                         int32 channels [nChannels_];
                         int32 flags [nChannels_];
                         uint8 devn = outputMembersOrdered[i]->devn;
@@ -671,14 +671,15 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                             channels[0] = DQ_LNCL_TIMESTAMP;
                             flags[0] = DQ_VMAP_FIFO_STATUS;
                         }
-                        for (uint32 j = (i == 0u) ? 1u:0u ; j < nChannels_ && ok; j++){
-                            channels[j] = (int32)(outputMembersOrdered[i]->Outputs.channels[j]);
+                        for (uint32 j = offset ; j < nChannels_ && ok; j++){
+                            channels[j] = (int32)(outputMembersOrdered[i]->Outputs.channels[j-offset]);
                             flags[j] = DQ_VMAP_FIFO_STATUS;
                             ok = (devReference->ConfigureChannel(&channels[j]));
                             if (!ok){
                                 REPORT_ERROR(ErrorManagement::InitialisationError, "Could not configure channels in outputMember %i on Map %s", i, name.Buffer());
                             }
                         }
+                        
                         if (ok){
                             ok = (DqRtVmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, channels, flags, 1) >= 0);   //TODO add support for FIFO functions
                             if (!ok){
@@ -693,8 +694,7 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                                 devReference->GetType() == HARDWARE_LAYER_ANALOG_IO ||
                                 devReference->GetType() == HARDWARE_LAYER_DIGITAL_IO){
                                 //Check th channel number into the map
-                                int32 mapNumberOfChannels = (int32)outputMembersOrdered[i]->Outputs.nChannels;
-                                ok = (DqRtVmapSetChannelList(DAQ_handle, mapid, devn,DQ_SS0IN, channels, mapNumberOfChannels) >=0);
+                                ok = (DqRtVmapSetChannelList(DAQ_handle, mapid, devn,DQ_SS0IN, channels, nChannels_) >=0);
                                 //Set the scan rate for the device on this channel
                                 if (!ok){
                                     REPORT_ERROR(ErrorManagement::InitialisationError, "Could set channel list in outputMember %i on Map %s", i, name.Buffer());

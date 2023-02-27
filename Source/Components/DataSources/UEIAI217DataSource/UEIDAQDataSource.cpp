@@ -246,7 +246,7 @@ bool UEIDAQDataSource::TerminateInputCopy(const uint32 signalIdx, const uint32 o
 
 bool UEIDAQDataSource::Synchronise() {
     //Start to poll for next packet to the Map. The memory access is handled by the Map Container
-/*    bool ok = false;
+   bool ok = false;
     uint32 counter = 0;
     while(!ok){
         ok = (map->PollForNewPacket(reinterpret_cast<float64*>(memory), nOutputChannels));
@@ -256,7 +256,7 @@ bool UEIDAQDataSource::Synchronise() {
         }
         if (counter > 100) break;
     }
-    */
+   /*
     //printf("NumberOfBuffers : %d\n", GetNumberOfMemoryBuffers());
     //void* address;
     //bool ok = (GetSignalMemoryBuffer(0,0,address));
@@ -276,6 +276,7 @@ bool UEIDAQDataSource::Synchronise() {
     (reinterpret_cast<float64*>(memory))[10] = 7.01;
     printf("totalMemorySize : %d\n", totalMemorySize);		
     REPORT_ERROR(ErrorManagement::Information,"Size of the memory area : %d", (uint32)(totalMemorySize/sizeof(float64)));
+    */
     return true;
 }
 
