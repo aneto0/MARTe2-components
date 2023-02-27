@@ -21,7 +21,7 @@
 # permissions and limitations under the Licence. 
 #
 #############################################################
-OBJSX=  UEIDAQDataSource.x DAQMasterObject.x UEIAI217_803.x DAQMapContainer.x
+OBJSX=  UEIDAQDataSource.x DAQMasterObject.x UEIAI217_803.x DAQMapContainer.x DAQCircularBuffer.x
 
 PACKAGE=Components/DataSources
 
@@ -64,7 +64,8 @@ all: $(OBJS)    \
 	$(BUILD_DIR)/UEIDAQDataSource$(DLLEXT) 	\
 	$(BUILD_DIR)/DAQMasterObject$(DLLEXT) 	\
 	$(BUILD_DIR)/UEIAI217_803$(DLLEXT)		\
-	$(BUILD_DIR)/DAQMapContainer$(DLLEXT)
+	$(BUILD_DIR)/DAQMapContainer$(DLLEXT)	\
+	$(BUILD_DIR)/DAQCircularBuffer$(DLLEXT)
 		echo  $(OBJS)
 
 
