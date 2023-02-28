@@ -166,7 +166,7 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
         outputSignalsDefined = data.MoveRelative("Outputs");
         if (outputSignalsDefined){
             //Get and check the number of devices defined into the Devices subsection
-            nDevices = data.GetNumberOfChildren();
+            uint32 nDevices = data.GetNumberOfChildren();
             ok = (nDevices > 0u && nDevices < MAX_IO_SLOTS);
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMapContainer::Initialise - "
@@ -257,7 +257,7 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
             ok &= data.MoveToAncestor(1u);
             if (ok){
                 REPORT_ERROR(ErrorManagement::Information, "DAQMapContainer::Initialise - "
-                "%s map initialised with %d devices.", name.Buffer(), nDevices);
+                "%s map initialised with %d input devices.", name.Buffer(), nDevices);
             }
         }
 
@@ -274,7 +274,7 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
         inputSignalsDefined = data.MoveRelative("Inputs");
         if (inputSignalsDefined){
             //Get and check the number of devices defined into the Devices subsection
-            nDevices = data.GetNumberOfChildren();
+            uint32 nDevices = data.GetNumberOfChildren();
             ok = (nDevices > 0u && nDevices < MAX_IO_SLOTS);
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "DAQMapContainer::Initialise - "
@@ -362,7 +362,7 @@ bool DAQMapContainer::Initialise(StructuredDataI &data){
             }
             if (ok){
                 REPORT_ERROR(ErrorManagement::Information, "DAQMapContainer::Initialise - "
-                "%s map initialised with %d devices.", name.Buffer(), nDevices);
+                "%s map initialised with %d output devices.", name.Buffer(), nDevices);
             }
             //Move back to "Map" node
             ok &= data.MoveToAncestor(1u);
@@ -635,7 +635,7 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
             //First of all, set all the DAQCircularBuffer objects for each of the VMap queried channels
             if (ok){
                 //Traverse the input channel list to initialise each DAQCircularBuffer object
-                for (uint32 i = 0; i < nOutputChannels && ok; i++){
+                for (uint32 i = 0; i < nOutputMembers && ok; i++){
                     uint32 thisMemberChannelN = outputMembersOrdered[i]->Outputs.nChannels;
                     ok = (outputMembersOrdered[i]->Outputs.buffer->InitialiseBuffer(3*sampleNumber, thisMemberChannelN, sampleNumber, 4u));
                     if (!ok){
@@ -643,7 +643,7 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                     }
                 }
             }
-            if (ok){
+/*            if (ok){
                 ok = (DqRtVmapInit(DAQ_handle, &mapid, 0) >= 0); //This scan rate is the rate at which the IOM refreshes the version of VMap (Bullshit, this scan rate is not valid)
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error on Initialising Map %s", name.Buffer());
@@ -743,6 +743,7 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                     }
                 }
             }
+            */
         break;
         default:
             ok = false;

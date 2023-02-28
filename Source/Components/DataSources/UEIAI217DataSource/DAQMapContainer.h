@@ -298,12 +298,6 @@ private:
     */
     uint32* inputMapPtr;
     
-    /**
-    *   Variable holding the number of devices configured for this map. The number 
-    *   of configured devices for this map must be equal to the number of members
-    *   of the map.
-    */
-    uint32 nDevices;
     
     /**
     *   Array containing the members of this map regarding output signals (the ones coming from IOM) (indexed by devn).

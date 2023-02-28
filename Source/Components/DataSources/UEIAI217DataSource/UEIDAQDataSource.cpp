@@ -256,27 +256,6 @@ bool UEIDAQDataSource::Synchronise() {
         }
         if (counter > 100) break;
     }
-   /*
-    //printf("NumberOfBuffers : %d\n", GetNumberOfMemoryBuffers());
-    //void* address;
-    //bool ok = (GetSignalMemoryBuffer(0,0,address));
-    //printf("Ok : %d\n", ok);
-    //float64* mypointer = reinterpret_cast<float64*>(address);
-    Sleep::MSec(500);
-    (reinterpret_cast<uint64*>(memory))[0] = 101u;
-    (reinterpret_cast<uint64*>(memory))[1] = 102u;
-    (reinterpret_cast<uint64*>(memory))[2] = 103u;
-    (reinterpret_cast<uint64*>(memory))[3] = 104u;
-    (reinterpret_cast<uint64*>(memory))[4] = 105u;
-    (reinterpret_cast<float64*>(memory))[5] = 2.01;	
-    (reinterpret_cast<float64*>(memory))[6] = 3.01;
-    (reinterpret_cast<float64*>(memory))[7] = 4.01;
-    (reinterpret_cast<float64*>(memory))[8] = 5.01;
-    (reinterpret_cast<float64*>(memory))[9] = 6.01;
-    (reinterpret_cast<float64*>(memory))[10] = 7.01;
-    printf("totalMemorySize : %d\n", totalMemorySize);		
-    REPORT_ERROR(ErrorManagement::Information,"Size of the memory area : %d", (uint32)(totalMemorySize/sizeof(float64)));
-    */
     return true;
 }
 

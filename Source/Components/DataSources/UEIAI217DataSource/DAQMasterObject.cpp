@@ -234,7 +234,6 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
         REPORT_ERROR(ErrorManagement::Information, "DAQMasterObject::Initialise - "
         "Maps correctly initialised for UEIDAQ device %s.", name.Buffer());
     }
-    /*
     //Perfrom the initialisation for the IOM structure for the PDNA library
     if (ok){
         ok = (DqInitDAQLib() == DQ_SUCCESS);
@@ -345,7 +344,6 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
             }
         }
     }
-    */
     // At this point, if ok is valid we've checked connection to the IOM, hardware configuration matching and device configuration
 
     return ok;

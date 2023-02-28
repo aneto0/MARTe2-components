@@ -56,22 +56,8 @@ DAQCircularBuffer::~DAQCircularBuffer(){
 }
 
 
-bool DAQCircularBuffer::InitialiseBuffer(uint32 length, uint32 channels_, uint32 samplesPerChannel_, uint8 sizeOfSamples_){
+bool DAQCircularBuffer::InitialiseBuffer(uint32 maxSamplesStored, uint32 channels_, uint32 samplesPerChannel_, uint8 sizeOfSamples_){
     bool ok = true;
-    if(ok){
-        ok = (length < 100 && length > 0);
-        bufferLength = length;  
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "CircularBuffer size is too big.");
-        }
-    }
-    if (ok){
-        headPointer = (uint8*) malloc(length);
-        ok = (headPointer != NULL_PTR(uint8*));
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to initialise memory for DAQCircularBuffer");
-        }
-    }
     if (ok){
         ok = (channels_ > 1u);      //At least a channel + timestamp must be provided
         if (!ok){
@@ -92,6 +78,20 @@ bool DAQCircularBuffer::InitialiseBuffer(uint32 length, uint32 channels_, uint32
         sizeOfSamples = sizeOfSamples_;
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Unsupported data type to write into the buffer");
+        }
+    }
+    if(ok){
+        ok = (maxSamplesStored < 100 && maxSamplesStored > 0);
+        bufferLength = maxSamplesStored*sizeOfSamples*channels;  
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "CircularBuffer size is too big.");
+        }
+    }
+    if (ok){
+        headPointer = (uint8*)malloc(bufferLength);
+        ok = (headPointer != NULL_PTR(uint8*));
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to initialise memory for DAQCircularBuffer");
         }
     }
     //Place correctly the writePointer
