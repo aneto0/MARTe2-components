@@ -56,7 +56,7 @@ DAQCircularBuffer::~DAQCircularBuffer(){
 }
 
 
-bool DAQCircularBuffer::InitialiseBuffer(uint32 maxSamplesStored, uint32 channels_, uint32 samplesPerChannel_, uint8 sizeOfSamples_){
+bool DAQCircularBuffer::InitialiseBuffer(uint32 maxSamplesStored, uint32 channels_, uint32 VMapSamplesPerChannel_, uint8 sizeOfSamples_, uint32 readSamples_){
     bool ok = true;
     if (ok){
         ok = (channels_ > 1u);      //At least a channel + timestamp must be provided
@@ -67,10 +67,17 @@ bool DAQCircularBuffer::InitialiseBuffer(uint32 maxSamplesStored, uint32 channel
         }
     }
     if (ok){
-        ok = (samplesPerChannel_ > 0u);
-        samplesPerChannelVMap = samplesPerChannel_;
+        ok = (VMapSamplesPerChannel_ > 0u);
+        samplesPerChannelVMap = VMapSamplesPerChannel_;
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "At least one sample per channel must be supplied for the ");
+        }
+    }
+    if (ok){
+        ok = (readSamples_ > 0u && readSamples_ < samplesPerChannelVMap);
+        readSamples = readSamples_;
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid number of samples to be read into destination buffer");
         }
     }
     if (ok){

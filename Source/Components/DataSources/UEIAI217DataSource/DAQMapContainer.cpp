@@ -637,13 +637,13 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                 //Traverse the input channel list to initialise each DAQCircularBuffer object
                 for (uint32 i = 0; i < nOutputMembers && ok; i++){
                     uint32 thisMemberChannelN = outputMembersOrdered[i]->Outputs.nChannels;
-                    ok = (outputMembersOrdered[i]->Outputs.buffer->InitialiseBuffer(3*sampleNumber, thisMemberChannelN, sampleNumber, 4u));
+                    ok = (outputMembersOrdered[i]->Outputs.buffer->InitialiseBuffer(3*sampleNumber, thisMemberChannelN, sampleNumber, 4u, 10u));
                     if (!ok){
                         REPORT_ERROR(ErrorManagement::InitialisationError, "The initilisation of DAQCiruclarBuffer failed");
                     }
                 }
             }
-/*            if (ok){
+            if (ok){
                 ok = (DqRtVmapInit(DAQ_handle, &mapid, 0) >= 0); //This scan rate is the rate at which the IOM refreshes the version of VMap (Bullshit, this scan rate is not valid)
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error on Initialising Map %s", name.Buffer());
@@ -743,7 +743,6 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                     }
                 }
             }
-            */
         break;
         default:
             ok = false;

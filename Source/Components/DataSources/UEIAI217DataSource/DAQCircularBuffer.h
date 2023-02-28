@@ -56,7 +56,7 @@ class DAQCircularBuffer : public Object {
      */
     virtual ~DAQCircularBuffer();
 
-    bool InitialiseBuffer(uint32 length, uint32 channels_, uint32 samplesPerChannel_, uint8 sizeOfSamples_);
+    bool InitialiseBuffer(uint32 maxSamplesStored, uint32 channels_, uint32 VMapSamplesPerChannel_, uint8 sizeOfSamples_, uint32 readSamples_);
 
     uint8* writePointer;
 
