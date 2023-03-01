@@ -34,8 +34,7 @@ A basic example of the definition of such object is given below:
 	+Maps = {
 		Class=ReferenceContainer
 		+Map1 = {
-			Class = UEIMapContainer
-			Type = "RtDMap"
+			Class = UEIRtDMap
 			ScanRate = 1.0
 			Outputs = {
 				dev0 = {
