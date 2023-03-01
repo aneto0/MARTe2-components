@@ -113,7 +113,7 @@ class UEIMapContainer : public ReferenceContainer {
     virtual bool Initialise(StructuredDataI &data);
 
     /**
-     * @brief Method to perform map initialisation and start in the IOM.
+     * @brief Method to perform map initialisation in the IOM.
      * @details This method performs the initialisation procedures for the map by issuing the appropriate commands directly to IOM.
      * The IOM handle supplied to this method will be saved for later usage on polling/data recieving operations.
      * This function must be reimplmented by each of the derived map classes, as the map configuration procedures is map-type dependant.
@@ -142,7 +142,6 @@ class UEIMapContainer : public ReferenceContainer {
      * @details This function must be called by UEIMasterObject before destruction
      * of the IOM handle to ensure clean closing of the DAQ Map. Implementation of this method
      * must be done in each of the child map classes.
-     * @param[in] DAQ_handle handler of the IOM to which the map belongs.
      * @return true if the map has been closed correctly and cleanly.
      */
     virtual bool CleanupMap();

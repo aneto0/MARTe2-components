@@ -53,7 +53,7 @@ namespace MARTe {
 
 /**
  * @brief TODO
- * @details 
+ * @details TODO
  *
  * <pre>
  *   +UEIDAQ1 = {

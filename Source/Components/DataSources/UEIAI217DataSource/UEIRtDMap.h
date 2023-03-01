@@ -105,30 +105,62 @@ class UEIRtDMap : public UEIMapContainer {
      */
     virtual ~UEIRtDMap();
 
-
+    /**
+     * @brief Initialise the RtDMap from a configuration file.
+     * @details Reads the parameters from a ConfigurationDatabase and check
+     * their validity. This implementation redefines the one in UEIMapContainer altough that implementation
+     * is used to check and retrieve general parameters common among data acquisition map classes.
+     * @return true if every parameter has been read correctly and validated.
+     */
     bool Initialise(StructuredDataI &data);
-
+    
+    /**
+     * @brief Close the Map structure in a clean way.
+     * @details Function called from UEIMasterObject prior to destruction of the object to grant a 
+     * clean exit from map operation. This function redefines the procedure defined in UEIMapContainer class for RtDMap.
+     * @return true if the map has been closed correctly and cleanly.
+     */
     bool CleanupMap();
-
+    
+    /**
+     * @brief Method to perform map initialisation in the IOM.
+     * @details This method performs the initialisation procedures for the map by issuing the appropriate commands directly to IOM.
+     * The IOM handle supplied to this method will be saved for later usage on polling/data recieving operations.
+     * Specific implementation for RtDMap operation
+     * @param[in] DAQ_handle_ handle to the IOM, must be provided by UEIMasterObject to this method.
+     * @return true if the initialisation and starting procedure succeeds for this map.
+     */
     bool StartMap(int32 DAQ_handle_);
 
+    /**
+     * @brief Method to poll the IOM for new data on the map.
+     * @details This method polls the IOM for a new packet of data. This implementation redefines the behavior defined in UEIMapContainer
+     * for RtDMap data acquisition.
+     * @param[out] destinationAddr pointer to the memory region where the contents of the newly recived (if so) map packet are copied.
+     * @return true if a new packet has been recieved, false otherwise.
+     */
     bool PollForNewPacket(float64* destinationAddr);
-
+    
+    /**
+     * @brief Getter for the type of the map.
+     * @details Redefinition of the method stated in UEIMapContainer.
+     * @return RTDMAP as defined in UEIDefinitions.h.
+     */
     uint8 GetType();
 
 private:
-    /**
-     * @brief Private method to calculate the correction indexes for the channels on a VMap.
-     * @param[in] configuredChannelList pointer to an array of channels for which to generate the correction indexes.
-     * @param[out] correctionCoefficientsList pointer to an array containing the correction indexes for the channel list provided.
-     * @return true if the calculation was performed correclty, false otherwise.
-     */
-    bool CalculateCorrectionIndexes(uint32* configuredChannelList, int8* correctionCoefficientsList);
-    bool GetMapPointers();
-    uint32* inputMapPtr;   
-    uint32* outputMap;
-    uint32* inputMap;
 
+    /**
+     * @brief Private method to obtain the pointers to the memory area in which the DMap will be allocated upon a successful refresh call.
+     * @details This private method assigns the input map location for the DMap to the pointer inputMap if such can be retrieved.
+     * @return true if the pointers could be retrieved successfully.
+     */
+    bool GetMapPointers();
+    
+    /**
+     *  Pointer holding the location in which the DMap is copied after a successfull refresh request.  
+     */
+    uint32* inputMap;   //TODO change to uint8* for portability to new devices
 };
 }
 #endif /* UEIRtDMap_H_ */

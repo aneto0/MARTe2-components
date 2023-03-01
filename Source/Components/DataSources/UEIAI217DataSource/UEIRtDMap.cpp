@@ -42,9 +42,13 @@
 namespace MARTe {
 
 UEIRtDMap::UEIRtDMap() : UEIMapContainer() {
+    inputMap = NULL_PTR(uint32*);
 }
 
 UEIRtDMap::~UEIRtDMap(){
+    if (inputMap != NULL_PTR(uint32*)){
+        inputMap = NULL_PTR(uint32*);
+    }
     //try to clean the maps in case it was not already done beforehand
     CleanupMap();
 }
@@ -181,7 +185,7 @@ bool UEIRtDMap::GetMapPointers(){
         if (counter > 200) break; //If NULL map is still present during 2s abort the initialisation of the DS
     }
     if (((uint32*) map_pointer) != NULL){
-        outputMap = ((uint32*)map_pointer);
+        inputMap = ((uint32*)map_pointer);
         return true;
     }else{
         return false;
@@ -192,7 +196,6 @@ bool UEIRtDMap::GetMapPointers(){
 bool UEIRtDMap::PollForNewPacket(float64* destinationAddr){
     bool next_packet = false;
     bool ok = true;
-    bool copy_done = false;
     //Poll for next packet from UEIDAQ
     ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
     if (ok){
@@ -200,17 +203,14 @@ bool UEIRtDMap::PollForNewPacket(float64* destinationAddr){
         //The 0x80000000 bit on the recived samples lets us know if the packet has
         //been previously requested.
         if (*((uint32*)inputMap) & 0x80000000){ 
-            uint32 mask = 0x00FFFFFF;
             uint32 iterator = 0; 
             //The recived packet is a newly converted one not requested yet.
             //Make the signals available to the broker.
             //TODO implement this using memcopy
-            for (uint32 mem = 0; mem < nInputMembers && ok && !copy_done; mem++){
-                //min function
-                uint32 samples_to_copy = inputMembersOrdered[mem]->Inputs.nChannels;
+            for (uint32 mem = 0; mem < nInputMembers && ok; mem++){
                 //Copy the scaled values obtained in the hardware layer into the destination buffer
-                ok = (DqRtDmapReadScaledData(DAQ_handle, mapid, inputMembersOrdered[mem]->devn, &destinationAddr[iterator], samples_to_copy) >= 0);
-                iterator += samples_to_copy;
+                ok = (DqRtDmapReadScaledData(DAQ_handle, mapid, inputMembersOrdered[mem]->devn, &destinationAddr[iterator], inputMembersOrdered[mem]->Inputs.nChannels) >= 0);
+                iterator += inputMembersOrdered[mem]->Inputs.nChannels;
                 //The channels requested have already been copied, stop the loop
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::CommunicationError, "Error while translating the channels to scaled values on Map %s.", name.Buffer());

@@ -57,9 +57,7 @@ namespace MARTe {
  *
  * <pre>
  *    +Map1 = {
- *        Class             = UEIRtVMap
- *         Type             = "RtDMap"            
- *         sampleRate         = 1.0   //Only meaningfull for RtDMap (VMap is synchronous to refresh function)    
+ *        Class             = UEIRtVMap           
  *         Samples          = 10    //Only meaningfull for VMap
  *         Inputs = {
  *           Devices = {                
@@ -105,15 +103,47 @@ class UEIRtVMap : public UEIMapContainer {
      */
     virtual ~UEIRtVMap();
 
-
+    /**
+     * @brief Initialise the RtVMap from a configuration file.
+     * @details Reads the parameters from a ConfigurationDatabase and check
+     * their validity. This implementation redefines the one in UEIMapContainer altough that implementation
+     * is used to check and retrieve general parameters common among data acquisition map classes.
+     * @return true if every parameter has been read correctly and validated.
+     */
     bool Initialise(StructuredDataI &data);
-
+    
+    /**
+     * @brief Close the Map structure in a clean way.
+     * @details Function called from UEIMasterObject prior to destruction of the object to grant a 
+     * clean exit from map operation. This function redefines the procedure defined in UEIMapContainer class for RtVMap.
+     * @return true if the map has been closed correctly and cleanly.
+     */
     bool CleanupMap();
-
+    
+    /**
+     * @brief Method to perform map initialisation in the IOM.
+     * @details This method performs the initialisation procedures for the map by issuing the appropriate commands directly to IOM.
+     * The IOM handle supplied to this method will be saved for later usage on polling/data recieving operations.
+     * Specific implementation for RtVMap operation
+     * @param[in] DAQ_handle_ handle to the IOM, must be provided by UEIMasterObject to this method.
+     * @return true if the initialisation and starting procedure succeeds for this map.
+     */
     bool StartMap(int32 DAQ_handle_);
 
+    /**
+     * @brief Method to poll the IOM for new data on the map.
+     * @details This method polls the IOM for a new packet of data. This implementation redefines the behavior defined in UEIMapContainer
+     * for RtVMap data acquisition.
+     * @param[out] destinationAddr pointer to the memory region where the contents of the newly recived (if so) map packet are copied.
+     * @return true if a new packet has been recieved, false otherwise.
+     */
     bool PollForNewPacket(float64* destinationAddr);
-
+    
+    /**
+     * @brief Getter for the type of the map.
+     * @details Redefinition of the method stated in UEIMapContainer.
+     * @return RTVMAP as defined in UEIDefinitions.h.
+     */
     uint8 GetType();
 
 private:
