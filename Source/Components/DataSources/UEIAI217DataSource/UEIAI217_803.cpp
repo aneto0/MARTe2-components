@@ -43,11 +43,7 @@
 
 namespace MARTe {
 
-UEIAI217_803::UEIAI217_803() : Object() {
-    deviceId = 0u;
-    samplingFrequency = 0.0;
-    hardwareCorrespondence = false;
-    assignedToMap = false;
+UEIAI217_803::UEIAI217_803() : UEIDevice() {
 }
 
 UEIAI217_803::~UEIAI217_803(){
@@ -55,44 +51,11 @@ UEIAI217_803::~UEIAI217_803(){
     //Destroy the FIRBanks strcutures
 }
 
-bool UEIAI217_803::Initialise(StructuredDataI &data){ 
-    bool ok = Object::Initialise(data);
+bool UEIAI217_803::Initialise(StructuredDataI &data){
+    //Initialise the UEIDevice Object, this method will initialise and check base parameters for the device (devn, name and sampling frequency)
+    bool ok = UEIDevice::Initialise(data);
     //Initialise helper for retriecing the input parameters
     StructuredDataIHelper helper = StructuredDataIHelper(data, this);
-    //Check the name of the Object
-    if (ok) {
-        name = data.GetName();
-        ok = (name.Size() != 0ull);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIAI217_803::Initialise - "
-                "Could not retrieve DAQ Master Object Name.");
-        }
-    }
-    //Read and validate the Devn parameter (Devicen identifier)
-    if (ok){
-        ok = helper.Read("Devn", deviceId);
-        if (ok){
-            ok = deviceId < MAX_IO_SLOTS; 
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIAI217_803::Initialise - "
-                "Devn out of allowed range for device %s. Maximum Devn : %d.", name.Buffer(), MAX_IO_SLOTS-1);
-            }
-        }else{
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIAI217_803::Initialise - "
-            "Could not retrive Devn parameter for device %s.", name.Buffer());
-        }
-    }
-    //Read and validate sampling frequency
-    if (ok){
-        ok = helper.Read("Sampling_ferquency", samplingFrequency);
-        if (ok){
-            REPORT_ERROR(ErrorManagement::Information, "UEIAI217_803::Initialise - "
-            "Sampling frequency set to %f for device %s.", samplingFrequency, name.Buffer());
-        }else{
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIAI217_803::Initialise - "
-            "Could not retrive Sampling_frequency parameter for device %s.", name.Buffer());
-        }
-    }
     //Read and validate the gains
     if(ok){
         uint32 numberOfGains;
@@ -323,21 +286,6 @@ int32 UEIAI217_803::GetModel(){
 uint8 UEIAI217_803::GetType(){
     return HARDWARE_LAYER_ANALOG_I;
 }
-void UEIAI217_803::SetHardwareCorrespondence(){
-    hardwareCorrespondence = true;
-}
-
-bool UEIAI217_803::GetHardwareCorrespondence(){
-    return hardwareCorrespondence;
-}
-
-void UEIAI217_803::SetMapAssignment(){
-    assignedToMap = true;
-}
-
-bool UEIAI217_803::GetMapAssignment(){
-    return assignedToMap;
-}
 
 uint32 UEIAI217_803::GetDeviceChannels(){
     return CHANNEL_NUMBER;
@@ -397,8 +345,5 @@ bool UEIAI217_803::AcceptedSignalType(TypeDescriptor signalType){
     return accepted;
 }
 
-float UEIAI217_803::GetSamplingFrequency(){
-    return samplingFrequency;
-}
 CLASS_REGISTER(UEIAI217_803, "1.0")
 }

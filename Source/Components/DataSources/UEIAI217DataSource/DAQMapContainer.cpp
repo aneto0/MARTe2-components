@@ -478,7 +478,7 @@ bool DAQMapContainer::GetChannelOfMember(uint32 devn, uint8 direction, uint32 ch
     return valid;
 }
 
-bool DAQMapContainer::SetDevices(ReferenceT<UEIAI217_803>* referenceList){
+bool DAQMapContainer::SetDevices(ReferenceT<UEIDevice>* referenceList){
     bool ok = true;
     for (uint32 i = 0; i < MAX_IO_SLOTS && ok; i++){
         //First of all check if the device is needed in this map
@@ -523,7 +523,7 @@ bool DAQMapContainer::CheckMapCoherency(){
         for (uint32 i = 0; i <MAX_IO_SLOTS && ok; i++){
             if (members[i].defined){
                 //The device is part of the map, check its sampling frequency
-                ReferenceT<UEIAI217_803> devReference = members[i].reference;
+                ReferenceT<UEIDevice> devReference = members[i].reference;
                 ok = devReference.IsValid();
                 if (ok){
                     //Assign the sampling rate of the map to the one of the first device defined for this map and compare
@@ -569,7 +569,7 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                 //First the output channels are checked. The outputMembersOrdered pointer array is traversed in order,
                 // yielding the ordered list of channels to sequence into the output map
                 for (uint32 i = 0u; i < nOutputMembers && ok; i++){
-                    ReferenceT<UEIAI217_803> devReference = outputMembersOrdered[i]->reference;
+                    ReferenceT<UEIDevice> devReference = outputMembersOrdered[i]->reference;
                     ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
                     if (!ok){
                         REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on outputMember %i on Map %s", i, name.Buffer());
@@ -595,7 +595,7 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                 //First the input channels are checked. The inputMembersOrdered pointer array is traversed in order,
                 // yielding the ordered list of channels to sequence into the input map
                 for (uint32 i = 0u; i < nInputMembers && ok; i++){
-                    ReferenceT<UEIAI217_803> devReference = inputMembersOrdered[i]->reference;
+                    ReferenceT<UEIDevice> devReference = inputMembersOrdered[i]->reference;
                     ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
                     if (!ok){
                         REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on inputMember %i on Map %s", i, name.Buffer());
@@ -654,7 +654,7 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                 //First the output channels are checked. The outputMembersOrdered pointer array is traversed in order,
                 // yielding the ordered list of channels to sequence into the output map
                 for (uint32 i = 0u; i < nOutputMembers && ok; i++){
-                    ReferenceT<UEIAI217_803> devReference = outputMembersOrdered[i]->reference;
+                    ReferenceT<UEIDevice> devReference = outputMembersOrdered[i]->reference;
                     ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
                     if (!ok){
                         REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on outputMember %i on Map %s", i, name.Buffer());
@@ -728,7 +728,7 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
             //Now set how many samples do we wish to recieve for this devices channels (this needs to be done AFTER map start, otherwise, you guessed it -> segfault)
             if (ok){
                 for (uint32 i = 0u; i < nOutputMembers && ok; i++){
-                    ReferenceT<UEIAI217_803> devReference = outputMembersOrdered[i]->reference;
+                    ReferenceT<UEIDevice> devReference = outputMembersOrdered[i]->reference;
                     ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
                     uint32 nChannels_ = outputMembersOrdered[i]->Outputs.nChannels;
                     uint32 byteSize = devReference->GetSampleSize();

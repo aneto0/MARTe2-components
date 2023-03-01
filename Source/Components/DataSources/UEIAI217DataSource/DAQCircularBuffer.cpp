@@ -74,7 +74,7 @@ bool DAQCircularBuffer::InitialiseBuffer(uint32 maxSamplesStored, uint32 channel
         }
     }
     if (ok){
-        ok = (readSamples_ > 0u && readSamples_ < samplesPerChannelVMap);
+        ok = (readSamples_ > 0u && readSamples_ < maxSamplesStored);
         readSamples = readSamples_;
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid number of samples to be read into destination buffer");
@@ -132,7 +132,7 @@ bool DAQCircularBuffer::CheckReadReady(){
 bool DAQCircularBuffer::AdvanceBufferIndex(uint32 writtenBytes){
     //Function to advance the current index in the buffer
     bool ok = true;
-    if ((bufferLength-currentBufferLocation) <= writtenBytes){
+    if ((bufferLength-currentBufferLocation) >= writtenBytes){
         ok = true;
         currentBufferLocation += writtenBytes;
         writePointer = (uint8*)(&headPointer[currentBufferLocation]);
@@ -149,11 +149,10 @@ bool DAQCircularBuffer::ReadBuffer(uint8* destinationMemory){
         CopyChannels(headPointer, NULL, destinationMemory);
         //Prepare the memory to leave space for the next packet/s
         uint32 lastReadIndex = channels*readSamples*sizeOfSamples;
-        uint32 lastWrittenIndex = bufferLength-currentBufferLocation;
         //Then move the content of the buffer upwards to the start of the buffer
-        memcpy(headPointer, &headPointer[lastReadIndex], lastWrittenIndex-lastReadIndex);
+        memcpy(headPointer, &headPointer[lastReadIndex], currentBufferLocation-lastReadIndex);
         //Update the write index and write pointer
-        currentBufferLocation = lastWrittenIndex-lastReadIndex;
+        currentBufferLocation -= lastReadIndex;
         writePointer = (uint8*)(&headPointer[currentBufferLocation]);
     }
     return ok;
@@ -165,8 +164,10 @@ bool DAQCircularBuffer::ReadBuffer(uint8* destinationMemory){
 bool DAQCircularBuffer::CopyChannels(uint8* sourceMemory, uint32* timestampMemory, uint8* destinationMemory){
     if (!timestampProvided){
         //It the timestamp has not been provided, just use the supplied method tha change from interleaved memory to flat memory
-        uint32* packetMemberSize = new uint32[channels];
-        MemoryOperationsHelper::Set(packetMemberSize, sizeOfSamples, channels);
+        uint32 packetMemberSize [channels];
+        for (uint32 i = 0; i < channels; i++){
+            packetMemberSize[i] = sizeOfSamples;
+        }
         MemoryOperationsHelper::InterleavedToFlat(sourceMemory, destinationMemory, 0u, packetMemberSize, 7u, channels,readSamples);
     }
     return true;

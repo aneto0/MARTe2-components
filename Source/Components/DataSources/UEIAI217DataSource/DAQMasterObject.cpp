@@ -33,7 +33,7 @@
 #include "RegisteredMethodsMessageFilter.h"
 #include "DAQMasterObject.h"
 //Device objects include
-#include "UEIAI217_803.h"
+#include "UEIDevice.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -154,7 +154,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
                 "%d devices found for UEIDAQ device %s", nDevices, name.Buffer());
                 if (ok){
                     for (uint8 i = 0u; i < nDevices && ok; i++){
-                        ReferenceT<UEIAI217_803>dev_ = devicesContainer->Get(i);
+                        ReferenceT<UEIDevice>dev_ = devicesContainer->Get(i);
                         uint8 devn_ = dev_->GetDevN();
                         ok = (dev_.IsValid() && devn_ < MAX_IO_SLOTS);
                         if (ok){
@@ -349,7 +349,7 @@ bool DAQMasterObject::Initialise(StructuredDataI &data){
     return ok;
 }
 
-bool DAQMasterObject::GetDeviceReference(uint8 devn, ReferenceT<UEIAI217_803> &reference){
+bool DAQMasterObject::GetDeviceReference(uint8 devn, ReferenceT<UEIDevice> &reference){
     bool ok = false;
     if (devn < MAX_IO_SLOTS){
         if (devices[devn].IsValid()){

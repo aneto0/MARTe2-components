@@ -31,10 +31,14 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+//MARTe includes
 #include "Object.h"
 #include "StreamString.h"
 #include "StructuredDataI.h"
 #include "StructuredDataIHelper.h"
+//Interface specific includes
+#include "UEIDevice.h"
+//PowerDNA library includes
 #include "PDNA.h"
 #include "powerdna.h"
 
@@ -80,7 +84,7 @@ typedef struct{
     float64* taps;
 }AI217_803FIRBank;
 
-class UEIAI217_803 : public Object {
+class UEIAI217_803 : public UEIDevice {
     public:
     CLASS_REGISTER_DECLARATION()
 
@@ -102,17 +106,13 @@ class UEIAI217_803 : public Object {
      * their validity.
      * @return true if every parameter has been read correctly and validated.
      */
-    virtual bool Initialise(StructuredDataI &data);
+    bool Initialise(StructuredDataI &data);
 
     uint8 GetDevN();
     int32 GetModel();
     uint8 GetType();
     //Returns the number of bytes a single sample of this device occupies
     uint8 GetSampleSize();
-    void SetHardwareCorrespondence();
-    bool GetHardwareCorrespondence();
-    void SetMapAssignment();
-    bool GetMapAssignment();
     uint32 GetDeviceChannels();
     
     /**
@@ -127,17 +127,11 @@ class UEIAI217_803 : public Object {
     bool ConfigureChannel(uint32* channel);
     bool ConfigureChannel(int32* channel);
     bool ConfigureDevice(int32 DAQ_handle);
-    float GetSamplingFrequency();
     bool AcceptedSignalType(TypeDescriptor signalType);
     bool GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32* pgaStatusArray);
     
 private:
-    StreamString name;              //name of the device object
-    uint8 deviceId;                 //devn
-    float samplingFrequency;        //Sets the sampling frequency of the device (only one per device)
     uint16* gains;                  //Sets the sampling frequency of the device (only one per device)
-    bool hardwareCorrespondence;    //Signals if this device has been identified to an installed layer
-    bool assignedToMap;             //Signals if this device has been assigned to a DAQ map
     int32 ADCMode;                  //Stores the advanced configuration for the ADC on the AI-217-803, can be set to ENHANCED or DEFAULT
     AI217_803FIRBank FIRBanks [FIR_BANK_NUMBER];  //Stores the structure defining the FIR settings for each of the four banks (A,B,C or D, identified by the index)
 };

@@ -31,17 +31,20 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
+//MARTe includes
 #include "StructuredDataI.h"
 #include "StructuredDataIHelper.h"
 #include "ReferenceContainer.h"
 #include "StreamString.h"
+
+//Interface specific includes
+#include "UEIDevice.h"
+#include "DAQMapContainer.h"
 #include "UEIDefinitions.h"
 #include "UEIAI217_803.h"
-#include "DAQMapContainer.h"
-#include "PDNA.h"
-//#include "PDNA.h"
 
+//PowerDNA includes
+#include "PDNA.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -119,7 +122,7 @@ class DAQMasterObject : public ReferenceContainer {
      */
     virtual bool Initialise(StructuredDataI &data);
 
-    bool GetDeviceReference(uint8 devn, ReferenceT<UEIAI217_803> &reference);
+    bool GetDeviceReference(uint8 devn, ReferenceT<UEIDevice> &reference);
 
 private:
     
@@ -163,7 +166,7 @@ private:
     *   represents the devn of the device. If a slot is empty/not recognized, the reference is NULL,
     *   to be checked with IsValid() method before usage.
     */
-    ReferenceT<UEIAI217_803> devices [MAX_IO_SLOTS];
+    ReferenceT<UEIDevice> devices [MAX_IO_SLOTS];
     
     /**
     *   Variable holding a reference to the ReferenceContainer containing the maps.

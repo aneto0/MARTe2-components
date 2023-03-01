@@ -50,6 +50,7 @@
 #define DIGITAL_SIGNAL  2u
 
 //Hardware layer type definitions
+#define HARDWARE_LAYER_UNDEFINED    0u
 #define HARDWARE_LAYER_ANALOG_I     1u
 #define HARDWARE_LAYER_ANALOG_O     2u
 #define HARDWARE_LAYER_ANALOG_IO    3u

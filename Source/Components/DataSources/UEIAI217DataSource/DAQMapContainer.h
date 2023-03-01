@@ -31,19 +31,18 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "SingleThreadService.h"
+#include "ClassRegistryDatabase.h"
 #include "MemoryDataSourceI.h"
 #include "StructuredDataI.h"
 #include "StructuredDataIHelper.h"
 #include "StreamString.h"
 #include <algorithm>
-#include "PDNA.h"
+//interface specific includes
+#include "UEIDevice.h"
 #include "UEIDefinitions.h"
-#include "UEIAI217_803.h"
 #include "DAQCircularBuffer.h"
-#include "ClassRegistryDatabase.h"
-
-
+//PowerDNA library includes
+#include "PDNA.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -115,7 +114,7 @@ typedef struct{
  */
 typedef struct{
     bool defined;
-    ReferenceT<UEIAI217_803> reference;
+    ReferenceT<UEIDevice> reference;
     uint8 devn;
     IOMapMember Inputs;
     IOMapMember Outputs;
@@ -202,7 +201,7 @@ class DAQMapContainer : public ReferenceContainer {
      * @param[in] reference reference of the device object to be set in the specified map member.
      * @return true if the specified map member and reference are valid.
      */
-    bool SetDevices(ReferenceT<UEIAI217_803>* referenceList); //TODO
+    bool SetDevices(ReferenceT<UEIDevice>* referenceList); //TODO
 
     /**
      * @brief Method to perform map initialisation and start in the IOM.
