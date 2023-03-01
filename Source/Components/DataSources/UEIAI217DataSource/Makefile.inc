@@ -21,7 +21,7 @@
 # permissions and limitations under the Licence. 
 #
 #############################################################
-OBJSX=  UEIDAQDataSource.x UEIDevice.x UEIMasterObject.x UEIAI217_803.x UEIMapContainer.x UEICircularBuffer.x
+OBJSX=  UEIDataSource.x UEIDevice.x UEIMasterObject.x UEIAI217_803.x UEIMapContainer.x UEICircularBuffer.x
 
 PACKAGE=Components/DataSources
 
