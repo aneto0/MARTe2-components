@@ -8,12 +8,12 @@ This brief manual describes the basic operation of the DataSource and how to con
 ## DataSource configuration structure
 The UEIDAQ DataSource component itself is a generic datasource which can read and write to DAQ Memory Maps configured for a certain device in MARTe and also acquire single data points via Point-by-Point data acquisition mode.
 
-In order to use the UEIDAQ DataSource, the first step is to configure and initialise the UEIDAQ device. In order to do so, the MARTe application configuration class must define a DAQMasterObject instance, which is in charge of the management, configuration process and DAQ Maps definition for a given UEIDAQ device.
+In order to use the UEIDataSource, the first step is to configure and initialise the UEIDAQ device. In order to do so, the MARTe application configuration class must define a UEIMasterObject instance, which is in charge of the management, configuration process and DAQ Maps definition for a given UEIDAQ device.
 
 A basic example of the definition of such object is given below:
 ```
 +UEIDevice1 = {
-	Class = DAQMasterObject
+	Class = UEIMasterObject
 	Ip = {127, 0, 0, 2}
 	Port = 6334
 	+Devices = {
@@ -34,7 +34,7 @@ A basic example of the definition of such object is given below:
 	+Maps = {
 		Class=ReferenceContainer
 		+Map1 = {
-			Class = DAQMapContainer
+			Class = UEIMapContainer
 			Type = "RtDMap"
 			ScanRate = 1.0
 			Outputs = {
