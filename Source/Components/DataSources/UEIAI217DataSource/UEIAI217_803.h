@@ -108,7 +108,6 @@ class UEIAI217_803 : public UEIDevice {
      */
     bool Initialise(StructuredDataI &data);
 
-    uint8 GetDevN();
     int32 GetModel();
     uint8 GetType();
     //Returns the number of bytes a single sample of this device occupies
@@ -123,9 +122,9 @@ class UEIAI217_803 : public UEIDevice {
      * @param[in] direction the channel direction, definition according to UEIDefinitions.h (INPUT_CHANNEL and OUTPUT_CHANNEL)
      * @return true the specified channel is valid within AI-217-803 layer with the direction provided.
      */
-    bool CheckChannelAndDirection(uint32 channelNumber, uint8 direction);
-    bool ConfigureChannel(uint32* channel);
-    bool ConfigureChannel(int32* channel);
+    bool CheckChannelAndDirection(uint32 channelIdx, uint8 direction);
+    bool ConfigureChannel(uint32 channelIdx, uint32* channelConfiguration);
+    bool ConfigureChannel(uint32 channelIdx, int32* channelConfiguration);
     bool ConfigureDevice(int32 DAQ_handle);
     bool AcceptedSignalType(TypeDescriptor signalType);
     bool GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32* pgaStatusArray);

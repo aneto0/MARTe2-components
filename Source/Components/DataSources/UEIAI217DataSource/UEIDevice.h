@@ -55,9 +55,6 @@ namespace MARTe {
  *
  * This class should not be instantiated as a device object but rather the derived classes from this base class.
  *
- * <pre>
- *
- * <\pre>
  */
 
 class UEIDevice : public Object {
@@ -87,20 +84,106 @@ class UEIDevice : public Object {
      */
     virtual bool Initialise(StructuredDataI &data);
 
-
-
-    virtual uint8 GetDevN();
+    /**
+     * @brief Getter for the device model number.
+     * @details This method returns the device model number. Implementation must be provided in each
+     * of the device-specific child classes for its specific model number.
+     * @return 0x00 (invalid model number).
+     */
     virtual int32 GetModel();
+    
+    /**
+     * @brief Getter for the device type (hardware layer interface type).
+     * @details This method returns the device type. Implementation must be provided in each
+     * of the device-specific child classes for its specific device type.
+     * @return HARDWARE_LAYER_UNDEFINED.
+     */
     virtual uint8 GetType();
-    //Returns the number of bytes a single sample of this device occupies
+    
+    /**
+     * @brief Getter for the device sample size (sample size in bytes).
+     * @details This method returns the device sample size. Implementation must be provided in each
+     * of the device-specific child classes for its specific sample size.
+     * @return 0
+     */
     virtual uint8 GetSampleSize();
+    
+    /**
+     * @brief Getter for the number of channels of the device.
+     * @details This method returns the number of channels of the device. Implementation must be provided in each
+     * of the device-specific child classes for its specific number of channels.
+     * @return 0
+     */
     virtual uint32 GetDeviceChannels();
-    virtual bool CheckChannelAndDirection(uint32 channelNumber, uint8 direction);
-    virtual bool ConfigureChannel(uint32* channel);
-    virtual bool ConfigureChannel(int32* channel);
-    virtual bool ConfigureDevice(int32 DAQ_handle);    
+    
+    /**
+     * @brief Method to check if a channel is a valid to be used in a certain direction (input or output channel).
+     * @details This method checks if channel number provided (first channel is indexed to 0) is valid within this device
+     * in the specified direction (input or output channel).
+     * Implementation of this method must be provided in each of the device-specific child classes for their specific I/O characteristics.
+     * @param[in] channelNumber channel index (first channel indexes to 0).
+     * @param[in] direction direction for the specified channel query (see UEIDefinitions.h for reference)
+     * @return false. (Must return true if specified channel and direction are valid, false otherwise).
+     */
+    virtual bool CheckChannelAndDirection(uint32 channelIdx, uint8 direction);
+    
+    /**
+     * @brief Method to configure a channel in the specific configuration scheme of the device.
+     * @details This method returns the configuration bitfield for the specified channel in the device.
+     * Implementation of this method must be provided in each of the device-specific child classes for their specific configuration flags.
+     * @param[in] channelIdx channel index (first channel indexes to 0).
+     * @param[out] channelConfiguration pointer to channel configuration bitfield for the specified channel in the device. 
+     * @return false (true if the channel is valid and information for configuration can be retrieved, false otherwise).
+     */
+    virtual bool ConfigureChannel(uint32 channelIdx, uint32* channelConfiguration);
+    
+    /**
+     * @brief Method to configure a channel in the specific configuration scheme of the device.
+     * @details This method returns the configuration bitfield for the specified channel in the device.
+     * Implementation of this method must be provided in each of the device-specific child classes for their specific configuration flags.
+     * @param[in] channelIdx channel index (first channel indexes to 0).
+     * @param[out] channelConfiguration pointer to channel configuration bitfield for the specified channel in the device. 
+     * @return false (true if the channel is valid and information for configuration can be retrieved, false otherwise).
+     */
+    virtual bool ConfigureChannel(uint32 channelIdx, int32* channelConfiguration);
+    
+    /**
+     * @brief Method to configure the device.
+     * @details This method performs the required configuration and initialisation procedures for the specific device (hardware layer).
+     * Implementation of this method must be provided in each of the device-specific child classes for their specific configuration procedures.
+     * @param[in] DAQ_handle IOM handle provided by UEIMasterObject to issue initialisation commands to the device.
+     * @return false (true if configuration procedure for the device succeeded, false otherwise).
+     */
+    virtual bool ConfigureDevice(int32 DAQ_handle);
+
+    /**
+     * @brief Method to check if a signal type is accepted as input/output type.
+     * @details This method checks if the signal type provided is a valid type for input/output operations for the specific device (hardware layer).
+     * Implementation of this method must be provided in each of the device-specific child classes for their specific type characteristics.
+     * @param[in] signalType the type which is being queried as input/output type.
+     * @return false (true if the signal type provided is accepted as input/output type, false otherwise).
+     */
     virtual bool AcceptedSignalType(TypeDescriptor signalType);
+
+    /**
+     * @brief Method to check channel status.
+     * @details This method performs checks on the channels defined for the device (if available by hardware) and reports its status.
+     * Implementation of this method must be provided in each of the device-specific child classes for their specific channel diagnostics capabilities.
+     * @param[in] DAQ_handle IOM handle for the current device UEIDAQ system.
+     * @param[out] errorBitField pointer to array of bit fields stating the current status of each of the channels on the device (refer to
+     * device specific documentation for interpretation on such bitfield values).
+     * @param[out] pgaStatusArray TODO.
+     * @return false (true if the diagnostics checks were performed successfully, false otherwise).
+     */
     virtual bool GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32* pgaStatusArray);
+
+    /**
+     * @brief Getter for device Id (devn in PowerDNA API).
+     * @details This method returns the device id (devn) for the device. This base class implementation
+     * is generic for all the UEIDAQ devices and should not be redefined in child classes.
+     * @return devn configured for this device, 0xFF if the device has not been initialised.
+     */
+    uint8 GetDevN();
 
     /**
      * @brief Setter for hardwareCorrespondence flag.

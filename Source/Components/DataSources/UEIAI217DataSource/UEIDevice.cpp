@@ -98,11 +98,6 @@ bool UEIDevice::Initialise(StructuredDataI &data){
     return ok;
 }
 
-uint8 UEIDevice::GetDevN(){
-    //Base implmentation returns false by default, this function must be implemented by child class.
-    return 0xFF;
-}
-
 int32 UEIDevice::GetModel(){
     //Base implmentation returns false by default, this function must be implemented by child class.
     return 0x00;
@@ -123,16 +118,16 @@ uint32 UEIDevice::GetDeviceChannels(){
     return 0u;
 }
 
-bool UEIDevice::CheckChannelAndDirection(uint32 channelNumber, uint8 direction){
+bool UEIDevice::CheckChannelAndDirection(uint32 channelIdx, uint8 direction){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
 }
 
-bool UEIDevice::ConfigureChannel(uint32* channel){
+bool UEIDevice::ConfigureChannel(uint32 channelIdx, uint32* channelConfiguration){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
 }
-bool UEIDevice::ConfigureChannel(int32* channel){
+bool UEIDevice::ConfigureChannel(uint32 channelIdx, int32* channelConfiguration){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
 }
@@ -150,6 +145,10 @@ bool UEIDevice::AcceptedSignalType(TypeDescriptor signalType){
 bool UEIDevice::GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32* pgaStatusArray){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
+}
+
+uint8 UEIDevice::GetDevN(){
+    return deviceId;
 }
 
 bool UEIDevice::SetHardwareCorrespondence(){

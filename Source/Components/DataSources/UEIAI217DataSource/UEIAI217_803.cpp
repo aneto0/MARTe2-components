@@ -180,13 +180,13 @@ bool UEIAI217_803::Initialise(StructuredDataI &data){
     return ok;
 }
 
-bool UEIAI217_803::CheckChannelAndDirection(uint32 channelNumber, uint8 direction){
+bool UEIAI217_803::CheckChannelAndDirection(uint32 channelIdx, uint8 direction){
     //For AI-217-803 all the channels (0 to 15 as only 16 channels are available) are inputs
     bool validChannel = false;
     //Channel only valid if it is configured as an output
     if (direction == OUTPUT_CHANNEL){
         //Channel only valid if within range [0,15]
-        if (channelNumber>=0u && channelNumber<16){
+        if (channelIdx>=0u && channelIdx<16){
             validChannel = true;
         }else{
             REPORT_ERROR(ErrorManagement::ParametersError, "DAQMasterObject::Initialise - "
@@ -275,9 +275,6 @@ bool UEIAI217_803::GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uin
     return ok;
 }
 
-uint8 UEIAI217_803::GetDevN(){
-    return deviceId;
-}
 
 int32 UEIAI217_803::GetModel(){
     return 535; //217 in hexadecimal
@@ -295,41 +292,44 @@ uint8 UEIAI217_803::GetSampleSize(){
     return sizeof(uint32);
 }
 
-bool UEIAI217_803::ConfigureChannel(uint32* channel){
+bool UEIAI217_803::ConfigureChannel(uint32 channelIdx, uint32* channelConfiguration){
+    bool ok = (channelIdx < CHANNEL_NUMBER);
     uint32 gain = 0u;
-    switch(gains[*channel]){
-        case 1:
-            gain = DQ_AI217_GAIN_1;
-            break;
-        case 2:
-            gain = DQ_AI217_GAIN_2;
-            break;
-        case 4:
-            gain = DQ_AI217_GAIN_4;
-            break;
-        case 8:
-            gain = DQ_AI217_GAIN_8;
-            break;
-        case 16:
-            gain = DQ_AI217_GAIN_16;
-            break;
-        case 32:
-            gain = DQ_AI217_GAIN_32;
-            break;
-        case 64:
-            gain = DQ_AI217_GAIN_64;
-            break;
-        default:
-            return false;
-            break;
+    //TODO checks on channel
+    //Check if the channel provided is within available channels for this device
+    if (ok){
+        switch(gains[channelIdx]){
+            case 1:
+                gain = DQ_AI217_GAIN_1;
+                break;
+            case 2:
+                gain = DQ_AI217_GAIN_2;
+                break;
+            case 4:
+                gain = DQ_AI217_GAIN_4;
+                break;
+            case 8:
+                gain = DQ_AI217_GAIN_8;
+                break;
+            case 16:
+                gain = DQ_AI217_GAIN_16;
+                break;
+            case 32:
+                gain = DQ_AI217_GAIN_32;
+                break;
+            case 64:
+                gain = DQ_AI217_GAIN_64;
+                break;
+            default:
+                return false;
+                break;
+        }
+        *channelConfiguration = (channelIdx | DQ_LNCL_GAIN(gain) | DQ_LNCL_DIFF); //AI-217 can only operate in differential mode
     }
-    *channel = (*channel | DQ_LNCL_GAIN(gain) | DQ_LNCL_DIFF); //AI-217 can only operate in differential mode
-    return true;
+    return ok;
 }
-bool UEIAI217_803::ConfigureChannel(int32* channel){
-    uint32 channel_ = (int32)(*channel);
-    bool ok = ConfigureChannel(&channel_); 
-    (*channel) = (int32)(channel_);
+bool UEIAI217_803::ConfigureChannel(uint32 channelIdx, int32* channelConfiguration){
+    bool ok = ConfigureChannel(channelIdx, (uint32*)channelConfiguration); 
     return ok;
 }
 

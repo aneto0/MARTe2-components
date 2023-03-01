@@ -578,9 +578,10 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                         for (uint32 j = 0; j < outputMembersOrdered[i]->Outputs.nChannels && ok; j++){
                             uint32 channel = outputMembersOrdered[i]->Outputs.channels[j];
                             uint8 devn = outputMembersOrdered[i]->devn;
-                            ok = (devReference->ConfigureChannel(&channel));
+                            uint32 channelData = 0u;
+                            ok = (devReference->ConfigureChannel(channel, &channelData));
                             if (ok){
-                                ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, &channel, 1));
+                                ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, &channelData, 1));
                             }
                             if (!ok){
                                 REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding output channels for dev%d on Map %s", devn, name.Buffer());
@@ -604,9 +605,10 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                         for (uint32 j = 0; j < inputMembersOrdered[i]->Inputs.nChannels && ok; j++){
                             uint32 channel = inputMembersOrdered[i]->Inputs.channels[j];
                             uint8 devn = inputMembersOrdered[i]->devn;
-                            ok = (devReference->ConfigureChannel(&channel));
+                            uint32 channelData = 0u;
+                            ok = (devReference->ConfigureChannel(channel, &channelData));
                             if (ok){
-                                ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0OUT, &channel, 1));
+                                ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0OUT, &channelData, 1));
                             }
                             if (!ok){
                                 REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding input channels for dev%d on Map %s", devn, name.Buffer());
@@ -674,7 +676,8 @@ bool DAQMapContainer::StartMap(int32 DAQ_handle_){
                         for (uint32 j = offset ; j < nChannels_ && ok; j++){
                             channels[j] = (int32)(outputMembersOrdered[i]->Outputs.channels[j-offset]);
                             flags[j] = DQ_VMAP_FIFO_STATUS;
-                            ok = (devReference->ConfigureChannel(&channels[j]));
+                            int32 channel = channels[j];
+                            ok = (devReference->ConfigureChannel(channel, &channels[j]));
                             if (!ok){
                                 REPORT_ERROR(ErrorManagement::InitialisationError, "Could not configure channels in outputMember %i on Map %s", i, name.Buffer());
                             }
