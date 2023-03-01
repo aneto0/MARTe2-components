@@ -53,38 +53,6 @@ namespace MARTe {
  * @brief TODO
  * @details TODO
  *
- * <pre>
- *    +Map1 = {
- *        Class             = UEIMapContainer
- *         Type             = "RtDMap"            
- *         sampleRate         = 1.0   //Only meaningfull for RtDMap (VMap is synchronous to refresh function)    
- *         Samples          = 10    //Only meaningfull for VMap
- *         Inputs = {
- *           Devices = {                
- *             dev0 = {
- *                 Devn        = 0
- *                 Channels    = {0, 1, 2}
- *             }
- *             dev1 = {
- *                 Devn        = 1
- *                 Channels    = {0, 1, 2}   
- *             }
- *           }
- *         }
- *         Outputs = {
- *           Devices = {                
- *             dev0 = {
- *                 Devn        = 0
- *                 Channels    = {5, 6}
- *             }
- *             dev1 = {
- *                 Devn        = 1
- *                 Channels    = {7, 8}   
- *             }
- *           }
- *         }
- *      }
- * </pre>
  */
 
 /** @struct IOMapMember
@@ -101,7 +69,7 @@ typedef struct{
     int8*   correctionIndexes;
     uint32  nChannels;
     ReferenceT<UEICircularBuffer> buffer;
-    uint32 requestSize;
+    uint32 requestSize;         //WTF?
 }IOMapMember;
 
 /** @struct mapMember
@@ -116,8 +84,8 @@ typedef struct{
     bool defined;
     ReferenceT<UEIDevice> reference;
     uint8 devn;
-    IOMapMember Inputs;
-    IOMapMember Outputs;
+    IOMapMember Inputs;             //IO map member containing the Input members to the map (electrical signals into the ADC)
+    IOMapMember Outputs;            //IO map member containing the Output members to the map (signals fed into the DAC to convert to electrical signals)
 }mapMember;
 
 class UEIMapContainer : public ReferenceContainer {
@@ -145,14 +113,50 @@ class UEIMapContainer : public ReferenceContainer {
     virtual bool Initialise(StructuredDataI &data);
 
     /**
+     * @brief Method to perform map initialisation and start in the IOM.
+     * @details This method performs the initialisation procedures for the map by issuing the appropriate commands directly to IOM.
+     * The IOM handle supplied to this method will be saved for later usage on polling/data recieving operations.
+     * This function must be reimplmented by each of the derived map classes, as the map configuration procedures is map-type dependant.
+     * @param[in] DAQ_handle_ handle to the IOM, must be provided by UEIMasterObject to this method.
+     * @return true if the initialisation and starting procedure succeeds for this map.
+     */
+    virtual bool StartMap(int32 DAQ_handle_);
+    
+    /**
+     * @brief Method to poll the IOM for new data on the map.
+     * @param[out] destinationAddr pointer to the memory region where the contents of the newly recived (if so) map packet are copied.
+     * @return true if a new packet has been recieved, false otherwise.
+     */
+    virtual bool PollForNewPacket(float64* destinationAddr);
+
+    /**
+     * @brief Getter for the type of the map.
+     * @details This function is implemented in the base class to return NOMAP type as this function must be reimplemented
+     * by the child class and return the appropriate class for the selected map.
+     * @return the type of the map as defined in UEIDefinitions.h.
+     */
+    virtual uint8 GetType();
+
+    /**
      * @brief Close the DAQ Map structure in a clean way.
      * @details This function must be called by UEIMasterObject before destruction
-     * of the IOM handle to ensure clean closing of the DAQ Map.
+     * of the IOM handle to ensure clean closing of the DAQ Map. Implementation of this method
+     * must be done in each of the child map classes.
      * @param[in] DAQ_handle handler of the IOM to which the map belongs.
      * @return true if the map has been closed correctly and cleanly.
      */
-    bool CleanupMap();
-    
+    virtual bool CleanupMap();
+
+    /**
+     * @brief Method check the map coherency with the information on the devices assigned to each of the members.
+     * @details This method is executed by UEIMasterObject right after the devices references are set into the corresponding map members
+     * by the call to SetDevices method on this class. During initialisation of the map objects, the object has no access to the device objects and
+     * therefore cannot execute a certain set of checks regarding the information. This method implement such checks and is to be called once the
+     * device references have been set appropriately.
+     * @return true if coherency check for the map has succeeded, false otherwise.
+     */
+    bool CheckMapCoherency();
+
     /**
      * @brief Getter for defiened devices (by devn) in a map.
      * @param[in] devn device number to be checked for use in the map.
@@ -186,7 +190,7 @@ class UEIMapContainer : public ReferenceContainer {
     bool GetNumberOfChannels(uint8 direction, uint32 &nChannels);
 
     /**
-     * @brief Getter for specifiec channel identifier of a map member (device within map) in a specified direction.
+     * @brief Getter for specific channel identifier of a map member (device within map) in a specified direction.
      * @param[in] devn device number (member identifier) from which to get channel identifier.
      * @param[in] direction direction of the signal to be retrieved.
      * @param[in] channelIdx index within channel list of the selected device and direction.
@@ -201,14 +205,7 @@ class UEIMapContainer : public ReferenceContainer {
      * @param[in] reference reference of the device object to be set in the specified map member.
      * @return true if the specified map member and reference are valid.
      */
-    bool SetDevices(ReferenceT<UEIDevice>* referenceList); //TODO
-
-    /**
-     * @brief Method to perform map initialisation and start in the IOM.
-     * @param[in] DAQ_handle_ handle to the IOM, must be provided by UEIMasterObject to this method.
-     * @return true if the initialisation and starting procedure succeeds for this map.
-     */
-    bool StartMap(int32 DAQ_handle_);
+    bool SetDevices(ReferenceT<UEIDevice>* referenceList);
 
     /**
      * @brief Getter for the name of this map object.
@@ -221,13 +218,6 @@ class UEIMapContainer : public ReferenceContainer {
      * @return The scan rate of this map (in Hz).
      */
     float GetsampleRate();
-
-    /**
-     * @brief Method to poll the IOM for new data on the map.
-     * @param[out] destinationAddr pointer to the memory region where the contents of the newly recived (if so) map packet are copied.
-     * @return true if a new packet has been recieved, false otherwise.
-     */
-    bool PollForNewPacket(float64* destinationAddr, uint32 nChannels);
 
     /**
      * @brief Method to lock the map access by a DataSource in a certain direction.
@@ -247,56 +237,52 @@ class UEIMapContainer : public ReferenceContainer {
      */
     bool IsSignalAllowed(TypeDescriptor signalType, uint8 direction);
 
-    bool CheckMapCoherency();
-    uint8 GetType();
-
-private:
+protected:
     /**
-     * @brief Private method to calculate the correction indexes for the channels on a VMap.
-     * @param[in] configuredChannelList pointer to an array of channels for which to generate the correction indexes.
-     * @param[out] correctionCoefficientsList pointer to an array containing the correction indexes for the channel list provided.
-     * @return true if the calculation was performed correclty, false otherwise.
+     * @brief Protected method which translates the 32-bit timestamp into a 64-bit timestamp.
+     * @details This method implemented in the base class and common for all child classes performs the translation from 32-bit
+     * timestamp received from the device into 64-bit precision timestamp (by monitoring the 32-bit timestamp overflow). 
+     * @param[in] inputTimestamp the 32-bit timestamp received from the device.
+     * @param[out] outputTimestamp the corrected 64-bit timestamp.
+     * @return true if timestamp correction was performed successfully.
      */
-    bool CalculateCorrectionIndexes(uint32* configuredChannelList, int8* correctionCoefficientsList);
+    bool GetTimestamp(uint32 inputTimestamp, uint64 &outputTimestamp);
+    /**
+     * @brief Protected method which translates the 32-bit timestamp into a 64-bit timestamp.
+     * @details This method implemented in the base class and common for all child classes performs the translation from 32-bit
+     * timestamp received from the device into 64-bit precision timestamp (by monitoring the 32-bit timestamp overflow). 
+     * @param[in] inputTimestamp a pointer to the 32-bit timestamp array received from the device.
+     * @param[in] timestampListLength length of the supplied array of 32-bit timestamps. The destination array of 64-bit timestamps must be able
+     * to accomodate such number of timestamps.
+     * @param[out] outputTimestamp pointer to the destination array of corrected 64-bit timestamps.
+     * @return true if timestamp correction was performed successfully.
+     */
+    bool GetTimestamp(uint32* inputTimestamp, uint32 timestampListLength ,uint64* outputTimestamp);
 
-  bool GetMapPointers();
-
-    //Private function to calculate and correct the timestamp of the recieved Data packet and extend it to 64 bit precision
-    //For example, a 32 bit time-stamp can only reach up to 1.2h on maximum resolution (0.1 us), but with 64 bit, up to 60000 years can be reached
-    uint64 GetTiemstamp(uint32 timestamp);
-    
     /**
     *   Variable holding the name of the Map Container (node name).
     */
     StreamString name;
+    
+    /**
+    *   Id of this map as assigned during map initialisation.
+    */
+    int32 mapid;
 
     /**
-    *   Variable holding the map type defined in configuration and translated
-    *   to numerical value (see defines in UEIMapContainer.h).
+    *   Variable holding IOM handle. This handle should be acquired once the StartMap method is called.
     */
-    uint8 mapType;
-    
+    int32 DAQ_handle;
+
     /**
     *   Variable holding the configured sample rate for this specific map's IO layers (for XVMap).
     */
     float sampleRate;
 
-
     /**
     *   Variable holding the configured scan rate for this specific map.
     */
     float scanRate;
-
-    /**
-    *   Id of this map as assigned during map initialisation.
-    */
-    int32 mapid;
-    
-    /**
-    *   Pointer to the start of the input memory map for this map.
-    */
-    uint32* inputMapPtr;
-    
     
     /**
     *   Array containing the members of this map regarding output signals (the ones coming from IOM) (indexed by devn).
@@ -304,31 +290,50 @@ private:
     mapMember members [MAX_IO_SLOTS];
 
     /**
-    *   Pointer to array of references of output members (in configuration order).
+    *   Pointer to array of references of output members (in configuration order). Ordered array pointing to members.
     */
     mapMember** outputMembersOrdered;
 
-    uint32 nOutputMembers;
-    uint32 nOutputChannels;
-    
     /**
-    *   Pointer to array of references of input members (in configuration order).
+    *   Pointer to array of references of input members (in configuration order). Ordered array pointing to members.
     */
     mapMember** inputMembersOrdered;
 
+    /**
+    *   Variable holding the number of members defined as Output members.
+    */
+    uint32 nOutputMembers;
+
+    /**
+    *   Variable holding the number of members defined as Input members.
+    */
     uint32 nInputMembers;
+
+    /**
+    *   Variable holding the total number of channels defined within the Output members of the map.
+    */
+    uint32 nOutputChannels;
+    
+    /**
+    *   Variable holding the total number of channels defined within the Input members of the map.
+    */
     uint32 nInputChannels;
-    int32 DAQ_handle;
-    uint32* outputMap;
-    uint32* inputMap;
-    uint32 poll_sleep_period;
+
+    /**
+    *   Flag signaling if this Map has already been requested to be part of a DataSource providing Output signals.
+    */
     bool outputAssignedToDS;
+    
+    /**
+    *   Flag signaling if this Map has already been requested to be part of a DataSource requesting Input signals.
+    */
     bool inputAssignedToDS;
     
     /**
-    *   Variable holding the max number of outputs to be retrieved for each VMap query.
+    *   Variable holding the max number of outputs to be retrieved for each map query. (The map can only provide a fixed amount of samples for 
+    *   every channel, no different sample number per channel are allowed)
     */
-    uint32 sampleNumber; 
+    uint32 sampleNumber;
 
     /**
     *   Variable holding the corrector factor to the timestamp (the 32 MSB of the timestamp)

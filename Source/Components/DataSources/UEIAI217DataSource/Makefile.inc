@@ -21,7 +21,14 @@
 # permissions and limitations under the Licence. 
 #
 #############################################################
-OBJSX=  UEIDataSource.x UEIDevice.x UEIMasterObject.x UEIAI217_803.x UEIMapContainer.x UEICircularBuffer.x
+OBJSX=  UEIDataSource.x 		\
+ 		UEIDevice.x 			\
+		UEIMasterObject.x 		\
+		UEIAI217_803.x 			\
+		UEIMapContainer.x 		\
+		UEICircularBuffer.x		\
+		UEIRtDMap.x				\
+		UEIRtVMap.x			
 
 PACKAGE=Components/DataSources
 
@@ -65,7 +72,9 @@ all: $(OBJS)    \
 	$(BUILD_DIR)/UEIMasterObject$(DLLEXT) 	\
 	$(BUILD_DIR)/UEIAI217_803$(DLLEXT)		\
 	$(BUILD_DIR)/UEIMapContainer$(DLLEXT)	\
-	$(BUILD_DIR)/UEICircularBuffer$(DLLEXT)
+	$(BUILD_DIR)/UEICircularBuffer$(DLLEXT)	\
+	$(BUILD_DIR)/UEIRtDMap$(DLLEXT)			\
+	$(BUILD_DIR)/UEIRtVMap$(DLLEXT)
 		echo  $(OBJS)
 
 

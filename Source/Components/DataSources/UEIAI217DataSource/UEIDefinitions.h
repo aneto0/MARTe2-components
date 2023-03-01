@@ -40,6 +40,7 @@
 #define INPUT_CHANNEL   1u
 
 //Map definitions
+#define NOMAP           0u
 #define RTDMAP          1u
 #define RTVMAP          2u
 #define ADMAP           3u
