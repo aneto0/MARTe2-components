@@ -189,11 +189,11 @@ bool UEIAI217_803::CheckChannelAndDirection(uint32 channelIdx, uint8 direction){
         if (channelIdx>=0u && channelIdx<16){
             validChannel = true;
         }else{
-            REPORT_ERROR(ErrorManagement::ParametersError, "DAQMasterObject::Initialise - "
+            REPORT_ERROR(ErrorManagement::ParametersError, "UEIMasterObject::Initialise - "
             "AI-217-803 layer only accepts channels 0 to 15.");
         }
     }else{
-        REPORT_ERROR(ErrorManagement::ParametersError, "DAQMasterObject::Initialise - "
+        REPORT_ERROR(ErrorManagement::ParametersError, "UEIMasterObject::Initialise - "
         "AI-217-803 layer only accepts output signals!");
     }
     return validChannel;
@@ -204,7 +204,7 @@ bool UEIAI217_803::ConfigureDevice(int32 DAQ_handle){
     //Configure all the channels in the layer at the same time (for now no custom channel configuration is allowed)
     ok = (DqAdv217SetCfgLayer(DAQ_handle, deviceId, DQ_AI217_SETCFG_ALL_CHAN, DQ_AI217_SET_CFG_LAYER_ADC, ADCMode) >= 0);
     if (!ok){
-        REPORT_ERROR(ErrorManagement::ParametersError, "DAQMasterObject::Initialise - "
+        REPORT_ERROR(ErrorManagement::ParametersError, "UEIMasterObject::Initialise - "
         "Unable to configure ADC CfgLayer for Device %s.", name.Buffer());
     }
     //Configure the FIR filters as required
@@ -265,7 +265,7 @@ bool UEIAI217_803::ConfigureDevice(int32 DAQ_handle){
 bool UEIAI217_803::GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32* pgaStatusArray){
     bool ok = (DAQ_handle != 0); 
     if (!ok){
-        REPORT_ERROR(ErrorManagement::ParametersError, "DAQMasterObject::GetChannelStatus - "
+        REPORT_ERROR(ErrorManagement::ParametersError, "UEIMasterObject::GetChannelStatus - "
         "Unable to get Channel status for Device %s. Invalid IOM handle", name.Buffer());
     }
     if (ok){
@@ -328,6 +328,7 @@ bool UEIAI217_803::ConfigureChannel(uint32 channelIdx, uint32* channelConfigurat
     }
     return ok;
 }
+
 bool UEIAI217_803::ConfigureChannel(uint32 channelIdx, int32* channelConfiguration){
     bool ok = ConfigureChannel(channelIdx, (uint32*)channelConfiguration); 
     return ok;

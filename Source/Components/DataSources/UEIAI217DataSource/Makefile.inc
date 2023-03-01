@@ -21,7 +21,7 @@
 # permissions and limitations under the Licence. 
 #
 #############################################################
-OBJSX=  UEIDAQDataSource.x UEIDevice.x DAQMasterObject.x UEIAI217_803.x DAQMapContainer.x DAQCircularBuffer.x
+OBJSX=  UEIDAQDataSource.x UEIDevice.x UEIMasterObject.x UEIAI217_803.x UEIMapContainer.x UEICircularBuffer.x
 
 PACKAGE=Components/DataSources
 
@@ -60,13 +60,12 @@ LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB)
 endif
 
 all: $(OBJS)    \
-	$(BUILD_DIR)/UEIDAQDataSource$(LIBEXT) 	\
 	$(BUILD_DIR)/UEIDAQDataSource$(DLLEXT) 	\
 	$(BUILD_DIR)/UEIDevice$(DLLEXT) 		\
-	$(BUILD_DIR)/DAQMasterObject$(DLLEXT) 	\
+	$(BUILD_DIR)/UEIMasterObject$(DLLEXT) 	\
 	$(BUILD_DIR)/UEIAI217_803$(DLLEXT)		\
-	$(BUILD_DIR)/DAQMapContainer$(DLLEXT)	\
-	$(BUILD_DIR)/DAQCircularBuffer$(DLLEXT)
+	$(BUILD_DIR)/UEIMapContainer$(DLLEXT)	\
+	$(BUILD_DIR)/UEICircularBuffer$(DLLEXT)
 		echo  $(OBJS)
 
 

@@ -39,8 +39,8 @@
 #include "StreamString.h"
 #include "ObjectRegistryDatabase.h"
 
-#include "DAQMasterObject.h"
-#include "DAQMapContainer.h"
+#include "UEIMasterObject.h"
+#include "UEIMapContainer.h"
 
 
 
@@ -121,12 +121,12 @@ private:
     /**
      * Reference to the UEIMasterObject containing the configuration of the desired Device
      */
-    ReferenceT<DAQMasterObject> device;
+    ReferenceT<UEIMasterObject> device;
     
     /**
      * Reference to the UEIMapContainer containing the desired map. This map must exist within the specified device
      */
-    ReferenceT<DAQMapContainer> map;
+    ReferenceT<UEIMapContainer> map;
 
     /**
      * Variable to store the selected polling sleep period configured for this datasource. This is the period of MARTe sleep
