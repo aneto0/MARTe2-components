@@ -209,16 +209,11 @@ bool UEIRtDMap::PollForNewPacket(float64* destinationAddr){
         //Check if the response is a new packet or a rerequest.
         //The 0x80000000 bit on the recived samples lets us know if the packet has
         //been previously requested.
-        if (reinterpret_cast<uint32*>(inputMap)[1] & 0x80000000){ 
+        if (reinterpret_cast<uint32*>(inputMap)[1] & 0x80000000){ //The first channel on the map is always the timestamp, check the next one
             //The recived packet is a newly converted one not requested yet.
-            //First of all compute the timestamp, which occupies the first position of input memory on the datasource as uint64
-            ok = (GetTimestamp(reinterpret_cast<uint32*>(inputMap)[0], reinterpret_cast<uint64*>(destinationAddr)[0]));
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::CommunicationError, "Could not process correctly the timestamp value on RtDMap %s", name.Buffer());
-            }
             //Make the signals available to the DataSource.
             //TODO implement this using memcopy
-            uint32 iterator = 1;    //iterator starts at 1 due to the first channel (index 0) being used by the 64-bit timestamp
+            uint32 iterator = 0;    //iterator starts at 1 due to the first channel (index 0) being used by the 64-bit timestamp
             for (uint32 mem = 0; mem < nInputMembers && ok; mem++){
                 //Copy the scaled values obtained in the hardware layer into the destination buffer
                 ok = (DqRtDmapReadScaledData(DAQ_handle, mapid, inputMembersOrdered[mem]->devn, &destinationAddr[iterator], inputMembersOrdered[mem]->Inputs.nChannels) >= 0);
@@ -227,6 +222,12 @@ bool UEIRtDMap::PollForNewPacket(float64* destinationAddr){
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::CommunicationError, "Error while translating the channels to scaled values on Map %s.", name.Buffer());
                 }
+            }
+            //Compute the timestamp, which occupies the first position of input memory on the datasource as uint64
+            //By calling this method in this position, the already written float64 on the first position is overwritten by this uint64 timestamp (better alternative)
+            ok = (GetTimestamp(reinterpret_cast<uint32*>(inputMap)[0], reinterpret_cast<uint64*>(destinationAddr)[0]));
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::CommunicationError, "Could not process correctly the timestamp value on RtDMap %s", name.Buffer());
             }
             next_packet = true;
         }
