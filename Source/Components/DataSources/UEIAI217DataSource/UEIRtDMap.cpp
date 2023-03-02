@@ -232,7 +232,7 @@ bool UEIRtDMap::PollForNewPacket(float32* destinationAddr){
                 //Copy the scaled values obtained in the hardware layer into the destination buffer
                 uint32 nOfchannel = inputMembersOrdered[mem]->Inputs.nChannels;
                 if (inputMembersOrdered[mem]->Inputs.timestampRequired){
-                    nOfchannel += 1u;
+                    nOfchannel += 2u;
                 }
                 ok = (DqRtDmapReadScaledDataF(DAQ_handle, mapid, inputMembersOrdered[mem]->devn, &destinationAddr[iterator], nOfchannel) >= 0);
                 iterator += nOfchannel;

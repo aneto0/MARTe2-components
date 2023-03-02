@@ -575,8 +575,9 @@ bool UEIMapContainer::GetTimestamp(uint32 inputTimestamp, uint64 &outputTimestam
 
 bool UEIMapContainer::GetTimestamp(uint32* inputTimestamp, uint32 timestampListLength ,uint64* outputTimestamp){
     //Check length of the different destination/source arrays
-    bool ok = (timestampListLength <= (sizeof(inputTimestamp)/sizeof(inputTimestamp[0])));
-    ok &= (timestampListLength <= (sizeof(outputTimestamp)/sizeof(outputTimestamp[0])));
+    bool ok = (timestampListLength >= 0u);
+    ok &= (inputTimestamp != NULL);
+    ok &= (outputTimestamp != NULL);
     if (ok){
         //The lengths of the arrays are ok to accomodate the timestamps.
         for (uint32 i = 0u; i < timestampListLength && ok; i++){

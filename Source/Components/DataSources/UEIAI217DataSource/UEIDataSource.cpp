@@ -145,7 +145,7 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
         signalType = GetSignalType(1u);
         ok = (signalType == Float32Bit); //TODO, for now we only support scaled float64 data, we'll update on this later
         if (!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Signal type inconsistency in DataSource %s (all signals must be float64 bit for now)", name.Buffer());        
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Signal type inconsistency in DataSource %s (all signals must be float32 bit for now)", name.Buffer());        
         }
     }
     //Check that all the signals are of the same type
