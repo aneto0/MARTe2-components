@@ -124,7 +124,6 @@ bool UEICircularBuffer::CheckReadReady(){
     if (currentBufferLocation < channels*readSamples*sizeOfSamples){
         ReadReady = false;
     }
-    REPORT_ERROR(ErrorManagement::Information, "Buffer ready : %d, Samples available : %f", ReadReady, currentBufferLocation/(channels*sizeOfSamples));
     return ReadReady;
 }
 
@@ -147,22 +146,8 @@ bool UEICircularBuffer::ReadBuffer(uint8* destinationMemory, uint32* timestampAr
     //By definition in this Interface, the timestamp channel is always the first in the map.
     bool ok = CheckReadReady();
     if (ok){
-        for (uint32 i = 0; i <readSamples; i++){
-            for (uint32 j = 0; j <3u; j++){
-                printf("0x%08x ", reinterpret_cast<uint32*>(headPointer)[3u*i+j]);		
-            }
-            printf("\n");
-        }		
-        
         ok = CopyChannels(headPointer, timestampArray, destinationMemory, timestampInMap && (timestampArray != NULL));
-
-        for (uint32 i = 0; i < (channels*readSamples); i++){
-            printf("0x%08x ", reinterpret_cast<uint32*>(destinationMemory)[i]);		
-            if (i%readSamples ==(readSamples-1))	printf("\n");
-        }	
         if (ok){        
-        REPORT_ERROR(ErrorManagement::Information, "Channel copy into destination success");	
-
             //Prepare the memory to leave space for the next packet/s
             uint32 lastReadIndex = channels*readSamples*sizeOfSamples;
             uint32 lastWrittenIndex = bufferLength-currentBufferLocation;
@@ -192,7 +177,6 @@ bool UEICircularBuffer::CopyChannels(uint8* sourceMemory, uint32* timestampMemor
 			reinterpret_cast<uint32*>(destinationMemory)[((i-offset)*readSamples+j)] = reinterpret_cast<uint32*>(sourceMemory)[(j*channels+i)];				
 		}	
 	}        
-	REPORT_ERROR(ErrorManagement::Information, "Content copied");    
     return true;
 }
 
