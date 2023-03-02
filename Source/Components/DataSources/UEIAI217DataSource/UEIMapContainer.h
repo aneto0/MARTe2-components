@@ -362,8 +362,11 @@ protected:
     *   Variable holding the last processed timestamp, used to detect timestamp overflow.
     */
     uint32 lastTimestamp;
-    
 
+    /**
+    *   Flag signaling if the Map's packet needs to be fragmented.
+    */
+    bool fragmentedMap;
 };
 }
 #endif /* UEIMapContainer_H_ */

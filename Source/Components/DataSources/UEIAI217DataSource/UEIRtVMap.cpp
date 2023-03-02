@@ -154,8 +154,23 @@ bool UEIRtVMap::StartMap(){
             }
         }
     }
+    //Check if the Map packet needs to be fragmented
     if (ok){
-        ok = (DqRtVmapInit(DAQ_handle, &mapid, 0) >= 0); //This scan rate is the rate at which the IOM refreshes the version of VMap (Bullshit, this scan rate is not valid)
+        uint32 packetSize = nInputChannels*sampleNumber*4u; //TODO change th 4u
+        if (packetSize >= 11500){
+            fragmentedMap = true;
+            REPORT_ERROR(ErrorManagement::Information, "Map %s will be set up with fragmented packets", name.Buffer());
+        }else{
+            fragmentedMap = false;
+        }
+    }
+    if (ok){
+        if (fragmentedMap){
+            DQ_RTMAP_PARAM vmapparam = {11500, 1518, 1000};  //TODO change this parameters
+            ok = (DqRtVmapInitEx(DAQ_handle, &mapid, &vmapparam) >= 0); //Extended version of the VMapInit method for fragmented maps
+        }else{
+            ok = (DqRtVmapInit(DAQ_handle, &mapid, 0) >= 0); //This scan rate is the rate at which the IOM refreshes the version of VMap (Bullshit, this scan rate is not valid)        
+        }
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Error on Initialising Map %s", name.Buffer());
         }
@@ -270,7 +285,14 @@ bool UEIRtVMap::PollForNewPacket(float32* destinationAddr){
     bool ok = true;
     bool copy_done = false;
     //Refresh the VMap
-    int32 refreshReturn = DqRtVmapRefresh(DAQ_handle, mapid, 0);
+    int32 refreshReturn = 0;
+    if (fragmentedMap){
+        uint16 counter;
+        uint16 tstamp;
+        refreshReturn = DqRtVmapRefreshExt(DAQ_handle, mapid, 0, &counter, &tstamp);
+    }else{
+        refreshReturn = DqRtVmapRefresh(DAQ_handle, mapid, 0);
+    }
     ok = (refreshReturn == DQ_SUCCESS);
     if (ok){
         //If the map was correclty refreshed we proceed to reading the samples contained in the VMap structure

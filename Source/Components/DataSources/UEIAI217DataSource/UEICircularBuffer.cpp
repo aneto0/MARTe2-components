@@ -87,7 +87,7 @@ bool UEICircularBuffer::InitialiseBuffer(uint32 maxSamplesStored, uint32 channel
         }
     }
     if(ok){
-        ok = (maxSamplesStored < 100 && maxSamplesStored > 0);
+        ok = (maxSamplesStored > 0);
         bufferLength = maxSamplesStored*sizeOfSamples*channels;  
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "CircularBuffer size is too big.");

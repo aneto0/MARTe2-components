@@ -53,6 +53,7 @@ UEIMapContainer::UEIMapContainer() : ReferenceContainer() {
     nInputChannels = 0u;
     nOutputChannels = 0u;
     DAQ_handle = 0;
+    fragmentedMap = false;
     //Set the members of the map to a non-set state for safety
     for (uint32 i = 0u; i < MAX_IO_SLOTS; i++){
         //Set the member as not defined
