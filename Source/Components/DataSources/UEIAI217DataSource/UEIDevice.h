@@ -177,6 +177,7 @@ class UEIDevice : public Object {
      */
     virtual bool GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32* pgaStatusArray);
 
+    virtual bool ScaleSignal(uint32 channelIdx, uint32 listLength, uint32* rawData, float32* scaledData);
     /**
      * @brief Getter for device Id (devn in PowerDNA API).
      * @details This method returns the device id (devn) for the device. This base class implementation

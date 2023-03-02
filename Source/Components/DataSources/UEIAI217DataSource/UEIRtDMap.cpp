@@ -213,7 +213,7 @@ bool UEIRtDMap::GetMapPointers(){
     return ok;
 }
 
-bool UEIRtDMap::PollForNewPacket(float64* destinationAddr){
+bool UEIRtDMap::PollForNewPacket(float32* destinationAddr){
     bool next_packet = false;
     bool ok = true;
     //Poll for next packet from UEIDAQ
@@ -234,7 +234,7 @@ bool UEIRtDMap::PollForNewPacket(float64* destinationAddr){
                 if (inputMembersOrdered[mem]->Inputs.timestampRequired){
                     nOfchannel += 1u;
                 }
-                ok = (DqRtDmapReadScaledData(DAQ_handle, mapid, inputMembersOrdered[mem]->devn, &destinationAddr[iterator], nOfchannel) >= 0);
+                ok = (DqRtDmapReadScaledDataF(DAQ_handle, mapid, inputMembersOrdered[mem]->devn, &destinationAddr[iterator], nOfchannel) >= 0);
                 iterator += nOfchannel;
                 //The channels requested have already been copied, stop the loop
                 if (!ok){

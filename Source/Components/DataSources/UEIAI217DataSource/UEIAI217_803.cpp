@@ -340,10 +340,62 @@ bool UEIAI217_803::AcceptedSignalType(TypeDescriptor signalType){
     /*if (signalType == UnsignedInteger32Bit || signalType == Float64Bit){
         accepted = true;
     }*/
-    if (signalType == Float64Bit){
+    if (signalType == Float32Bit){
         accepted = true;
     }
     return accepted;
+}
+
+bool UEIAI217_803::ScaleSignal(uint32 channelIdx, uint32 listLength, uint32* rawData, float32* scaledData){
+    uint32 step = 0;
+    uint32 offset = 0;
+    bool ok = (channelIdx < CHANNEL_NUMBER);
+    if (ok){
+        switch (gains[channelIdx]) {
+            case DQ_AI217_GAIN_1:
+                step = DQ_AI217_STEP;
+                offset = DQ_AI217_OFFSET;
+                break;
+            case DQ_AI217_GAIN_2:
+                step = DQ_AI217_STEP_2 ;
+                offset = DQ_AI217_OFFSET_2;
+                break;
+            case DQ_AI217_GAIN_4:
+                step = DQ_AI217_STEP_4;
+                offset = DQ_AI217_OFFSET_4;
+                break;
+            case DQ_AI217_GAIN_8:
+                step = DQ_AI217_STEP_8;
+                offset = DQ_AI217_OFFSET_8;
+                break;
+            case DQ_AI217_GAIN_16:
+                step = DQ_AI217_STEP_16 ;
+                offset = DQ_AI217_OFFSET_16;
+                break;
+            case DQ_AI217_GAIN_32:
+                step = DQ_AI217_STEP_32;
+                offset = DQ_AI217_OFFSET_32;
+                break;
+            case DQ_AI217_GAIN_64:
+                step = DQ_AI217_STEP_64;
+                offset = DQ_AI217_OFFSET_64;
+                break;
+            case DQ_AI217_GAIN_4_CJC:        // this not applicable to the AI-218/9
+                step = DQ_AI217_STEP_4_CJC;
+                offset = DQ_AI217_OFFSET_4_CJC;
+                break;
+            default:
+                ok = false;
+                break;
+        }
+        for (uint32 i = 0; i < listLength; i++){
+            scaledData[i] = (float32)((rawData[i] & 0xFFFFFF) * step - offset);
+        }
+    }
+    if (!ok){
+        REPORT_ERROR(ErrorManagement::CommunicationError, "UEIAI217_803::ScaleSignal - Could not scale channel samples");
+    }
+    return ok;
 }
 
 CLASS_REGISTER(UEIAI217_803, "1.0")

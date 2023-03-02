@@ -107,7 +107,7 @@ class UEIAI217_803 : public UEIDevice {
      * @return true if every parameter has been read correctly and validated.
      */
     bool Initialise(StructuredDataI &data);
-
+    bool ScaleSignal(uint32 channelIdx, uint32 listLength, uint32* rawData, float32* scaledData);
     int32 GetModel();
     uint8 GetType();
     //Returns the number of bytes a single sample of this device occupies

@@ -62,7 +62,7 @@ bool UEICircularBuffer::InitialiseBuffer(uint32 maxSamplesStored, uint32 channel
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "At least two channels must be supplied for a UEICircularBuffer (data channel + timestamp)");
         }else{
-            channels = channels_+1;
+            channels = channels_;
         }
     }
     if (ok){
@@ -156,7 +156,7 @@ bool UEICircularBuffer::ReadBuffer(uint8* destinationMemory, uint32* timestampAr
         
         ok = CopyChannels(headPointer, timestampArray, destinationMemory, timestampInMap && (timestampArray != NULL));
 
-        for (uint32 i = 0; i < (channels*readSamples)+10; i++){
+        for (uint32 i = 0; i < (channels*readSamples); i++){
             printf("0x%08x ", reinterpret_cast<uint32*>(destinationMemory)[i]);		
             if (i%readSamples ==(readSamples-1))	printf("\n");
         }	
@@ -189,7 +189,7 @@ bool UEICircularBuffer::CopyChannels(uint8* sourceMemory, uint32* timestampMemor
             timestampMemory[j] = reinterpret_cast<uint32*>(sourceMemory)[(j*channels)];
         }
 		for (uint32 i = offset; i < channels; i++){	
-			reinterpret_cast<uint32*>(destinationMemory)[(i*readSamples+j)-offset] = reinterpret_cast<uint32*>(sourceMemory)[(j*channels+i)];				
+			reinterpret_cast<uint32*>(destinationMemory)[((i-offset)*readSamples+j)] = reinterpret_cast<uint32*>(sourceMemory)[(j*channels+i)];				
 		}	
 	}        
 	REPORT_ERROR(ErrorManagement::Information, "Content copied");    

@@ -137,7 +137,7 @@ class UEIRtVMap : public UEIMapContainer {
      * @param[out] destinationAddr pointer to the memory region where the contents of the newly recived (if so) map packet are copied.
      * @return true if a new packet has been recieved, false otherwise.
      */
-    bool PollForNewPacket(float64* destinationAddr);
+    bool PollForNewPacket(float32* destinationAddr);
     
     /**
      * @brief Getter for the type of the map.

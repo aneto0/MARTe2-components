@@ -143,7 +143,7 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
     if (ok){
         //Get the type of the first signal (we know we do have at least 1 signal) (skip timestamp signal)
         signalType = GetSignalType(1u);
-        ok = (signalType == Float64Bit); //TODO, for now we only support scaled float64 data, we'll update on this later
+        ok = (signalType == Float32Bit); //TODO, for now we only support scaled float64 data, we'll update on this later
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Signal type inconsistency in DataSource %s (all signals must be float64 bit for now)", name.Buffer());        
         }
@@ -265,7 +265,7 @@ bool UEIDataSource::Synchronise() {
    bool ok = false;
     uint32 counter = 0;
     while(!ok){
-        ok = (map->PollForNewPacket(reinterpret_cast<float64*>(memory)));
+        ok = (map->PollForNewPacket(reinterpret_cast<float32*>(memory)));
         if (!ok){
             counter ++;
             Sleep::MSec(poll_sleep_period);    //To change

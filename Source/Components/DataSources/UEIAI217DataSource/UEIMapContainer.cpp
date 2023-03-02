@@ -331,7 +331,7 @@ bool UEIMapContainer::StartMap(){
     return false;
 }
 
-bool UEIMapContainer::PollForNewPacket(float64* destinationAddr){
+bool UEIMapContainer::PollForNewPacket(float32* destinationAddr){
     return false;
 }
 

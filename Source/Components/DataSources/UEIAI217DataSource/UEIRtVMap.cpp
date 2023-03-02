@@ -265,7 +265,7 @@ bool UEIRtVMap::StartMap(){
     return ok;
 }
 
-bool UEIRtVMap::PollForNewPacket(float64* destinationAddr){
+bool UEIRtVMap::PollForNewPacket(float32* destinationAddr){
     bool next_packet = false;
     bool ok = true;
     bool copy_done = false;
@@ -335,6 +335,18 @@ bool UEIRtVMap::PollForNewPacket(float64* destinationAddr){
                     timestampAcquired = true;
                 }else{
                     ok = (inputMembersOrdered[i]->Inputs.buffer->ReadBuffer(&(destinationMemory[iterator]), NULL, false));
+                }
+                if (ok){
+                    //Scale the obtained data
+                    for (uint32 j = 0u; j < inputMembersOrdered[i]->Inputs.nChannels; j++){
+                        uint32 channel = inputMembersOrdered[i]->Inputs.channels[j];
+                        uint32* rawDataPointer = &(reinterpret_cast<uint32*>(destinationMemory)[iterator+j*nSamplesinMarte]);
+                        float32* scaledDataPointer = &(reinterpret_cast<float32*>(destinationMemory)[iterator+j*nSamplesinMarte]);
+                        ok = (inputMembersOrdered[i]->reference->ScaleSignal(channel, nSamplesinMarte, rawDataPointer, scaledDataPointer));
+                        if (!ok){
+                            REPORT_ERROR(ErrorManagement::CommunicationError, "UEIRtVMap::PollForNewPacket - The scaling process failed in Map %s", name.Buffer());
+                        }
+                    }
                 }
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::CommunicationError, "UEIRtVMap::PollForNewPacket - could not retrieve data from CircualrBuffer in Map %s", name.Buffer());
