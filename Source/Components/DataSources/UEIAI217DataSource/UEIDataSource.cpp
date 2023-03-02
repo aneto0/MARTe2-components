@@ -193,47 +193,49 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
     }
     //Check NumberOfSamples for all the signals to be equal and 1 if the Map is XDMap or equal for all signals in XVMap.
     if (ok){
-        switch (map->GetType()){
-            case RTVMAP:
-            {
-                //if it is an RtDMap check that the sample number is equal for all the signals
-                bool firstSignalVisited = false;
-                for (uint32 i = 0; i < numberOfSignals && ok; i++){
-                    uint32 samples = 0;
-                    bool signalFound = (GetFunctionSignalSamples(InputSignals,0,i,samples));
-                    if (signalFound && !firstSignalVisited){
-                        nSamples = samples;
-                        ok = (samples > 0);
-                        if (!ok){
-                            REPORT_ERROR(ErrorManagement::InitialisationError, "Sample number for signals in DataSource %s must be at least 1", name.Buffer());
-                            
-                        }
-                        firstSignalVisited = true;
-                    }
-                    if (signalFound){
-                        ok = (samples == nSamples);
-                        if (!ok){
-                            REPORT_ERROR(ErrorManagement::InitialisationError, "All signals for DataSource %s must have the same number of samples", name.Buffer());
-                        }
-                    }
+        bool firstSignalVisited = false;
+        for (uint32 i = 0; i < numberOfSignals && ok; i++){
+            uint32 samples = 0;
+            bool signalFound = (GetFunctionSignalSamples(InputSignals,0,i,samples));
+            if (signalFound && !firstSignalVisited){
+                nSamples = samples;
+                ok = (samples > 0);
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Sample number for signals in DataSource %s must be at least 1", name.Buffer());
+                    
+                }
+                firstSignalVisited = true;
+            }
+            if (signalFound){
+                ok = (samples == nSamples);
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "All signals for DataSource %s must have the same number of samples", name.Buffer());
                 }
             }
-            break;
-            case RTDMAP:
-            {
-                //if it is an RtDMap check that the sample number is 1, other is not supported
-                for (uint32 i = 0; i < numberOfSignals && ok; i++){
-                    uint32 samples = 0;
-                    bool signalFound = (GetFunctionSignalSamples(InputSignals,0,i,samples));
-                    if (signalFound){
-                        ok = (samples == 1u);
-                        if (!ok){
-                            REPORT_ERROR(ErrorManagement::InitialisationError, "Datasource %s only supports Sample number equal to 1 for RtDMap", name.Buffer());
-                        }
+        }
+        //If the sample number is >= 1 and equal for all signals check what to do depending on the
+        //assigned map, this is responsibility of the datasource, not the map
+        if (ok){
+            switch(map->GetType()){
+                case RTDMAP:
+                    //For RtDMap, only signals with 1 sample are allowed
+                    ok = (nSamples == 1u);
+                    if (!ok){
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Map %s for DataSource %s only supports signals with 1 sample (RtDMap)", map->GetName(), name.Buffer());
                     }
-                }
+                break;
+                case RTVMAP:
+                    //For RtVMap, only signals with 1 sample or more are allowed
+                    ok = (nSamples >= 1u);
+                    if (!ok){
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid sample number for signals on Map %s for DataSource %s (RtVMap)", map->GetName(), name.Buffer());
+                    }
+                break;
+                default:
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid Map type supplied to DataSource %s", name.Buffer());
+                    ok = false;
+                break;
             }
-            break;
         }
     }
     //TODO more checks
