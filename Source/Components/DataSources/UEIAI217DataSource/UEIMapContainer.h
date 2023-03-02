@@ -69,7 +69,7 @@ typedef struct{
     int8*   correctionIndexes;
     uint32  nChannels;
     ReferenceT<UEICircularBuffer> buffer;
-    uint32 requestSize;         //WTF?
+    bool timestampRequired;
 }IOMapMember;
 
 /** @struct mapMember

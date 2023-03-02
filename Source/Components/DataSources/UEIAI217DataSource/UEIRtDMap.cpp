@@ -86,6 +86,10 @@ bool UEIRtDMap::Initialise(StructuredDataI &data){
         REPORT_ERROR(ErrorManagement::Information, "UEIRtDMap::Initialise - "
         "Successful initialisation of map %s.", name.Buffer());
     }
+    if (ok && nInputChannels > 0u){
+        //For the RtDMap, the first channel of the first device is always going to be the map timestamp
+        inputMembersOrdered[0]->Inputs.timestampRequired = true;
+    }
     return ok;
 }
 
@@ -102,26 +106,27 @@ bool UEIRtDMap::StartMap(int32 DAQ_handle_){
         //Once the map is initialized correctly, the I/O channels need to be checked into the map itself
         //First the input channels are checked. The inputMembersOrdered pointer array is traversed in order,
         // yielding the ordered list of channels to sequence into the input map
-
-        //The first channel retrieved by the map must always be the timestamp of the first device listed as inputMember
-        uint8 timestampDevice = inputMembersOrdered[0]->devn;
-        uint32 timestampData = DQ_LNCL_TIMESTAMP;
-        ok = (DqRtDmapAddChannel(DAQ_handle, mapid, timestampDevice, DQ_SS0IN, &timestampData, 1));
-
         //Now go ahead and register all the needed channels in the configured order
         for (uint32 i = 0u; i < nInputMembers && ok; i++){
+            uint8 devn;
             ReferenceT<UEIDevice> devReference = inputMembersOrdered[i]->reference;
             ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on inputMember %i on Map %s", i, name.Buffer());
             }
+            //If the timestamp is required for this member check it as the first channel to be retrieved in the map member
+            if (ok && inputMembersOrdered[i]->Inputs.timestampRequired){
+                devn = inputMembersOrdered[i]->devn;
+                uint32 timestampChannel = DQ_LNCL_TIMESTAMP;
+                ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, &timestampChannel, 1) >= 0);
+            }
             for (uint32 j = 0; j < inputMembersOrdered[i]->Inputs.nChannels && ok; j++){
                 uint32 channel = inputMembersOrdered[i]->Inputs.channels[j];
-                uint8 devn = inputMembersOrdered[i]->devn;
+                
                 uint32 channelData = 0u;
                 ok = (devReference->ConfigureChannel(channel, &channelData));
                 if (ok){
-                    ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, &channelData, 1));
+                    ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, &channelData, 1) >= 0);
                 }
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding input channels for dev%d on Map %s", devn, name.Buffer());
@@ -214,10 +219,15 @@ bool UEIRtDMap::PollForNewPacket(float64* destinationAddr){
             //Make the signals available to the DataSource.
             //TODO implement this using memcopy
             uint32 iterator = 0;    //iterator starts at 1 due to the first channel (index 0) being used by the 64-bit timestamp
+            uint32 timestamp = 0u;
             for (uint32 mem = 0; mem < nInputMembers && ok; mem++){
                 //Copy the scaled values obtained in the hardware layer into the destination buffer
-                ok = (DqRtDmapReadScaledData(DAQ_handle, mapid, inputMembersOrdered[mem]->devn, &destinationAddr[iterator], inputMembersOrdered[mem]->Inputs.nChannels) >= 0);
-                iterator += inputMembersOrdered[mem]->Inputs.nChannels;
+                uint32 nOfchannel = inputMembersOrdered[mem]->Inputs.nChannels;
+                if (inputMembersOrdered[mem]->Inputs.timestampRequired){
+                    nOfchannel += 1u;
+                }
+                ok = (DqRtDmapReadScaledData(DAQ_handle, mapid, inputMembersOrdered[mem]->devn, &destinationAddr[iterator], nOfchannel) >= 0);
+                iterator += nOfchannel;
                 //The channels requested have already been copied, stop the loop
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::CommunicationError, "Error while translating the channels to scaled values on Map %s.", name.Buffer());
@@ -225,9 +235,11 @@ bool UEIRtDMap::PollForNewPacket(float64* destinationAddr){
             }
             //Compute the timestamp, which occupies the first position of input memory on the datasource as uint64
             //By calling this method in this position, the already written float64 on the first position is overwritten by this uint64 timestamp (better alternative)
-            ok = (GetTimestamp(reinterpret_cast<uint32*>(inputMap)[0], reinterpret_cast<uint64*>(destinationAddr)[0]));
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::CommunicationError, "Could not process correctly the timestamp value on RtDMap %s", name.Buffer());
+            if (ok && inputMembersOrdered[0u]->Inputs.timestampRequired){
+                ok = (GetTimestamp(reinterpret_cast<uint32*>(inputMap)[0], reinterpret_cast<uint64*>(destinationAddr)[0]));
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "Could not process correctly the timestamp value on RtDMap %s", name.Buffer());
+                }
             }
             next_packet = true;
         }

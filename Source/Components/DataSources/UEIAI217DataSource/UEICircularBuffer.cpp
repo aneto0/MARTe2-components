@@ -184,6 +184,7 @@ bool UEICircularBuffer::ReadBuffer(uint8* destinationMemory){
 //it also extracts the timestamp channel value to be used for synchronisation purposes or 
 //as separate input signal (Timestamp channel is always the first channel received)
 bool UEICircularBuffer::CopyChannels(uint8* sourceMemory, uint32* timestampMemory, uint8* destinationMemory){
+    //Timestamp channel is always the first channel in a member input map
     uint32 packetMemberSize [channels];
     REPORT_ERROR(ErrorManagement::Information, "array declared");	
     for (uint32 i = 0; i < channels; i++){
