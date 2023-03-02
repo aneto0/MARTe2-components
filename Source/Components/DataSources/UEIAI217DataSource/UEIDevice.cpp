@@ -147,7 +147,7 @@ bool UEIDevice::GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32
     return false;
 }
 
-bool ScaleSignal(uint32 channelIdx, uint32 listLength, uint32* rawData, float32* scaledData){
+bool UEIDevice::ScaleSignal(uint32 channelIdx, uint32 listLength, uint32* rawData, float32* scaledData){
     return false;
 }
 
