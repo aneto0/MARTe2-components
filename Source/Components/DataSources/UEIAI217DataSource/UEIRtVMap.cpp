@@ -117,20 +117,38 @@ bool UEIRtVMap::Initialise(StructuredDataI &data){
         REPORT_ERROR(ErrorManagement::Information, "UEIRtVMap::Initialise - "
         "Successful initialisation of map %s.", name.Buffer());
     }
+    //TODO for now we only retrieve the timestamp of the first member defined in inputs
+    if (ok && nInputChannels > 0u){
+        //For the RtDMap, the first channel of the first device is always going to be the map timestamp
+        inputMembersOrdered[0]->Inputs.timestampRequired = true;
+    }
     return ok;
 }
 
-bool UEIRtVMap::StartMap(int32 DAQ_handle_){
+bool UEIRtVMap::SetMARTeSamplesPerSignal(uint32 MARTeSampleN){
+    bool ok = true;
+    if (MARTeSampleN == 0u){
+        REPORT_ERROR(ErrorManagement::InitialisationError, "UEIRtVMap::SetMARTeSamplesPerSignal - Invalid sample number");
+        ok = false;
+    }else{
+        nSamplesinMarte = MARTeSampleN;
+    }
+    return ok;
+}
+
+bool UEIRtVMap::StartMap(){
     bool ok = true;
     //Now that the map is to be started it is valuable to make a copy of the DAQ handle reference for deallocating the map upon
     //destruction of this object.
-    DAQ_handle = DAQ_handle_;
     //First of all, set all the UEICircularBuffer objects for each of the VMap queried channels
     if (ok){
         //Traverse the input channel list to initialise each UEICircularBuffer object
         for (uint32 i = 0; i < nInputMembers && ok; i++){
             uint32 thisMemberChannelN = inputMembersOrdered[i]->Inputs.nChannels;
-            ok = (inputMembersOrdered[i]->Inputs.buffer->InitialiseBuffer(3*sampleNumber, thisMemberChannelN, sampleNumber, 4u, 10u));  //TODO
+            if (inputMembersOrdered[i]->Inputs.timestampRequired){
+                thisMemberChannelN += 1; //If the timestamp is required for this device, the number of channels must be incremented by 1
+            }
+            ok = (inputMembersOrdered[i]->Inputs.buffer->InitialiseBuffer(3*sampleNumber, thisMemberChannelN, sampleNumber, 4u, nSamplesinMarte));  //TODO
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "The initilisation of DAQCiruclarBuffer failed for Map %s", name.Buffer());
             }
@@ -154,15 +172,20 @@ bool UEIRtVMap::StartMap(int32 DAQ_handle_){
             }
             if (ok){
                 //The first channel of the first device in the map must be the timestamp
-                uint8 offset = (i == 0) ? 1u:0u;
                 uint32 nChannels_ = inputMembersOrdered[i]->Inputs.nChannels;
-                nChannels_ = nChannels_+offset;
+                nChannels_ = nChannels_;
+                uint8 offset = 0u;
+                if (inputMembersOrdered[i]->Inputs.timestampRequired){
+                    nChannels_ += 1;  
+                }                
                 int32 channels [nChannels_];
                 int32 flags [nChannels_];
                 uint8 devn = inputMembersOrdered[i]->devn;
-                if (i == 0u){
+                //if the timestamp is required, set the first channel and its flags
+                if (inputMembersOrdered[i]->Inputs.timestampRequired){
                     channels[0] = DQ_LNCL_TIMESTAMP;
                     flags[0] = DQ_VMAP_FIFO_STATUS;
+                    offset = 1u;    //Set the offset for the channel-confgiruation loop
                 }
                 for (uint32 j = offset ; j < nChannels_ && ok; j++){
                     channels[j] = (int32)(inputMembersOrdered[i]->Inputs.channels[j-offset]);
@@ -173,7 +196,6 @@ bool UEIRtVMap::StartMap(int32 DAQ_handle_){
                         REPORT_ERROR(ErrorManagement::InitialisationError, "Could not configure channels in inputMember %i on Map %s", i, name.Buffer());
                     }
                 }
-                
                 if (ok){
                     ok = (DqRtVmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, channels, flags, 1) >= 0);   //TODO add support for FIFO functions
                     if (!ok){
@@ -225,6 +247,9 @@ bool UEIRtVMap::StartMap(int32 DAQ_handle_){
             ReferenceT<UEIDevice> devReference = inputMembersOrdered[i]->reference;
             ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
             uint32 nChannels_ = inputMembersOrdered[i]->Inputs.nChannels;
+            if (inputMembersOrdered[i]->Inputs.timestampRequired){
+                nChannels_ += 1u;   //Add a fictional channel for timestamp
+            }
             uint32 byteSize = devReference->GetSampleSize();
             //Assign the requested number of bytes on this member for later access during Refresh
             inputMembersOrdered[i]->Inputs.requestSize = nChannels_*sampleNumber*byteSize;
@@ -290,10 +315,44 @@ bool UEIRtVMap::PollForNewPacket(float64* destinationAddr){
         //if ok, then all the buffers are ready to deliver the samples needed
         if (ok){
             next_packet = true;
+            //The destinationMemory (pointer) points to the memory region where the samples must be written
+            //It is mandatory that the first MARTe signal is a Timestamp signal with 64 bit precision, therefore,
+            //the destination memory (data channels) does indeed start padded a total of nSamplesinMarte*8 bytes from the
+            //DataSource memory location.
+            uint8* destinationMemory = &(reinterpret_cast<uint8*>(destinationAddr)[nSamplesinMarte*8]);
+            uint64* timestampMemory = reinterpret_cast<uint64*>(destinationAddr);
+            //iterator variable serves as index inside the destinationMemory area to point the next location to write
+            uint32 iterator = 0u;
+            //Flag signaling if the timestamp has already been recived from the buffer (typically only the first member
+            // should contain a timestamp).
+            bool timestampAcquired = false;
+            uint32 timestamps [nSamplesinMarte]; 
             for (uint8 i = 0; i < nInputMembers && ok; i++){
                 //Write the data from the circular buffers into the input region of the DataSource
-                ok = (inputMembersOrdered[i]->Inputs.buffer->ReadBuffer(reinterpret_cast<uint8*>(destinationAddr)));
-            } 
+                if (!timestampAcquired && inputMembersOrdered[i]->Inputs.timestampRequired){
+                    //If the timestamp has still not been found and the member does provide a timestamp channel.
+                    ok = (inputMembersOrdered[i]->Inputs.buffer->ReadBuffer(&(destinationMemory[iterator]), timestamps, true));
+                    timestampAcquired = true;
+                }else{
+                    ok = (inputMembersOrdered[i]->Inputs.buffer->ReadBuffer(&(destinationMemory[iterator]), NULL, false));
+                }
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "UEIRtVMap::PollForNewPacket - could not retrieve data from CircualrBuffer in Map %s", name.Buffer());
+                }
+                iterator += inputMembersOrdered[i]->Inputs.nChannels*nSamplesinMarte*4u;
+            }
+            //Correct and set in memory the timestamps
+            if (ok){
+                ok = (timestampAcquired);
+                if (ok){
+                    ok = GetTimestamp(timestamps, nSamplesinMarte, timestampMemory);
+                    if (!ok){
+                        REPORT_ERROR(ErrorManagement::CommunicationError, "UEIRtVMap::PollForNewPacket - Could not correct appropiately the timestamps retrieved in Map %s", name.Buffer());
+                    }
+                }else{
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "UEIRtVMap::PollForNewPacket - Could not retrieve timestamp in Map %s", name.Buffer());
+                } 
+            }
         }
     }
     return next_packet;

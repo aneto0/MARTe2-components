@@ -64,10 +64,10 @@ class UEICircularBuffer : public Object {
     bool CheckAvailableSpace();
     bool CheckReadReady();
     bool AdvanceBufferIndex(uint32 writtenBytes);
-    bool ReadBuffer(uint8* destinationMemory);
+    bool ReadBuffer(uint8* destinationMemory, uint32* timestampArray, bool timestampInMap);
 
 private:
-    bool CopyChannels(uint8* sourceMemory, uint32* timestampMemory, uint8* destinationMemory);
+    bool CopyChannels(uint8* sourceMemory, uint32* timestampMemory, uint8* destinationMemory, bool timestampPresent);
     /*
     *   Variable depicting if this UEICircularBuffer is provided with a timestamp channel to perform data synchronisation
     *   among UEICircularBuffers

@@ -238,6 +238,20 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
             }
         }
     }
+    //Start the DAQ Map
+    if (ok){
+        ok = map->SetMARTeSamplesPerSignal(nSamples);
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIDataSource::SetConfiguredDatabase - Could not set number of MARTe signal samples in DataSource %s", name.Buffer());
+        }
+    }
+    //Start the DAQ Map
+    if (ok){
+        ok = map->StartMap();
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIDataSource::SetConfiguredDatabase - Could not start Map %s in DataSource %s", map->GetName(), name.Buffer());
+        }
+    }
     //TODO more checks
     return ok;
 }
@@ -306,7 +320,6 @@ bool UEIDataSource::AllocateMemory(){
     }
     return ret;
 }
-
 
 const char8* UEIDataSource::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
     //The Datasource is synchronous to the Reception of data from UEIDAQ device

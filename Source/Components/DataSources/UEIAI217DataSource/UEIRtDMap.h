@@ -113,7 +113,7 @@ class UEIRtDMap : public UEIMapContainer {
      * @return true if every parameter has been read correctly and validated.
      */
     bool Initialise(StructuredDataI &data);
-    
+
     /**
      * @brief Close the Map structure in a clean way.
      * @details Function called from UEIMasterObject prior to destruction of the object to grant a 
@@ -130,7 +130,7 @@ class UEIRtDMap : public UEIMapContainer {
      * @param[in] DAQ_handle_ handle to the IOM, must be provided by UEIMasterObject to this method.
      * @return true if the initialisation and starting procedure succeeds for this map.
      */
-    bool StartMap(int32 DAQ_handle_);
+    bool StartMap();
 
     /**
      * @brief Method to poll the IOM for new data on the map.
@@ -147,6 +147,8 @@ class UEIRtDMap : public UEIMapContainer {
      * @return RTDMAP as defined in UEIDefinitions.h.
      */
     uint8 GetType();
+
+    bool SetMARTeSamplesPerSignal(uint32 MARTeSampleN);
 
 private:
 

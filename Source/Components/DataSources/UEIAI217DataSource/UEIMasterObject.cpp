@@ -335,17 +335,16 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
             }
         }
     }
-    //Start the DAQ Maps
+    //Prepare the Maps for usage by setting the IOM handle to them
     if (ok){
-        for (uint32 i = 0u; i < nMaps && ok; i++){
-            ok = maps[i]->StartMap(DAQ_handle);
+        for (uint32 i = 0; i < nMaps && ok; i++){
+            ok = (maps[i]->SetDAQHandle(DAQ_handle));
             if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to start Map %s for UEIDAQ Device %s", maps[i]->GetName(), name.Buffer());
+                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::Initialise - Could not set DAQ handle for Map %s", maps[i]->GetName());
             }
         }
     }
     // At this point, if ok is valid we've checked connection to the IOM, hardware configuration matching and device configuration
-
     return ok;
 }
 

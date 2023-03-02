@@ -118,10 +118,9 @@ class UEIMapContainer : public ReferenceContainer {
      * @details This method performs the initialisation procedures for the map by issuing the appropriate commands directly to IOM.
      * The IOM handle supplied to this method will be saved for later usage on polling/data recieving operations.
      * This function must be reimplmented by each of the derived map classes, as the map configuration procedures is map-type dependant.
-     * @param[in] DAQ_handle_ handle to the IOM, must be provided by UEIMasterObject to this method.
      * @return true if the initialisation and starting procedure succeeds for this map.
      */
-    virtual bool StartMap(int32 DAQ_handle_);
+    virtual bool StartMap();
     
     /**
      * @brief Method to poll the IOM for new data on the map.
@@ -137,6 +136,15 @@ class UEIMapContainer : public ReferenceContainer {
      * @return the type of the map as defined in UEIDefinitions.h.
      */
     virtual uint8 GetType();
+
+    /**
+     * @brief Setter for the number of samples the map is required to supply the UEIDataSource for MARTe signals.
+     * @details This function is implemented in the base class to return false and must be implemented on the child class
+     * as apart from setting the appropriate parameter in the map, performs a map-dependant check on the supplied value.
+     * @param[in] MARTeSampleN number of samples the map must supply for each of the declared phyisical channels.
+     * @return true if the sample number for MARTe signals is accepted for the map
+     */
+    virtual bool SetMARTeSamplesPerSignal(uint32 MARTeSampleN);
 
     /**
      * @brief Close the DAQ Map structure in a clean way.
@@ -236,6 +244,14 @@ class UEIMapContainer : public ReferenceContainer {
      * @return true if the map accepts the signal type in the specified direction.
      */
     bool IsSignalAllowed(TypeDescriptor signalType, uint8 direction);
+
+    /**
+     * @brief Method to set and check the DAQ handle to a map.
+     * @details This method must be called by UEIMasterObject during map initialisation.
+     * @param[in] DAQ_handle_ handle to the IOM supplied to this map.
+     * @return true if DAQ handle is valid (!= 0), false otherwise.
+     */
+    bool SetDAQHandle(int32 DAQ_handle_);
 
 protected:
     /**
@@ -346,6 +362,8 @@ protected:
     *   Variable holding the last processed timestamp, used to detect timestamp overflow.
     */
     uint32 lastTimestamp;
+    
+
 };
 }
 #endif /* UEIMapContainer_H_ */

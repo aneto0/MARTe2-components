@@ -93,11 +93,19 @@ bool UEIRtDMap::Initialise(StructuredDataI &data){
     return ok;
 }
 
-bool UEIRtDMap::StartMap(int32 DAQ_handle_){
+bool UEIRtDMap::SetMARTeSamplesPerSignal(uint32 MARTeSampleN){
+    bool ok = true;
+    if (MARTeSampleN != 1u){
+        REPORT_ERROR(ErrorManagement::InitialisationError, "UEIRtDMap::SetMARTeSamplesPerSignal - Invalid sample number, RtDMap only supports sample number 1");
+        ok = false;
+    }
+    return ok;
+}
+
+bool UEIRtDMap::StartMap(){
     bool ok = true;
     //Now that the map is to be started it is valuable to make a copy of the DAQ handle reference for deallocating the map upon
     //destruction of this object.
-    DAQ_handle = DAQ_handle_;
     ok = (DqRtDmapInit(DAQ_handle, &mapid, scanRate) >= 0);
     if (!ok){
         REPORT_ERROR(ErrorManagement::InitialisationError, "Error on Initialising Map %s", name.Buffer());

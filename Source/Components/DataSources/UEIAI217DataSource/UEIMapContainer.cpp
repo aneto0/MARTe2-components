@@ -327,7 +327,7 @@ bool UEIMapContainer::Initialise(StructuredDataI &data){
     return ok;
 }
 
-bool UEIMapContainer::StartMap(int32 DAQ_handle_){
+bool UEIMapContainer::StartMap(){
     return false;
 }
 
@@ -339,6 +339,12 @@ uint8 UEIMapContainer::GetType(){
     //Base implementation of this function which returns NOMAP by default
     //Reimplementation of this function is responsibility of each of the child classes
     return NOMAP;
+}
+
+bool UEIMapContainer::SetMARTeSamplesPerSignal(uint32 MARTeSampleN){
+    //Base implementation of this function which returns NOMAP by default
+    //Reimplementation of this function is responsibility of each of the child classes
+    return false;
 }
 
 //BASE CLASS METHODS
@@ -576,6 +582,17 @@ bool UEIMapContainer::GetTimestamp(uint32* inputTimestamp, uint32 timestampListL
         for (uint32 i = 0u; i < timestampListLength && ok; i++){
             ok = (GetTimestamp(inputTimestamp[i], outputTimestamp[i]));
         }
+    }
+    return ok;
+}
+
+bool UEIMapContainer::SetDAQHandle(int32 DAQ_handle_){
+    bool ok = true;
+    if (DAQ_handle_ != 0){
+        DAQ_handle = DAQ_handle_;
+    }else{
+        ok = false;
+        REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::SetDAQHandle - Error, invalid DAQ handle supplied to Map %s", name.Buffer());
     }
     return ok;
 }
