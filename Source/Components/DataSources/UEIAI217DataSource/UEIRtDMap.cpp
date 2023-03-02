@@ -102,6 +102,13 @@ bool UEIRtDMap::StartMap(int32 DAQ_handle_){
         //Once the map is initialized correctly, the I/O channels need to be checked into the map itself
         //First the input channels are checked. The inputMembersOrdered pointer array is traversed in order,
         // yielding the ordered list of channels to sequence into the input map
+
+        //The first channel retrieved by the map must always be the timestamp of the first device listed as inputMember
+        uint8 timestampDevice = inputMembersOrdered[0]->devn;
+        uint32 timestampData = DQ_LNCL_TIMESTAMP;
+        ok = (DqRtDmapAddChannel(DAQ_handle, mapid, timestampDevice, DQ_SS0IN, &timestampData, 1));
+
+        //Now go ahead and register all the needed channels in the configured order
         for (uint32 i = 0u; i < nInputMembers && ok; i++){
             ReferenceT<UEIDevice> devReference = inputMembersOrdered[i]->reference;
             ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
@@ -202,11 +209,16 @@ bool UEIRtDMap::PollForNewPacket(float64* destinationAddr){
         //Check if the response is a new packet or a rerequest.
         //The 0x80000000 bit on the recived samples lets us know if the packet has
         //been previously requested.
-        if (*((uint32*)inputMap) & 0x80000000){ 
-            uint32 iterator = 0; 
+        if (reinterpret_cast<uint32*>(inputMap)[1] & 0x80000000){ 
             //The recived packet is a newly converted one not requested yet.
-            //Make the signals available to the broker.
+            //First of all compute the timestamp, which occupies the first position of input memory on the datasource as uint64
+            ok = (GetTimestamp(reinterpret_cast<uint32*>(inputMap)[0], reinterpret_cast<uint64*>(destinationAddr)[0]));
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::CommunicationError, "Could not process correctly the timestamp value on RtDMap %s", name.Buffer());
+            }
+            //Make the signals available to the DataSource.
             //TODO implement this using memcopy
+            uint32 iterator = 1;    //iterator starts at 1 due to the first channel (index 0) being used by the 64-bit timestamp
             for (uint32 mem = 0; mem < nInputMembers && ok; mem++){
                 //Copy the scaled values obtained in the hardware layer into the destination buffer
                 ok = (DqRtDmapReadScaledData(DAQ_handle, mapid, inputMembersOrdered[mem]->devn, &destinationAddr[iterator], inputMembersOrdered[mem]->Inputs.nChannels) >= 0);
