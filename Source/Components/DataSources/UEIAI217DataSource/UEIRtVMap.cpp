@@ -79,6 +79,12 @@ bool UEIRtVMap::Initialise(StructuredDataI &data){
             REPORT_ERROR(ErrorManagement::ParametersError, "Samples parameter not provided in Map %s, required for selected VMap mode.", name.Buffer());
         }
     }
+    if (ok){
+        ok = data.Read("BufferSamples", bufferSampleNumber);
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::ParametersError, "BufferSamples parameter not provided in Map %s, required for selected VMap mode.", name.Buffer());
+        }
+    }
     //For the VMap, the circular buffers must be initialised prior to any usage
     if (ok){
         //Create a reference T to the new circular buffer for each device
@@ -148,7 +154,7 @@ bool UEIRtVMap::StartMap(){
             if (inputMembersOrdered[i]->Inputs.timestampRequired){
                 thisMemberChannelN += 1; //If the timestamp is required for this device, the number of channels must be incremented by 1
             }
-            ok = (inputMembersOrdered[i]->Inputs.buffer->InitialiseBuffer(3*sampleNumber, thisMemberChannelN, sampleNumber, 4u, nSamplesinMarte));  //TODO
+            ok = (inputMembersOrdered[i]->Inputs.buffer->InitialiseBuffer(bufferSampleNumber, thisMemberChannelN, sampleNumber, 4u, nSamplesinMarte));  //TODO
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "The initilisation of DAQCiruclarBuffer failed for Map %s", name.Buffer());
             }

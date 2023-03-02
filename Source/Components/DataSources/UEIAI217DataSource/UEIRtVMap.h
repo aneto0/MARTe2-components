@@ -160,6 +160,7 @@ private:
     *   Variable holding the last processed timestamp, used to detect timestamp overflow.
     */
     uint32 nSamplesinMarte;
+    uint32 bufferSampleNumber;
 };
 }
 #endif /* UEIRtVMap_H_ */

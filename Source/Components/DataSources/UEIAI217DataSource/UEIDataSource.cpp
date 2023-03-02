@@ -268,9 +268,9 @@ bool UEIDataSource::Synchronise() {
         ok = (map->PollForNewPacket(reinterpret_cast<float32*>(memory)));
         if (!ok){
             counter ++;
-            Sleep::MSec(poll_sleep_period);    //To change
+            if (poll_sleep_period != 0) Sleep::MSec(poll_sleep_period);    //To change
         }
-        if (counter > 100) break;
+//        if (counter > 100) break;
     }
     return true;
 }
