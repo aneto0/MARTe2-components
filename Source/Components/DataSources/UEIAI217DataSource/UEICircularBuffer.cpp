@@ -28,8 +28,6 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "AdvancedErrorManagement.h"
-#include "CLASSMETHODREGISTER.h"
 #include "UEICircularBuffer.h"
 
 
@@ -63,7 +61,7 @@ bool UEICircularBuffer::InitialiseBuffer(uint32 maxSamplesStored, uint32 channel
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "At least two channels must be supplied for a UEICircularBuffer (data channel + timestamp)");
         }else{
-            channels = channels_;
+            channels = channels_+1;
         }
     }
     if (ok){
@@ -125,6 +123,7 @@ bool UEICircularBuffer::CheckReadReady(){
     if (currentBufferLocation < channels*readSamples*sizeOfSamples){
         ReadReady = false;
     }
+    REPORT_ERROR(ErrorManagement::Information, "Buffer ready : %d, Samples available : %f", ReadReady, currentBufferLocation/(channels*sizeOfSamples));
     return ReadReady;
 }
 
@@ -146,14 +145,36 @@ bool UEICircularBuffer::AdvanceBufferIndex(uint32 writtenBytes){
 bool UEICircularBuffer::ReadBuffer(uint8* destinationMemory){
     bool ok = CheckReadReady();
     if (ok){
-        CopyChannels(headPointer, NULL, destinationMemory);
-        //Prepare the memory to leave space for the next packet/s
-        uint32 lastReadIndex = channels*readSamples*sizeOfSamples;
-        //Then move the content of the buffer upwards to the start of the buffer
-        memcpy(headPointer, &headPointer[lastReadIndex], currentBufferLocation-lastReadIndex);
-        //Update the write index and write pointer
-        currentBufferLocation -= lastReadIndex;
-        writePointer = (uint8*)(&headPointer[currentBufferLocation]);
+	for (uint32 i = 0; i <readSamples; i++){
+		for (uint32 j = 0; j <3u; j++){
+			printf("0x%08x ", reinterpret_cast<uint32*>(headPointer)[3u*i+j]);		
+		}
+		printf("\n");
+	}	
+	REPORT_ERROR(ErrorManagement::Information, "Copying channels");	
+	uint32 timestamps [10];	
+        ok = CopyChannels(headPointer, timestamps, &destinationMemory[5*8]);
+	for (uint32 i = 0; i < readSamples; i++){
+		reinterpret_cast<uint64*>(destinationMemory)[i] = (uint64)timestamps[i];	
+	}
+	for (uint32 i = 0; i < (channels*readSamples)+10; i++){
+		printf("0x%08x ", reinterpret_cast<uint32*>(destinationMemory)[i]);		
+		if (i%readSamples ==(readSamples-1))	printf("\n");
+	}	
+	if (ok){        
+	   REPORT_ERROR(ErrorManagement::Information, "Channel copy into destination success");	
+
+		//Prepare the memory to leave space for the next packet/s
+		uint32 lastReadIndex = channels*readSamples*sizeOfSamples;
+		uint32 lastWrittenIndex = bufferLength-currentBufferLocation;
+		//Then move the content of the buffer upwards to the start of the buffer
+		memcpy(headPointer, &headPointer[lastReadIndex], currentBufferLocation-lastReadIndex);
+		//Update the write index and write pointer
+		currentBufferLocation -= lastReadIndex;
+		writePointer = (uint8*)(&headPointer[currentBufferLocation]);
+	}else{
+	   REPORT_ERROR(ErrorManagement::CommunicationError, "Channel copy into destination failed");	
+	}	
     }
     return ok;
 }
@@ -162,14 +183,23 @@ bool UEICircularBuffer::ReadBuffer(uint8* destinationMemory){
 //it also extracts the timestamp channel value to be used for synchronisation purposes or 
 //as separate input signal (Timestamp channel is always the first channel received)
 bool UEICircularBuffer::CopyChannels(uint8* sourceMemory, uint32* timestampMemory, uint8* destinationMemory){
-    if (!timestampProvided){
-        //It the timestamp has not been provided, just use the supplied method tha change from interleaved memory to flat memory
-        uint32 packetMemberSize [channels];
-        for (uint32 i = 0; i < channels; i++){
-            packetMemberSize[i] = sizeOfSamples;
-        }
-        MemoryOperationsHelper::InterleavedToFlat(sourceMemory, destinationMemory, 0u, packetMemberSize, 7u, channels,readSamples);
+    uint32 packetMemberSize [channels];
+    REPORT_ERROR(ErrorManagement::Information, "array declared");	
+    for (uint32 i = 0; i < channels; i++){
+        packetMemberSize[i] = sizeOfSamples;	
     }
+	REPORT_ERROR(ErrorManagement::Information, "array set");
+	REPORT_ERROR(ErrorManagement::Information,"MemberSize :%d\n Channels: %d\n Samples: %d\n", packetMemberSize[0], channels, readSamples);
+	for (uint32 j = 0; j < readSamples; j++){
+		for (uint32 i = 0; i < channels; i++){	
+			if (i == 0){
+			timestampMemory[j] = reinterpret_cast<uint32*>(sourceMemory)[(j*channels+i)];
+			}else{
+		reinterpret_cast<uint32*>(destinationMemory)[(i*readSamples+j)] = reinterpret_cast<uint32*>(sourceMemory)[(j*channels+i)];	
+			}		
+		}	
+	}        
+	REPORT_ERROR(ErrorManagement::Information, "Content copied");    
     return true;
 }
 

@@ -248,7 +248,6 @@ bool UEIRtVMap::PollForNewPacket(float64* destinationAddr){
     ok = (refreshReturn == DQ_SUCCESS);
     if (ok){
         //If the map was correclty refreshed we proceed to reading the samples contained in the VMap structure
-        REPORT_ERROR(ErrorManagement::Information, "Great!");
         //In this case, since we received an update on the VMap content, feed it to each of the UEICircularBuffers
         for (uint32 i = 0; i < nInputMembers; i++){
             //For each of the input memebrs (in order of assignment) feed the new data into the buffers.
