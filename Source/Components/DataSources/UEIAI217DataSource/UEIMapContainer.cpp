@@ -62,12 +62,14 @@ UEIMapContainer::UEIMapContainer() : ReferenceContainer() {
         members[i].Inputs.nChannels = 0u;
         members[i].Inputs.channels = NULL_PTR(uint32*);
         members[i].Inputs.correctionIndexes = NULL_PTR(int8*);
+        members[i].Inputs.requestSize = 0u;
         members[i].Inputs.timestampRequired = false;
         //Set the outputs of the memeber as not defined
         members[i].Outputs.defined = false;
         members[i].Outputs.nChannels = 0u;
         members[i].Outputs.channels = NULL_PTR(uint32*);
         members[i].Outputs.correctionIndexes = NULL_PTR(int8*);
+        members[i].Outputs.requestSize = 0u;
         members[i].Outputs.timestampRequired = false;
     }
     outputMembersOrdered = NULL_PTR(mapMember**);

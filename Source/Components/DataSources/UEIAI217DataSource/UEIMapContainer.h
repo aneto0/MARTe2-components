@@ -69,6 +69,7 @@ typedef struct{
     int8*   correctionIndexes;
     uint32  nChannels;
     ReferenceT<UEICircularBuffer> buffer;
+    uint32 requestSize;         //Size of the packet to be requested (useful for VMap only) in bytes
     bool timestampRequired;
 }IOMapMember;
 
