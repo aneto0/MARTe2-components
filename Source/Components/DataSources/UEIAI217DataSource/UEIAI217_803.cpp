@@ -347,8 +347,8 @@ bool UEIAI217_803::AcceptedSignalType(TypeDescriptor signalType){
 }
 
 bool UEIAI217_803::ScaleSignal(uint32 channelIdx, uint32 listLength, uint32* rawData, float32* scaledData){
-    uint32 step = 0;
-    uint32 offset = 0;
+    float64 step = 0;
+    float64 offset = 0;
     bool ok = (channelIdx < CHANNEL_NUMBER);
     if (ok){
         switch (gains[channelIdx]) {
