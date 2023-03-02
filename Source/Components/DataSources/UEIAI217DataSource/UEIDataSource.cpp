@@ -115,7 +115,7 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
         //The number of signals cannot be larger than the number of physical channels defined in the map
         if (ok){
             uint32 nChannels;
-            ok = map->GetNumberOfChannels(OUTPUT_CHANNEL, nChannels); //TODO, check for Input channels
+            ok = map->GetNumberOfChannels(INPUT_CHANNEL, nChannels); //TODO, check for Input channels
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Could not get number of Input channels for Map %s", map->GetName());
             }else{
@@ -309,15 +309,7 @@ bool UEIDataSource::AllocateMemory(){
 const char8* UEIDataSource::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
     //The Datasource is synchronous to the Reception of data from UEIDAQ device
     if (direction == InputSignals){
-        //if (map->GetType() == RTDMAP){
             return "MemoryMapSynchronisedInputBroker";
-        //}else if (map->GetType() == RTVMAP){
-         //   return "MemoryMapSynchronisedMultiBufferInputBroker";
-        //}else{
-            //Only input signals are supported for this DataSource
-           // REPORT_ERROR(ErrorManagement::InternalSetupError, "UEIDataSource::GetBrokerName - DataSource %s only supports input signals", name.Buffer());
-            //return "";
-        //}
     }else{
         //Only input signals are supported for this DataSource
         REPORT_ERROR(ErrorManagement::InternalSetupError, "UEIDataSource::GetBrokerName - DataSource %s only supports input signals", name.Buffer());
