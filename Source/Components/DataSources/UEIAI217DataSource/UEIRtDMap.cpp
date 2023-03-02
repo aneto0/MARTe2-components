@@ -226,13 +226,13 @@ bool UEIRtDMap::PollForNewPacket(float32* destinationAddr){
             //The recived packet is a newly converted one not requested yet.
             //Make the signals available to the DataSource.
             //TODO implement this using memcopy
-            uint32 iterator = 0;    //iterator starts at 1 due to the first channel (index 0) being used by the 64-bit timestamp
+            uint32 iterator = 1u;    //iterator starts at 1 due to the first channel (index 0) being used by the 64-bit timestamp
             uint32 timestamp = 0u;
             for (uint32 mem = 0; mem < nInputMembers && ok; mem++){
                 //Copy the scaled values obtained in the hardware layer into the destination buffer
                 uint32 nOfchannel = inputMembersOrdered[mem]->Inputs.nChannels;
                 if (inputMembersOrdered[mem]->Inputs.timestampRequired){
-                    nOfchannel += 2u;
+                    nOfchannel += 1u;
                 }
                 ok = (DqRtDmapReadScaledDataF(DAQ_handle, mapid, inputMembersOrdered[mem]->devn, &destinationAddr[iterator], nOfchannel) >= 0);
                 iterator += nOfchannel;

@@ -352,37 +352,33 @@ bool UEIAI217_803::ScaleSignal(uint32 channelIdx, uint32 listLength, uint32* raw
     bool ok = (channelIdx < CHANNEL_NUMBER);
     if (ok){
         switch (gains[channelIdx]) {
-            case DQ_AI217_GAIN_1:
+            case 1:
                 step = DQ_AI217_STEP;
                 offset = DQ_AI217_OFFSET;
                 break;
-            case DQ_AI217_GAIN_2:
+            case 2:
                 step = DQ_AI217_STEP_2 ;
                 offset = DQ_AI217_OFFSET_2;
                 break;
-            case DQ_AI217_GAIN_4:
+            case 4:
                 step = DQ_AI217_STEP_4;
                 offset = DQ_AI217_OFFSET_4;
                 break;
-            case DQ_AI217_GAIN_8:
+            case 8:
                 step = DQ_AI217_STEP_8;
                 offset = DQ_AI217_OFFSET_8;
                 break;
-            case DQ_AI217_GAIN_16:
+            case 16:
                 step = DQ_AI217_STEP_16 ;
                 offset = DQ_AI217_OFFSET_16;
                 break;
-            case DQ_AI217_GAIN_32:
+            case 32:
                 step = DQ_AI217_STEP_32;
                 offset = DQ_AI217_OFFSET_32;
                 break;
-            case DQ_AI217_GAIN_64:
+            case 64:
                 step = DQ_AI217_STEP_64;
                 offset = DQ_AI217_OFFSET_64;
-                break;
-            case DQ_AI217_GAIN_4_CJC:        // this not applicable to the AI-218/9
-                step = DQ_AI217_STEP_4_CJC;
-                offset = DQ_AI217_OFFSET_4_CJC;
                 break;
             default:
                 ok = false;
