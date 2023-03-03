@@ -44,6 +44,7 @@ UEIDataSource::UEIDataSource() : MemoryDataSourceI() {
         poll_sleep_period = 100;
         deviceName = StreamString("");
         mapName = StreamString("");
+        firstSync = true;
 
 }
 
@@ -256,10 +257,13 @@ bool UEIDataSource::TerminateInputCopy(const uint32 signalIdx, const uint32 offs
 bool UEIDataSource::Synchronise() {
     bool ok = true;
     //Start the DAQ Map
-    if (ok){
-        ok = map->StartMap();
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIDataSource::SetConfiguredDatabase - Could not start Map %s in DataSource %s", map->GetName(), name.Buffer());
+    if (firstSync){
+        firstSync = false;
+        if (ok){
+            ok = map->StartMap();
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIDataSource::SetConfiguredDatabase - Could not start Map %s in DataSource %s", map->GetName(), name.Buffer());
+            }
         }
     }
     //Start to poll for next packet to the Map. The memory access is handled by the Map Container

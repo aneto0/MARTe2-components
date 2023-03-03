@@ -148,7 +148,7 @@ private:
      * Variable to store the signal type for all the signals on this DataSource 
      */
     uint32 nSamples;
-
+    bool firstSync;
 
 };
 
