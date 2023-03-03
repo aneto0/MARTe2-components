@@ -231,7 +231,7 @@ bool UEIRtVMap::StartMap(){
                         devReference->GetType() == HARDWARE_LAYER_ANALOG_IO ||
                         devReference->GetType() == HARDWARE_LAYER_DIGITAL_IO){
                         //Check th channel number into the map
-                        ok = (DqRtVmapSetChannelList(DAQ_handle, mapid, devn,DQ_SS0IN, channels, nChannels_) >=0);
+                        ok = (DqRtVmapSetChannelList(DAQ_handle, mapid, devn, DQ_SS0IN, channels, nChannels_) >=0);
                         //Set the scan rate for the device on this channel
                         if (!ok){
                             REPORT_ERROR(ErrorManagement::InitialisationError, "Could set channel list in inputMember %i on Map %s", i, name.Buffer());
@@ -278,6 +278,10 @@ bool UEIRtVMap::StartMap(){
                 //With this method we set the ammount of samples we want to obtain from this member's device
                 int32 act_size;
                 ok = (DqRtVmapRqInputDataSz(DAQ_handle, mapid, i, nChannels_*sampleNumber*byteSize , &act_size, NULL) >= 0);
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error setting the VMap size on member %d in Map %s", i, name.Buffer());
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Requested size was %d bytes, but only %d bytes available", nChannels_*sampleNumber*byteSize, act_size);
+                }
             }else{
                 REPORT_ERROR(ErrorManagement::InitialisationError, "could not retrieve devReference for device %d on Map %s while setting sample number", i, name.Buffer());
             }
