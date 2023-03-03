@@ -171,12 +171,13 @@ bool UEIRtVMap::StartMap(){
         }
     }
     if (ok){
-        if (fragmentedMap){
-            DQ_RTMAP_PARAM vmapparam = {11500, 1518, 1000};  //TODO change this parameters
-            ok = (DqRtVmapInitEx(DAQ_handle, &mapid, &vmapparam) >= 0); //Extended version of the VMapInit method for fragmented maps
-        }else{
-            ok = (DqRtVmapInit(DAQ_handle, &mapid, 0) >= 0); //This scan rate is the rate at which the IOM refreshes the version of VMap (Bullshit, this scan rate is not valid)        
-        }
+        DQ_RTMAP_PARAM vmapparam = {11500, 1518, 1000};  //TODO change this parameters
+        ok = (DqRtVmapInitEx(DAQ_handle, &mapid, &vmapparam) >= 0); //Extended version of the VMapInit method for fragmented maps
+        //if (fragmentedMap){
+        //    
+        //}else{
+        //    ok = (DqRtVmapInit(DAQ_handle, &mapid, 0) >= 0); //This scan rate is the rate at which the IOM refreshes the version of VMap (Bullshit, this scan rate is not valid)        
+        //}
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Error on Initialising Map %s", name.Buffer());
         }
@@ -275,8 +276,8 @@ bool UEIRtVMap::StartMap(){
             //Assign the requested number of bytes on this member for later access during Refresh
             inputMembersOrdered[i]->Inputs.requestSize = nChannels_*sampleNumber*byteSize;
             if (ok){
-                //With this method we set the ammount of samples we want to obtain from this member's device
                 int32 act_size;
+                //With this method we set the ammount of samples we want to obtain from this member's device
                 ok = (DqRtVmapRqInputDataSz(DAQ_handle, mapid, i, nChannels_*sampleNumber*byteSize , &act_size, NULL) >= 0);
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error setting the VMap size on member %d in Map %s", i, name.Buffer());

@@ -240,13 +240,6 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
     }
     //Start the DAQ Map
     if (ok){
-        ok = map->SetMARTeSamplesPerSignal(nSamples);
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIDataSource::SetConfiguredDatabase - Could not set number of MARTe signal samples in DataSource %s", name.Buffer());
-        }
-    }
-    //Start the DAQ Map
-    if (ok){
         ok = map->StartMap();
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "UEIDataSource::SetConfiguredDatabase - Could not start Map %s in DataSource %s", map->GetName(), name.Buffer());
@@ -261,8 +254,16 @@ bool UEIDataSource::TerminateInputCopy(const uint32 signalIdx, const uint32 offs
 }
 
 bool UEIDataSource::Synchronise() {
+    bool ok = true;
+    //Start the DAQ Map
+    if (ok){
+        ok = map->SetMARTeSamplesPerSignal(nSamples);
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIDataSource::SetConfiguredDatabase - Could not set number of MARTe signal samples in DataSource %s", name.Buffer());
+        }
+    }
     //Start to poll for next packet to the Map. The memory access is handled by the Map Container
-   bool ok = false;
+    ok = !ok;
     uint32 counter = 0;
     while(!ok){
         ok = (map->PollForNewPacket(reinterpret_cast<float32*>(memory)));
@@ -270,7 +271,7 @@ bool UEIDataSource::Synchronise() {
             counter ++;
             if (poll_sleep_period != 0) Sleep::MSec(poll_sleep_period);    //To change
         }
-//        if (counter > 100) break;
+        if (counter > 1000) break;
     }
     return true;
 }
