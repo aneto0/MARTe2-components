@@ -43,6 +43,8 @@
 namespace MARTe {
 
 UEIRtVMap::UEIRtVMap() : UEIMapContainer() {
+    ERRORACK = false;
+    lastclock = 0;
 }
 
 UEIRtVMap::~UEIRtVMap(){
@@ -259,6 +261,9 @@ bool UEIRtVMap::StartMap(){
     //Let's start the layers to start acquiring data
     if (ok){
         ok = (DqRtVmapStart(DAQ_handle, mapid) >= 0);
+        struct timespec time;
+        clock_gettime(CLOCK_MONOTONIC, &time);
+        lastclock = time.tv_nsec;
         if (!ok){
             REPORT_ERROR(ErrorManagement::CommunicationError, "Could not start Map %s", name.Buffer());
         }
@@ -300,7 +305,12 @@ bool UEIRtVMap::PollForNewPacket(float32* destinationAddr){
     if (fragmentedMap){
         uint16 counter;
         uint16 tstamp;
+        struct timespec time;
+        clock_gettime(CLOCK_MONOTONIC, &time);
+        REPORT_ERROR(ErrorManagement::CommunicationError, "Period between refreshes %f us", (lastclock-time.tv_nsec)/1000.0);
         refreshReturn = DqRtVmapRefreshExt(DAQ_handle, mapid, 0, &counter, &tstamp);
+        lastclock = time.tv_nsec;
+
     }else{
         refreshReturn = DqRtVmapRefresh(DAQ_handle, mapid, 0);
     }
@@ -331,7 +341,10 @@ bool UEIRtVMap::PollForNewPacket(float32* destinationAddr){
         if (refreshReturn == DQ_FIFO_OVERFLOW){
             //Upon FIFO overflow for the map, the map must be restarted prior to getting any new samples, otherwise the
             //refresh method will not return appropriately
-            REPORT_ERROR(ErrorManagement::CommunicationError, "Device FIFO overflow for Map %s VMAP", name.Buffer());
+            if (!ERRORACK){
+                REPORT_ERROR(ErrorManagement::CommunicationError, "Device FIFO overflow for Map %s VMAP", name.Buffer());
+                ERRORACK = true;
+            }
         }else{
             //The refresh method failed for other reasons, report the error and carry on.
             REPORT_ERROR(ErrorManagement::CommunicationError, "Refresh of VMap for Map %s failed", name.Buffer());

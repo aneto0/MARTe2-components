@@ -45,6 +45,7 @@
 #include "UEICircularBuffer.h"
 //PowerDNA library includes
 #include "PDNA.h"
+#include "time.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -161,6 +162,8 @@ private:
     */
     uint32 nSamplesinMarte;
     uint32 bufferSampleNumber;
+    bool ERRORACK;
+    uint64 lastclock;
 };
 }
 #endif /* UEIRtVMap_H_ */
