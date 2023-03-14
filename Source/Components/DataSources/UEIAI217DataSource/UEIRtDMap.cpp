@@ -213,8 +213,8 @@ bool UEIRtDMap::GetMapPointers(){
     return ok;
 }
 
-bool UEIRtDMap::PollForNewPacket(float32* destinationAddr){
-    bool next_packet = false;
+int32 UEIRtDMap::PollForNewPacket(float32* destinationAddr){
+    bool next_packet = 0;
     bool ok = true;
     //Poll for next packet from UEIDAQ
     ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
@@ -249,7 +249,7 @@ bool UEIRtDMap::PollForNewPacket(float32* destinationAddr){
                     REPORT_ERROR(ErrorManagement::CommunicationError, "Could not process correctly the timestamp value on RtDMap %s", name.Buffer());
                 }
             }
-            next_packet = true;
+            next_packet = 1;
         }
     }else{
         REPORT_ERROR(ErrorManagement::ParametersError, "Refresh failed during Poll for conversion in Map %s", name.Buffer());

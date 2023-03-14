@@ -332,8 +332,8 @@ bool UEIMapContainer::StartMap(){
     return false;
 }
 
-bool UEIMapContainer::PollForNewPacket(float32* destinationAddr){
-    return false;
+int32 UEIMapContainer::PollForNewPacket(float32* destinationAddr){
+    return 0;   //0 Means packet is not complete
 }
 
 uint8 UEIMapContainer::GetType(){

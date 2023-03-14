@@ -260,44 +260,13 @@ bool UEIRtVMap::StartMap(){
     //If we reach here with ok=true, then the channels are correctly placed into the V/Dmap sctructure
     //Let's start the layers to start acquiring data
     if (ok){
-        ok = (DqRtVmapStart(DAQ_handle, mapid) >= 0);
-        struct timespec time;
-        clock_gettime(CLOCK_MONOTONIC, &time);
-        lastclock = time.tv_nsec;
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::CommunicationError, "Could not start Map %s", name.Buffer());
-        }
-    }
-    //Now set how many samples do we wish to recieve for this devices channels (this needs to be done AFTER map start, otherwise, you guessed it -> segfault)
-    if (ok){
-        for (uint32 i = 0u; i < nInputMembers && ok; i++){
-            ReferenceT<UEIDevice> devReference = inputMembersOrdered[i]->reference;
-            ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
-            uint32 nChannels_ = inputMembersOrdered[i]->Inputs.nChannels;
-            if (inputMembersOrdered[i]->Inputs.timestampRequired){
-                nChannels_ += 1u;   //Add a fictional channel for timestamp
-            }
-            uint32 byteSize = devReference->GetSampleSize();
-            //Assign the requested number of bytes on this member for later access during Refresh
-            inputMembersOrdered[i]->Inputs.requestSize = nChannels_*sampleNumber*byteSize;
-            if (ok){
-                int32 act_size;
-                //With this method we set the ammount of samples we want to obtain from this member's device
-                ok = (DqRtVmapRqInputDataSz(DAQ_handle, mapid, i, nChannels_*sampleNumber*byteSize , &act_size, NULL) >= 0);
-                if (!ok){
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error setting the VMap size on member %d in Map %s", i, name.Buffer());
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Requested size was %d bytes, but only %d bytes available", nChannels_*sampleNumber*byteSize, act_size);
-                }
-            }else{
-                REPORT_ERROR(ErrorManagement::InitialisationError, "could not retrieve devReference for device %d on Map %s while setting sample number", i, name.Buffer());
-            }
-        }
-    }
+        ok = EnableMap();
+    }    
     return ok;
 }
 
-bool UEIRtVMap::PollForNewPacket(float32* destinationAddr){
-    bool next_packet = false;
+int32 UEIRtVMap::PollForNewPacket(float32* destinationAddr){
+    int32 ret = 0;
     bool ok = true;
     bool copy_done = false;
     //Refresh the VMap
@@ -339,15 +308,18 @@ bool UEIRtVMap::PollForNewPacket(float32* destinationAddr){
         }
     }else{
         if (refreshReturn == DQ_FIFO_OVERFLOW){
+            ret = -1; //Signal that an error occurred during map refresh due to FIFO overflow
             //Upon FIFO overflow for the map, the map must be restarted prior to getting any new samples, otherwise the
             //refresh method will not return appropriately
-            if (!ERRORACK){
-                REPORT_ERROR(ErrorManagement::CommunicationError, "Device FIFO overflow for Map %s VMAP", name.Buffer());
-                ERRORACK = true;
-            }
+            REPORT_ERROR(ErrorManagement::CommunicationError, "Device FIFO overflow for Map %s VMAP, restarting the map", name.Buffer());
         }else{
+            ret = -2; //Signal that an error occurred during map refresh due to other kind of errors
             //The refresh method failed for other reasons, report the error and carry on.
-            REPORT_ERROR(ErrorManagement::CommunicationError, "Refresh of VMap for Map %s failed", name.Buffer());
+            REPORT_ERROR(ErrorManagement::CommunicationError, "Refresh of VMap for Map %s failed, restarting the map", name.Buffer());
+        }
+        bool restartOk = (ResetVMap());    //Reset the map for the next iteration
+        if (!restartOk){
+            REPORT_ERROR(ErrorManagement::CommunicationError, "Could not restart the Map %s succesfully", name.Buffer());
         }
     }
     //Once the refresh is done and data written into the circularBuffer Structure, check if all the buffers are ready to be read, if not
@@ -360,7 +332,7 @@ bool UEIRtVMap::PollForNewPacket(float32* destinationAddr){
         }
         //if ok, then all the buffers are ready to deliver the samples needed
         if (ok){
-            next_packet = true;
+            ret = 1;    //flag meaning that a complete packet is ready, deliver it
             //The destinationMemory (pointer) points to the memory region where the samples must be written
             //It is mandatory that the first MARTe signal is a Timestamp signal with 64 bit precision, therefore,
             //the destination memory (data channels) does indeed start padded a total of nSamplesinMarte*8 bytes from the
@@ -413,11 +385,62 @@ bool UEIRtVMap::PollForNewPacket(float32* destinationAddr){
             }
         }
     }
-    return next_packet;
+    return ret;
 }
 
 uint8 UEIRtVMap::GetType(){
     return RTVMAP;
+}
+
+bool UEIRtVMap::ResetVMap(){
+    bool ok = true;
+    //Stop the map (don't call cleanup map, as it would completely close it)
+    ok = (DqRtVmapStop(DAQ_handle, mapid) >= 0);
+    if (ok){
+        REPORT_ERROR(ErrorManagement::CommunicationError, "Could not stop Map %s during map reset request", name.Buffer());
+    }else{
+        ok = EnableMap();
+        if (!ok){
+             REPORT_ERROR(ErrorManagement::CommunicationError, "Could not re-start Map %s during map reset request", name.Buffer());
+        }
+    }   
+    return ok;
+}
+
+bool UEIRtVMap::EnableMap(){
+    bool ok = true;
+    if (ok){
+        ok = (DqRtVmapStart(DAQ_handle, mapid) >= 0);
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::CommunicationError, "Could not start Map %s", name.Buffer());
+        }
+    }
+    //Now set how many samples do we wish to recieve for this devices channels (this needs to be done AFTER map start, otherwise, you guessed it -> segfault)
+    if (ok){
+        for (uint32 i = 0u; i < nInputMembers && ok; i++){
+            ReferenceT<UEIDevice> devReference = inputMembersOrdered[i]->reference;
+            ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
+            uint32 nChannels_ = inputMembersOrdered[i]->Inputs.nChannels;
+            if (inputMembersOrdered[i]->Inputs.timestampRequired){
+                nChannels_ += 1u;   //Add a fictional channel for timestamp
+            }
+            uint32 byteSize = devReference->GetSampleSize();
+            //Assign the requested number of bytes on this member for later access during Refresh
+            inputMembersOrdered[i]->Inputs.requestSize = nChannels_*sampleNumber*byteSize;
+            if (ok){
+                int32 act_size;
+                //With this method we set the ammount of samples we want to obtain from this member's device
+                ok = (DqRtVmapRqInputDataSz(DAQ_handle, mapid, i, nChannels_*sampleNumber*byteSize , &act_size, NULL) >= 0);
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error setting the VMap size on member %d in Map %s", i, name.Buffer());
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Requested size was %d bytes, but only %d bytes available", nChannels_*sampleNumber*byteSize, act_size);
+                }
+            }else{
+                REPORT_ERROR(ErrorManagement::InitialisationError, "could not retrieve devReference for device %d on Map %s while setting sample number", i, name.Buffer());
+            }
+        }
+    }
+    return ok;
 }
 
 CLASS_REGISTER(UEIRtVMap, "1.0")

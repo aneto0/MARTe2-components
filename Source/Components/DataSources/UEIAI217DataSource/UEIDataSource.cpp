@@ -108,6 +108,7 @@ bool UEIDataSource::Initialise(StructuredDataI &data) {
 bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
     //Check the number of signals into the datasource
+    uint32 expectedSignalN = 0u;
     if (ok){
         ok = (numberOfSignals > 0);
         if (!ok){
@@ -115,27 +116,40 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
         }
         //The number of signals cannot be larger than the number of physical channels defined in the map
         if (ok){
-            uint32 nChannels;
-            ok = map->GetNumberOfChannels(INPUT_CHANNEL, nChannels); //TODO, check for Input channels
+            uint32 expectedSignalN = 0u;
+            ok = map->GetNumberOfChannels(INPUT_CHANNEL, expectedSignalN); //TODO, check for Input channels
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Could not get number of Input channels for Map %s", map->GetName());
             }else{
-                ok = (numberOfSignals == nChannels+1);  //+1 as we must supply a Timestamp signal
+                expectedSignalN += 2u;  //Add 2 channel for DAQ status and 1 channel for the timestamp
+                ok = (numberOfSignals == expectedSignalN);  
                 if (!ok){
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Number of signals in DataSource %s must match signal number in its map (%s)", name.Buffer(), map->GetName());
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Number of signals in DataSource %s must match signal number in Map %s, (status signal + timestamp signal + %d channel signals)", name.Buffer(), map->GetName(), expectedSignalN-2);
                 }
             }
         }
     }
-    //First Signal from this DataSource must be a Timestamp uint64 signal
+    //First Signal from this DataSource must be a Status uint32 signal
     if (ok){
         StreamString timestampSignalName;
         ok = (GetSignalName(0, timestampSignalName));
         if (ok){
-            ok = (timestampSignalName == StreamString("Timestamp"));
-            ok &= (GetSignalType(0) == UnsignedInteger64Bit);
+            ok = (timestampSignalName == StreamString("Status"));
+            ok &= (GetSignalType(0) == UnsignedInteger32Bit);
             if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Signal 0 for this DataSource must be a \"Timestamp\" uint64 signal");
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Signal 0 for this DataSource must be a \"Status\" uint32 signal");
+            }
+        }
+    }
+    //Second Signal from this DataSource must be a Timestamp uint64 signal
+    if (ok){
+        StreamString timestampSignalName;
+        ok = (GetSignalName(1, timestampSignalName));
+        if (ok){
+            ok = (timestampSignalName == StreamString("Timestamp"));
+            ok &= (GetSignalType(1) == UnsignedInteger64Bit);
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Signal 1 for this DataSource must be a \"Timestamp\" uint64 signal");
             }
         }
     }
@@ -143,7 +157,7 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
     // type of signals is allowed
     if (ok){
         //Get the type of the first signal (we know we do have at least 1 signal) (skip timestamp signal)
-        signalType = GetSignalType(1u);
+        signalType = GetSignalType(2u);
         ok = (signalType == Float32Bit); //TODO, for now we only support scaled float64 data, we'll update on this later
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Signal type inconsistency in DataSource %s (all signals must be float32 bit for now)", name.Buffer());        
@@ -152,7 +166,7 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
     //Check that all the signals are of the same type
     if(ok){
         //Traverse all the signals defined for this DataSource
-        for (uint32 i = 1u; i < numberOfSignals && ok; i++){
+        for (uint32 i = 2u; i < numberOfSignals && ok; i++){
             //Check that all the signals do have the same type as the selected one (the first signal)
             ok = (signalType == GetSignalType(i));
         }
@@ -193,9 +207,22 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     //Check NumberOfSamples for all the signals to be equal and 1 if the Map is XDMap or equal for all signals in XVMap.
+    //The first signal (Status) must only have 1 sample
+    if (ok){
+        uint32 samples = 0;
+        ok = (GetFunctionSignalSamples(InputSignals,0,0,samples));
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::ParametersError, "Status signal not found for DataSource %s", name.Buffer());
+        }else{
+            ok = (samples == 1u);
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::ParametersError, "Status for DataSource %s must have 1 sample only", name.Buffer());
+            }
+        }
+    }
     if (ok){
         bool firstSignalVisited = false;
-        for (uint32 i = 0; i < numberOfSignals && ok; i++){
+        for (uint32 i = 1u; i < numberOfSignals && ok; i++){
             uint32 samples = 0;
             bool signalFound = (GetFunctionSignalSamples(InputSignals,0,i,samples));
             if (signalFound && !firstSignalVisited){
@@ -258,6 +285,7 @@ bool UEIDataSource::Synchronise() {
     bool ok = true;
     //Start the DAQ Map
     if (firstSync){
+        Sleep::MSec(1000);
         firstSync = false;
         if (ok){
             ok = map->StartMap();
@@ -267,16 +295,40 @@ bool UEIDataSource::Synchronise() {
         }
     }
     //Start to poll for next packet to the Map. The memory access is handled by the Map Container
-    ok = !ok;
-    uint32 counter = 0;
-    while(!ok){
-        ok = (map->PollForNewPacket(reinterpret_cast<float32*>(memory)));
-        if (!ok){
-            counter ++;
-            if (poll_sleep_period != 0) Sleep::MSec(poll_sleep_period);    //To change
+    float32* samplesMemory = &(reinterpret_cast<float32*>(memory)[1]);
+    uint32* statusMemory = reinterpret_cast<uint32*>(memory);
+    //Counters and flags to register errors
+    uint16 localErrorCounter = 0u;
+    uint8 FIFOError = 0u;
+    uint8 GeneralError = 0u;
+    uint8 ValidData = 0u;
+    //Acquisition loop
+    bool continueLoop = true;
+    while(continueLoop){
+        int32 pollReturn = (map->PollForNewPacket(samplesMemory));
+        if (pollReturn == -2){
+            //A General error has been detected
+            GeneralError = 1u;
+            localErrorCounter ++;
+        }else if (pollReturn == -1){
+            //A FIFO error has been detected
+            FIFOError = 1u;
+            localErrorCounter ++;
+        }else if (pollReturn == 0){
+            //The packets are still incomplete
+            continueLoop = true;
+        }else if (pollReturn == 1){
+            //packet is ready for shipment
+            continueLoop = false;
         }
-        if (counter > 1000) break;
+        if (localErrorCounter > 100) {
+            //Maximum numbers of errors achieved
+            ValidData = 1u; //Mark the data as invalid (completely invalid)
+            continueLoop = false;          
+        }
+        if (continueLoop) Sleep::MSec(poll_sleep_period);
     }
+    *statusMemory = (localErrorCounter | ValidData << 16 | FIFOError << 17 | GeneralError << 18);
     return true;
 }
 
