@@ -355,8 +355,8 @@ int32 UEIRtVMap::PollForNewPacket(float32* destinationAddr){
                     //Scale the obtained data
                     for (uint32 j = 0u; j < inputMembersOrdered[i]->Inputs.nChannels; j++){
                         uint32 channel = inputMembersOrdered[i]->Inputs.channels[j];
-                        uint32* rawDataPointer = &(reinterpret_cast<uint32*>(destinationMemory)[iterator+j*nSamplesinMarte]);
-                        float32* scaledDataPointer = &(reinterpret_cast<float32*>(destinationMemory)[iterator+j*nSamplesinMarte]);
+                        uint32* rawDataPointer = reinterpret_cast<uint32*>(destinationMemory+(iterator+j*nSamplesinMarte));
+                        float32* scaledDataPointer = reinterpret_cast<float32*>(destinationMemory+(iterator+j*nSamplesinMarte));
                         ok = (inputMembersOrdered[i]->reference->ScaleSignal(channel, nSamplesinMarte, rawDataPointer, scaledDataPointer));
                         if (!ok){
                             REPORT_ERROR(ErrorManagement::CommunicationError, "UEIRtVMap::PollForNewPacket - The scaling process failed in Map %s", name.Buffer());
