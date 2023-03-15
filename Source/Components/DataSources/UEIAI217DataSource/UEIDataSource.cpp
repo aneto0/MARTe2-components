@@ -360,8 +360,10 @@ bool UEIDataSource::AllocateMemory(){
             ret = (thisSignalMemorySize > 0u);
         }
         if (ret) {
-            stateMemorySize += (thisSignalMemorySize * numberOfBuffers * nSamples);
-            signalSize[s] = thisSignalMemorySize * nSamples;
+            uint32 thisSignalSampleN;
+            ret = GetFunctionSignalSamples(InputSignals,0,s,thisSignalSampleN);
+            stateMemorySize += (thisSignalMemorySize * numberOfBuffers * thisSignalSampleN);
+            signalSize[s] = thisSignalMemorySize * thisSignalSampleN;
         }
     }
     uint32 numberOfStateBuffers = GetNumberOfStatefulMemoryBuffers();

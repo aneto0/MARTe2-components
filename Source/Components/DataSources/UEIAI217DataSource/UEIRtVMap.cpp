@@ -173,6 +173,8 @@ bool UEIRtVMap::StartMap(){
         }
     }
     if (ok){
+        //TODO
+        fragmentedMap = true;
         DQ_RTMAP_PARAM vmapparam = {11500, 1518, 1000};  //TODO change this parameters
         ok = (DqRtVmapInitEx(DAQ_handle, &mapid, &vmapparam) >= 0); //Extended version of the VMapInit method for fragmented maps
         //if (fragmentedMap){
@@ -274,12 +276,7 @@ int32 UEIRtVMap::PollForNewPacket(float32* destinationAddr){
     if (fragmentedMap){
         uint16 counter;
         uint16 tstamp;
-        struct timespec time;
-        clock_gettime(CLOCK_MONOTONIC, &time);
-        REPORT_ERROR(ErrorManagement::CommunicationError, "Period between refreshes %f us", (lastclock-time.tv_nsec)/1000.0);
         refreshReturn = DqRtVmapRefreshExt(DAQ_handle, mapid, 0, &counter, &tstamp);
-        lastclock = time.tv_nsec;
-
     }else{
         refreshReturn = DqRtVmapRefresh(DAQ_handle, mapid, 0);
     }
