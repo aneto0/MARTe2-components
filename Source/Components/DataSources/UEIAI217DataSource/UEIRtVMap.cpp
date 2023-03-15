@@ -334,8 +334,8 @@ int32 UEIRtVMap::PollForNewPacket(float32* destinationAddr){
             //It is mandatory that the first MARTe signal is a Timestamp signal with 64 bit precision, therefore,
             //the destination memory (data channels) does indeed start padded a total of nSamplesinMarte*8 bytes from the
             //DataSource memory location.
-            uint8* destinationMemory = &(reinterpret_cast<uint8*>(destinationAddr)[nSamplesinMarte*8]);
             uint64* timestampMemory = reinterpret_cast<uint64*>(destinationAddr);
+            uint8* destinationMemory = reinterpret_cast<uint8*>(destinationAddr+nSamplesinMarte);
             //iterator variable serves as index inside the destinationMemory area to point the next location to write
             uint32 iterator = 0u;
             //Flag signaling if the timestamp has already been recived from the buffer (typically only the first member
@@ -355,8 +355,8 @@ int32 UEIRtVMap::PollForNewPacket(float32* destinationAddr){
                     //Scale the obtained data
                     for (uint32 j = 0u; j < inputMembersOrdered[i]->Inputs.nChannels; j++){
                         uint32 channel = inputMembersOrdered[i]->Inputs.channels[j];
-                        uint32* rawDataPointer = reinterpret_cast<uint32*>(destinationMemory+(iterator+j*nSamplesinMarte));
-                        float32* scaledDataPointer = reinterpret_cast<float32*>(destinationMemory+(iterator+j*nSamplesinMarte));
+                        uint32* rawDataPointer = reinterpret_cast<uint32*>(destinationMemory+(iterator+j*nSamplesinMarte*4u)); //TODO
+                        float32* scaledDataPointer = reinterpret_cast<float32*>(destinationMemory+(iterator+j*nSamplesinMarte*4u)); //TODO
                         ok = (inputMembersOrdered[i]->reference->ScaleSignal(channel, nSamplesinMarte, rawDataPointer, scaledDataPointer));
                         if (!ok){
                             REPORT_ERROR(ErrorManagement::CommunicationError, "UEIRtVMap::PollForNewPacket - The scaling process failed in Map %s", name.Buffer());
@@ -366,7 +366,7 @@ int32 UEIRtVMap::PollForNewPacket(float32* destinationAddr){
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::CommunicationError, "UEIRtVMap::PollForNewPacket - could not retrieve data from CircualrBuffer in Map %s", name.Buffer());
                 }
-                iterator += inputMembersOrdered[i]->Inputs.nChannels*nSamplesinMarte*4u;
+                iterator += inputMembersOrdered[i]->Inputs.nChannels*nSamplesinMarte*4u; //TODO
             }
             //Correct and set in memory the timestamps
             if (ok){
