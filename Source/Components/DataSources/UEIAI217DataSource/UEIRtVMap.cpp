@@ -335,7 +335,7 @@ int32 UEIRtVMap::PollForNewPacket(float32* destinationAddr){
             //the destination memory (data channels) does indeed start padded a total of nSamplesinMarte*8 bytes from the
             //DataSource memory location.
             uint64* timestampMemory = reinterpret_cast<uint64*>(destinationAddr);
-            uint8* destinationMemory = reinterpret_cast<uint8*>(destinationAddr+nSamplesinMarte);
+            uint8* destinationMemory = reinterpret_cast<uint8*>(timestampMemory+nSamplesinMarte);
             //iterator variable serves as index inside the destinationMemory area to point the next location to write
             uint32 iterator = 0u;
             //Flag signaling if the timestamp has already been recived from the buffer (typically only the first member
