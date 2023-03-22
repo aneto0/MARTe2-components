@@ -74,6 +74,12 @@ ifdef EPICS_PCAS
 SPB+=MARTeIOC.x
 endif
 
+ifdef PDNA_LIB 
+ifdef PDNA_LIB_PPC
+SPB +=UEIDAQ.x
+endif
+endif
+
 PACKAGE=Components
 ROOT_DIR=../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
