@@ -529,34 +529,6 @@ bool UEIMapContainer::GetNumberOfChannels(uint8 direction, uint32 &nChannels){
     return ok;
 }
 
-//This function does not check for repeated channel numbers TODO
-/*bool UEIMapContainer::CalculateCorrectionIndexes(uint32* configuredChannelList, int8* correctionCoefficientsList){
-    bool ok = true;
-    uint32 arrayLength = sizeof(configuredChannelList)/sizeof(uint32);
-    //Create an array to store the ordered channel numbers
-    uint32* orderedList = new uint32[arrayLength];
-    memcpy(orderedList, configuredChannelList, arrayLength);
-    //Sort the orderedList array
-    std::sort(orderedList, orderedList+arrayLength);
-    //With the array sorted, traverse the user-configured order and find the location of the indexes on the sorted array
-    for (uint32 i = 0; i < arrayLength && ok; i++){
-        uint32 configuredChannel = configuredChannelList[i];
-        ok = false;
-        for (uint32 j = 0; j < arrayLength; j++){
-            if (orderedList[j] == configuredChannel){
-                //We found the channel in the ordered array, calculate the correction factor
-                correctionCoefficientsList[i] = (int8) (j-i);
-                ok = true;
-            }
-        }
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Could not sort channel array in Map %s", name.Buffer());
-        }
-    }
-    return ok;
-}
-*/
-
 bool UEIMapContainer::GetTimestamp(uint32 inputTimestamp, uint64 &outputTimestamp){
     //Simple implementation of the 32-bit to 64-bit translation mechanism
     //employed for the timestamp to improve timestamp range.

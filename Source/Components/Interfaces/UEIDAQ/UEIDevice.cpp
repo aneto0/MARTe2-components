@@ -84,7 +84,7 @@ bool UEIDevice::Initialise(StructuredDataI &data){
     }
     //Read and validate sampling frequency
     if (ok){
-        ok = helper.Read("Sampling_ferquency", samplingFrequency);
+        ok = helper.Read("SamplingFrequency", samplingFrequency);
         if (ok){
             REPORT_ERROR(ErrorManagement::Information, "UEIDevice::Initialise - "
             "Sampling frequency set to %f for device %s.", samplingFrequency, name.Buffer());

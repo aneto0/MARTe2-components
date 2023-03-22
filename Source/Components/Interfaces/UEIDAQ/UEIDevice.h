@@ -55,6 +55,9 @@ namespace MARTe {
  * The functions contained in this class must be reimplemented in the child class with the appropriate methods
  * for the target hardware layer.
  *
+ * The initialisation method of this class checks and acquires the parameters Devn and SamplingFrequency provided for 
+ * a device child class derived from this one.
+ *
  * This class should not be instantiated as a device object but rather the derived classes from this base class.
  *
  */

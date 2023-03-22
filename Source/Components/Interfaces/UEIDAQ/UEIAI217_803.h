@@ -115,7 +115,7 @@ typedef struct{
  *  + dev0={
  *      Class               = UEIAI217_803
  *      Devn                = 0
- *      Sampling_ferquency  = 1000.0
+ *      SamplingFrequency  = 1000.0
  *      Filters = {
  *         A = {
  *             Taps = {0,1,0,2,0,3,0,4,0,5,6}
