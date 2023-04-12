@@ -44,9 +44,15 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I ../../Interfaces/UEIDAQ
-INCLUDES += -I $(PDNA_INCLUDE)
+
+#ifeq ($(TARGET),cov)
+INCLUDES += -I ../../../../Test/Components/Interfaces/UEIDAQ/UEIDAQMockup
+#else
+#INCLUDES += -I $(PDNA_INCLUDE)
+#endif
 
 all: $(OBJS)    \
+	$(BUILD_DIR)/UEIDataSource$(LIBEXT) \
 	$(BUILD_DIR)/UEIDataSource$(DLLEXT)
 	echo  $(OBJS)
 

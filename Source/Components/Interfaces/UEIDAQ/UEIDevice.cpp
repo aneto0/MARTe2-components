@@ -64,8 +64,7 @@ bool UEIDevice::Initialise(StructuredDataI &data){
         name = data.GetName();
         ok = (name.Size() != 0ull);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIDevice::Initialise - "
-                "Could not retrieve DAQ Master Object Name.");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve UEIDevice Name.");
         }
     }
     //Read and validate the Devn parameter (Devicen identifier)
@@ -74,23 +73,19 @@ bool UEIDevice::Initialise(StructuredDataI &data){
         if (ok){
             ok = deviceId < MAX_IO_SLOTS; 
             if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIDevice::Initialise - "
-                "Devn out of allowed range for device %s. Maximum Devn : %d.", name.Buffer(), MAX_IO_SLOTS-1);
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Devn out of allowed range for device %s. Maximum Devn : %d.", name.Buffer(), MAX_IO_SLOTS-1);
             }
         }else{
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIAI217_803::Initialise - "
-            "Could not retrive Devn parameter for device %s.", name.Buffer());
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrive Devn parameter for device %s.", name.Buffer());
         }
     }
     //Read and validate sampling frequency
     if (ok){
         ok = helper.Read("SamplingFrequency", samplingFrequency);
         if (ok){
-            REPORT_ERROR(ErrorManagement::Information, "UEIDevice::Initialise - "
-            "Sampling frequency set to %f for device %s.", samplingFrequency, name.Buffer());
+            REPORT_ERROR(ErrorManagement::Information, "Sampling frequency set to %f for device %s.", samplingFrequency, name.Buffer());
         }else{
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIDevice::Initialise - "
-            "Could not retrive Sampling_frequency parameter for device %s.", name.Buffer());
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrive SamplingFrequency parameter for device %s.", name.Buffer());
         }
     }
     return ok;
@@ -101,9 +96,9 @@ int32 UEIDevice::GetModel(){
     return 0x00;
 }
 
-uint8 UEIDevice::GetType(){
+IOLayerType UEIDevice::GetType(){
     //Base implmentation returns false by default, this function must be implemented by child class.
-    return HARDWARE_LAYER_UNDEFINED;
+    return NO_LAYER;
 }
 
 uint8 UEIDevice::GetSampleSize(){
@@ -116,16 +111,26 @@ uint32 UEIDevice::GetDeviceChannels(){
     return 0u;
 }
 
-bool UEIDevice::CheckChannelAndDirection(uint32 channelIdx, uint8 direction){
+bool UEIDevice::CheckChannelAndDirection(uint32 channelNumber, SignalDirection direction){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
 }
 
-bool UEIDevice::ConfigureChannel(uint32 channelIdx, uint32* channelConfiguration){
+bool UEIDevice::CheckChannelListAndDirection(uint32* channelList, uint32 listLength, SignalDirection direction){
+    bool ok = (channelList != NULL_PTR(uint32*));
+    if (ok){
+        for (uint32 i = 0; i < listLength && ok; i++){
+            ok &= CheckChannelAndDirection(channelList[i], direction);
+        }
+    }
+    return ok;
+}
+
+bool UEIDevice::ConfigureChannel(uint32 channelNumber, uint32 &channelConfiguration){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
 }
-bool UEIDevice::ConfigureChannel(uint32 channelIdx, int32* channelConfiguration){
+bool UEIDevice::ConfigureChannel(uint32 channelNumber, int32 &channelConfiguration){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
 }
@@ -145,7 +150,13 @@ bool UEIDevice::GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32
     return false;
 }
 
-bool UEIDevice::ScaleSignal(uint32 channelIdx, uint32 listLength, uint32* rawData, float32* scaledData){
+bool UEIDevice::ScaleSignal(uint32 channelNumber, uint32 listLength, void* rawData, void* scaledData, TypeDescriptor outputType){
+    //Base implmentation returns false by default, this function must be implemented by child class.    
+    return false;
+}
+
+bool UEIDevice::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPointer rawData, void* scaledData, TypeDescriptor outputType){
+    //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
 }
 
@@ -183,6 +194,10 @@ bool UEIDevice::GetMapAssignment(){
 
 float UEIDevice::GetSamplingFrequency(){
     return samplingFrequency;
+}
+
+char8* UEIDevice::GetName(){
+    return (char8*) name.Buffer();
 }
 
 CLASS_REGISTER(UEIDevice, "1.0")

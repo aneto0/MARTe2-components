@@ -52,9 +52,11 @@ namespace MARTe {
 #define CHANNEL_NUMBER 16u
 
 //FIR bank state description
-#define BANK_NOT_ENABLED        0u
-#define DEFAULT_FIR_SETTING     1u
-#define CUSTOM_FIR_SETTING      2u
+typedef enum{
+    BANK_NOT_ENABLED,
+    DEFAULT_FIR_SETTING,
+    CUSTOM_FIR_SETTING
+} FirBankStatus;
 
 /**
 *   @struct AI217_803FIRBank
@@ -64,7 +66,7 @@ typedef struct{
     /**
     *   Flag indicating the status of the FIR bank, can be set to BANK_NOT_ENABLED, DEFAULT_FIR_SETTING or CUSTOM_FIR_SETTING as defined in UEIAI217_803.h.
     */
-    uint8 bankState;
+    FirBankStatus bankState;
     /**
     *   Variable holding the default fir configuration table index in case the bank is configured in DEFAULT_FIR_SETTING mode.
     */
@@ -93,6 +95,9 @@ typedef struct{
  * This object expects a Gains parametr to be a 16 number array stating the amplifier gain for each channel (ordered). The allowed gain values
  * for each channel are 1, 2, 4, 8, 16, 32 or 64, any other gain provided in this array will cause the initialisation to fail.
  *
+ * This hardware layer retrieves data in 24-bit format (24 bit ADCs) so the only valid I/O signal types are uint32, uint64, float32 and float64
+ * in order to avoid precision/resolution loss on the data retrieved in this layer.
+ *
  * As the AI-217-803 hardware layer is provided with a quad FIR filter stage, this capability can be configured by properly setting the Filters
  * block expected on the object configuration. The hardware layer provides 4 FIR filtering banks with 512 taps each, dividing the channels as:
  * - Bank A : channels 0 to 3
@@ -115,7 +120,7 @@ typedef struct{
  *  + dev0={
  *      Class               = UEIAI217_803
  *      Devn                = 0
- *      SamplingFrequency  = 1000.0
+ *      SamplingFrequency   = 1000.0
  *      Filters = {
  *         A = {
  *             Taps = {0,1,0,2,0,3,0,4,0,5,6}
@@ -156,32 +161,119 @@ class UEIAI217_803 : public UEIDevice {
      * @return true if every parameter has been read correctly and validated.
      */
     bool Initialise(StructuredDataI &data);
-    bool ScaleSignal(uint32 channelIdx, uint32 listLength, uint32* rawData, float32* scaledData);
+    
+    /**
+     * @brief Scales a set of samples obtained from the UEIDAQ as raw data into the desired type.
+     * @details This method allows a block on raw data from the UEIDAQ hardware layer to be processed into the specified
+     * type for later usage.
+     * @param[in] channelNumber Index of the channel to which the provided samples correspond (first channel is indexed as 0)
+     * @param[in] listLength Length (in samples) of the provided array of input data to be processed
+     * @param[in] rawData Array of raw data to be processed as listLenght number of samples.
+     * @param[out] scaledData Pointer to the destination memory area where the scaled result is to be stored. The developer is responsible to
+     * allocate such space taking into account the size of the desired output type and the number of samples to be scaled.
+     * @param[in] type Type to which the input raw data is to be scaled to. The allowed types are checked according to AcceptedSignalType() method
+     * @return true if the scaling process was successful, false otherwise.
+     */
+    bool ScaleSignal(uint32 channelNumber, uint32 listLength, void* rawData, void* scaledData, TypeDescriptor type);
+    
+    /**
+     * @brief Scales a set of samples obtained from the UEIDAQ as raw data into the desired type.
+     * @details Variant of the ScaleSignal() method in which the raw input data is provided as a UEIBufferPointer special iterator instance,
+     * allowing to reduce the amount of memory copy operations to read directly from the UEIBuffer.
+     * @param[in] channelNumber Index of the channel to which the provided samples correspond (first channel is indexed as 0)
+     * @param[in] listLength Length (in samples) of the provided array of input data to be processed
+     * @param[in] rawData UEIBufferPointer instance configured to point to the samples retrieved from a UEICircularBuffer.
+     * @param[out] scaledData Pointer to the destination memory area where the scaled result is to be stored. The developer is responsible to
+     * allocate such space taking into account the size of the desired output type and the number of samples to be scaled.
+     * @param[in] type Type to which the input raw data is to be scaled to. The allowed types are checked according to AcceptedSignalType() method
+     * @return true if the scaling process was successful, false otherwise.
+     */
+    bool ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPointer rawData, void* scaledData, TypeDescriptor outputType);
+
+    /**
+     * @brief Returns the model number of this specific hardware layer.
+     * @return the model number in hexadecimal of this hardware layer.
+     */
     int32 GetModel();
-    uint8 GetType();
-    //Returns the number of bytes a single sample of this device occupies
+
+    /**
+     * @brief Returns the kind of data to be retrieved from this hardware layer.
+     * @return the kind of hardware layer.
+     */
+    IOLayerType GetType();
+
+    /**
+     * @brief Returns the sample size in bytes of the data returned by a query to this model of hardware layer.
+     * @return the data width of a sample of this hardware layer.
+     */
     uint8 GetSampleSize();
+    
+    /**
+     * @brief Returns the number of channels available on this hardware layer model.
+     * @return the number of physical channels available on this hardware layer.
+     */
     uint32 GetDeviceChannels();
     
     /**
-     * @brief Initialise the Object from a configuration file.
-     * @details Reads the parameters from a ConfigurationDatabase and check
-     * their validity.
-     * @param[in] channelNumber the channel number to be checked. First channel of a layer is always 0
-     * @param[in] direction the channel direction, definition according to UEIDefinitions.h (INPUT_CHANNEL and OUTPUT_CHANNEL)
-     * @return true the specified channel is valid within AI-217-803 layer with the direction provided.
+     * @brief Checks the validity of a specified physical channel to be used on a certain direction.
+     * @param[in] channelNumber the channel number to be checked. First channel of a layer is always indexed to 0
+     * @param[in] direction the channel direction.
+     * @return true if the specified channel is valid within the layer with the direction provided.
      */
-    bool CheckChannelAndDirection(uint32 channelIdx, uint8 direction);
-    bool ConfigureChannel(uint32 channelIdx, uint32* channelConfiguration);
-    bool ConfigureChannel(uint32 channelIdx, int32* channelConfiguration);
-    bool ConfigureDevice(int32 DAQ_handle);
-    bool AcceptedSignalType(TypeDescriptor signalType);
-    bool GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32* pgaStatusArray);
+    bool CheckChannelAndDirection(uint32 channelNumber, SignalDirection direction);
+
+    /**
+     * @brief Getter for the configuration bitfield for a specific channel on this hardware layer.
+     * @details This method returns the appropriately formatted bitfield to be used during hardware layer 
+     * configuration for a specific channel.
+     * @param[in] channelNumber the channel number to be configured. First channel of a layer is always indexed to 0
+     * @param[in] channelConfiguration location to where the configuration bitfield must be written.
+     * @return true if the specified channel is valid and can be correctly configured into the bitfield.
+     */
+    bool ConfigureChannel(uint32 channelNumber, uint32 &channelConfiguration);
     
-private:
-    uint16* gains;                  //Sets the sampling frequency of the device (only one per device)
-    int32 ADCMode;                  //Stores the advanced configuration for the ADC on the AI-217-803, can be set to ENHANCED or DEFAULT
-    AI217_803FIRBank FIRBanks [FIR_BANK_NUMBER];  //Stores the structure defining the FIR settings for each of the four banks (A,B,C or D, identified by the index)
+    /**
+     * @brief Getter for the configuration bitfield for a specific channel on this hardware layer.
+     * @details This method returns the appropriately formatted bitfield to be used during hardware layer 
+     * configuration for a specific channel.
+     * @param[in] channelNumber the channel number to be configured. First channel of a layer is always indexed to 0
+     * @param[in] channelConfiguration location to where the configuration bitfield must be written.
+     * @return true if the specified channel is valid and can be correctly configured into the bitfield.
+     */
+    bool ConfigureChannel(uint32 channelNumber, int32 &channelConfiguration);
+    
+    /**
+     * @brief Configuration method which provides layer-spefcific configuration capabilities.
+     * @details This method is used to configure specific functions or parameters on the hardware layer, which are not
+     * common to other hardware layers and therefore must be specifically performed for a certain hardware layer
+     * @param[in] DAQ_handle handler to the IOM where the device is installed.
+     * @return true if the configuration procedure was successful, false otherwise.
+     */
+    bool ConfigureDevice(int32 DAQ_handle);
+    
+    /**
+     * @brief Checker method to query if a certain signal type is allowed as I/O signal for this hardware layer.
+     * @param[in] signalType Type of the I/O signal to be queried.
+     * @return true if the type provided is valid to be used as I/O signal type, false otherwise.
+     */
+    bool AcceptedSignalType(TypeDescriptor signalType);
+
+protected:
+    /** 
+     * Array containing the gain values for the different channels on this hardware layer
+     */
+    uint16* gains;
+    
+    /** 
+     * Flag stating the ADC mode to be configured in this specific hardware layer
+     */
+    int32 ADCMode;
+    
+    /** 
+     * Array of AI217_803FIRBank configuration structures holding the configuration parameters for the different FIR banks
+     * for this specific hardware layer.
+     */
+    AI217_803FIRBank FIRBanks [FIR_BANK_NUMBER];
 };
 
 }

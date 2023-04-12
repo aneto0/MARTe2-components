@@ -146,27 +146,40 @@ class UEIRtVMap : public UEIMapContainer {
      * @brief Method to poll the IOM for new data on the map.
      * @details This method polls the IOM for a new packet of data. This implementation redefines the behavior defined in UEIMapContainer
      * for RtVMap data acquisition.
-     * @param[out] destinationAddr pointer to the memory region where the contents of the newly recived (if so) map packet are copied.
      * @return true if a new packet has been recieved, false otherwise.
      */
-    int32 PollForNewPacket(float32* destinationAddr);
+    bool PollForNewPacket(MapReturnCode& outputCode);
     
     /**
      * @brief Getter for the type of the map.
      * @details Redefinition of the method stated in UEIMapContainer.
      * @return RTVMAP as defined in UEIDefinitions.h.
      */
-    uint8 GetType();
+    MapType GetType();
 
     /**
-     * @brief Setter for the ammount of samples to retrieve to each channel.
-     * @details This method must be called prior to StartMap to allow for correct UEICircularBuffer initialisation.
-     * @param [in] MARTeSampleN number of samples to be retrieved for each channel in the map.
-     * @return true if the supplied sample number is valid, false otherwise.
+     * @brief Configuration method for the destination signals in MARTe.
+     * @details This function provides the Map object the knowledge of where to store the scaled samples in memory as input signals in MARTe,
+     * the desired number of samples to be retrieved in such signals, the number of physical channels to be retrieved and the types to which scale each
+     * of the input signals.
+     * @param[in] nSamples number of samples the map must supply for each of the declared phyisical channels as MARTe signals.
+     * @param[in] nChannels number of channels the map needs to provide as input signals, this parameters serves as a check for the length of the provided arrays.
+     * @param[in] inputTimestampAddress pointer to the memory location in which to store the scaled samples for the timestamp channel mandatory for all the maps.
+     * @param[in] signalAddresses array of pointers to the memory locations of each of the input signals, must have a length of nChannels and be supplied in the same
+     * order as the configured physical channels.
+     * @param[in] signalTypes Array of types for each of the channels, stating the desired input signal format and scaling.
+     * @return true if the provided parameters are accepted for the Map, false otherwise.
      */
-    bool SetMARTeSamplesPerSignal(uint32 MARTeSampleN);
+    bool ConfigureInputsForDataSource(uint32 nSamples, uint32 nChannels, uint64* inputTimestampAddress, uint8** signalAddresses, TypeDescriptor* signalTypes);
+    
+    /**
+     * @brief Method to stop operation on the map.
+     * @details This method is used to cease map operation.
+     * @return true if the stopping request succeeded, false otherwise.
+     */
+    bool StopMap();
 
-private:
+protected:
 
     /**
      * @brief Private method to enable the map operation.
@@ -187,12 +200,12 @@ private:
     /**
     *   Variable holding the number of samples required to be delivered by the datasource for each channel.
     */
-    uint32 nSamplesinMarte;
+    uint32 nReadSamples;
     
     /**
     *   Variable holding the length of the circular buffer for each hardware layer in terms of samples for each channel.
     */
-    uint32 bufferSampleNumber;
+    uint32 nBuffers;
 };
 }
 #endif /* UEIRtVMap_H_ */

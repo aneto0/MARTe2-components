@@ -44,6 +44,14 @@ UEIMasterObject::UEIMasterObject() : ReferenceContainer() {
     DAQ_handle = 0u;
     port = 0u;
     ip_string = NULL_PTR(char8*);  
+    nDevices = 0;
+    ip[0] = 0;
+    ip[1] = 0;
+    ip[2] = 0;
+    ip[3] = 0;
+    name = "";
+    nMaps = 0;
+    IOMTimeOut = 0;
 }
 
 UEIMasterObject::~UEIMasterObject(){
@@ -64,13 +72,10 @@ UEIMasterObject::~UEIMasterObject(){
         ok &= (DqCloseIOM(DAQ_handle) >= 0);
     }
     if (!ok){
-        REPORT_ERROR(ErrorManagement::CommunicationError, "UEIMasterObject::Destructor - "
-        "Device %s could not close properly the IOM!", name.Buffer());
+        REPORT_ERROR(ErrorManagement::CommunicationError, "Device %s could not close properly the IOM!", name.Buffer());
     }
     //Clean the PDNA library structures
     DqCleanUpDAQLib();
-    REPORT_ERROR(ErrorManagement::CommunicationError, "UEIMasterObject::Destructor - "
-    "Destroying %s!", name.Buffer());    
 }
 
 bool UEIMasterObject::Initialise(StructuredDataI &data){
@@ -87,11 +92,7 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
     }
     //Get connection timeout for the IOM if defiened, if not set default
     if (ok){
-        bool set = helper.Read("ConnectionTimeOut",IOMTimeOut,(uint32)DEFAULT_IOM_CONNECTION_TIMEOUT);
-        if (!set){
-            REPORT_ERROR(ErrorManagement::Information, "UEIMasterObject::Initialise - "
-                "IOM connection timout set to default %dms for device %s.", IOMTimeOut, name.Buffer());
-        }
+        helper.Read("ConnectionTimeOut",IOMTimeOut,(uint32)DEFAULT_IOM_CONNECTION_TIMEOUT);
     }
     //Check Ip and port of the UEIDAQ - 127.0.0.1 is recognized as local device
     if (ok) {
@@ -99,8 +100,7 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
         ok = data.Read("Ip", ip);
         if (ok){
             if (ip[0] == 127u &&ip[1] == 0u && ip[2] == 0u && ip[3] == 1u && ok){
-                REPORT_ERROR(ErrorManagement::Information, "UEIMasterObject::Initialise - "
-                "UEIDAQ %s set as local device.", name.Buffer());
+                REPORT_ERROR(ErrorManagement::Information, "UEIDAQ %s set as local device.", name.Buffer());
                 ip_string = new char8[9];
                 snprintf(ip_string, 10, "127.0.0.1");
             }else if (ip[0] <= 255u && ip[1] <= 255u && ip[2] <= 255 && ip[3] <= 255u){
@@ -110,44 +110,37 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
                     uint16 ip_string_size = snprintf(NULL, 0, "%d.%d.%d.%d",ip[0], ip[1], ip[2], ip[3]);
                     ip_string = (char8*)malloc(ip_string_size);
                     snprintf(ip_string, ip_string_size+1, "%d.%d.%d.%d",ip[0], ip[1], ip[2], ip[3]);
-                    REPORT_ERROR(ErrorManagement::Information, "UEIMasterObject::Initialise - "
-                    "UEIDAQ %s set at address %s:%d.", name.Buffer(), ip_string, port);
+                    REPORT_ERROR(ErrorManagement::Information, "UEIDAQ %s set at address %s:%d.", name.Buffer(), ip_string, port);
                 }else{
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::Initialise - "
-                    "Could not find Port for remote UEIDAQ %s.", name.Buffer());
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Could not find Port for remote UEIDAQ %s.", name.Buffer());
                 }
             }else{
                 ok = false;
-                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::Initialise - "
-                "UEIDAQ %s IP is ill-formatted (%d.%d.%d.%d:%d).", name.Buffer(), ip[0], ip[1], ip[2], ip[3]);                
+                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIDAQ %s IP is ill-formatted (%d.%d.%d.%d:%d).", name.Buffer(), ip[0], ip[1], ip[2], ip[3]);                
             }
         }else{
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::Initialise - "
-            "No Ip parameter provided for UEIDAQ device %s.", name.Buffer());
+            REPORT_ERROR(ErrorManagement::InitialisationError, "No Ip parameter provided for UEIDAQ device %s.", name.Buffer());
         }
     }
     //Check the configuration of the listed device
     if (ok){
         //Try to retrieve the Devices ReferenceContainer
         devicesContainer = (ReferenceT<ReferenceContainer>)this->Find("Devices");
-        //ok = ReferenceContainer.isContainer(devicesContainer);
+        ok = devicesContainer.IsValid();
+        if (ok) ok &= devicesContainer->IsReferenceContainer();
         if (!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::Initialise - "
-            "Could not retrive Devices for UEIDAQ device %s", name.Buffer());
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrive Devices for UEIDAQ device %s", name.Buffer());
         }
         if (ok){
             nDevices = devicesContainer->Size();
             if (nDevices == 0u){
                 ok = false;
-                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::Initialise - "
-                "No devices found for UEIDAQ device %s", name.Buffer());
+                REPORT_ERROR(ErrorManagement::InitialisationError, "No devices found for UEIDAQ device %s", name.Buffer());
             }else if (nDevices >= MAX_IO_SLOTS){
                 ok = false;
-                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::Initialise - "
-                "Too many devices found for UEIDAQ device %s (Max number of devices %d)",name.Buffer(), MAX_IO_SLOTS);
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Too many devices found for UEIDAQ device %s (Max number of devices %d)",name.Buffer(), MAX_IO_SLOTS);
             }else{
-                REPORT_ERROR(ErrorManagement::Information, "UEIMasterObject::Initialise - "
-                "%d devices found for UEIDAQ device %s", nDevices, name.Buffer());
+                REPORT_ERROR(ErrorManagement::Information, "%d devices found for UEIDAQ device %s", nDevices, name.Buffer());
                 if (ok){
                     for (uint8 i = 0u; i < nDevices && ok; i++){
                         ReferenceT<UEIDevice>dev_ = devicesContainer->Get(i);
@@ -158,12 +151,10 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
                             if (ok){
                                 devices[i] = dev_;
                             }else{
-                                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::Initialise - "
-                                "Devn %d is repeated among devices on %s.", devn_, name.Buffer());
+                                REPORT_ERROR(ErrorManagement::InitialisationError, "Devn %d is repeated among devices on %s.", devn_, name.Buffer());
                             }                         
                         }else{
-                            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::Initialise - "
-                            "Device %d is not valid", i);
+                            REPORT_ERROR(ErrorManagement::InitialisationError, "Device %d is not valid", i);
                         }
                     }
                 }
@@ -173,18 +164,17 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
     //Check the configuration of the listed DAQ Maps (if there are any defined)
     if (ok){
         mapsContainer = (ReferenceT<ReferenceContainer>)this->Find("Maps");
-        bool maps_present = mapsContainer->IsReferenceContainer();
+        bool maps_present = mapsContainer.IsValid();
+        if (maps_present) maps_present &= mapsContainer->IsReferenceContainer();
         if (maps_present){
             //The maps container is defined
             //Get the number of maps defined in it
             nMaps = mapsContainer->Size();
-            REPORT_ERROR(ErrorManagement::Information, "UEIMasterObject::Initialise - "
-            "Found %d DAQ maps for UEIDAQ device %s.", nMaps, name.Buffer());
+            REPORT_ERROR(ErrorManagement::Information, "Found %d DAQ maps for UEIDAQ device %s.", nMaps, name.Buffer());
             maps = new ReferenceT<UEIMapContainer>[nMaps];
             ok = (maps != NULL_PTR(ReferenceT<UEIMapContainer>*));
             if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::Initialise - "
-                "Unable to allocate memory for UEIMapContainer pointers for UEIDAQ device %s.", name.Buffer());  
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to allocate memory for UEIMapContainer pointers for UEIDAQ device %s.", name.Buffer());  
             }
             if (ok){
                 //Assign DAQ Map pointers to the pointer array
@@ -193,15 +183,13 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
                     maps[i] = mapsContainer->Get(i);
                     ok = maps[i].IsValid();
                     if (!ok){
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::Initialise - "
-                        "Invalid DAQ Map (%d) for UEIDAQ device %s.",i , name.Buffer());  
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid DAQ Map (%d) for UEIDAQ device %s.",i , name.Buffer());  
                     }
                 }
             }
         }else{
             //No maps are defined, its ok
-            REPORT_ERROR(ErrorManagement::Information, "UEIMasterObject::Initialise - "
-            "No maps found for UEIDAQ device %s.", name.Buffer());
+            REPORT_ERROR(ErrorManagement::Information, "No maps found for UEIDAQ device %s.", name.Buffer());
         }
     }
     //Set devices references for Maps and check coherency of them
@@ -227,8 +215,7 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
     }
     //Message congratulating you if Maps are coherent and devices well set
     if (ok){
-        REPORT_ERROR(ErrorManagement::Information, "UEIMasterObject::Initialise - "
-        "Maps correctly initialised for UEIDAQ device %s.", name.Buffer());
+        REPORT_ERROR(ErrorManagement::Information, "Maps correctly initialised for UEIDAQ device %s.", name.Buffer());
     }
     //Perfrom the initialisation for the IOM structure for the PDNA library
     if (ok){
@@ -336,7 +323,7 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
         for (uint32 i = 0; i < nMaps && ok; i++){
             ok = (maps[i]->SetDAQHandle(DAQ_handle));
             if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::Initialise - Could not set DAQ handle for Map %s", maps[i]->GetName());
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not set DAQ handle for Map %s", maps[i]->GetName());
             }
         }
     }

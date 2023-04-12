@@ -41,14 +41,22 @@
 namespace MARTe {
 
 UEIDataSource::UEIDataSource() : MemoryDataSourceI() {
-        poll_sleep_period = 100;
+        PollSleepPeriod = 100;
         deviceName = StreamString("");
         mapName = StreamString("");
         firstSync = true;
-
+        signalTypes = NULL_PTR(TypeDescriptor*);
+        signalAddresses = NULL_PTR(uint8**);
+        timestampSignalAddr = NULL_PTR(uint64*);
 }
 
 UEIDataSource::~UEIDataSource() {
+    if (signalTypes != NULL_PTR(TypeDescriptor*)){
+        delete [] signalTypes;
+    }
+    if (signalAddresses != NULL_PTR(uint8**)){
+        delete [] signalAddresses;
+    }
 }
 
 bool UEIDataSource::Initialise(StructuredDataI &data) {
@@ -68,7 +76,7 @@ bool UEIDataSource::Initialise(StructuredDataI &data) {
     }
     //Retrieve PollSleepPeriod (optional)
     if (ok){
-        helper.Read("PollSleepPeriod", poll_sleep_period, 100);
+        helper.Read("PollSleepPeriod", PollSleepPeriod, 100);
     }
     //Retrieve the reference to the UEIDAQ device
     ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
@@ -97,7 +105,7 @@ bool UEIDataSource::Initialise(StructuredDataI &data) {
     }
     //Only one DataSource can be associated with a map, check that the map is not being used by another DataSource
     if (ok){
-        ok = (!map->RegisterDS(OutputSignals));     //Check if the Map has already been assigned to a DS (and assign it if not)
+        ok = (map->RegisterDS(InputSignals));     //Check if the Map has already been assigned to a DS (and assign it if not)
         if (!ok){
             REPORT_ERROR(ErrorManagement::ParametersError, "The map %s requested by DataSource %s is already assigned to another DataSource!", mapName.Buffer(), name.Buffer());
         }
@@ -107,25 +115,18 @@ bool UEIDataSource::Initialise(StructuredDataI &data) {
 
 bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
+    ok &= AllocateMemory();
     //Check the number of signals into the datasource
     uint32 expectedSignalN = 0u;
     if (ok){
-        ok = (numberOfSignals > 0);
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "At least one signal must be provided for DataSource %s", name.Buffer());
-        }
-        //The number of signals cannot be larger than the number of physical channels defined in the map
-        if (ok){
-            uint32 expectedSignalN = 0u;
-            ok = map->GetNumberOfChannels(INPUT_CHANNEL, expectedSignalN); //TODO, check for Input channels
+        uint32 expectedSignalN = 0u;
+        ok = map->GetNumberOfChannels(InputSignals, expectedSignalN); //TODO, check for Output channels
+        if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not get number of Input channels for Map %s", map->GetName());
+        if(ok){
+            expectedSignalN += 2u;  //Add 2 channel for DAQ status and timestamp
+            ok = (numberOfSignals == expectedSignalN);  
             if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not get number of Input channels for Map %s", map->GetName());
-            }else{
-                expectedSignalN += 2u;  //Add 2 channel for DAQ status and 1 channel for the timestamp
-                ok = (numberOfSignals == expectedSignalN);  
-                if (!ok){
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Number of signals in DataSource %s must match signal number in Map %s, (status signal + timestamp signal + %d channel signals)", name.Buffer(), map->GetName(), expectedSignalN-2);
-                }
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Number of signals in DataSource %s must match signal number in Map %s, (status signal + timestamp signal + %d channel signals)", name.Buffer(), map->GetName(), expectedSignalN-2);
             }
         }
     }
@@ -153,43 +154,12 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
             }
         }
     }
-    //All signals within a DataSource must be of the same type (simplification condition). Therefore, no mismatch in the 
-    // type of signals is allowed
-    if (ok){
-        //Get the type of the first signal (we know we do have at least 1 signal) (skip timestamp signal)
-        signalType = GetSignalType(2u);
-        ok = (signalType == Float32Bit); //TODO, for now we only support scaled float64 data, we'll update on this later
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Signal type inconsistency in DataSource %s (all signals must be float32 bit for now)", name.Buffer());        
-        }
-    }
-    //Check that all the signals are of the same type
-    if(ok){
-        //Traverse all the signals defined for this DataSource
-        for (uint32 i = 2u; i < numberOfSignals && ok; i++){
-            //Check that all the signals do have the same type as the selected one (the first signal)
-            ok = (signalType == GetSignalType(i));
-        }
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Signal type inconsistency in DataSource %s (all signals must be of same type)", name.Buffer());
-        }
-    }
-    //Check that all the devices of the map assigned to this DS support the selected signal Type
-    if (ok){
-        //Check if the map does support the signal type specified
-        ok = map->IsSignalAllowed(signalType,OUTPUT_CHANNEL); //TODO as the current DS only supports OUTPUT signals
-        if(!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Signal type provided for DataSource %s is incompatible with specified map", name.Buffer());
-        }
-    }
     //Check that all the signals have NumberOfElements 1 (1 signal = 1 physical channel) and register the number of signals
     if (ok){
         for (uint32 i = 0; i < numberOfSignals && ok; i++){
             uint32 nOfElements = 0u;
             ok = (GetSignalNumberOfElements(i, nOfElements));
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve number of elements for signal %d in DataSource %s", i, name.Buffer());
-            }
+            if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve number of elements for signal %d in DataSource %s", i, name.Buffer());
             if (ok){
                 ok = (nOfElements == 1u);
                 if (!ok){
@@ -202,40 +172,29 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
     //the operation of the DS would be unpredictable. Therefore only one GAM is supposed to interact with this DS
     if (ok){
         ok = (GetNumberOfFunctions() <= 1u);  //0 GAMS is also ok, you can leave the DataSource "unconnected"
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "This DataSource can only interact to a single GAM, currently %d GAMs are configured to interface this DataSource", GetNumberOfFunctions());
-        }
+        if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "This DataSource can only interact to a single GAM, currently %d GAMs are configured to interface this DataSource", GetNumberOfFunctions());
     }
     //Check NumberOfSamples for all the signals to be equal and 1 if the Map is XDMap or equal for all signals in XVMap.
     //The first signal (Status) must only have 1 sample
     if (ok){
         uint32 samples = 0;
         ok = (GetFunctionSignalSamples(InputSignals,0,0,samples));
+        ok &= (samples == 1u);
         if (!ok){
-            REPORT_ERROR(ErrorManagement::ParametersError, "Status signal not found for DataSource %s", name.Buffer());
-        }else{
-            ok = (samples == 1u);
-            if (!ok){
                 REPORT_ERROR(ErrorManagement::ParametersError, "Status for DataSource %s must have 1 sample only", name.Buffer());
-            }
         }
     }
     if (ok){
         bool firstSignalVisited = false;
         for (uint32 i = 1u; i < numberOfSignals && ok; i++){
             uint32 samples = 0;
-            bool signalFound = (GetFunctionSignalSamples(InputSignals,0,i,samples));
-            if (signalFound && !firstSignalVisited){
+            ok &= (GetFunctionSignalSamples(InputSignals,0,i,samples));
+            if (!firstSignalVisited){
                 nSamples = samples;
-                ok = (samples > 0);
-                if (!ok){
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Sample number for signals in DataSource %s must be at least 1", name.Buffer());
-                    
-                }
                 firstSignalVisited = true;
             }
-            if (signalFound){
-                ok = (samples == nSamples);
+            if (firstSignalVisited){
+                ok &= (samples == nSamples);
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::InitialisationError, "All signals for DataSource %s must have the same number of samples", name.Buffer());
                 }
@@ -254,9 +213,9 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
                 break;
                 case RTVMAP:
                     //For RtVMap, only signals with 1 sample or more are allowed
-                    ok = (nSamples >= 1u);
+                    ok = (nSamples > 1u);
                     if (!ok){
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid sample number for signals on Map %s for DataSource %s (RtVMap)", map->GetName(), name.Buffer());
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid sample number for signals on Map %s for DataSource %s (RtVMap needs more than 1 sample to be retrieved)", map->GetName(), name.Buffer());
                     }
                 break;
                 default:
@@ -266,14 +225,30 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
             }
         }
     }
-    //Start the DAQ Map
+    //Configure the Map to DataSource interface
     if (ok){
-        ok = map->SetMARTeSamplesPerSignal(nSamples);
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIDataSource::SetConfiguredDatabase - Could not set number of MARTe signal samples in DataSource %s", name.Buffer());
+        //Define an array to signal types
+        TypeDescriptor* signalTypes     = new TypeDescriptor[numberOfSignals-2];
+        //Define an array to signal memory addresses
+        uint8** signalAddresses         = new uint8*[numberOfSignals-2];
+        uint64* timestampSignalAddr     =  reinterpret_cast<uint64*>(memory+(signalOffsets[1]));
+        //Traverse all the signals defined for this DataSource
+        for (uint32 i = 0; i < numberOfSignals-2 && ok; i++){
+            signalTypes[i] = GetSignalType(i+2);
+        }
+        if (ok){
+            //get the signal memory addresses for the input signals on the DataSource
+            for (uint32 i = 0; i < numberOfSignals-2 && ok; i++){
+                signalAddresses[i] = memory+(signalOffsets[i+2]);
+            }
+        }
+        if (ok){
+            //Sent the configuration of the DS to the map object, with this configuration, the object now has the information
+            //needed to share the data obtained to the DataSource in MARTe
+            ok = map->ConfigureInputsForDataSource(nSamples, numberOfSignals-2, timestampSignalAddr, signalAddresses, signalTypes);
+            if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not set number of MARTe signal samples in DataSource %s", name.Buffer());
         }
     }
-    //TODO more checks
     return ok;
 }
 
@@ -285,7 +260,10 @@ bool UEIDataSource::Synchronise() {
     bool ok = true;
     //Start the DAQ Map
     if (firstSync){
-        Sleep::MSec(1000);
+        //This delay is a measure to ensure MARTe is completely set up prior to starting the maps
+        //If the map is started before MARTe is completely set up and the MARTe loop is not executed fast enough
+        //The FIFOs on VMap could overflow
+        Sleep::MSec(1000);  
         firstSync = false;
         if (ok){
             ok = map->StartMap();
@@ -295,7 +273,6 @@ bool UEIDataSource::Synchronise() {
         }
     }
     //Start to poll for next packet to the Map. The memory access is handled by the Map Container
-    float32* samplesMemory = &(reinterpret_cast<float32*>(memory)[1]);
     uint32* statusMemory = reinterpret_cast<uint32*>(memory);
     //Counters and flags to register errors
     uint16 localErrorCounter = 0u;
@@ -304,29 +281,29 @@ bool UEIDataSource::Synchronise() {
     uint8 ValidData = 0u;
     //Acquisition loop
     bool continueLoop = true;
-    while(continueLoop){
-        int32 pollReturn = (map->PollForNewPacket(samplesMemory));
-        if (pollReturn == -2){
-            //A General error has been detected
-            GeneralError = 1u;
-            localErrorCounter ++;
-        }else if (pollReturn == -1){
-            //A FIFO error has been detected
-            FIFOError = 1u;
-            localErrorCounter ++;
-        }else if (pollReturn == 0){
-            //The packets are still incomplete
-            continueLoop = true;
-        }else if (pollReturn == 1){
-            //packet is ready for shipment
-            continueLoop = false;
+    MapReturnCode outputCode;
+    *statusMemory = 0;
+    while(continueLoop && ok){
+        ok &= (map->PollForNewPacket(outputCode));
+        switch (outputCode){
+            case ERROR:
+                GeneralError = 1;
+                localErrorCounter ++;
+            break;
+            case FIFO_OVERFLOW:
+                FIFOError = 1;
+                localErrorCounter ++;
+            break;
+            case NEW_DATA_AVAILABLE:
+                continueLoop = false;
+            break;
         }
         if (localErrorCounter > 100) {
             //Maximum numbers of errors achieved
-            ValidData = 1u; //Mark the data as invalid (completely invalid)
+            ValidData = 1; //Mark the data as invalid 
             continueLoop = false;          
         }
-        if (continueLoop) Sleep::MSec(poll_sleep_period);
+        if (continueLoop) Sleep::MSec(PollSleepPeriod);
     }
     *statusMemory = (localErrorCounter | ValidData << 16 | FIFOError << 17 | GeneralError << 18);
     return true;
@@ -334,48 +311,50 @@ bool UEIDataSource::Synchronise() {
 
 bool UEIDataSource::AllocateMemory(){
     uint32 nOfSignals = GetNumberOfSignals();
-    bool ret = (memory == NULL_PTR(uint8 *));
-    if (ret) {
-        if (nOfSignals > 0u) {
-            signalOffsets = new uint32[nOfSignals];
-            ret = (signalOffsets != NULL_PTR(uint32*));
+    bool ret = true;
+    if (memory == NULL_PTR(uint8*)){    
+        if (ret) {
+            if (nOfSignals > 0u) {
+                signalOffsets = new uint32[nOfSignals];
+                ret = (signalOffsets != NULL_PTR(uint32*));
+                if (ret) {
+                    signalSize = new uint32[nOfSignals];
+                    ret = (signalSize != NULL_PTR(uint32*));
+                }
+            }
+        }
+
+        stateMemorySize = 0u;
+        for (uint32 s = 0u; (s < nOfSignals) && (ret); s++) {
+            uint32 thisSignalMemorySize;
+            ret = GetSignalByteSize(s, thisSignalMemorySize);
+
             if (ret) {
-                signalSize = new uint32[nOfSignals];
-                ret = (signalSize != NULL_PTR(uint32*));
+                if (signalOffsets != NULL_PTR(uint32 *)) {
+                    signalOffsets[s] = stateMemorySize;
+                }
+            }
+            if (ret) {
+                ret = (thisSignalMemorySize > 0u);
+            }
+            if (ret) {
+                uint32 thisSignalSampleN;
+                ret = GetFunctionSignalSamples(InputSignals,0,s,thisSignalSampleN);
+                stateMemorySize += (thisSignalMemorySize * numberOfBuffers * thisSignalSampleN);
+                signalSize[s] = thisSignalMemorySize * thisSignalSampleN;
             }
         }
-    }
-
-    stateMemorySize = 0u;
-    for (uint32 s = 0u; (s < nOfSignals) && (ret); s++) {
-        uint32 thisSignalMemorySize;
-        ret = GetSignalByteSize(s, thisSignalMemorySize);
-
+        uint32 numberOfStateBuffers = GetNumberOfStatefulMemoryBuffers();
         if (ret) {
-            if (signalOffsets != NULL_PTR(uint32 *)) {
-                signalOffsets[s] = stateMemorySize;
+            ret = (numberOfStateBuffers > 0u);
+        }
+        if (ret) {
+            totalMemorySize = stateMemorySize * numberOfStateBuffers;
+            if (memoryHeap != NULL_PTR(HeapI *)) {
+                memory = reinterpret_cast<uint8 *>(memoryHeap->Malloc(totalMemorySize));
             }
+            ret = MemoryOperationsHelper::Set(memory, '\0', totalMemorySize);
         }
-        if (ret) {
-            ret = (thisSignalMemorySize > 0u);
-        }
-        if (ret) {
-            uint32 thisSignalSampleN;
-            ret = GetFunctionSignalSamples(InputSignals,0,s,thisSignalSampleN);
-            stateMemorySize += (thisSignalMemorySize * numberOfBuffers * thisSignalSampleN);
-            signalSize[s] = thisSignalMemorySize * thisSignalSampleN;
-        }
-    }
-    uint32 numberOfStateBuffers = GetNumberOfStatefulMemoryBuffers();
-    if (ret) {
-        ret = (numberOfStateBuffers > 0u);
-    }
-    if (ret) {
-        totalMemorySize = stateMemorySize * numberOfStateBuffers;
-        if (memoryHeap != NULL_PTR(HeapI *)) {
-            memory = reinterpret_cast<uint8 *>(memoryHeap->Malloc(totalMemorySize));
-        }
-        ret = MemoryOperationsHelper::Set(memory, '\0', totalMemorySize);
     }
     return ret;
 }
@@ -392,6 +371,10 @@ const char8* UEIDataSource::GetBrokerName(StructuredDataI &data, const SignalDir
 }
 
 bool UEIDataSource::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName){
+    //To terminate an Input copy, stop the DAQ Map on the device and set the device as not synched yet to allow new
+    //map start/enable procedure
+    map->StopMap();
+    firstSync = true;
     return true;
 }
 

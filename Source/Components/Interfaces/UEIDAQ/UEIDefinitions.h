@@ -33,29 +33,39 @@
 /*---------------------------------------------------------------------------*/
 
 //Chassis definitions
-#define MAX_IO_SLOTS    12u   //Maximum number of layers across the UEIDAQ chassis catalogue
-
-//Channel direction definition
-#define OUTPUT_CHANNEL  0u
-#define INPUT_CHANNEL   1u
+#define MAX_IO_SLOTS    12   //Maximum number of layers across the UEIDAQ chassis catalogue
 
 //Map definitions
-#define NOMAP           0u
-#define RTDMAP          1u
-#define RTVMAP          2u
-#define ADMAP           3u
-#define AVMAP           4u
+enum MapType{
+    NO_MAP,
+    RTDMAP,
+    RTVMAP,
+    ADMAP,
+    AVMAP
+};
 
 //Signal Types definitions
-#define  ANALOG_SIGNAL  1u //The output of this signal is either 
-#define DIGITAL_SIGNAL  2u
+enum SignalType{
+    NO_SIGNAL,
+    ANALOG_SIGNAL,
+    DIGITAL_SIGNAL
+};
 
 //Hardware layer type definitions
-#define HARDWARE_LAYER_UNDEFINED    0u
-#define HARDWARE_LAYER_ANALOG_I     1u
-#define HARDWARE_LAYER_ANALOG_O     2u
-#define HARDWARE_LAYER_ANALOG_IO    3u
-#define HARDWARE_LAYER_DIGITAL_IO   4u
-#define HARDWARE_LAYER_MESSAGING    5u
+enum IOLayerType {
+    NO_LAYER,
+    HARDWARE_LAYER_ANALOG_I,
+    HARDWARE_LAYER_ANALOG_O,
+    HARDWARE_LAYER_ANALOG_IO,
+    HARDWARE_LAYER_DIGITAL_IO,
+    HARDWARE_LAYER_MESSAGING
+};
 
+//MapReturnCodes
+enum MapReturnCode {
+    ERROR,
+    NEW_DATA_AVAILABLE,
+    NO_NEW_DATA_AVAILABLE,
+    FIFO_OVERFLOW
+};
 #endif /*UEIDefinitions_H_*/

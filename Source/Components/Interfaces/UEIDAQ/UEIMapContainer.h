@@ -152,11 +152,14 @@ class UEIMapContainer : public ReferenceContainer {
     virtual bool StartMap();
     
     /**
-     * @brief Method to poll the IOM for new data on the map.
-     * @param[out] destinationAddr pointer to the memory region where the contents of the newly recived (if so) map packet are copied.
-     * @return true if a new packet has been recieved, false otherwise.
+     * @brief Method to poll the IOM for new data packets on the configured hardware layer.
+     * @details This method performs the data acquisition process in which the new data is requested to the IOM through a poll request
+     * and recieved and stored in a buffer if needed. This method also writes the data obtained through the UEIDAQ directly into the destination 
+     * memory locations as configured through previously stated methods.
+     * @param[out] outputCode Variable holding the status code for the polling procedure performed during the call.
+     * @return true no error occurred during the poll procedure.
      */
-    virtual int32 PollForNewPacket(float32* destinationAddr);
+    virtual bool PollForNewPacket(MapReturnCode& outputCode);
 
     /**
      * @brief Getter for the type of the map.
@@ -164,16 +167,22 @@ class UEIMapContainer : public ReferenceContainer {
      * by the child class and return the appropriate class for the selected map.
      * @return the type of the map as defined in UEIDefinitions.h.
      */
-    virtual uint8 GetType();
+    virtual MapType GetType();
 
     /**
-     * @brief Setter for the number of samples the map is required to supply the UEIDataSource for MARTe signals.
-     * @details This function is implemented in the base class to return false and must be implemented on the child class
-     * as apart from setting the appropriate parameter in the map, performs a map-dependant check on the supplied value.
-     * @param[in] MARTeSampleN number of samples the map must supply for each of the declared phyisical channels.
-     * @return true if the sample number for MARTe signals is accepted for the map
+     * @brief Configuration method for the destination signals in MARTe.
+     * @details This function provides the Map object the knowledge of where to store the scaled samples in memory as input signals in MARTe,
+     * the desired number of samples to be retrieved in such signals, the number of physical channels to be retrieved and the types to which scale each
+     * of the input signals.
+     * @param[in] nSamples number of samples the map must supply for each of the declared phyisical channels as MARTe signals.
+     * @param[in] nChannels number of channels the map needs to provide as input signals, this parameters serves as a check for the length of the provided arrays.
+     * @param[in] inputTimestampAddress pointer to the memory location in which to store the scaled samples for the timestamp channel mandatory for all the maps.
+     * @param[in] signalAddresses array of pointers to the memory locations of each of the input signals, must have a length of nChannels and be supplied in the same
+     * order as the configured physical channels.
+     * @param[in] signalTypes Array of types for each of the channels, stating the desired input signal format and scaling.
+     * @return true if the provided parameters are accepted for the Map, false otherwise.
      */
-    virtual bool SetMARTeSamplesPerSignal(uint32 MARTeSampleN);
+    virtual bool ConfigureInputsForDataSource(uint32 nSamples, uint32 nChannels, uint64* inputTimestampAddress, uint8** signalAddresses, TypeDescriptor* signalTypes);
 
     /**
      * @brief Close the DAQ Map structure in a clean way.
@@ -192,7 +201,7 @@ class UEIMapContainer : public ReferenceContainer {
      * device references have been set appropriately.
      * @return true if coherency check for the map has succeeded, false otherwise.
      */
-    bool CheckMapCoherency();
+    virtual bool CheckMapCoherency();
 
     /**
      * @brief Getter for defiened devices (by devn) in a map.
@@ -207,7 +216,7 @@ class UEIMapContainer : public ReferenceContainer {
      * @param[in] direction direction of the device to be checked for use in the map.
      * @return true if the device specified by the user is used in the map in the specified direction, false otherwise.
      */    
-    bool GetDevDefined(uint32 devn, uint8 direction);
+    bool GetDevDefined(uint32 devn, SignalDirection direction);
 
     /**
      * @brief Getter for number of defined channels in the map for a device in a specific direction.
@@ -216,7 +225,7 @@ class UEIMapContainer : public ReferenceContainer {
      * @param[out] nChannels number of channels defined for the specified device and direction on this map.
      * @return true if the device is valid and defined within the map and the direction of the signal is valid, false otherwise.
      */
-    bool GetNumberOfChannels(uint32 devn, uint8 direction, uint32* nChannels);
+    bool GetNumberOfChannels(uint32 devn, SignalDirection direction, uint32* nChannels);
 
     /**
      * @brief Getter for number of defined channels in the map for a specific direction.
@@ -224,7 +233,7 @@ class UEIMapContainer : public ReferenceContainer {
      * @param[out] nChannels number of channels defined for the specified direction on this map.
      * @return true if direction of the signal is valid, false otherwise.
      */
-    bool GetNumberOfChannels(uint8 direction, uint32 &nChannels);
+    bool GetNumberOfChannels(SignalDirection direction, uint32 &nChannels);
 
     /**
      * @brief Getter for specific channel identifier of a map member (device within map) in a specified direction.
@@ -234,18 +243,29 @@ class UEIMapContainer : public ReferenceContainer {
      * @param[out] channelNumber channel identifier for the selected channel index, device and direction in the map.
      * @return true if the specified device, direction and channelIdx are valid, false otherwise.
      */
-    bool GetChannelOfMember(uint32 devn, uint8 direction, uint32 channelIdx, uint32* channelNumber);
+    bool GetChannelOfMember(uint32 devn, SignalDirection direction, uint32 channelIdx, uint32 &channelNumber);
 
     /**
      * @brief Setter for the device references into the map member.
      * @details This method allows the Map object to obtain a reference to the different UEIDevices used within the map
      * to access device-specific functions. The list supplied to this method must be of length MAX_IO_SLOTS and contain
-     * the references as ReferenceT objects to the different UEIDevices in the map indexed by device devn.
+     * the references as ReferenceT objects to the different UEIDevices in the map indexed by device devn. This method uses the
+     * implementation of Set to actually set the references.
      * If a devn is not used, the list must be contain an invalid ReferenceT object on such 
      * @param[in] referenceList List of ReferenceT<UEIDevice> in which the devices are indexed by devn.
      * @return true if the specified map member and reference are valid.
      */
-    bool SetDevices(ReferenceT<UEIDevice>* referenceList);
+    virtual bool SetDevices(ReferenceT<UEIDevice>* referenceList);
+
+    /**
+     * @brief Setter for the device references into the map member.
+     * @details This method allows the Map object to obtain a reference to a UEIDevics used within the map
+     * at the specific devn supplied.
+     * @param[in] devn device id of the member to which the reference is set.
+     * @param[in] reference ReferenceT of the device to be set as reference in device at devn specified
+     * @return true if the specified map member and reference are valid.
+     */
+    bool SetDevice(uint8 devn, ReferenceT<UEIDevice> reference);
 
     /**
      * @brief Getter for the name of this map object.
@@ -275,7 +295,7 @@ class UEIMapContainer : public ReferenceContainer {
      * @param[in] direction direction of the signal to be queried to the map for acceptance.
      * @return true if the map accepts the signal type in the specified direction.
      */
-    bool IsSignalAllowed(TypeDescriptor signalType, uint8 direction);
+    bool IsSignalAllowed(TypeDescriptor signalType, SignalDirection direction);
 
     /**
      * @brief Method to set and check the DAQ handle to a map.
@@ -284,6 +304,13 @@ class UEIMapContainer : public ReferenceContainer {
      * @return true if DAQ handle is valid, false otherwise.
      */
     bool SetDAQHandle(int32 DAQ_handle_);
+
+    /**
+     * @brief Method to stop operation on the map.
+     * @details This method is used to cease map operation.
+     * @return true if the stopping request succeeded, false otherwise.
+     */
+    virtual bool StopMap();
 
 protected:
     /**
@@ -307,6 +334,17 @@ protected:
     bool GetTimestamp(uint32* inputTimestamp, uint32 timestampListLength ,uint64* outputTimestamp);
 
     /**
+     * @brief Protected method which translates the 32-bit timestamp array into a 64-bit timestamp array.
+     * @details Reimplementation of GetTimestamp method for timestamp arrays retrieved as UEIBufferPointer virtual arrays. 
+     * @param[in] inputTimestamp a UEIBufferPointer object containing a virtual array reference to the timestamp channels in the UEICircularBuffer.
+     * @param[in] timestampListLength length of the supplied array of 32-bit timestamps. The destination array of 64-bit timestamps must be able
+     * to accomodate such number of timestamps.
+     * @param[out] outputTimestamp pointer to the destination array of corrected 64-bit timestamps.
+     * @return true if timestamp correction was performed successfully.
+     */
+    bool GetTimestamp(UEIBufferPointer inputTimestamp, uint32 timestampListLength ,uint64* outputTimestamp);
+
+    /**
     *   Variable holding the name of the Map Container (node name).
     */
     StreamString name;
@@ -325,11 +363,6 @@ protected:
     *   Variable holding the configured sample rate for this specific map's IO layers (for XVMap).
     */
     float sampleRate;
-
-    /**
-    *   Variable holding the configured scan rate for this specific map.
-    */
-    float scanRate;
     
     /**
     *   Array containing the members of this map regarding output signals (the ones coming from IOM) (indexed by devn).
@@ -398,6 +431,53 @@ protected:
     *   Flag signaling if the Map's packet needs to be fragmented.
     */
     bool fragmentedMap;
+
+    /**
+    *   Array of pointers to the memory locations of the input signals to the Map
+    */
+    uint8** inputSignalAddresses;
+    
+    /**
+    *   Array of Descriptors for input signal types
+    */
+    TypeDescriptor* inputSignalTypes;
+
+    /**
+    *   Pointer to the timestamp input signal memory location
+    */
+    uint64* TimestampAddr;
+
+    /**
+    *   Flag signaling if a first packet has been recieved by this map.
+    */
+    bool firstPckt;
+    
+    /**
+    *   Flag signaling if the map is properly started in the UEIDAQ.
+    */
+    bool mapStarted;
+    
+    /**
+    *  Flag signaling if the input signals are correctly configured into the map.
+    */
+    bool signalsConfigured;
+    
+    /**
+    *   Flag signaling if coherency check has been performed successfully and map is ready for further initialisation.
+    */
+    bool mapCoherent;
+
+private:
+    /**
+     * @brief Private helper for this class to aid in Inputs/Outputs configuration block checking and assignment wihtout code repetition.
+     * @details This method performs the basic checks on the Inputs and Outputs configuration blocks on any Map object to check for configuration
+     * validity. This method should only be called twice during initialisation, once for Outputs block and another for Inputs blocks
+     * @param[in] direction flag to signal which configuration block to check/retrieve
+     * @param[in] nMembers number of members to be checked on such block
+     * @param[in] orderedMembers pointer to ordered members list for convinience operations, this method will populate the supplied list.
+     * @return true if all the checks were successful, false otherwise.
+     */
+    bool ParseIODevices(StructuredDataI &data, SignalDirection direction, uint32 nMembers, MapMember** orderedMembers);
 };
 }
 #endif /* UEIMapContainer_H_ */

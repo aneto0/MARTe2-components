@@ -78,14 +78,15 @@ namespace MARTe {
 * bit signals if another kind of error (general error) was detected during last packet retrieving.
 * - Timestamp : uint64 signal with the selected ammount of samples (same for all signals except Status) providing the local timestamp of the UEIDAQ hardware 
 * (relative to the map start time).
-* - Signal0 to SignalN : float32 signal with the selected ammount of samples providing the read value of such channel in the map (signals are provided in the 
-* same order as configured within the map object associated to the DataSource).
+* - Signal0 to SignalN : Signal with the selected ammount of samples providing the read value of such channel in the map (signals are provided in the 
+* same order as configured within the map object associated to the DataSource). The acceptance or not of a given signal type depends only on the device channel
+* configured; in order to give the user the maximum flexibility posible each signal is checked for type validity with the associated physical channel.
 *
 * See the example below for a configuration of the DataSource:
 * <pre>
 *   +UEIDataSource1 = {
 *        Class = UEIDataSource
-*        Device = "UEIDevice1"
+*        Device = "UEIDevice"
 *        Map = "Map1"
 *        PollSleepPeriod = 1
 *        Signals = {
@@ -99,7 +100,7 @@ namespace MARTe {
 *                Type = float32
 *            }
 *            Output1 = {
-*                Type = float32
+*                Type = float64
 *            }
 *        }
 *    }
@@ -165,12 +166,13 @@ public:
      */
     bool AllocateMemory();
 
-private:
+protected:
 
     /**
      * Variable to store the name of this DataSource
      */
     StreamString name;
+    
     /**
      * Variable to store the identifier (name) of the UEIDAQ device to which connect
      */
@@ -195,13 +197,8 @@ private:
      * Variable to store the selected polling sleep period configured for this datasource. This is the period of MARTe sleep
      * between an unsuccessful poll request to the UEIDAQ device and the next poll request. 
      */
-    uint32 poll_sleep_period;
-    
-    /**
-     * Variable to store the signal type for all the signals on this DataSource 
-     */
-    TypeDescriptor signalType;
-    
+    uint32 PollSleepPeriod;
+       
     /**
      * Variable to store the signal type for all the signals on this DataSource 
      */
@@ -219,6 +216,21 @@ private:
      */
     bool firstSync;
 
+    /**
+     * Array of TypeDescriptors stating the input signals types requested by the user, the array must have length matching the number of input signals.
+     */
+    TypeDescriptor* signalTypes;
+    
+    /**
+     * Array of pointers to the location of the memory region for each of the input signals for the map to deposit the samples. This array must be 
+     * of matching length to the number of input signals
+     */
+    uint8** signalAddresses;
+    
+    /**
+     * Pointer to the memory region for the map to deposit the sample/s obtained as timestamp to be delivered as input signal.
+     */
+    uint64* timestampSignalAddr;
 };
 
 }

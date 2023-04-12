@@ -132,7 +132,7 @@ class UEIMasterObject : public ReferenceContainer {
      */
     virtual bool Initialise(StructuredDataI &data);
 
-private:
+protected:
     
     /**
     *   Variable holding the DAQ IOM reference

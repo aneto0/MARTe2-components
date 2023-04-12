@@ -38,8 +38,11 @@
 #include "StructuredDataIHelper.h"
 #include "AdvancedErrorManagement.h"
 #include "CLASSMETHODREGISTER.h"
+//This include is just for the SignalDirection enum
+#include "DataSourceI.h"
 //Interface specific includes
 #include "UEIDefinitions.h"
+#include "UEIBufferPointer.h"
 //PowerDNA library include
 #include "PDNA.h"
 
@@ -103,7 +106,7 @@ class UEIDevice : public Object {
      * of the device-specific child classes for its specific device type.
      * @return hardware layer type (see UEIDefinitions.h for reference).
      */
-    virtual uint8 GetType();
+    virtual IOLayerType GetType();
     
     /**
      * @brief Getter for the device sample size (sample size in bytes).
@@ -123,34 +126,47 @@ class UEIDevice : public Object {
     
     /**
      * @brief Method to check if a channel is a valid to be used in a certain direction (input or output channel).
-     * @details This method checks if channel number provided (first channel is indexed to 0) is valid within this device
+     * @details This method checks if channel number provided (first channel is  0) is valid within this device
      * in the specified direction (input or output channel).
      * Implementation of this method must be provided in each of the device-specific child classes for their specific I/O characteristics.
      * @param[in] channelNumber channel index (first channel indexes to 0).
-     * @param[in] direction direction for the specified channel query (see UEIDefinitions.h for reference)
+     * @param[in] direction direction for the specified channel query
      * @return true if specified channel and direction are valid, false otherwise.
      */
-    virtual bool CheckChannelAndDirection(uint32 channelIdx, uint8 direction);
+    virtual bool CheckChannelAndDirection(uint32 channelNumber, SignalDirection direction);
+
+    /**
+     * @brief Method to check if a list of channels is a valid to be used in a certain direction (input or output channel).
+     * @details This method checks if the channel numbers provided in a list (first channel is 0) are valid within this device
+     * in the specified direction (input or output channel).
+     * Implementation of this method relies on CheckChannelAndDirection() method which must be re-defined in each specific hardware layer
+     * child object.
+     * @param[in] channelList pointer to an array of channel numbers of length listLength.
+     * @param[in] listLength length of the array supplied in channelList.
+     * @param[in] direction direction for the specified channels query
+     * @return true if specified channels and direction are valid, false otherwise.
+     */
+    bool CheckChannelListAndDirection(uint32* channelList, uint32 listLength, SignalDirection direction);
     
     /**
      * @brief Method to configure a channel in the specific configuration scheme of the device.
      * @details This method returns the configuration bitfield for the specified channel in the device.
      * Implementation of this method must be provided in each of the device-specific child classes for their specific configuration flags.
-     * @param[in] channelIdx channel index (first channel indexes to 0).
+     * @param[in] channelNumber channel index (first channel indexes to 0).
      * @param[out] channelConfiguration pointer to channel configuration bitfield for the specified channel in the device. 
      * @return true if the channel is valid and information for configuration can be retrieved, false otherwise.
      */
-    virtual bool ConfigureChannel(uint32 channelIdx, uint32* channelConfiguration);
+    virtual bool ConfigureChannel(uint32 channelNumber, uint32 &channelConfiguration);
     
     /**
      * @brief Method to configure a channel in the specific configuration scheme of the device.
      * @details This method returns the configuration bitfield for the specified channel in the device.
      * Implementation of this method must be provided in each of the device-specific child classes for their specific configuration flags.
-     * @param[in] channelIdx channel index (first channel indexes to 0).
+     * @param[in] channelNumber channel index (first channel indexes to 0).
      * @param[out] channelConfiguration pointer to channel configuration bitfield for the specified channel in the device. 
      * @return true if the channel is valid and information for configuration can be retrieved, false otherwise.
      */
-    virtual bool ConfigureChannel(uint32 channelIdx, int32* channelConfiguration);
+    virtual bool ConfigureChannel(uint32 channelNumber, int32 &channelConfiguration);
     
     /**
      * @brief Method to configure the device.
@@ -187,15 +203,31 @@ class UEIDevice : public Object {
      * @details This method returns an array of scaled samples from the raw value of the data retrieved from
      * IOM by performing the proper conversions. This base class implementation
      * is generic for all the UEIDAQ devices and should not be redefined in child classes.
-     * @param[in] channelIdx channel identifier within the device channel list (first channel is 0)
+     * @param[in] channelNumber channel identifier within the device channel list (first channel is 0)
      * @param[in] listLength length of the array of raw data fed into the method. Developer must ensure
      * it is properly sized.
      * @param[in] rawData pointer to an array of raw values for input data.
      * @param[out] scaledData pointer to the output array of scaled values.
+     * @param[out] outputType type of the output data to be retrieved to the destination memory area.
      * @return true if the scaling process is successful, false otherwise.
      */
-    virtual bool ScaleSignal(uint32 channelIdx, uint32 listLength, uint32* rawData, float32* scaledData);
-    
+    virtual bool ScaleSignal(uint32 channelNumber, uint32 listLength, void* rawData, void* scaledData, TypeDescriptor outputType);
+
+    /**
+     * @brief Method to scale an array of samples retrieved from the hardware layer into its real value.
+     * @details This method returns an array of scaled samples from the raw value of the data retrieved from
+     * IOM by performing the proper conversions. This base class implementation
+     * is generic for all the UEIDAQ devices and should not be redefined in child classes.
+     * @param[in] channelNumber channel identifier within the device channel list (first channel is 0)
+     * @param[in] listLength length of the array of raw data fed into the method. Developer must ensure
+     * it is properly sized.
+     * @param[in] rawData UEIBufferPointer to the virtual array on a UEICircularBuffer in which the raw data is stored.
+     * @param[out] scaledData pointer to the output array of scaled values.
+     * @param[out] outputType type of the output data to be retrieved to the destination memory area.
+     * @return true if the scaling process is successful, false otherwise.
+     */
+    virtual bool ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPointer rawData, void* scaledData, TypeDescriptor outputType);
+
     /**
      * @brief Getter for device Id (devn in PowerDNA API).
      * @details This method returns the device id (devn) for the device. This base class implementation
@@ -248,6 +280,13 @@ class UEIDevice : public Object {
      * @return value of samplingFrequency.
      */
     float GetSamplingFrequency();
+
+    /**
+     * @brief Getter for the name of the device.
+     * @details This method returns the name of the device (node name).
+     * @return the name of the device.
+     */
+    char8* GetName();
 
 protected:
     /**

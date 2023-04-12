@@ -66,9 +66,9 @@ ifdef CODAC_ROOT
 SPB+=TcnTimeProvider.x
 endif
 
-ifdef EPICSPVA
-SPB+=EPICSPVA.x
-endif
+#ifdef EPICSPVA
+#SPB+=EPICSPVA.x
+#endif
 
 ifdef EPICS_PCAS
 SPB+=MARTeIOC.x

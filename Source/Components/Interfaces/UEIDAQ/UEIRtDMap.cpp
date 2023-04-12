@@ -42,30 +42,40 @@
 namespace MARTe {
 
 UEIRtDMap::UEIRtDMap() : UEIMapContainer() {
-    inputMap = NULL_PTR(uint32*);
+    inputMap = NULL_PTR(uint8*);
+    scanRate = 0;
+    previousTimestamp = 0;
 }
 
 UEIRtDMap::~UEIRtDMap(){
-    if (inputMap != NULL_PTR(uint32*)){
-        inputMap = NULL_PTR(uint32*);
+    if (inputMap != NULL_PTR(uint8*)){
+        inputMap = NULL_PTR(uint8*);
     }
     //try to clean the maps in case it was not already done beforehand
     CleanupMap();
 }
 
+bool UEIRtDMap::StopMap(){
+    bool ok = true;
+    if (DAQ_handle != 0 && mapid != 0){
+        ok &= (DqRtDmapStop(DAQ_handle, mapid) >= 0);
+    }
+    return ok;
+}
+
 bool UEIRtDMap::CleanupMap(){
     bool ok = true;
     if (DAQ_handle != 0){
-        REPORT_ERROR(ErrorManagement::Information, "UEIRtDMap::CleanupMap - "
-        "Cleaning Map %s", name.Buffer());
         if(mapid){
-            ok &= (DqRtDmapStop(DAQ_handle, mapid) >= 0);
+            ok &= StopMap();
             ok &= (DqRtDmapClose(DAQ_handle, mapid) >= 0);
+        }
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::CommunicationError, "Map %s could not be correctly cleaned!", name.Buffer());
         }
         DAQ_handle = 0;
     }else{
-        REPORT_ERROR(ErrorManagement::Information, "UEIRtDMap::CleanupMap - "
-        "Map %s was not started, skipping cleanup!", name.Buffer());
+        REPORT_ERROR(ErrorManagement::Information, "Map %s was not started, skipping cleanup!", name.Buffer());
     }
     return ok;
 }
@@ -78,14 +88,10 @@ bool UEIRtDMap::Initialise(StructuredDataI &data){
     if (ok){
         ok = data.Read("ScanRate", scanRate);
         if (!ok){
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIRtDMap::Initialise - "
-            "Could not retrieve ScanRate for map %s.", name.Buffer());            
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve ScanRate for map %s.", name.Buffer());            
         }
     }
-    if (ok){
-        REPORT_ERROR(ErrorManagement::Information, "UEIRtDMap::Initialise - "
-        "Successful initialisation of map %s.", name.Buffer());
-    }
+    //Check that 
     if (ok && nInputChannels > 0u){
         //For the RtDMap, the first channel of the first device is always going to be the map timestamp
         inputMembersOrdered[0]->Inputs.timestampRequired = true;
@@ -93,19 +99,21 @@ bool UEIRtDMap::Initialise(StructuredDataI &data){
     return ok;
 }
 
-bool UEIRtDMap::SetMARTeSamplesPerSignal(uint32 MARTeSampleN){
-    bool ok = true;
-    if (MARTeSampleN != 1u){
-        REPORT_ERROR(ErrorManagement::InitialisationError, "UEIRtDMap::SetMARTeSamplesPerSignal - Invalid sample number, RtDMap only supports sample number 1");
-        ok = false;
+bool UEIRtDMap::ConfigureInputsForDataSource(uint32 nSamples, uint32 nChannels, uint64* inputTimestampAddress, uint8** signalAddresses, TypeDescriptor* signalTypes){
+    bool ok = UEIMapContainer::ConfigureInputsForDataSource(nSamples, nChannels, inputTimestampAddress, signalAddresses, signalTypes);
+    if (ok){
+        if (nSamples != 1u){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid sample number, RtDMap only supports sample number 1");
+            ok = false;
+        }
     }
+    //Flag signaling the signals are well configured into the Map
+    signalsConfigured = ok;
     return ok;
 }
 
 bool UEIRtDMap::StartMap(){
     bool ok = true;
-    //Now that the map is to be started it is valuable to make a copy of the DAQ handle reference for deallocating the map upon
-    //destruction of this object.
     ok = (DqRtDmapInit(DAQ_handle, &mapid, scanRate) >= 0);
     if (!ok){
         REPORT_ERROR(ErrorManagement::InitialisationError, "Error on Initialising Map %s", name.Buffer());
@@ -120,24 +128,30 @@ bool UEIRtDMap::StartMap(){
             ReferenceT<UEIDevice> devReference = inputMembersOrdered[i]->reference;
             ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
             if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on inputMember %i on Map %s", i, name.Buffer());
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on inputMember %i (devn%d) on Map %s", i, inputMembersOrdered[i]->devn, name.Buffer());
             }
             //If the timestamp is required for this member check it as the first channel to be retrieved in the map member
             if (ok && inputMembersOrdered[i]->Inputs.timestampRequired){
                 devn = inputMembersOrdered[i]->devn;
                 uint32 timestampChannel = DQ_LNCL_TIMESTAMP;
                 ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, &timestampChannel, 1) >= 0);
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error while setting timestamp channel (for inputMember %i) on Map %s", i, name.Buffer());
+                }
             }
             for (uint32 j = 0; j < inputMembersOrdered[i]->Inputs.nChannels && ok; j++){
                 uint32 channel = inputMembersOrdered[i]->Inputs.channels[j];
-                
+                uint8 devn = inputMembersOrdered[i]->devn;
                 uint32 channelData = 0u;
-                ok = (devReference->ConfigureChannel(channel, &channelData));
+                ok = (devReference->ConfigureChannel(channel, channelData));
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error configuring input channels for dev%d on Map %s", devn, name.Buffer());
+                }
                 if (ok){
                     ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, &channelData, 1) >= 0);
-                }
-                if (!ok){
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding input channels for dev%d on Map %s", devn, name.Buffer());
+                    if (!ok){
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding input channels in IOM for dev%d on Map %s", devn, name.Buffer());
+                    }
                 }
             }
         }
@@ -151,18 +165,21 @@ bool UEIRtDMap::StartMap(){
             ReferenceT<UEIDevice> devReference = outputMembersOrdered[i]->reference;
             ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
             if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on outputMember %i on Map %s", i, name.Buffer());
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on outputMember %i (devn%d) on Map %s", i, outputMembersOrdered[i]->devn,  name.Buffer());
             }
             for (uint32 j = 0; j < outputMembersOrdered[i]->Outputs.nChannels && ok; j++){
                 uint32 channel = outputMembersOrdered[i]->Outputs.channels[j];
                 uint8 devn = outputMembersOrdered[i]->devn;
                 uint32 channelData = 0u;
-                ok = (devReference->ConfigureChannel(channel, &channelData));
-                if (ok){
-                    ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0OUT, &channelData, 1));
-                }
+                ok = (devReference->ConfigureChannel(channel, channelData));
                 if (!ok){
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding output channels for dev%d on Map %s", devn, name.Buffer());
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error configuring output channels for dev%d on Map %s", devn, name.Buffer());
+                }
+                if (ok){
+                    ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0OUT, &channelData, 1) >= 0);
+                    if (!ok){
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding output channels in IOM for dev%d on Map %s", devn, name.Buffer());
+                    }
                 }
             }
         }
@@ -182,84 +199,134 @@ bool UEIRtDMap::StartMap(){
             }
         }
     }
+    //Flag signaling the map is ready for action
+    mapStarted = ok;
     return ok;
 }
 
 bool UEIRtDMap::GetMapPointers(){
-    //Function just valid for output signals (the ones enternig into IOM) TODO extended to input maps
+    //Function just valid for input signals (the ones enternig into IOM) TODO extended to output maps
     unsigned char* map_pointer = NULL;
     uint16 counter = 0u;
-    bool ok = true;
-    while((((uint32*) map_pointer) == NULL)&& ok){
-        counter++;
-        ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
-        if (ok){
-            Sleep::MSec(10);
-            ok = (DqRtDmapGetInputMap(DAQ_handle, mapid, 0, &(map_pointer)) >=0);
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::CommunicationError, "GetOutputMap failed during the GetMapAddr method");   
+    bool ok = (DAQ_handle > 0);
+    if (ok){
+        while((((uint8*) map_pointer) == NULL)&& ok){
+            counter++;
+            ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
+            if (ok){
+                Sleep::MSec(10);
+                ok = (DqRtDmapGetInputMap(DAQ_handle, mapid, 0, &(map_pointer)) >=0);
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "GetOutputMap failed during the GetMapAddr method for Map %s", name.Buffer());   
+                }
+            }else{
+                REPORT_ERROR(ErrorManagement::CommunicationError, "Refresh failed during the GetMapPointers method for Map %s", name.Buffer());
             }
-        }else{
-            REPORT_ERROR(ErrorManagement::CommunicationError, "Refresh failed during the GetMapAddr method");
+            if (counter > 20) break; //If NULL map is still present during 2s abort the initialisation of the DS
         }
-        if (counter > 200) break; //If NULL map is still present during 2s abort the initialisation of the DS
-    }
-    if (((uint32*) map_pointer) != NULL){
-        inputMap = ((uint32*)map_pointer);
-        return true;
+        if (((uint8*) map_pointer) != NULL){
+            inputMap = ((uint8*)map_pointer);
+            ok &=  true;
+        }else{
+            ok = false;
+            REPORT_ERROR(ErrorManagement::CommunicationError, "RtDMap pointer getter method timed out for Map %s", name.Buffer());
+        }
     }else{
-        return false;
+        REPORT_ERROR(ErrorManagement::CommunicationError, "Error while getting map pointers for Map %s due to DAQ_handle being not set", name.Buffer());
     }
     return ok;
 }
 
-int32 UEIRtDMap::PollForNewPacket(float32* destinationAddr){
-    bool next_packet = 0;
-    bool ok = true;
+bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
+    bool ok = (mapStarted && signalsConfigured && mapCoherent);
+    //Check first if the map is ready for action
+    if (!ok){
+        outputCode = ERROR;
+        REPORT_ERROR(ErrorManagement::CommunicationError, "Map %s is not ready for data acquisition", name.Buffer());
+    }
     //Poll for next packet from UEIDAQ
-    ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
+    if (ok){
+        ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
+        if (!ok){
+            outputCode = ERROR;
+            REPORT_ERROR(ErrorManagement::CommunicationError, "Refresh for Map %s failed", name.Buffer());
+        }
+    }
+    //If Poll request succeeded, then start the process to acquire the new data
     if (ok){
         //Check if the response is a new packet or a rerequest.
-        //The 0x80000000 bit on the recived samples lets us know if the packet has
         //been previously requested.
-        if (reinterpret_cast<uint32*>(inputMap)[1] & 0x80000000){ //The first channel on the map is always the timestamp, check the next one
+        //The first channel on the map is always the timestamp, check its value to see if it is different than the last received
+        if (reinterpret_cast<uint32*>(inputMap)[0] != previousTimestamp || firstPckt){
+            previousTimestamp = reinterpret_cast<uint32*>(inputMap)[0];
+            firstPckt = false;
             //The recived packet is a newly converted one not requested yet.
             //Make the signals available to the DataSource.
-            //TODO implement this using memcopy
-            uint32 iterator = 1u;    //iterator starts at 1 due to the first channel (index 0) being used by the 64-bit timestamp
-            uint32 timestamp = 0u;
-            for (uint32 mem = 0; mem < nInputMembers && ok; mem++){
-                //Copy the scaled values obtained in the hardware layer into the destination buffer
-                uint32 nOfchannel = inputMembersOrdered[mem]->Inputs.nChannels;
-                if (inputMembersOrdered[mem]->Inputs.timestampRequired){
-                    nOfchannel += 1u;
-                }
-                ok = (DqRtDmapReadScaledDataF(DAQ_handle, mapid, inputMembersOrdered[mem]->devn, &destinationAddr[iterator], nOfchannel) >= 0);
-                iterator += nOfchannel;
+            uint32 signalIdx = 0u;
+            uint8* currentMapSample = reinterpret_cast<uint8*>(inputMap) + sizeof(uint32);  //timestamp of type uint32 always
+            for (uint32 i = 0; i < nInputMembers && ok; i++){
+                uint32 nOfchannel = inputMembersOrdered[i]->Inputs.nChannels;
+                ok &= (inputMembersOrdered[i]->reference.IsValid());
                 //The channels requested have already been copied, stop the loop
                 if (!ok){
-                    REPORT_ERROR(ErrorManagement::CommunicationError, "Error while translating the channels to scaled values on Map %s.", name.Buffer());
+                    outputCode = ERROR;
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "Error while accessing a device reference (devn%s) on Map %s.", inputMembersOrdered[i]->devn, name.Buffer());
+                }
+                if (ok){
+                    ReferenceT<UEIDevice> thisDevice = inputMembersOrdered[i]->reference;
+                    uint8 byteSize = thisDevice->GetSampleSize();
+                    for (uint32 j = 0; j < nOfchannel && ok; j++){
+                        uint32 channelIdx = inputMembersOrdered[i]->Inputs.channels[j];
+                        void* rawData = reinterpret_cast<void*>(currentMapSample);
+                        void* scaledData = reinterpret_cast<void*>(inputSignalAddresses[signalIdx]);
+                        TypeDescriptor outputType = inputSignalTypes[signalIdx];
+                        ok &= thisDevice->ScaleSignal(channelIdx, 1u, rawData, scaledData, outputType);
+                        currentMapSample += byteSize;
+                        signalIdx += 1;
+                    }
+                    //The channels requested have already been copied, stop the loop
+                    if (!ok){
+                        outputCode = ERROR;
+                        REPORT_ERROR(ErrorManagement::CommunicationError, "Error while translating the channels to scaled values on Map %s.", name.Buffer());
+                    }  
                 }
             }
             //Compute the timestamp, which occupies the first position of input memory on the datasource as uint64
             //By calling this method in this position, the already written float64 on the first position is overwritten by this uint64 timestamp (better alternative)
             if (ok && inputMembersOrdered[0u]->Inputs.timestampRequired){
-                ok = (GetTimestamp(reinterpret_cast<uint32*>(inputMap)[0], reinterpret_cast<uint64*>(destinationAddr)[0]));
+                ok = (GetTimestamp(reinterpret_cast<uint32*>(inputMap)[0], *TimestampAddr));
                 if (!ok){
+                    outputCode = ERROR;
                     REPORT_ERROR(ErrorManagement::CommunicationError, "Could not process correctly the timestamp value on RtDMap %s", name.Buffer());
                 }
             }
-            next_packet = 1;
+            if (ok){
+                outputCode = NEW_DATA_AVAILABLE;
+            }
+        }else{
+            outputCode = NO_NEW_DATA_AVAILABLE;
         }
-    }else{
-        REPORT_ERROR(ErrorManagement::ParametersError, "Refresh failed during Poll for conversion in Map %s", name.Buffer());
     }
-    return next_packet;
+    return ok;
 }
 
-uint8 UEIRtDMap::GetType(){
+MapType UEIRtDMap::GetType(){
     return RTDMAP;
 }
+
+bool UEIRtDMap::CheckMapCoherency(){
+    bool ok = UEIMapContainer::CheckMapCoherency();
+    if (ok){
+        ok = (scanRate <= GetsampleRate());
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "ScanRate for RtDMap %s must not be higher than the sampling rate of its configured devices (%.02f > %.02f Hz)", name.Buffer(), scanRate, GetsampleRate());
+        }
+    }
+    mapCoherent = ok;
+    return ok;
+}
+
+
 
 CLASS_REGISTER(UEIRtDMap, "1.0")
 }

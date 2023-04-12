@@ -20,22 +20,15 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
+# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
+#
 #############################################################
-OBJSX=  UEIDevice.x 			\
-		UEIMasterObject.x 		\
-		UEIMapContainer.x 		\
-		UEICircularBuffer.x		\
-		UEIBufferPointer.x		\
-		UEIRtDMap.x				\
-		UEIRtVMap.x				\
-		UEIAI217_803.x 			
 
-PACKAGE=Components/Interfaces
-
-ROOT_DIR=../../../../
-
+OBJSX += UEIDataSourceTest.x
+		
+PACKAGE=Components/DataSources
+ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
-
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 INCLUDES += -I.
@@ -50,37 +43,16 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
+INCLUDES += -I ../../../../Source/Components/DataSources/UEIDataSource
+INCLUDES += -I ../../../../Source/Components/GAMs/IOGAM
+INCLUDES += -I ../../../../Source/Components/Interfaces/UEIDAQ
+INCLUDES += -I ../../Interfaces/UEIDAQ/UEIDAQMockup
 
-#ifeq ($(TARGET),cov)
-INCLUDES += -I ../../../../Test/Components/Interfaces/UEIDAQ/UEIDAQMockup
-#else
-#INCLUDES += -I $(PDNA_INCLUDE)
-#endif
-
-#ifeq ($(TARGET),ppc-linux)
-#$(info Compiling UEIAI217DataSource for TARGET ppc architecture)
-#LIBRARIES_STATIC += $(PDNA_LIB_PPC)/libpowerdna$(LIBEXT)
-#LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB_PPC)
-#endif
-
-#ifeq ($(TARGET),x86-linux)
-#$(info Compiling UEIAI217DataSource for TARGET x86 architecture)
-#LIBRARIES_STATIC += $(PDNA_LIB)/libpowerdna$(LIBEXT)
-#LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB)
-#endif
-
-all: $(OBJS)    \
-	$(BUILD_DIR)/UEIInterface$(LIBEXT) 		\
-	$(BUILD_DIR)/UEIMasterObject$(DLLEXT) 	\
-	$(BUILD_DIR)/UEIDevice$(DLLEXT) 		\
-	$(BUILD_DIR)/UEIAI217_803$(DLLEXT)		\
-	$(BUILD_DIR)/UEIMapContainer$(DLLEXT)	\
-	$(BUILD_DIR)/UEIBufferPointer$(DLLEXT)	\
-	$(BUILD_DIR)/UEICircularBuffer$(DLLEXT)	\
-	$(BUILD_DIR)/UEIRtDMap$(DLLEXT)			\
-	$(BUILD_DIR)/UEIRtVMap$(DLLEXT)
-		echo  $(OBJS)
-
+all: $(OBJS) \
+    $(BUILD_DIR)/UEIDataSourceTest$(LIBEXT)
+	echo  $(OBJS)
 
 include depends.$(TARGET)
 

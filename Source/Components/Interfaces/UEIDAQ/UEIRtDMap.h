@@ -123,18 +123,48 @@ class UEIRtDMap : public UEIMapContainer {
      * @param[out] destinationAddr pointer to the memory region where the contents of the newly recived (if so) map packet are copied.
      * @return true if a new packet has been recieved, false otherwise.
      */
-    int32 PollForNewPacket(float32* destinationAddr);
+    bool PollForNewPacket(MapReturnCode& outputCode);
     
     /**
      * @brief Getter for the type of the map.
      * @details Redefinition of the method stated in UEIMapContainer.
      * @return RTDMAP as defined in UEIDefinitions.h.
      */
-    uint8 GetType();
+    MapType GetType();
+    
+    /**
+     * @brief Configuration method for the destination signals in MARTe.
+     * @details This function provides the Map object the knowledge of where to store the scaled samples in memory as input signals in MARTe,
+     * the desired number of samples to be retrieved in such signals, the number of physical channels to be retrieved and the types to which scale each
+     * of the input signals.
+     * @param[in] nSamples number of samples the map must supply for each of the declared phyisical channels as MARTe signals.
+     * @param[in] nChannels number of channels the map needs to provide as input signals, this parameters serves as a check for the length of the provided arrays.
+     * @param[in] inputTimestampAddress pointer to the memory location in which to store the scaled samples for the timestamp channel mandatory for all the maps.
+     * @param[in] signalAddresses array of pointers to the memory locations of each of the input signals, must have a length of nChannels and be supplied in the same
+     * order as the configured physical channels.
+     * @param[in] signalTypes Array of types for each of the channels, stating the desired input signal format and scaling.
+     * @return true if the provided parameters are accepted for the Map, false otherwise.
+     */
+    bool ConfigureInputsForDataSource(uint32 nSamples, uint32 nChannels, uint64* inputTimestampAddress, uint8** signalAddresses, TypeDescriptor* signalTypes);
+    
+    /**
+     * @brief Method to check the map coherency with the information on the devices assigned to each of the members.
+     * @details This method is executed by UEIMasterObject right after the devices references are set into the corresponding map members
+     * by the call to SetDevices method on this class. During initialisation of the map objects, the object has no access to the device objects and
+     * therefore cannot execute a certain set of checks regarding the information. This method implement such checks and is to be called once the
+     * device references have been set appropriately.
+     * @return true if coherency check for the map has succeeded, false otherwise.
+     */
+    bool CheckMapCoherency();
+    
+     /**
+     * @brief Method to stop operation on the map.
+     * @details This method is used to cease map operation.
+     * @return true if the stopping request succeeded, false otherwise.
+     */
+    bool StopMap();
 
-    bool SetMARTeSamplesPerSignal(uint32 MARTeSampleN);
-
-private:
+protected:
 
     /**
      * @brief Private method to obtain the pointers to the memory area in which the DMap will be allocated upon a successful refresh call.
@@ -146,7 +176,18 @@ private:
     /**
      *  Pointer holding the location in which the DMap is copied after a successfull refresh request.  
      */
-    uint32* inputMap;   //TODO change to uint8* for portability to new devices
+    uint8* inputMap;   //TODO change to uint8* for portability to new devices
+
+    /**
+    *   Variable holding the configured scan rate for this specific map.
+    */
+    float32 scanRate;
+    
+    /**
+    *   Variable holding the last recieved timestamp samples for the timestamp channel on this map, use to compute 64-bit
+    *   timestamp through timestamp overflow.
+    */
+    uint32 previousTimestamp;
 };
 }
 #endif /* UEIRtDMap_H_ */
