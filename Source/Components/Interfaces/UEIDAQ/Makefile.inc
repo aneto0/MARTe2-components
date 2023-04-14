@@ -51,23 +51,22 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
-#ifeq ($(TARGET),cov)
+ifdef UEIDAQ_MOCKUP
 INCLUDES += -I ../../../../Test/Components/Interfaces/UEIDAQ/UEIDAQMockup
-#else
-#INCLUDES += -I $(PDNA_INCLUDE)
-#endif
-
-#ifeq ($(TARGET),ppc-linux)
-#$(info Compiling UEIAI217DataSource for TARGET ppc architecture)
-#LIBRARIES_STATIC += $(PDNA_LIB_PPC)/libpowerdna$(LIBEXT)
-#LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB_PPC)
-#endif
-
-#ifeq ($(TARGET),x86-linux)
-#$(info Compiling UEIAI217DataSource for TARGET x86 architecture)
-#LIBRARIES_STATIC += $(PDNA_LIB)/libpowerdna$(LIBEXT)
-#LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB)
-#endif
+$(info Compiling UEIDAQ interface with mockup enabled)
+else
+INCLUDES += -I $(PDNA_INCLUDE)
+ifeq ($(TARGET),ppc-linux)
+$(info Compiling UEIDAQ interface for TARGET ppc architecture)
+LIBRARIES_STATIC += $(PDNA_LIB_PPC)/libpowerdna$(LIBEXT)
+LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB_PPC)
+endif
+ifeq ($(TARGET),x86-linux)
+$(info Compiling UEIDAQ interface for TARGET x86 architecture)
+LIBRARIES_STATIC += $(PDNA_LIB)/libpowerdna$(LIBEXT)
+LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB)
+endif
+endif
 
 all: $(OBJS)    \
 	$(BUILD_DIR)/UEIInterface$(LIBEXT) 		\

@@ -30,11 +30,11 @@ INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 OBJSX = UEIDeviceGTest.x        \
         UEIMapContainerGTest.x  \
         UEIAI217_803GTest.x     \
-        UEIBufferPointerTest.x  \
-        UEICircularBufferTest.x \
-        UEIMasterObjectTest.x   \
-        UEIRtDMapTest.x         \
-        UEIRtVMapTest.x
+        UEIBufferPointerGTest.x  \
+        UEICircularBufferGTest.x \
+        UEIMasterObjectGTest.x   \
+        UEIRtDMapGTest.x         \
+        UEIRtVMapGTest.x
 
 include Makefile.inc
 

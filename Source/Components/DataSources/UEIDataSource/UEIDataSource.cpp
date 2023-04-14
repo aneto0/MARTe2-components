@@ -297,6 +297,9 @@ bool UEIDataSource::Synchronise() {
             case NEW_DATA_AVAILABLE:
                 continueLoop = false;
             break;
+            case NO_NEW_DATA_AVAILABLE:
+                continueLoop = true;
+            break;
         }
         if (localErrorCounter > 100) {
             //Maximum numbers of errors achieved
@@ -328,7 +331,6 @@ bool UEIDataSource::AllocateMemory(){
         for (uint32 s = 0u; (s < nOfSignals) && (ret); s++) {
             uint32 thisSignalMemorySize;
             ret = GetSignalByteSize(s, thisSignalMemorySize);
-
             if (ret) {
                 if (signalOffsets != NULL_PTR(uint32 *)) {
                     signalOffsets[s] = stateMemorySize;
@@ -343,6 +345,7 @@ bool UEIDataSource::AllocateMemory(){
                 stateMemorySize += (thisSignalMemorySize * numberOfBuffers * thisSignalSampleN);
                 signalSize[s] = thisSignalMemorySize * thisSignalSampleN;
             }
+            if (!ret) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not obtain information for signal number %d on UEIDataSource %s", s, name.Buffer());
         }
         uint32 numberOfStateBuffers = GetNumberOfStatefulMemoryBuffers();
         if (ret) {

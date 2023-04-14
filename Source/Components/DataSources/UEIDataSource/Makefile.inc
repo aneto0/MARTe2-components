@@ -45,11 +45,12 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I ../../Interfaces/UEIDAQ
 
-#ifeq ($(TARGET),cov)
+ifdef UEIDAQ_MOCKUP
 INCLUDES += -I ../../../../Test/Components/Interfaces/UEIDAQ/UEIDAQMockup
-#else
-#INCLUDES += -I $(PDNA_INCLUDE)
-#endif
+$(info Compiling UEIDataSource with mockup enabled)
+else
+INCLUDES += -I $(PDNA_INCLUDE)
+endif
 
 all: $(OBJS)    \
 	$(BUILD_DIR)/UEIDataSource$(LIBEXT) \

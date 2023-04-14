@@ -24,7 +24,7 @@
 #
 #############################################################
 
-SPB=MemoryGate.x\
+SPB=MemoryGate.x	\
 	SysLogger.x
 
 ifdef EFDA_MARTe_DIR
@@ -69,6 +69,10 @@ endif
 
 ifdef EPICS_PCAS
 SPB+=MARTeIOC.x
+endif
+
+ifdef UEIDAQ_MOCKUP
+SPB+=UEIDAQ.x
 endif
 
 PACKAGE=Components
