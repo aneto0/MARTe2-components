@@ -44,7 +44,10 @@ using namespace MARTe;
 class MDSReaderTest {
 public:
     MDSReaderTest();
-    MDSReaderTest(MARTe::StreamString name, MARTe::uint32 nElementsPerSeg, MARTe::uint32 nSegments, MARTe::float64 elapsetTimeSeg);
+    MDSReaderTest(MARTe::StreamString name,
+                  MARTe::uint32 nElementsPerSeg,
+                  MARTe::uint32 nSegments,
+                  MARTe::float64 elapsetTimeSeg);
 
     /**
      * @brief Sets the environment variable test_tree_path and creates a tree for testing.
@@ -937,6 +940,15 @@ public:
      * hole management[i] = 0 (irrelevant no hole on the data)
      */
     bool TestSynchronise67();
+
+    /**
+     * @brief Test Synchronise recursively
+     * @details node sampling time 0.1. Read sampling time = 0.02, elementsRead = 12800;
+     * shotNumber = 1
+     * dataManagement[i] = 0
+     * hole management[i] = 0 (irrelevant no hole on the data)
+     */
+    bool TestSynchronise68(uint32 nOfSegments);
 
 private:
     StreamString treeName;

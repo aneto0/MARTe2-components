@@ -137,7 +137,7 @@ public:
     /**
      * @brief default constructor
      */
-MDSReader    ();
+    MDSReader ();
 
     /**
      * @brief default destructor.
@@ -189,7 +189,7 @@ MDSReader    ();
      * @return true
      */
     virtual bool PrepareNextState(const char8 * const currentStateName,
-            const char8 * const nextStateName);
+                                  const char8 * const nextStateName);
 
     /**
      * @brief Do nothing
@@ -209,8 +209,8 @@ MDSReader    ();
      * @param[out] signalAddress is where the address of the desired signal is copied.
      */
     virtual bool GetSignalMemoryBuffer(const uint32 signalIdx,
-            const uint32 bufferIdx,
-            void *&signalAddress);
+                                       const uint32 bufferIdx,
+                                       void *&signalAddress);
 
     /**
      * @brief See DataSourceI::GetBrokerName.
@@ -218,23 +218,23 @@ MDSReader    ();
      * @return MemoryMapSynchronisedInputBroker.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
-            const SignalDirection direction);
+                                       const SignalDirection direction);
 
     /**
      * @brief See DataSourceI::GetInputBrokers.
      * @details adds a MemoryMapSynchronisedInputBroker instance to the inputBrokers.
      */
     virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
+                                 const char8* const functionName,
+                                 void * const gamMemPtr);
 
     /**
      * @brief See DataSourceI::GetOutputBrokers.
      * @return false.
      */
     virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
+                                  const char8* const functionName,
+                                  void * const gamMemPtr);
 private:
     /**
      * @brief Open MDS tree
@@ -294,8 +294,8 @@ private:
      * @return 1 if the time t is in a segment.
      */
     int8 FindSegment(const float64 t,
-            uint32 &segment,
-            const uint32 nodeIdx);
+                     uint32 &segment,
+                     const uint32 nodeIdx);
 
     /**
      * @brief Counts how many discontinuities are in the specified period
@@ -305,8 +305,8 @@ private:
      * @return the number of discontinuities.
      */
     uint32 CheckDiscontinuityOfTheSegments(const uint32 nodeNumber,
-            const uint32 initialSegment,
-            const uint32 finalSegment) const;
+                                           const uint32 initialSegment,
+                                           const uint32 finalSegment) const;
 
     /**
      * @brief Calculates the time difference between the first samples.
@@ -317,7 +317,7 @@ private:
      * @return true on succeed.
      */
     bool GetNodeSamplingTime(const uint32 idx,
-            float64 &tDiff) const;
+                             float64 &tDiff) const;
 
     /**
      * @brief Copy the same value as many times as indicated.
@@ -327,8 +327,8 @@ private:
      * @param[in] samplesOffset indicates how many samples has already copied.
      */
     void CopyTheSameValue(const uint32 idxNumber,
-            const uint32 numberOfTimes,
-            const uint32 samplesOffset);
+                          const uint32 numberOfTimes,
+                          const uint32 samplesOffset);
 
     /**
      * @brief Template functions which actually performs the copy
@@ -338,8 +338,8 @@ private:
      */
     template<typename T>
     void CopyTheSameValueTemplate(uint32 idxNumber,
-            uint32 numberOfTimes,
-            uint32 samplesOffset);
+                                  uint32 numberOfTimes,
+                                  uint32 samplesOffset);
 
     /**
      * @brief First fills a hole and then copy data from the node
@@ -348,8 +348,8 @@ private:
      * @param[in] numberOfDiscontinuities indicates the number of times that the algorithm must be applied
      */
     bool AddValuesCopyData(const uint32 nodeNumber,
-            uint32 minSegment,
-            const uint32 numberOfDiscontinuities);
+                           uint32 minSegment,
+                           const uint32 numberOfDiscontinuities);
 
     /**
      * @brief First copies data and then adds values
@@ -360,24 +360,24 @@ private:
      * @param[in] samplesRead Samples already copied.
      */
     bool CopyDataAddValues(const uint32 nodeNumber,
-            uint32 minSegment,
-            const uint32 numberOfDiscontinuities,
-            const uint32 samplesToRead,
-            const uint32 samplesRead);
+                           uint32 minSegment,
+                           const uint32 numberOfDiscontinuities,
+                           const uint32 samplesToRead,
+                           const uint32 samplesRead);
 
     /**
      * @brief First it fills the holes with data then copy data from MDSplus and the continue copying data
      */
     bool AddValuesCopyDataAddValues(const uint32 nodeNumber,
-            const uint32 minSegment,
-            const uint32 numberOfDiscontinuities);
+                                    const uint32 minSegment,
+                                    const uint32 numberOfDiscontinuities);
 
     /**
      * @brief First it copies real data from MDSplus then fill the holes with some data and then continues copying data
      */
     bool CopyDataAddValuesCopyData(const uint32 nodeNumber,
-            uint32 minSegment,
-            const uint32 numberOfDiscontinuities);
+                                   uint32 minSegment,
+                                   const uint32 numberOfDiscontinuities);
 
     /**
      * @brief Finds the next discontinuity
@@ -387,9 +387,9 @@ private:
      * @return true if the discontinuity exist.
      */
     bool FindDiscontinuity(const uint32 nodeNumber,
-            uint32 &segment,
-            float64 &beginningTime,
-            float64 &endTime) const;
+                           uint32 &segment,
+                           float64 &beginningTime,
+                           float64 &endTime) const;
 
     /**
      * @brief Copies the data from the tree to the allocated memory
@@ -401,87 +401,87 @@ private:
      * @return the number of samples copied from the tree to the allocated memory
      */
     uint32 MakeRawCopy(const uint32 nodeNumber,
-            const uint32 minSeg,
-            const uint32 samplesToCopy,
-            const uint32 offsetSamples);
+                       const uint32 minSeg,
+                       const uint32 samplesToCopy,
+                       const uint32 offsetSamples);
 
     /**
      * @brief template which copies data using MemoryOperationsHelper::Copy
      */
     template<typename T>
     uint32 MakeRawCopyTemplate(uint32 nodeNumber,
-            uint32 minSeg,
-            uint32 SamplesToCopy,
-            uint32 OffsetSamples);
+                               uint32 minSeg,
+                               uint32 SamplesToCopy,
+                               uint32 OffsetSamples);
 
     /**
      * @brief Copies data interpolating the samples
      * @brief this function decides the type of data and the calls the LinearInterpolationCopyTemplate()
      */
     uint32 LinearInterpolationCopy(const uint32 nodeNumber,
-            const uint32 minSeg,
-            const uint32 samplesToCopy,
-            const uint32 offsetSamples);
+                                   const uint32 minSeg,
+                                   const uint32 samplesToCopy,
+                                   const uint32 offsetSamples);
 
     /**
      * @brief Template function which reads the data from MDSplus and performs the interpolation
      */
     template<typename T>
     uint32 LinearInterpolationCopyTemplate(uint32 nodeNumber,
-            uint32 minSeg,
-            uint32 samplesToCopy,
-            uint32 offsetSamples);
+                                           uint32 minSeg,
+                                           uint32 samplesToCopy,
+                                           uint32 offsetSamples);
 
     /**
      * @brief Fills the holes with the last value.
      * @details this function calls the HoldCopyTemplate.
      */
     uint32 HoldCopy(const uint32 nodeNumber,
-            const uint32 minSeg,
-            const uint32 samplesToCopy,
-            const uint32 samplesOffset);
+                    const uint32 minSeg,
+                    const uint32 samplesToCopy,
+                    const uint32 samplesOffset);
 
     /**
      * @brief Template function which actually fills the dataSourceMemory buffer
      */
     template<typename T>
     uint32 HoldCopyTemplate(uint32 nodeNumber,
-            uint32 minSeg,
-            uint32 samplesToCopy,
-            uint32 samplesOffset);
+                            uint32 minSeg,
+                            uint32 samplesToCopy,
+                            uint32 samplesOffset);
 
     /**
      * @brief Copy the remaining data of the MDSpls into the dataSourceMemory buffer
      * @details this function is called just to managed the end of the MDSplus data.
      */
     bool CopyRemainingData(const uint32 nodeNumber,
-            const uint32 minSegment);
+                           const uint32 minSegment);
 
     /**
      * @brief Given tstart and tend this function decide how many samples to copy
      */
     uint32 ComputeSamplesToCopy(const uint32 nodeNumber,
-            const float64 tstart,
-            const float64 tend) const;
+                                const float64 tstart,
+                                const float64 tend) const;
 
     /**
      * @brief modifies samples in case it was not well calculated due to numeric errors.
      */
     void VerifySamples(const uint32 nodeNumber,
-            uint32 &samples,
-            const float64 tstart,
-            const float64 tend) const;
+                       uint32 &samples,
+                       const float64 tstart,
+                       const float64 tend) const;
 
     /**
      * @brief Compute the interpolation given to samples.
      */
     template<typename T>
     bool SampleInterpolation(float64 cT,
-            T data1,
-            T data2,
-            float64 t1,
-            float64 t2,
-            float64 *ptr);
+                             T data1,
+                             T data2,
+                             float64 t1,
+                             float64 t2,
+                             float64 *ptr);
 
     /**
      * @brief Convert the the MDSplus type into MARTe type.
@@ -623,7 +623,6 @@ private:
      */
     char8 *lastValue;
 
-
     float64 *lastTime;
 
     uint32 *offsetLastValue;
@@ -637,7 +636,6 @@ private:
     float64 *nodeSamplingTime;
 
 };
-
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
@@ -726,13 +724,12 @@ uint32 MDSReader::MakeRawCopyTemplate(uint32 nodeNumber,
             elementsConsumed[nodeNumber] = 0u;
         }
         *reinterpret_cast<T *>(&lastValue[offsetLastValue[nodeNumber]]) = data[nElements - 1];
-        MDSplus::deleteData(dataD);
+        MDSplus::deleteData (dataD);
         delete data;
 
     }
     return samplesCopied;
 }
-
 
 template<typename T>
 uint32 MDSReader::LinearInterpolationCopyTemplate(uint32 nodeNumber,
@@ -826,8 +823,8 @@ uint32 MDSReader::LinearInterpolationCopyTemplate(uint32 nodeNumber,
             lastTime[nodeNumber] = timeNode[nElements - 1];
             elementsConsumed[nodeNumber] = 0u;
         }
-        MDSplus::deleteData(dataD);
-        MDSplus::deleteData(timeNodeD);
+        MDSplus::deleteData (dataD);
+        MDSplus::deleteData (timeNodeD);
         delete data;
         delete timeNode;
     }
@@ -932,8 +929,8 @@ uint32 MDSReader::HoldCopyTemplate(uint32 nodeNumber,
             lastTime[nodeNumber] = timeNode[nElements - 1];
             elementsConsumed[nodeNumber] = 0u;
         }
-        MDSplus::deleteData(dataD);
-        MDSplus::deleteData(timeNodeD);
+        MDSplus::deleteData (dataD);
+        MDSplus::deleteData (timeNodeD);
         delete data;
         delete timeNode;
     }
@@ -955,7 +952,6 @@ bool MDSReader::SampleInterpolation(float64 cT,
     return ret;
 }
 }
-
 
 #endif /* DATASOURCES_MDSREADER_MDSREADER_H_ */
 
