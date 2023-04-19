@@ -59,12 +59,14 @@ INCLUDES += -I $(PDNA_INCLUDE)
 ifeq ($(TARGET),ppc-linux)
 $(info Compiling UEIDAQ interface for TARGET ppc architecture)
 LIBRARIES_STATIC += $(PDNA_LIB_PPC)/libpowerdna$(LIBEXT)
-LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB_PPC)
+LIBRARIES_STATIC += $(PDNA_LIB_PPC)/libUeiPal$(LIBEXT)
+#LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB_PPC)
 endif
 ifeq ($(TARGET),x86-linux)
 $(info Compiling UEIDAQ interface for TARGET x86 architecture)
 LIBRARIES_STATIC += $(PDNA_LIB)/libpowerdna$(LIBEXT)
-LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB)
+LIBRARIES_STATIC += $(PDNA_LIB)/libUeiPal$(LIBEXT)
+#LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB)
 endif
 endif
 
