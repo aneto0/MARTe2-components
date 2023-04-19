@@ -74,10 +74,8 @@ ifdef EPICS_PCAS
 SPB+=MARTeIOC.x
 endif
 
-ifdef PDNA_LIB 
-ifdef PDNA_LIB_PPC
+ifdef PDNA_INCLUDE
 SPB +=UEIDAQ.x
-endif
 endif
 
 PACKAGE=Components

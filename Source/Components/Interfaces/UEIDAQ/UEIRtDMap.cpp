@@ -30,6 +30,7 @@
 /*---------------------------------------------------------------------------*/
 #include "CLASSMETHODREGISTER.h"
 #include "UEIRtDMap.h"
+#include "CustomFunctions.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -117,6 +118,25 @@ bool UEIRtDMap::StartMap(){
     ok = (DqRtDmapInit(DAQ_handle, &mapid, scanRate) >= 0);
     if (!ok){
         REPORT_ERROR(ErrorManagement::InitialisationError, "Error on Initialising Map %s", name.Buffer());
+    }
+    if (ok){
+        //First after creating the Dmap structure is setting the sampling rate for each of the devices,
+        // as the function DqRtDmapInit sets all the sampling rates to that of the retrieval of the Map
+        for (uint32 dev = 0u; dev < MAX_IO_SLOTS && ok; dev++){
+            if (members[dev].defined){
+                ok = (members[dev].reference.IsValid());
+                if (ok){
+                    ReferenceT<UEIDevice> device = members[dev].reference;
+                    ok &= SetDevSamplingFreqRtDmap(DAQ_handle, mapid, dev, device->GetSamplingFrequency());
+                    if (!ok){
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Could not set sampling rate on dev%d for Map %s", dev, name.Buffer());
+                    }
+                }
+                else{
+
+                }
+            }
+        }
     }
     if (ok){
         //Once the map is initialized correctly, the I/O channels need to be checked into the map itself
@@ -282,7 +302,7 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
                         TypeDescriptor outputType = inputSignalTypes[signalIdx];
                         ok &= thisDevice->ScaleSignal(channelIdx, 1u, rawData, scaledData, outputType);
                         currentMapSample += byteSize;
-                        signalIdx += 1;
+                        signalIdx ++;
                     }
                     //The channels requested have already been copied, stop the loop
                     if (!ok){
@@ -325,8 +345,6 @@ bool UEIRtDMap::CheckMapCoherency(){
     mapCoherent = ok;
     return ok;
 }
-
-
 
 CLASS_REGISTER(UEIRtDMap, "1.0")
 }

@@ -340,12 +340,12 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
                             REPORT_ERROR(ErrorManagement::CommunicationError, "The scaling process failed in Map %s", name.Buffer());
                         }
                     }
+                    signalIdx++;
                 }
                 if (!ok){
                     outputCode = ERROR;
                     REPORT_ERROR(ErrorManagement::CommunicationError, "Could not retrieve data from CircualrBuffer in Map %s", name.Buffer());
                 }
-                signalIdx++;
             }
             //Correct and set in memory the timestamps
             if (ok){

@@ -239,7 +239,7 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
         if (ok){
             //get the signal memory addresses for the input signals on the DataSource
             for (uint32 i = 0; i < numberOfSignals-2 && ok; i++){
-                signalAddresses[i] = memory+(signalOffsets[i+2]);
+                signalAddresses[i] = reinterpret_cast<uint8*>(memory)+(signalOffsets[i+2]);
             }
         }
         if (ok){
@@ -268,7 +268,7 @@ bool UEIDataSource::Synchronise() {
         if (ok){
             ok = map->StartMap();
             if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "UEIDataSource::SetConfiguredDatabase - Could not start Map %s in DataSource %s", map->GetName(), name.Buffer());
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not start Map %s in DataSource %s", map->GetName(), name.Buffer());
             }
         }
     }

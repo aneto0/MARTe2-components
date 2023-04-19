@@ -1,7 +1,7 @@
 /**
- * @file UEIAI217_803.cpp
- * @brief Source file for class UEIAI217_803
- * @date 22/03/2023
+ * @file UEIDIO404.cpp
+ * @brief Source file for class UEIDIO404
+ * @date 17/04/2023
  * @author Xavier Ruche
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class UEIAI217_803 (public, protected, and private). Be aware that some
+ * the class UEIDIO404 (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -28,7 +28,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "UEIAI217_803.h"
+#include "UEIDIO404.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -40,7 +40,7 @@
 
 namespace MARTe {
 
-UEIAI217_803::UEIAI217_803() : UEIDevice() {
+UEIDIO404::UEIDIO404() : UEIDevice() {
     ADCMode = DQ_AI217_SET_ADC_DEFAULT;
     gains = NULL_PTR(uint16*);
     //Initialise the FIR banks to safe values
@@ -52,7 +52,7 @@ UEIAI217_803::UEIAI217_803() : UEIDevice() {
     }
 }
 
-UEIAI217_803::~UEIAI217_803(){
+UEIDIO404::~UEIDIO404(){
     //destroy the gains pointer array
     if (gains != NULL_PTR(uint16*)){
         delete [] gains;
@@ -65,7 +65,7 @@ UEIAI217_803::~UEIAI217_803(){
     }
 }
 
-bool UEIAI217_803::Initialise(StructuredDataI &data){
+bool UEIDIO404::Initialise(StructuredDataI &data){
     //Initialise the UEIDevice Object, this method will initialise and check base parameters for the device (devn, name and sampling frequency)
     bool ok = UEIDevice::Initialise(data);
     //Initialise helper for retriecing the input parameters
@@ -171,7 +171,7 @@ bool UEIAI217_803::Initialise(StructuredDataI &data){
     return ok;
 }
 
-bool UEIAI217_803::CheckChannelAndDirection(uint32 channelNumber, SignalDirection direction){
+bool UEIDIO404::CheckChannelAndDirection(uint32 channelNumber, SignalDirection direction){
     //For AI-217-803 all the channels (0 to 15 as only 16 channels are available) are inputs
     bool validChannel = false;
     //Channel only valid if it is configured as an output
@@ -188,7 +188,7 @@ bool UEIAI217_803::CheckChannelAndDirection(uint32 channelNumber, SignalDirectio
     return validChannel;
 }
 
-bool UEIAI217_803::ConfigureDevice(int32 DAQ_handle){
+bool UEIDIO404::ConfigureDevice(int32 DAQ_handle){
     bool ok = true;
     //Configure all the channels in the layer at the same time (for now no custom channel configuration is allowed)
     ok = (DqAdv217SetCfgLayer(DAQ_handle, deviceId, DQ_AI217_SETCFG_ALL_CHAN, DQ_AI217_SET_CFG_LAYER_ADC, ADCMode) >= 0);
@@ -239,7 +239,8 @@ bool UEIAI217_803::ConfigureDevice(int32 DAQ_handle){
             }
             if (ok){
                 if (totalFilterResult != 8388608){
-                    REPORT_ERROR(ErrorManagement::Warning, "Inaccurate return value for bank %s for device %s (expected 8388608, got %d).",banks[i].Buffer() ,name.Buffer(),totalFilterResult);  
+                    REPORT_ERROR(ErrorManagement::Warning, "UEIDIO404::ConfigureDevice - "
+                    "Inaccurate return value for bank %s for device %s (expected 8388608, got %d).",banks[i].Buffer() ,name.Buffer(),totalFilterResult);  
                 }
             }
         }
@@ -247,23 +248,23 @@ bool UEIAI217_803::ConfigureDevice(int32 DAQ_handle){
     return ok;
 }
 
-int32 UEIAI217_803::GetModel(){
-    return 535; //217 in hexadecimal
+int32 UEIDIO404::GetModel(){
+    return 0x404; //404 in hexadecimal
 }
 
-IOLayerType UEIAI217_803::GetType(){
-    return HARDWARE_LAYER_ANALOG_I;
+IOLayerType UEIDIO404::GetType(){
+    return HARDWARE_LAYER_DIGITAL_IO;
 }
 
-uint32 UEIAI217_803::GetDeviceChannels(){
-    return CHANNEL_NUMBER;
+uint32 UEIDIO404::GetDeviceChannels(){
+    return 24u;
 }
 
-uint8 UEIAI217_803::GetSampleSize(){
+uint8 UEIDIO404::GetSampleSize(){
     return sizeof(uint32);
 }
 
-bool UEIAI217_803::ConfigureChannel(uint32 channelNumber, uint32& channelConfiguration){
+bool UEIDIO404::ConfigureChannel(uint32 channelNumber, uint32& channelConfiguration){
     bool ok = (channelNumber < CHANNEL_NUMBER);
     ok &= (gains != NULL_PTR(uint16*));
     uint32 gain = 0u;
@@ -301,18 +302,20 @@ bool UEIAI217_803::ConfigureChannel(uint32 channelNumber, uint32& channelConfigu
     return ok;
 }
 
-bool UEIAI217_803::ConfigureChannel(uint32 channelNumber, int32& channelConfiguration){
+bool UEIDIO404::ConfigureChannel(uint32 channelNumber, int32& channelConfiguration){
     uint32 thisChannel;
     bool ok = ConfigureChannel(channelNumber, thisChannel);
     channelConfiguration = (int32) thisChannel;
     return ok;
 }
 
-bool UEIAI217_803::AcceptedSignalType(TypeDescriptor signalType){
+bool UEIDIO404::AcceptedSignalType(TypeDescriptor signalType){
     //Check the datatypes this device can output. Return true for the datatypes accepted as a valid output of this device
     bool accepted = false;
     if (signalType == Float32Bit ||
         signalType == Float64Bit ||
+        signalType == UnsignedInteger8Bit||
+        signalType == UnsignedInteger16Bit||
         signalType == UnsignedInteger32Bit||
         signalType == UnsignedInteger64Bit){
         accepted = true;
@@ -320,7 +323,7 @@ bool UEIAI217_803::AcceptedSignalType(TypeDescriptor signalType){
     return accepted;
 }
 
-bool UEIAI217_803::ScaleSignal(uint32 channelNumber, uint32 listLength, void* rawData, void* scaledData, TypeDescriptor outputType){
+bool UEIDIO404::ScaleSignal(uint32 channelNumber, uint32 listLength, void* rawData, void* scaledData, TypeDescriptor outputType){
     uint32* originData = reinterpret_cast<uint32*>(rawData);
     float64 step = 0;
     float64 offset = 0;
@@ -407,7 +410,7 @@ bool UEIAI217_803::ScaleSignal(uint32 channelNumber, uint32 listLength, void* ra
     return ok;
 }
 
-bool UEIAI217_803::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPointer rawData, void* scaledData, TypeDescriptor outputType){
+bool UEIDIO404::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPointer rawData, void* scaledData, TypeDescriptor outputType){
     float64 step = 0;
     float64 offset = 0;
     bool ok = (channelNumber < CHANNEL_NUMBER);
@@ -498,5 +501,5 @@ bool UEIAI217_803::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBuffe
     return ok;
 }
 
-CLASS_REGISTER(UEIAI217_803, "1.0")
+CLASS_REGISTER(UEIDIO404, "1.0")
 }
