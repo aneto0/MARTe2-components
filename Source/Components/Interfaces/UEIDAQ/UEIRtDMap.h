@@ -195,7 +195,7 @@ protected:
     *   In ns as obtainde from HighResolutionTimer::Counter() method. No need for turnarround excpetion catching
     *   as the counter overflows after ~500 years
     */
-    uint64 previousSyncTime;
+    uint64 previousSyncTime;    
 };
 }
 #endif /* UEIRtDMap_H_ */

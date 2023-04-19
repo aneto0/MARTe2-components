@@ -264,13 +264,17 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
         outputCode = ERROR;
         REPORT_ERROR(ErrorManagement::CommunicationError, "Map %s is not ready for data acquisition", name.Buffer());
     }
-    //Test if the polling request needs to be performed right now or in the future
     if (ok){
         //Calculate the period since the last sync in ms
         float32 periodSinceLastSync =  (HighResolutionTimer::Counter() - previousSyncTime)/1000000;
-        while (periodSinceLastSync < ((1000*1/(scanRate))-1)){
+        while (periodSinceLastSync < ((1000/(scanRate))-1)){
             periodSinceLastSync = (HighResolutionTimer::Counter() - previousSyncTime)/1000000;
-            Sleep::MSec((1000*1/(scanRate))-periodSinceLastSync-1);
+            int32 timeToSleep = (1000/(scanRate))-periodSinceLastSync;
+            if (timeToSleep){
+                Sleep::MSec(timeToSleep);
+            }else{
+                break;
+            }
         }
         previousSyncTime = HighResolutionTimer::Counter();
     }
