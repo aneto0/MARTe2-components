@@ -276,7 +276,7 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
         //Check if the response is a new packet or a rerequest.
         //been previously requested.
         //The first channel on the map is always the timestamp, check its value to see if it is different than the last received
-        if (reinterpret_cast<uint32*>(inputMap)[0] != previousTimestamp || firstPckt){
+        if ((reinterpret_cast<uint32*>(inputMap)[1] & 0xFF000000) != 0){//TODO Find a better alternative to this mechanism
             previousTimestamp = reinterpret_cast<uint32*>(inputMap)[0];
             firstPckt = false;
             //The recived packet is a newly converted one not requested yet.
