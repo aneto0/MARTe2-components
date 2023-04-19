@@ -37,6 +37,7 @@
 #include "StructuredDataI.h"
 #include "StructuredDataIHelper.h"
 #include "StreamString.h"
+#include "HighResolutionTimer.h"
 #include <algorithm>
 //interface specific includes
 #include "UEIMapContainer.h"
@@ -188,6 +189,13 @@ protected:
     *   timestamp through timestamp overflow.
     */
     uint32 previousTimestamp;
+    
+    /**
+    *   Variable holding the last sync time (Linux clock time) to compute the sleep if necessary.
+    *   In ns as obtainde from HighResolutionTimer::Counter() method. No need for turnarround excpetion catching
+    *   as the counter overflows after ~500 years
+    */
+    uint64 previousSyncTime;
 };
 }
 #endif /* UEIRtDMap_H_ */

@@ -45,6 +45,7 @@ UEIRtDMap::UEIRtDMap() : UEIMapContainer() {
     inputMap = NULL_PTR(uint8*);
     scanRate = 0;
     previousTimestamp = 0;
+    previousSyncTime = 0;
 }
 
 UEIRtDMap::~UEIRtDMap(){
@@ -262,6 +263,16 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
     if (!ok){
         outputCode = ERROR;
         REPORT_ERROR(ErrorManagement::CommunicationError, "Map %s is not ready for data acquisition", name.Buffer());
+    }
+    //Test if the polling request needs to be performed right now or in the future
+    if (ok){
+        //Calculate the period since the last sync in ms
+        float32 periodSinceLastSync =  (HighResolutionTimer::Counter() - previousSyncTime)/1000000;
+        while (periodSinceLastSync < ((1000*1/(scanRate))-1)){
+            periodSinceLastSync = (HighResolutionTimer::Counter() - previousSyncTime)/1000000;
+            Sleep::MSec((1000*1/(scanRate))-periodSinceLastSync-1);
+        }
+        previousSyncTime = HighResolutionTimer::Counter();
     }
     //Poll for next packet from UEIDAQ
     if (ok){
