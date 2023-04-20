@@ -344,9 +344,8 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
                 }
                 //Compute the timestamp, which occupies the first position of input memory on the datasource as uint64
                 //By calling this method in this position, the already written float64 on the first position is overwritten by this uint64 timestamp (better alternative)
-                if (ok && inputMembersOrdered[i]->Inputs.timestampRequired){
-                    UEIBufferPointer timestampPointer = inputMembersOrdered[i]->reference->inputChannelsBuffer.ReadTimestamp(ok);
-                    ok &= GetTimestamp(timestampPointer, 1u, TimestampAddr);
+                if (ok){
+                    ok &= GetTimestamp(reinterpret_cast<uint32*>(inputMap)[0], *reinterpret_cast<uint64*>(TimestampAddr));
                     if (!ok){
                         outputCode = ERROR;
                         REPORT_ERROR(ErrorManagement::CommunicationError, "Could not process correctly the timestamp value on RtDMap %s", name.Buffer());
