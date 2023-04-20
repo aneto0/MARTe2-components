@@ -341,6 +341,7 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
                     TypeDescriptor outputType = inputSignalTypes[signalIdx];
                     ok &= thisDevice->RetrieveInputSignal(channelIdx, 1u, scaledData, outputType);
                     signalIdx ++;
+                    thisDevice->inputChannelsBuffer.CheckoutBuffer();
                 }
                 //The channels requested have already been copied, stop the loop
                 if (!ok){
