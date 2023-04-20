@@ -286,7 +286,7 @@ bool UEIAI217_803::ConfigureChannels(SignalDirection direction, uint32** configu
                 //The number of bitfields is equal to the number of channels supplied (if no errors are present)
                 for (uint32 i = 0u; i < nInputChannels && ok; i++){
                     uint32 destinationIndex = timestampRequired ? i+1:i;
-                    ok &= ConfigureChannel(inputChannelList[i], *configurationBitfields[i]);
+                    ok &= ConfigureChannel(inputChannelList[i], ((*configurationBitfields)[destinationIndex]));
                 }
             }
         break;

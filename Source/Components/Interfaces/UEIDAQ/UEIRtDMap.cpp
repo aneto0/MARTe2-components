@@ -127,7 +127,7 @@ bool UEIRtDMap::StartMap(){
                 ok = (members[dev].reference.IsValid());
                 if (ok){
                     ReferenceT<UEIDevice> device = members[dev].reference;
-                    ok &= SetDevSamplingFreqRtDmap(DAQ_handle, mapid, dev, device->GetSamplingFrequency());
+                    ok &= (SetDevSamplingFreqRtDmap(DAQ_handle, mapid, dev, device->GetSamplingFrequency()) >= 0);
                     if (!ok){
                         REPORT_ERROR(ErrorManagement::InitialisationError, "Could not set sampling rate on dev%d for Map %s", dev, name.Buffer());
                     }
