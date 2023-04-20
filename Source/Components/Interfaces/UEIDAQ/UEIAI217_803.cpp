@@ -273,7 +273,7 @@ uint8 UEIAI217_803::GetSampleSize(){
     return sizeof(uint32);
 }
 
-bool UEIAI217_803::ConfigureChannels(SignalDirection direction, uint32* configurationBitfields, uint32& nConfigurationBitfields){
+bool UEIAI217_803::ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields){
     bool ok = true;
     switch (direction){
         case InputSignals:
@@ -281,12 +281,12 @@ bool UEIAI217_803::ConfigureChannels(SignalDirection direction, uint32* configur
             if (ok){
                 nConfigurationBitfields = nInputChannels;
                 if (timestampRequired) nConfigurationBitfields += 1;
-                configurationBitfields = (uint32*)malloc(sizeof(uint32)*nInputChannels);
-                if (timestampRequired) configurationBitfields[0u] = DQ_LNCL_TIMESTAMP;               
+                *configurationBitfields = (uint32*)malloc(sizeof(uint32)*nInputChannels);
+                if (timestampRequired) *configurationBitfields[0u] = DQ_LNCL_TIMESTAMP;               
                 //The number of bitfields is equal to the number of channels supplied (if no errors are present)
                 for (uint32 i = 0u; i < nInputChannels && ok; i++){
                     uint32 destinationIndex = timestampRequired ? i+1:i;
-                    ok &= ConfigureChannel(inputChannelList[i], configurationBitfields[i]);
+                    ok &= ConfigureChannel(inputChannelList[i], *configurationBitfields[i]);
                 }
             }
         break;

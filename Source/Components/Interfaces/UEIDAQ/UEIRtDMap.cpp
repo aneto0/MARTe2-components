@@ -144,13 +144,13 @@ bool UEIRtDMap::StartMap(){
             ok &= reference->SetInputChannelList(inputMembersOrdered[i]->Inputs.channels, inputMembersOrdered[i]->Inputs.nChannels);
             inputMembersOrdered[i]->reference->timestampRequired = inputMembersOrdered[i]->Inputs.timestampRequired;
             //Init the buffers, only one sample retrieved and read back
-            ok &= reference->InitBuffer(InputSignals, 1u, 1u, 1u);
+            ok &= reference->InitBuffer(InputSignals, 2u, 1u, 1u);
         }
         for (uint32 i = 0u; i < nOutputMembers && ok; i++){
             ReferenceT<UEIDevice> reference = inputMembersOrdered[i]->reference;
             ok &= reference->SetOutputChannelList(inputMembersOrdered[i]->Inputs.channels, inputMembersOrdered[i]->Inputs.nChannels);
             //Init the buffers, only one sample retrieved and read back
-            ok &= reference->InitBuffer(OutputSignals, 1u, 1u, 1u);
+            ok &= reference->InitBuffer(OutputSignals, 2u, 1u, 1u);
         }
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Device channel information setting failed");
@@ -173,7 +173,7 @@ bool UEIRtDMap::StartMap(){
                 uint32* configurationBitfields = NULL_PTR(uint32*);
                 uint32 nConfigurationBitfields = 0;
                 devn = inputMembersOrdered[i]->devn;
-                ok &= (devReference->ConfigureChannels(InputSignals, configurationBitfields, nConfigurationBitfields));
+                ok &= (devReference->ConfigureChannels(InputSignals, &configurationBitfields, nConfigurationBitfields));
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error configuring input channels for dev%d on Map %s", devn, name.Buffer());
                 }
@@ -205,7 +205,7 @@ bool UEIRtDMap::StartMap(){
                 uint32* configurationBitfields = NULL_PTR(uint32*);
                 uint32 nConfigurationBitfields = 0;
                 devn = outputMembersOrdered[i]->devn;
-                ok &= (devReference->ConfigureChannels(OutputSignals, configurationBitfields, nConfigurationBitfields));
+                ok &= (devReference->ConfigureChannels(OutputSignals, &configurationBitfields, nConfigurationBitfields));
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error configuring output channels for dev%d on Map %s", devn, name.Buffer());
                 }

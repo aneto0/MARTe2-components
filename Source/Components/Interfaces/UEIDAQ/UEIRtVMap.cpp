@@ -190,7 +190,7 @@ bool UEIRtVMap::StartMap(){
                 uint32* configurationBitfields = NULL_PTR(uint32*);
                 uint32 nConfigurationBitfields = 0;
                 devn = inputMembersOrdered[i]->devn;
-                ok &= (devReference->ConfigureChannels(InputSignals, configurationBitfields, nConfigurationBitfields));
+                ok &= (devReference->ConfigureChannels(InputSignals, &configurationBitfields, nConfigurationBitfields));
                 int32 flag = DQ_VMAP_FIFO_STATUS;
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error configuring input channels for dev%d on Map %s", devn, name.Buffer());
@@ -244,7 +244,7 @@ bool UEIRtVMap::StartMap(){
                 uint32* configurationBitfields = NULL_PTR(uint32*);
                 uint32 nConfigurationBitfields = 0;
                 devn = outputMembersOrdered[i]->devn;
-                ok &= (devReference->ConfigureChannels(OutputSignals, configurationBitfields, nConfigurationBitfields));
+                ok &= (devReference->ConfigureChannels(OutputSignals, &configurationBitfields, nConfigurationBitfields));
                 int32 flag = DQ_VMAP_FIFO_STATUS;
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error configuring output channels for dev%d on Map %s", devn, name.Buffer());

@@ -126,7 +126,7 @@ bool UEIDevice::CheckChannelListAndDirection(uint32* channelList, uint32 listLen
     return ok;
 }
 
-bool UEIDevice::ConfigureChannels(SignalDirection direction, uint32* configurationBitfields, uint32& nConfigurationBitfields){
+bool UEIDevice::ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
 }
