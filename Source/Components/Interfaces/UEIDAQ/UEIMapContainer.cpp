@@ -511,7 +511,7 @@ bool UEIMapContainer::GetTimestamp(UEIBufferPointer inputTimestamp, uint32 times
     if (ok){
         //The lengths of the arrays are ok to accomodate the timestamps.
         for (uint32 i = 0u; i < timestampListLength && ok; i++){
-            uint64 thisTimestamp = *(reinterpret_cast<uint64*>(inputTimestamp.GetSample(i)));
+            uint32 thisTimestamp = *(reinterpret_cast<uint32*>(inputTimestamp.GetSample(i)));
             ok = (GetTimestamp(thisTimestamp, outputTimestamp[i]));
         }
     }
