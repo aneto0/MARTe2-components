@@ -287,7 +287,7 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
         while (periodSinceLastSync < ((1000/(scanRate))-1)){
             periodSinceLastSync = (HighResolutionTimer::Counter() - previousSyncTime)/1000000;
             int32 timeToSleep = (1000/(scanRate))-periodSinceLastSync;
-            if (timeToSleep){
+            if (timeToSleep > 0){
                 Sleep::MSec(timeToSleep);
             }else{
                 break;
@@ -295,7 +295,7 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
         }
         //Set the next time for DMap refresh, the last sync time + the period of the Dmap, dont calculate it with the
         // current time to avoid accumulative error.
-        previousSyncTime += (1000/(scanRate));
+        previousSyncTime = (HighResolutionTimer::Counter());            
     }
     //Poll for next packet from UEIDAQ
     if (ok){
@@ -341,8 +341,21 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
                     TypeDescriptor outputType = inputSignalTypes[signalIdx];
                     ok &= thisDevice->RetrieveInputSignal(channelIdx, 1u, scaledData, outputType);
                     signalIdx ++;
-                    thisDevice->inputChannelsBuffer.CheckoutBuffer();
                 }
+                //Compute the timestamp, which occupies the first position of input memory on the datasource as uint64
+                //By calling this method in this position, the already written float64 on the first position is overwritten by this uint64 timestamp (better alternative)
+                if (ok && inputMembersOrdered[i]->Inputs.timestampRequired){
+                    UEIBufferPointer timestampPointer = inputMembersOrdered[i]->reference->inputChannelsBuffer.ReadTimestamp(ok);
+                    ok &= GetTimestamp(timestampPointer, 1u, TimestampAddr);
+                    if (!ok){
+                        outputCode = ERROR;
+                        REPORT_ERROR(ErrorManagement::CommunicationError, "Could not process correctly the timestamp value on RtDMap %s", name.Buffer());
+                    }
+                }
+                if (ok){
+                    outputCode = NEW_DATA_AVAILABLE;
+                }
+                thisDevice->inputChannelsBuffer.CheckoutBuffer();
                 //The channels requested have already been copied, stop the loop
                 if (!ok){
                     outputCode = ERROR;
@@ -350,19 +363,7 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
                 }  
             }
         }
-        //Compute the timestamp, which occupies the first position of input memory on the datasource as uint64
-        //By calling this method in this position, the already written float64 on the first position is overwritten by this uint64 timestamp (better alternative)
-        if (ok && inputMembersOrdered[0u]->Inputs.timestampRequired){
-            UEIBufferPointer timestampPointer = inputMembersOrdered[0u]->reference->inputChannelsBuffer.ReadTimestamp(ok);
-            ok &= GetTimestamp(timestampPointer, 1u, TimestampAddr);
-            if (!ok){
-                outputCode = ERROR;
-                REPORT_ERROR(ErrorManagement::CommunicationError, "Could not process correctly the timestamp value on RtDMap %s", name.Buffer());
-            }
-        }
-        if (ok){
-            outputCode = NEW_DATA_AVAILABLE;
-        }
+        
     }
     return ok;
 }
