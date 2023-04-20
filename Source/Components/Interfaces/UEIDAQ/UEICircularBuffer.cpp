@@ -222,6 +222,16 @@ UEIBufferPointer* UEICircularBuffer::ReadBuffer(bool& ok){
     return pointerList;
 }
 
+UEIBufferPointer UEICircularBuffer::ReadChannel(uint32 chanelIdx, bool& ok){
+    ok = CheckReadReady();
+    if (ok){
+        for (uint32 i = 0; i < nChannels; i++){
+            pointerList[i].SetHead(headPointer);
+        }
+    }
+    return pointerList[chanelIdx];
+}
+
 UEIBufferPointer UEICircularBuffer::ReadTimestamp(bool& ok){
     ok = CheckReadReady() && timestampRequired;
     if (ok){
@@ -251,5 +261,10 @@ bool UEICircularBuffer::ResetBuffer(){
     writePointer = (uint8*)headPointer;
     return true;
 }
+
+bool UEICircularBuffer::AdvanceBufferReadOneSample(){
+    return AdvanceBufferIndex(sizeOfSamples*nChannels+sizeof(uint32)*timestampRequired);
+}
+
 CLASS_REGISTER(UEICircularBuffer, "1.0")
 }

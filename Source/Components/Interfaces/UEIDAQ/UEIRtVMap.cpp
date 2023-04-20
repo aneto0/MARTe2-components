@@ -146,21 +146,23 @@ bool UEIRtVMap::StartMap(){
     //Now that the map is to be started it is valuable to make a copy of the DAQ handle reference for deallocating the map upon
     //destruction of this object.
     //First of all, set all the UEICircularBuffer objects for each of the VMap queried channels
+    //Configure the devices with channels to be retrieved information
     if (ok){
-        //Traverse the input channel list to initialise each UEICircularBuffer object
-        for (uint32 i = 0; i < nInputMembers && ok; i++){
-            uint32 thisMemberChannelN = inputMembersOrdered[i]->Inputs.nChannels;
-            ReferenceT<UEIDevice> thisDev = inputMembersOrdered[i]->reference;
-            ok = thisDev.IsValid();
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve reference for device devn%d in Map %s", i, name.Buffer());
-            }
-            if (ok){
-                ok = (inputMembersOrdered[i]->Inputs.buffer->InitialiseBuffer(nBuffers, thisMemberChannelN, sampleNumber, thisDev->GetSampleSize(), nReadSamples, inputMembersOrdered[i]->Inputs.timestampRequired));
-                if (!ok){
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "The initilisation of DAQCiruclarBuffer failed for Map %s", name.Buffer());
-                }
-            }
+        for (uint32 i = 0u; i < nInputMembers && ok; i++){
+            ReferenceT<UEIDevice> reference = inputMembersOrdered[i]->reference;
+            ok &= reference->SetInputChannelList(inputMembersOrdered[i]->Inputs.channels, inputMembersOrdered[i]->Inputs.nChannels);
+            inputMembersOrdered[i]->reference->timestampRequired = inputMembersOrdered[i]->Inputs.timestampRequired;
+            //Init the buffers, only one sample retrieved and read back
+            ok &= reference->InitBuffer(InputSignals, nBuffers, sampleNumber, nReadSamples);
+        }
+        for (uint32 i = 0u; i < nOutputMembers && ok; i++){
+            ReferenceT<UEIDevice> reference = inputMembersOrdered[i]->reference;
+            ok &= reference->SetOutputChannelList(inputMembersOrdered[i]->Inputs.channels, inputMembersOrdered[i]->Inputs.nChannels);
+            //Init the buffers, only one sample retrieved and read back
+            ok &= reference->InitBuffer(OutputSignals, nBuffers, sampleNumber, nReadSamples);
+        }
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Device channel information setting failed");
         }
     }
     //Initialise the map always to retrieve fragmented packets, has no impact in data retrieving except if not used
@@ -171,66 +173,114 @@ bool UEIRtVMap::StartMap(){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Error on Initialising Map %s", name.Buffer());
         }
     }
+    //Configure input channels
     if (ok){
         //Once the map is initialized correctly, the I/O channels need to be checked into the map itself
         //First the input channels are checked. The inputMembersOrdered pointer array is traversed in order,
         // yielding the ordered list of channels to sequence into the input map
         for (uint32 i = 0u; i < nInputMembers && ok; i++){
+            uint8 devn;
             ReferenceT<UEIDevice> devReference = inputMembersOrdered[i]->reference;
-            //The first channel of the first device in the map must be the timestamp
-            uint32 nChannels_ = inputMembersOrdered[i]->Inputs.nChannels;
-            nChannels_ = nChannels_;
-            uint8 offset = 0u;
-            if (inputMembersOrdered[i]->Inputs.timestampRequired){
-                nChannels_ += 1;  
-            }                
-            int32 channels [nChannels_];
-            int32 flags [nChannels_];
-            uint8 devn = inputMembersOrdered[i]->devn;
-            //if the timestamp is required, set the first channel and its flags
-            if (inputMembersOrdered[i]->Inputs.timestampRequired){
-                channels[0] = DQ_LNCL_TIMESTAMP;
-                flags[0] = DQ_VMAP_FIFO_STATUS;
-                offset = 1u;    //Set the offset for the channel-confgiruation loop
+            ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on inputMember %i (devn%d) on Map %s", i, inputMembersOrdered[i]->devn, name.Buffer());
             }
-            for (uint32 j = offset ; j < nChannels_ && ok; j++){
-                channels[j] = (int32)(inputMembersOrdered[i]->Inputs.channels[j-offset]);
-                flags[j] = DQ_VMAP_FIFO_STATUS;
-                int32 channel = channels[j];
-                ok = (devReference->ConfigureChannel(channel, channels[j]));
-                if (!ok){
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Could not configure channels in inputMember %i on Map %s", i, name.Buffer());
-                }
-            }
+            //Retrieve the configuration bitfields for this device and the selected channels
             if (ok){
-                ok = (DqRtVmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, channels, flags, 1) >= 0);   //TODO add support for FIFO functions
+                uint32* configurationBitfields = NULL_PTR(uint32*);
+                uint32 nConfigurationBitfields = 0;
+                devn = inputMembersOrdered[i]->devn;
+                ok &= (devReference->ConfigureChannels(InputSignals, configurationBitfields, nConfigurationBitfields));
+                int32 flag = DQ_VMAP_FIFO_STATUS;
                 if (!ok){
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Could not add channels from inputMember %i on Map %s", i, name.Buffer());
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error configuring input channels for dev%d on Map %s", devn, name.Buffer());
                 }
-            }
-            if (ok){
-                //In the case of AI, AO, AIO or DIO, the channels are interleaved into a signle FIFO, we need to check the number of channels into
-                //the map
-                if (devReference->GetType() == HARDWARE_LAYER_ANALOG_I  || devReference->GetType() == HARDWARE_LAYER_ANALOG_O  ||
-                    devReference->GetType() == HARDWARE_LAYER_ANALOG_IO || devReference->GetType() == HARDWARE_LAYER_DIGITAL_IO){
-                    //Check th channel number into the map
-                    ok = (DqRtVmapSetChannelList(DAQ_handle, mapid, devn, DQ_SS0IN, channels, nChannels_) >=0);
-                    //Set the scan rate for the device on this channel
+                if (ok){
+                    ok &= (DqRtVmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0IN, (int32*) configurationBitfields, &flag, 1) >= 0);
                     if (!ok){
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "Could set channel list in inputMember %i on Map %s", i, name.Buffer());
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding input channels in IOM for dev%d on Map %s", devn, name.Buffer());
                     }
-                    //Set the scan rate of the hardware layer to the sampling rate of the device
-                    if (ok){
-                        ok = (DqRtVmapSetScanRate(DAQ_handle, mapid, devn, DQ_SS0IN, sampleRate) >= 0);
+                }
+                if (configurationBitfields != NULL_PTR(uint32*)){
+                    free(configurationBitfields);
+                }
+                if (ok){
+                    //In the case of AI, AO, AIO or DIO, the channels are interleaved into a signle FIFO, we need to check the number of channels into
+                    //the map
+                    if (devReference->GetType() == HARDWARE_LAYER_ANALOG_I  || devReference->GetType() == HARDWARE_LAYER_ANALOG_O  ||
+                        devReference->GetType() == HARDWARE_LAYER_ANALOG_IO || devReference->GetType() == HARDWARE_LAYER_DIGITAL_IO){
+                        //Check th channel number into the map
+                        ok = (DqRtVmapSetChannelList(DAQ_handle, mapid, devn, DQ_SS0IN, (int32*) configurationBitfields, nConfigurationBitfields) >=0);
+                        //Set the scan rate for the device on this channel
                         if (!ok){
-                            REPORT_ERROR(ErrorManagement::InitialisationError, "Could not set scan rate in inputMember %i on Map %s", i, name.Buffer());
+                            REPORT_ERROR(ErrorManagement::InitialisationError, "Could set channel list in inputMember %i on Map %s", i, name.Buffer());
                         }
-                    }    
+                        //Set the scan rate of the hardware layer to the sampling rate of the device
+                        if (ok){
+                            ok = (DqRtVmapSetScanRate(DAQ_handle, mapid, devn, DQ_SS0IN, sampleRate) >= 0);
+                            if (!ok){
+                                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not set scan rate in inputMember %i on Map %s", i, name.Buffer());
+                            }
+                        }    
+                    }
                 }
             }
         }
     }
-    //TODO -> Output signals for VMAP
+    //Configure output channels
+    if (ok){
+        //Once the map is initialized correctly, the I/O channels need to be checked into the map itself
+        //First the input channels are checked. The inputMembersOrdered pointer array is traversed in order,
+        // yielding the ordered list of channels to sequence into the input map
+        for (uint32 i = 0u; i < nOutputMembers && ok; i++){
+            uint8 devn;
+            ReferenceT<UEIDevice> devReference = outputMembersOrdered[i]->reference;
+            ok = (devReference.IsValid());  //This should not be necessary, but it is implemented for precaution
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Found invalid device reference on outputMember %i (devn%d) on Map %s", i, outputMembersOrdered[i]->devn, name.Buffer());
+            }
+            //Retrieve the configuration bitfields for this device and the selected channels
+            if (ok){
+                uint32* configurationBitfields = NULL_PTR(uint32*);
+                uint32 nConfigurationBitfields = 0;
+                devn = outputMembersOrdered[i]->devn;
+                ok &= (devReference->ConfigureChannels(OutputSignals, configurationBitfields, nConfigurationBitfields));
+                int32 flag = DQ_VMAP_FIFO_STATUS;
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Error configuring output channels for dev%d on Map %s", devn, name.Buffer());
+                }
+                if (ok){
+                    ok &= (DqRtVmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0OUT, (int32*) configurationBitfields, &flag, 1) >= 0);
+                    if (!ok){
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding output channels in IOM for dev%d on Map %s", devn, name.Buffer());
+                    }
+                }
+                if (configurationBitfields != NULL_PTR(uint32*)){
+                    free(configurationBitfields);
+                }
+                if (ok){
+                    //In the case of AO, AIO or DIO, the channels are interleaved into a signle FIFO, we need to check the number of channels into
+                    //the map
+                    if (devReference->GetType() == HARDWARE_LAYER_ANALOG_O  ||
+                        devReference->GetType() == HARDWARE_LAYER_ANALOG_IO || devReference->GetType() == HARDWARE_LAYER_DIGITAL_IO){
+                        //Check th channel number into the map
+                        ok = (DqRtVmapSetChannelList(DAQ_handle, mapid, devn, DQ_SS0OUT, (int32*) configurationBitfields, nConfigurationBitfields) >=0);
+                        //Set the scan rate for the device on this channel
+                        if (!ok){
+                            REPORT_ERROR(ErrorManagement::InitialisationError, "Could set channel list in outputMember %i on Map %s", i, name.Buffer());
+                        }
+                        //Set the scan rate of the hardware layer to the sampling rate of the device
+                        if (ok){
+                            ok = (DqRtVmapSetScanRate(DAQ_handle, mapid, devn, DQ_SS0OUT, sampleRate) >= 0);
+                            if (!ok){
+                                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not set scan rate in outputMember %i on Map %s", i, name.Buffer());
+                            }
+                        }    
+                    }
+                }
+            }
+        }
+    }
     //Let's start the layers to start acquiring data
     if (ok){
         ok = EnableMap();
@@ -253,22 +303,26 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
             //If the map was correclty refreshed we proceed to reading the samples contained in the VMap structure
             //In this case, since we received an update on the VMap content, feed it to each of the UEICircularBuffers
             for (uint32 i = 0; i < nInputMembers; i++){
-                //For each of the input memebrs (in order of assignment) feed the new data into the buffers.
-                //Retrieve the input address for the circularBuffer to write new data
-                uint8* bufferWriteAddress = inputMembersOrdered[i]->Inputs.buffer->writePointer;
-                //Prior to any write, check that the buffer has enough space to accept the new data
-                if (inputMembersOrdered[i]->Inputs.buffer->CheckAvailableSpace()){
-                    int32 dataWritten = 0;
-                    int32 avl_size = 0;
-                    uint32 requestedPacketSize = inputMembersOrdered[i]->Inputs.requestSize;
-                    ok = (DqRtVmapGetInputData(DAQ_handle, mapid, i, requestedPacketSize, &dataWritten, &avl_size, bufferWriteAddress) >= 0);
-                    if (ok){
-                        inputMembersOrdered[i]->Inputs.buffer->AdvanceBufferIndex(dataWritten);
-                    }else{
-                        REPORT_ERROR(ErrorManagement::CommunicationError, "Error while writting data to the circular buffer");
+                ReferenceT<UEIDevice> thisDevice = inputMembersOrdered[i]->reference;
+                ok &= thisDevice.IsValid();
+                if (ok){
+                    //For each of the input memebrs (in order of assignment) feed the new data into the buffers.
+                    //Retrieve the input address for the circularBuffer to write new data
+                    uint8* bufferWriteAddress = thisDevice->inputChannelsBuffer.writePointer;
+                    //Prior to any write, check that the buffer has enough space to accept the new data
+                    if (thisDevice->inputChannelsBuffer.CheckAvailableSpace()){
+                        int32 dataWritten = 0;
+                        int32 avl_size = 0;
+                        uint32 requestedPacketSize = inputMembersOrdered[i]->Inputs.requestSize;
+                        ok = (DqRtVmapGetInputData(DAQ_handle, mapid, i, requestedPacketSize, &dataWritten, &avl_size, bufferWriteAddress) >= 0);
+                        if (ok){
+                            thisDevice->inputChannelsBuffer.AdvanceBufferIndex(dataWritten);
+                        }else{
+                            REPORT_ERROR(ErrorManagement::CommunicationError, "Error while writting data to the circular buffer");
+                        }
+                    }else{ 
+                        REPORT_ERROR(ErrorManagement::CommunicationError, "Error while writting to circular buffer, not enough space available");
                     }
-                }else{ 
-                    REPORT_ERROR(ErrorManagement::CommunicationError, "Error while writting to circular buffer, not enough space available");
                 }
             }
         }else{
@@ -290,7 +344,7 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
                 //If not done subsequent FIFO overflows could force a circular buffer to run out of space and throw errors or samples
                 for (uint8 i = 0; i < nInputMembers && restartOk; i++){
                     //in this loop, if ok = false, then at least one of the buffers is not reaUEIRtVMapdy yet
-                    restartOk = (inputMembersOrdered[i]->Inputs.buffer->ResetBuffer());
+                    restartOk = (inputMembersOrdered[i]->reference->inputChannelsBuffer.ResetBuffer());
                 }
                 if (!restartOk){
                     REPORT_ERROR(ErrorManagement::CommunicationError, "Error while resetting circular buffers on Map %s", name.Buffer());
@@ -305,7 +359,7 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
         bool newData = true;
         for (uint8 i = 0; i < nInputMembers && newData; i++){
             //in this loop, if ok = false, then at least one of the buffers is not reaUEIRtVMapdy yet
-            newData &= (inputMembersOrdered[i]->Inputs.buffer->CheckReadReady());
+            newData &= (inputMembersOrdered[i]->reference->inputChannelsBuffer.CheckReadReady());
         }
         //if ok, then all the buffers are ready to deliver the samples needed
         if (newData){
@@ -321,13 +375,13 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
             UEIBufferPointer timestampPointer;
             for (uint8 i = 0; i < nInputMembers && ok; i++){
                 if (inputMembersOrdered[i]->Inputs.timestampRequired && !timestampAcquired){
-                    timestampPointer = inputMembersOrdered[i]->Inputs.buffer->ReadTimestamp(ok);
+                    timestampPointer = inputMembersOrdered[i]->reference->inputChannelsBuffer.ReadTimestamp(ok);
                     timestampAcquired = true;
                 }
-                UEIBufferPointer* BufferPointersInMember = inputMembersOrdered[i]->Inputs.buffer->ReadBuffer(ok);
+                UEIBufferPointer* BufferPointersInMember = inputMembersOrdered[i]->reference->inputChannelsBuffer.ReadBuffer(ok);
                 if (ok){
                     //First check out the current buffer
-                    ok &= inputMembersOrdered[i]->Inputs.buffer->CheckoutBuffer();
+                    ok &= inputMembersOrdered[i]->reference->inputChannelsBuffer.CheckoutBuffer();
                     //Scale the obtained data
                     for (uint32 j = 0u; j < inputMembersOrdered[i]->Inputs.nChannels; j++){
                         //Extract the configuration for this member data scale.
@@ -335,7 +389,7 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
                         UEIBufferPointer RawPointer = BufferPointersInMember[j];
                         void* scaledDataPointer = reinterpret_cast<void*>(inputSignalAddresses[signalIdx]);
                         TypeDescriptor thisOutputType = inputSignalTypes[signalIdx];
-                        ok = (inputMembersOrdered[i]->reference->ScaleSignal(channel, nReadSamples, RawPointer, scaledDataPointer, thisOutputType));
+                        ok &= inputMembersOrdered[i]->reference->RetrieveInputSignal(channel, nReadSamples, scaledDataPointer, thisOutputType);
                         if (!ok){
                             REPORT_ERROR(ErrorManagement::CommunicationError, "The scaling process failed in Map %s", name.Buffer());
                         }

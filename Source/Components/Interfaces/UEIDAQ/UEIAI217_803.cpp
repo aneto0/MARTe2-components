@@ -255,12 +255,49 @@ IOLayerType UEIAI217_803::GetType(){
     return HARDWARE_LAYER_ANALOG_I;
 }
 
-uint32 UEIAI217_803::GetDeviceChannels(){
-    return CHANNEL_NUMBER;
+uint32 UEIAI217_803::GetDeviceChannels(SignalDirection direction){
+    switch(direction){
+        case InputSignals:
+            return CHANNEL_NUMBER;
+        break;
+        case OutputSignals:
+            return 0u;
+        break;
+        default:
+            return 0u;
+        break;
+    }
 }
 
 uint8 UEIAI217_803::GetSampleSize(){
     return sizeof(uint32);
+}
+
+bool UEIAI217_803::ConfigureChannels(SignalDirection direction, uint32* configurationBitfields, uint32& nConfigurationBitfields){
+    bool ok = true;
+    switch (direction){
+        case InputSignals:
+            ok &= (nInputChannels != 0u);
+            if (ok){
+                nConfigurationBitfields = nInputChannels;
+                if (timestampRequired) nConfigurationBitfields += 1;
+                configurationBitfields = (uint32*)malloc(sizeof(uint32)*nInputChannels);
+                if (timestampRequired) configurationBitfields[0u] = DQ_LNCL_TIMESTAMP;               
+                //The number of bitfields is equal to the number of channels supplied (if no errors are present)
+                for (uint32 i = 0u; i < nInputChannels && ok; i++){
+                    uint32 destinationIndex = timestampRequired ? i+1:i;
+                    ok &= ConfigureChannel(inputChannelList[i], configurationBitfields[i]);
+                }
+            }
+        break;
+        case OutputSignals:
+            ok = false;
+        break;
+        default:
+            ok = false;
+        break;
+    }
+    return ok;
 }
 
 bool UEIAI217_803::ConfigureChannel(uint32 channelNumber, uint32& channelConfiguration){
@@ -301,13 +338,6 @@ bool UEIAI217_803::ConfigureChannel(uint32 channelNumber, uint32& channelConfigu
     return ok;
 }
 
-bool UEIAI217_803::ConfigureChannel(uint32 channelNumber, int32& channelConfiguration){
-    uint32 thisChannel;
-    bool ok = ConfigureChannel(channelNumber, thisChannel);
-    channelConfiguration = (int32) thisChannel;
-    return ok;
-}
-
 bool UEIAI217_803::AcceptedSignalType(TypeDescriptor signalType){
     //Check the datatypes this device can output. Return true for the datatypes accepted as a valid output of this device
     bool accepted = false;
@@ -318,93 +348,6 @@ bool UEIAI217_803::AcceptedSignalType(TypeDescriptor signalType){
         accepted = true;
     }
     return accepted;
-}
-
-bool UEIAI217_803::ScaleSignal(uint32 channelNumber, uint32 listLength, void* rawData, void* scaledData, TypeDescriptor outputType){
-    uint32* originData = reinterpret_cast<uint32*>(rawData);
-    float64 step = 0;
-    float64 offset = 0;
-    bool ok = (channelNumber < CHANNEL_NUMBER);
-    if (!ok){
-        REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid channel number supplied for scaling");
-    }
-    if (ok){
-        ok &= AcceptedSignalType(outputType);
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid output data format speficied for AI217-803");
-        }
-    }
-    if (ok){
-        ok &= (scaledData != NULL_PTR(void*));
-        ok &= (rawData != NULL_PTR(void*));
-        ok &= (scaledData != rawData);
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid pointers supplied");
-        }
-    }
-    if (ok){
-        switch (gains[channelNumber]) {
-            case 1:
-                step = DQ_AI217_STEP;
-                offset = DQ_AI217_OFFSET;
-                break;
-            case 2:
-                step = DQ_AI217_STEP_2 ;
-                offset = DQ_AI217_OFFSET_2;
-                break;
-            case 4:
-                step = DQ_AI217_STEP_4;
-                offset = DQ_AI217_OFFSET_4;
-                break;
-            case 8:
-                step = DQ_AI217_STEP_8;
-                offset = DQ_AI217_OFFSET_8;
-                break;
-            case 16:
-                step = DQ_AI217_STEP_16 ;
-                offset = DQ_AI217_OFFSET_16;
-                break;
-            case 32:
-                step = DQ_AI217_STEP_32;
-                offset = DQ_AI217_OFFSET_32;
-                break;
-            case 64:
-                step = DQ_AI217_STEP_64;
-                offset = DQ_AI217_OFFSET_64;
-                break;
-            default:
-                ok = false;
-                REPORT_ERROR(ErrorManagement::CommunicationError, "Forbbidden gain detected on channel %d", channelNumber);
-                break;
-        }
-        if(outputType == Float32Bit){
-            float32* castedDestination = reinterpret_cast<float32*>(scaledData);
-            for (uint32 i = 0; i < listLength; i++){
-                castedDestination[i] = (float32)((originData[i] & 0xFFFFFF) * step - offset);
-            }
-        }else if (outputType == Float64Bit){
-            float64* castedDestination = reinterpret_cast<float64*>(scaledData);
-            for (uint32 i = 0; i < listLength; i++){
-                castedDestination[i] = (float64)((originData[i] & 0xFFFFFF) * step - offset);
-            }
-        }else if (outputType == UnsignedInteger32Bit){
-            uint32* castedDestination = reinterpret_cast<uint32*>(scaledData);
-            for (uint32 i = 0; i < listLength; i++){
-                castedDestination[i] = (uint32)((originData[i] & 0xFFFFFF));
-            }
-        }else if (outputType == UnsignedInteger64Bit){
-            uint64* castedDestination = reinterpret_cast<uint64*>(scaledData);
-            for (uint32 i = 0; i < listLength; i++){
-                castedDestination[i] = (uint64)((originData[i] & 0xFFFFFF));
-            }
-        }else{
-            ok = false;
-        }
-    }
-    if (!ok){
-        REPORT_ERROR(ErrorManagement::CommunicationError, "Could not scale channel samples");
-    }
-    return ok;
 }
 
 bool UEIAI217_803::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPointer rawData, void* scaledData, TypeDescriptor outputType){
@@ -497,6 +440,43 @@ bool UEIAI217_803::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBuffe
     }
     return ok;
 }
+
+bool UEIAI217_803::RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType){
+    //Check if the input signals buffer is ready for reading
+    bool ok = inputChannelsBuffer.CheckReadReady();
+    int32 index = FindChannelIndex(channelIdx, InputSignals);
+    ok &= (index != -1);
+    if (ok){
+        UEIBufferPointer rawData = inputChannelsBuffer.ReadChannel((uint32) index, ok);
+        if (ok){
+            ok &= ScaleSignal(channelIdx, nSamples, rawData, SignalPointer, signalType);
+        }
+    }
+    return ok;
+}
+
+bool UEIAI217_803::SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType){
+    //This implementation of the method always return false as this hardware layer can never accept output signals
+    return false;
+}
+
+bool UEIAI217_803::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples){
+    bool ok = true;
+    switch (direction){
+        case InputSignals:
+            ok &= inputChannelsBuffer.InitialiseBuffer(nBuffers, nInputChannels, retrievedSamples, GetSampleSize(), readSammples, timestampRequired);
+        break;
+        case OutputSignals:
+            ok = false;
+        break;
+        default:
+            ok = false;
+        break;
+    }
+    return ok;
+}
+    
+
 
 CLASS_REGISTER(UEIAI217_803, "1.0")
 }

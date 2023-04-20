@@ -60,26 +60,17 @@ ifeq ($(TARGET),ppc-linux)
 $(info Compiling UEIDAQ interface for TARGET ppc architecture)
 LIBRARIES_STATIC += $(PDNA_LIB_PPC)/libpowerdna$(LIBEXT)
 LIBRARIES_STATIC += $(PDNA_LIB_PPC)/libUeiPal$(LIBEXT)
-#LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB_PPC)
 endif
 ifeq ($(TARGET),x86-linux)
 $(info Compiling UEIDAQ interface for TARGET x86 architecture)
 LIBRARIES_STATIC += $(PDNA_LIB)/libpowerdna$(LIBEXT)
 LIBRARIES_STATIC += $(PDNA_LIB)/libUeiPal$(LIBEXT)
-#LIBRARIES += -lpowerdna -lm -lpthread -L $(PDNA_LIB)
 endif
 endif
 
 all: $(OBJS)    \
 	$(BUILD_DIR)/UEIInterface$(LIBEXT) 		\
-	$(BUILD_DIR)/UEIMasterObject$(DLLEXT) 	\
-	$(BUILD_DIR)/UEIDevice$(DLLEXT) 		\
-	$(BUILD_DIR)/UEIAI217_803$(DLLEXT)		\
-	$(BUILD_DIR)/UEIMapContainer$(DLLEXT)	\
-	$(BUILD_DIR)/UEIBufferPointer$(DLLEXT)	\
-	$(BUILD_DIR)/UEICircularBuffer$(DLLEXT)	\
-	$(BUILD_DIR)/UEIRtDMap$(DLLEXT)			\
-	$(BUILD_DIR)/UEIRtVMap$(DLLEXT)
+	$(BUILD_DIR)/UEIInterface$(DLLEXT) 		\
 		echo  $(OBJS)
 
 

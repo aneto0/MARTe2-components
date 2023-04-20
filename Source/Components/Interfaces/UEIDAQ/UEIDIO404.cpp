@@ -41,28 +41,11 @@
 namespace MARTe {
 
 UEIDIO404::UEIDIO404() : UEIDevice() {
-    ADCMode = DQ_AI217_SET_ADC_DEFAULT;
-    gains = NULL_PTR(uint16*);
-    //Initialise the FIR banks to safe values
-    for (uint32 i = 0; i < FIR_BANK_NUMBER; i++){
-        FIRBanks[i].bankState = BANK_NOT_ENABLED;
-        FIRBanks[i].defaultBankSetting = 0;
-        FIRBanks[i].nTaps = 0;
-        FIRBanks[i].taps = NULL_PTR(float64*);
-    }
+    referenceVoltage = 0.0;
+    hysteresisConfigured = false;
 }
 
 UEIDIO404::~UEIDIO404(){
-    //destroy the gains pointer array
-    if (gains != NULL_PTR(uint16*)){
-        delete [] gains;
-    }
-    //Destroy the FIRBanks strcutures
-    for (uint32 i = 0; i < FIR_BANK_NUMBER; i++){
-        if (FIRBanks[i].taps != NULL_PTR(float64*)){
-            delete [] (FIRBanks[i].taps);
-        }
-    }
 }
 
 bool UEIDIO404::Initialise(StructuredDataI &data){
@@ -72,177 +55,76 @@ bool UEIDIO404::Initialise(StructuredDataI &data){
     StructuredDataIHelper helper = StructuredDataIHelper(data, this);
     //Read and validate the gains
     if(ok){
-        uint32 numberOfGains;
-        ok &= helper.ReadArray("Gains", gains, numberOfGains);
-        ok &= (numberOfGains <= CHANNEL_NUMBER);
-        if (ok){
-            ok = (numberOfGains == CHANNEL_NUMBER);
-            if (ok){
-                for (uint8 i = 0u; i < CHANNEL_NUMBER && ok; i++){
-                    if (!(  gains[i] == 1 || gains[i] == 2 ||
-                            gains[i] == 4 || gains[i] == 8 ||
-                            gains[i] == 16|| gains[i] == 32||
-                            gains[i] == 64))
-                    {
-                        ok = false;
-                        REPORT_ERROR(ErrorManagement::InitialisationError,  "Invalid gain supplied for device %s. (Gain %d)", name.Buffer(), gains[i]);                               
-                    }
-                }   
-            }else{
-                REPORT_ERROR(ErrorManagement::InitialisationError,  "Incomplete gains information for device %s. (%d gains must be supplied)", name.Buffer(), CHANNEL_NUMBER);
-            }
-        }else{
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Gains parameter must be supplied for device %s with %d gains (1,2,4,8,16,32 or 64 gain accepted)", name.Buffer(), CHANNEL_NUMBER);
+        ok &= helper.Read("VoltageReference", referenceVoltage);
+        ok &= (referenceVoltage == 3.3  || referenceVoltage == 5.0  ||
+               referenceVoltage == 12.0 || referenceVoltage == 24.0 ||
+               referenceVoltage == 36.0);
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "VoltageReference parameter must be supplied for device %s (3.3, 5, 12, 24, 36 volts values accepted)", name.Buffer());
         }
     }
-    //Read and choose ADC Mode (DEFAULT mode by default)
-    if (ok){
-        StreamString ADC_mode_string;
-        bool adcModeFound = data.Read("ADCMode", ADC_mode_string);
-        if (adcModeFound){
-            if (ADC_mode_string == StreamString("ENHANCED")){
-                ADCMode = DQ_AI217_SET_ADC_ENH;
-                REPORT_ERROR(ErrorManagement::Information, "Set ADCMode to ENHANCED for device %s.", name.Buffer());
-            }else if (ADC_mode_string == StreamString("DEFAULT")){
-                ADCMode = DQ_AI217_SET_ADC_DEFAULT;
-                REPORT_ERROR(ErrorManagement::Information, "Set ADCMode to DEFAULT for device %s.", name.Buffer());
-            }else{
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid ADCMode provided for device %s.", name.Buffer());
-                ok = false;  
-            }
-        }else{
-           ADCMode = DQ_AI217_SET_ADC_DEFAULT;
-           REPORT_ERROR(ErrorManagement::Information, "Set ADCMode to DEFAULT for device %s.", name.Buffer());
+    bool upperHysteresisProvided = false;
+    bool lowerHysteresisProvided = false;
+    if(ok){
+        lowerHysteresisProvided = helper.Read("LowerHysteresys", lowerHysteresisThreshold);
+        if (!lowerHysteresisProvided){
+            REPORT_ERROR(ErrorManagement::Information, "Lower hysteresis parameter for device %s not provided, the default value is used", name.Buffer());
         }
     }
-    //Read and validate FIR taps (optional parameters)
+    if(ok){
+        upperHysteresisProvided = helper.ReadArray("UpperHysteresys", upperHysteresisThreshold);
+        if (!upperHysteresisProvided){
+            REPORT_ERROR(ErrorManagement::Information, "Upper hysteresis parameter for device %s not provided, the default value is used", name.Buffer());
+        }
+    }
     if (ok){
-        bool requestedFilters = data.MoveRelative("Filters");
-        if (!requestedFilters){
-            REPORT_ERROR(ErrorManagement::Information, "No FIR filters specified for device %s, banks A,B,C and D deactivated.", name.Buffer());
-            //Set the FIR bank configuration structures to not enabled
-            for (uint32 i = 0; i < FIR_BANK_NUMBER; i++){
-                FIRBanks[i].bankState = BANK_NOT_ENABLED;
-            }      
-        }else{
-            //Filters structure is found, go through the different banks settings
-            StreamString banks [FIR_BANK_NUMBER] = {"A","B","C","D"};
-            //loop over the four different FIR banks structure
-            for (uint32 i = 0; i < FIR_BANK_NUMBER && ok; i++){
-                //Loop to setup a single FIR bank (A,B,C or D)
-                bool bankDefined = data.MoveRelative(banks[i].Buffer());
-                if (bankDefined){
-                    //This bank is defined, search the parameters to configure the bank
-                    //Check wether we wish to configure it as default or custom configuration
-                    bool defaultConfiguration = data.Read("DefaultFilter", FIRBanks[i].defaultBankSetting);
-                    bool customConfiguration = helper.ReadArray("Taps", FIRBanks[i].taps, FIRBanks[i].nTaps);
-                    ok = (defaultConfiguration != customConfiguration);
-                    if (ok){
-                        if (customConfiguration){
-                            FIRBanks[i].bankState = CUSTOM_FIR_SETTING;
-                            ok = FIRBanks[i].nTaps <= MAX_FIR_TAPS_803;
-                            if (!ok){
-                                REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid FIR bank %s configuration for device %s, the number of taps must be equal or lower than %d.", banks[i].Buffer() ,name.Buffer(), MAX_FIR_TAPS_803);     
-                            }else{
-                                REPORT_ERROR(ErrorManagement::Information, "FIR bank %s for device %s will be enabled as custom FIR filter.", banks[i].Buffer() ,name.Buffer());
-                            }
-                        }else if (defaultConfiguration){
-                            FIRBanks[i].bankState = DEFAULT_FIR_SETTING;
-                            ok = (FIRBanks[i].defaultBankSetting <= 9);     //Possible Default FIR settings as defined in documentation for this layer
-                            if (!ok){
-                                REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid FIR bank %s configuration for device %s, the default FIR configuration index must be in 0-9 range.", banks[i].Buffer() ,name.Buffer());     
-                            }else{
-                                REPORT_ERROR(ErrorManagement::Information, "FIR bank %s for device %s will be enabled as default FIR filter (setting %d).", banks[i].Buffer() ,name.Buffer(), FIRBanks[i].defaultBankSetting);
-                            }                      
-                        }
-                    }else{
-                       REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid FIR bank %s configuration for device %s, a bank must contain either a custom or default configuration.", banks[i].Buffer() ,name.Buffer()); 
-                    }
-                    ok &= data.MoveToAncestor(1u);
-                }else{
-                    FIRBanks[i].bankState = BANK_NOT_ENABLED;
-                    REPORT_ERROR(ErrorManagement::Information, "FIR bank %s not defined for device %s, this bank will be disabled.", banks[i].Buffer() ,name.Buffer());
-                }
-            }
-            //Return to the device node
-            ok &= data.MoveToAncestor(1u);
+        ok &= (upperHysteresisProvided != lowerHysteresisProvided);
+        hysteresisConfigured = ok;
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Hysteresis must be provided for both upper and lower thresholds or not be provided (default values are used) for device %s", name.Buffer());
         }
     }
     return ok;
 }
 
 bool UEIDIO404::CheckChannelAndDirection(uint32 channelNumber, SignalDirection direction){
-    //For AI-217-803 all the channels (0 to 15 as only 16 channels are available) are inputs
+    //For DIO-404 all the channels (0 to 11 as only 12 channels are available for each direction) can be both inputs and outputs
     bool validChannel = false;
     //Channel only valid if it is configured as an output
     if (direction == InputSignals){
         //Channel only valid if within range [0,15]
-        if (channelNumber>=0u && channelNumber<CHANNEL_NUMBER){
+        if (channelNumber>=0u && channelNumber<12){
             validChannel = true;
         }else{
-            REPORT_ERROR(ErrorManagement::ParametersError,"AI-217-803 layer only accepts channels 0 to 15 as inputs.");
+            REPORT_ERROR(ErrorManagement::ParametersError,"DIO-404 layer only accepts channels 0 to 11 as inputs.");
         }
     }else{
-        REPORT_ERROR(ErrorManagement::ParametersError, "AI-217-803 layer only accepts input signals!");
+        if (channelNumber>=0u && channelNumber<12){
+            validChannel = true;
+        }else{
+            REPORT_ERROR(ErrorManagement::ParametersError,"DIO-404 layer only accepts channels 0 to 11 as outputs.");
+        }
     }
     return validChannel;
 }
 
 bool UEIDIO404::ConfigureDevice(int32 DAQ_handle){
-    bool ok = true;
-    //Configure all the channels in the layer at the same time (for now no custom channel configuration is allowed)
-    ok = (DqAdv217SetCfgLayer(DAQ_handle, deviceId, DQ_AI217_SETCFG_ALL_CHAN, DQ_AI217_SET_CFG_LAYER_ADC, ADCMode) >= 0);
+    bool ok = (DAQ_handle > 0);
     if (!ok){
-        REPORT_ERROR(ErrorManagement::ParametersError, "Unable to configure ADC CfgLayer for Device %s.", name.Buffer());
+        REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid IOM handle supplied to DIO-404 %s", name.Buffer());
     }
-    //Configure the FIR filters as required
-    if (ok){
-        //As described in the API, set all the FIR banks to default state prior to custom initialisation
-        ok = (DqAdv217SetFIR(DAQ_handle, deviceId, DQ_AI217_SEL_QFIR_ALL, DQ_AI217_FIR_SET_DEFAULT,0,0,NULL,NULL) >= 0);
-        //All the FIR banks are initialised to their default value and enabled, no need to re enable them
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::ParametersError, "Unable to set default FIR parameters for device %s.", name.Buffer());  
-        }
-    }
-    if (ok){
-        //Set custom configuration for ach FIR filter
-        StreamString banks [FIR_BANK_NUMBER] = {"A","B","C","D"};
-        for (uint8 i = 0u; i < FIR_BANK_NUMBER && ok; i++){
-            int32 bank = (0x01<<i);
-            int32 action = 0;
-            int32 decrat = 0;
-            int32 tapsize = 0;
-            float64* taps = NULL;
-            switch(FIRBanks[i].bankState){
-                case BANK_NOT_ENABLED:
-                    //Disable the FIR filter
-                    action = DQ_AI217_FIR_DISABLE;                  //FIR Disable flag
-                break;
-                case DEFAULT_FIR_SETTING:
-                    //Change the FIR filter setting to a new setting
-                    action = DQ_AI217_FIR_ENABLE | DQ_AI217_FIR_SET_INDEX;           // FIR Enable flag + Set Index flag
-                    tapsize = FIRBanks[i].defaultBankSetting;
-                break;
-                case CUSTOM_FIR_SETTING:
-                    action = DQ_AI217_FIR_ENABLE | DQ_AI217_FIR_COEFF_LOAD;           // FIR Enable flag + Load Coeffs flag
-                    tapsize = FIRBanks[i].nTaps;
-                    taps = FIRBanks[i].taps;
-                break;
-                default:
-                    ok = false;
-                break;
-            }
-            int32 totalFilterResult;
-            ok = (DqAdv217SetFIR(DAQ_handle, deviceId, bank, action, decrat, tapsize, &totalFilterResult, taps) >= 0);
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::CommunicationError, "Error trying to program FIR configuration for bank %s for device %s.", banks[i].Buffer() ,name.Buffer()); 
-            }
-            if (ok){
-                if (totalFilterResult != 8388608){
-                    REPORT_ERROR(ErrorManagement::Warning, "UEIDIO404::ConfigureDevice - "
-                    "Inaccurate return value for bank %s for device %s (expected 8388608, got %d).",banks[i].Buffer() ,name.Buffer(),totalFilterResult);  
-                }
-            }
+    //Configure hysteresis into the device
+    if (ok && hysteresisConfigured){
+        int32 voltageReference;
+        //Set the appropriate voltage reference
+        if      (referenceVoltage == 3.3 ) voltageReference = DQ_DIO404_REF_3_3V;
+        else if (referenceVoltage == 5.0 ) voltageReference = DQ_DIO404_REF_5V;
+        else if (referenceVoltage == 12.0) voltageReference = DQ_DIO404_REF_12V;
+        else if (referenceVoltage == 24.0) voltageReference = DQ_DIO404_REF_24V;
+        else if (referenceVoltage == 36.0) voltageReference = DQ_DIO404_REF_36V;
+        else ok = false;
+        if (ok){
+            ok &= (DqAdv404SetHyst(DAQ_handle, deviceId, voltageReference, lowerHysteresisThreshold, upperHysteresisThreshold) >= 0);
         }
     }
     return ok;
@@ -256,56 +138,30 @@ IOLayerType UEIDIO404::GetType(){
     return HARDWARE_LAYER_DIGITAL_IO;
 }
 
-uint32 UEIDIO404::GetDeviceChannels(){
-    return 24u;
+uint32 UEIDIO404::GetDeviceChannels(SignalDirection direction){
+    switch (direction){
+        case InputSignals:
+            return 12u;
+        break;
+        case OutputSignals:
+            return 12u;
+        break;
+        default:
+            return 0u;
+        break;
+    }
 }
 
 uint8 UEIDIO404::GetSampleSize(){
     return sizeof(uint32);
 }
 
-bool UEIDIO404::ConfigureChannel(uint32 channelNumber, uint32& channelConfiguration){
-    bool ok = (channelNumber < CHANNEL_NUMBER);
-    ok &= (gains != NULL_PTR(uint16*));
-    uint32 gain = 0u;
-    //TODO checks on channel
-    //Check if the channel provided is within available channels for this device
-    if (ok){
-        switch(gains[channelNumber]){
-            case 1:
-                gain = DQ_AI217_GAIN_1;
-                break;
-            case 2:
-                gain = DQ_AI217_GAIN_2;
-                break;
-            case 4:
-                gain = DQ_AI217_GAIN_4;
-                break;
-            case 8:
-                gain = DQ_AI217_GAIN_8;
-                break;
-            case 16:
-                gain = DQ_AI217_GAIN_16;
-                break;
-            case 32:
-                gain = DQ_AI217_GAIN_32;
-                break;
-            case 64:
-                gain = DQ_AI217_GAIN_64;
-                break;
-            default:
-                return false;
-                break;
-        }
-        channelConfiguration = (channelNumber | DQ_LNCL_GAIN(gain) | DQ_LNCL_DIFF); //AI-217 can only operate in differential mode
-    }
-    return ok;
-}
-
-bool UEIDIO404::ConfigureChannel(uint32 channelNumber, int32& channelConfiguration){
-    uint32 thisChannel;
-    bool ok = ConfigureChannel(channelNumber, thisChannel);
-    channelConfiguration = (int32) thisChannel;
+bool UEIDIO404::ConfigureChannel(uint32* channelIdxs, uint32 channelNumber, uint32* configurationBitfields, uint32& nConfigurationBitfields, SignalDirection direction){
+    //When configuring this device, irrespective of the direction and the number of channels, the number of configuration bitfields is just an empty one
+    bool ok = (channelNumber <= 12u);
+    nConfigurationBitfields = 1;
+    configurationBitfields = (uint32*)malloc (sizeof(uint32));
+    configurationBitfields[0] = 0;
     return ok;
 }
 
@@ -323,92 +179,6 @@ bool UEIDIO404::AcceptedSignalType(TypeDescriptor signalType){
     return accepted;
 }
 
-bool UEIDIO404::ScaleSignal(uint32 channelNumber, uint32 listLength, void* rawData, void* scaledData, TypeDescriptor outputType){
-    uint32* originData = reinterpret_cast<uint32*>(rawData);
-    float64 step = 0;
-    float64 offset = 0;
-    bool ok = (channelNumber < CHANNEL_NUMBER);
-    if (!ok){
-        REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid channel number supplied for scaling");
-    }
-    if (ok){
-        ok &= AcceptedSignalType(outputType);
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid output data format speficied for AI217-803");
-        }
-    }
-    if (ok){
-        ok &= (scaledData != NULL_PTR(void*));
-        ok &= (rawData != NULL_PTR(void*));
-        ok &= (scaledData != rawData);
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid pointers supplied");
-        }
-    }
-    if (ok){
-        switch (gains[channelNumber]) {
-            case 1:
-                step = DQ_AI217_STEP;
-                offset = DQ_AI217_OFFSET;
-                break;
-            case 2:
-                step = DQ_AI217_STEP_2 ;
-                offset = DQ_AI217_OFFSET_2;
-                break;
-            case 4:
-                step = DQ_AI217_STEP_4;
-                offset = DQ_AI217_OFFSET_4;
-                break;
-            case 8:
-                step = DQ_AI217_STEP_8;
-                offset = DQ_AI217_OFFSET_8;
-                break;
-            case 16:
-                step = DQ_AI217_STEP_16 ;
-                offset = DQ_AI217_OFFSET_16;
-                break;
-            case 32:
-                step = DQ_AI217_STEP_32;
-                offset = DQ_AI217_OFFSET_32;
-                break;
-            case 64:
-                step = DQ_AI217_STEP_64;
-                offset = DQ_AI217_OFFSET_64;
-                break;
-            default:
-                ok = false;
-                REPORT_ERROR(ErrorManagement::CommunicationError, "Forbbidden gain detected on channel %d", channelNumber);
-                break;
-        }
-        if(outputType == Float32Bit){
-            float32* castedDestination = reinterpret_cast<float32*>(scaledData);
-            for (uint32 i = 0; i < listLength; i++){
-                castedDestination[i] = (float32)((originData[i] & 0xFFFFFF) * step - offset);
-            }
-        }else if (outputType == Float64Bit){
-            float64* castedDestination = reinterpret_cast<float64*>(scaledData);
-            for (uint32 i = 0; i < listLength; i++){
-                castedDestination[i] = (float64)((originData[i] & 0xFFFFFF) * step - offset);
-            }
-        }else if (outputType == UnsignedInteger32Bit){
-            uint32* castedDestination = reinterpret_cast<uint32*>(scaledData);
-            for (uint32 i = 0; i < listLength; i++){
-                castedDestination[i] = (uint32)((originData[i] & 0xFFFFFF));
-            }
-        }else if (outputType == UnsignedInteger64Bit){
-            uint64* castedDestination = reinterpret_cast<uint64*>(scaledData);
-            for (uint32 i = 0; i < listLength; i++){
-                castedDestination[i] = (uint64)((originData[i] & 0xFFFFFF));
-            }
-        }else{
-            ok = false;
-        }
-    }
-    if (!ok){
-        REPORT_ERROR(ErrorManagement::CommunicationError, "Could not scale channel samples");
-    }
-    return ok;
-}
 
 bool UEIDIO404::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPointer rawData, void* scaledData, TypeDescriptor outputType){
     float64 step = 0;

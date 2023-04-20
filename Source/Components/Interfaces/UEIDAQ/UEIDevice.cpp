@@ -57,7 +57,7 @@ UEIDevice::~UEIDevice(){
 bool UEIDevice::Initialise(StructuredDataI &data){
     //Base implementation of general UEIDAQ device parameter checks.
     bool ok = Object::Initialise(data);
-    //Initialise helper for retriecing the input parameters
+    //Initialise helper for retrieving the input parameters
     StructuredDataIHelper helper = StructuredDataIHelper(data, this);
     //Check the name of the Object
     if (ok) {
@@ -106,7 +106,7 @@ uint8 UEIDevice::GetSampleSize(){
     return 0u;
 }
 
-uint32 UEIDevice::GetDeviceChannels(){
+uint32 UEIDevice::GetDeviceChannels(SignalDirection direction){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return 0u;
 }
@@ -126,11 +126,7 @@ bool UEIDevice::CheckChannelListAndDirection(uint32* channelList, uint32 listLen
     return ok;
 }
 
-bool UEIDevice::ConfigureChannel(uint32 channelNumber, uint32 &channelConfiguration){
-    //Base implmentation returns false by default, this function must be implemented by child class.    
-    return false;
-}
-bool UEIDevice::ConfigureChannel(uint32 channelNumber, int32 &channelConfiguration){
+bool UEIDevice::ConfigureChannels(SignalDirection direction, uint32* configurationBitfields, uint32& nConfigurationBitfields){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
 }
@@ -150,14 +146,61 @@ bool UEIDevice::GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32
     return false;
 }
 
-bool UEIDevice::ScaleSignal(uint32 channelNumber, uint32 listLength, void* rawData, void* scaledData, TypeDescriptor outputType){
+bool UEIDevice::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPointer rawData, void* scaledData, TypeDescriptor outputType){
+    //Base implmentation returns false by default, this function must be implemented by child class.    
+    return false;
+}
+bool UEIDevice::RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
 }
 
-bool UEIDevice::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPointer rawData, void* scaledData, TypeDescriptor outputType){
+bool UEIDevice::SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
+}
+bool UEIDevice::SetInputChannelList(uint32* channelList, uint32 nChannels){
+    bool ok = true;
+    int32 lastChannel = -1;
+    uint32 maxInputChannel = this->GetDeviceChannels(InputSignals);
+    nInputChannels = nChannels;
+    inputChannelList = new uint32[nChannels];
+    for (uint32 i = 0u; i < nInputChannels && ok; i++){
+        ok &= (channelList[i] < maxInputChannel && (int32) channelList[i] > lastChannel);
+        inputChannelList[i] = channelList[i];
+        lastChannel = channelList[i];
+    }
+    if (!ok){
+        nInputChannels = 0u;
+        if (inputChannelList != NULL_PTR(uint32*)){
+            delete [] inputChannelList;
+        }
+    }
+    return ok;
+}
+bool UEIDevice::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples){
+    //Base implmentation returns false by default, this function must be implemented by child class.    
+    return false;
+}
+
+bool UEIDevice::SetOutputChannelList (uint32* channelList, uint32 nChannels){
+    bool ok = true;
+    int32 lastChannel = -1;
+    uint32 maxOutputChannel = this->GetDeviceChannels(InputSignals);
+    nOutputChannels = nChannels;
+    outputChannelList = new uint32[nChannels];
+    for (uint32 i = 0u; i < nOutputChannels && ok; i++){
+        ok &= (channelList[i] < maxOutputChannel && (int32) channelList[i] > lastChannel);
+        inputChannelList[i] = channelList[i];
+        lastChannel = channelList[i];
+    }
+    if (!ok){
+        nOutputChannels = 0u;
+        if (outputChannelList != NULL_PTR(uint32*)){
+            delete [] outputChannelList;
+        }
+    }
+    return ok;
 }
 
 uint8 UEIDevice::GetDevN(){
@@ -198,6 +241,34 @@ float UEIDevice::GetSamplingFrequency(){
 
 char8* UEIDevice::GetName(){
     return (char8*) name.Buffer();
+}
+int32 UEIDevice::FindChannelIndex(uint32 channelNumber, SignalDirection direction){
+    bool ok = true;
+    uint32 index = 0u;
+    switch (direction){
+        case InputSignals:
+            ok &= (channelNumber < nInputChannels);
+            if (ok){
+                while (index < nInputChannels && inputChannelList[index] != channelNumber ) ++index;
+                ok &= (index == nInputChannels ? false : true);
+            }
+        break;
+        case OutputSignals:
+            ok &= (channelNumber < nOutputChannels);
+            if (ok){
+                while (index < nOutputChannels && outputChannelList[index] != channelNumber ) ++index;
+                ok &= (index == nOutputChannels ? false : true);
+            }
+        break;
+        default:
+        ok = false;
+        break;
+    }
+    if (!ok){
+        return -1;
+    }else{
+        return (int32) index;
+    }
 }
 
 CLASS_REGISTER(UEIDevice, "1.0")

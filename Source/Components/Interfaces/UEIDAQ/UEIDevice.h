@@ -43,6 +43,7 @@
 //Interface specific includes
 #include "UEIDefinitions.h"
 #include "UEIBufferPointer.h"
+#include "UEICircularBuffer.h"
 //PowerDNA library include
 #include "PDNA.h"
 
@@ -122,7 +123,7 @@ class UEIDevice : public Object {
      * of the device-specific child classes for its specific number of channels.
      * @return number of channels on the hardware layer.
      */
-    virtual uint32 GetDeviceChannels();
+    virtual uint32 GetDeviceChannels(SignalDirection direction);
     
     /**
      * @brief Method to check if a channel is a valid to be used in a certain direction (input or output channel).
@@ -156,18 +157,7 @@ class UEIDevice : public Object {
      * @param[out] channelConfiguration pointer to channel configuration bitfield for the specified channel in the device. 
      * @return true if the channel is valid and information for configuration can be retrieved, false otherwise.
      */
-    virtual bool ConfigureChannel(uint32 channelNumber, uint32 &channelConfiguration);
-    
-    /**
-     * @brief Method to configure a channel in the specific configuration scheme of the device.
-     * @details This method returns the configuration bitfield for the specified channel in the device.
-     * Implementation of this method must be provided in each of the device-specific child classes for their specific configuration flags.
-     * @param[in] channelNumber channel index (first channel indexes to 0).
-     * @param[out] channelConfiguration pointer to channel configuration bitfield for the specified channel in the device. 
-     * @return true if the channel is valid and information for configuration can be retrieved, false otherwise.
-     */
-    virtual bool ConfigureChannel(uint32 channelNumber, int32 &channelConfiguration);
-    
+    virtual bool ConfigureChannels(SignalDirection direction, uint32* configurationBitfields, uint32& nConfigurationBitfields);
     /**
      * @brief Method to configure the device.
      * @details This method performs the required configuration and initialisation procedures for the specific device (hardware layer).
@@ -197,21 +187,6 @@ class UEIDevice : public Object {
      * @return false (true if the diagnostics checks were performed successfully, false otherwise).
      */
     virtual bool GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32* pgaStatusArray);
-
-    /**
-     * @brief Method to scale an array of samples retrieved from the hardware layer into its real value.
-     * @details This method returns an array of scaled samples from the raw value of the data retrieved from
-     * IOM by performing the proper conversions. This base class implementation
-     * is generic for all the UEIDAQ devices and should not be redefined in child classes.
-     * @param[in] channelNumber channel identifier within the device channel list (first channel is 0)
-     * @param[in] listLength length of the array of raw data fed into the method. Developer must ensure
-     * it is properly sized.
-     * @param[in] rawData pointer to an array of raw values for input data.
-     * @param[out] scaledData pointer to the output array of scaled values.
-     * @param[out] outputType type of the output data to be retrieved to the destination memory area.
-     * @return true if the scaling process is successful, false otherwise.
-     */
-    virtual bool ScaleSignal(uint32 channelNumber, uint32 listLength, void* rawData, void* scaledData, TypeDescriptor outputType);
 
     /**
      * @brief Method to scale an array of samples retrieved from the hardware layer into its real value.
@@ -288,7 +263,17 @@ class UEIDevice : public Object {
      */
     char8* GetName();
 
+    virtual bool RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType);
+    virtual bool SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType);
+    bool SetInputChannelList (uint32* channelList, uint32 nChannels);
+    bool SetOutputChannelList (uint32* channelList, uint32 nChannels);
+    UEICircularBuffer inputChannelsBuffer;
+    UEICircularBuffer outputChannelsBuffer;
+    virtual bool InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples);
+    bool timestampRequired;
+
 protected:
+    int32 FindChannelIndex(uint32 channelNumber, SignalDirection direction);
     /**
     *   Variable holding the device name
     */
@@ -313,6 +298,11 @@ protected:
     *   Flag identifying if this device has been assigned to a MapContainer object (true if alerady set for a map, false otherwise)
     */
     bool assignedToMap;
+
+    uint32 nInputChannels;
+    uint32* inputChannelList;
+    uint32 nOutputChannels;
+    uint32* outputChannelList;
 };
 
 }

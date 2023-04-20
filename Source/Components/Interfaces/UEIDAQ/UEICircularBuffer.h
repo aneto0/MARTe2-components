@@ -142,6 +142,7 @@ class UEICircularBuffer : public Object {
      */
     UEIBufferPointer* ReadBuffer(bool& ok);
 
+    UEIBufferPointer ReadChannel(uint32 chanelIdx, bool& ok);
     /**
      * @brief Method which allows the timestamp channel data to be retrieved from the buffer.
      * @details The implementation of this method is done through the usage of UEIBufferPointers, which serve as virtual arrays effectively containing
@@ -180,6 +181,7 @@ class UEICircularBuffer : public Object {
      * @returns true if the operation was successful, false otherwise.
      */
     bool CheckoutBuffer();
+    bool AdvanceBufferReadOneSample();
     
 protected:
 

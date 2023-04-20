@@ -164,20 +164,6 @@ class UEIAI217_803 : public UEIDevice {
     
     /**
      * @brief Scales a set of samples obtained from the UEIDAQ as raw data into the desired type.
-     * @details This method allows a block on raw data from the UEIDAQ hardware layer to be processed into the specified
-     * type for later usage.
-     * @param[in] channelNumber Index of the channel to which the provided samples correspond (first channel is indexed as 0)
-     * @param[in] listLength Length (in samples) of the provided array of input data to be processed
-     * @param[in] rawData Array of raw data to be processed as listLenght number of samples.
-     * @param[out] scaledData Pointer to the destination memory area where the scaled result is to be stored. The developer is responsible to
-     * allocate such space taking into account the size of the desired output type and the number of samples to be scaled.
-     * @param[in] type Type to which the input raw data is to be scaled to. The allowed types are checked according to AcceptedSignalType() method
-     * @return true if the scaling process was successful, false otherwise.
-     */
-    bool ScaleSignal(uint32 channelNumber, uint32 listLength, void* rawData, void* scaledData, TypeDescriptor type);
-    
-    /**
-     * @brief Scales a set of samples obtained from the UEIDAQ as raw data into the desired type.
      * @details Variant of the ScaleSignal() method in which the raw input data is provided as a UEIBufferPointer special iterator instance,
      * allowing to reduce the amount of memory copy operations to read directly from the UEIBuffer.
      * @param[in] channelNumber Index of the channel to which the provided samples correspond (first channel is indexed as 0)
@@ -212,7 +198,7 @@ class UEIAI217_803 : public UEIDevice {
      * @brief Returns the number of channels available on this hardware layer model.
      * @return the number of physical channels available on this hardware layer.
      */
-    uint32 GetDeviceChannels();
+    uint32 GetDeviceChannels(SignalDirection direction);
     
     /**
      * @brief Checks the validity of a specified physical channel to be used on a certain direction.
@@ -230,18 +216,8 @@ class UEIAI217_803 : public UEIDevice {
      * @param[in] channelConfiguration location to where the configuration bitfield must be written.
      * @return true if the specified channel is valid and can be correctly configured into the bitfield.
      */
-    bool ConfigureChannel(uint32 channelNumber, uint32 &channelConfiguration);
-    
-    /**
-     * @brief Getter for the configuration bitfield for a specific channel on this hardware layer.
-     * @details This method returns the appropriately formatted bitfield to be used during hardware layer 
-     * configuration for a specific channel.
-     * @param[in] channelNumber the channel number to be configured. First channel of a layer is always indexed to 0
-     * @param[in] channelConfiguration location to where the configuration bitfield must be written.
-     * @return true if the specified channel is valid and can be correctly configured into the bitfield.
-     */
-    bool ConfigureChannel(uint32 channelNumber, int32 &channelConfiguration);
-    
+    bool ConfigureChannels(SignalDirection direction, uint32* configurationBitfields, uint32& nConfigurationBitfields);
+   
     /**
      * @brief Configuration method which provides layer-spefcific configuration capabilities.
      * @details This method is used to configure specific functions or parameters on the hardware layer, which are not
@@ -257,8 +233,15 @@ class UEIAI217_803 : public UEIDevice {
      * @return true if the type provided is valid to be used as I/O signal type, false otherwise.
      */
     bool AcceptedSignalType(TypeDescriptor signalType);
+    
+    bool RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType);
+    bool SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType);
+    bool InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples);
 
 protected:
+    
+    bool ConfigureChannel(uint32 channelNumber, uint32& channelConfiguration);
+    
     /** 
      * Array containing the gain values for the different channels on this hardware layer
      */
