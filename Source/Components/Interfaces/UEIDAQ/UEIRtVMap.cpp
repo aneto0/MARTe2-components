@@ -108,17 +108,6 @@ bool UEIRtVMap::Initialise(StructuredDataI &data){
             ok = (builder != NULL);
             if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve ObjectBuilder");
         }
-        if (ok){
-            //Assign the CircularBuffer references to the Input members
-            for (uint8 i = 0; i < nInputMembers && ok; i++){
-                //Instantiate the objects and save the referenceT to them
-                Object *obj = builder->Build(GlobalObjectsDatabase::Instance()->GetStandardHeap());
-                inputMembersOrdered[i]->Inputs.buffer = ReferenceT<UEICircularBuffer>(dynamic_cast<UEICircularBuffer*>(obj));
-                ok = (inputMembersOrdered[i]->Inputs.buffer.IsValid());
-                if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Error while allocating UEICircularBuffer objects on Map members of Map %s", name.Buffer());
-            }
-            //TODO buffering for Output signals
-        }
     }    
     //TODO for now we only retrieve the timestamp of the first member defined in inputs
     if (ok && nInputChannels > 0u){

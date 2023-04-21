@@ -67,10 +67,6 @@ typedef struct{
     */
     uint32  nChannels;
     /**
-    *   ReferenceT to a UEICircularBuffer Object associated to this map member and direction used for buffered operation of this member.
-    */
-    ReferenceT<UEICircularBuffer> buffer;
-    /**
     *   Size of the packet to be requested for this map member and direction in bytes.
     */
     uint32 requestSize;

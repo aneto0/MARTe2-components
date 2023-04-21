@@ -72,13 +72,13 @@ bool UEIDIO404::Initialise(StructuredDataI &data){
         }
     }
     if(ok){
-        upperHysteresisProvided = helper.ReadArray("UpperHysteresys", upperHysteresisThreshold);
+        upperHysteresisProvided = helper.Read("UpperHysteresys", upperHysteresisThreshold);
         if (!upperHysteresisProvided){
             REPORT_ERROR(ErrorManagement::Information, "Upper hysteresis parameter for device %s not provided, the default value is used", name.Buffer());
         }
     }
     if (ok){
-        ok &= (upperHysteresisProvided != lowerHysteresisProvided);
+        ok &= (upperHysteresisProvided == lowerHysteresisProvided);
         hysteresisConfigured = ok;
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Hysteresis must be provided for both upper and lower thresholds or not be provided (default values are used) for device %s", name.Buffer());
@@ -124,7 +124,7 @@ bool UEIDIO404::ConfigureDevice(int32 DAQ_handle){
         else if (referenceVoltage == 36.0) voltageReference = DQ_DIO404_REF_36V;
         else ok = false;
         if (ok){
-            ok &= (DqAdv404SetHyst(DAQ_handle, deviceId, voltageReference, lowerHysteresisThreshold, upperHysteresisThreshold) >= 0);
+            ok &= (DqAdv404SetHyst(DAQ_handle, deviceId, voltageReference, &lowerHysteresisThreshold, &upperHysteresisThreshold) >= 0);
         }
     }
     return ok;
@@ -153,15 +153,31 @@ uint32 UEIDIO404::GetDeviceChannels(SignalDirection direction){
 }
 
 uint8 UEIDIO404::GetSampleSize(){
-    return sizeof(uint32);
+    return sizeof(uint32); //TODO
 }
 
-bool UEIDIO404::ConfigureChannel(uint32* channelIdxs, uint32 channelNumber, uint32* configurationBitfields, uint32& nConfigurationBitfields, SignalDirection direction){
-    //When configuring this device, irrespective of the direction and the number of channels, the number of configuration bitfields is just an empty one
-    bool ok = (channelNumber <= 12u);
-    nConfigurationBitfields = 1;
-    configurationBitfields = (uint32*)malloc (sizeof(uint32));
-    configurationBitfields[0] = 0;
+bool UEIDIO404::ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields){
+    bool ok = true;
+    switch (direction){
+        case InputSignals:
+            ok &= (nInputChannels != 0u);
+            if (ok){
+                nConfigurationBitfields = 1;
+                if (timestampRequired) nConfigurationBitfields += 1;
+                *configurationBitfields = (uint32*)malloc(sizeof(uint32)*nConfigurationBitfields);
+                if (timestampRequired) *configurationBitfields[0u] = DQ_LNCL_TIMESTAMP;               
+                //The number of bitfields is equal to the number of channels supplied (if no errors are present)
+                uint32 destinationIndex = timestampRequired ? 1:0;
+                (*configurationBitfields)[destinationIndex] = 0;
+            }
+        break;
+        case OutputSignals:
+            ok = false;
+        break;
+        default:
+            ok = false;
+        break;
+    }
     return ok;
 }
 
@@ -179,94 +195,84 @@ bool UEIDIO404::AcceptedSignalType(TypeDescriptor signalType){
     return accepted;
 }
 
-
 bool UEIDIO404::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPointer rawData, void* scaledData, TypeDescriptor outputType){
-    float64 step = 0;
-    float64 offset = 0;
-    bool ok = (channelNumber < CHANNEL_NUMBER);
-    if (!ok){
-        REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid channel number supplied for scaling");
-    }
+    //In this version of the method, the UEIBufferPointer points to the returned 32-bit output word, the first 12 bits
+    bool ok = (channelNumber < 12u);
     if (ok){
-        ok &= AcceptedSignalType(outputType);
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid output data format speficied for AI217-803");
-        }
-    }
-    if (ok){
-        ok &= (scaledData != NULL_PTR(void*));
-        ok &= (rawData.CheckPointer());
-        ok &= (rawData.GetSample(0) != scaledData);
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid pointers supplied");
-        }
-    }
-    if (ok){
-        switch (gains[channelNumber]) {
-            case 1:
-                step = DQ_AI217_STEP;
-                offset = DQ_AI217_OFFSET;
-                break;
-            case 2:
-                step = DQ_AI217_STEP_2 ;
-                offset = DQ_AI217_OFFSET_2;
-                break;
-            case 4:
-                step = DQ_AI217_STEP_4;
-                offset = DQ_AI217_OFFSET_4;
-                break;
-            case 8:
-                step = DQ_AI217_STEP_8;
-                offset = DQ_AI217_OFFSET_8;
-                break;
-            case 16:
-                step = DQ_AI217_STEP_16 ;
-                offset = DQ_AI217_OFFSET_16;
-                break;
-            case 32:
-                step = DQ_AI217_STEP_32;
-                offset = DQ_AI217_OFFSET_32;
-                break;
-            case 64:
-                step = DQ_AI217_STEP_64;
-                offset = DQ_AI217_OFFSET_64;
-                break;
-            default:
-                ok = false;
-                REPORT_ERROR(ErrorManagement::CommunicationError, "Forbbidden gain detected on channel %d", channelNumber);
-                break;
-        }
         uint32* castedRawData;
         if(outputType == Float32Bit){
             float32* castedDestination = reinterpret_cast<float32*>(scaledData);
             for (uint32 i = 0; i < listLength; i++){   
                 castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
-                castedDestination[i] = (float32)((*castedRawData & 0xFFFFFF) * step - offset);
+                castedDestination[i] = (float32)(0x01&(*castedRawData>>channelNumber));
             }
         }else if (outputType == Float64Bit){
             float64* castedDestination = reinterpret_cast<float64*>(scaledData);
             for (uint32 i = 0; i < listLength; i++){   
                 castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
-                castedDestination[i] = (float64)((*castedRawData & 0xFFFFFF) * step - offset);
+                castedDestination[i] = (float64)(0x01&(*castedRawData>>channelNumber));
             }
         }else if (outputType == UnsignedInteger32Bit){
             uint32* castedDestination = reinterpret_cast<uint32*>(scaledData);
             for (uint32 i = 0; i < listLength; i++){   
                 castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
-                castedDestination[i] = (uint32)(*castedRawData & 0xFFFFFF);
+                castedDestination[i] = (uint32)(0x01&(*castedRawData>>channelNumber));
             }
         }else if (outputType == UnsignedInteger64Bit){
             uint64* castedDestination = reinterpret_cast<uint64*>(scaledData);
             for (uint32 i = 0; i < listLength; i++){   
                 castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
-                castedDestination[i] = (uint64)(*castedRawData & 0xFFFFFF);
+                castedDestination[i] = (uint64)(0x01&(*castedRawData>>channelNumber));
+            }
+        }else if (outputType == UnsignedInteger16Bit){
+            uint64* castedDestination = reinterpret_cast<uint64*>(scaledData);
+            for (uint32 i = 0; i < listLength; i++){   
+                castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
+                castedDestination[i] = (uint16)(0x01&(*castedRawData>>channelNumber));
+            }
+        }else if (outputType == UnsignedInteger8Bit){
+            uint64* castedDestination = reinterpret_cast<uint64*>(scaledData);
+            for (uint32 i = 0; i < listLength; i++){   
+                castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
+                castedDestination[i] = (uint8)(0x01&(*castedRawData>>channelNumber));
             }
         }else{
             ok = false;
         }
     }
-    if (!ok){
-        REPORT_ERROR(ErrorManagement::CommunicationError, "Could not scale channel samples");
+    return ok;
+}
+
+bool UEIDIO404::RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType){
+    //Check if the input signals buffer is ready for reading
+    bool ok = inputChannelsBuffer.CheckReadReady();
+    if (ok){
+        UEIBufferPointer rawData = inputChannelsBuffer.ReadChannel(0, ok);
+        if (ok){
+            ok &= ScaleSignal(channelIdx, nSamples, rawData, SignalPointer, signalType);
+        }
+    }
+    return ok;
+}
+
+bool UEIDIO404::SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType){
+    //This implementation of the method always return false as this hardware layer can never accept output signals
+    return false;
+}
+
+bool UEIDIO404::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples){
+    bool ok = true;
+    switch (direction){
+        case InputSignals:
+            //The retrieved input is a 32-bit wide word containing the status of all the I/O channels
+            ok &= inputChannelsBuffer.InitialiseBuffer(nBuffers, 1u, retrievedSamples, sizeof(uint32), readSammples, timestampRequired);
+        break;
+        case OutputSignals:
+            ok = false;
+        break;
+        default:
+            ok = false;
+        break;
     }
     return ok;
 }

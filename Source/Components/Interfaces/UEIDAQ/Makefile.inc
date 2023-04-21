@@ -28,7 +28,8 @@ OBJSX=  UEIDevice.x 			\
 		UEIBufferPointer.x		\
 		UEIRtDMap.x				\
 		UEIRtVMap.x				\
-		UEIAI217_803.x 			
+		UEIAI217_803.x 			\
+		UEIDIO404.x			
 
 PACKAGE=Components/Interfaces
 

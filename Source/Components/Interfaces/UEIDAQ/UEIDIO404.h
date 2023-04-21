@@ -184,7 +184,7 @@ class UEIDIO404 : public UEIDevice {
      * @param[in] channelConfiguration location to where the configuration bitfield must be written.
      * @return true if the specified channel is valid and can be correctly configured into the bitfield.
      */
-    bool ConfigureChannel(uint32* channelIdxs, uint32 channelNumber, uint32* configurationBitfields, uint32& nConfigurationBitfields, SignalDirection direction);
+    bool ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields);
         
     /**
      * @brief Configuration method which provides layer-spefcific configuration capabilities.
@@ -201,7 +201,9 @@ class UEIDIO404 : public UEIDevice {
      * @return true if the type provided is valid to be used as I/O signal type, false otherwise.
      */
     bool AcceptedSignalType(TypeDescriptor signalType);
-
+    bool RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType);
+    bool SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType);
+    bool InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples);
 protected:
     float32 referenceVoltage;
     float32 lowerHysteresisThreshold;
