@@ -225,13 +225,13 @@ bool UEIDIO404::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPo
                 castedDestination[i] = (uint64)(0x01&(*castedRawData>>channelNumber));
             }
         }else if (outputType == UnsignedInteger16Bit){
-            uint64* castedDestination = reinterpret_cast<uint64*>(scaledData);
+            uint16* castedDestination = reinterpret_cast<uint16*>(scaledData);
             for (uint32 i = 0; i < listLength; i++){   
                 castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
                 castedDestination[i] = (uint16)(0x01&(*castedRawData>>channelNumber));
             }
         }else if (outputType == UnsignedInteger8Bit){
-            uint64* castedDestination = reinterpret_cast<uint64*>(scaledData);
+            uint8* castedDestination = reinterpret_cast<uint8*>(scaledData);
             for (uint32 i = 0; i < listLength; i++){   
                 castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
                 castedDestination[i] = (uint8)(0x01&(*castedRawData>>channelNumber));
