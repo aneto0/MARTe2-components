@@ -149,7 +149,7 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
                         if (ok){
                             ok = !devices[devn_].IsValid();
                             if (ok){
-                                devices[i] = dev_;
+                                devices[devn_] = dev_;
                             }else{
                                 REPORT_ERROR(ErrorManagement::InitialisationError, "Devn %d is repeated among devices on %s.", devn_, name.Buffer());
                             }                         
