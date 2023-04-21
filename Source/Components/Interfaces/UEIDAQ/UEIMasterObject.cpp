@@ -66,6 +66,7 @@ UEIMasterObject::~UEIMasterObject(){
         }
     }
     delete [] maps;
+    delete [] devices;
     //Clean the IOM structures
     bool ok = true;
     if (DAQ_handle != 0){
