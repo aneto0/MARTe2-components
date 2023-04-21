@@ -443,11 +443,11 @@ bool UEIAI217_803::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBuffe
 
 bool UEIAI217_803::RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType){
     //Check if the input signals buffer is ready for reading
-    bool ok = inputChannelsBuffer.CheckReadReady();
+    bool ok = inputChannelsBuffer->CheckReadReady();
     int32 index = FindChannelIndex(channelIdx, InputSignals);
     ok &= (index != -1);
     if (ok){
-        UEIBufferPointer rawData = inputChannelsBuffer.ReadChannel((uint32) index, ok);
+        UEIBufferPointer rawData = inputChannelsBuffer->ReadChannel((uint32) index, ok);
         if (ok){
             ok &= ScaleSignal(channelIdx, nSamples, rawData, SignalPointer, signalType);
         }
@@ -464,7 +464,7 @@ bool UEIAI217_803::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32
     bool ok = true;
     switch (direction){
         case InputSignals:
-            ok &= inputChannelsBuffer.InitialiseBuffer(nBuffers, nInputChannels, retrievedSamples, GetSampleSize(), readSammples, timestampRequired);
+            ok &= inputChannelsBuffer->InitialiseBuffer(nBuffers, nInputChannels, retrievedSamples, GetSampleSize(), readSammples, timestampRequired);
         break;
         case OutputSignals:
             ok = false;

@@ -91,24 +91,7 @@ bool UEIRtVMap::Initialise(StructuredDataI &data){
         if (!ok){
             REPORT_ERROR(ErrorManagement::ParametersError, "NumberOfBuffers (Number of sub buffers for UEICircularBuffer) parameter not provided in Map %s, required for selected VMap mode.", name.Buffer());
         }
-    }
-    //For the VMap, the circular buffers must be initialised prior to any usage
-    if (ok){
-        //Create a reference T to the new circular buffer for each device
-        ClassRegistryDatabase *crdSingleton;
-        const ClassRegistryItem *classRegistryItem;
-        const ObjectBuilder* builder;
-        crdSingleton = ClassRegistryDatabase::Instance();
-        classRegistryItem = crdSingleton->Find("UEICircularBuffer");
-        ok = (classRegistryItem != NULL); 
-        if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not find UEICircularBuffer class");
-        if (ok) {
-            //Get the object builder (which knows how to build classes of this type).
-            builder = classRegistryItem->GetObjectBuilder();
-            ok = (builder != NULL);
-            if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve ObjectBuilder");
-        }
-    }    
+    }   
     //TODO for now we only retrieve the timestamp of the first member defined in inputs
     if (ok && nInputChannels > 0u){
         //For the RtVMap, the first channel of the first device is always going to be the map timestamp.
@@ -297,15 +280,15 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
                 if (ok){
                     //For each of the input memebrs (in order of assignment) feed the new data into the buffers.
                     //Retrieve the input address for the circularBuffer to write new data
-                    uint8* bufferWriteAddress = thisDevice->inputChannelsBuffer.writePointer;
+                    uint8* bufferWriteAddress = thisDevice->inputChannelsBuffer->writePointer;
                     //Prior to any write, check that the buffer has enough space to accept the new data
-                    if (thisDevice->inputChannelsBuffer.CheckAvailableSpace()){
+                    if (thisDevice->inputChannelsBuffer->CheckAvailableSpace()){
                         int32 dataWritten = 0;
                         int32 avl_size = 0;
                         uint32 requestedPacketSize = inputMembersOrdered[i]->Inputs.requestSize;
                         ok = (DqRtVmapGetInputData(DAQ_handle, mapid, i, requestedPacketSize, &dataWritten, &avl_size, bufferWriteAddress) >= 0);
                         if (ok){
-                            thisDevice->inputChannelsBuffer.AdvanceBufferIndex(dataWritten);
+                            thisDevice->inputChannelsBuffer->AdvanceBufferIndex(dataWritten);
                         }else{
                             REPORT_ERROR(ErrorManagement::CommunicationError, "Error while writting data to the circular buffer");
                         }
@@ -333,7 +316,7 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
                 //If not done subsequent FIFO overflows could force a circular buffer to run out of space and throw errors or samples
                 for (uint8 i = 0; i < nInputMembers && restartOk; i++){
                     //in this loop, if ok = false, then at least one of the buffers is not reaUEIRtVMapdy yet
-                    restartOk = (inputMembersOrdered[i]->reference->inputChannelsBuffer.ResetBuffer());
+                    restartOk = (inputMembersOrdered[i]->reference->inputChannelsBuffer->ResetBuffer());
                 }
                 if (!restartOk){
                     REPORT_ERROR(ErrorManagement::CommunicationError, "Error while resetting circular buffers on Map %s", name.Buffer());
@@ -348,7 +331,7 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
         bool newData = true;
         for (uint8 i = 0; i < nInputMembers && newData; i++){
             //in this loop, if ok = false, then at least one of the buffers is not reaUEIRtVMapdy yet
-            newData &= (inputMembersOrdered[i]->reference->inputChannelsBuffer.CheckReadReady());
+            newData &= (inputMembersOrdered[i]->reference->inputChannelsBuffer->CheckReadReady());
         }
         //if ok, then all the buffers are ready to deliver the samples needed
         if (newData){
@@ -364,13 +347,13 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
             UEIBufferPointer timestampPointer;
             for (uint8 i = 0; i < nInputMembers && ok; i++){
                 if (inputMembersOrdered[i]->Inputs.timestampRequired && !timestampAcquired){
-                    timestampPointer = inputMembersOrdered[i]->reference->inputChannelsBuffer.ReadTimestamp(ok);
+                    timestampPointer = inputMembersOrdered[i]->reference->inputChannelsBuffer->ReadTimestamp(ok);
                     timestampAcquired = true;
                 }
-                UEIBufferPointer* BufferPointersInMember = inputMembersOrdered[i]->reference->inputChannelsBuffer.ReadBuffer(ok);
+                UEIBufferPointer* BufferPointersInMember = inputMembersOrdered[i]->reference->inputChannelsBuffer->ReadBuffer(ok);
                 if (ok){
                     //First check out the current buffer
-                    ok &= inputMembersOrdered[i]->reference->inputChannelsBuffer.CheckoutBuffer();
+                    ok &= inputMembersOrdered[i]->reference->inputChannelsBuffer->CheckoutBuffer();
                     //Scale the obtained data
                     for (uint32 j = 0u; j < inputMembersOrdered[i]->Inputs.nChannels; j++){
                         //Extract the configuration for this member data scale.

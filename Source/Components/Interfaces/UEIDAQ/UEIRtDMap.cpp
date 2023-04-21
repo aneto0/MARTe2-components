@@ -54,6 +54,7 @@ UEIRtDMap::~UEIRtDMap(){
     }
     //try to clean the maps in case it was not already done beforehand
     CleanupMap();
+    printf("Clean\n");
 }
 
 bool UEIRtDMap::StopMap(){
@@ -325,12 +326,12 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
             }
             //Read the data from this device in the Dmap into the device 
             if (ok){
-                void* writePointer = reinterpret_cast<void*>(thisDevice->inputChannelsBuffer.writePointer);
+                void* writePointer = reinterpret_cast<void*>(thisDevice->inputChannelsBuffer->writePointer);
                 //We try to read all the data avilable for this device, the 1000u number of channels is just to ensure all channels are read.
                 ok &= (DqRtDmapReadRawData(DAQ_handle, mapid, inputMembersOrdered[i]->devn, writePointer, 1000u) >= 0);
                 if (ok){
                     //if read was successful, then mark the buffer as ready to write by advancing the pointer
-                    ok &= thisDevice->inputChannelsBuffer.AdvanceBufferReadOneSample();
+                    ok &= thisDevice->inputChannelsBuffer->AdvanceBufferReadOneSample();
                 }
             }
             if (ok){               
@@ -345,7 +346,7 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
                 //Compute the timestamp, which occupies the first position of input memory on the datasource as uint64
                 //By calling this method in this position, the already written float64 on the first position is overwritten by this uint64 timestamp (better alternative)
                 if (ok && inputMembersOrdered[i]->Inputs.timestampRequired){
-                    UEIBufferPointer timestampPointer = inputMembersOrdered[i]->reference->inputChannelsBuffer.ReadTimestamp(ok);
+                    UEIBufferPointer timestampPointer = inputMembersOrdered[i]->reference->inputChannelsBuffer->ReadTimestamp(ok);
                     ok &= GetTimestamp(timestampPointer, 1u, TimestampAddr);
                     if (!ok){
                         outputCode = ERROR;
@@ -355,7 +356,7 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
                 if (ok){
                     outputCode = NEW_DATA_AVAILABLE;
                 }
-                thisDevice->inputChannelsBuffer.CheckoutBuffer();
+                thisDevice->inputChannelsBuffer->CheckoutBuffer();
                 //The channels requested have already been copied, stop the loop
                 if (!ok){
                     outputCode = ERROR;

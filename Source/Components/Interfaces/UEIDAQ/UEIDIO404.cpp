@@ -245,9 +245,9 @@ bool UEIDIO404::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPo
 
 bool UEIDIO404::RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType){
     //Check if the input signals buffer is ready for reading
-    bool ok = inputChannelsBuffer.CheckReadReady();
+    bool ok = inputChannelsBuffer->CheckReadReady();
     if (ok){
-        UEIBufferPointer rawData = inputChannelsBuffer.ReadChannel(0, ok);
+        UEIBufferPointer rawData = inputChannelsBuffer->ReadChannel(0, ok);
         if (ok){
             ok &= ScaleSignal(channelIdx, nSamples, rawData, SignalPointer, signalType);
         }
@@ -265,7 +265,7 @@ bool UEIDIO404::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 re
     switch (direction){
         case InputSignals:
             //The retrieved input is a 32-bit wide word containing the status of all the I/O channels
-            ok &= inputChannelsBuffer.InitialiseBuffer(nBuffers, 1u, retrievedSamples, sizeof(uint32), readSammples, timestampRequired);
+            ok &= inputChannelsBuffer->InitialiseBuffer(nBuffers, 1u, retrievedSamples, sizeof(uint32), readSammples, timestampRequired);
         break;
         case OutputSignals:
             ok = false;

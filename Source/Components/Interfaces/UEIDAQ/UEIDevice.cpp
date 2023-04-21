@@ -88,6 +88,11 @@ bool UEIDevice::Initialise(StructuredDataI &data){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrive SamplingFrequency parameter for device %s.", name.Buffer());
         }
     }
+    //Initialise the UEICircularBuffer Objects
+    if (ok){
+        inputChannelsBuffer = ReferenceT<UEICircularBuffer> ("UEICircularBuffer", GlobalObjectsDatabase::Instance()->GetStandardHeap());
+        outputChannelsBuffer = ReferenceT<UEICircularBuffer> ("UEICircularBuffer", GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    }
     return ok;
 }
 

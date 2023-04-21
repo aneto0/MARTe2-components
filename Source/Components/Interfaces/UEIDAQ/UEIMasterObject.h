@@ -163,11 +163,6 @@ protected:
     *   Variable containing the name of the device
     */
     StreamString name;
-
-    /**
-    *   Variable holding a reference to the ReferenceContainer containing the devices.
-    */
-    ReferenceT<ReferenceContainer> devicesContainer;
     
     /**
     *   Array of references to the device objects defined for this device. In this array, the index
@@ -176,11 +171,6 @@ protected:
     */
     ReferenceT<UEIDevice> devices [MAX_IO_SLOTS];
     
-    /**
-    *   Variable holding a reference to the ReferenceContainer containing the maps.
-    */
-    ReferenceT<ReferenceContainer> mapsContainer;
-
     /**
     *   Array of references to the maps declared for this UEIDAQ device.
     */

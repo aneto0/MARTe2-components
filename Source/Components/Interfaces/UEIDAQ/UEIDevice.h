@@ -267,8 +267,8 @@ class UEIDevice : public Object {
     virtual bool SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType);
     bool SetInputChannelList (uint32* channelList, uint32 nChannels);
     bool SetOutputChannelList (uint32* channelList, uint32 nChannels);
-    UEICircularBuffer inputChannelsBuffer;
-    UEICircularBuffer outputChannelsBuffer;
+    ReferenceT<UEICircularBuffer> inputChannelsBuffer;
+    ReferenceT<UEICircularBuffer> outputChannelsBuffer;
     virtual bool InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples);
     bool timestampRequired;
 

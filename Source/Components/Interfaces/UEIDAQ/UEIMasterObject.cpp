@@ -61,11 +61,11 @@ UEIMasterObject::~UEIMasterObject(){
         if (maps[i].IsValid()){
             mapClenaupOk &= maps[i]->CleanupMap();
             if (!mapClenaupOk){
-                REPORT_ERROR(ErrorManagement::CommunicationError, "UEIMasterObject::Destructor - "
-                "Could not clean properly map %s!", name.Buffer());
+                REPORT_ERROR(ErrorManagement::CommunicationError, "Could not clean properly map %s!", name.Buffer());
             }
         }
     }
+    delete [] maps;
     //Clean the IOM structures
     bool ok = true;
     if (DAQ_handle != 0){
@@ -125,7 +125,7 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
     //Check the configuration of the listed device
     if (ok){
         //Try to retrieve the Devices ReferenceContainer
-        devicesContainer = (ReferenceT<ReferenceContainer>)this->Find("Devices");
+        ReferenceT<ReferenceContainer> devicesContainer = (ReferenceT<ReferenceContainer>)this->Find("Devices");
         ok = devicesContainer.IsValid();
         if (ok) ok &= devicesContainer->IsReferenceContainer();
         if (!ok){
@@ -163,7 +163,7 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
     }
     //Check the configuration of the listed DAQ Maps (if there are any defined)
     if (ok){
-        mapsContainer = (ReferenceT<ReferenceContainer>)this->Find("Maps");
+        ReferenceT<ReferenceContainer> mapsContainer = (ReferenceT<ReferenceContainer>)this->Find("Maps");
         bool maps_present = mapsContainer.IsValid();
         if (maps_present) maps_present &= mapsContainer->IsReferenceContainer();
         if (maps_present){
