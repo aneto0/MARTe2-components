@@ -123,7 +123,7 @@ bool UEIRtVMap::StartMap(){
         for (uint32 i = 0u; i < nInputMembers && ok; i++){
             ReferenceT<UEIDevice> reference = inputMembersOrdered[i]->reference;
             ok &= reference->SetInputChannelList(inputMembersOrdered[i]->Inputs.channels, inputMembersOrdered[i]->Inputs.nChannels);
-            inputMembersOrdered[i]->reference->timestampRequired = inputMembersOrdered[i]->Inputs.timestampRequired;
+            reference->timestampRequired = inputMembersOrdered[i]->Inputs.timestampRequired;
             //Init the buffers, only one sample retrieved and read back
             ok &= reference->InitBuffer(InputSignals, nBuffers, sampleNumber, nReadSamples);
         }
@@ -346,14 +346,13 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
             uint32 signalIdx = 0;
             UEIBufferPointer timestampPointer;
             for (uint8 i = 0; i < nInputMembers && ok; i++){
+                ReferenceT<UEIDevice> devReference = inputMembersOrdered[i]->reference;
                 if (inputMembersOrdered[i]->Inputs.timestampRequired && !timestampAcquired){
-                    timestampPointer = inputMembersOrdered[i]->reference->inputChannelsBuffer->ReadTimestamp(ok);
+                    timestampPointer = devReference->inputChannelsBuffer->ReadTimestamp(ok);
                     timestampAcquired = true;
                 }
-                UEIBufferPointer* BufferPointersInMember = inputMembersOrdered[i]->reference->inputChannelsBuffer->ReadBuffer(ok);
+                UEIBufferPointer* BufferPointersInMember = devReference->inputChannelsBuffer->ReadBuffer(ok);
                 if (ok){
-                    //First check out the current buffer
-                    ok &= inputMembersOrdered[i]->reference->inputChannelsBuffer->CheckoutBuffer();
                     //Scale the obtained data
                     for (uint32 j = 0u; j < inputMembersOrdered[i]->Inputs.nChannels; j++){
                         //Extract the configuration for this member data scale.
@@ -361,12 +360,14 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
                         UEIBufferPointer RawPointer = BufferPointersInMember[j];
                         void* scaledDataPointer = reinterpret_cast<void*>(inputSignalAddresses[signalIdx]);
                         TypeDescriptor thisOutputType = inputSignalTypes[signalIdx];
-                        ok &= inputMembersOrdered[i]->reference->RetrieveInputSignal(channel, nReadSamples, scaledDataPointer, thisOutputType);
+                        ok &= devReference->RetrieveInputSignal(channel, nReadSamples, scaledDataPointer, thisOutputType);
                         if (!ok){
                             REPORT_ERROR(ErrorManagement::CommunicationError, "The scaling process failed in Map %s", name.Buffer());
                         }
+                        signalIdx++;
                     }
-                    signalIdx++;
+                    //Check out the current buffer
+                    ok &= inputMembersOrdered[i]->reference->inputChannelsBuffer->CheckoutBuffer();
                 }
                 if (!ok){
                     outputCode = ERROR;
