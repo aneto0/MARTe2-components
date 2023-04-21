@@ -276,6 +276,7 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
             //In this case, since we received an update on the VMap content, feed it to each of the UEICircularBuffers
             for (uint32 i = 0; i < nInputMembers; i++){
                 ReferenceT<UEIDevice> thisDevice = inputMembersOrdered[i]->reference;
+                uint8 devn = inputMembersOrdered[i]->devn;
                 ok &= thisDevice.IsValid();
                 if (ok){
                     //For each of the input memebrs (in order of assignment) feed the new data into the buffers.
@@ -286,7 +287,7 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
                         int32 dataWritten = 0;
                         int32 avl_size = 0;
                         uint32 requestedPacketSize = inputMembersOrdered[i]->Inputs.requestSize;
-                        ok = (DqRtVmapGetInputData(DAQ_handle, mapid, i, requestedPacketSize, &dataWritten, &avl_size, bufferWriteAddress) >= 0);
+                        ok = (DqRtVmapGetInputData(DAQ_handle, mapid, devn, requestedPacketSize, &dataWritten, &avl_size, bufferWriteAddress) >= 0);
                         if (ok){
                             thisDevice->inputChannelsBuffer->AdvanceBufferIndex(dataWritten);
                         }else{
