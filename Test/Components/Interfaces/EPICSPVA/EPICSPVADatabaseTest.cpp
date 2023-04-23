@@ -372,20 +372,9 @@ bool EPICSPVADatabaseTest::TestExecute_False_NoRecord() {
     ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
     ReferenceT<EPICSPVADatabase> pvDatabase;
     if (ok) {
-        ok = ord->Initialise(cdb);
-    }
-    if (ok) {
-        pvDatabase = ord->Find("EPICSPVADatabase1");
-        ok = pvDatabase.IsValid();
-    }
-    if (ok) {
-        ok = (pvDatabase->GetCPUMask() == 0xFF);
-    }
-    if (ok) {
-        ok = (pvDatabase->GetStackSize() == (THREADS_DEFAULT_STACKSIZE * 4u));
+        ok = !ord->Initialise(cdb);
     }
     Sleep::Sec(1.0);
-
     ord->Purge();
     return ok;
 }
