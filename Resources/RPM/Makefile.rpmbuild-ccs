@@ -116,10 +116,10 @@ pxi:
 tcn:
 	$(call build-component,tcn,Source/Components/DataSources/LinuxTimer.x Source/Components/Interfaces/TcnTimeProvider.x,TcnTimeProvider.a libTcnTimeProvider.so TcnTimeProvider.so,codac-core-$(shell codac-version -v)-tcn-lib)
 
-CCSGT70=$(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 70 ]; then echo 1; else echo 0; fi)
+CCSGT63=$(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 63 ]; then echo 1; else echo 0; fi)
 ccsh:
 ## Only force CCSHelpers if CCS version is gt v7.0
-ifeq "$(CCSGT70)" "1"
+ifeq "$(CCSGT63)" "1"
 	$(call build-component,helpers,Source/Components/Interfaces/CCSHelpers.x,CCSHelpers.a libCCSHelpers.so CCSHelpers.so,codac-core-$(shell codac-version -v)-cpp-common)
 endif
 
@@ -150,7 +150,7 @@ tcn-test:
 
 ccsh-test:
 ## Only force CCSHelpers if CCS version is gt v7.0
-ifeq "$(CCSGT70)" "1"
+ifeq "$(CCSGT63)" "1"
 	$(call build-component-test,helpers,,Source/Components/Interfaces/CCSHelpers.x,Test/Components/Interfaces/CCSHelpers.x,)
 endif
 
@@ -165,7 +165,7 @@ CCS_COMPS_DEPS := $(CCS_COMPS_DEPS) $(M2_RPM_ID)-epics-ca
 CCS_TEST_COMPS_DEPS_F := $(CCS_TEST_COMPS_DEPS) $(M2_RPM_ID)-epics-ca-test
 endif
 
-ifeq "$(CCSGT70)" "1"
+ifeq "$(CCSGT63)" "1"
 CCS_COMPS_DEPS := $(CCS_COMPS_DEPS) $(M2_RPM_ID)-helpers
 CCS_TEST_COMPS_DEPS := $(CCS_TEST_COMPS_DEPS) $(M2_RPM_ID)-helpers-test
 endif
