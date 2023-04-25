@@ -54,7 +54,6 @@ UEIRtDMap::~UEIRtDMap(){
     }
     //try to clean the maps in case it was not already done beforehand
     CleanupMap();
-    printf("Clean\n");
 }
 
 bool UEIRtDMap::StopMap(){
@@ -161,8 +160,8 @@ bool UEIRtDMap::StartMap(){
             ok &= reference->InitBuffer(InputSignals, 2u, 1u, 1u);
         }
         for (uint32 i = 0u; i < nOutputMembers && ok; i++){
-            ReferenceT<UEIDevice> reference = inputMembersOrdered[i]->reference;
-            ok &= reference->SetOutputChannelList(inputMembersOrdered[i]->Inputs.channels, inputMembersOrdered[i]->Inputs.nChannels);
+            ReferenceT<UEIDevice> reference = outputMembersOrdered[i]->reference;
+            ok &= reference->SetOutputChannelList(outputMembersOrdered[i]->Inputs.channels, outputMembersOrdered[i]->Inputs.nChannels);
             //Init the buffers, only one sample retrieved and read back
             ok &= reference->InitBuffer(OutputSignals, 2u, 1u, 1u);
         }
@@ -397,7 +396,6 @@ bool UEIRtDMap::WriteOutputs(MapReturnCode& outputCode){
             ok &= devReference->SetOutputSignal(channelIdx, 1, signal, signalType);
             signalIdx += 1u;
         }
-        printf("Result : 0x%08x\n", reinterpret_cast<uint32*>(devReference->outputBuffer)[0]);
     }
     //Finally write all the contents of the output buffers into the IOM
     if (ok){

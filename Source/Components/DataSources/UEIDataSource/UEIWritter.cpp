@@ -54,8 +54,6 @@ UEIWritter::~UEIWritter() {
     if (signalAddresses != NULL_PTR(uint8**)){
         delete [] signalAddresses;
     }
-    
-    printf("Clean DB\n");
 }
 
 bool UEIWritter::Initialise(StructuredDataI &data) {
@@ -221,7 +219,6 @@ bool UEIWritter::Synchronise() {
     uint8** sigs = new uint8*[2];
     sigs[0] = reinterpret_cast<uint8*>(memory)+(signalOffsets[0]);
     sigs[1] = reinterpret_cast<uint8*>(memory)+(signalOffsets[1]);
-    printf("%d, %d\n", reinterpret_cast<uint32*>(sigs[0])[0], reinterpret_cast<uint32*>(sigs[1])[0]);
     if (!map->GetMapStatus()){
         ok &= map->StartMap();
         if (!ok){

@@ -57,8 +57,6 @@ UEIReader::~UEIReader() {
     if (signalAddresses != NULL_PTR(uint8**)){
         delete [] signalAddresses;
     }
-    
-    printf("Clean DB\n");
 }
 
 bool UEIReader::Initialise(StructuredDataI &data) {
@@ -267,7 +265,7 @@ bool UEIReader::Synchronise() {
         //The FIFOs on VMap could overflow
         Sleep::MSec(1000);  
         firstSync = false;
-        if (ok){
+        if (ok && !map->GetMapStatus()){
             ok = map->StartMap();
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Could not start Map %s in DataSource %s", map->GetName(), name.Buffer());
