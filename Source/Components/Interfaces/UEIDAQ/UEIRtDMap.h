@@ -125,6 +125,9 @@ class UEIRtDMap : public UEIMapContainer {
      * @return true if a new packet has been recieved, false otherwise.
      */
     bool PollForNewPacket(MapReturnCode& outputCode);
+
+    //TODO
+    bool WriteOutputs(MapReturnCode& outputCode);
     
     /**
      * @brief Getter for the type of the map.
@@ -147,7 +150,7 @@ class UEIRtDMap : public UEIMapContainer {
      * @return true if the provided parameters are accepted for the Map, false otherwise.
      */
     bool ConfigureInputsForDataSource(uint32 nSamples, uint32 nChannels, uint64* inputTimestampAddress, uint8** signalAddresses, TypeDescriptor* signalTypes);
-    
+    bool ConfigureOutputsForDataSource(uint32 nSamples, uint32 nChannels, uint8** signalAddresses, TypeDescriptor* signalTypes);
     /**
      * @brief Method to check the map coherency with the information on the devices assigned to each of the members.
      * @details This method is executed by UEIMasterObject right after the devices references are set into the corresponding map members

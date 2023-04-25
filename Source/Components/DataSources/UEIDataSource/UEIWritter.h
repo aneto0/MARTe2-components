@@ -1,6 +1,6 @@
 /**
- * @file UEIDataSource.h
- * @brief Header file for class UEIDataSource
+ * @file UEIWritter.h
+ * @brief Header file for class UEIWritter
  * @date 20/03/2023
  * @author Xavier Ruche
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class UEIDataSource
+ * @details This header file contains the declaration of the class UEIWritter
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef UEIDataSource_H_
-#define UEIDataSource_H_
+#ifndef UEIWritter_H_
+#define UEIWritter_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -84,8 +84,8 @@ namespace MARTe {
 *
 * See the example below for a configuration of the DataSource:
 * <pre>
-*   +UEIDataSource1 = {
-*        Class = UEIDataSource
+*   +UEIWritter1 = {
+*        Class = UEIDataSource::UEIWritter
 *        Device = "UEIDevice"
 *        Map = "Map1"
 *        PollSleepPeriod = 1
@@ -107,19 +107,19 @@ namespace MARTe {
 * </pre>
 *
 */
-class UEIDataSource: public MemoryDataSourceI {
+class UEIWritter : public MemoryDataSourceI {
 public:
 
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief Constructor. NOOP.
      */
-    UEIDataSource();
+    UEIWritter();
 
     /**
      * @brief Destructor. Stops the Embedded thread which reads from the CRIOUARTSerial.
      */
-    virtual ~UEIDataSource();
+    virtual ~UEIWritter();
 
     /**
      * @brief Verifies that the configuration described above is correctly set.
@@ -192,12 +192,6 @@ protected:
      * Reference to the UEIMapContainer containing the desired map. This map must exist within the specified device
      */
     ReferenceT<UEIMapContainer> map;
-
-    /**
-     * Variable to store the selected polling sleep period configured for this datasource. This is the period of MARTe sleep
-     * between an unsuccessful poll request to the UEIDAQ device and the next poll request. 
-     */
-    uint32 PollSleepPeriod;
        
     /**
      * Variable to store the signal type for all the signals on this DataSource 
@@ -210,13 +204,6 @@ protected:
     uint32 nSamples;
     
     /**
-     * Flag signaling if it is the first time MARTe calls the Synchronise method on this DataSource.
-     * (MARTe may call the datasource Synchronise method during application initialisation but starve the thread while
-     * performing initialisation tasks, in this case the FIFO servicing on a VMap can be afected and the map fail).
-     */
-    bool firstSync;
-
-    /**
      * Array of TypeDescriptors stating the input signals types requested by the user, the array must have length matching the number of input signals.
      */
     TypeDescriptor* signalTypes;
@@ -225,12 +212,7 @@ protected:
      * Array of pointers to the location of the memory region for each of the input signals for the map to deposit the samples. This array must be 
      * of matching length to the number of input signals
      */
-    uint8** signalAddresses;
-    
-    /**
-     * Pointer to the memory region for the map to deposit the sample/s obtained as timestamp to be delivered as input signal.
-     */
-    uint64* timestampSignalAddr;
+    uint8** signalAddresses;    
 };
 
 }
@@ -239,4 +221,4 @@ protected:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* UEIDataSource_H_ */
+#endif /* UEIWritter_H_ */

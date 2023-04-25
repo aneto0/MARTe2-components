@@ -158,6 +158,16 @@ class UEIMapContainer : public ReferenceContainer {
     virtual bool PollForNewPacket(MapReturnCode& outputCode);
 
     /**
+     * @brief Method to poll the IOM for new data packets on the configured hardware layer.
+     * @details This method performs the data acquisition process in which the new data is requested to the IOM through a poll request
+     * and recieved and stored in a buffer if needed. This method also writes the data obtained through the UEIDAQ directly into the destination 
+     * memory locations as configured through previously stated methods.
+     * @param[out] outputCode Variable holding the status code for the polling procedure performed during the call.
+     * @return true no error occurred during the poll procedure.
+     */
+    virtual bool WriteOutputs(MapReturnCode& outputCode);
+
+    /**
      * @brief Getter for the type of the map.
      * @details This function is implemented in the base class to return NOMAP type as this function must be reimplemented
      * by the child class and return the appropriate class for the selected map.
@@ -179,6 +189,21 @@ class UEIMapContainer : public ReferenceContainer {
      * @return true if the provided parameters are accepted for the Map, false otherwise.
      */
     virtual bool ConfigureInputsForDataSource(uint32 nSamples, uint32 nChannels, uint64* inputTimestampAddress, uint8** signalAddresses, TypeDescriptor* signalTypes);
+
+        /** TODO
+     * @brief Configuration method for the destination signals in MARTe.
+     * @details This function provides the Map object the knowledge of where to store the scaled samples in memory as input signals in MARTe,
+     * the desired number of samples to be retrieved in such signals, the number of physical channels to be retrieved and the types to which scale each
+     * of the input signals.
+     * @param[in] nSamples number of samples the map must supply for each of the declared phyisical channels as MARTe signals.
+     * @param[in] nChannels number of channels the map needs to provide as input signals, this parameters serves as a check for the length of the provided arrays.
+     * @param[in] inputTimestampAddress pointer to the memory location in which to store the scaled samples for the timestamp channel mandatory for all the maps.
+     * @param[in] signalAddresses array of pointers to the memory locations of each of the input signals, must have a length of nChannels and be supplied in the same
+     * order as the configured physical channels.
+     * @param[in] signalTypes Array of types for each of the channels, stating the desired input signal format and scaling.
+     * @return true if the provided parameters are accepted for the Map, false otherwise.
+     */
+    virtual bool ConfigureOutputsForDataSource(uint32 nSamples, uint32 nChannels, uint8** signalAddresses, TypeDescriptor* signalTypes);
 
     /**
      * @brief Close the DAQ Map structure in a clean way.
@@ -308,6 +333,8 @@ class UEIMapContainer : public ReferenceContainer {
      */
     virtual bool StopMap();
 
+    bool GetMapStatus();
+
 protected:
     /**
      * @brief Protected method which translates the 32-bit timestamp into a 64-bit timestamp.
@@ -432,11 +459,21 @@ protected:
     *   Array of pointers to the memory locations of the input signals to the Map
     */
     uint8** inputSignalAddresses;
-    
+
+    /**
+    *   Array of pointers to the memory locations of the input signals to the Map
+    */
+    uint8** outputSignalAddresses;
+
     /**
     *   Array of Descriptors for input signal types
     */
     TypeDescriptor* inputSignalTypes;
+
+    /**
+    *   Array of Descriptors for input signal types
+    */
+    TypeDescriptor* outputSignalTypes;
 
     /**
     *   Pointer to the timestamp input signal memory location
@@ -456,8 +493,13 @@ protected:
     /**
     *  Flag signaling if the input signals are correctly configured into the map.
     */
-    bool signalsConfigured;
-    
+    bool inputSignalsConfigured;
+
+    /**
+    *  Flag signaling if the input signals are correctly configured into the map.
+    */
+    bool outputSignalsConfigured;
+
     /**
     *   Flag signaling if coherency check has been performed successfully and map is ready for further initialisation.
     */

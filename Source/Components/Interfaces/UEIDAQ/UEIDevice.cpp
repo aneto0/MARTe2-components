@@ -48,6 +48,7 @@ UEIDevice::UEIDevice() : Object() {
     samplingFrequency = 0.0;    //Set sampling frequency to invalid value (0.0)
     hardwareCorrespondence = false; //Set device as not correspondant to IOM device
     assignedToMap = false;          //Set device as not assigned to any map
+    outputBuffer = NULL_PTR(void*);
 }
 
 UEIDevice::~UEIDevice(){
@@ -274,6 +275,70 @@ int32 UEIDevice::FindChannelIndex(uint32 channelNumber, SignalDirection directio
     }else{
         return (int32) index;
     }
+}
+bool UEIDevice::AnyTypeToBoolean(uint32 nSamples, bool* booleanSignal, void* inputSignal, TypeDescriptor signalType){
+    bool ok = (inputSignal != NULL_PTR(void*));
+    ok &= (booleanSignal != NULL_PTR(bool*));
+    if (ok){
+        if (signalType == UnsignedInteger8Bit){
+            uint8* castedSignal = reinterpret_cast<uint8*>(inputSignal);
+            for (uint32 i = 0u; i < nSamples; i++){
+                booleanSignal[i] = (castedSignal[i] != 0);
+            }
+        }else if (signalType == UnsignedInteger16Bit){
+            uint16* castedSignal = reinterpret_cast<uint16*>(inputSignal);
+            for (uint32 i = 0u; i < nSamples; i++){
+                booleanSignal[i] = (castedSignal[i] != 0);
+            }
+        }else if (signalType == UnsignedInteger32Bit){
+            uint32* castedSignal = reinterpret_cast<uint32*>(inputSignal);
+            for (uint32 i = 0u; i < nSamples; i++){
+                booleanSignal[i] = (castedSignal[i] != 0);
+            }
+        }else if (signalType == UnsignedInteger64Bit){
+            uint64* castedSignal = reinterpret_cast<uint64*>(inputSignal);
+            for (uint32 i = 0u; i < nSamples; i++){
+                booleanSignal[i] = (castedSignal[i] != 0);
+            }
+        }else if (signalType == Float32Bit){
+            float32* castedSignal = reinterpret_cast<float32*>(inputSignal);
+            for (uint32 i = 0u; i < nSamples; i++){
+                booleanSignal[i] = (castedSignal[i] > 0);
+            }
+        }else if (signalType == Float64Bit){
+            float64* castedSignal = reinterpret_cast<float64*>(inputSignal);
+            for (uint32 i = 0u; i < nSamples; i++){
+                booleanSignal[i] = (castedSignal[i] > 0);
+            }
+        }else if (signalType == SignedInteger8Bit){
+            int8* castedSignal = reinterpret_cast<int8*>(inputSignal);
+            for (uint32 i = 0u; i < nSamples; i++){
+                booleanSignal[i] = (castedSignal[i] > 0);
+            }
+        }else if (signalType == SignedInteger16Bit){
+            int16* castedSignal = reinterpret_cast<int16*>(inputSignal);
+            for (uint32 i = 0u; i < nSamples; i++){
+                booleanSignal[i] = (castedSignal[i] > 0);
+            }
+        }else if (signalType == SignedInteger32Bit){
+            int32* castedSignal = reinterpret_cast<int32*>(inputSignal);
+            for (uint32 i = 0u; i < nSamples; i++){
+                booleanSignal[i] = (castedSignal[i] > 0);
+            }
+        }else if (signalType == SignedInteger64Bit){
+            int64* castedSignal = reinterpret_cast<int64*>(inputSignal);
+            for (uint32 i = 0u; i < nSamples; i++){
+                booleanSignal[i] = (castedSignal[i] > 0);
+            }
+        }else{
+            ok = false;
+        }
+    }
+    return ok;
+}
+
+uint32 UEIDevice::GetWriteBufferSize(){
+    return 0u;
 }
 
 CLASS_REGISTER(UEIDevice, "1.0")

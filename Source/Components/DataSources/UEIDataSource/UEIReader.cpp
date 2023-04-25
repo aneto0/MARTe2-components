@@ -1,6 +1,6 @@
 /**
- * @file UEIDataSource.cpp
- * @brief Source file for class UEIDataSource
+ * @file UEIReader.cpp
+ * @brief Source file for class UEIReader
  * @date 07/02/2023
  * @author Xavier Ruche
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class UEIDataSource (public, protected, and private). Be aware that some
+ * the class UEIReader (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -36,11 +36,11 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-#include "UEIDataSource.h"
+#include "UEIReader.h"
 
 namespace MARTe {
 
-UEIDataSource::UEIDataSource() : MemoryDataSourceI() {
+UEIReader::UEIReader() : MemoryDataSourceI() {
         PollSleepPeriod = 100;
         deviceName = StreamString("");
         mapName = StreamString("");
@@ -50,28 +50,30 @@ UEIDataSource::UEIDataSource() : MemoryDataSourceI() {
         timestampSignalAddr = NULL_PTR(uint64*);
 }
 
-UEIDataSource::~UEIDataSource() {
+UEIReader::~UEIReader() {
     if (signalTypes != NULL_PTR(TypeDescriptor*)){
         delete [] signalTypes;
     }
     if (signalAddresses != NULL_PTR(uint8**)){
         delete [] signalAddresses;
     }
+    
+    printf("Clean DB\n");
 }
 
-bool UEIDataSource::Initialise(StructuredDataI &data) {
+bool UEIReader::Initialise(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::Initialise(data);
     StructuredDataIHelper helper = StructuredDataIHelper(data, this);
     //Get the name of the DataSource
     name = data.GetName();
     ok = data.Read("Device", deviceName);
     if (!ok){
-        REPORT_ERROR(ErrorManagement::ParametersError, "No device specified for UEIDataSource %s", name.Buffer());        
+        REPORT_ERROR(ErrorManagement::ParametersError, "No device specified for UEIReader %s", name.Buffer());        
     }
     if (ok){
         ok = data.Read("Map", mapName);
         if (!ok){
-            REPORT_ERROR(ErrorManagement::ParametersError, "No map specified for UEIDataSource %s", name.Buffer());        
+            REPORT_ERROR(ErrorManagement::ParametersError, "No map specified for UEIReader %s", name.Buffer());        
         }
     }
     //Retrieve PollSleepPeriod (optional)
@@ -84,9 +86,9 @@ bool UEIDataSource::Initialise(StructuredDataI &data) {
         device = ord->Find(deviceName.Buffer());
         ok = device.IsValid();
         if (ok){
-           REPORT_ERROR(ErrorManagement::Information, "Device %s found (at UEIDataSource %s)", deviceName.Buffer(), name.Buffer());
+           REPORT_ERROR(ErrorManagement::Information, "Device %s found (at UEIReader %s)", deviceName.Buffer(), name.Buffer());
         }else{
-           REPORT_ERROR(ErrorManagement::ParametersError, "Unable to find device %s (at UEIDataSource %s)", deviceName.Buffer(), name.Buffer());
+           REPORT_ERROR(ErrorManagement::ParametersError, "Unable to find device %s (at UEIReader %s)", deviceName.Buffer(), name.Buffer());
         }
     }
     //Retrieve the reference to the selected map within the UEIDAQ device
@@ -98,22 +100,22 @@ bool UEIDataSource::Initialise(StructuredDataI &data) {
         map = ord->Find(mapPath.Buffer());
         ok = map.IsValid();
         if (ok){
-            REPORT_ERROR(ErrorManagement::Information, "Map %s found (at UEIDataSource %s, path: %s)", mapName.Buffer(), name.Buffer(), mapPath.Buffer());
+            REPORT_ERROR(ErrorManagement::Information, "Map %s found (at UEIReader %s, path: %s)", mapName.Buffer(), name.Buffer(), mapPath.Buffer());
         }else{
-            REPORT_ERROR(ErrorManagement::ParametersError, "Unable to find map %s (at UEIDataSource %s, path: %s)", mapName.Buffer(), name.Buffer(), mapPath.Buffer());
+            REPORT_ERROR(ErrorManagement::ParametersError, "Unable to find map %s (at UEIReader %s, path: %s)", mapName.Buffer(), name.Buffer(), mapPath.Buffer());
         }
     }
     //Only one DataSource can be associated with a map, check that the map is not being used by another DataSource
     if (ok){
         ok = (map->RegisterDS(InputSignals));     //Check if the Map has already been assigned to a DS (and assign it if not)
         if (!ok){
-            REPORT_ERROR(ErrorManagement::ParametersError, "The map %s requested by DataSource %s is already assigned to another DataSource!", mapName.Buffer(), name.Buffer());
+            REPORT_ERROR(ErrorManagement::ParametersError, "The map %s requested by DataSource %s is already assigned to another DataSource for input signals", mapName.Buffer(), name.Buffer());
         }
     }
     return ok;
 }
 
-bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
+bool UEIReader::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
     ok &= AllocateMemory();
     //Check the number of signals into the datasource
@@ -252,11 +254,11 @@ bool UEIDataSource::SetConfiguredDatabase(StructuredDataI &data) {
     return ok;
 }
 
-bool UEIDataSource::TerminateInputCopy(const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples){
+bool UEIReader::TerminateInputCopy(const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples){
     return true;
 }
 
-bool UEIDataSource::Synchronise() {
+bool UEIReader::Synchronise() {
     bool ok = true;
     //Start the DAQ Map
     if (firstSync){
@@ -312,7 +314,7 @@ bool UEIDataSource::Synchronise() {
     return true;
 }
 
-bool UEIDataSource::AllocateMemory(){
+bool UEIReader::AllocateMemory(){
     uint32 nOfSignals = GetNumberOfSignals();
     bool ret = true;
     if (memory == NULL_PTR(uint8*)){    
@@ -345,7 +347,7 @@ bool UEIDataSource::AllocateMemory(){
                 stateMemorySize += (thisSignalMemorySize * numberOfBuffers * thisSignalSampleN);
                 signalSize[s] = thisSignalMemorySize * thisSignalSampleN;
             }
-            if (!ret) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not obtain information for signal number %d on UEIDataSource %s", s, name.Buffer());
+            if (!ret) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not obtain information for signal number %d on UEIReader %s", s, name.Buffer());
         }
         uint32 numberOfStateBuffers = GetNumberOfStatefulMemoryBuffers();
         if (ret) {
@@ -362,18 +364,18 @@ bool UEIDataSource::AllocateMemory(){
     return ret;
 }
 
-const char8* UEIDataSource::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
+const char8* UEIReader::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
     //The Datasource is synchronous to the Reception of data from UEIDAQ device
     if (direction == InputSignals){
             return "MemoryMapSynchronisedInputBroker";
     }else{
         //Only input signals are supported for this DataSource
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "UEIDataSource::GetBrokerName - DataSource %s only supports input signals", name.Buffer());
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "DataSource %s only supports input signals (UEIReader)", name.Buffer());
         return "";
     }
 }
 
-bool UEIDataSource::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName){
+bool UEIReader::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName){
     //To terminate an Input copy, stop the DAQ Map on the device and set the device as not synched yet to allow new
     //map start/enable procedure
     map->StopMap();
@@ -381,5 +383,5 @@ bool UEIDataSource::PrepareNextState(const char8 * const currentStateName, const
     return true;
 }
 
-CLASS_REGISTER(UEIDataSource, "1.0")
+CLASS_REGISTER(UEIReader, "1.0")
 }

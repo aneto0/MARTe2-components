@@ -43,6 +43,7 @@ namespace MARTe {
 UEIDIO404::UEIDIO404() : UEIDevice() {
     referenceVoltage = 0.0;
     hysteresisConfigured = false;
+    outputBuffer = 0u;
 }
 
 UEIDIO404::~UEIDIO404(){
@@ -163,16 +164,19 @@ bool UEIDIO404::ConfigureChannels(SignalDirection direction, uint32** configurat
             ok &= (nInputChannels != 0u);
             if (ok){
                 nConfigurationBitfields = 1;
-                if (timestampRequired) nConfigurationBitfields += 1;
-                *configurationBitfields = (uint32*)malloc(sizeof(uint32)*nConfigurationBitfields);
-                if (timestampRequired) *configurationBitfields[0u] = DQ_LNCL_TIMESTAMP;               
-                //The number of bitfields is equal to the number of channels supplied (if no errors are present)
-                uint32 destinationIndex = timestampRequired ? 1:0;
-                (*configurationBitfields)[destinationIndex] = 0;
+                *configurationBitfields = (uint32*)malloc(sizeof(uint32)*nConfigurationBitfields);        
+                //Only one configuration bitfield is supplied, no timestamp is allowed for this layer
+                (*configurationBitfields)[0] = 0;
             }
         break;
         case OutputSignals:
-            ok = false;
+            ok &= (nOutputChannels != 0u);
+            if (ok){
+                nConfigurationBitfields = 1;
+                *configurationBitfields = (uint32*)malloc(sizeof(uint32)*nConfigurationBitfields);        
+                //Only one configuration bitfield is supplied, no timestamp is allowed for this layer
+                (*configurationBitfields)[0] = 0;
+            }
         break;
         default:
             ok = false;
@@ -257,7 +261,15 @@ bool UEIDIO404::RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* Si
 
 bool UEIDIO404::SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType){
     //This implementation of the method always return false as this hardware layer can never accept output signals
-    return false;
+    bool ok = (channelIdx < 12u);
+    if (ok){
+        bool* statesList = new bool [nSamples];
+        ok &= AnyTypeToBoolean(nSamples, statesList, SignalPointer, signalType);
+        uint32 mask = ~(0x00000001<<(12+channelIdx));
+        uint32* bufferSample = &(reinterpret_cast<uint32*>(outputBuffer)[0]);
+        *bufferSample = ((*bufferSample) & mask) | (statesList[0]<<(12+channelIdx));    
+    }
+    return ok;
 }
 
 bool UEIDIO404::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples){
@@ -268,13 +280,17 @@ bool UEIDIO404::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 re
             ok &= inputChannelsBuffer->InitialiseBuffer(nBuffers, 1u, retrievedSamples, sizeof(uint32), readSammples, timestampRequired);
         break;
         case OutputSignals:
-            ok = false;
+            outputBuffer = reinterpret_cast<void*>(new uint32 [1]);
         break;
         default:
             ok = false;
         break;
     }
     return ok;
+}
+uint32 UEIDIO404::GetWriteBufferSize(){
+    //For UEI DIO 404 layer, a single 32 bit word is used
+    return 1u;
 }
 
 CLASS_REGISTER(UEIDIO404, "1.0")

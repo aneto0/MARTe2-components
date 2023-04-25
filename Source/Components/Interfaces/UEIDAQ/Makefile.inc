@@ -29,7 +29,11 @@ OBJSX=  UEIDevice.x 			\
 		UEIRtDMap.x				\
 		UEIRtVMap.x				\
 		UEIAI217_803.x 			\
-		UEIDIO404.x			
+		UEIDIO404.x
+
+ifdef UEIDAQ_MOCKUP
+OBJSX += UEIMockupManager.x
+endif
 
 PACKAGE=Components/Interfaces
 

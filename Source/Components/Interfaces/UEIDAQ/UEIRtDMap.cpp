@@ -110,7 +110,20 @@ bool UEIRtDMap::ConfigureInputsForDataSource(uint32 nSamples, uint32 nChannels, 
         }
     }
     //Flag signaling the signals are well configured into the Map
-    signalsConfigured = ok;
+    inputSignalsConfigured = ok;
+    return ok;
+}
+
+bool UEIRtDMap::ConfigureOutputsForDataSource(uint32 nSamples, uint32 nChannels, uint8** signalAddresses, TypeDescriptor* signalTypes){
+    bool ok = UEIMapContainer::ConfigureOutputsForDataSource(nSamples, nChannels, signalAddresses, signalTypes);
+    if (ok){
+        if (nSamples != 1u){
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid sample number, RtDMap only supports sample number 1");
+            ok = false;
+        }
+    }
+    //Flag signaling the signals are well configured into the Map
+    outputSignalsConfigured = ok;
     return ok;
 }
 
@@ -276,7 +289,7 @@ bool UEIRtDMap::GetMapPointers(){
 }
 
 bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
-    bool ok = (mapStarted && signalsConfigured && mapCoherent);
+    bool ok = (mapStarted && inputSignalsConfigured && mapCoherent);
     //Check first if the map is ready for action
     if (!ok){
         outputCode = ERROR;
@@ -367,6 +380,36 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
         
     }
     return ok;
+}
+
+bool UEIRtDMap::WriteOutputs(MapReturnCode& outputCode){
+    bool ok = (mapStarted && outputSignalsConfigured && mapCoherent);
+    //traverse all the outputMembers and assign the output samples to their output buffers
+    uint32 signalIdx = 0u;
+    for (uint32 member = 0u; member < nOutputMembers && ok; member++){
+        ReferenceT<UEIDevice> devReference = outputMembersOrdered[member]->reference;
+        ok &= devReference.IsValid();
+        for (uint32 channel = 0u; channel < outputMembersOrdered[member]->Outputs.nChannels && ok; channel++){
+            uint32 channelIdx = outputMembersOrdered[member]->Outputs.channels[channel];
+            void* signal = reinterpret_cast<void*>(outputSignalAddresses[signalIdx]);
+            TypeDescriptor signalType = outputSignalTypes[signalIdx];
+            //Write the new data into the output buffer
+            ok &= devReference->SetOutputSignal(channelIdx, 1, signal, signalType);
+            signalIdx += 1u;
+        }
+        printf("Result : 0x%08x\n", reinterpret_cast<uint32*>(devReference->outputBuffer)[0]);
+    }
+    //Finally write all the contents of the output buffers into the IOM
+    if (ok){
+        for (uint32 member = 0u; member < nOutputMembers && ok; member++){
+            ReferenceT<UEIDevice> devReference = outputMembersOrdered[member]->reference;
+            uint8 devn = outputMembersOrdered[member]->devn;
+            void* writeBuffer = devReference->outputBuffer;
+            uint32 bufferSize = devReference->GetWriteBufferSize();
+            ok &= (DqRtDmapWriteRawData(DAQ_handle, mapid, (int) devn, writeBuffer, bufferSize)>=0);
+        }
+    }
+    return ok; 
 }
 
 MapType UEIRtDMap::GetType(){

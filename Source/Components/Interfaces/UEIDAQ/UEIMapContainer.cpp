@@ -80,7 +80,8 @@ UEIMapContainer::UEIMapContainer() : ReferenceContainer() {
     TimestampAddr = NULL_PTR(uint64*);
     firstPckt = true;
     mapStarted = false;
-    signalsConfigured = false;
+    inputSignalsConfigured = false;
+    outputSignalsConfigured = false;
     mapCoherent = false;
 }
 
@@ -96,6 +97,12 @@ UEIMapContainer::~UEIMapContainer(){
         delete[] inputSignalAddresses;
     }
     if(inputSignalTypes != NULL_PTR(TypeDescriptor*)){
+        delete[] inputSignalTypes;
+    }
+    if (outputSignalAddresses != NULL_PTR(uint8**)){
+        delete[] inputSignalAddresses;
+    }
+    if(outputSignalTypes != NULL_PTR(TypeDescriptor*)){
         delete[] inputSignalTypes;
     }
     if (TimestampAddr != NULL_PTR(uint64*)){
@@ -220,6 +227,10 @@ bool UEIMapContainer::PollForNewPacket(MapReturnCode& outputCode){
     return false; 
 }
 
+bool UEIMapContainer::WriteOutputs(MapReturnCode& outputCode){
+    return false; 
+}
+
 MapType UEIMapContainer::GetType(){
     //Base implementation of this function which returns NOMAP by default
     //Reimplementation of this function is responsibility of each of the child classes
@@ -257,6 +268,36 @@ bool UEIMapContainer::ConfigureInputsForDataSource(uint32 nSamples, uint32 nChan
     }
     return ok;
 }
+
+bool UEIMapContainer::ConfigureOutputsForDataSource(uint32 nSamples, uint32 nChannels, uint8** signalAddresses, TypeDescriptor* signalTypes){
+    bool ok = (signalAddresses != NULL_PTR(uint8**));
+    ok &= (signalTypes != NULL_PTR(TypeDescriptor*));
+    ok &= (nChannels == nOutputChannels);
+    //Copy the memory locations for the input signals
+    if (ok){
+        if (outputSignalAddresses != NULL_PTR(uint8**)) delete[] outputSignalAddresses;
+        outputSignalAddresses = new uint8*[nChannels];
+        ok &= (outputSignalAddresses != NULL_PTR(uint8**));
+        if (ok){
+            for (uint32 i = 0; i < nChannels; i++){
+                outputSignalAddresses[i] = signalAddresses[i];
+            }
+        }
+    }
+    //Copy the types for the different input signals
+    if (ok){
+        if (outputSignalTypes != NULL_PTR(TypeDescriptor*)) delete[] outputSignalTypes;
+        outputSignalTypes = new TypeDescriptor[nChannels];
+        ok &= (outputSignalTypes != NULL_PTR(TypeDescriptor*));
+        if (ok){
+            for (uint32 i = 0; i < nChannels; i++){
+                outputSignalTypes[i] = signalTypes[i];
+            }
+        }
+    }
+    return ok;
+}
+
 
 //BASE CLASS METHODS
 
@@ -643,5 +684,8 @@ bool UEIMapContainer::ParseIODevices(StructuredDataI &data, SignalDirection dire
     return ok;
 }
 
+bool UEIMapContainer::GetMapStatus(){
+    return mapStarted;
+}
 CLASS_REGISTER(UEIMapContainer, "1.0")
 }

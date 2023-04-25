@@ -21,7 +21,8 @@
 # permissions and limitations under the Licence. 
 #
 #############################################################
-OBJSX=  UEIDataSource.x
+OBJSX=  UEIReader.x	\
+		UEIWritter.x
 
 PACKAGE=Components/DataSources
 

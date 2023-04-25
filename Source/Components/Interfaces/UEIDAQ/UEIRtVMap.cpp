@@ -109,7 +109,7 @@ bool UEIRtVMap::ConfigureInputsForDataSource(uint32 nSamples, uint32 nChannels, 
         }
         nReadSamples = nSamples;
     }
-    signalsConfigured = ok;
+    inputSignalsConfigured = ok;
     return ok;
 }
 
@@ -128,8 +128,8 @@ bool UEIRtVMap::StartMap(){
             ok &= reference->InitBuffer(InputSignals, nBuffers, sampleNumber, nReadSamples);
         }
         for (uint32 i = 0u; i < nOutputMembers && ok; i++){
-            ReferenceT<UEIDevice> reference = inputMembersOrdered[i]->reference;
-            ok &= reference->SetOutputChannelList(inputMembersOrdered[i]->Inputs.channels, inputMembersOrdered[i]->Inputs.nChannels);
+            ReferenceT<UEIDevice> reference = outputMembersOrdered[i]->reference;
+            ok &= reference->SetOutputChannelList(outputMembersOrdered[i]->Outputs.channels, outputMembersOrdered[i]->Outputs.nChannels);
             //Init the buffers, only one sample retrieved and read back
             ok &= reference->InitBuffer(OutputSignals, nBuffers, sampleNumber, nReadSamples);
         }
@@ -173,9 +173,6 @@ bool UEIRtVMap::StartMap(){
                         REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding input channels in IOM for dev%d on Map %s", devn, name.Buffer());
                     }
                 }
-                if (configurationBitfields != NULL_PTR(uint32*)){
-                    free(configurationBitfields);
-                }
                 if (ok){
                     //In the case of AI, AO, AIO or DIO, the channels are interleaved into a signle FIFO, we need to check the number of channels into
                     //the map
@@ -185,7 +182,7 @@ bool UEIRtVMap::StartMap(){
                         ok = (DqRtVmapSetChannelList(DAQ_handle, mapid, devn, DQ_SS0IN, (int32*) configurationBitfields, nConfigurationBitfields) >=0);
                         //Set the scan rate for the device on this channel
                         if (!ok){
-                            REPORT_ERROR(ErrorManagement::InitialisationError, "Could set channel list in inputMember %i on Map %s", i, name.Buffer());
+                            REPORT_ERROR(ErrorManagement::InitialisationError, "Could not set channel list in inputMember %i on Map %s", i, name.Buffer());
                         }
                         //Set the scan rate of the hardware layer to the sampling rate of the device
                         if (ok){
@@ -195,6 +192,9 @@ bool UEIRtVMap::StartMap(){
                             }
                         }    
                     }
+                }
+                if (configurationBitfields != NULL_PTR(uint32*)){
+                    free(configurationBitfields);
                 }
             }
         }
@@ -261,7 +261,7 @@ bool UEIRtVMap::StartMap(){
 }
 
 bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
-    bool ok = (mapStarted && signalsConfigured);
+    bool ok = (mapStarted && inputSignalsConfigured);
     if (!ok){
         REPORT_ERROR(ErrorManagement::InitialisationError, "VMap %s must be enabled and input signals configured before polling", name.Buffer());
         outputCode = ERROR;
@@ -368,7 +368,7 @@ bool UEIRtVMap::PollForNewPacket(MapReturnCode& outputCode){
                         signalIdx++;
                     }
                     //Check out the current buffer
-                    ok &= inputMembersOrdered[i]->reference->inputChannelsBuffer->CheckoutBuffer();
+                    ok &= devReference->inputChannelsBuffer->CheckoutBuffer();
                 }
                 if (!ok){
                     outputCode = ERROR;
