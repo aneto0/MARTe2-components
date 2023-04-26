@@ -160,47 +160,24 @@ uint8 UEIDIO404::GetSampleSize(){
 bool UEIDIO404::ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields, MapType mapType){
     bool ok = true;
     uint32 nChannels_;
-    uint32* channels_;
     switch (direction){
         case InputSignals:
             nChannels_ = nInputChannels;
-            channels_ = inputChannelList;
         break;
         case OutputSignals:
             nChannels_ = nOutputChannels;
-            channels_ = outputChannelList;
         break;
         default:
             ok = false;
         break;
     }
     if (ok){
-        switch(mapType){
-            case RTDMAP:{
-                ok &= (nChannels_ != 0u);
-                if (ok){
-                    nConfigurationBitfields = 1;
-                    *configurationBitfields = (uint32*)malloc(sizeof(uint32)*nConfigurationBitfields);        
-                    //Only one configuration bitfield is supplied, no timestamp is allowed for this layer
-                    (*configurationBitfields)[0] = 0;
-                }
-            }
-            break;
-            case RTVMAP:{
-                ok &= (nChannels_ != 0u);
-                if (ok){
-                    nConfigurationBitfields = nChannels_;
-                    *configurationBitfields = (uint32*)malloc(sizeof(uint32)*nConfigurationBitfields);        
-                    //Only one configuration bitfield is supplied, no timestamp is allowed for this layer
-                    for (uint32 i = 0u; i < nChannels_; i++){
-                        (*configurationBitfields)[i] = channels_[i];
-                    }
-                }
-            }
-            break;
-            default:
-                ok = false;
-            break;
+        ok &= (nChannels_ != 0u);
+        if (ok){
+            nConfigurationBitfields = 1;
+            *configurationBitfields = (uint32*)malloc(sizeof(uint32)*nConfigurationBitfields);        
+            //Only one configuration bitfield is supplied, no timestamp is allowed for this layer
+            (*configurationBitfields)[0] = 0;
         }
     }
     return ok;
