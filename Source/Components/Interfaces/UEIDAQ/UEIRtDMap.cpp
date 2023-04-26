@@ -186,7 +186,7 @@ bool UEIRtDMap::StartMap(){
                 uint32* configurationBitfields = NULL_PTR(uint32*);
                 uint32 nConfigurationBitfields = 0;
                 devn = inputMembersOrdered[i]->devn;
-                ok &= (devReference->ConfigureChannels(InputSignals, &configurationBitfields, nConfigurationBitfields));
+                ok &= (devReference->ConfigureChannels(InputSignals, &configurationBitfields, nConfigurationBitfields, RTDMAP));
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error configuring input channels for dev%d on Map %s", devn, name.Buffer());
                 }
@@ -218,12 +218,12 @@ bool UEIRtDMap::StartMap(){
                 uint32* configurationBitfields = NULL_PTR(uint32*);
                 uint32 nConfigurationBitfields = 0;
                 devn = outputMembersOrdered[i]->devn;
-                ok &= (devReference->ConfigureChannels(OutputSignals, &configurationBitfields, nConfigurationBitfields));
+                ok &= (devReference->ConfigureChannels(OutputSignals, &configurationBitfields, nConfigurationBitfields, RTDMAP));
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Error configuring output channels for dev%d on Map %s", devn, name.Buffer());
                 }
                 for (uint32 j = 0; j < nConfigurationBitfields && ok; j++){
-                    ok = (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0OUT, &configurationBitfields[j], 1) >= 0);
+                    ok &= (DqRtDmapAddChannel(DAQ_handle, mapid, devn, DQ_SS0OUT, &configurationBitfields[j], 1) >= 0);
                     if (!ok){
                         REPORT_ERROR(ErrorManagement::InitialisationError, "Error adding output channels in IOM for dev%d on Map %s", devn, name.Buffer());
                     }
@@ -404,8 +404,13 @@ bool UEIRtDMap::WriteOutputs(MapReturnCode& outputCode){
             uint8 devn = outputMembersOrdered[member]->devn;
             void* writeBuffer = devReference->outputBuffer;
             uint32 bufferSize = devReference->GetWriteBufferSize();
+            printf("Sent : 0x%08x (devn %d)\n", reinterpret_cast<uint32*>(writeBuffer)[0], devn);
             ok &= (DqRtDmapWriteRawData(DAQ_handle, mapid, (int) devn, writeBuffer, bufferSize)>=0);
         }
+    }
+    if (ok){
+        //After the outputs are read, we do need to refresh the map
+        ok &= (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
     }
     return ok; 
 }

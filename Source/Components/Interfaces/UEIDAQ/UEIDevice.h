@@ -157,7 +157,7 @@ class UEIDevice : public Object {
      * @param[out] channelConfiguration pointer to channel configuration bitfield for the specified channel in the device. 
      * @return true if the channel is valid and information for configuration can be retrieved, false otherwise.
      */
-    virtual bool ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields);
+    virtual bool ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields, MapType mapType);
     /**
      * @brief Method to configure the device.
      * @details This method performs the required configuration and initialisation procedures for the specific device (hardware layer).

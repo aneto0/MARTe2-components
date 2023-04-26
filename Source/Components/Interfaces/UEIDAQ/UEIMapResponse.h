@@ -51,12 +51,7 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
-
-/**
- * @brief Class responsible to represent and manage a UEIDAQ device (Whole device, cpu + hardware layers installed)
- * @details This class implements the needed methods to manage and communicate with a UEIDAQ device. The class
- */
-class UEIMockupManager : public ReferenceContainer {
+class UEIMapResponse : public Object {
     public:
     CLASS_REGISTER_DECLARATION()
 
@@ -64,13 +59,13 @@ class UEIMockupManager : public ReferenceContainer {
      * @brief Default constructor.
      * @details NOOP.
      */
-    UEIMockupManager();
+    UEIMapResponse();
 
     /**
      * @brief Default destructor.
      * @details NOOP.
      */
-    virtual ~UEIMockupManager();
+    virtual ~UEIMapResponse();
 
     /**
      * @brief Initialise the Object from a configuration file.
@@ -81,10 +76,9 @@ class UEIMockupManager : public ReferenceContainer {
     virtual bool Initialise(StructuredDataI &data);
 
 protected:
-    StreamString name;
-    UEIDAQMockupManager* mockup;
-    IOM* myIOM;
-    uint32* Devices;
+    int32 response;
+    uint8* deviceResponses [12u];
+    uint32 responseLengths [12u];
 };
 }
 #endif /* UEIMockupManager_H_ */

@@ -28,7 +28,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "UEIMockupManager.h"
+#include "UEIMapResponse.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -39,44 +39,52 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
-
-UEIMockupManager::UEIMockupManager() : ReferenceContainer() {
+UEIMapResponse::UEIMapResponse() : Object() {
+    for (uint32 i = 0u; i < 12u; i++){
+        deviceResponses[i] = NULL_PTR(uint8*);
+    }
+    for (uint32 i = 0u; i < 12u; i++){
+        responseLengths[i] = 0u;
+    }
 }
 
-UEIMockupManager::~UEIMockupManager(){
-
+UEIMapResponse::~UEIMapResponse(){
+    for (uint32 i = 0u; i < 12u; i++){
+        if (deviceResponses[i] != NULL_PTR(uint8*)){
+            delete [] deviceResponses[i];
+        }
+    }
 }
 
-bool UEIMockupManager::Initialise(StructuredDataI &data){
-    bool ok = ReferenceContainer::Initialise(data);
-    //Retrieve reference to mockup singleton
-    mockup = UEIDAQMockupManager::getInstance();
-    mockup->resetManager();
-    ok &= mockup->GetIOM(1, &myIOM);
-    myIOM->resetIOM();
-
+bool UEIMapResponse::Initialise(StructuredDataI &data){
+    bool ok = true;
     StructuredDataIHelper helper = StructuredDataIHelper(data, this);
-    //Check the name of the Object
-    if (ok) {
-        name = data.GetName();
-        ok = (name.Size() != 0ull);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve UEIMockupManager Object Name.");
-        }
-    }
-    //Get connection timeout for the IOM if defiened, if not set default
     if (ok){
-        uint32 nDevices;
-        helper.ReadArray("Devices",Devices,nDevices);
-        for (uint32 i = 0u; i < nDevices; i++){
-            ok &= myIOM->SetDevice(i, i, 0u, 0u, Devices[i]);
+        StreamString responseStr;
+        ok &= data.Read("Response", responseStr);
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::ParametersError, "No Response parameter provided in map response");
+        }else{
+            if (responseStr == StreamString("SUCCESS")){
+                response = DQ_SUCCESS;
+            }else if (responseStr == StreamString("FIFO_OVERFLOW")){
+                response = -1;
+            }else{
+                ok = false;
+                REPORT_ERROR(ErrorManagement::ParametersError, "Invalid response provided in Response parameter");
+            }
         }
     }
-    MARTe::UEIDAQMockupManager* manager = MARTe::UEIDAQMockupManager::getInstance();
-    //ok &= manager->registerCallbacks();
-    // At this point, if ok is valid we've checked connection to the IOM, hardware configuration matching and device configuration
+    if (ok){
+        StreamString dev = "dev";
+        const char8* const numbersToChars [12] = {"0","1","2","3","4","5","6","7","8","9","10","11"};
+        for (uint32 i = 0u; i < 12u; i++){
+            StreamString thisDev = dev;
+            thisDev += numbersToChars[i];
+            helper.ReadArray(thisDev.Buffer(), deviceResponses[i], responseLengths[i]);
+        }
+    }
     return ok;
 }
-
-CLASS_REGISTER(UEIMockupManager, "1.0")
+CLASS_REGISTER(UEIMapResponse, "1.0")
 }

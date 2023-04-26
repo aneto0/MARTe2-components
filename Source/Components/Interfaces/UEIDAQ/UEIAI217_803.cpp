@@ -273,7 +273,7 @@ uint8 UEIAI217_803::GetSampleSize(){
     return sizeof(uint32);
 }
 
-bool UEIAI217_803::ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields){
+bool UEIAI217_803::ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields, MapType mapType){
     bool ok = true;
     switch (direction){
         case InputSignals:

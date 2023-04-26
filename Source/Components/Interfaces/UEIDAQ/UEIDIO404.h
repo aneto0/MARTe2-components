@@ -184,7 +184,7 @@ class UEIDIO404 : public UEIDevice {
      * @param[in] channelConfiguration location to where the configuration bitfield must be written.
      * @return true if the specified channel is valid and can be correctly configured into the bitfield.
      */
-    bool ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields);
+    bool ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields, MapType mapType);
         
     /**
      * @brief Configuration method which provides layer-spefcific configuration capabilities.

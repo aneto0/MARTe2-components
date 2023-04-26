@@ -132,7 +132,7 @@ bool UEIDevice::CheckChannelListAndDirection(uint32* channelList, uint32 listLen
     return ok;
 }
 
-bool UEIDevice::ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields){
+bool UEIDevice::ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields, MapType mapType){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
 }
@@ -197,7 +197,7 @@ bool UEIDevice::SetOutputChannelList (uint32* channelList, uint32 nChannels){
     outputChannelList = new uint32[nChannels];
     for (uint32 i = 0u; i < nOutputChannels && ok; i++){
         ok &= (channelList[i] < maxOutputChannel && (int32) channelList[i] > lastChannel);
-        inputChannelList[i] = channelList[i];
+        outputChannelList[i] = channelList[i];
         lastChannel = channelList[i];
     }
     if (!ok){

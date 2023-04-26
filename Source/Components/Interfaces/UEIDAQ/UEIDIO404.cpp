@@ -157,30 +157,51 @@ uint8 UEIDIO404::GetSampleSize(){
     return sizeof(uint32); //TODO
 }
 
-bool UEIDIO404::ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields){
+bool UEIDIO404::ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields, MapType mapType){
     bool ok = true;
+    uint32 nChannels_;
+    uint32* channels_;
     switch (direction){
         case InputSignals:
-            ok &= (nInputChannels != 0u);
-            if (ok){
-                nConfigurationBitfields = 1;
-                *configurationBitfields = (uint32*)malloc(sizeof(uint32)*nConfigurationBitfields);        
-                //Only one configuration bitfield is supplied, no timestamp is allowed for this layer
-                (*configurationBitfields)[0] = 0;
-            }
+            nChannels_ = nInputChannels;
+            channels_ = inputChannelList;
         break;
         case OutputSignals:
-            ok &= (nOutputChannels != 0u);
-            if (ok){
-                nConfigurationBitfields = 1;
-                *configurationBitfields = (uint32*)malloc(sizeof(uint32)*nConfigurationBitfields);        
-                //Only one configuration bitfield is supplied, no timestamp is allowed for this layer
-                (*configurationBitfields)[0] = 0;
-            }
+            nChannels_ = nOutputChannels;
+            channels_ = outputChannelList;
         break;
         default:
             ok = false;
         break;
+    }
+    if (ok){
+        switch(mapType){
+            case RTDMAP:{
+                ok &= (nChannels_ != 0u);
+                if (ok){
+                    nConfigurationBitfields = 1;
+                    *configurationBitfields = (uint32*)malloc(sizeof(uint32)*nConfigurationBitfields);        
+                    //Only one configuration bitfield is supplied, no timestamp is allowed for this layer
+                    (*configurationBitfields)[0] = 0;
+                }
+            }
+            break;
+            case RTVMAP:{
+                ok &= (nChannels_ != 0u);
+                if (ok){
+                    nConfigurationBitfields = nChannels_;
+                    *configurationBitfields = (uint32*)malloc(sizeof(uint32)*nConfigurationBitfields);        
+                    //Only one configuration bitfield is supplied, no timestamp is allowed for this layer
+                    for (uint32 i = 0u; i < nChannels_; i++){
+                        (*configurationBitfields)[i] = channels_[i];
+                    }
+                }
+            }
+            break;
+            default:
+                ok = false;
+            break;
+        }
     }
     return ok;
 }
@@ -265,9 +286,10 @@ bool UEIDIO404::SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* Signal
     if (ok){
         bool* statesList = new bool [nSamples];
         ok &= AnyTypeToBoolean(nSamples, statesList, SignalPointer, signalType);
-        uint32 mask = ~(0x00000001<<(12+channelIdx));
+        uint32 mask = ~(0x00000001<<(channelIdx));
         uint32* bufferSample = &(reinterpret_cast<uint32*>(outputBuffer)[0]);
-        *bufferSample = ((*bufferSample) & mask) | (statesList[0]<<(12+channelIdx));    
+        printf("state : %d\n", statesList[0]);
+        *bufferSample = ((*bufferSample) & mask) | (statesList[0]<<(channelIdx));    
     }
     return ok;
 }

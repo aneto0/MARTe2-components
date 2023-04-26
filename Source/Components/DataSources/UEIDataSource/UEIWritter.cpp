@@ -172,9 +172,9 @@ bool UEIWritter::SetConfiguredDatabase(StructuredDataI &data) {
                 break;
                 case RTVMAP:
                     //For RtVMap, only signals with more than 1 sample are allowed
-                    ok = (nSamples > 1u);
+                    ok = (nSamples > 0u);
                     if (!ok){
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid sample number for signals on Map %s for DataSource %s (RtVMap needs more than 1 sample to be retrieved)", map->GetName(), name.Buffer());
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid sample number for signals on Map %s for DataSource %s (RtVMap needs at least 1 sample to be retrieved)", map->GetName(), name.Buffer());
                     }
                 break;
                 default:

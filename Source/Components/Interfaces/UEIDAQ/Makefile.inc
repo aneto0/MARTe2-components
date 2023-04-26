@@ -32,7 +32,8 @@ OBJSX=  UEIDevice.x 			\
 		UEIDIO404.x
 
 ifdef UEIDAQ_MOCKUP
-OBJSX += UEIMockupManager.x
+OBJSX += 	UEIMockupManager.x
+#			UEIMapResponse.x
 endif
 
 PACKAGE=Components/Interfaces
