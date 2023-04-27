@@ -281,7 +281,7 @@ bool NI9157CircularFifoReader::PrepareNextState(const char8 * const currentState
 bool NI9157CircularFifoReader::DriverRead(char8 * const bufferToFill, uint32 &sizeToRead, const uint32 signalIdx) {
 
     bool ret = true;
-    bool writeMemory = false;
+    bool writeMemory = true;
     //REPORT_ERROR(ErrorManagement::Information, "NI9157CircularFifoReader::DriverRead");
 
     if (runNi == 1u) {

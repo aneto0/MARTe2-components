@@ -115,6 +115,11 @@ TEST(CounterCheckerGTest,TestCheck_ConsecutiveCalls) {
     ASSERT_TRUE(test.TestCheck_ConsecutiveCalls());
 }
 
+TEST(CounterCheckerGTest,TestCheck_ConsecutiveCalls_NSteps) {
+    CounterCheckerTest test;
+    ASSERT_TRUE(test.TestCheck_ConsecutiveCalls_NSteps());
+}
+
 TEST(CounterCheckerGTest,TestSynchronise) {
     CounterCheckerTest test;
     ASSERT_TRUE(test.TestSynchronise());

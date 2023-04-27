@@ -148,6 +148,12 @@ public:
     bool TestCheck_ConsecutiveCalls();
 
     /**
+     * @brief Tests the CounterChecker::Check method which retruns true and
+     * with argument write true upon consecutive calls (increments) and check every N steps.
+     */
+    bool TestCheck_ConsecutiveCalls_NSteps();
+
+    /**
      * @brief Tests the CounterChecker::Synchronise method.
      */
     bool TestSynchronise();

@@ -77,7 +77,7 @@ public:
      * CounterStep: The step used in the counter interations. Default is value
      * is 1 and the user set value must be greater than zero. \n
      * CheckCounterAfterNSteps: After how many counts should the check be
-     * perfromed. If not defined, the default value is the CounterStep value.
+     * performed. If not defined, the default value is the CounterStep value.
      */
     virtual bool Initialise(StructuredDataI &data);
 
