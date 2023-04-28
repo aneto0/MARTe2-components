@@ -269,10 +269,12 @@ class UEIDevice : public Object {
     bool SetOutputChannelList (uint32* channelList, uint32 nChannels);
     ReferenceT<UEICircularBuffer> inputChannelsBuffer;
     ReferenceT<UEICircularBuffer> outputChannelsBuffer;
-    virtual bool InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples);
+    virtual bool InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 writeSamples, uint32 readSammples);
     bool timestampRequired;
     void* outputBuffer;
     uint32 GetWriteBufferSize();
+    virtual bool GetHardwareChannels(SignalDirection direction, uint32& nChannels);
+    
 protected:
 
     bool AnyTypeToBoolean(uint32 nSamples, bool* booleanSignal, void* inputSignal, TypeDescriptor signalType);

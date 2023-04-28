@@ -72,7 +72,7 @@ UEIMapContainer::UEIMapContainer() : ReferenceContainer() {
     inputMembersOrdered = NULL_PTR(MapMember**);
     nInputMembers = 0u;
     nOutputMembers = 0u;
-    sampleNumber = 0u;
+    nSamplesMapExchange = 0u;
     timestampCorrector = 0u;
     lastTimestamp = 0u;
     inputSignalAddresses = NULL_PTR(uint8**);
@@ -83,6 +83,9 @@ UEIMapContainer::UEIMapContainer() : ReferenceContainer() {
     inputSignalsConfigured = false;
     outputSignalsConfigured = false;
     mapCoherent = false;
+    executionMode = NoMode;
+    //Mutex is always set as non recursive
+    mapMutex.Create(false);
 }
 
 UEIMapContainer::~UEIMapContainer(){
@@ -100,13 +103,17 @@ UEIMapContainer::~UEIMapContainer(){
         delete[] inputSignalTypes;
     }
     if (outputSignalAddresses != NULL_PTR(uint8**)){
-        delete[] inputSignalAddresses;
+        delete[] outputSignalAddresses;
     }
     if(outputSignalTypes != NULL_PTR(TypeDescriptor*)){
-        delete[] inputSignalTypes;
+        delete[] outputSignalTypes;
     }
     if (TimestampAddr != NULL_PTR(uint64*)){
         TimestampAddr = NULL_PTR(uint64*);
+    }
+    //Close the mutex
+    if (!mapMutex.IsClosed()){
+        mapMutex.Close();
     }   
 }
 
@@ -130,6 +137,23 @@ bool UEIMapContainer::Initialise(StructuredDataI &data){
         if (!ok) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMapContainer::Initialise - "
                 "Could not retrieve DAQ Map Container Name.");
+        }
+    }
+    if (ok){
+        StreamString ExecModeStr;
+        ok &= data.Read("ExecutionMode", ExecModeStr);
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::FatalError, "ExecutionMode not supplied for Map %s", name.Buffer());
+        }
+        if (ok){
+            if (ExecModeStr == "RealTimeThread"){
+                executionMode = UEIMapRealTimeThreadExecutionMode;
+            }else if (ExecModeStr == "IndependentThread"){
+                executionMode = UEIMapIndependentThreadExecutionMode;
+            }else{
+                REPORT_ERROR(ErrorManagement::FatalError, "Invalid ExecutionMode supplied to Map %s", name.Buffer());
+                ok = false;
+            }
         }
     }
     //Variables to control wether the Inputs and/or Outputs blocks have been defined
@@ -200,8 +224,7 @@ bool UEIMapContainer::Initialise(StructuredDataI &data){
                 }
             }
         }else{
-            REPORT_ERROR(ErrorManagement::Information, "UEIMapContainer::Initialise - "
-            "No input signals defined for map %s.", name.Buffer());
+            REPORT_ERROR(ErrorManagement::Information, "No input signals defined for map %s.", name.Buffer());
         }
     }
     //Check if the Inputs/Outputs configuration blocks are defined.
@@ -209,8 +232,7 @@ bool UEIMapContainer::Initialise(StructuredDataI &data){
         ok = (outputSignalsDefined || inputSignalsDefined);
         if (!ok){
             //No Inputs and Outputs signal blocks are defined. The MapContainer cannot be empty
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMapContainer::Initialise - "
-            "No Inputs or Outputs blocks defined for map %s.", name.Buffer());
+            REPORT_ERROR(ErrorManagement::InitialisationError, "No Inputs or Outputs blocks defined for map %s.", name.Buffer());
         }
         //Set the input/outputAssignedToDs variables to the value of input/outputSignalsDefined value.
         inputAssignedToDS = !inputSignalsDefined;
@@ -223,11 +245,11 @@ bool UEIMapContainer::StartMap(){
     return false;
 }
 
-bool UEIMapContainer::PollForNewPacket(MapReturnCode& outputCode){
+bool UEIMapContainer::GetInputs(MapReturnCode& outputCode){
     return false; 
 }
 
-bool UEIMapContainer::WriteOutputs(MapReturnCode& outputCode){
+bool UEIMapContainer::SetOutputs(MapReturnCode& outputCode){
     return false; 
 }
 
@@ -687,5 +709,21 @@ bool UEIMapContainer::ParseIODevices(StructuredDataI &data, SignalDirection dire
 bool UEIMapContainer::GetMapStatus(){
     return mapStarted;
 }
+
+UEIMapExecutionMode UEIMapContainer::GetExecutionMode(){
+    return executionMode;
+}
+
+bool UEIMapContainer::SetExecutionMode(UEIMapExecutionMode mode){
+    //Mode can only be set if previously not set
+    bool ok = (executionMode == NoMode || (executionMode == mode && mode != NoMode));
+    if (ok){
+        executionMode = mode;
+    }
+    return ok;
+}
+
+
+
 CLASS_REGISTER(UEIMapContainer, "1.0")
 }

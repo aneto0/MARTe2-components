@@ -249,7 +249,8 @@ bool UEIDIO404::RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* Si
     //Check if the input signals buffer is ready for reading
     bool ok = inputChannelsBuffer->CheckReadReady();
     if (ok){
-        UEIBufferPointer rawData = inputChannelsBuffer->ReadChannel(0, ok);
+        UEIBufferPointer rawData;
+        ok &= inputChannelsBuffer->ReadChannel(0, rawData);
         if (ok){
             ok &= ScaleSignal(channelIdx, nSamples, rawData, SignalPointer, signalType);
         }
@@ -261,24 +262,30 @@ bool UEIDIO404::SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* Signal
     //This implementation of the method always return false as this hardware layer can never accept output signals
     bool ok = (channelIdx < 12u);
     if (ok){
+        uint32 mask = ~(0x00000001<<(channelIdx));
         bool* statesList = new bool [nSamples];
         ok &= AnyTypeToBoolean(nSamples, statesList, SignalPointer, signalType);
-        uint32 mask = ~(0x00000001<<(channelIdx));
-        uint32* bufferSample = &(reinterpret_cast<uint32*>(outputBuffer)[0]);
-        printf("state : %d\n", statesList[0]);
-        *bufferSample = ((*bufferSample) & mask) | (statesList[0]<<(channelIdx));    
+        uint8* wPointer = outputChannelsBuffer->writePointer;
+        ok &= (wPointer != NULL_PTR(uint8*));
+        if (ok){
+            uint32* samplesBuffer = reinterpret_cast<uint32*>(wPointer);
+            for (uint32 i = 0u; i < nSamples && ok; i++){
+                samplesBuffer[i] = ((samplesBuffer[i]) & mask) | (statesList[i]<<(channelIdx));    
+            }
+        }
     }
     return ok;
 }
 
-bool UEIDIO404::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples){
+bool UEIDIO404::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 writeSamples, uint32 readSammples){
     bool ok = true;
     switch (direction){
         case InputSignals:
             //The retrieved input is a 32-bit wide word containing the status of all the I/O channels
-            ok &= inputChannelsBuffer->InitialiseBuffer(nBuffers, 1u, retrievedSamples, sizeof(uint32), readSammples, timestampRequired);
+            ok &= inputChannelsBuffer->InitialiseBuffer(nBuffers, 1u, writeSamples, sizeof(uint32), readSammples, false);
         break;
         case OutputSignals:
+            ok &= outputChannelsBuffer->InitialiseBuffer(nBuffers, 1u, writeSamples, sizeof(uint32), readSammples, false);
             outputBuffer = reinterpret_cast<void*>(new uint32 [1]);
         break;
         default:
@@ -290,6 +297,23 @@ bool UEIDIO404::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 re
 uint32 UEIDIO404::GetWriteBufferSize(){
     //For UEI DIO 404 layer, a single 32 bit word is used
     return 1u;
+}
+
+bool UEIDIO404::GetHardwareChannels(SignalDirection direction, uint32& nChannels){
+    bool ok = true;
+    switch(direction){
+        case InputSignals:
+            nChannels = 1u;
+        break;
+        case OutputSignals:
+            nChannels = 1u;
+        break;
+        default:
+            ok = false;
+            nChannels = 0;
+        break;
+    }
+    return ok;
 }
 
 CLASS_REGISTER(UEIDIO404, "1.0")

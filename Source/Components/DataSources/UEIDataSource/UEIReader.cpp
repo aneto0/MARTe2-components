@@ -40,7 +40,7 @@
 
 namespace MARTe {
 
-UEIReader::UEIReader() : MemoryDataSourceI() {
+UEIReader::UEIReader() : UEIDataSourceI() {
         PollSleepPeriod = 100;
         deviceName = StreamString("");
         mapName = StreamString("");
@@ -60,48 +60,12 @@ UEIReader::~UEIReader() {
 }
 
 bool UEIReader::Initialise(StructuredDataI &data) {
-    bool ok = MemoryDataSourceI::Initialise(data);
+    bool ok = UEIDataSourceI::Initialise(data);
     StructuredDataIHelper helper = StructuredDataIHelper(data, this);
-    //Get the name of the DataSource
-    name = data.GetName();
-    ok = data.Read("Device", deviceName);
-    if (!ok){
-        REPORT_ERROR(ErrorManagement::ParametersError, "No device specified for UEIReader %s", name.Buffer());        
-    }
-    if (ok){
-        ok = data.Read("Map", mapName);
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::ParametersError, "No map specified for UEIReader %s", name.Buffer());        
-        }
-    }
-    //Retrieve PollSleepPeriod (optional)
+
+    //Retrieve PollSleepPeriod, the time to wait between Poll requests, only meaningful for RtVMap (optional)
     if (ok){
         helper.Read("PollSleepPeriod", PollSleepPeriod, 100);
-    }
-    //Retrieve the reference to the UEIDAQ device
-    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
-    if (ok){
-        device = ord->Find(deviceName.Buffer());
-        ok = device.IsValid();
-        if (ok){
-           REPORT_ERROR(ErrorManagement::Information, "Device %s found (at UEIReader %s)", deviceName.Buffer(), name.Buffer());
-        }else{
-           REPORT_ERROR(ErrorManagement::ParametersError, "Unable to find device %s (at UEIReader %s)", deviceName.Buffer(), name.Buffer());
-        }
-    }
-    //Retrieve the reference to the selected map within the UEIDAQ device
-    if (ok){
-        StreamString mapPath = StreamString("");
-        mapPath += deviceName;
-        mapPath += ".Maps.";
-        mapPath += mapName;
-        map = ord->Find(mapPath.Buffer());
-        ok = map.IsValid();
-        if (ok){
-            REPORT_ERROR(ErrorManagement::Information, "Map %s found (at UEIReader %s, path: %s)", mapName.Buffer(), name.Buffer(), mapPath.Buffer());
-        }else{
-            REPORT_ERROR(ErrorManagement::ParametersError, "Unable to find map %s (at UEIReader %s, path: %s)", mapName.Buffer(), name.Buffer(), mapPath.Buffer());
-        }
     }
     //Only one DataSource can be associated with a map, check that the map is not being used by another DataSource
     if (ok){
@@ -250,6 +214,7 @@ bool UEIReader::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     return ok;
+
 }
 
 bool UEIReader::TerminateInputCopy(const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples){
@@ -283,8 +248,11 @@ bool UEIReader::Synchronise() {
     bool continueLoop = true;
     MapReturnCode outputCode;
     *statusMemory = 0;
+    uint32 counter = 0;
     while(continueLoop && ok){
-        ok &= (map->PollForNewPacket(outputCode));
+        printf("Syncing\n");
+        ok &= (map->GetInputs(outputCode));
+        printf("Done Syncing\n");
         switch (outputCode){
             case ERROR:
                 GeneralError = 1;
@@ -307,59 +275,12 @@ bool UEIReader::Synchronise() {
             continueLoop = false;          
         }
         if (continueLoop) Sleep::MSec(PollSleepPeriod);
+        if (counter > 100) break;
+        counter++;
+        
     }
     *statusMemory = (localErrorCounter | ValidData << 16 | FIFOError << 17 | GeneralError << 18);
     return true;
-}
-
-bool UEIReader::AllocateMemory(){
-    uint32 nOfSignals = GetNumberOfSignals();
-    bool ret = true;
-    if (memory == NULL_PTR(uint8*)){    
-        if (ret) {
-            if (nOfSignals > 0u) {
-                signalOffsets = new uint32[nOfSignals];
-                ret = (signalOffsets != NULL_PTR(uint32*));
-                if (ret) {
-                    signalSize = new uint32[nOfSignals];
-                    ret = (signalSize != NULL_PTR(uint32*));
-                }
-            }
-        }
-
-        stateMemorySize = 0u;
-        for (uint32 s = 0u; (s < nOfSignals) && (ret); s++) {
-            uint32 thisSignalMemorySize;
-            ret = GetSignalByteSize(s, thisSignalMemorySize);
-            if (ret) {
-                if (signalOffsets != NULL_PTR(uint32 *)) {
-                    signalOffsets[s] = stateMemorySize;
-                }
-            }
-            if (ret) {
-                ret = (thisSignalMemorySize > 0u);
-            }
-            if (ret) {
-                uint32 thisSignalSampleN;
-                ret = GetFunctionSignalSamples(InputSignals,0,s,thisSignalSampleN);
-                stateMemorySize += (thisSignalMemorySize * numberOfBuffers * thisSignalSampleN);
-                signalSize[s] = thisSignalMemorySize * thisSignalSampleN;
-            }
-            if (!ret) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not obtain information for signal number %d on UEIReader %s", s, name.Buffer());
-        }
-        uint32 numberOfStateBuffers = GetNumberOfStatefulMemoryBuffers();
-        if (ret) {
-            ret = (numberOfStateBuffers > 0u);
-        }
-        if (ret) {
-            totalMemorySize = stateMemorySize * numberOfStateBuffers;
-            if (memoryHeap != NULL_PTR(HeapI *)) {
-                memory = reinterpret_cast<uint8 *>(memoryHeap->Malloc(totalMemorySize));
-            }
-            ret = MemoryOperationsHelper::Set(memory, '\0', totalMemorySize);
-        }
-    }
-    return ret;
 }
 
 const char8* UEIReader::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
@@ -379,6 +300,10 @@ bool UEIReader::PrepareNextState(const char8 * const currentStateName, const cha
     map->StopMap();
     firstSync = true;
     return true;
+}
+
+bool UEIReader::AllocateMemory(){
+    return UEIDataSourceI::AllocateMemory(InputSignals);
 }
 
 CLASS_REGISTER(UEIReader, "1.0")

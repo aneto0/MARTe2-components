@@ -447,7 +447,8 @@ bool UEIAI217_803::RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void*
     int32 index = FindChannelIndex(channelIdx, InputSignals);
     ok &= (index != -1);
     if (ok){
-        UEIBufferPointer rawData = inputChannelsBuffer->ReadChannel((uint32) index, ok);
+        UEIBufferPointer rawData;
+        ok &= inputChannelsBuffer->ReadChannel((uint32) index, rawData);
         if (ok){
             ok &= ScaleSignal(channelIdx, nSamples, rawData, SignalPointer, signalType);
         }
@@ -460,16 +461,33 @@ bool UEIAI217_803::SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* Sig
     return false;
 }
 
-bool UEIAI217_803::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples){
+bool UEIAI217_803::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 writeSamples, uint32 readSammples){
     bool ok = true;
     switch (direction){
         case InputSignals:
-            ok &= inputChannelsBuffer->InitialiseBuffer(nBuffers, nInputChannels, retrievedSamples, GetSampleSize(), readSammples, timestampRequired);
+            ok &= inputChannelsBuffer->InitialiseBuffer(nBuffers, nInputChannels, writeSamples, GetSampleSize(), readSammples, timestampRequired);
         break;
         case OutputSignals:
             ok = false;
         break;
         default:
+            ok = false;
+        break;
+    }
+    return ok;
+}
+
+bool UEIAI217_803::GetHardwareChannels(SignalDirection direction, uint32& nChannels){
+    bool ok = true;
+    switch(direction){
+        case InputSignals:
+            nChannels = nInputChannels;
+        break;
+        case OutputSignals:
+            nChannels = nOutputChannels;
+        break;
+        default:
+            nChannels = 0u;
             ok = false;
         break;
     }

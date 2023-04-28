@@ -236,8 +236,8 @@ class UEIAI217_803 : public UEIDevice {
     
     bool RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType);
     bool SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType);
-    bool InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples);
-
+    bool InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 writeSamples, uint32 readSammples);
+    bool GetHardwareChannels(SignalDirection direction, uint32& nChannels);
 protected:
     
     bool ConfigureChannel(uint32 channelNumber, uint32& channelConfiguration);

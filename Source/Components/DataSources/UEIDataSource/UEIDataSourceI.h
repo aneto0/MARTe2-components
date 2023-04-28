@@ -1,6 +1,6 @@
 /**
- * @file UEIWritter.h
- * @brief Header file for class UEIWritter
+ * @file UEIDataSourceI.h
+ * @brief Header file for class UEIDataSourceI
  * @date 20/03/2023
  * @author Xavier Ruche
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class UEIWritter
+ * @details This header file contains the declaration of the class UEIDataSourceI
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef UEIWritter_H_
-#define UEIWritter_H_
+#ifndef UEIDataSourceI_H_
+#define UEIDataSourceI_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -41,7 +41,6 @@
 
 #include "UEIMasterObject.h"
 #include "UEIMapContainer.h"
-#include "UEIDataSourceI.h"
 
 
 
@@ -85,8 +84,8 @@ namespace MARTe {
 *
 * See the example below for a configuration of the DataSource:
 * <pre>
-*   +UEIWritter1 = {
-*        Class = UEIDataSourceI::UEIWritter
+*   +UEIDataSourceI1 = {
+*        Class = UEIDataSourceI::UEIDataSourceI
 *        Device = "UEIDevice"
 *        Map = "Map1"
 *        PollSleepPeriod = 1
@@ -108,19 +107,19 @@ namespace MARTe {
 * </pre>
 *
 */
-class UEIWritter : public UEIDataSourceI {
+class UEIDataSourceI: public MemoryDataSourceI {
 public:
 
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief Constructor. NOOP.
      */
-    UEIWritter();
+    UEIDataSourceI();
 
     /**
      * @brief Destructor. Stops the Embedded thread which reads from the CRIOUARTSerial.
      */
-    virtual ~UEIWritter();
+    virtual ~UEIDataSourceI();
 
     /**
      * @brief Verifies that the configuration described above is correctly set.
@@ -132,7 +131,7 @@ public:
      * @see Checks that the signal properties are as described in the class description.
      * @return true if the signal properties respect all the rules described in the class description.
      */
-    bool SetConfiguredDatabase(StructuredDataI &data);
+    virtual bool SetConfiguredDatabase();
 
     /**
      * @see DataSourceI::TerminateInputCopy
@@ -140,26 +139,99 @@ public:
     virtual bool TerminateInputCopy(const uint32 signalIdx,  const uint32 offset, const uint32 numberOfSamples);
 
     /**
-     * @brief Assigns the correct broker for the connected signals. Checks that only input signals are provided, this
-     * datasource does only support input signals.
-     * @return "MemoryMapSychronisedInputBroker" if the signal is an input signal.
-     */
-    const char8* GetBrokerName(StructuredDataI &data, const SignalDirection direction);
-
-    /**
-     * @brief Sycnhronise method for the DataSource.
-     * @details This method performs the synchronisation to the latest IOM data. The method calls the PollForNewPacket method of the assigned Map
-     * to retrieve new data from the IOM.
-     * @return true.
-     */
-    bool Synchronise();
-
-    /**
      * @see DataSourceI::PrepareNextState
      */
     virtual bool PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName);
 
-    bool AllocateMemory();
+    /**
+     * @brief Method which redefines the behavior of AllocateMemory method in MemoryDataSource.
+     * @details This method reimplements the AllocateMemory method in MemoryDataSource to allow multiple samples to be recognized and 
+     * taken into account when allocating and assigning memory to input and output signals for this DataSource
+     * @return true if memory allocation succeeded, false otherwise.
+     */
+    bool AllocateMemory(SignalDirection direction);
+
+    /**
+     * @brief Assigns the correct broker for the connected signals. Checks that only input signals are provided, this
+     * datasource does only support input signals.
+     * @return ""
+     */
+    virtual const char8* GetBrokerName(StructuredDataI &data, const SignalDirection direction);
+
+    /**
+     * @brief Sycnhronise method for the DataSource.
+     * @details TODO
+     * @return false.
+     */
+    virtual bool Synchronise();
+
+protected:
+
+    /**
+     * Variable to store the name of this DataSource
+     */
+    StreamString name;
+    
+    /**
+     * Variable to store the identifier (name) of the UEIDAQ device to which connect
+     */
+    StreamString deviceName;
+    
+    /**
+     * Variable to store the identifier (name) of the MapContainer object which this DataSource is connected to
+     */
+    StreamString mapName;
+
+    /**
+     * Reference to the UEIMasterObject containing the configuration of the desired Device
+     */
+    ReferenceT<UEIMasterObject> device;
+    
+    /**
+     * Reference to the UEIMapContainer containing the desired map. This map must exist within the specified device
+     */
+    ReferenceT<UEIMapContainer> map;
+
+    /**
+     * Variable to store the selected polling sleep period configured for this datasource. This is the period of MARTe sleep
+     * between an unsuccessful poll request to the UEIDAQ device and the next poll request. 
+     */
+    uint32 PollSleepPeriod;
+       
+    /**
+     * Variable to store the signal type for all the signals on this DataSource 
+     */
+    uint32 nOutputChannels;
+    
+    /**
+     * Variable to store the signal type for all the signals on this DataSource 
+     */
+    uint32 nSamples;
+    
+    /**
+     * Flag signaling if it is the first time MARTe calls the Synchronise method on this DataSource.
+     * (MARTe may call the datasource Synchronise method during application initialisation but starve the thread while
+     * performing initialisation tasks, in this case the FIFO servicing on a VMap can be afected and the map fail).
+     */
+    bool firstSync;
+
+    /**
+     * Array of TypeDescriptors stating the input signals types requested by the user, the array must have length matching the number of input signals.
+     */
+    TypeDescriptor* signalTypes;
+    
+    /**
+     * Array of pointers to the location of the memory region for each of the input signals for the map to deposit the samples. This array must be 
+     * of matching length to the number of input signals
+     */
+    uint8** signalAddresses;
+    
+    /**
+     * Pointer to the memory region for the map to deposit the sample/s obtained as timestamp to be delivered as input signal.
+     */
+    uint64* timestampSignalAddr;
+
+    UEIMapExecutionMode executionMode;
 };
 
 }
@@ -168,4 +240,4 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* UEIWritter_H_ */
+#endif /* UEIDataSourceI_H_ */

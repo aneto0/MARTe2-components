@@ -97,6 +97,13 @@ bool UEIRtDMap::Initialise(StructuredDataI &data){
         //For the RtDMap, the first channel of the first device is always going to be the map timestamp
         inputMembersOrdered[0]->Inputs.timestampRequired = true;
     }
+    //Check that the DMap is operated in RealTimeThread Mode, fail otherwise, this map does not support multithreading
+    if (ok){
+        ok &= (executionMode == UEIMapRealTimeThreadExecutionMode);
+        if (!ok){
+            REPORT_ERROR(ErrorManagement::FatalError, "RtDMap %s must only used in RealTimeThread mode", name.Buffer());
+        }
+    }
     return ok;
 }
 
@@ -287,7 +294,7 @@ bool UEIRtDMap::GetMapPointers(){
     return ok;
 }
 
-bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
+bool UEIRtDMap::GetInputs(MapReturnCode& outputCode){
     bool ok = (mapStarted && inputSignalsConfigured && mapCoherent);
     //Check first if the map is ready for action
     if (!ok){
@@ -358,7 +365,8 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
                 //Compute the timestamp, which occupies the first position of input memory on the datasource as uint64
                 //By calling this method in this position, the already written float64 on the first position is overwritten by this uint64 timestamp (better alternative)
                 if (ok && inputMembersOrdered[i]->Inputs.timestampRequired){
-                    UEIBufferPointer timestampPointer = inputMembersOrdered[i]->reference->inputChannelsBuffer->ReadTimestamp(ok);
+                    UEIBufferPointer timestampPointer;
+                    ok &= inputMembersOrdered[i]->reference->inputChannelsBuffer->ReadTimestamp(timestampPointer);
                     ok &= GetTimestamp(timestampPointer, 1u, TimestampAddr);
                     if (!ok){
                         outputCode = ERROR;
@@ -381,7 +389,7 @@ bool UEIRtDMap::PollForNewPacket(MapReturnCode& outputCode){
     return ok;
 }
 
-bool UEIRtDMap::WriteOutputs(MapReturnCode& outputCode){
+bool UEIRtDMap::SetOutputs(MapReturnCode& outputCode){
     bool ok = (mapStarted && outputSignalsConfigured && mapCoherent);
     //traverse all the outputMembers and assign the output samples to their output buffers
     uint32 signalIdx = 0u;

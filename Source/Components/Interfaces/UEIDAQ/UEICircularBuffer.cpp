@@ -41,25 +41,26 @@
 namespace MARTe {
 
 UEICircularBuffer::UEICircularBuffer() : Object() {
-    writePointer = NULL_PTR(uint8*);
-    timestampRequired = false;
     headPointer = NULL_PTR(uint8*);
+    writePointer = NULL_PTR(uint8*);
+    readPointer = NULL_PTR(uint8*);
+    timestampRequired = false;
     nOfBuffers = 0;
     singleBufferLength = 0;
     runawayZoneLength = 0;
-    currentActiveBuffer = 0;
     bufferLength = 0;
-    samplesInMapRequest = 0;
+    fullBufferLength = 0;
     nChannels = 0;
     sizeOfSamples = 0;
-    readSamples = 0;
+    samplesPerExternalWrite = 0;
+    samplesPerExternalRead = 0;
     pointerList = NULL_PTR(UEIBufferPointer*);
-    bufferSet = false;
-    writePointerLapped = false;
-    currentBufferLocation = 0;
 }
 
 UEICircularBuffer::~UEICircularBuffer(){
+    //Just in case
+    writePointer = NULL_PTR(uint8*);
+
     if (headPointer != (NULL_PTR(uint8*))){
         free(headPointer);
     }
@@ -69,7 +70,7 @@ UEICircularBuffer::~UEICircularBuffer(){
 }
 
 
-bool UEICircularBuffer::InitialiseBuffer(uint32 numberOfBuffers, uint32 channels, uint32 samplesPerMapRequest, uint8 sOfSamples, uint32 nReadSamples, bool tStampRequired){
+bool UEICircularBuffer::InitialiseBuffer(uint32 numberOfBuffers, uint32 channels, uint32 SamplesPerExternalWrite, uint8 SizeOfSamples, uint32 SamplesPerExternalRead, bool tStampRequired){
     bool ok = true;
     //Check the number of channels the buffer must hold (at least 1 channel)
     if (ok){
@@ -86,8 +87,8 @@ bool UEICircularBuffer::InitialiseBuffer(uint32 numberOfBuffers, uint32 channels
     }
     //Check the maximum number of samples expected from a map refresh call (set by the user in the UEIMap configuration)
     if (ok){
-        ok = (samplesPerMapRequest > 0u);
-        samplesInMapRequest = samplesPerMapRequest;
+        ok = (SamplesPerExternalWrite > 0u);
+        samplesPerExternalWrite = SamplesPerExternalWrite;
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "At least one sample per channel must be supplied by the Map packet");
         }
@@ -95,8 +96,8 @@ bool UEICircularBuffer::InitialiseBuffer(uint32 numberOfBuffers, uint32 channels
     //Check the desired number of samples to be retrieved by MARTe DataSource from this buffer, defines de size of the buffer (at least one sample
     //must be retrieved)
     if (ok){
-        ok = (nReadSamples > 0u);
-        readSamples = nReadSamples;
+        ok = (SamplesPerExternalRead > 0u);
+        samplesPerExternalRead = SamplesPerExternalRead;
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid number of samples to be read from this buffer");
         }
@@ -104,8 +105,8 @@ bool UEICircularBuffer::InitialiseBuffer(uint32 numberOfBuffers, uint32 channels
     //Check the size of the samples to be logged into the buffer. A UEICircularBuffer is intended to save data from a single hardware layer, therefore
     // only having a single datatype (uint32, uint16 or uint8) for all its channels. The timestamp channel length is hardcoded into the buffer.
     if (ok){
-        ok = (sOfSamples > 0 && sOfSamples <= sizeof(uint32));  //UEIDAQ only supports uint32 or below sample size
-        sizeOfSamples = sOfSamples;
+        ok = (SizeOfSamples > 0 && SizeOfSamples <= sizeof(uint32));  //UEIDAQ only supports uint32 or below sample size
+        sizeOfSamples = SizeOfSamples;
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "UEICircularBuffer only supports 4-byte or less channel samples");
         }
@@ -122,27 +123,28 @@ bool UEICircularBuffer::InitialiseBuffer(uint32 numberOfBuffers, uint32 channels
     if (ok){
         //A single buffer must contain all the channels plus a timestamp channel (fixed uint32 channel) if needed with the ammount 
         //of samples requested in a datasource read
-        singleBufferLength = (sizeOfSamples*nChannels+sizeof(uint32)*timestampRequired)*readSamples;
+        singleBufferLength = (sizeOfSamples*nChannels+sizeof(uint32)*timestampRequired)*samplesPerExternalRead;
         //The runaway zone is needed to write partial data into the the buffer when the last single buffer is full, data is written
         // into this runaway zone and later on copied into the first buffer of the list if empty
-        runawayZoneLength = (sizeOfSamples*nChannels+sizeof(uint32)*timestampRequired)*samplesInMapRequest;
+        runawayZoneLength = (sizeOfSamples*nChannels+sizeof(uint32)*timestampRequired)*samplesPerExternalWrite;
         //The total length of the buffer is determined
-        bufferLength = singleBufferLength*numberOfBuffers + runawayZoneLength; 
-        headPointer = (uint8*)malloc(bufferLength);
+        bufferLength = singleBufferLength*numberOfBuffers; 
+        fullBufferLength = singleBufferLength*numberOfBuffers + runawayZoneLength; 
+        headPointer = (uint8*)malloc(fullBufferLength);
         ok = (headPointer != NULL_PTR(uint8*));
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to initialise memory for UEICircularBuffer");
         }
-        currentActiveBuffer = 0u;
     }
     //Place correctly the writePointer for initial configuration
     if (ok){
         writePointer = (uint8*)headPointer;
+        readPointer = (uint8*)headPointer;
     }
     if (ok){
         //Allocate timestamp UEIBufferPointer object
         // As the timestamp is always the first channel retrieved the values are fixed, offset 0 bytes, gain and number of samples
-        timestampList.SetPointerCharacteristics(0u, (nChannels*sizeOfSamples) + sizeof(uint32), readSamples);
+        timestampList.SetPointerCharacteristics(0u, (nChannels*sizeOfSamples) + sizeof(uint32), samplesPerExternalRead);
         //Try to allocate memory for the array of pointers
         pointerList = new UEIBufferPointer[nChannels]; 
         ok &= (pointerList != NULL_PTR(UEIBufferPointer*));
@@ -150,25 +152,11 @@ bool UEICircularBuffer::InitialiseBuffer(uint32 numberOfBuffers, uint32 channels
         for (uint32 i = 0; i < nChannels && ok; i++){
             uint32 offset = i*sizeOfSamples + sizeof(uint32)*timestampRequired;
             uint32 pointerGain = nChannels*sizeOfSamples + sizeof(uint32)*timestampRequired;
-            uint32 maxLength = readSamples;
+            uint32 maxLength = samplesPerExternalRead;
             ok &= pointerList[i].SetPointerCharacteristics(offset, pointerGain, maxLength);
         }
     }
-    bufferSet = ok;
     return ok;
-}
-
-//Check if there's available space on the buffer for a new read from the UEIDAQ VMap packet
-bool UEICircularBuffer::CheckAvailableSpace(){
-    bool spaceAvailable = false;
-    //Check if there's space in te buffer for a new batch of samples from VMap
-    if (bufferLength > 0){
-        if ((bufferLength-currentBufferLocation) > runawayZoneLength){
-            spaceAvailable = true;
-        }
-    }
-    return spaceAvailable;
-
 }
 
 //Check if there's available space on the buffer for a given ammount of bytes written
@@ -176,37 +164,53 @@ bool UEICircularBuffer::CheckAvailableSpace(uint32 writtenBytes){
     bool spaceAvailable = false;
     //Check if there's space in te buffer for a new batch of samples from VMap
     if (bufferLength > 0){
-        if ((bufferLength-currentBufferLocation-writtenBytes) >= runawayZoneLength){
-            spaceAvailable = true;
+        if (writePointer < readPointer){
+            //This means the writting pointer is behind, only allow the write if there's enough space for the whole MVap reading
+            spaceAvailable = ((readPointer-writePointer) >= (writtenBytes+1));
+        }else{
+            uint32 bytesAvailable = ((headPointer+bufferLength)-writePointer) + (readPointer - headPointer);
+            spaceAvailable = (bytesAvailable >= (writtenBytes+1));
+            //Check also that the runawayZone can acomodate the write
+            spaceAvailable &= ((headPointer+bufferLength+runawayZoneLength)-writePointer) >= writtenBytes;
         }
     }
     return spaceAvailable;
 }
 
-//Check if there's enough samples in the buffer to be read by the DataSource
-bool UEICircularBuffer::CheckReadReady(){
+//Check if there's enough space for an additional VMap write
+bool UEICircularBuffer::CheckAvailableSpace(){
+    return CheckAvailableSpace(runawayZoneLength);
+}
+
+//Check if there's available space on the buffer for a given ammount of bytes written
+bool UEICircularBuffer::CheckReadReady(uint32 readBytes){
     bool ReadReady = false;
     //Check if there's space in the buffer for a new batch of samples from VMap
     if (singleBufferLength > 0){
-        if (currentBufferLocation >= singleBufferLength){
-            ReadReady = true;
-        }
+        uint32 readSpaceAvailable = GetAvailableBytesToRead();
+        ReadReady = (readSpaceAvailable >= readBytes);
     }
     return ReadReady;
+}
+
+//Check if there's enough space for a single buffer read
+bool UEICircularBuffer::CheckReadReady(){
+    return CheckReadReady(singleBufferLength);
 }
 
 //Advance the index on the buffer corresponding with the last written bytes into the buffer
 bool UEICircularBuffer::AdvanceBufferIndex(uint32 writtenBytes){
     //Function to advance the current index in the buffer
-    bool ok = false;
-    if (bufferLength > 0){
-        if (CheckAvailableSpace(writtenBytes)){
-            ok = true;
-            currentBufferLocation += writtenBytes;
-            writePointer = (uint8*)(&headPointer[currentBufferLocation]);
+    bool ok = CheckAvailableSpace(writtenBytes);
+    if (ok){
+        if(writePointer+writtenBytes >= headPointer+bufferLength){
+            uint32 overflownBytes = (writePointer+writtenBytes)-(headPointer+bufferLength);
+            if (overflownBytes != 0u){
+                memcpy(headPointer, headPointer+bufferLength, overflownBytes);
+            }
+            writePointer = headPointer + overflownBytes;
         }else{
-            ok = false;
-            REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid index advancement in the UEICircularBuffer");
+            writePointer += writtenBytes;
         }
     }
     return ok;
@@ -216,40 +220,41 @@ UEIBufferPointer* UEICircularBuffer::ReadBuffer(bool& ok){
     ok = CheckReadReady();
     if (ok){
         for (uint32 i = 0; i < nChannels; i++){
-            pointerList[i].SetHead(headPointer);
+            pointerList[i].SetHead(readPointer);
         }
     }
     return pointerList;
 }
 
-UEIBufferPointer UEICircularBuffer::ReadChannel(uint32 chanelIdx, bool& ok){
-    ok = CheckReadReady();
+bool UEICircularBuffer::ReadChannel(uint32 chanelIdx, UEIBufferPointer& pointer){
+    bool ok = CheckReadReady();
     if (ok){
-        for (uint32 i = 0; i < nChannels; i++){
-            pointerList[i].SetHead(headPointer);
-        }
+        pointerList[chanelIdx].SetHead(readPointer);
+        pointer=pointerList[chanelIdx];
     }
-    return pointerList[chanelIdx];
+    return ok;
 }
 
-UEIBufferPointer UEICircularBuffer::ReadTimestamp(bool& ok){
-    ok = CheckReadReady() && timestampRequired;
+bool UEICircularBuffer::ReadTimestamp(UEIBufferPointer& pointer){
+    bool ok = CheckReadReady() && timestampRequired;
     if (ok){
-        timestampList.SetHead(headPointer+singleBufferLength*currentActiveBuffer);
-        return timestampList;
+        timestampList.SetHead(readPointer);
+        pointer = timestampList;
     }else{
         REPORT_ERROR(ErrorManagement::CommunicationError, "UEICircularBuffer cannot retrieve timestamp channel, as the subbuffer is not ready yet");
-        return timestampList;
     }
+    return ok;
 }
 
 bool UEICircularBuffer::CheckoutBuffer(){
-    //Move the content of the buffer upwards to the start of the buffer
+    //Move the read pointer to the next buffer in the circularbuffer
+    //To do so, we must ensure that the actual pointing buffer is ready to be read, otherwise we cannot advance to next buffer
     if (CheckReadReady()){
-        memcpy(headPointer, &headPointer[singleBufferLength], currentBufferLocation-singleBufferLength);
-        //Update the write index and write pointer
-        currentBufferLocation -= singleBufferLength;
-        writePointer = (uint8*)(&headPointer[currentBufferLocation]);
+        readPointer += singleBufferLength;
+        if (readPointer >= (headPointer + bufferLength)){
+            //If we've reached the last buffer, then just go back to the first one.
+            readPointer = headPointer;
+        }
         return true;
     }else{
         return false;
@@ -257,13 +262,66 @@ bool UEICircularBuffer::CheckoutBuffer(){
 }
 
 bool UEICircularBuffer::ResetBuffer(){
-    currentBufferLocation = 0;
     writePointer = (uint8*)headPointer;
+    readPointer = (uint8*) headPointer;
     return true;
 }
 
 bool UEICircularBuffer::AdvanceBufferReadOneSample(){
     return AdvanceBufferIndex(sizeOfSamples*nChannels+sizeof(uint32)*timestampRequired);
+}
+
+bool UEICircularBuffer::ReadBytes(uint32 readBytes, uint8* destination, bool advancePointer){
+    bool ok = CheckReadReady(readBytes);
+    if (ok){
+        if ((headPointer+bufferLength)-readPointer > readBytes){
+            memcpy(destination, readPointer, readBytes);
+        }else{
+            uint32 overflownBytes = readBytes-((headPointer+bufferLength)-readPointer);
+            memcpy(destination, readPointer, readBytes-overflownBytes);
+            if (overflownBytes != 0u){
+                memcpy(destination+(readBytes-overflownBytes), headPointer, overflownBytes);
+            }
+        }
+        if (advancePointer){
+            ok &= AdvanceReadPointer(readBytes);
+        }
+    }
+    return ok;
+}
+
+bool UEICircularBuffer::AdvanceReadPointer(uint32 readBytes){
+    bool ok = CheckReadReady(readBytes);
+    if (ok){
+        if ((headPointer+bufferLength)-readPointer > readBytes){
+            readPointer += readBytes;
+        }else{
+            uint32 overflownBytes = readBytes-((headPointer+bufferLength)-readPointer);
+            readPointer = headPointer + overflownBytes;
+        }
+    }
+    return ok;
+}
+
+uint32 UEICircularBuffer::GetAvailableBytesToRead(){
+    uint32 readSpaceAvailable = 0u;
+    if (singleBufferLength > 0){
+        if (writePointer < readPointer){
+            readSpaceAvailable = ((headPointer+bufferLength)-readPointer)+(writePointer-headPointer);
+        }else{
+            readSpaceAvailable = (writePointer-readPointer); 
+        }
+    }
+    return readSpaceAvailable;
+}
+
+bool UEICircularBuffer::ZeroNextBytes(uint32 bytesToWrite){
+    bool ok = CheckAvailableSpace(bytesToWrite);
+    if (ok){
+        //By default set the bytes to be written to 0;
+        ok &= MemoryOperationsHelper::Set(reinterpret_cast<void*>(writePointer), 0x00, bytesToWrite);
+    }
+    return ok;
 }
 
 CLASS_REGISTER(UEICircularBuffer, "1.0")

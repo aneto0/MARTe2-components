@@ -41,6 +41,7 @@
 
 #include "UEIMasterObject.h"
 #include "UEIMapContainer.h"
+#include "UEIDataSourceI.h"
 
 
 
@@ -85,7 +86,7 @@ namespace MARTe {
 * See the example below for a configuration of the DataSource:
 * <pre>
 *   +UEIReader1 = {
-*        Class = UEIDataSource::UEIReader
+*        Class = UEIDataSourceI::UEIReader
 *        Device = "UEIDevice"
 *        Map = "Map1"
 *        PollSleepPeriod = 1
@@ -107,7 +108,7 @@ namespace MARTe {
 * </pre>
 *
 */
-class UEIReader: public MemoryDataSourceI {
+class UEIReader: public UEIDataSourceI {
 public:
 
     CLASS_REGISTER_DECLARATION()
@@ -131,7 +132,7 @@ public:
      * @see Checks that the signal properties are as described in the class description.
      * @return true if the signal properties respect all the rules described in the class description.
      */
-    virtual bool SetConfiguredDatabase(StructuredDataI &data);
+    bool SetConfiguredDatabase(StructuredDataI &data);
 
     /**
      * @see DataSourceI::TerminateInputCopy
@@ -143,7 +144,7 @@ public:
      * datasource does only support input signals.
      * @return "MemoryMapSychronisedInputBroker" if the signal is an input signal.
      */
-    virtual const char8* GetBrokerName(StructuredDataI &data, const SignalDirection direction);
+    const char8* GetBrokerName(StructuredDataI &data, const SignalDirection direction);
 
     /**
      * @brief Sycnhronise method for the DataSource.
@@ -151,86 +152,14 @@ public:
      * to retrieve new data from the IOM.
      * @return true.
      */
-    virtual bool Synchronise();
+    bool Synchronise();
 
     /**
      * @see DataSourceI::PrepareNextState
      */
     virtual bool PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName);
 
-    /**
-     * @brief Method which redefines the behavior of AllocateMemory method in MemoryDataSource.
-     * @details This method reimplements the AllocateMemory method in MemoryDataSource to allow multiple samples to be recognized and 
-     * taken into account when allocating and assigning memory to input and output signals for this DataSource
-     * @return true if memory allocation succeeded, false otherwise.
-     */
     bool AllocateMemory();
-
-protected:
-
-    /**
-     * Variable to store the name of this DataSource
-     */
-    StreamString name;
-    
-    /**
-     * Variable to store the identifier (name) of the UEIDAQ device to which connect
-     */
-    StreamString deviceName;
-    
-    /**
-     * Variable to store the identifier (name) of the MapContainer object which this DataSource is connected to
-     */
-    StreamString mapName;
-
-    /**
-     * Reference to the UEIMasterObject containing the configuration of the desired Device
-     */
-    ReferenceT<UEIMasterObject> device;
-    
-    /**
-     * Reference to the UEIMapContainer containing the desired map. This map must exist within the specified device
-     */
-    ReferenceT<UEIMapContainer> map;
-
-    /**
-     * Variable to store the selected polling sleep period configured for this datasource. This is the period of MARTe sleep
-     * between an unsuccessful poll request to the UEIDAQ device and the next poll request. 
-     */
-    uint32 PollSleepPeriod;
-       
-    /**
-     * Variable to store the signal type for all the signals on this DataSource 
-     */
-    uint32 nOutputChannels;
-    
-    /**
-     * Variable to store the signal type for all the signals on this DataSource 
-     */
-    uint32 nSamples;
-    
-    /**
-     * Flag signaling if it is the first time MARTe calls the Synchronise method on this DataSource.
-     * (MARTe may call the datasource Synchronise method during application initialisation but starve the thread while
-     * performing initialisation tasks, in this case the FIFO servicing on a VMap can be afected and the map fail).
-     */
-    bool firstSync;
-
-    /**
-     * Array of TypeDescriptors stating the input signals types requested by the user, the array must have length matching the number of input signals.
-     */
-    TypeDescriptor* signalTypes;
-    
-    /**
-     * Array of pointers to the location of the memory region for each of the input signals for the map to deposit the samples. This array must be 
-     * of matching length to the number of input signals
-     */
-    uint8** signalAddresses;
-    
-    /**
-     * Pointer to the memory region for the map to deposit the sample/s obtained as timestamp to be delivered as input signal.
-     */
-    uint64* timestampSignalAddr;
 };
 
 }

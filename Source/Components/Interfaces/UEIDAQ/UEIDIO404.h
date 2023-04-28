@@ -203,8 +203,9 @@ class UEIDIO404 : public UEIDevice {
     bool AcceptedSignalType(TypeDescriptor signalType);
     bool RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType);
     bool SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType);
-    bool InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples);
+    bool InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 writeSamples, uint32 readSammples);
     uint32 GetWriteBufferSize();
+    bool GetHardwareChannels(SignalDirection direction, uint32& nChannels);
 protected:
     float32 referenceVoltage;
     float32 lowerHysteresisThreshold;

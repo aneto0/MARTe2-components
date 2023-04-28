@@ -38,6 +38,7 @@
 #include "StructuredDataIHelper.h"
 #include "AdvancedErrorManagement.h"
 #include "StreamString.h"
+#include "MutexSem.h"
 #include <algorithm>
 //interface specific includes
 #include "UEIDevice.h"
@@ -50,6 +51,13 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
+
+typedef enum{
+    NoMode,
+    UEIMapRealTimeThreadExecutionMode,
+    UEIMapIndependentThreadExecutionMode
+}UEIMapExecutionMode;
+
 /** @struct IOMapMember
  *  @brief This structure contains the information of a map member on a specific direction (input/output)
  */
@@ -155,7 +163,7 @@ class UEIMapContainer : public ReferenceContainer {
      * @param[out] outputCode Variable holding the status code for the polling procedure performed during the call.
      * @return true no error occurred during the poll procedure.
      */
-    virtual bool PollForNewPacket(MapReturnCode& outputCode);
+    virtual bool GetInputs(MapReturnCode& outputCode);
 
     /**
      * @brief Method to poll the IOM for new data packets on the configured hardware layer.
@@ -165,7 +173,7 @@ class UEIMapContainer : public ReferenceContainer {
      * @param[out] outputCode Variable holding the status code for the polling procedure performed during the call.
      * @return true no error occurred during the poll procedure.
      */
-    virtual bool WriteOutputs(MapReturnCode& outputCode);
+    virtual bool SetOutputs(MapReturnCode& outputCode);
 
     /**
      * @brief Getter for the type of the map.
@@ -335,6 +343,10 @@ class UEIMapContainer : public ReferenceContainer {
 
     bool GetMapStatus();
 
+    UEIMapExecutionMode GetExecutionMode();
+
+    bool SetExecutionMode(UEIMapExecutionMode mode);
+
 protected:
     /**
      * @brief Protected method which translates the 32-bit timestamp into a 64-bit timestamp.
@@ -436,7 +448,7 @@ protected:
     *   Variable holding the max number of outputs to be retrieved for each map query. (The map can only provide a fixed amount of samples for 
     *   every channel, no different sample number per channel are allowed)
     */
-    uint32 sampleNumber;
+    uint32 nSamplesMapExchange;
 
     /**
     *   Variable holding the corrector factor to the timestamp (the 32 MSB of the timestamp)
@@ -504,6 +516,17 @@ protected:
     *   Flag signaling if coherency check has been performed successfully and map is ready for further initialisation.
     */
     bool mapCoherent;
+
+    /**
+    *   Flag signaling the execution mode context for this map, either not set, RealTimeThread or IndependentThread
+    */
+    UEIMapExecutionMode executionMode;
+
+    /**
+    *   Mutex instance to ensure Map operation is thread safe, either for a multithread MARTe application (Write and Read
+    *   DataSources in different MARTe RealTimeThreads) or by running the Map in a separate thread (executionMode UEIMapIndependentThreadMode)
+    */
+    MARTe::MutexSem mapMutex;
 
 private:
     /**

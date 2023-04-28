@@ -37,6 +37,8 @@
 #include "StructuredDataI.h"
 #include "StructuredDataIHelper.h"
 #include "StreamString.h"
+#include "EmbeddedServiceMethodBinderT.h"
+#include "SingleThreadService.h"
 #include <algorithm>
 //interface specific includes
 #include "UEIMapContainer.h"
@@ -99,7 +101,7 @@ namespace MARTe {
  * </pre>
  */
 
-class UEIRtVMap : public UEIMapContainer {
+class UEIRtVMap : public UEIMapContainer, public EmbeddedServiceMethodBinderT<UEIRtVMap> {
     public:
     CLASS_REGISTER_DECLARATION()
 
@@ -142,14 +144,10 @@ class UEIRtVMap : public UEIMapContainer {
      */
     bool StartMap();
 
-    /**
-     * @brief Method to poll the IOM for new data on the map.
-     * @details This method polls the IOM for a new packet of data. This implementation redefines the behavior defined in UEIMapContainer
-     * for RtVMap data acquisition.
-     * @return true if a new packet has been recieved, false otherwise.
-     */
-    bool PollForNewPacket(MapReturnCode& outputCode);
+
     
+    bool GetInputs(MapReturnCode& outputCode);
+    bool SetOutputs(MapReturnCode& outputCode);
     /**
      * @brief Getter for the type of the map.
      * @details Redefinition of the method stated in UEIMapContainer.
@@ -171,15 +169,22 @@ class UEIRtVMap : public UEIMapContainer {
      * @return true if the provided parameters are accepted for the Map, false otherwise.
      */
     bool ConfigureInputsForDataSource(uint32 nSamples, uint32 nChannels, uint64* inputTimestampAddress, uint8** signalAddresses, TypeDescriptor* signalTypes);
-    
+    bool ConfigureOutputsForDataSource(uint32 nSamples, uint32 nChannels, uint8** signalAddresses, TypeDescriptor* signalTypes);
     /**
      * @brief Method to stop operation on the map.
      * @details This method is used to cease map operation.
      * @return true if the stopping request succeeded, false otherwise.
      */
     bool StopMap();
+    bool CheckMapCoherency();
 
 protected:
+
+    ErrorManagement::ErrorType IndependentThreadCallback(ExecutionInfo &info);
+    /**
+     * @brief TODO
+     */
+    bool ExchangeMap(MapReturnCode& outputCode);
 
     /**
      * @brief Private method to enable the map operation.
@@ -201,11 +206,21 @@ protected:
     *   Variable holding the number of samples required to be delivered by the datasource for each channel.
     */
     uint32 nReadSamples;
-    
+
+    /**
+    *   Variable holding the number of samples required to be delivered by the datasource for each channel.
+    */
+    uint32 nWriteSamples;
+
     /**
     *   Variable holding the length of the circular buffer for each hardware layer in terms of samples for each channel.
     */
     uint32 nBuffers;
+
+    /**
+    *   VMap specific single thread interface.
+    */
+    SingleThreadService executor;
 };
 }
 #endif /* UEIRtVMap_H_ */

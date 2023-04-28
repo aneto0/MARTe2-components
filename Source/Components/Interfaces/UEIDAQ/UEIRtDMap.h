@@ -124,10 +124,10 @@ class UEIRtDMap : public UEIMapContainer {
      * @param[out] destinationAddr pointer to the memory region where the contents of the newly recived (if so) map packet are copied.
      * @return true if a new packet has been recieved, false otherwise.
      */
-    bool PollForNewPacket(MapReturnCode& outputCode);
+    bool GetInputs(MapReturnCode& outputCode);
 
     //TODO
-    bool WriteOutputs(MapReturnCode& outputCode);
+    bool SetOutputs(MapReturnCode& outputCode);
     
     /**
      * @brief Getter for the type of the map.

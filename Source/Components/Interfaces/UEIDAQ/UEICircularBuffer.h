@@ -35,6 +35,7 @@
 #include "CLASSMETHODREGISTER.h"
 #include "Object.h"
 #include "UEIBufferPointer.h"
+#include "MemoryOperationsHelper.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -91,7 +92,7 @@ class UEICircularBuffer : public Object {
      * channel retrieved from the hardware layer through the DAQ packet.
      * @returns true if the parameters supplied to the method are valid, false otherwise.
      */
-    bool InitialiseBuffer(uint32 numberOfBuffers, uint32 channels, uint32 samplesPerMapRequest, uint8 sOfSamples, uint32 nReadSamples, bool tStampRequired);
+    bool InitialiseBuffer(uint32 numberOfBuffers, uint32 channels, uint32 SamplesPerExternalWrite, uint8 SizeOfSamples, uint32 SamplesPerExternalRead, bool tStampRequired);
 
     /**
      * @brief Method which checks the availalbe space on the buffer.
@@ -122,6 +123,7 @@ class UEICircularBuffer : public Object {
      * @returns true if the buffer has enough samples to deliver to the DataSource, false otherwise.
      */
     bool CheckReadReady();
+    bool CheckReadReady(uint32 readBytes);
     
     /**
      * @brief Method which updates the buffer indexes and pointers after a data write into the buffer with data from IOM.
@@ -131,6 +133,7 @@ class UEICircularBuffer : public Object {
      * @returns true if the buffer is updated correctly, false otherwise.
      */
     bool AdvanceBufferIndex(uint32 writtenBytes);
+
 
     /**
      * @brief Method which allows the data to be retrieved from the buffer.
@@ -142,7 +145,7 @@ class UEICircularBuffer : public Object {
      */
     UEIBufferPointer* ReadBuffer(bool& ok);
 
-    UEIBufferPointer ReadChannel(uint32 chanelIdx, bool& ok);
+    bool ReadChannel(uint32 chanelIdx, UEIBufferPointer& pointer);
     /**
      * @brief Method which allows the timestamp channel data to be retrieved from the buffer.
      * @details The implementation of this method is done through the usage of UEIBufferPointers, which serve as virtual arrays effectively containing
@@ -152,7 +155,7 @@ class UEICircularBuffer : public Object {
      * @returns Pointer to a UEIBufferPointer containing the access to the timestamp channel retrieved from the hardware layer in this buffer
      * as a virtual array.
      */
-    UEIBufferPointer ReadTimestamp(bool& ok);
+    bool ReadTimestamp(UEIBufferPointer& pointer);
     
     /**
      * @brief Method to reset the buffer status.
@@ -182,13 +185,11 @@ class UEICircularBuffer : public Object {
      */
     bool CheckoutBuffer();
     bool AdvanceBufferReadOneSample();
-    
+    bool ReadBytes(uint32 readBytes, uint8* destination, bool advancePointer);
+    bool AdvanceReadPointer(uint32 readBytes);
+    uint32 GetAvailableBytesToRead();
+    bool ZeroNextBytes(uint32 bytesToWrite);
 protected:
-
-    /**
-    *   Flag stating if the buffer is properly configured before operation
-    */
-    bool bufferSet;
 
     /**
     *   Flag stating if this UEICircularBuffer is provided with a timestamp channel
@@ -202,9 +203,25 @@ protected:
     uint8* headPointer;
     
     /**
+    *   Pointer to the read position of the buffer. This pointer is uint8 as the bus width of the
+    *   UEIDAQ bus is 32 bit but the width of the samples may change for each hardware layer. 
+    */
+    uint8* readPointer;
+
+    /**
     *   Variable holding the number of individual buffers that this buffer can contain
     */
     uint32 nOfBuffers;
+    
+    /**
+    *   Variable holding the maximum number of samples per channels to be retrieved in a VMap packet request.
+    */
+    uint32 samplesPerExternalWrite;
+
+    /**
+    *   Samples to be read for each channel on DataSource sycnhronize call.
+    */
+    uint32 samplesPerExternalRead;
     
     /**
     *   Variable holding the length in bytes of an individual buffer in this circular buffer
@@ -215,21 +232,16 @@ protected:
     *   Variable holding the length in bytes of the zone after the latest individual buffer to store the mismatched samples from the last write.
     */
     uint32 runawayZoneLength;
-
-    /**
-    *   Index of the next buffer to be retrieved by a read call.
-    */
-    uint32 currentActiveBuffer;
     
     /**
-    *   Length of the whole buffer in bytes.
+    *   Length of the active buffer area in bytes.
     */
     uint32 bufferLength;
 
     /**
-    *   Variable holding the maximum number of samples per channels to be retrieved in a VMap packet request.
+    *   Length of the full buffer area in bytes.
     */
-    uint32 samplesInMapRequest;
+    uint32 fullBufferLength;
 
     /**
     *   Variable holding the number of channels defined for the VMap assigned to this circular buffer.
@@ -242,11 +254,6 @@ protected:
     uint8 sizeOfSamples;
     
     /**
-    *   Samples to be read for each channel on DataSource sycnhronize call.
-    */
-    uint32 readSamples;
-    
-    /**
     *   List of UEIBufferPointer objects to access the internal channel list of he buffer
     */
     UEIBufferPointer* pointerList;
@@ -256,16 +263,7 @@ protected:
     */
     UEIBufferPointer timestampList;
     
-    /**
-    *   Flag indicating if the writePointer has lapped the buffer. This flag is true if the write pointer returned to headPointer
-    *   before the readBuffer. TODO explain this better.
-    */
-    bool writePointerLapped;
 
-    /**
-    *   Index pointing the location in which the next write will take place on the buffer.
-    */
-    uint32 currentBufferLocation;
 };
 }
 #endif /* UEICircularBuffer_H_ */

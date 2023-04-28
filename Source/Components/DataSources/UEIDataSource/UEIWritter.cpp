@@ -40,7 +40,7 @@
 
 namespace MARTe {
 
-UEIWritter::UEIWritter() : MemoryDataSourceI() {
+UEIWritter::UEIWritter() : UEIDataSourceI() {
         deviceName = StreamString("");
         mapName = StreamString("");
         signalTypes = NULL_PTR(TypeDescriptor*);
@@ -57,50 +57,12 @@ UEIWritter::~UEIWritter() {
 }
 
 bool UEIWritter::Initialise(StructuredDataI &data) {
-    bool ok = MemoryDataSourceI::Initialise(data);
-    StructuredDataIHelper helper = StructuredDataIHelper(data, this);
-    //Get the name of the DataSource
-    name = data.GetName();
-    ok = data.Read("Device", deviceName);
-    if (!ok){
-        REPORT_ERROR(ErrorManagement::ParametersError, "No device specified for UEIWritter %s", name.Buffer());        
-    }
-    if (ok){
-        ok = data.Read("Map", mapName);
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::ParametersError, "No map specified for UEIWritter %s", name.Buffer());        
-        }
-    }
-    //Retrieve the reference to the UEIDAQ device
-    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
-    if (ok){
-        device = ord->Find(deviceName.Buffer());
-        ok = device.IsValid();
-        if (ok){
-           REPORT_ERROR(ErrorManagement::Information, "Device %s found (at UEIWritter %s)", deviceName.Buffer(), name.Buffer());
-        }else{
-           REPORT_ERROR(ErrorManagement::ParametersError, "Unable to find device %s (at UEIWritter %s)", deviceName.Buffer(), name.Buffer());
-        }
-    }
-    //Retrieve the reference to the selected map within the UEIDAQ device
-    if (ok){
-        StreamString mapPath = StreamString("");
-        mapPath += deviceName;
-        mapPath += ".Maps.";
-        mapPath += mapName;
-        map = ord->Find(mapPath.Buffer());
-        ok = map.IsValid();
-        if (ok){
-            REPORT_ERROR(ErrorManagement::Information, "Map %s found (at UEIWritter %s, path: %s)", mapName.Buffer(), name.Buffer(), mapPath.Buffer());
-        }else{
-            REPORT_ERROR(ErrorManagement::ParametersError, "Unable to find map %s (at UEIWritter %s, path: %s)", mapName.Buffer(), name.Buffer(), mapPath.Buffer());
-        }
-    }
+    bool ok = UEIDataSourceI::Initialise(data);
     //Only one DataSource can be associated with a map, check that the map is not being used by another DataSource
     if (ok){
         ok = (map->RegisterDS(OutputSignals));     //Check if the Map has already been assigned to a DS (and assign it if not)
         if (!ok){
-            REPORT_ERROR(ErrorManagement::ParametersError, "The map %s requested by DataSource %s is already assigned to another DataSource for output signals", mapName.Buffer(), name.Buffer());
+            REPORT_ERROR(ErrorManagement::ParametersError, "The map %s requested by DataSource %s is already assigned to another DataSource for input signals", mapName.Buffer(), name.Buffer());
         }
     }
     return ok;
@@ -208,6 +170,7 @@ bool UEIWritter::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     return ok;
+
 }
 
 bool UEIWritter::TerminateInputCopy(const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples){
@@ -226,58 +189,10 @@ bool UEIWritter::Synchronise() {
         }
     }
     MapReturnCode outputCode;
-    ok = map->WriteOutputs(outputCode);
+    printf("SettingOutput\n");
+    ok = map->SetOutputs(outputCode);
+    printf("OutputSette'd\n");
     return ok;
-}
-
-bool UEIWritter::AllocateMemory(){
-    uint32 nOfSignals = GetNumberOfSignals();
-    bool ret = true;
-    if (memory == NULL_PTR(uint8*)){    
-        if (ret) {
-            if (nOfSignals > 0u) {
-                signalOffsets = new uint32[nOfSignals];
-                ret = (signalOffsets != NULL_PTR(uint32*));
-                if (ret) {
-                    signalSize = new uint32[nOfSignals];
-                    ret = (signalSize != NULL_PTR(uint32*));
-                }
-            }
-        }
-
-        stateMemorySize = 0u;
-        for (uint32 s = 0u; (s < nOfSignals) && (ret); s++) {
-            uint32 thisSignalMemorySize;
-            ret = GetSignalByteSize(s, thisSignalMemorySize);
-            if (ret) {
-                if (signalOffsets != NULL_PTR(uint32 *)) {
-                    signalOffsets[s] = stateMemorySize;
-                }
-            }
-            if (ret) {
-                ret = (thisSignalMemorySize > 0u);
-            }
-            if (ret) {
-                uint32 thisSignalSampleN;
-                ret = GetFunctionSignalSamples(OutputSignals,0,s,thisSignalSampleN);
-                stateMemorySize += (thisSignalMemorySize * numberOfBuffers * thisSignalSampleN);
-                signalSize[s] = thisSignalMemorySize * thisSignalSampleN;
-            }
-            if (!ret) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not obtain information for signal number %d on UEIWritter %s", s, name.Buffer());
-        }
-        uint32 numberOfStateBuffers = GetNumberOfStatefulMemoryBuffers();
-        if (ret) {
-            ret = (numberOfStateBuffers > 0u);
-        }
-        if (ret) {
-            totalMemorySize = stateMemorySize * numberOfStateBuffers;
-            if (memoryHeap != NULL_PTR(HeapI *)) {
-                memory = reinterpret_cast<uint8 *>(memoryHeap->Malloc(totalMemorySize));
-            }
-            ret = MemoryOperationsHelper::Set(memory, '\0', totalMemorySize);
-        }
-    }
-    return ret;
 }
 
 const char8* UEIWritter::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
@@ -296,6 +211,10 @@ bool UEIWritter::PrepareNextState(const char8 * const currentStateName, const ch
     //map start/enable procedure
     map->StopMap();
     return true;
+}
+
+bool UEIWritter::AllocateMemory(){
+    return UEIDataSourceI::AllocateMemory(OutputSignals);
 }
 
 CLASS_REGISTER(UEIWritter, "1.0")

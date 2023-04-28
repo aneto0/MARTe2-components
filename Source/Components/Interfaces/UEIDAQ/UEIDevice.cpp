@@ -184,7 +184,7 @@ bool UEIDevice::SetInputChannelList(uint32* channelList, uint32 nChannels){
     }
     return ok;
 }
-bool UEIDevice::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 retrievedSamples, uint32 readSammples){
+bool UEIDevice::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 writeSamples, uint32 readSammples){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
 }
@@ -276,6 +276,7 @@ int32 UEIDevice::FindChannelIndex(uint32 channelNumber, SignalDirection directio
         return (int32) index;
     }
 }
+
 bool UEIDevice::AnyTypeToBoolean(uint32 nSamples, bool* booleanSignal, void* inputSignal, TypeDescriptor signalType){
     bool ok = (inputSignal != NULL_PTR(void*));
     ok &= (booleanSignal != NULL_PTR(bool*));
@@ -339,6 +340,10 @@ bool UEIDevice::AnyTypeToBoolean(uint32 nSamples, bool* booleanSignal, void* inp
 
 uint32 UEIDevice::GetWriteBufferSize(){
     return 0u;
+}
+
+bool UEIDevice::GetHardwareChannels(SignalDirection direction, uint32& nChannels){
+    return false;
 }
 
 CLASS_REGISTER(UEIDevice, "1.0")
