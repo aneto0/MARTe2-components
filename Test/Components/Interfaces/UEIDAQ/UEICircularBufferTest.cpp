@@ -52,17 +52,16 @@ public:
     bool GetTimestampRequiredHL()           {return timestampRequired;}   
     uint8* GetHeadPointerHL()               {return headPointer;}
     uint32 GetBufferLengthHL()              {return bufferLength;}
+    uint32 GetFullBufferLengthHL()              {return fullBufferLength;}
     uint32 GetNOfBuffersHL()                {return nOfBuffers;}
     uint32 GetSingleBufferLengthHL()        {return singleBufferLength;}
     uint32 GetRunawayZoneLengthHL()         {return runawayZoneLength;}
-    uint32 GetCurrentActiveBufferHL()       {return currentActiveBuffer;}
-    uint32 GetSamplesInMapRequestHL()       {return samplesInMapRequest;}
+    uint32 GetSamplesPerExternalWriteHL()       {return samplesPerExternalWrite;}
     uint32 GetNChannelsHL()                 {return nChannels;}
     uint8 GetSizeOfSamplesHL()             {return sizeOfSamples;}
-    uint32 GetReadSamplesHL()               {return readSamples;}
+    uint32 GetSamplesPerExternalReadHL()               {return samplesPerExternalRead;}
     UEIBufferPointer* GetPointerListHL()    {return pointerList;}
     UEIBufferPointer GetTimestampListHL()   {return timestampList;}
-    bool GetBufferSetHL()                   {return bufferSet;}
 };
 UEICircularBufferHL::UEICircularBufferHL() : UEICircularBuffer(){
 
@@ -89,14 +88,12 @@ bool UEICircularBufferTest::TestConstructor() {
     ok &= SafeMath::IsEqual(testDevice.GetNOfBuffersHL(), 0u);
     ok &= SafeMath::IsEqual(testDevice.GetSingleBufferLengthHL(), 0u);
     ok &= SafeMath::IsEqual(testDevice.GetRunawayZoneLengthHL(), 0u);
-    ok &= SafeMath::IsEqual(testDevice.GetCurrentActiveBufferHL(), 0u);
     ok &= SafeMath::IsEqual(testDevice.GetBufferLengthHL(), 0u);
-    ok &= SafeMath::IsEqual(testDevice.GetSamplesInMapRequestHL(), 0u);
+    ok &= SafeMath::IsEqual(testDevice.GetSamplesPerExternalWriteHL(), 0u);
     ok &= SafeMath::IsEqual(testDevice.GetNChannelsHL(), 0u);
     ok &= SafeMath::IsEqual(testDevice.GetSizeOfSamplesHL(), (uint8) 0u);
-    ok &= SafeMath::IsEqual(testDevice.GetReadSamplesHL(), 0u);
+    ok &= SafeMath::IsEqual(testDevice.GetSamplesPerExternalReadHL(), 0u);
     ok &= SafeMath::IsEqual(testDevice.GetPointerListHL(), NULL_PTR(UEIBufferPointer*));
-    ok &= SafeMath::IsEqual(testDevice.GetBufferSetHL(), false);
     // With the buffer not set through InitialiseBuffer method, check that the rest of functions fail with no segfault
     ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), false);
     ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(10u), false);
@@ -106,7 +103,8 @@ bool UEICircularBufferTest::TestConstructor() {
     testDevice.ReadBuffer(dummyOk);
     ok &= SafeMath::IsEqual(dummyOk, false);
     dummyOk = true;
-    testDevice.ReadTimestamp(dummyOk);
+    UEIBufferPointer dummyPointer;
+    dummyOk = testDevice.ReadTimestamp(dummyPointer);
     ok &= SafeMath::IsEqual(dummyOk, false);
     ok &= SafeMath::IsEqual(testDevice.CheckoutBuffer(), false);
     return ok;
@@ -123,24 +121,24 @@ bool UEICircularBufferTest::TestInitialiseBuffer() {
     bool tStampRequired = true;
     uint32 singleBufferLength = ((channels*sOfSamples)+tStampRequired*sizeof(uint32))*nReadSamples;
     uint32 runawayZoneLength = ((channels*sOfSamples)+tStampRequired*sizeof(uint32))*samplesPerMapRequest;
-    uint32 bufferLength = singleBufferLength*numberOfBuffers + runawayZoneLength;
+    uint32 bufferLength = singleBufferLength*numberOfBuffers;
+    uint32 fullBufferLength = bufferLength + runawayZoneLength;
     //Check a correct initialisation of the buffer
     ok &= SafeMath::IsEqual(testDevice.InitialiseBuffer(numberOfBuffers, channels, samplesPerMapRequest, sOfSamples, nReadSamples, tStampRequired), true);
-    ok &= SafeMath::IsEqual(testDevice.GetBufferSetHL(), true);
     //Check that the values are correctly set
     ok &= (testDevice.writePointer != NULL_PTR(uint8*));
     ok &= (testDevice.GetHeadPointerHL()!= NULL_PTR(uint8*));
     ok &= SafeMath::IsEqual(testDevice.GetHeadPointerHL(), testDevice.writePointer);
     ok &= (testDevice.GetTimestampRequiredHL(), true);
+    ok &= SafeMath::IsEqual(testDevice.GetFullBufferLengthHL(), fullBufferLength);
     ok &= SafeMath::IsEqual(testDevice.GetBufferLengthHL(), bufferLength);
     ok &= SafeMath::IsEqual(testDevice.GetNOfBuffersHL(), numberOfBuffers);
     ok &= SafeMath::IsEqual(testDevice.GetSingleBufferLengthHL(), singleBufferLength);
     ok &= SafeMath::IsEqual(testDevice.GetRunawayZoneLengthHL(), runawayZoneLength);
-    ok &= SafeMath::IsEqual(testDevice.GetCurrentActiveBufferHL(), 0u);
-    ok &= SafeMath::IsEqual(testDevice.GetSamplesInMapRequestHL(), samplesPerMapRequest);
+    ok &= SafeMath::IsEqual(testDevice.GetSamplesPerExternalWriteHL(), samplesPerMapRequest);
     ok &= SafeMath::IsEqual(testDevice.GetNChannelsHL(), channels);
     ok &= SafeMath::IsEqual(testDevice.GetSizeOfSamplesHL(), (uint8) sOfSamples);
-    ok &= SafeMath::IsEqual(testDevice.GetReadSamplesHL(), nReadSamples);
+    ok &= SafeMath::IsEqual(testDevice.GetSamplesPerExternalReadHL(), nReadSamples);
     ok &= (testDevice.GetPointerListHL() != NULL_PTR(UEIBufferPointer*));
     return ok;
 }
@@ -156,7 +154,6 @@ bool UEICircularBufferTest::TestInitialiseBuffer_NChannelsFail() {
     bool tStampRequired = true;
     //Check initialisation of the buffer
     ok &= SafeMath::IsEqual(testDevice.InitialiseBuffer(numberOfBuffers, channels, samplesPerMapRequest, sOfSamples, nReadSamples, tStampRequired), false);
-    ok &= SafeMath::IsEqual(testDevice.GetBufferSetHL(), false);
     return ok;
 }
 
@@ -171,7 +168,6 @@ bool UEICircularBufferTest::TestInitialiseBuffer_MapSamplesFail() {
     bool tStampRequired = true;
     //Check initialisation of the buffer
     ok &= SafeMath::IsEqual(testDevice.InitialiseBuffer(numberOfBuffers, channels, samplesPerMapRequest, sOfSamples, nReadSamples, tStampRequired), false);
-    ok &= SafeMath::IsEqual(testDevice.GetBufferSetHL(), false);
     return ok;
 }
 
@@ -186,7 +182,6 @@ bool UEICircularBufferTest::TestInitialiseBuffer_ReadSamplesFail() {
     bool tStampRequired = true;
     //Check initialisation of the buffer
     ok &= SafeMath::IsEqual(testDevice.InitialiseBuffer(numberOfBuffers, channels, samplesPerMapRequest, sOfSamples, nReadSamples, tStampRequired), false);
-    ok &= SafeMath::IsEqual(testDevice.GetBufferSetHL(), false);
     return ok;
 }
 
@@ -202,7 +197,6 @@ bool UEICircularBufferTest::TestInitialiseBuffer_SampleSize() {
     for (uint8 sOfSamples = 0; sOfSamples < 128 && ok; sOfSamples++){
         bool expectedResult = (sOfSamples > 0 && sOfSamples <= 4)? true:false;
         ok &= SafeMath::IsEqual(testDevice.InitialiseBuffer(numberOfBuffers, channels, samplesPerMapRequest, sOfSamples, nReadSamples, tStampRequired), expectedResult);
-        ok &= SafeMath::IsEqual(testDevice.GetBufferSetHL(), expectedResult);
     }
     return ok;
 }
@@ -218,15 +212,12 @@ bool UEICircularBufferTest::TestInitialiseBuffer_nBuffersFail() {
     bool tStampRequired = true;
     //Check initialisation of the buffer
     ok &= SafeMath::IsEqual(testDevice.InitialiseBuffer(numberOfBuffers, channels, samplesPerMapRequest, sOfSamples, nReadSamples, tStampRequired), false);
-    ok &= SafeMath::IsEqual(testDevice.GetBufferSetHL(), false);
     numberOfBuffers = 1u;
     //Check initialisation of the buffer
     ok &= SafeMath::IsEqual(testDevice.InitialiseBuffer(numberOfBuffers, channels, samplesPerMapRequest, sOfSamples, nReadSamples, tStampRequired), false);
-    ok &= SafeMath::IsEqual(testDevice.GetBufferSetHL(), false);
     numberOfBuffers = 2u;
     //Check initialisation of the buffer
     ok &= SafeMath::IsEqual(testDevice.InitialiseBuffer(numberOfBuffers, channels, samplesPerMapRequest, sOfSamples, nReadSamples, tStampRequired), true);
-    ok &= SafeMath::IsEqual(testDevice.GetBufferSetHL(), true);
     return ok;
 }
 
@@ -241,7 +232,6 @@ bool UEICircularBufferTest::FunctionalTest() {
     bool tStampRequired = false;
     //Check initialisation of the buffer
     ok &= SafeMath::IsEqual(testDevice.InitialiseBuffer(numberOfBuffers, channels, samplesPerMapRequest, sOfSamples, nReadSamples, tStampRequired), true);
-    ok &= SafeMath::IsEqual(testDevice.GetBufferSetHL(), true);
     //Check if the buffer is ready to be read
     ok &= SafeMath::IsEqual(testDevice.CheckReadReady(), false);
     //Write some data into the buffer
@@ -291,36 +281,62 @@ bool UEICircularBufferTest::FunctionalTest() {
             }
         }
     }
-    //In this situation, we've filled 8 samples for each channel, since we specified 2 buffers of 8 samples per channel, fill an additional 8
+    //In this situation, we've filled 8 samples for each channel, since we specified 2 buffers of 8 samples per channel, fill an additional 5
     //samples per channel without checking out the current subbuffer.
-    uint32 fillerPacket [16];
-    for (uint32 i = 0; i < 16; i++){
+    uint32 fillerPacket [5*2];
+    for (uint32 i = 0; i < 5*2; i++){
         fillerPacket[i] = (uint32) i;
     }
+    //The availablespace call returns true as it checks for available space of VMap response (40 bytes)
     ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), true);
-    memcpy(testDevice.writePointer, reinterpret_cast<uint8*>(fillerPacket), 16*4);
-    ok &= SafeMath::IsEqual(testDevice.AdvanceBufferIndex(16*4), true);
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(5*2*sizeof(uint32)), true);
+    //We cannot copy a new batch of 16 samples as we've filled the first 16 samples and to write the next ones
+    //We do need at least a free byte after the operation (design decision)
+    memcpy(testDevice.writePointer, reinterpret_cast<uint8*>(fillerPacket), 5*2*4);
+    ok &= SafeMath::IsEqual(testDevice.AdvanceBufferIndex(5*2*4), true);
     ok &= SafeMath::IsEqual(testDevice.CheckReadReady(), true);
-    ok &= SafeMath::IsEqual(testDevice.writePointer, testDevice.GetHeadPointerHL()+(32*4));
-    //Now the circularBuffer must be completely filled, since we've written the total 32 samples it can hold (2channels*8samples*2buffers)
-    //The RunawayZone is still available to write, bu since the sub buffer 0 has still not been checked out the buffer cannot write into that
+    ok &= SafeMath::IsEqual(testDevice.writePointer, testDevice.GetHeadPointerHL()+(13*2*4));
+    //Now the circularBuffer must be partially filled, since we've written a total of 26 samples (2channels*13samples)
+    //The RunawayZone + 24 bytes are still available to write, but since the sub buffer 0 has still not been checked out the buffer cannot write into that
     ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), false);
-    //In this situation we should not be able to write into the buffer any more until checking out the current buffer (even 1 bytes)
-    ok &= SafeMath::IsEqual(testDevice.AdvanceBufferIndex(1), false);
+    //If we try to write the 24 bytes to complete the buffer we get an error since the buffer always needs 1byte of space space
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(3*2*sizeof(uint32)), false);
     //Now we do checkout the current buffer 0, so new data can be over-written into it
     ok &= SafeMath::IsEqual(testDevice.CheckoutBuffer(), true);
     //Now that the sub-buffer 0 is checked out, we can write into it again
     ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), true);
-    //And moreover, the subbuffer 1 should be ready to read from (as we've previously filled it out)
+    //And moreover, the subbuffer 1 should not be ready to read, as we're still missing a total of 6 samples in that buffer
+    ok &= SafeMath::IsEqual(testDevice.CheckReadReady(), false);
+    //Check if we now can write the new 6 samples into the buffer
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(3*2*sizeof(uint32)), true);
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), true);
+    //Write the next 6 samples
+    for (uint32 i = 0; i < 6; i++){
+        fillerPacket[i] = (uint32) i;
+    }
+    memcpy(testDevice.writePointer, reinterpret_cast<uint8*>(fillerPacket), 3*2*4);
+    ok &= SafeMath::IsEqual(testDevice.AdvanceBufferIndex(3*2*4), true);
+    //Once copied, check that the subbuffer 1 is ready to read
     ok &= SafeMath::IsEqual(testDevice.CheckReadReady(), true);
+    //And the write pointer should be located at head due to circular nature of the buffer
+    ok &= SafeMath::IsEqual(testDevice.writePointer, testDevice.GetHeadPointerHL());
+    //Check if a new VMap content is allowed in the buffer (in subbuffer 0)
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), true);
+    //We should be able to write up to (but not exceeding 8 samples per channel, a total og 64 bytes)
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(8*2*sizeof(uint32)), false);
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(8*2*sizeof(uint32)-1), true);
     if (ok){
         //Retrieve the data from the inner interleaved channels on the buffer
         myChannels = testDevice.ReadBuffer(ok);
     }
     if (ok){
         for (uint32 chan = 0; chan < 2 && ok; chan++){
-            for (uint32 sam = 0; sam < 8 && ok; sam++){
+            for (uint32 sam = 0; sam < 5 && ok; sam++){
                 uint32 thisSample = *(reinterpret_cast<uint32*>(myChannels[chan].GetSample(sam)));
+                ok &= SafeMath::IsEqual(thisSample, (uint32)(2*sam+(chan)));
+            }
+            for (uint32 sam = 0; sam < 3 && ok; sam++){
+                uint32 thisSample = *(reinterpret_cast<uint32*>(myChannels[chan].GetSample(sam+5)));
                 ok &= SafeMath::IsEqual(thisSample, (uint32)(2*sam+(chan)));
             }
         }
@@ -329,20 +345,89 @@ bool UEICircularBufferTest::FunctionalTest() {
     for (uint32 i = 0; i < 16; i++){
         fillerPacket[i] = (uint32) (15-i);
     }
+    //Perform the same checks as before, now the Subbuffer 0 is free, but subbuffer 1 is filled and not checked out
     ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), true);
-    memcpy(testDevice.writePointer, reinterpret_cast<uint8*>(fillerPacket), 16*4);
-    ok &= SafeMath::IsEqual(testDevice.AdvanceBufferIndex(16*4), true);
-    ok &= SafeMath::IsEqual(testDevice.CheckReadReady(), true);
-    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), false);
-    //In this situation we should not be able to write into the buffer any more until checking out the current buffer (even 1 bytes)
-    ok &= SafeMath::IsEqual(testDevice.AdvanceBufferIndex(1), false);
-    //Now we do checkout the current buffer 1, so new data can be over-written into it
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(16*4), false);
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(16*4-1), true);
+    //We cannot copy the new contents until we allow the subbuffer 1 free
     ok &= SafeMath::IsEqual(testDevice.CheckoutBuffer(), true);
-
-    //Test reset buffer call
-    ok &= SafeMath::IsEqual(testDevice.ResetBuffer(), true);
-    ok &= SafeMath::IsEqual(testDevice.GetHeadPointerHL(), testDevice.writePointer);
-    //TODO batch test of samples getting written into the buffer
+    //Check again
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), true);
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(16*4), true);
+    //Now perform the copy
+    memcpy(testDevice.writePointer, reinterpret_cast<uint8*>(fillerPacket), 16*4);
+    ok &= SafeMath::IsEqual(testDevice.AdvanceBufferIndex(8*2*4), true);
+    //As we've written all the data needed for subbuffer 0 in a single blow, it should be ready to read
+    ok &= SafeMath::IsEqual(testDevice.CheckReadReady(), true);
+    //The subbuffer 0 is ready to read, but the subbuffer 1 is free now
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), true);
+    //Check what would happen if we try to write into the runawayZone
+    //Write 2 samples
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(2*2*sizeof(uint32)), true);
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), true);
+    //Advance the index
+    for (uint32 i = 0; i < 16; i++){
+        fillerPacket[i] = 0xBADDCAFE;
+    }
+    memcpy(testDevice.writePointer, reinterpret_cast<uint8*>(fillerPacket), 3*2*4);
+    ok &= SafeMath::IsEqual(testDevice.AdvanceBufferIndex(3*2*4), true);
+    //Try to write 1 sample more. We cannot because that would leave the circularbuffer out of space, and without the mandatory
+    //1 byte free space
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(1*2*sizeof(uint32)), true);  //This method does not consider runaway zone limitation
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), false);
+    //To write some more data into the buffer, we do need to check out the subbuffer 0
+    ok &= SafeMath::IsEqual(testDevice.CheckReadReady(), true);
+    ok &= SafeMath::IsEqual(testDevice.CheckoutBuffer(), true);
+    //With the subbuffer 0 checked out, and subbuffer 1 not ready, we cannot read from the circularbuffer
+    ok &= SafeMath::IsEqual(testDevice.CheckReadReady(), false);
+    //We still have a total of 5 samples left in the subbuffer 1, we can write up to that plus the runawayzone length into
+    //the buffer, but not more, check that
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(5*2*sizeof(uint32)+40), true);
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(5*2*sizeof(uint32)+40+1), false);
+    //We will now write a total of 14 samples now, to allow for a write into runaway zone
+    memcpy(testDevice.writePointer, reinterpret_cast<uint8*>(fillerPacket), 14*4);
+    ok &= SafeMath::IsEqual(testDevice.AdvanceBufferIndex(7*2*4), true);
+    //Now the write pointer should be 4 samples ahead of head (2 per channel)
+    ok &= SafeMath::IsEqual(testDevice.writePointer, testDevice.GetHeadPointerHL()+(4*4));
+    //The subbuffer 1 should be ready to read now
+    ok &= SafeMath::IsEqual(testDevice.CheckReadReady(), true);
+    //Read it to find a nice hexspeak
+    myChannels = testDevice.ReadBuffer(ok);
+    for (uint32 chan = 0; chan < 2 && ok; chan++){
+        for (uint32 sam = 0; sam < 8 && ok; sam++){
+            uint32 thisSample = *(reinterpret_cast<uint32*>(myChannels[chan].GetSample(sam)));
+            ok &= SafeMath::IsEqual(thisSample, (uint32)(0xBADDCAFE));
+        }
+    }
+    //If everything is ok, checkout the buffer, advance the index the missing 6 samples per channel and retrieve the result
+    //We should see the same hexspeak on the first 2 samples per channel on subbuffer 0 if the copy went correctly, set the rest
+    // to 0 to differentiate
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(6*2*sizeof(uint32)),false);
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(6*2*sizeof(uint32)-1),true);
+    ok &= SafeMath::IsEqual(testDevice.CheckoutBuffer(), true);
+    ok &= SafeMath::IsEqual(testDevice.CheckReadReady(), false);
+    ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(6*2*sizeof(uint32)),true);
+    for (uint32 i = 0; i < 16; i++){
+        fillerPacket[i] = 0x00000000;
+    }
+    memcpy(testDevice.writePointer, reinterpret_cast<uint8*>(fillerPacket), 6*2*4);
+    ok &= SafeMath::IsEqual(testDevice.AdvanceBufferIndex(6*2*4), true);
+    //Check the write pointer position now
+    ok &= SafeMath::IsEqual(testDevice.writePointer, testDevice.GetHeadPointerHL()+(8*2*4));
+    ok &= SafeMath::IsEqual(testDevice.CheckReadReady(), true);
+    //Read it to find a nice hexspeak
+    myChannels = testDevice.ReadBuffer(ok);
+    for (uint32 chan = 0; chan < 2 && ok; chan++){
+        for (uint32 sam = 0; sam < 2 && ok; sam++){
+            uint32 thisSample = *(reinterpret_cast<uint32*>(myChannels[chan].GetSample(sam)));
+            ok &= SafeMath::IsEqual(thisSample, (uint32)(0xBADDCAFE));
+        }
+        for (uint32 sam = 2; sam < 8 && ok; sam++){
+            uint32 thisSample = *(reinterpret_cast<uint32*>(myChannels[chan].GetSample(sam)));
+            ok &= SafeMath::IsEqual(thisSample, (uint32)(0x00000000));
+        }
+    }
+    //If we reach here, the working principle of the circularbuffer is demonstrated
     return ok;
 }
 
@@ -357,7 +442,6 @@ bool UEICircularBufferTest::FunctionalTest_WithTimestamp() {
     bool tStampRequired = true;
     //Check initialisation of the buffer
     ok &= SafeMath::IsEqual(testDevice.InitialiseBuffer(numberOfBuffers, channels, samplesPerMapRequest, sOfSamples, nReadSamples, tStampRequired), true);
-    ok &= SafeMath::IsEqual(testDevice.GetBufferSetHL(), true);
     //Check if the buffer is ready to be read
     ok &= SafeMath::IsEqual(testDevice.CheckReadReady(), false);
     //Write some data into the buffer
@@ -402,7 +486,7 @@ bool UEICircularBufferTest::FunctionalTest_WithTimestamp() {
     }
     if (ok){
         //Retrieve the data from the inner interleaved channels on the buffer
-        myTimestampChannel = testDevice.ReadTimestamp(ok);
+        ok &= testDevice.ReadTimestamp(myTimestampChannel);
     }
     if (ok){
         //The timestamp is always the first of the channels in the buffer

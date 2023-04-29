@@ -112,4 +112,10 @@ typedef struct {
     double refreshRate;     // desired refresh rate, used as a guideline to program layer parameters
 } DQ_RTMAP_PARAM, *pDQ_RTMAP_PARAM;
 
+
+#define DQ_DIO404_REF_3_3V  3
+#define DQ_DIO404_REF_5V    5
+#define DQ_DIO404_REF_12V   12
+#define DQ_DIO404_REF_24V   24
+#define DQ_DIO404_REF_36V   36
 #endif

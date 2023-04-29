@@ -92,13 +92,6 @@ class IOM {
                 devices[i].address = 0;
                 devices[i].present = 0;
             }
-            //ToRemove
-            devices[0].devn = 0;
-            devices[0].model = 0x217;
-            devices[0].present = 1;
-            devices[1].devn = 1;
-            devices[1].model = 0x217;
-            devices[1].present = 1;
         }
     private:
         UEIDAQErrors ErrorCode;
@@ -143,7 +136,18 @@ class UEIDAQMockupManager : public GlobalObjectI  {
         
         const char8 * const GetClassName() const {
             return "UEIDAQMockupManager";
+        }
+
+        bool registerCallbacks(int32 (*pGetterfunc) (void*, uint32&), int32 (*pRefreshfunc) (void) ){
+            DataGetterCallback = pGetterfunc;
+            MapRefreshCallback = pRefreshfunc;
+            managerBound = true;
+            return true;
         }  
+        //Variables to be used with external MockupManager
+        bool managerBound;
+        int32 (*DataGetterCallback) (void*, uint32&);
+        int32 (*MapRefreshCallback) (void);
 
     private:
         static void *operator new(const osulong size) throw (){
@@ -158,6 +162,7 @@ class UEIDAQMockupManager : public GlobalObjectI  {
         UEIDAQMockupManager() {
             IOMObject = new IOM();
             resetManager();
+            managerBound = false;
         }
         UEIDAQMockupManager(const UEIDAQMockupManager& obj);      
 };
@@ -264,12 +269,16 @@ inline int32 DqRtDmapStart(int handle, int dmapid){
 
 inline int32 DqRtDmapRefresh(int handle, int dmapid){
     MARTe::UEIDAQMockupManager* manager = MARTe::UEIDAQMockupManager::getInstance();
-    if (manager->GetErrorCode() == MARTe::DqRtDmapRefresh_ERROR){
-        return (-1); //General error
+    if (manager->managerBound){
+        return manager->MapRefreshCallback();
     }else{
+        if (manager->GetErrorCode() == MARTe::DqRtDmapRefresh_ERROR){
+            return (-1); //General error
+        }else{
+            return DQ_SUCCESS;
+        }
         return DQ_SUCCESS;
     }
-    return DQ_SUCCESS;
 }
 
 inline int32 DqRtDmapGetInputMap(int handle, int dmapid, int dev, unsigned char** mappedData){
@@ -360,7 +369,15 @@ inline int32 DqRtVmapStart(int handle, int dmapid){
 }
 
 inline int32 DqRtVmapGetInputData(int handle, int vmapid, int trl_index, uint32 max_size, int* data_size, int* avl_size, uint8* data){
-    return DQ_SUCCESS;
+    MARTe::UEIDAQMockupManager* manager = MARTe::UEIDAQMockupManager::getInstance();
+    if (manager->managerBound){
+        uint32 dummySize;
+        int32 ret = manager->DataGetterCallback(reinterpret_cast<void*>(data), dummySize);
+        *data_size = (int32) dummySize;
+        return ret;
+    }else{
+        return DQ_SUCCESS;
+    }
 }
 
 inline int32 DqRtVmapRqInputDataSz(int handle, int vmapid, int trl_index, uint32 rq_size, int* act_size, uint8 **indataptr){
@@ -410,5 +427,32 @@ inline int32 DqAdv217SetFIR(int hd, int devn, int bank, int action, int decrat, 
     }else{
         return (-1);
     }
+}
+
+inline int SetDevSamplingFreqRtDmap(int handle, int dmapid, int devn, float samplingRate){
+    return 0;
+}
+
+int inline DqRtDmapReadRawData(int handle, int dmapid, int dev, void* rawBuffer, int bufferSize){
+    MARTe::UEIDAQMockupManager* manager = MARTe::UEIDAQMockupManager::getInstance();
+    if (manager->managerBound){
+        uint32 dummyData;
+        return manager->DataGetterCallback(reinterpret_cast<void*>(rawBuffer), dummyData);
+    }else{
+        return DQ_SUCCESS;
+    }
+}
+
+int inline DqAdv404SetHyst(int hd, int devn, int ref_volts, float *level0, float *level1){
+    return DQ_SUCCESS;
+}
+int inline DqRtDmapWriteRawData(int handle, int dmapid, int dev, void* rawBuffer, int bufferSize){
+    return DQ_SUCCESS;
+}
+int inline DqRtVmapAddOutputData(int handle, int dmapid, int trl, int requestSize, int* updatesAccepted, uint8* bufferPointer){
+    return DQ_SUCCESS;
+}
+int inline DqRtVmapGetOutputDataSz(int handle, int dmapid, int trl, int* transmittedBytes, int* avl_size){
+    return DQ_SUCCESS;
 }
 #endif

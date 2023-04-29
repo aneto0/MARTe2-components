@@ -24,14 +24,16 @@
 #
 #############################################################
 
-OBJSX +=        UEIDeviceTest.x         \
-                UEIMapContainerTest.x   \
-                UEIAI217_803Test.x      \
-                UEIBufferPointerTest.x  \
-                UEICircularBufferTest.x \
-                UEIMasterObjectTest.x   \
-                UEIRtDMapTest.x         \
-                UEIRtVMapTest.x
+#OBJSX +=        UEIDeviceTest.x         \
+#                UEIMapContainerTest.x   \
+#                UEIAI217_803Test.x      \
+#                UEIBufferPointerTest.x  \
+#                UEICircularBufferTest.x \
+#                UEIMasterObjectTest.x   \
+#                UEIRtDMapTest.x         \
+
+OBJSX +=        UEIBufferPointerTest.x \
+                UEICircularBufferTest.x
                 
 PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..

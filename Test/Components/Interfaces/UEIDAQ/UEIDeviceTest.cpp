@@ -128,7 +128,8 @@ bool UEIDeviceTest::TestBaseMethods() {
         ok = SafeMath::IsEqual(device.GetSampleSize(), (uint8) 0u);
     }
     if (ok){
-        ok = SafeMath::IsEqual(device.GetDeviceChannels(), (uint32) 0u);
+        ok = SafeMath::IsEqual(device.GetDeviceChannels(InputSignals), (uint32) 0u);
+        ok = SafeMath::IsEqual(device.GetDeviceChannels(OutputSignals), (uint32) 0u);
     }
     if (ok){
         ok = SafeMath::IsEqual(device.CheckChannelAndDirection(0u, InputSignals), false);

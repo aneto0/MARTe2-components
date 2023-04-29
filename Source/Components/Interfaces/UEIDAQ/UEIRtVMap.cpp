@@ -708,8 +708,11 @@ bool UEIRtVMap::CheckMapCoherency(){
 ErrorManagement::ErrorType UEIRtVMap::IndependentThreadCallback(ExecutionInfo &info) {
     printf("Threading");
     MapReturnCode returnCode;
+    //ExchangeMap method can be called right away, mutex and thread safety are managed inside the call
+    // no need for a call to the mutex lock prior to this method call.
     ExchangeMap(returnCode);
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
+    //TODO management of errors on the exchange packet method.
     Sleep::MSec(1);
     return err;
 }
