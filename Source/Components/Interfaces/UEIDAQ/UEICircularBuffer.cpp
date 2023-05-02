@@ -166,12 +166,12 @@ bool UEICircularBuffer::CheckAvailableSpace(uint32 writtenBytes){
     if (bufferLength > 0){
         if (writePointer < readPointer){
             //This means the writting pointer is behind, only allow the write if there's enough space for the whole MVap reading
-            spaceAvailable = ((readPointer-writePointer) >= (writtenBytes+1));
+            spaceAvailable = ((uint32)(readPointer-writePointer) >= (writtenBytes+1));
         }else{
             uint32 bytesAvailable = ((headPointer+bufferLength)-writePointer) + (readPointer - headPointer);
             spaceAvailable = (bytesAvailable >= (writtenBytes+1));
             //Check also that the runawayZone can acomodate the write
-            spaceAvailable &= ((headPointer+bufferLength+runawayZoneLength)-writePointer) >= writtenBytes;
+            spaceAvailable &= ((uint32)((headPointer+bufferLength+runawayZoneLength)-writePointer) >= writtenBytes);
         }
     }
     return spaceAvailable;
@@ -274,7 +274,7 @@ bool UEICircularBuffer::AdvanceBufferReadOneSample(){
 bool UEICircularBuffer::ReadBytes(uint32 readBytes, uint8* destination, bool advancePointer){
     bool ok = CheckReadReady(readBytes);
     if (ok){
-        if ((headPointer+bufferLength)-readPointer > readBytes){
+        if ((uint32)((headPointer+bufferLength)-readPointer) > readBytes){
             memcpy(destination, readPointer, readBytes);
         }else{
             uint32 overflownBytes = readBytes-((headPointer+bufferLength)-readPointer);
@@ -293,7 +293,7 @@ bool UEICircularBuffer::ReadBytes(uint32 readBytes, uint8* destination, bool adv
 bool UEICircularBuffer::AdvanceReadPointer(uint32 readBytes){
     bool ok = CheckReadReady(readBytes);
     if (ok){
-        if ((headPointer+bufferLength)-readPointer > readBytes){
+        if ((uint32)((headPointer+bufferLength)-readPointer) > readBytes){
             readPointer += readBytes;
         }else{
             uint32 overflownBytes = readBytes-((headPointer+bufferLength)-readPointer);
