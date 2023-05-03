@@ -98,7 +98,11 @@ class UEIDeviceTest : public Object {
         /**
         * @brief Tests CheckChannelAndDirection method expecting a list of channels
         */
-        bool TestCheckChannelAndDirection_List();        
+        bool TestCheckChannelAndDirection_List(); 
+
+        bool TestSetChannelList();       
+        bool TestAnyTypeToBoolean();
+        bool TestFindChannelIndex();
 };
 
 /*---------------------------------------------------------------------------*/

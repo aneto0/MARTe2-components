@@ -111,7 +111,8 @@ bool UEIAI217_803Test::TestFixedParameters() {
     UEIAI217_803 testDevice;
     ok &= SafeMath::IsEqual(testDevice.GetModel(), (int32) 0x217);
     ok &= SafeMath::IsEqual(testDevice.GetType(), HARDWARE_LAYER_ANALOG_I);
-    ok &= SafeMath::IsEqual(testDevice.GetDeviceChannels(), (uint32) 16u);
+    ok &= SafeMath::IsEqual(testDevice.GetDeviceChannels(InputSignals), (uint32) 16u);
+    ok &= SafeMath::IsEqual(testDevice.GetDeviceChannels(OutputSignals), (uint32) 0u); 
     ok &= SafeMath::IsEqual(testDevice.GetSampleSize(), (uint8) sizeof(uint32));
     return ok;
 }
@@ -622,30 +623,65 @@ bool UEIAI217_803Test::TestConfigureChannel() {
         myDevice = ObjectRegistryDatabase::Instance()->Find("Device");
         ok &= myDevice.IsValid();
     }
-    //Test the channel configuration functions by trying to set some channels and see the response
-    //Gains are set to 1,2,4,8,16,32 and 64 by the default configuration in this test 
-    uint32 channels [7] = {0,1,2,3,4,5,6};
-    uint32 channelConfigurations [7] = {0x8000,0x8101, 0x8202, 0x8303, 0x8404, 0x8505, 0x8606};
-    if(ok){
+    if (ok){
+        //Test the channel configuration functions by trying to set some channels and see the response
+        //Gains are set to 1,2,4,8,16,32 and 64 by the default configuration in this test 
+        uint32 channels [7] = {0,1,2,3,4,5,6};
+        uint32 channelConfigurations [7] = {0x8000,0x8101, 0x8202, 0x8303, 0x8404, 0x8505, 0x8606};
+        uint32* configurationBitfields = NULL_PTR(uint32*);
+        uint32 nConfigurationBitfields = 0;
+        ok &= myDevice->ConfigureChannels(InputSignals, &configurationBitfields, nConfigurationBitfields, RTDMAP);
+        ok &= (configurationBitfields != NULL_PTR(uint32*));
+        ok &= (nConfigurationBitfields == 7u);
         for(uint32 i = 0; i < 7 && ok; i++){
-            uint32 channelConfigUint;
-            int32 channelConfigInt;
-            ok &= (myDevice->ConfigureChannel(channels[i], channelConfigUint));
-            ok &= (myDevice->ConfigureChannel(channels[i], channelConfigInt));
-            ok &= SafeMath::IsEqual(channelConfigUint, (uint32)channelConfigurations[i]);
-            ok &= SafeMath::IsEqual(channelConfigInt, (int32)channelConfigurations[i]);
+            ok &= SafeMath::IsEqual(configurationBitfields[i], (uint32)channelConfigurations[i]);
+        }
+        if (ok){
+            free (configurationBitfields);
         }
     }
     //Check error condition by setting invalid channel number or invalid gain parameter
     if (ok){
-       uint32 channelConfigUint;
-       ok &= SafeMath::IsEqual(myDevice->ConfigureChannel(CHANNEL_NUMBER+1, channelConfigUint), false); 
-       //Set an invalid gain
-       uint16* myGains =  myDevice->GetGainsHL();
-       myGains[0] = 3; //Invalid gain for the device
-       ok &= SafeMath::IsEqual(myDevice->ConfigureChannel(0u, channelConfigUint), false); 
+        //Test the channel configuration functions by trying to set some channels and see the response
+        //Gains are set to 1,2,4,8,16,32 and 64 by the default configuration in this test 
+        uint32 channels [7] = {0,1,2,3,4,5,23};
+        uint32* configurationBitfields = NULL_PTR(uint32*);
+        uint32 nConfigurationBitfields = 0;
+        ok &= !myDevice->ConfigureChannels(InputSignals, &configurationBitfields, nConfigurationBitfields, RTDMAP);
+        ok &= (configurationBitfields == NULL_PTR(uint32*));
+        ok &= (nConfigurationBitfields == 0u);
+        if (ok){
+            free(configurationBitfields);
+        }
     }
-
+    //Test for no channel admitted on direction
+    if (ok){
+        //Test the channel configuration functions by trying to set some channels and see the response
+        //Gains are set to 1,2,4,8,16,32 and 64 by the default configuration in this test 
+        uint32 channels [7] = {0,1,2,3,4,5,6};
+        uint32* configurationBitfields = NULL_PTR(uint32*);
+        uint32 nConfigurationBitfields = 0;
+        ok &= !myDevice->ConfigureChannels(OutputSignals, &configurationBitfields, nConfigurationBitfields, RTDMAP);
+        ok &= (configurationBitfields == NULL_PTR(uint32*));
+        ok &= (nConfigurationBitfields == 0u);
+        if (ok){
+            free(configurationBitfields);
+        }
+    }
+    //Test for invalid direction
+    if (ok){
+        //Test the channel configuration functions by trying to set some channels and see the response
+        //Gains are set to 1,2,4,8,16,32 and 64 by the default configuration in this test 
+        uint32 channels [7] = {0,1,2,3,4,5,6};
+        uint32* configurationBitfields = NULL_PTR(uint32*);
+        uint32 nConfigurationBitfields = 0;
+        ok &= !myDevice->ConfigureChannels(None, &configurationBitfields, nConfigurationBitfields, RTDMAP);
+        ok &= (configurationBitfields == NULL_PTR(uint32*));
+        ok &= (nConfigurationBitfields == 0u);
+        if (ok){
+            free(configurationBitfields);
+        }
+    }
     return ok;
 }
 

@@ -117,13 +117,7 @@ class UEIRtDMap : public UEIMapContainer {
      */
     bool StartMap();
 
-    /**
-     * @brief Method to poll the IOM for new data on the map.
-     * @details This method polls the IOM for a new packet of data. This implementation redefines the behavior defined in UEIMapContainer
-     * for RtDMap data acquisition.
-     * @param[out] destinationAddr pointer to the memory region where the contents of the newly recived (if so) map packet are copied.
-     * @return true if a new packet has been recieved, false otherwise.
-     */
+    //TODO
     bool GetInputs(MapReturnCode& outputCode);
 
     //TODO
@@ -171,34 +165,16 @@ class UEIRtDMap : public UEIMapContainer {
 protected:
 
     /**
-     * @brief Private method to obtain the pointers to the memory area in which the DMap will be allocated upon a successful refresh call.
-     * @details This private method assigns the input map location for the DMap to the pointer inputMap if such can be retrieved.
-     * @return true if the pointers could be retrieved successfully.
-     */
-    bool GetMapPointers();
-    
-    /**
-     *  Pointer holding the location in which the DMap is copied after a successfull refresh request.  
-     */
-    uint8* inputMap;   //TODO change to uint8* for portability to new devices
-
-    /**
     *   Variable holding the configured scan rate for this specific map.
     */
     float32 scanRate;
-    
-    /**
-    *   Variable holding the last recieved timestamp samples for the timestamp channel on this map, use to compute 64-bit
-    *   timestamp through timestamp overflow.
-    */
-    uint32 previousTimestamp;
     
     /**
     *   Variable holding the last sync time (Linux clock time) to compute the sleep if necessary.
     *   In ns as obtainde from HighResolutionTimer::Counter() method. No need for turnarround excpetion catching
     *   as the counter overflows after ~500 years
     */
-    uint64 previousSyncTime;    
+    uint64 previousSyncTime;
 };
 }
 #endif /* UEIRtDMap_H_ */

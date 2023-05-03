@@ -45,18 +45,9 @@ UEIReader::UEIReader() : UEIDataSourceI() {
         deviceName = StreamString("");
         mapName = StreamString("");
         firstSync = true;
-        signalTypes = NULL_PTR(TypeDescriptor*);
-        signalAddresses = NULL_PTR(uint8**);
-        timestampSignalAddr = NULL_PTR(uint64*);
 }
 
 UEIReader::~UEIReader() {
-    if (signalTypes != NULL_PTR(TypeDescriptor*)){
-        delete [] signalTypes;
-    }
-    if (signalAddresses != NULL_PTR(uint8**)){
-        delete [] signalAddresses;
-    }
 }
 
 bool UEIReader::Initialise(StructuredDataI &data) {
@@ -96,10 +87,10 @@ bool UEIReader::SetConfiguredDatabase(StructuredDataI &data) {
     }
     //First Signal from this DataSource must be a Status uint32 signal
     if (ok){
-        StreamString timestampSignalName;
-        ok = (GetSignalName(0, timestampSignalName));
+        StreamString statusSignalName;
+        ok = (GetSignalName(0, statusSignalName));
         if (ok){
-            ok = (timestampSignalName == StreamString("Status"));
+            ok = (statusSignalName == StreamString("Status"));
             ok &= (GetSignalType(0) == UnsignedInteger32Bit);
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Signal 0 for this DataSource must be a \"Status\" uint32 signal");
@@ -128,6 +119,20 @@ bool UEIReader::SetConfiguredDatabase(StructuredDataI &data) {
                 ok = (nOfElements == 1u);
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Signals in DataSource %s must have only 1 element", name.Buffer());
+                }
+            }
+        }
+    }
+    //Check that all the signals have NumberOfDimensions 1 (1 signal = 1 physical channel) and register the number of signals
+    if (ok){
+        for (uint32 i = 0; i < numberOfSignals && ok; i++){
+            uint8 nOfDimensions = 0u;
+            ok = (GetSignalNumberOfDimensions(i, nOfDimensions));
+            if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve number of Dimensions for signal %d in DataSource %s", i, name.Buffer());
+            if (ok){
+                ok = (nOfDimensions <= 1u);
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Signals in DataSource %s must have only 1 dimension", name.Buffer());
                 }
             }
         }
@@ -171,16 +176,12 @@ bool UEIReader::SetConfiguredDatabase(StructuredDataI &data) {
                 case RTDMAP:
                     //For RtDMap, only signals with 1 sample are allowed
                     ok = (nSamples == 1u);
-                    if (!ok){
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "Map %s for DataSource %s only supports signals with 1 sample (RtDMap)", map->GetName(), name.Buffer());
-                    }
+                    if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Map %s for DataSource %s only supports signals with 1 sample (RtDMap)", map->GetName(), name.Buffer());
                 break;
                 case RTVMAP:
                     //For RtVMap, only signals with 1 sample or more are allowed
                     ok = (nSamples > 1u);
-                    if (!ok){
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid sample number for signals on Map %s for DataSource %s (RtVMap needs more than 1 sample to be retrieved)", map->GetName(), name.Buffer());
-                    }
+                    if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid sample number for signals on Map %s for DataSource %s (RtVMap needs more than 1 sample to be retrieved)", map->GetName(), name.Buffer());
                 break;
                 default:
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid Map type supplied to DataSource %s", name.Buffer());
@@ -229,9 +230,9 @@ bool UEIReader::Synchronise() {
         //If the map is started before MARTe is completely set up and the MARTe loop is not executed fast enough
         //The FIFOs on VMap could overflow
         Sleep::MSec(1000);  
-        firstSync = false;
         if (ok && !map->GetMapStatus()){
             ok = map->StartMap();
+            firstSync = !ok;
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Could not start Map %s in DataSource %s", map->GetName(), name.Buffer());
             }
@@ -250,9 +251,7 @@ bool UEIReader::Synchronise() {
     *statusMemory = 0;
     uint32 counter = 0;
     while(continueLoop && ok){
-        printf("Syncing\n");
         ok &= (map->GetInputs(outputCode));
-        printf("Done Syncing\n");
         switch (outputCode){
             case ERROR:
                 GeneralError = 1;
@@ -280,7 +279,7 @@ bool UEIReader::Synchronise() {
         
     }
     *statusMemory = (localErrorCounter | ValidData << 16 | FIFOError << 17 | GeneralError << 18);
-    return true;
+    return ok;
 }
 
 const char8* UEIReader::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
@@ -297,7 +296,9 @@ const char8* UEIReader::GetBrokerName(StructuredDataI &data, const SignalDirecti
 bool UEIReader::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName){
     //To terminate an Input copy, stop the DAQ Map on the device and set the device as not synched yet to allow new
     //map start/enable procedure
-    map->StopMap();
+    if (map.IsValid()){
+        map->StopMap();
+    }
     firstSync = true;
     return true;
 }

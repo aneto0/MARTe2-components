@@ -1,6 +1,6 @@
 /**
- * @file UEIWritter.cpp
- * @brief Source file for class UEIWritter
+ * @file UEIWriter.cpp
+ * @brief Source file for class UEIWriter
  * @date 07/02/2023
  * @author Xavier Ruche
  *
@@ -17,7 +17,7 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class UEIWritter (public, protected, and private). Be aware that some
+ * the class UEIWriter (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -36,39 +36,31 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-#include "UEIWritter.h"
+#include "UEIWriter.h"
 
 namespace MARTe {
 
-UEIWritter::UEIWritter() : UEIDataSourceI() {
+UEIWriter::UEIWriter() : UEIDataSourceI() {
         deviceName = StreamString("");
         mapName = StreamString("");
-        signalTypes = NULL_PTR(TypeDescriptor*);
-        signalAddresses = NULL_PTR(uint8**);
 }
 
-UEIWritter::~UEIWritter() {
-    if (signalTypes != NULL_PTR(TypeDescriptor*)){
-        delete [] signalTypes;
-    }
-    if (signalAddresses != NULL_PTR(uint8**)){
-        delete [] signalAddresses;
-    }
+UEIWriter::~UEIWriter() {
 }
 
-bool UEIWritter::Initialise(StructuredDataI &data) {
+bool UEIWriter::Initialise(StructuredDataI &data) {
     bool ok = UEIDataSourceI::Initialise(data);
     //Only one DataSource can be associated with a map, check that the map is not being used by another DataSource
     if (ok){
         ok = (map->RegisterDS(OutputSignals));     //Check if the Map has already been assigned to a DS (and assign it if not)
         if (!ok){
-            REPORT_ERROR(ErrorManagement::ParametersError, "The map %s requested by DataSource %s is already assigned to another DataSource for input signals", mapName.Buffer(), name.Buffer());
+            REPORT_ERROR(ErrorManagement::ParametersError, "The map %s requested by DataSource %s is already assigned to another DataSource for output signals", mapName.Buffer(), name.Buffer());
         }
     }
     return ok;
 }
 
-bool UEIWritter::SetConfiguredDatabase(StructuredDataI &data) {
+bool UEIWriter::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
     ok &= AllocateMemory();
     //Check the number of signals into the datasource
@@ -93,6 +85,20 @@ bool UEIWritter::SetConfiguredDatabase(StructuredDataI &data) {
                 ok = (nOfElements == 1u);
                 if (!ok){
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Signals in DataSource %s must have only 1 element", name.Buffer());
+                }
+            }
+        }
+    }
+    //Check that all the signals have NumberOfDimensions 1 (1 signal = 1 physical channel) and register the number of signals
+    if (ok){
+        for (uint32 i = 0; i < numberOfSignals && ok; i++){
+            uint8 nOfDimensions = 0u;
+            ok = (GetSignalNumberOfDimensions(i, nOfDimensions));
+            if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve number of Dimensions for signal %d in DataSource %s", i, name.Buffer());
+            if (ok){
+                ok = (nOfDimensions <= 1u);
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "Signals in DataSource %s must have only 1 dimension", name.Buffer());
                 }
             }
         }
@@ -135,9 +141,7 @@ bool UEIWritter::SetConfiguredDatabase(StructuredDataI &data) {
                 case RTVMAP:
                     //For RtVMap, only signals with more than 1 sample are allowed
                     ok = (nSamples > 0u);
-                    if (!ok){
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid sample number for signals on Map %s for DataSource %s (RtVMap needs at least 1 sample to be retrieved)", map->GetName(), name.Buffer());
-                    }
+                    if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid sample number for signals on Map %s for DataSource %s (RtVMap needs at least 1 sample to be retrieved)", map->GetName(), name.Buffer());
                 break;
                 default:
                     REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid Map type supplied to DataSource %s", name.Buffer());
@@ -173,49 +177,51 @@ bool UEIWritter::SetConfiguredDatabase(StructuredDataI &data) {
 
 }
 
-bool UEIWritter::TerminateInputCopy(const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples){
+bool UEIWriter::TerminateInputCopy(const uint32 signalIdx, const uint32 offset, const uint32 numberOfSamples){
     return true;
 }
 
-bool UEIWritter::Synchronise() {
+bool UEIWriter::Synchronise() {
     bool ok = true;
-    uint8** sigs = new uint8*[2];
-    sigs[0] = reinterpret_cast<uint8*>(memory)+(signalOffsets[0]);
-    sigs[1] = reinterpret_cast<uint8*>(memory)+(signalOffsets[1]);
+    //Check if the map needs to be started. If so start it
     if (!map->GetMapStatus()){
         ok &= map->StartMap();
         if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Could not start Map %s in DataSource %s", map->GetName(), name.Buffer());
         }
     }
+    //Call the map to retrieve the current samples
     MapReturnCode outputCode;
-    printf("SettingOutput\n");
-    ok = map->SetOutputs(outputCode);
-    printf("OutputSette'd\n");
+    ok &= map.IsValid();
+    if (ok){
+        ok = map->SetOutputs(outputCode);
+    }
     return ok;
 }
 
-const char8* UEIWritter::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
+const char8* UEIWriter::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
     //The Datasource is synchronous to the Reception of data from UEIDAQ device
     if (direction == InputSignals){
         //Only input signals are supported for this DataSource
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "DataSource %s only supports output signals (UEIWritter)", name.Buffer());
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "DataSource %s only supports output signals (UEIWriter)", name.Buffer());
         return "";
     }else{
         return "MemoryMapSynchronisedOutputBroker";
     }
 }
 
-bool UEIWritter::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName){
+bool UEIWriter::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName){
     //To terminate an Input copy, stop the DAQ Map on the device and set the device as not synched yet to allow new
     //map start/enable procedure
-    map->StopMap();
+    if (map.IsValid()){
+       map->StopMap();
+    }
     return true;
 }
 
-bool UEIWritter::AllocateMemory(){
+bool UEIWriter::AllocateMemory(){
     return UEIDataSourceI::AllocateMemory(OutputSignals);
 }
 
-CLASS_REGISTER(UEIWritter, "1.0")
+CLASS_REGISTER(UEIWriter, "1.0")
 }

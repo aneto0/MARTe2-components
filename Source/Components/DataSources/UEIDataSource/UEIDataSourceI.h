@@ -197,12 +197,7 @@ protected:
      * between an unsuccessful poll request to the UEIDAQ device and the next poll request. 
      */
     uint32 PollSleepPeriod;
-       
-    /**
-     * Variable to store the signal type for all the signals on this DataSource 
-     */
-    uint32 nOutputChannels;
-    
+          
     /**
      * Variable to store the signal type for all the signals on this DataSource 
      */
@@ -214,22 +209,6 @@ protected:
      * performing initialisation tasks, in this case the FIFO servicing on a VMap can be afected and the map fail).
      */
     bool firstSync;
-
-    /**
-     * Array of TypeDescriptors stating the input signals types requested by the user, the array must have length matching the number of input signals.
-     */
-    TypeDescriptor* signalTypes;
-    
-    /**
-     * Array of pointers to the location of the memory region for each of the input signals for the map to deposit the samples. This array must be 
-     * of matching length to the number of input signals
-     */
-    uint8** signalAddresses;
-    
-    /**
-     * Pointer to the memory region for the map to deposit the sample/s obtained as timestamp to be delivered as input signal.
-     */
-    uint64* timestampSignalAddr;
 
     UEIMapExecutionMode executionMode;
 };

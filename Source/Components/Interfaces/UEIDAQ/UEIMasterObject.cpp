@@ -65,7 +65,6 @@ UEIMasterObject::~UEIMasterObject(){
             }
         }
     }
-    delete [] maps;
     //Clean the IOM structures
     bool ok = true;
     if (DAQ_handle != 0){
@@ -85,10 +84,7 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
     if (ok) {
         name = data.GetName();
         ok = (name.Size() != 0ull);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMasterObject::Initialise - "
-                "Could not retrieve DAQ Master Object Name.");
-        }
+        if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve DAQ Master Object Name.");
     }
     //Get connection timeout for the IOM if defiened, if not set default
     if (ok){
@@ -153,9 +149,8 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
                             }else{
                                 REPORT_ERROR(ErrorManagement::InitialisationError, "Devn %d is repeated among devices on %s.", devn_, name.Buffer());
                             }                         
-                        }else{
-                            REPORT_ERROR(ErrorManagement::InitialisationError, "Device %d is not valid", i);
                         }
+                        if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Device %d is not valid", i);
                     }
                 }
             }
@@ -173,9 +168,7 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
             REPORT_ERROR(ErrorManagement::Information, "Found %d DAQ maps for UEIDAQ device %s.", nMaps, name.Buffer());
             maps = new ReferenceT<UEIMapContainer>[nMaps];
             ok = (maps != NULL_PTR(ReferenceT<UEIMapContainer>*));
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to allocate memory for UEIMapContainer pointers for UEIDAQ device %s.", name.Buffer());  
-            }
+            if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to allocate memory for UEIMapContainer pointers for UEIDAQ device %s.", name.Buffer());  
             if (ok){
                 //Assign DAQ Map pointers to the pointer array
                 //Map checks are performed during Map object initialisation
@@ -187,10 +180,8 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
                     }
                 }
             }
-        }else{
-            //No maps are defined, its ok
-            REPORT_ERROR(ErrorManagement::Information, "No maps found for UEIDAQ device %s.", name.Buffer());
         }
+        if (!ok) REPORT_ERROR(ErrorManagement::Information, "No maps found for UEIDAQ device %s.", name.Buffer());
     }
     //Set devices references for Maps and check coherency of them
     if (ok){
@@ -271,9 +262,8 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
             model = 0;
             int32 queryResult = DqGetDevnBySlot(DAQ_handle, i, &devn, &serial, &address, &model);
             ok = (queryResult != DQ_ILLEGAL_HANDLE);
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to query IOM for layer information.");   
-            }else{
+            if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Unable to query IOM for layer information.");   
+            if (ok){
                 //Check if the query did not return void and moreover the device at such position is defined in our device (if it is not defined there's
                 // no problem, but the application cannot use it).
                 if (queryResult == DQ_SUCCESS && devices[devn].IsValid()){
@@ -322,9 +312,7 @@ bool UEIMasterObject::Initialise(StructuredDataI &data){
     if (ok){
         for (uint32 i = 0; i < nMaps && ok; i++){
             ok = (maps[i]->SetDAQHandle(DAQ_handle));
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Could not set DAQ handle for Map %s", maps[i]->GetName());
-            }
+            if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not set DAQ handle for Map %s", maps[i]->GetName());
         }
     }
     // At this point, if ok is valid we've checked connection to the IOM, hardware configuration matching and device configuration

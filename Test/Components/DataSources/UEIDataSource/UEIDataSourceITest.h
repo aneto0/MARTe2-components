@@ -1,8 +1,8 @@
 /**
- * @file UEIDataSourceTest.h
- * @brief Header file for class UEIDataSourceTest
- * @date 10/06/2021
- * @author Luca Porzio
+ * @file UEIDataSourceITest.h
+ * @brief Header file for class UEIDataSourceITest
+ * @date 2/05/2023
+ * @author Xavier Ruche
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class UEIDataSourceTest
+ * @details This header file contains the declaration of the class UEIDataSourceITest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef TEST_COMPONENTS_DATASOURCES_UEIDATASOURCETEST_H_
-#define TEST_COMPONENTS_DATASOURCES_UEIDATASOURCETEST_H_
+#ifndef TEST_COMPONENTS_DATASOURCES_UEIDataSourceITEST_H_
+#define TEST_COMPONENTS_DATASOURCES_UEIDataSourceITEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -38,7 +38,7 @@
 /*---------------------------------------------------------------------------*/
 #include "StreamString.h"
 #include "ConfigurationDatabase.h"
-#include "UEIDataSource.h"
+#include "UEIDataSourceI.h"
 #include "SafeMath.h"
 #include "GlobalObjectsDatabase.h"
 #include "StandardParser.h"
@@ -48,31 +48,19 @@
 
 using namespace MARTe;
 
-class UEIDataSourceTest {
+class UEIDataSourceITest {
 public:
     /**
      * @brief Tests the constructor.
      */
     bool TestConstructor();
     bool TestInitialise();
+    bool TestInitialise_TrueClass();
     bool TestInitialise_NoDevice();
     bool TestInitialise_NoMap();
     bool TestInitialise_InvalidDevice();
     bool TestInitialise_InvalidMap();
-    bool TestInitialise_TwoDSperMap();
-    bool TestStartup();
-    bool TestStartup_MismatchedSignalNumber();
-    bool TestStartup_BadStatusSignal();
-    bool TestStartup_BadTimestampSignal();
-    bool TestStartup_MultipleElements();
-    bool TestStartup_MultipleFunctions();
-    bool TestStartup_MismatchedStatusSamples();
-    bool TestStartup_MismatchedSampleNumber();
-    bool TestStartup_MultipleSamplesDMap();
-    bool TestStartup_SingleSamplesVMap();
-    bool TestStartup_MultipleSamplesVMap();
-    bool TestStartup_OutputSignals();
-    bool TestStartup_InvalidMapType();
+    bool TestBaseMethods();
 };
 
 
@@ -81,5 +69,5 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* TEST_COMPONENTS_DATASOURCES_UEIDATASOURCETEST_H_ */
+#endif /* TEST_COMPONENTS_DATASOURCES_UEIDataSourceITEST_H_ */
 	

@@ -23,7 +23,7 @@
 #############################################################
 OBJSX=  UEIDataSourceI.x \
 		UEIReader.x		\
-		UEIWritter.x
+		UEIWriter.x
 
 PACKAGE=Components/DataSources
 

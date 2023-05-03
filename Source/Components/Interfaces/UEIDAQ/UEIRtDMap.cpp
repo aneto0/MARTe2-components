@@ -42,16 +42,11 @@
 namespace MARTe {
 
 UEIRtDMap::UEIRtDMap() : UEIMapContainer() {
-    inputMap = NULL_PTR(uint8*);
     scanRate = 0;
-    previousTimestamp = 0;
     previousSyncTime = 0;
 }
 
 UEIRtDMap::~UEIRtDMap(){
-    if (inputMap != NULL_PTR(uint8*)){
-        inputMap = NULL_PTR(uint8*);
-    }
     //try to clean the maps in case it was not already done beforehand
     CleanupMap();
 }
@@ -134,6 +129,7 @@ bool UEIRtDMap::ConfigureOutputsForDataSource(uint32 nSamples, uint32 nChannels,
 }
 
 bool UEIRtDMap::StartMap(){
+    if (mapStarted) return true;
     bool ok = true;
     ok = (DqRtDmapInit(DAQ_handle, &mapid, scanRate) >= 0);
     if (!ok){
@@ -248,49 +244,9 @@ bool UEIRtDMap::StartMap(){
         if (!ok){
             REPORT_ERROR(ErrorManagement::CommunicationError, "Could not start Map %s", name.Buffer());
         }
-        if (ok){
-            //Try to acquire the memory map pointers
-            ok = GetMapPointers();
-            if (!ok){
-                REPORT_ERROR(ErrorManagement::CommunicationError, "Could not retrieve the memory map pointers for Map %s", name.Buffer());
-            }
-        }
     }
     //Flag signaling the map is ready for action
     mapStarted = ok;
-    return ok;
-}
-
-bool UEIRtDMap::GetMapPointers(){
-    //Function just valid for input signals (the ones enternig into IOM) TODO extended to output maps
-    unsigned char* map_pointer = NULL;
-    uint16 counter = 0u;
-    bool ok = (DAQ_handle > 0);
-    if (ok){
-        while((((uint8*) map_pointer) == NULL)&& ok){
-            counter++;
-            ok = (DqRtDmapRefresh(DAQ_handle, mapid) >= 0);
-            if (ok){
-                Sleep::MSec(10);
-                ok = (DqRtDmapGetInputMap(DAQ_handle, mapid, 0, &(map_pointer)) >=0);
-                if (!ok){
-                    REPORT_ERROR(ErrorManagement::CommunicationError, "GetOutputMap failed during the GetMapAddr method for Map %s", name.Buffer());   
-                }
-            }else{
-                REPORT_ERROR(ErrorManagement::CommunicationError, "Refresh failed during the GetMapPointers method for Map %s", name.Buffer());
-            }
-            if (counter > 20) break; //If NULL map is still present during 2s abort the initialisation of the DS
-        }
-        if (((uint8*) map_pointer) != NULL){
-            inputMap = ((uint8*)map_pointer);
-            ok &=  true;
-        }else{
-            ok = false;
-            REPORT_ERROR(ErrorManagement::CommunicationError, "RtDMap pointer getter method timed out for Map %s", name.Buffer());
-        }
-    }else{
-        REPORT_ERROR(ErrorManagement::CommunicationError, "Error while getting map pointers for Map %s due to DAQ_handle being not set", name.Buffer());
-    }
     return ok;
 }
 

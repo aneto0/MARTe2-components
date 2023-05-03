@@ -24,7 +24,9 @@
 #
 #############################################################
 
-OBJSX += UEIDataSourceTest.x
+OBJSX +=    UEIDataSourceITest.x    \
+            UEIReaderTest.x         \
+            UEIWriterTest.x     
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..

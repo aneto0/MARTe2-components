@@ -76,7 +76,9 @@ UEIMapContainer::UEIMapContainer() : ReferenceContainer() {
     timestampCorrector = 0u;
     lastTimestamp = 0u;
     inputSignalAddresses = NULL_PTR(uint8**);
+    outputSignalAddresses = NULL_PTR(uint8**);
     inputSignalTypes = NULL_PTR(TypeDescriptor*);
+    outputSignalTypes = NULL_PTR(TypeDescriptor*);
     TimestampAddr = NULL_PTR(uint64*);
     firstPckt = true;
     mapStarted = false;

@@ -1,6 +1,6 @@
 /**
- * @file UEIWritter.h
- * @brief Header file for class UEIWritter
+ * @file UEIWriter.h
+ * @brief Header file for class UEIWriter
  * @date 20/03/2023
  * @author Xavier Ruche
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class UEIWritter
+ * @details This header file contains the declaration of the class UEIWriter
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef UEIWritter_H_
-#define UEIWritter_H_
+#ifndef UEIWriter_H_
+#define UEIWriter_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -85,8 +85,8 @@ namespace MARTe {
 *
 * See the example below for a configuration of the DataSource:
 * <pre>
-*   +UEIWritter1 = {
-*        Class = UEIDataSourceI::UEIWritter
+*   +UEIWriter1 = {
+*        Class = UEIDataSourceI::UEIWriter
 *        Device = "UEIDevice"
 *        Map = "Map1"
 *        PollSleepPeriod = 1
@@ -108,19 +108,19 @@ namespace MARTe {
 * </pre>
 *
 */
-class UEIWritter : public UEIDataSourceI {
+class UEIWriter : public UEIDataSourceI {
 public:
 
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief Constructor. NOOP.
      */
-    UEIWritter();
+    UEIWriter();
 
     /**
      * @brief Destructor. Stops the Embedded thread which reads from the CRIOUARTSerial.
      */
-    virtual ~UEIWritter();
+    virtual ~UEIWriter();
 
     /**
      * @brief Verifies that the configuration described above is correctly set.
@@ -168,4 +168,4 @@ public:
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* UEIWritter_H_ */
+#endif /* UEIWriter_H_ */

@@ -25,7 +25,7 @@
 #############################################################
 
 SPB=MemoryGate.x	\
-	SysLogger.x
+	SysLogger.x	
 
 ifdef EFDA_MARTe_DIR
 SPB += BaseLib2Wrapper.x

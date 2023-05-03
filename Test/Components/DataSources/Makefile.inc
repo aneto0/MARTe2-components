@@ -63,9 +63,9 @@ ifdef EPICS_BASE
 SPB+=EPICSCA.x
 endif
 
-#ifdef EPICSPVA
-#SPB   += EPICSPVA.x
-#endif
+ifdef EPICSPVA
+SPB   += EPICSPVA.x
+endif
 
 ifdef OPEN62541_INCLUDE
 SPB    += OPCUADataSource.x

@@ -1,7 +1,7 @@
 /**
- * @file UEIDeviceGTest.cpp
- * @brief Source file for class UEIDeviceGTest
- * @date 22/03/2023
+ * @file UEIDataSourceIGTest.cpp
+ * @brief Source file for class UEIDataSourceIGTest
+ * @date 2/05/2023
  * @author Xavier Ruche
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -17,19 +17,20 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class MemoryGateGTest (public, protected, and private). Be aware that some 
+ * the class UEIDataSourceIGTest (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
  */
+
+#define DLL_API
 
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 #include "gtest/gtest.h"
-
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "UEIDeviceTest.h"
+#include "UEIDataSourceITest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -39,63 +40,42 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-TEST(UEIDeviceGTest,TestConstructor) {
-    UEIDeviceTest test;
+TEST(UEIDataSourceIGTest,TestConstructor) {
+    UEIDataSourceITest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(UEIDeviceGTest,TestBaseMethods) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestBaseMethods());
-}
-
-TEST(UEIDeviceGTest,TestHardwareCorrespondence) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestHardwareCorrespondence());
-}
-
-TEST(UEIDeviceGTest,TestMapAssignment) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestMapAssignment());
-}
-
-TEST(UEIDeviceGTest,TestInitialise) {
-    UEIDeviceTest test;
+TEST(UEIDataSourceIGTest,TestInitialise) {
+    UEIDataSourceITest test;
     ASSERT_TRUE(test.TestInitialise());
 }
 
-TEST(UEIDeviceGTest,TestInitialise_NoDevn) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestInitialise_NoDevn());
+TEST(UEIDataSourceIGTest,TestInitialise_TrueClass) {
+    UEIDataSourceITest test;
+    ASSERT_TRUE(test.TestInitialise_TrueClass());
 }
 
-TEST(UEIDeviceGTest,TestInitialise_InvalidDevn) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestInitialise_InvalidDevn());
+TEST(UEIDataSourceIGTest,TestInitialise_NoDevice) {
+    UEIDataSourceITest test;
+    ASSERT_TRUE(test.TestInitialise_NoDevice());
 }
 
-TEST(UEIDeviceGTest,TestInitialise_NoFrequency) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestInitialise_NoFrequency());
+TEST(UEIDataSourceIGTest,TestInitialise_NoMap) {
+    UEIDataSourceITest test;
+    ASSERT_TRUE(test.TestInitialise_NoMap());
 }
 
-TEST(UEIDeviceGTest,TestCheckChannelAndDirection_List) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestCheckChannelAndDirection_List());
+TEST(UEIDataSourceIGTest,TestInitialise_InvalidDevice) {
+    UEIDataSourceITest test;
+    ASSERT_TRUE(test.TestInitialise_InvalidDevice());
 }
 
-TEST(UEIDeviceGTest,TestSetChannelList) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestSetChannelList());
+TEST(UEIDataSourceIGTest,TestInitialise_InvalidMap) {
+    UEIDataSourceITest test;
+    ASSERT_TRUE(test.TestInitialise_InvalidMap());
 }
 
-TEST(UEIDeviceGTest,TestAnyTypeToBoolean) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestAnyTypeToBoolean());
+TEST(UEIDataSourceIGTest,TestBaseMethods) {
+    UEIDataSourceITest test;
+    ASSERT_TRUE(test.TestBaseMethods());
 }
-
-TEST(UEIDeviceGTest,TestFindChannelIndex) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestFindChannelIndex());
-}
-

@@ -55,9 +55,7 @@ public:
     char8* GetIp_stringHL()            {return ip_string;}
     uint16 GetPortHL()                 {return port;}
     StreamString GetNameHL()           {return name;}
-    ReferenceT<ReferenceContainer> GetDevicesContainerHL()     {return devicesContainer;}
     ReferenceT<UEIDevice>* GetDevicesHL()                      {return devices;}
-    ReferenceT<ReferenceContainer> GetMapsContainerHL()        {return mapsContainer;}
     ReferenceT<UEIMapContainer>* GetMapsHL()                   {return maps;}
     uint32 GetNMapsHL()                {return nMaps;}
     uint32 GetIOMTimeOutHL()           {return IOMTimeOut;}
@@ -178,6 +176,7 @@ const MARTe::char8 * const mapsConfig = ""
     "        Class=ReferenceContainer"
     "        +Map1 = {"
     "            Class           = UEIBlankTestMap"
+    "            ExecutionMode   = RealTimeThread"
     "            Inputs = {"
     "                dev0 = {"
     "                    Devn        = 0"
@@ -187,6 +186,7 @@ const MARTe::char8 * const mapsConfig = ""
     "        }"
     "        +Map2 = {"
     "            Class           = UEIBlankTestMap"
+    "            ExecutionMode   = RealTimeThread"
     "            Inputs = {"
     "                dev1 = {"
     "                    Devn        = 1"
@@ -212,8 +212,6 @@ bool UEIMasterObjectTest::TestConstructor() {
     ok &= SafeMath::IsEqual(testObject.GetNDevicesHL(), (uint8) 0);
     ok &= SafeMath::IsEqual(testObject.GetNMapsHL(), (uint32) 0);
     ok &= SafeMath::IsEqual(testObject.GetIOMTimeOutHL(), (uint32) 0);
-    ok &= SafeMath::IsEqual(testObject.GetDevicesContainerHL().IsValid(), false);
-    ok &= SafeMath::IsEqual(testObject.GetMapsContainerHL().IsValid(), false);
     //Test also the destructor when the IOM closing fails
     testObject.SetDAQ_handleHL(1);
     UEIDAQMockupManager* manager = UEIDAQMockupManager::getInstance();
@@ -261,8 +259,6 @@ bool UEIMasterObjectTest::TestInitialise() {
     ok &= SafeMath::IsEqual(myObject->GetNDevicesHL(), (uint8) 2);
     ok &= SafeMath::IsEqual(myObject->GetNMapsHL(), (uint32) 0);
     ok &= SafeMath::IsEqual(myObject->GetIOMTimeOutHL(), (uint32) 100);
-    ok &= SafeMath::IsEqual(myObject->GetDevicesContainerHL().IsValid(), true);
-    ok &= SafeMath::IsEqual(myObject->GetMapsContainerHL().IsValid(), false);
     }
     if (ok){
         god->Purge();
@@ -353,8 +349,6 @@ bool UEIMasterObjectTest::TestInitialise_NoConnectionTimeout() {
     ok &= SafeMath::IsEqual(myObject->GetNDevicesHL(), (uint8) 2);
     ok &= SafeMath::IsEqual(myObject->GetNMapsHL(), (uint32) 0);
     ok &= SafeMath::IsEqual(myObject->GetIOMTimeOutHL(), (uint32) 200);
-    ok &= SafeMath::IsEqual(myObject->GetDevicesContainerHL().IsValid(), true);
-    ok &= SafeMath::IsEqual(myObject->GetMapsContainerHL().IsValid(), false);
     }
     if (ok){
         god->Purge();

@@ -48,7 +48,6 @@ UEIRtVMap::UEIRtVMap() : UEIMapContainer(),
     nBuffers = 0;
     nReadSamples = 0u;
     nWriteSamples = 0u;
-    //executor.Start();
 }
 
 UEIRtVMap::~UEIRtVMap(){
@@ -163,7 +162,8 @@ bool UEIRtVMap::ConfigureOutputsForDataSource(uint32 nSamples, uint32 nChannels,
 }
 
 bool UEIRtVMap::StartMap(){
-    bool ok = (!mapStarted);
+    if (mapStarted) return true;
+    bool ok = true;
     //Now that the map is to be started it is valuable to make a copy of the DAQ handle reference for deallocating the map upon
     //destruction of this object.
     //First of all, set all the UEICircularBuffer objects for each of the VMap queried channels

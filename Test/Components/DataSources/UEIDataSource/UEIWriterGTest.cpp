@@ -1,7 +1,7 @@
 /**
- * @file UEIDeviceGTest.cpp
- * @brief Source file for class UEIDeviceGTest
- * @date 22/03/2023
+ * @file UEIWriterGTest.cpp
+ * @brief Source file for class UEIWriterGTest
+ * @date 02/05/2023
  * @author Xavier Ruche
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -17,19 +17,20 @@
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class MemoryGateGTest (public, protected, and private). Be aware that some 
+ * the class UEIWriterGTest (public, protected, and private). Be aware that some 
  * methods, such as those inline could be defined on the header file, instead.
  */
+
+#define DLL_API
 
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 #include "gtest/gtest.h"
-
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "UEIDeviceTest.h"
+#include "UEIWriterTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -39,63 +40,62 @@
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-TEST(UEIDeviceGTest,TestConstructor) {
-    UEIDeviceTest test;
+TEST(UEIWriterGTest,TestConstructor) {
+    UEIWriterTest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(UEIDeviceGTest,TestBaseMethods) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestBaseMethods());
-}
-
-TEST(UEIDeviceGTest,TestHardwareCorrespondence) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestHardwareCorrespondence());
-}
-
-TEST(UEIDeviceGTest,TestMapAssignment) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestMapAssignment());
-}
-
-TEST(UEIDeviceGTest,TestInitialise) {
-    UEIDeviceTest test;
+TEST(UEIWriterGTest,TestInitialise) {
+    UEIWriterTest test;
     ASSERT_TRUE(test.TestInitialise());
 }
 
-TEST(UEIDeviceGTest,TestInitialise_NoDevn) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestInitialise_NoDevn());
+TEST(UEIWriterGTest,TestInitialise_TrueClass) {
+    UEIWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_TrueClass());
 }
 
-TEST(UEIDeviceGTest,TestInitialise_InvalidDevn) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestInitialise_InvalidDevn());
+TEST(UEIWriterGTest,TestInitialise_TwoDsPerMap) {
+    UEIWriterTest test;
+    ASSERT_TRUE(test.TestInitialise_TwoDsPerMap());
 }
 
-TEST(UEIDeviceGTest,TestInitialise_NoFrequency) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestInitialise_NoFrequency());
+TEST(UEIWriterGTest,TestSimpleMethods) {
+    UEIWriterTest test;
+    ASSERT_TRUE(test.TestSimpleMethods());
 }
 
-TEST(UEIDeviceGTest,TestCheckChannelAndDirection_List) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestCheckChannelAndDirection_List());
+TEST(UEIWriterGTest,TestStartup) {
+    UEIWriterTest test;
+    ASSERT_TRUE(test.TestStartup());
 }
 
-TEST(UEIDeviceGTest,TestSetChannelList) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestSetChannelList());
+TEST(UEIWriterGTest,TestStartup_InvalidChannelNumber) {
+    UEIWriterTest test;
+    ASSERT_TRUE(test.TestStartup_InvalidChannelNumber());
 }
 
-TEST(UEIDeviceGTest,TestAnyTypeToBoolean) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestAnyTypeToBoolean());
+TEST(UEIWriterGTest,TestStartup_InvalidNumberOfElements) {
+    UEIWriterTest test;
+    ASSERT_TRUE(test.TestStartup_InvalidNumberOfElements());
 }
 
-TEST(UEIDeviceGTest,TestFindChannelIndex) {
-    UEIDeviceTest test;
-    ASSERT_TRUE(test.TestFindChannelIndex());
+TEST(UEIWriterGTest,TestStartup_InvalidNumberOfDimensions) {
+    UEIWriterTest test;
+    ASSERT_TRUE(test.TestStartup_InvalidNumberOfDimensions());
 }
 
+TEST(UEIWriterGTest,TestStartup_MismatchedSampleNumber) {
+    UEIWriterTest test;
+    ASSERT_TRUE(test.TestStartup_MismatchedSampleNumber());
+}
+
+TEST(UEIWriterGTest,TestStartup_MultipleDMapSamples) {
+    UEIWriterTest test;
+    ASSERT_TRUE(test.TestStartup_MultipleDMapSamples());
+}
+
+TEST(UEIWriterGTest,TestSync) {
+    UEIWriterTest test;
+    ASSERT_TRUE(test.TestSync());
+}

@@ -45,18 +45,9 @@ UEIDataSourceI::UEIDataSourceI() : MemoryDataSourceI() {
         deviceName = StreamString("");
         mapName = StreamString("");
         firstSync = true;
-        signalTypes = NULL_PTR(TypeDescriptor*);
-        signalAddresses = NULL_PTR(uint8**);
-        timestampSignalAddr = NULL_PTR(uint64*);
 }
 
 UEIDataSourceI::~UEIDataSourceI() {
-    if (signalTypes != NULL_PTR(TypeDescriptor*)){
-        delete [] signalTypes;
-    }
-    if (signalAddresses != NULL_PTR(uint8**)){
-        delete [] signalAddresses;
-    }
 }
 
 bool UEIDataSourceI::Initialise(StructuredDataI &data) {
@@ -164,8 +155,6 @@ bool UEIDataSourceI::AllocateMemory(SignalDirection direction){
 bool UEIDataSourceI::PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName){
     //To terminate an Input copy, stop the DAQ Map on the device and set the device as not synched yet to allow new
     //map start/enable procedure
-    map->StopMap();
-    firstSync = true;
     return true;
 }
 

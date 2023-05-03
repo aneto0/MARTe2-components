@@ -49,6 +49,10 @@ UEIDevice::UEIDevice() : Object() {
     hardwareCorrespondence = false; //Set device as not correspondant to IOM device
     assignedToMap = false;          //Set device as not assigned to any map
     outputBuffer = NULL_PTR(void*);
+    nOutputChannels = 0;
+    nInputChannels = 0;
+    inputChannelList = NULL_PTR(uint32*);
+    outputChannelList = NULL_PTR(uint32*);
 }
 
 UEIDevice::~UEIDevice(){
@@ -64,9 +68,7 @@ bool UEIDevice::Initialise(StructuredDataI &data){
     if (ok) {
         name = data.GetName();
         ok = (name.Size() != 0ull);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve UEIDevice Name.");
-        }
+        if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve UEIDevice Name.");
     }
     //Read and validate the Devn parameter (Devicen identifier)
     if (ok){
@@ -180,6 +182,7 @@ bool UEIDevice::SetInputChannelList(uint32* channelList, uint32 nChannels){
         nInputChannels = 0u;
         if (inputChannelList != NULL_PTR(uint32*)){
             delete [] inputChannelList;
+            inputChannelList = NULL_PTR(uint32*);
         }
     }
     return ok;
@@ -192,7 +195,7 @@ bool UEIDevice::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 wr
 bool UEIDevice::SetOutputChannelList (uint32* channelList, uint32 nChannels){
     bool ok = true;
     int32 lastChannel = -1;
-    uint32 maxOutputChannel = this->GetDeviceChannels(InputSignals);
+    uint32 maxOutputChannel = this->GetDeviceChannels(OutputSignals);
     nOutputChannels = nChannels;
     outputChannelList = new uint32[nChannels];
     for (uint32 i = 0u; i < nOutputChannels && ok; i++){
@@ -204,6 +207,7 @@ bool UEIDevice::SetOutputChannelList (uint32* channelList, uint32 nChannels){
         nOutputChannels = 0u;
         if (outputChannelList != NULL_PTR(uint32*)){
             delete [] outputChannelList;
+            outputChannelList = NULL_PTR(uint32*);
         }
     }
     return ok;
@@ -253,18 +257,12 @@ int32 UEIDevice::FindChannelIndex(uint32 channelNumber, SignalDirection directio
     uint32 index = 0u;
     switch (direction){
         case InputSignals:
-            ok &= (channelNumber < nInputChannels);
-            if (ok){
-                while (index < nInputChannels && inputChannelList[index] != channelNumber ) ++index;
-                ok &= (index == nInputChannels ? false : true);
-            }
+            while (index < nInputChannels && inputChannelList[index] != channelNumber ) ++index;
+            ok &= (index == nInputChannels ? false : true);
         break;
         case OutputSignals:
-            ok &= (channelNumber < nOutputChannels);
-            if (ok){
-                while (index < nOutputChannels && outputChannelList[index] != channelNumber ) ++index;
-                ok &= (index == nOutputChannels ? false : true);
-            }
+            while (index < nOutputChannels && outputChannelList[index] != channelNumber ) ++index;
+            ok &= (index == nOutputChannels ? false : true);
         break;
         default:
         ok = false;
