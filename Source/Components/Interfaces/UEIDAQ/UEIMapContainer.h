@@ -52,9 +52,26 @@
 
 namespace MARTe {
 
+/**
+*   @enum UEIMapExecutionMode
+*   @details Execution mode for a UEI Map Object
+*/
 typedef enum{
+    /**
+    *   UEI Map mode not configured
+    */
     NoMode,
+    
+    /**
+    *   UEI Map mode set to RealTimeThread, the map synchornisation and exchange is performed in
+    *   the MARTe application thread or loop.
+    */
     UEIMapRealTimeThreadExecutionMode,
+    
+    /**
+    *   UEI Map mode set to IndependentThread, the map synchronisation is performed asynchronously
+    *   in the context of an independent thread spawned by the UEI Map Object.
+    */
     UEIMapIndependentThreadExecutionMode
 }UEIMapExecutionMode;
 

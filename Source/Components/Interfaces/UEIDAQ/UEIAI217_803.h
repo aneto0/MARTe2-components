@@ -51,10 +51,24 @@ namespace MARTe {
 #define FIR_BANK_NUMBER 4u
 #define CHANNEL_NUMBER 16u
 
-//FIR bank state description
+/**
+*   @enum FirBankStatus
+*   @brief Enum that specifies the possible configuration states of the AI217 FIR Banks
+*/
 typedef enum{
+    /**
+    *   FIR Bank not enabled
+    */
     BANK_NOT_ENABLED,
+    
+    /**
+    *   FIR Bank enabled with default configuration
+    */
     DEFAULT_FIR_SETTING,
+    
+    /**
+    *   FIR Bank enabled with custom configuration
+    */
     CUSTOM_FIR_SETTING
 } FirBankStatus;
 
