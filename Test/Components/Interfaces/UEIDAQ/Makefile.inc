@@ -28,12 +28,12 @@ OBJSX +=UEIMasterObjectTest.x   \
         UEIBufferPointerTest.x  \
         UEICircularBufferTest.x \
         UEIDeviceTest.x         \
-        UEIAI217_803Test.x      
-
-#                UEIMapContainerTest.x   \
-#                UEIRtDMapTest.x         \
-#                UEIRtVMapTest.x         \
-
+        UEIAI217_803Test.x      \
+        UEIDIO404Test.x         \
+        UEIAO308Test.x          \
+        UEIMapContainerTest.x   \
+        UEIRtDMapTest.x         \
+        UEIRtVMapTest.x
                 
                 
 PACKAGE=Components/Interfaces

@@ -1,6 +1,6 @@
 /**
- * @file UEIMockupManager.h
- * @brief Header file for class UEIMockupManager
+ * @file UEIAO308Test.h
+ * @brief Header file for class UEIAO308Test
  * @date 22/03/2023
  * @author Xavier Ruche
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class UEIMockupManager
+ * @details This header file contains the declaration of the class UEIAO308Test
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef UEIMockupManager_H_
-#define UEIMockupManager_H_
+#ifndef UEIAO308_UEIAO308TEST_H_
+#define UEIAO308_UEIAO308TEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -31,54 +31,51 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-//MARTe includes
-#include "StructuredDataI.h"
-#include "StructuredDataIHelper.h"
-#include "ReferenceContainer.h"
-#include "StreamString.h"
-#include "AdvancedErrorManagement.h"
-#include "CLASSMETHODREGISTER.h"
-
-//Interface specific includes
-#include "UEIDevice.h"
-#include "UEIMapContainer.h"
-#include "UEIDefinitions.h"
-
-//PowerDNA includes
-#include "PDNA.h"
+#include "ConfigurationDatabase.h"
+#include "UEIAO308.h"
+#include "UEIAO308Test.h"
+#include "SafeMath.h"
+#include "GlobalObjectsDatabase.h"
+#include "UEIDAQMockup.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
-namespace MARTe {
-class UEIMapResponse : public Object {
+using namespace MARTe;
+/**
+ * @brief Tests all the UEIAO308 methods
+ */
+class UEIAO308Test : public Object {
     public:
-    CLASS_REGISTER_DECLARATION()
+        /**
+        * @brief Constructs the Test Unit environment basics
+        */
+        UEIAO308Test();
 
-    /**
-     * @brief Default constructor.
-     * @details NOOP.
-     */
-    UEIMapResponse();
+        /**
+        * @brief Destructs the Test Unit environment
+        */
+        ~UEIAO308Test();
 
-    /**
-     * @brief Default destructor.
-     * @details NOOP.
-     */
-    virtual ~UEIMapResponse();
+        /**
+        * @brief Tests the UEIAO308 constructor
+        */
+        bool TestConstructor();
+        bool TestFixedParameters();
+        bool TestAcceptedSignalType();
+        bool TestInitialise();
+        bool TestInitialise_class();
+        bool TestCheckChannelAndDirection();
+        bool TestConfigureChannel();
+        bool TestConfigureDevice();
+        bool TestSetOutputSignal();
 
-    /**
-     * @brief Initialise the Object from a configuration file.
-     * @details Reads the parameters from a ConfigurationDatabase and check
-     * their validity.
-     * @return true if every parameter has been read correctly and validated.
-     */
-    virtual bool Initialise(StructuredDataI &data);
-
-protected:
-    int32 response;
-    uint8* deviceResponses [12u];
-    uint32 responseLengths [12u];
+        
 };
-}
-#endif /* UEIMockupManager_H_ */
+
+/*---------------------------------------------------------------------------*/
+/*                        Inline method definitions                          */
+/*---------------------------------------------------------------------------*/
+
+#endif /* UEIAO308_UEIAO308TEST_H_ */
+

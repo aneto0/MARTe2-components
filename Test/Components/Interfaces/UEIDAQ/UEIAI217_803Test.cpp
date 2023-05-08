@@ -52,6 +52,7 @@ public:
     uint16* GetGainsHL() {return gains;}
     int32 GetADCModeHL() {return ADCMode;}
     AI217_803FIRBank GetFIRBankHL(uint32 Idx) {return FIRBanks[Idx];}
+    bool ConfigureChannelHL(uint32 channelNumber, uint32& channelConfiguration) {return ConfigureChannel(channelNumber, channelConfiguration);}
 };
 UEIAI217_803HL::UEIAI217_803HL() : UEIAI217_803(){
 
@@ -113,7 +114,14 @@ bool UEIAI217_803Test::TestFixedParameters() {
     ok &= SafeMath::IsEqual(testDevice.GetType(), HARDWARE_LAYER_ANALOG_I);
     ok &= SafeMath::IsEqual(testDevice.GetDeviceChannels(InputSignals), (uint32) 16u);
     ok &= SafeMath::IsEqual(testDevice.GetDeviceChannels(OutputSignals), (uint32) 0u); 
+    ok &= SafeMath::IsEqual(testDevice.GetDeviceChannels(None), 0u); 
     ok &= SafeMath::IsEqual(testDevice.GetSampleSize(), (uint8) sizeof(uint32));
+    ok &= SafeMath::IsEqual(testDevice.SetOutputSignal(0u, 1u, NULL_PTR(void*), BooleanType), false);
+    ok &= SafeMath::IsEqual(testDevice.InitBuffer(OutputSignals, 2u, 1u, 1u), false);
+    ok &= SafeMath::IsEqual(testDevice.InitBuffer(None, 2u, 1u, 1u), false);
+    uint32 nChannels = 1u;
+    ok &= SafeMath::IsEqual(testDevice.GetHardwareChannels(None, nChannels), false);
+    ok &= SafeMath::IsEqual(nChannels, 0u);
     return ok;
 }
 
@@ -623,6 +631,17 @@ bool UEIAI217_803Test::TestConfigureChannel() {
         myDevice = ObjectRegistryDatabase::Instance()->Find("Device");
         ok &= myDevice.IsValid();
     }
+    //Check error condition when no channel is configured to be retrieved by the device
+    if (ok){
+        uint32* configurationBitfields = NULL_PTR(uint32*);
+        uint32 nConfigurationBitfields = 0;
+        ok &= !myDevice->ConfigureChannels(InputSignals, &configurationBitfields, nConfigurationBitfields, RTDMAP);
+        ok &= (configurationBitfields == NULL_PTR(uint32*));
+        ok &= (nConfigurationBitfields == 0u);
+        if (ok){
+            free(configurationBitfields);
+        }
+    }
     if (ok){
         //Test the channel configuration functions by trying to set some channels and see the response
         //Gains are set to 1,2,4,8,16,32 and 64 by the default configuration in this test 
@@ -630,6 +649,15 @@ bool UEIAI217_803Test::TestConfigureChannel() {
         uint32 channelConfigurations [7] = {0x8000,0x8101, 0x8202, 0x8303, 0x8404, 0x8505, 0x8606};
         uint32* configurationBitfields = NULL_PTR(uint32*);
         uint32 nConfigurationBitfields = 0;
+        //First set the channels we want to retrieve for this device
+        ok &= myDevice->SetInputChannelList(channels, 7u);
+        //Check the number of channels actually configured in hardware
+        uint32 nChannels;
+        ok &= myDevice->GetHardwareChannels(InputSignals, nChannels);
+        ok &= SafeMath::IsEqual(nChannels, 7u);
+        ok &= myDevice->GetHardwareChannels(OutputSignals, nChannels);
+        ok &= SafeMath::IsEqual(nChannels, 0u);
+
         ok &= myDevice->ConfigureChannels(InputSignals, &configurationBitfields, nConfigurationBitfields, RTDMAP);
         ok &= (configurationBitfields != NULL_PTR(uint32*));
         ok &= (nConfigurationBitfields == 7u);
@@ -640,25 +668,10 @@ bool UEIAI217_803Test::TestConfigureChannel() {
             free (configurationBitfields);
         }
     }
-    //Check error condition by setting invalid channel number or invalid gain parameter
-    if (ok){
-        //Test the channel configuration functions by trying to set some channels and see the response
-        //Gains are set to 1,2,4,8,16,32 and 64 by the default configuration in this test 
-        uint32 channels [7] = {0,1,2,3,4,5,23};
-        uint32* configurationBitfields = NULL_PTR(uint32*);
-        uint32 nConfigurationBitfields = 0;
-        ok &= !myDevice->ConfigureChannels(InputSignals, &configurationBitfields, nConfigurationBitfields, RTDMAP);
-        ok &= (configurationBitfields == NULL_PTR(uint32*));
-        ok &= (nConfigurationBitfields == 0u);
-        if (ok){
-            free(configurationBitfields);
-        }
-    }
     //Test for no channel admitted on direction
     if (ok){
         //Test the channel configuration functions by trying to set some channels and see the response
         //Gains are set to 1,2,4,8,16,32 and 64 by the default configuration in this test 
-        uint32 channels [7] = {0,1,2,3,4,5,6};
         uint32* configurationBitfields = NULL_PTR(uint32*);
         uint32 nConfigurationBitfields = 0;
         ok &= !myDevice->ConfigureChannels(OutputSignals, &configurationBitfields, nConfigurationBitfields, RTDMAP);
@@ -672,7 +685,6 @@ bool UEIAI217_803Test::TestConfigureChannel() {
     if (ok){
         //Test the channel configuration functions by trying to set some channels and see the response
         //Gains are set to 1,2,4,8,16,32 and 64 by the default configuration in this test 
-        uint32 channels [7] = {0,1,2,3,4,5,6};
         uint32* configurationBitfields = NULL_PTR(uint32*);
         uint32 nConfigurationBitfields = 0;
         ok &= !myDevice->ConfigureChannels(None, &configurationBitfields, nConfigurationBitfields, RTDMAP);
@@ -724,10 +736,6 @@ bool UEIAI217_803Test::TestSignalScaling() {
             for (uint32 j = 0; j < 6 && ok; j++){
                 ok &= SafeMath::IsEqual(destinationAddress[j], (hardware_readings[j]&0xFFFFFF));
             }
-            ok &= (myDevice->ScaleSignal(i, 6, reinterpret_cast<void*>(hardware_readings), reinterpret_cast<void*>(destinationAddress_), UnsignedInteger32Bit));
-            for (uint32 j = 0; j < 6 && ok; j++){
-                ok &= SafeMath::IsEqual(destinationAddress_[j], (hardware_readings[j]&0xFFFFFF));
-            }
         }
     }
     //Test for uint64 values
@@ -740,11 +748,6 @@ bool UEIAI217_803Test::TestSignalScaling() {
             //Check the validity of the retrieved data
             for (uint32 j = 0; j < 6 && ok; j++){
                 ok &= SafeMath::IsEqual(destinationAddress[j], (uint64) (hardware_readings[j]&0xFFFFFF));
-            }
-            ok &= (myDevice->ScaleSignal(i, 6, reinterpret_cast<void*>(hardware_readings), reinterpret_cast<void*>(destinationAddress_), UnsignedInteger64Bit));
-            //Check the validity of the retrieved data
-            for (uint32 j = 0; j < 6 && ok; j++){
-                ok &= SafeMath::IsEqual(destinationAddress_[j], (uint64) (hardware_readings[j]&0xFFFFFF));
             }
         }
     }
@@ -760,12 +763,6 @@ bool UEIAI217_803Test::TestSignalScaling() {
                 float32 expectedValue = ((20.0/channelGain[i])*((float32)(hardware_readings[j]&0xFFFFFF))/(float32)(0xFFFFFF))-((10.0/channelGain[i]));
                 ok &= SafeMath::IsEqual(destinationAddress[j], expectedValue);
             }
-            ok &= (myDevice->ScaleSignal(i, 6, reinterpret_cast<void*>(hardware_readings), reinterpret_cast<void*>(destinationAddress_), Float32Bit));
-            //Check the validity of the retrieved data
-            for (uint32 j = 0; j < 6 && ok; j++){
-                float32 expectedValue = ((20.0/channelGain[i])*((float32)(hardware_readings[j]&0xFFFFFF))/(float32)(0xFFFFFF))-((10.0/channelGain[i]));
-                ok &= SafeMath::IsEqual(destinationAddress_[j], expectedValue);
-            }
         }
     }
     //Test for float64 values
@@ -780,12 +777,6 @@ bool UEIAI217_803Test::TestSignalScaling() {
                 float64 expectedValue = ((20.0/channelGain[i])*((float64)(hardware_readings[j]&0xFFFFFF))/(float64)(0xFFFFFF))-((10.0/channelGain[i]));
                 ok &= SafeMath::IsEqual(destinationAddress[j], expectedValue);
             }
-            ok &= (myDevice->ScaleSignal(i, 6, reinterpret_cast<void*>(hardware_readings), reinterpret_cast<void*>(destinationAddress_), Float64Bit));
-            //Check the validity of the retrieved data
-            for (uint32 j = 0; j < 6 && ok; j++){
-                float64 expectedValue = ((20.0/channelGain[i])*((float64)(hardware_readings[j]&0xFFFFFF))/(float64)(0xFFFFFF))-((10.0/channelGain[i]));
-                ok &= SafeMath::IsEqual(destinationAddress_[j], expectedValue);
-            }
         }
     }
     //Test fail cases
@@ -796,24 +787,21 @@ bool UEIAI217_803Test::TestSignalScaling() {
         UEIBufferPointer faultyPointer;
         ok &= SafeMath::IsEqual(myDevice->ScaleSignal(0, 1, faultyPointer, reinterpret_cast<void*>(destinationAddress), Float64Bit), false);
         ok &= SafeMath::IsEqual(myDevice->ScaleSignal(0, 1, myPointer, reinterpret_cast<void*>(NULL_PTR(uint8*)), Float64Bit), false);
-        ok &= SafeMath::IsEqual(myDevice->ScaleSignal(0, 1, reinterpret_cast<void*>(NULL_PTR(uint8*)), reinterpret_cast<void*>(destinationAddress), Float64Bit),false);
-        ok &= SafeMath::IsEqual(myDevice->ScaleSignal(0, 1, reinterpret_cast<void*>(destinationAddress), reinterpret_cast<void*>(NULL_PTR(uint8*)), Float64Bit),false);
         //The input and output pointers must not be equal
-        ok &= SafeMath::IsEqual(myDevice->ScaleSignal(0, 1, reinterpret_cast<void*>(destinationAddress), reinterpret_cast<void*>(destinationAddress), Float64Bit),false);
         faultyPointer.SetHead(reinterpret_cast<uint8*>(destinationAddress));
         ok &= SafeMath::IsEqual(myDevice->ScaleSignal(0, 1, faultyPointer, reinterpret_cast<void*>(destinationAddress), Float64Bit),false);
         //Channel number must not be over maximum
         ok &= SafeMath::IsEqual(myDevice->ScaleSignal(CHANNEL_NUMBER+1, 1, myPointer, reinterpret_cast<void*>(destinationAddress), Float64Bit),false);
         uint8 thatValue = 0;
         uint8* sourceAddress = &thatValue;
-        ok &= SafeMath::IsEqual(myDevice->ScaleSignal(CHANNEL_NUMBER+1, 1, reinterpret_cast<void*>(sourceAddress), reinterpret_cast<void*>(destinationAddress), Float64Bit),false);
         //Invalid output type supplied
-        ok &= SafeMath::IsEqual(myDevice->ScaleSignal(0, 1, reinterpret_cast<void*>(sourceAddress), reinterpret_cast<void*>(destinationAddress), UnsignedInteger8Bit),false);
         ok &= SafeMath::IsEqual(myDevice->ScaleSignal(0, 1, myPointer, reinterpret_cast<void*>(destinationAddress), UnsignedInteger8Bit),false);
         //Test the case of an invalid gain supplied and filtered previously
         myDevice->GetGainsHL()[0] = 3;
-        ok &= SafeMath::IsEqual(myDevice->ScaleSignal(0, 1, reinterpret_cast<void*>(sourceAddress), reinterpret_cast<void*>(destinationAddress), Float64Bit),false);
         ok &= SafeMath::IsEqual(myDevice->ScaleSignal(0, 1, myPointer, reinterpret_cast<void*>(destinationAddress), Float64Bit),false);
+        //Take advantage of the incorrect gain to call the ConfigureChannel method and observe a fail due to that condition.
+        uint32 configuration;
+        ok &= SafeMath::IsEqual(myDevice->ConfigureChannelHL(0u, configuration), false);
     }   
     return ok;
 }

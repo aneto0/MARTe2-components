@@ -70,7 +70,7 @@ class UEIMapContainerHL : public UEIMapContainer{
         MapMember** GetinputMembersOrderedHL()  {return inputMembersOrdered;}
         uint32 GetnInputMembersHL()             {return nInputMembers;}
         uint32 GetnOutputMembersHL()            {return nOutputMembers;}
-        uint32 GetsampleNumberHL()              {return sampleNumber;}
+        uint32 GetsampleNumberHL()              {return nSamplesMapExchange;}
         uint32 GettimestampCorrectorHL()        {return timestampCorrector;}
         uint32 GetlastTimestampHL()             {return lastTimestamp;}
         uint8** GetinputSignalAddressesHL()     {return inputSignalAddresses;}
@@ -152,6 +152,7 @@ CLASS_REGISTER(UEITestDevice, "1.0")
 const MARTe::char8 * const configUEIMapContainer = ""
     "+Map = {"
     "    Class = UEIMapContainerHL"
+    "    ExecutionMode = RealTimeThread"
     "    Outputs = {"
     "        dev0 = {"
     "            Devn = 0"
@@ -185,6 +186,7 @@ const MARTe::char8 * const configUEIMapContainer = ""
 const MARTe::char8 * const configUEIMapContainerBaseClass = ""
     "+Map = {"
     "    Class = UEIMapContainer"
+    "    ExecutionMode = RealTimeThread"
     "    Outputs = {"
     "        dev0 = {"
     "            Devn = 0"
@@ -249,6 +251,9 @@ bool UEIMapContainerTest::TestConstructor() {
         ok = SafeMath::IsEqual(mapContainer.GetfragmentedMapHL(), false);
     }
     if (ok){
+        ok = SafeMath::IsEqual(mapContainer.GetExecutionMode(), NoMode);
+    }
+    if (ok){
         MapMember* thisMembers = mapContainer.GetMembersHL();
         for (uint32 i = 0u; i < MAX_IO_SLOTS; i++){
             ok &= SafeMath::IsEqual(thisMembers[i].defined, false);
@@ -302,7 +307,8 @@ bool UEIMapContainerTest::TestBaseImplementations_Default() {
     }
     if (ok){
         MapReturnCode code;
-        ok = SafeMath::IsEqual(mapContainer.PollForNewPacket(code), false);
+        ok = SafeMath::IsEqual(mapContainer.GetInputs(code), false);
+        ok = SafeMath::IsEqual(mapContainer.SetOutputs(code), false);
     }
     if (ok){
         ok = SafeMath::IsEqual(mapContainer.GetType(), NO_MAP);
@@ -379,6 +385,9 @@ bool UEIMapContainerTest::TestInitialise(){
         const char8* myMapName = "+Map";
         ok &= SafeMath::IsEqual(*(myMap->GetName()), *myMapName);
     }
+    if (ok){
+        ok &= SafeMath::IsEqual(myMap->GetExecutionMode(), UEIMapRealTimeThreadExecutionMode);
+    }
     return ok;
 }
 
@@ -443,8 +452,6 @@ bool UEIMapContainerTest::TestInitialise_General(){
             if (inputChannelNAvailable){
                 ok &= SafeMath::IsEqual(nChannelsInput, InputChanneln[i]);
             }
-            //Buffer reference must be not assigned
-            ok &= (thisMembers[i].Inputs.buffer.IsValid() == false);
             //requestSize must not be assigned
             ok &= SafeMath::IsEqual(thisMembers[i].Inputs.requestSize, (uint32) 0);
             
@@ -463,8 +470,6 @@ bool UEIMapContainerTest::TestInitialise_General(){
             if (outputChannelNAvailable){
                 ok &= SafeMath::IsEqual(nChannelsOutput, OutputChanneln[i]);
             }
-            //Buffer reference must be not assigned
-            ok &= (thisMembers[i].Outputs.buffer.IsValid() == false);
             //requestSize must not be assigned
             ok &= SafeMath::IsEqual(thisMembers[i].Outputs.requestSize, (uint32) 0);
             //Check that the device number is correct
@@ -635,12 +640,10 @@ bool UEIMapContainerTest::TestInitialise_NoOutputs(){
             //Check the Input IOMapMember structure for this member
             ok &= SafeMath::IsEqual(thisMembers[i].Inputs.defined,   DefinedAsInput[i]);
             ok &= SafeMath::IsEqual(thisMembers[i].Inputs.nChannels, InputChanneln[i]);
-            ok &= (thisMembers[i].Inputs.buffer.IsValid() == false);            //Buffer reference must be not assigned
             ok &= SafeMath::IsEqual(thisMembers[i].Inputs.requestSize, (uint32) 0); //requestSize must not be assigned
             //Check the Output IOMapMember structure for this member
             ok &= SafeMath::IsEqual(thisMembers[i].Outputs.defined,   DefinedAsOutput[i]);
             ok &= SafeMath::IsEqual(thisMembers[i].Outputs.nChannels, OutputChanneln[i]);
-            ok &= (thisMembers[i].Outputs.buffer.IsValid() == false);    //Buffer reference must be not assigned
             ok &= SafeMath::IsEqual(thisMembers[i].Outputs.requestSize, (uint32) 0); //requestSize must not be assigned
             //Check that the device number is correct
             ok &= SafeMath::IsEqual(thisMembers[i].devn, (uint8) i);
@@ -719,12 +722,10 @@ bool UEIMapContainerTest::TestInitialise_NoInputs(){
             ok &= SafeMath::IsEqual(thisMembers[i].Inputs.defined,   DefinedAsInput[i]);
 
             ok &= SafeMath::IsEqual(thisMembers[i].Inputs.nChannels, InputChanneln[i]);
-            ok &= (thisMembers[i].Inputs.buffer.IsValid() == false);            //Buffer reference must be not assigned
             ok &= SafeMath::IsEqual(thisMembers[i].Inputs.requestSize, (uint32) 0); //requestSize must not be assigned
             //Check the Output IOMapMember structure for this member
             ok &= SafeMath::IsEqual(thisMembers[i].Outputs.defined,   DefinedAsOutput[i]);
             ok &= SafeMath::IsEqual(thisMembers[i].Outputs.nChannels, OutputChanneln[i]);            
-            ok &= (thisMembers[i].Outputs.buffer.IsValid() == false);    //Buffer reference must be not assigned
             ok &= SafeMath::IsEqual(thisMembers[i].Outputs.requestSize, (uint32) 0); //requestSize must not be assigned
             //Check that the device number is correct
             if (DefinedDevices[i]){
@@ -752,6 +753,7 @@ bool UEIMapContainerTest::TestInitialise_NoInputs(){
         ok = SafeMath::IsEqual(myMap->GetoutputAssignedToDSHL(), false);
         ok &= SafeMath::IsEqual(myMap->GetinputAssignedToDSHL(), true);
     }
+    god->Purge();
     return ok;
 }
 
@@ -776,6 +778,7 @@ bool UEIMapContainerTest::TestInitialise_NoDevices(){
         //Initialisation must not succeed without the devices configured
         ok = !god->Initialise(cdb);
     }
+    god->Purge();
     return ok;
 }
 
@@ -799,6 +802,7 @@ bool UEIMapContainerTest::TestInitialise_NoDevn(){
         //Initialisation must not succeed without the devices configured
         ok = !god->Initialise(cdb);
     }
+    god->Purge();
     return ok;
 }
 
@@ -822,6 +826,7 @@ bool UEIMapContainerTest::TestInitialise_NegativeDevn(){
         //Initialisation must not succeed without the devices configured
         ok = !god->Initialise(cdb);
     }
+    god->Purge();
     return ok;
 }
 
@@ -845,6 +850,7 @@ bool UEIMapContainerTest::TestInitialise_InvalidDevn(){
         //Initialisation must not succeed without the devices configured
         ok = !god->Initialise(cdb);
     }
+    god->Purge();
     return ok;
 }
 
@@ -867,6 +873,7 @@ bool UEIMapContainerTest::TestInitialise_RepeatedDevn(){
         god->Purge();
         ok = !god->Initialise(cdb);
     }
+    god->Purge();
     return ok;
 }
 
@@ -889,6 +896,7 @@ bool UEIMapContainerTest::TestInitialise_NoChannels(){
         god->Purge();
         ok = !god->Initialise(cdb);
     }
+    god->Purge();
     return ok;
 }
 
@@ -912,6 +920,7 @@ bool UEIMapContainerTest::TestInitialise_NegativeChannels(){
         god->Purge();
         ok = !god->Initialise(cdb);
     }
+    god->Purge();
     return ok;
 }
 
@@ -935,6 +944,7 @@ bool UEIMapContainerTest::TestInitialise_DescendingChannels(){
         god->Purge();
         ok = !god->Initialise(cdb);
     }
+    god->Purge();
     return ok;
 }
 
@@ -958,6 +968,7 @@ bool UEIMapContainerTest::TestInitialise_InvalidChannelType(){
         god->Purge();
         ok = !god->Initialise(cdb);
     }
+    god->Purge();
     return ok;
 }
 
@@ -983,6 +994,7 @@ bool UEIMapContainerTest::TestInitialise_EmptyBlock(){
         god->Purge();
         ok = !god->Initialise(cdb);
     }
+    god->Purge();
     return ok;
 }
 
@@ -1020,6 +1032,7 @@ bool UEIMapContainerTest::TestInitialise_TooManyOutputDevices(){
         god->Purge();
         ok = !god->Initialise(cdb);
     }
+    god->Purge();
     return ok;
 }
 
@@ -1057,6 +1070,84 @@ bool UEIMapContainerTest::TestInitialise_TooManyInputDevices(){
         god->Purge();
         ok = !god->Initialise(cdb);
     }
+    god->Purge();
+    return ok;
+}
+
+bool UEIMapContainerTest::TestInitialise_IndependentThread(){
+    bool ok = true;
+    //Test initialisation
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = configUEIMapContainer;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    ok &= parser.Parse();
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ok){
+        ok &= cdb.MoveAbsolute("+Map");
+        ok &= cdb.Write("ExecutionMode", "IndependentThread");
+        ok &= cdb.MoveToRoot();
+    }
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<UEIMapContainer> myMap;
+    if (ok) {
+        myMap = ObjectRegistryDatabase::Instance()->Find("Map");
+        ok &= myMap.IsValid();
+    }
+    if (ok){
+        ok &= SafeMath::IsEqual(myMap->GetExecutionMode(), UEIMapIndependentThreadExecutionMode);
+    }
+    god->Purge();
+    return ok;
+}
+
+bool UEIMapContainerTest::TestInitialise_NoExecutionMode(){
+    bool ok = true;
+    //Test initialisation
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = configUEIMapContainer;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    ok &= parser.Parse();
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ok){
+        ok &= cdb.MoveAbsolute("+Map");
+        ok &= cdb.Delete("ExecutionMode");
+        ok &= cdb.MoveToRoot();
+    }
+    if (ok) {
+        god->Purge();
+        ok = !god->Initialise(cdb);
+    }
+    god->Purge();
+    return ok;
+}
+
+bool UEIMapContainerTest::TestInitialise_InvalidExecutionMode(){
+    bool ok = true;
+    //Test initialisation
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream = configUEIMapContainer;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    ok &= parser.Parse();
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ok){
+        ok &= cdb.MoveAbsolute("+Map");
+        ok &= cdb.Write("ExecutionMode", "AnotherMode");
+        ok &= cdb.MoveToRoot();
+    }
+    if (ok) {
+        god->Purge();
+        ok = !god->Initialise(cdb);
+    }
+    god->Purge();
     return ok;
 }
 

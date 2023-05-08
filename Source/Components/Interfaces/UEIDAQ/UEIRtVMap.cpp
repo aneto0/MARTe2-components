@@ -48,6 +48,7 @@ UEIRtVMap::UEIRtVMap() : UEIMapContainer(),
     nBuffers = 0;
     nReadSamples = 0u;
     nWriteSamples = 0u;
+    nSamplesMapExchange = 0;
 }
 
 UEIRtVMap::~UEIRtVMap(){
@@ -76,10 +77,11 @@ bool UEIRtVMap::StopMap(){
         if (DAQ_handle != 0 && mapid != 0){
             ok &= (DqRtVmapStop(DAQ_handle, mapid) >= 0);
         }
+        if (ok){
+            //Set to flag to signal that this map is not active
+            mapStarted = false;
+        }
     }
-    //Set to flag to signal that this map is not active
-    mapStarted = false;
-
     //Release the mutex
     if (mutexAcquired){
         mapMutex.UnLock();
@@ -171,16 +173,32 @@ bool UEIRtVMap::StartMap(){
     if (ok){
         for (uint32 i = 0u; i < nInputMembers && ok; i++){
             ReferenceT<UEIDevice> reference = inputMembersOrdered[i]->reference;
-            ok &= reference->SetInputChannelList(inputMembersOrdered[i]->Inputs.channels, inputMembersOrdered[i]->Inputs.nChannels);
-            reference->timestampRequired = inputMembersOrdered[i]->Inputs.timestampRequired;
-            //Init the buffers, only one sample retrieved and read back
-            ok &= reference->InitBuffer(InputSignals, nBuffers, nSamplesMapExchange, nReadSamples);
+            ok &= reference.IsValid();
+            if (ok){
+                ok &= reference->SetInputChannelList(inputMembersOrdered[i]->Inputs.channels, inputMembersOrdered[i]->Inputs.nChannels);
+                reference->timestampRequired = inputMembersOrdered[i]->Inputs.timestampRequired;
+                //Init the buffers, only one sample retrieved and read back
+                ok &= reference->InitBuffer(InputSignals, nBuffers, nSamplesMapExchange, nReadSamples);
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "Detected error while setting input channel list and input channel buffer in device %s", name.Buffer());
+                }
+            }else{
+                REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid reference retrieved for input member in Map %s upon start procedure", name.Buffer());
+            }
         }
         for (uint32 i = 0u; i < nOutputMembers && ok; i++){
             ReferenceT<UEIDevice> reference = outputMembersOrdered[i]->reference;
-            ok &= reference->SetOutputChannelList(outputMembersOrdered[i]->Outputs.channels, outputMembersOrdered[i]->Outputs.nChannels);
-            //Init the buffers, only one sample retrieved and read back
-            ok &= reference->InitBuffer(OutputSignals, nBuffers, nWriteSamples, nSamplesMapExchange);
+            ok &= reference.IsValid();
+            if (ok){
+                ok &= reference->SetOutputChannelList(outputMembersOrdered[i]->Outputs.channels, outputMembersOrdered[i]->Outputs.nChannels);
+                //Init the buffers, only one sample retrieved and read back
+                ok &= reference->InitBuffer(OutputSignals, nBuffers, nWriteSamples, nSamplesMapExchange);
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::CommunicationError, "Detected error while setting input channel list and output channel buffer in device %s", name.Buffer());
+                }
+            }else{
+                REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid reference retrieved for input member in Map %s upon start procedure", name.Buffer());
+            }
         }
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Device channel information setting failed");

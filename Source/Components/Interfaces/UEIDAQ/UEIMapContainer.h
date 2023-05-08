@@ -151,27 +151,25 @@ class UEIMapContainer : public ReferenceContainer {
      * @details This method performs the initialisation procedures for the map by issuing the appropriate commands directly to IOM.
      * The IOM handle supplied to this method will be saved for later usage on polling/data recieving operations.
      * This function must be reimplmented by each of the derived map classes, as the map configuration procedures is map-type dependant.
-     * @return true if the initialisation and starting procedure succeeds for this map.
+     * @return true if the initialisation and starting procedure succeeds for this map or the map is already started, false otherwise.
      */
     virtual bool StartMap();
     
     /**
-     * @brief Method to poll the IOM for new data packets on the configured hardware layer.
-     * @details This method performs the data acquisition process in which the new data is requested to the IOM through a poll request
-     * and recieved and stored in a buffer if needed. This method also writes the data obtained through the UEIDAQ directly into the destination 
-     * memory locations as configured through previously stated methods.
-     * @param[out] outputCode Variable holding the status code for the polling procedure performed during the call.
-     * @return true no error occurred during the poll procedure.
+     * @brief Method to retrieve the inputs of the map packet.
+     * @details This method checks wether there's new data available to be retrieved from the DAQ map and retrieves
+     * it from the devices input buffers into the MARTe signals (the ones configured in the DataSources)
+     * @param[out] outputCode Variable holding the status code for the procedure performed during the call.
+     * @return true no error occurred during the retrieve procedure.
      */
     virtual bool GetInputs(MapReturnCode& outputCode);
 
     /**
-     * @brief Method to poll the IOM for new data packets on the configured hardware layer.
-     * @details This method performs the data acquisition process in which the new data is requested to the IOM through a poll request
-     * and recieved and stored in a buffer if needed. This method also writes the data obtained through the UEIDAQ directly into the destination 
-     * memory locations as configured through previously stated methods.
-     * @param[out] outputCode Variable holding the status code for the polling procedure performed during the call.
-     * @return true no error occurred during the poll procedure.
+     * @brief Method to set the outputs of the map packet.
+     * @details This method pushes the output signal values from MARTe (through the DataSource) into the output buffers
+     * of the devices to be later pushed into the DAQ map
+     * @param[out] outputCode Variable holding the status code for the procedure performed during the call.
+     * @return true no error occurred during the setting procedure.
      */
     virtual bool SetOutputs(MapReturnCode& outputCode);
 
@@ -198,17 +196,16 @@ class UEIMapContainer : public ReferenceContainer {
      */
     virtual bool ConfigureInputsForDataSource(uint32 nSamples, uint32 nChannels, uint64* inputTimestampAddress, uint8** signalAddresses, TypeDescriptor* signalTypes);
 
-        /** TODO
+    /**
      * @brief Configuration method for the destination signals in MARTe.
-     * @details This function provides the Map object the knowledge of where to store the scaled samples in memory as input signals in MARTe,
-     * the desired number of samples to be retrieved in such signals, the number of physical channels to be retrieved and the types to which scale each
-     * of the input signals.
-     * @param[in] nSamples number of samples the map must supply for each of the declared phyisical channels as MARTe signals.
-     * @param[in] nChannels number of channels the map needs to provide as input signals, this parameters serves as a check for the length of the provided arrays.
-     * @param[in] inputTimestampAddress pointer to the memory location in which to store the scaled samples for the timestamp channel mandatory for all the maps.
-     * @param[in] signalAddresses array of pointers to the memory locations of each of the input signals, must have a length of nChannels and be supplied in the same
+     * @details This function provides the Map object the knowledge of where to retrieve the output samples in memory as output signals in MARTe,
+     * the desired number of samples to be pushed in such signals, the number of physical channels to be pushed and the types to which scale each
+     * of the output signals.
+     * @param[in] nSamples number of samples the map must push for each of the declared phyisical channels as MARTe signals.
+     * @param[in] nChannels number of channels the map needs to psuh into as output signals, this parameters serves as a check for the length of the provided arrays.
+     * @param[in] signalAddresses array of pointers to the memory locations of each of the output signals, must have a length of nChannels and be supplied in the same
      * order as the configured physical channels.
-     * @param[in] signalTypes Array of types for each of the channels, stating the desired input signal format and scaling.
+     * @param[in] signalTypes Array of types for each of the channels, stating the current output signal format and scaling.
      * @return true if the provided parameters are accepted for the Map, false otherwise.
      */
     virtual bool ConfigureOutputsForDataSource(uint32 nSamples, uint32 nChannels, uint8** signalAddresses, TypeDescriptor* signalTypes);
@@ -341,11 +338,17 @@ class UEIMapContainer : public ReferenceContainer {
      */
     virtual bool StopMap();
 
+    /**
+     * @brief Getter for the map status, returning the current status.
+     * @return true if the map is started, false otherwise.
+     */
     bool GetMapStatus();
-
+    
+    /**
+     * @brief Getter for the map execution mode (RealTimeThread or IndependentThread)
+     * @return the current map execution mode.
+     */
     UEIMapExecutionMode GetExecutionMode();
-
-    bool SetExecutionMode(UEIMapExecutionMode mode);
 
 protected:
     /**

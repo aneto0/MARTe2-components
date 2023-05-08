@@ -358,12 +358,6 @@ bool UEIAI217_803::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBuffe
         REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid channel number supplied for scaling");
     }
     if (ok){
-        ok &= AcceptedSignalType(outputType);
-        if (!ok){
-            REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid output data format speficied for AI217-803");
-        }
-    }
-    if (ok){
         ok &= (scaledData != NULL_PTR(void*));
         ok &= (rawData.CheckPointer());
         ok &= (rawData.GetSample(0) != scaledData);
@@ -406,33 +400,36 @@ bool UEIAI217_803::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBuffe
                 REPORT_ERROR(ErrorManagement::CommunicationError, "Forbbidden gain detected on channel %d", channelNumber);
                 break;
         }
-        uint32* castedRawData;
-        if(outputType == Float32Bit){
-            float32* castedDestination = reinterpret_cast<float32*>(scaledData);
-            for (uint32 i = 0; i < listLength; i++){   
-                castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
-                castedDestination[i] = (float32)((*castedRawData & 0xFFFFFF) * step - offset);
+        if (ok){
+            uint32* castedRawData;
+            if(outputType == Float32Bit){
+                float32* castedDestination = reinterpret_cast<float32*>(scaledData);
+                for (uint32 i = 0; i < listLength; i++){   
+                    castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
+                    castedDestination[i] = (float32)((*castedRawData & 0xFFFFFF) * step - offset);
+                }
+            }else if (outputType == Float64Bit){
+                float64* castedDestination = reinterpret_cast<float64*>(scaledData);
+                for (uint32 i = 0; i < listLength; i++){   
+                    castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
+                    castedDestination[i] = (float64)((*castedRawData & 0xFFFFFF) * step - offset);
+                }
+            }else if (outputType == UnsignedInteger32Bit){
+                uint32* castedDestination = reinterpret_cast<uint32*>(scaledData);
+                for (uint32 i = 0; i < listLength; i++){   
+                    castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
+                    castedDestination[i] = (uint32)(*castedRawData & 0xFFFFFF);
+                }
+            }else if (outputType == UnsignedInteger64Bit){
+                uint64* castedDestination = reinterpret_cast<uint64*>(scaledData);
+                for (uint32 i = 0; i < listLength; i++){   
+                    castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
+                    castedDestination[i] = (uint64)(*castedRawData & 0xFFFFFF);
+                }
+            }else{
+                ok = false;
+                REPORT_ERROR(ErrorManagement::CommunicationError, "Invalid output data format speficied for AI217-803");
             }
-        }else if (outputType == Float64Bit){
-            float64* castedDestination = reinterpret_cast<float64*>(scaledData);
-            for (uint32 i = 0; i < listLength; i++){   
-                castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
-                castedDestination[i] = (float64)((*castedRawData & 0xFFFFFF) * step - offset);
-            }
-        }else if (outputType == UnsignedInteger32Bit){
-            uint32* castedDestination = reinterpret_cast<uint32*>(scaledData);
-            for (uint32 i = 0; i < listLength; i++){   
-                castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
-                castedDestination[i] = (uint32)(*castedRawData & 0xFFFFFF);
-            }
-        }else if (outputType == UnsignedInteger64Bit){
-            uint64* castedDestination = reinterpret_cast<uint64*>(scaledData);
-            for (uint32 i = 0; i < listLength; i++){   
-                castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
-                castedDestination[i] = (uint64)(*castedRawData & 0xFFFFFF);
-            }
-        }else{
-            ok = false;
         }
     }
     if (!ok){

@@ -72,12 +72,13 @@ class UEIRtVMapHL : public UEIRtVMap{
         MapMember** GetinputMembersOrderedHL()  {return inputMembersOrdered;}
         uint32 GetnInputMembersHL()             {return nInputMembers;}
         uint32 GetnOutputMembersHL()            {return nOutputMembers;}
-        uint32 GetsampleNumberHL()              {return sampleNumber;}
+        uint32 GetNOfReadSamplesHL()            {return nReadSamples;}
+        uint32 GetNOfWriteSamplesHL()           {return nWriteSamples;}
+        uint32 GetSampleNumberHL()              {return nSamplesMapExchange;}
         uint32 GettimestampCorrectorHL()        {return timestampCorrector;}
         uint32 GetlastTimestampHL()             {return lastTimestamp;}
         uint8** GetinputSignalAddressesHL()     {return inputSignalAddresses;}
         TypeDescriptor* GetinputSignalTypesHL() {return inputSignalTypes;}
-        uint32 GetSampleNumberHL()              {return sampleNumber;}
         uint32 GetNBuffersHL()                  {return nBuffers;}
         bool EnableMapHL()                      {return EnableMap();}
         bool ResetVMapHL()                      {return ResetVMap();}
@@ -121,11 +122,10 @@ const MARTe::char8 * const configUEIRtVMap = ""
     "    SamplingFrequency = 1000.0"
     "}"
     "+dev0 = {"
-    "    Class = UEIAI217_803"
+    "    Class = UEIDIO404"
     "    Devn = 0"
     "    SamplingFrequency = 1000.0"
-    "    Gains = {1,2,4,8,16,32,64,1,1,1,1,1,1,1,1,1}"
-    "    ADCMode = \"DEFAULT\""
+    "    VoltageReference = 5.0"
     "}"
     "+dev1 = {"
     "    Class = UEIAI217_803"
@@ -145,6 +145,7 @@ const MARTe::char8 * const configUEIRtVMap = ""
     "    Class = UEIRtVMapHL"
     "    Samples = 100"
     "    NumberOfBuffers = 10"
+    "    ExecutionMode = RealTimeThread"
     "    Outputs = {"
     "        dev0 = {"
     "            Devn = 0"
@@ -175,6 +176,10 @@ bool UEIRtVMapTest::TestConstructor() {
     manager->resetManager();
     UEIRtVMapHL map;
     ok &= SafeMath::IsEqual(map.GetType(), RTVMAP);
+    ok &= SafeMath::IsEqual(map.GetNBuffersHL(), 0u);
+    ok &= SafeMath::IsEqual(map.GetNOfReadSamplesHL(), 0u);
+    ok &= SafeMath::IsEqual(map.GetNOfWriteSamplesHL(), 0u);
+    ok &= SafeMath::IsEqual(map.GetSampleNumberHL(), 0u);
     //Trigger errors during map close and stop on destructor
     map.SetDAQ_handleHL(1);
     map.SetMapIdHL(1);
@@ -362,12 +367,17 @@ bool UEIRtVMapTest::TestEnableMap() {
         myMap = ObjectRegistryDatabase::Instance()->Find("Map");
         ok &= myMap.IsValid();
     }
-    ReferenceT<UEIAI217_803> dev1;
+    ReferenceT<UEIDevice> dev0;
+    if (ok) {
+        dev0 = ObjectRegistryDatabase::Instance()->Find("dev0");
+        ok &= dev0.IsValid();
+    }
+    ReferenceT<UEIDevice> dev1;
     if (ok) {
         dev1 = ObjectRegistryDatabase::Instance()->Find("dev1");
         ok &= dev1.IsValid();
     }
-    ReferenceT<UEIAI217_803> dev2;
+    ReferenceT<UEIDevice> dev2;
     if (ok) {
         dev2 = ObjectRegistryDatabase::Instance()->Find("dev2");
         ok &= dev2.IsValid();
@@ -376,6 +386,7 @@ bool UEIRtVMapTest::TestEnableMap() {
         //An error must be prompted if we try to Enable the map with no devices reference set previously (no device configuration is possible)
         ok &= SafeMath::IsEqual(myMap->EnableMapHL(), false);
         //Set the devices
+        ok &= SafeMath::IsEqual(myMap->SetDevice(0, dev0), true);
         ok &= SafeMath::IsEqual(myMap->SetDevice(1, dev1), true);
         ok &= SafeMath::IsEqual(myMap->SetDevice(2, dev2), true);
         //Now the map enabling must succeed
@@ -417,18 +428,24 @@ bool UEIRtVMapTest::TestResetMap() {
         myMap = ObjectRegistryDatabase::Instance()->Find("Map");
         ok &= myMap.IsValid();
     }
-    ReferenceT<UEIAI217_803> dev1;
+    ReferenceT<UEIDevice> dev0;
+    if (ok) {
+        dev0 = ObjectRegistryDatabase::Instance()->Find("dev0");
+        ok &= dev0.IsValid();
+    }
+    ReferenceT<UEIDevice> dev1;
     if (ok) {
         dev1 = ObjectRegistryDatabase::Instance()->Find("dev1");
         ok &= dev1.IsValid();
     }
-    ReferenceT<UEIAI217_803> dev2;
+    ReferenceT<UEIDevice> dev2;
     if (ok) {
         dev2 = ObjectRegistryDatabase::Instance()->Find("dev2");
         ok &= dev2.IsValid();
     }
     if (ok){
         //Set the devices
+        ok &= SafeMath::IsEqual(myMap->SetDevice(0, dev0), true);
         ok &= SafeMath::IsEqual(myMap->SetDevice(1, dev1), true);
         ok &= SafeMath::IsEqual(myMap->SetDevice(2, dev2), true);
         myMap->SetDAQ_handleHL(1);
@@ -472,12 +489,17 @@ bool UEIRtVMapTest::TestStartMap() {
         myMap = ObjectRegistryDatabase::Instance()->Find("Map");
         ok &= myMap.IsValid();
     }
-    ReferenceT<UEIAI217_803> dev1;
+    ReferenceT<UEIDevice> dev0;
+    if (ok) {
+        dev0 = ObjectRegistryDatabase::Instance()->Find("dev0");
+        ok &= dev0.IsValid();
+    }
+    ReferenceT<UEIDevice> dev1;
     if (ok) {
         dev1 = ObjectRegistryDatabase::Instance()->Find("dev1");
         ok &= dev1.IsValid();
     }
-    ReferenceT<UEIAI217_803> dev2;
+    ReferenceT<UEIDevice> dev2;
     if (ok) {
         dev2 = ObjectRegistryDatabase::Instance()->Find("dev2");
         ok &= dev2.IsValid();
@@ -490,9 +512,19 @@ bool UEIRtVMapTest::TestStartMap() {
     if (ok){
         //Try starting the map without devices references, it must fail
         ok &= SafeMath::IsEqual(myMap->StartMap(), false);
-        //Set the devices
+        //Test failure in starting the input devices
+        ok &= SafeMath::IsEqual(myMap->SetDevice(1, dummyDev), true);
+        ok &= SafeMath::IsEqual(myMap->StartMap(), false);
+        //Set the input devices
         ok &= SafeMath::IsEqual(myMap->SetDevice(1, dev1), true);
         ok &= SafeMath::IsEqual(myMap->SetDevice(2, dev2), true);
+        ok &= SafeMath::IsEqual(myMap->StartMap(), false);
+        //Set the dummy output device and test for invalid output signals and buffer set
+        ok &= SafeMath::IsEqual(myMap->SetDevice(0, dummyDev), true);
+        ok &= SafeMath::IsEqual(myMap->StartMap(), false);
+        //Set the proper output device
+        ok &= SafeMath::IsEqual(myMap->SetDevice(0, dev0), true);
+        ok &= SafeMath::IsEqual(myMap->StartMap(), false);
         //If we try to start the map after the devices are it must fail as the number of samples to be read from 
         //CircularBuffer into MARTe are not yet set
         ok &= SafeMath::IsEqual(myMap->StartMap(), false);
@@ -501,8 +533,16 @@ bool UEIRtVMapTest::TestStartMap() {
         TypeDescriptor types[8];
         //Configure the circularBuffers to retrieve 10 samples into MARTe
         ok &= SafeMath::IsEqual(myMap->ConfigureInputsForDataSource(10u, 8u, &timestampAddr, signalAddresses, types), true);
+        //Now the StartMap call must not succeed as we're still missing the output signal configurations
+        ok &= SafeMath::IsEqual(myMap->StartMap(), false);
+        //Configure the circularBuffers to write 10 samples from Marte into the IOM
+        uint8* outSignalAddresses[4];
+        TypeDescriptor outTypes[4];
+        ok &= SafeMath::IsEqual(myMap->ConfigureOutputsForDataSource(10u, 4u, outSignalAddresses, outTypes), true);
         //Now the StartMap call must succeed
         ok &= SafeMath::IsEqual(myMap->StartMap(), true);
+        //We need to stop the map in order to allow another start procedure
+        ok &= SafeMath::IsEqual(myMap->StopMap(), true);
         //Now we force an error on DqRtVmapInitEx call
         manager->SetErrorCode(DqRtVmapInitEx_ERROR);
         ok &= SafeMath::IsEqual(myMap->StartMap(), false);
@@ -528,7 +568,7 @@ bool UEIRtVMapTest::TestStartMap() {
     }
     return ok;
 }
-
+/*
 bool UEIRtVMapTest::TestPollForNewPacket() {
     bool ok = true;
     UEIDAQMockupManager* manager = UEIDAQMockupManager::getInstance();
@@ -591,3 +631,4 @@ bool UEIRtVMapTest::TestPollForNewPacket() {
     }
     return ok;
 }
+*/

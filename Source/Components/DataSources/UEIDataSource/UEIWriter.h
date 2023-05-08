@@ -52,36 +52,21 @@
 namespace MARTe {
 
 /**
-* @brief DataSource implementation to be used with the UEIDAQ interface and UEIDAQ devices within MARTe.
-* @details This DataSource implements the needed methods and mechanics to retrieve data from a/various UEIDAQ hardware layer/s directly within MARTe.
+* @brief DataSource implementation to be used with the UEIDAQ interface and UEIDAQ devices within MARTe to send data into the IOM for output capable devices.
+*
+* @details This DataSource implements the needed methods and mechanics to send data from MARTe into a/various UEIDAQ hardware layer/s.
 * The DataSource needs to be linked to an existing UEIDAQ interface within the same application describing the desired configuration for the device
 * and its different layers.
 *
 * The DataSource configuration must provide the Device paramter, which contains a string referencing the name of the UEIMasterObject object instantiated
-* within the application which will serve as the interface to the UEIDAQ device. The DataSource must retrieve the data through a Map object (see UEIRtDMap and
+* within the application which will serve as the interface to the UEIDAQ device. The DataSource must push the data through a Map object (see UEIRtDMap and
 * UEIRtVMap) which defines the acquisition method and parameters. The configuration must also contain a Map parameter with a string referencing the name of the
 * Map object associated to the acquisition scheme.
 *
-* Since the available methods to retrieve data from the IOM are based on periodical polling requests to the IOM, the DataSource performs such requests
-* within a loop upon call of the Synchronise method. These system calls must happen in a short enough period to ensure the FIFOs on the hardware layers
-* do not overflow if operating on a VMap mode. Since the refresh requests happen in a loop, the period is defined by an sleep within the loop, which can be
-* configured through the PollSleepPeriod parameter (in ms). This parameter is optional and assumed 0 if not provided, nonetheless, since the UEIDAQ models
-* availalble are fitted with single core cpus running Linux, the use of loops with no sleep (default configuration) mean the system becomes starved of resources
-* and the operating system may block, therefore adjustment of this parameter is recommended.
-*
-* The DataSource can only be used as an input DataSource providing information to MARTe (output signals to hardware are not yet available).
-* The DataSource must have the following input signals if configured as input DataSource. All the signals except the first signal must have the same ammount of
-* samples and NumberOfElements and NumberOfDimensions == 1. For RtDMaps only 1 sample is allowed for each signal, while for RtVMap a higher than 1 sample
-* is allowed for the signals.
-* - Status signal : uint32 signal with a single sample, providing status of the DataSource. the first 16 bits of the signal present a counter of the number
-* of errors detected during new packet acquisition (number of FIFO overflows or general errors). The 16th bit signals wether the data provided presents a gap
-* from the previous sampled data (1 == data gap detected), the 17th bit signals if a FIFO overflow has been detected during the last packet acquisition and the 18th
-* bit signals if another kind of error (general error) was detected during last packet retrieving.
-* - Timestamp : uint64 signal with the selected ammount of samples (same for all signals except Status) providing the local timestamp of the UEIDAQ hardware 
-* (relative to the map start time).
-* - Signal0 to SignalN : Signal with the selected ammount of samples providing the read value of such channel in the map (signals are provided in the 
-* same order as configured within the map object associated to the DataSource). The acceptance or not of a given signal type depends only on the device channel
-* configured; in order to give the user the maximum flexibility posible each signal is checked for type validity with the associated physical channel.
+* The DataSource can only be used as an output DataSource where data from MARTe sinks into the UEIDAQ hardware layers. The number of output signals must be equal
+* to the number of configured output channels on the hardware layers. The output signal types must match the accepted types for their respective hardware layer
+* , othwerwise the DataSource setup procedure will fail. The number of samples requested for each of the output signals must be equal. No additional signals
+* must be supplied (such as Timestamp or Status in UEIReader).
 *
 * See the example below for a configuration of the DataSource:
 * <pre>
@@ -89,18 +74,11 @@ namespace MARTe {
 *        Class = UEIDataSourceI::UEIWriter
 *        Device = "UEIDevice"
 *        Map = "Map1"
-*        PollSleepPeriod = 1
 *        Signals = {
-*            Status = {
-*                Type = uint32
-*            }
-*            Timestamp = {
-*                Type = uint64
-*            }
-*            Output0 = {
+*            Input0 = {
 *                Type = float32
 *            }
-*            Output1 = {
+*            Input1 = {
 *                Type = float64
 *            }
 *        }
@@ -108,17 +86,18 @@ namespace MARTe {
 * </pre>
 *
 */
+
 class UEIWriter : public UEIDataSourceI {
 public:
 
     CLASS_REGISTER_DECLARATION()
     /**
-     * @brief Constructor. NOOP.
+     * @brief Constructor.
      */
     UEIWriter();
 
     /**
-     * @brief Destructor. Stops the Embedded thread which reads from the CRIOUARTSerial.
+     * @brief Destructor.
      */
     virtual ~UEIWriter();
 
@@ -140,25 +119,34 @@ public:
     virtual bool TerminateInputCopy(const uint32 signalIdx,  const uint32 offset, const uint32 numberOfSamples);
 
     /**
-     * @brief Assigns the correct broker for the connected signals. Checks that only input signals are provided, this
-     * datasource does only support input signals.
-     * @return "MemoryMapSychronisedInputBroker" if the signal is an input signal.
+     * @brief Prepares the Datasource for the next state.
+     * @details This method performs a reset of the DataSource and stops the current map for later restart.
+     * @return true by default.
+     */
+    virtual bool PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName);
+    
+    /**
+     * @brief Assigns the correct broker for the connected signals.
+     * @details This method configures a MemoryMapSynchronisedOutputBroker for each of the configured output signals.
+     * @param[in] data StructuredData object contatining the configuration of the component.
+     * @param[in] direction direction of the signal to be used with the broker.
+     * @return "MemoryMapSynchronisedOutputBroker" for the output signals, "" for the input signals.
      */
     const char8* GetBrokerName(StructuredDataI &data, const SignalDirection direction);
 
     /**
      * @brief Sycnhronise method for the DataSource.
-     * @details This method performs the synchronisation to the latest IOM data. The method calls the PollForNewPacket method of the assigned Map
-     * to retrieve new data from the IOM.
-     * @return true.
+     * @details This method calls the SetOutputs method of the configured map objects to push the latest data into the IOM.
+     * @return true by default.
      */
     bool Synchronise();
 
+    
     /**
-     * @see DataSourceI::PrepareNextState
+     * @brief Allocates the memory needed for this DataSource implementation.
+     * @details This method calls the AllocateMemory implementation in UEIDataSourceI with the appropriate signal direction.
+     * @return true if memory allocation succeeded, false otherwise.
      */
-    virtual bool PrepareNextState(const char8 * const currentStateName, const char8 * const nextStateName);
-
     bool AllocateMemory();
 };
 

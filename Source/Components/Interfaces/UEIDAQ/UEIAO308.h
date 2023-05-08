@@ -1,7 +1,7 @@
 /**
- * @file UEIDIO404.h
- * @brief Header file for class UEIDIO404
- * @date 17/04/2023
+ * @file UEIAO308.h
+ * @brief Header file for class UEIAO308
+ * @date 22/03/2023
  * @author Xavier Ruche
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class UEIDIO404
+ * @details This header file contains the declaration of the class UEIAO308
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef UEIDIO404_H_
-#define UEIDIO404_H_
+#ifndef UEIAO308_H_
+#define UEIAO308_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -47,35 +47,27 @@
 
 namespace MARTe {
 
-#define CHANNEL_NUMBER 24u
+#define MAX_FIR_TAPS_803 512u
+#define FIR_BANK_NUMBER 4u
+#define CHANNEL_NUMBER 16u
 
 /**
- * @brief Device class for UEIDAQ DIO-404 hardware layer.
+ * @brief Device class for UEIDAQ AO-308 hardware layer.
  *
- * @details This device-specific class inherits from UEIDevice and implements layer-specific methods for UEI DIO-404 hardware layer.
- * This class adds support for reference voltage and input voltage hysteresis on the hardware layer under the VoltageReference and LowerHysteresys and UpperHysteresys.
+ * @details This device-specific class inherits from UEIDevice and implements layer-specific methods for UEI AO-308 hardware layer.
+ * No additional configuration parameters are required for this hardware layer.
  *
- * When setting the VoltageReference parameter, only 3.3v, 5v, 12v, 24v or 36v are allowed. UpperHysteresys parameter must be below the selected VoltageReference value and 
- * above LowerHysteresis value in order to be considered valid, and LowerHysteresis value must be above 0.
- *
- * While VoltageReference value is mandatory, the Lower and Upper hysteresis parameters are optional and default hysteresis (as specified in DIO404 manual) is applied
- * in case both parameters are not supplied. If only one of the hysteresis is supplied, an error will be prompted during initialisation of the object two hysteresis or no
- * hysteresis parameters must be supplied but not only one of them.
- *
- * See below an example configuration for this specific hardware layer:
+ * A sample configuration for the AO-308 is shown below:
  * <pre>
  *  + dev0={
- *      Class               = UEIDIO404
+ *      Class               = UEIAO308
  *      Devn                = 0
  *      SamplingFrequency   = 1000.0
- *      VoltageReference    = 5.0
- *      UpperHysteresis     = 4.5
- *      LowerHysteresis     = 0.8
  *  }
  * </pre>
  */
 
-class UEIDIO404 : public UEIDevice {
+class UEIAO308 : public UEIDevice {
     public:
     CLASS_REGISTER_DECLARATION()
 
@@ -83,13 +75,13 @@ class UEIDIO404 : public UEIDevice {
      * @brief Default constructor.
      * @details NOOP.
      */
-    UEIDIO404();
+    UEIAO308();
 
     /**
      * @brief Default destructor.
      * @details NOOP.
      */
-    virtual ~UEIDIO404();
+    virtual ~UEIAO308();
 
     /**
      * @brief Initialise the Object from a configuration file.
@@ -102,39 +94,41 @@ class UEIDIO404 : public UEIDevice {
     /**
      * @brief Method to scale an array of samples retrieved from the hardware layer into its real value.
      * @details This method returns an array of scaled samples from the raw value of the data retrieved from
-     * IOM by performing the proper conversions. The method performs the scaling to boolean values if the supplied types
-     * are: float32, float64, uint8, uint16, uint32, uint64 or bool.
+     * IOM by performing the proper conversions. 
+     *
+     * For this specific implementation this method always returns false, as the AO-308 hardware layer does not provide support for input
+     * channels, only output channels.
      * @param[in] channelNumber channel identifier within the device channel list (first channel is idnexed as 0)
      * @param[in] listLength length of the array of raw data fed into the method. Developer must ensure
      * it is properly sized.
      * @param[in] rawData UEIBufferPointer to the virtual array on a UEICircularBuffer in which the raw data is stored.
      * @param[out] scaledData pointer to the output array of scaled values.
      * @param[out] outputType type of the output data to be retrieved to the destination memory area.
-     * @return true if the scaling process is successful, false otherwise.
+     * @return false, this hardware layer does not support input signals.
      */
     bool ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPointer rawData, void* scaledData, TypeDescriptor outputType);
 
     /**
      * @brief Returns the model number of this specific hardware layer.
-     * @return 0x404.
+     * @return 0x308.
      */
     int32 GetModel();
 
     /**
      * @brief Returns the kind of data to be retrieved from this hardware layer.
-     * @return HARDWARE_LAYER_DIGITAL_IO.
+     * @return HARDWARE_LAYER_ANALOG_O.
      */
     IOLayerType GetType();
 
     /**
      * @brief Returns the sample size in bytes of the data returned by a query to this model of hardware layer.
-     * @return sizeof(uint32).
+     * @return sizeof(uint16).
      */
     uint8 GetSampleSize();
     
     /**
      * @brief Returns the number of channels available on this hardware layer model.
-     * @return 12 if direction is InputSignals or OutputSignals, 0 otherwise.
+     * @return 8 if direction is OutputSignals, 0 otherwise.
      */
     uint32 GetDeviceChannels(SignalDirection direction);
     
@@ -153,17 +147,17 @@ class UEIDIO404 : public UEIDevice {
      * @details This method returns the configuration bitfield for the specified channel in the device. The bitfield is used as the configuration word to set
      * the required parameters in the IOM.
      *
-     * For this specific implementation, the number of configurationBitFileds always is equal to 1 (single word configuration).
+     * For this specific implementation, the number of configurationBitFileds always is equal to the number of channels in the specified direction.
      * @param[in] channelNumber channel index (first channel indexes to 0).
      * @param[out] channelConfiguration pointer to channel configuration bitfield for the specified channel in the device. 
      * @return true if configuration process succeeds, false otherwise.
      */
     bool ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields, MapType mapType);
-        
+   
     /**
      * @brief Method to configure the device.
      * @details This method performs the required configuration and initialisation procedures for the specific device (hardware layer).
-     * For this specific implementation the voltage reference and hysteresis is configured.
+     * For this specific implementation no configuration is performed on the IOM.
      * @param[in] DAQ_handle IOM handle provided by UEIMasterObject to issue initialisation commands to the device.
      * @return true if the configuration process succeeds, false otherwise.
      */
@@ -172,12 +166,12 @@ class UEIDIO404 : public UEIDevice {
     /**
      * @brief Method to check if a signal type is accepted as input/output type.
      * @details This method checks if the signal type provided is a valid type for input/output operations for the specific device (hardware layer).
-     * Accpeted signal typed for this device are float32, float64, uint8, uint16, uint32, uint64 and bool.
+     * Accpeted signal typed for this device are float32, float64, uint16, uint32 and uint64.
      * @param[in] signalType the type which is being queried as input/output type.
      * @return true if the supplied signal type is within the accepted types.
      */
     bool AcceptedSignalType(TypeDescriptor signalType);
-
+    
     /**
      * @brief Method to retrieve the input signal from IOM from Device memory bufffer.
      * @details This method is used to retrieve the input signal data contained in the inputChannelsBuffer memory buffer on this object and copy the properly
@@ -188,7 +182,7 @@ class UEIDIO404 : public UEIDevice {
      * @param[in] SignalPointer pointer to the destination memory location, where the scaled samples will be stored after method call. Take into account the
      * desired type of the samples and number of samples to grant enough space for the destination memory area.
      * @param[in] signalType type of the signal to be retrieved, the type must be an accepted type for the specific hardware layer.
-     * @return true if the input signal retrieval process is successful.
+     * @return false, as this hardware layer does not support input signals.
      */
     bool RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType);
 
@@ -202,7 +196,7 @@ class UEIDIO404 : public UEIDevice {
      * @param[in] nSamples number of samples to be pushed to the device buffer.
      * @param[in] SignalPointer pointer to the source memory location, where the scaled samples are stored during method call.
      * @param[in] signalType type of the signal to be retrieved from source memory area, the type must be an accepted type for the specific hardware layer.
-     * @return true if the input signal retrieval process is successful.
+     * @return true if the output signal setting process is successful.
      */
     bool SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType);
 
@@ -231,29 +225,7 @@ class UEIDIO404 : public UEIDevice {
      * @return true.
      */
     bool GetHardwareChannels(SignalDirection direction, uint32& nChannels);
-
-
-protected:
-    /** 
-     * Variable holding the value of reference voltage for the DIO404 hardware
-     */
-    float32 referenceVoltage;
-
-    /** 
-     * Variable holding the value of the lower hysteresis for the DIO hardware
-     */
-    float32 lowerHysteresisThreshold;
-
-    /** 
-     * Variable holding the value of the upper hysteresis for the DIO hardware
-     */
-    float32 upperHysteresisThreshold;
-
-    /** 
-     * Flag signaling if the hysteresis is configured for this hardware layer
-     */
-    bool hysteresisConfigured;
 };
 
 }
-#endif /*UEIDIO404_H_*/
+#endif /*UEIAO308_H_*/

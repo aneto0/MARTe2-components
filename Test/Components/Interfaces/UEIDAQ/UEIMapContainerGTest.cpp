@@ -134,6 +134,21 @@ TEST(UEIMapContainerGTest,TestInitialise_TooManyInputDevices) {
     ASSERT_TRUE(test.TestInitialise_TooManyInputDevices());
 }
 
+TEST(UEIMapContainerGTest,TestInitialise_IndependentThread) {
+    UEIMapContainerTest test;
+    ASSERT_TRUE(test.TestInitialise_IndependentThread());
+}
+
+TEST(UEIMapContainerGTest,TestInitialise_NoExecutionMode) {
+    UEIMapContainerTest test;
+    ASSERT_TRUE(test.TestInitialise_NoExecutionMode());
+}
+
+TEST(UEIMapContainerGTest,TestInitialise_InvalidExecutionMode) {
+    UEIMapContainerTest test;
+    ASSERT_TRUE(test.TestInitialise_InvalidExecutionMode());
+}
+
 TEST(UEIMapContainerGTest,TestDAQHandleSetter) {
     UEIMapContainerTest test;
     ASSERT_TRUE(test.TestDAQHandleSetter());

@@ -60,7 +60,8 @@ public:
     uint32 GetNChannelsHL()                 {return nChannels;}
     uint8 GetSizeOfSamplesHL()             {return sizeOfSamples;}
     uint32 GetSamplesPerExternalReadHL()               {return samplesPerExternalRead;}
-    UEIBufferPointer* GetPointerListHL()    {return pointerList;}
+    UEIBufferPointer* GetReadPointerListHL()    {return readPointerList;}
+    UEIBufferPointer* GetWritePointerListHL()    {return writePointerList;}
     UEIBufferPointer GetTimestampListHL()   {return timestampList;}
 };
 UEICircularBufferHL::UEICircularBufferHL() : UEICircularBuffer(){
@@ -93,7 +94,8 @@ bool UEICircularBufferTest::TestConstructor() {
     ok &= SafeMath::IsEqual(testDevice.GetNChannelsHL(), 0u);
     ok &= SafeMath::IsEqual(testDevice.GetSizeOfSamplesHL(), (uint8) 0u);
     ok &= SafeMath::IsEqual(testDevice.GetSamplesPerExternalReadHL(), 0u);
-    ok &= SafeMath::IsEqual(testDevice.GetPointerListHL(), NULL_PTR(UEIBufferPointer*));
+    ok &= SafeMath::IsEqual(testDevice.GetReadPointerListHL(), NULL_PTR(UEIBufferPointer*));
+    ok &= SafeMath::IsEqual(testDevice.GetWritePointerListHL(), NULL_PTR(UEIBufferPointer*));
     // With the buffer not set through InitialiseBuffer method, check that the rest of functions fail with no segfault
     ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), false);
     ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(10u), false);
@@ -139,7 +141,8 @@ bool UEICircularBufferTest::TestInitialiseBuffer() {
     ok &= SafeMath::IsEqual(testDevice.GetNChannelsHL(), channels);
     ok &= SafeMath::IsEqual(testDevice.GetSizeOfSamplesHL(), (uint8) sOfSamples);
     ok &= SafeMath::IsEqual(testDevice.GetSamplesPerExternalReadHL(), nReadSamples);
-    ok &= (testDevice.GetPointerListHL() != NULL_PTR(UEIBufferPointer*));
+    ok &= (testDevice.GetReadPointerListHL() != NULL_PTR(UEIBufferPointer*));
+    ok &= (testDevice.GetWritePointerListHL() != NULL_PTR(UEIBufferPointer*));
     return ok;
 }
 
@@ -253,7 +256,6 @@ bool UEICircularBufferTest::FunctionalTest() {
     //Check that it still not prepared to ship a set of samples, since we only wrote 2 samples
     ok &= SafeMath::IsEqual(testDevice.CheckReadReady(), false);
     ok &= SafeMath::IsEqual(testDevice.writePointer, testDevice.GetHeadPointerHL()+(14*4));
-
     //Write some more data into the buffer
     uint32 dataPacket_3 [2] =  {0x15151515, 0x16161616};
     ok &= SafeMath::IsEqual(testDevice.CheckAvailableSpace(), true);
@@ -283,7 +285,7 @@ bool UEICircularBufferTest::FunctionalTest() {
     }
     //In this situation, we've filled 8 samples for each channel, since we specified 2 buffers of 8 samples per channel, fill an additional 5
     //samples per channel without checking out the current subbuffer.
-    uint32 fillerPacket [5*2];
+    uint32 fillerPacket [30u];
     for (uint32 i = 0; i < 5*2; i++){
         fillerPacket[i] = (uint32) i;
     }

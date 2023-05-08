@@ -56,6 +56,9 @@ bool UEIRtDMap::StopMap(){
     if (DAQ_handle != 0 && mapid != 0){
         ok &= (DqRtDmapStop(DAQ_handle, mapid) >= 0);
     }
+    if (ok){
+        mapStarted = false;
+    }
     return ok;
 }
 
@@ -164,7 +167,7 @@ bool UEIRtDMap::StartMap(){
         }
         for (uint32 i = 0u; i < nOutputMembers && ok; i++){
             ReferenceT<UEIDevice> reference = outputMembersOrdered[i]->reference;
-            ok &= reference->SetOutputChannelList(outputMembersOrdered[i]->Inputs.channels, outputMembersOrdered[i]->Inputs.nChannels);
+            ok &= reference->SetOutputChannelList(outputMembersOrdered[i]->Outputs.channels, outputMembersOrdered[i]->Outputs.nChannels);
             //Init the buffers, only one sample retrieved and read back
             ok &= reference->InitBuffer(OutputSignals, 2u, 1u, 1u);
         }
@@ -366,9 +369,9 @@ bool UEIRtDMap::SetOutputs(MapReturnCode& outputCode){
         for (uint32 member = 0u; member < nOutputMembers && ok; member++){
             ReferenceT<UEIDevice> devReference = outputMembersOrdered[member]->reference;
             uint8 devn = outputMembersOrdered[member]->devn;
-            void* writeBuffer = devReference->outputBuffer;
-            uint32 bufferSize = devReference->GetWriteBufferSize();
-            printf("Sent : 0x%08x (devn %d)\n", reinterpret_cast<uint32*>(writeBuffer)[0], devn);
+            //void* writeBuffer = devReference->outputBuffer;
+            void* writeBuffer = NULL_PTR(void*); //TODO
+            uint32 bufferSize = 0;
             ok &= (DqRtDmapWriteRawData(DAQ_handle, mapid, (int) devn, writeBuffer, bufferSize)>=0);
         }
     }

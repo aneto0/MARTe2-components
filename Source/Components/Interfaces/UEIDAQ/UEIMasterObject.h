@@ -92,6 +92,7 @@ namespace MARTe {
  *     Class=ReferenceContainer
  *     +Map1 = {
  *          Class           = UEIRtVMap
+ *          ExecutionMode   = RealTimeThread
  *          Samples 	    = 128
  *	        BufferSamples   = 1000
  *	        Inputs = {

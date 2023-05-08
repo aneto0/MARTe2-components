@@ -85,9 +85,9 @@ class UEICircularBuffer : public Object {
      * @param[in] numberOfBuffers Number of individual buffers to be used in this circularbuffer implementation. Each individual buffer
      * can hold the required number of samples to be read into MARTe through a DataSource.
      * @param[in] channels Number of channels in the map associated with this buffer.
-     * @param[in] samplesPerMapRequest Maximum number of samples per channel to be retrieved on a map refresh operation.
+     * @param[in] SamplesPerExternalWrite Maximum number of samples to be written into the buffer in a single operation.
      * @param[in] sOfSamples Size (in bytes) of the samples to be retrieved in the map refresh request.
-     * @param[in] nReadSamples Number of samples per channel to be read by the DataSource during a Synchronise call.
+     * @param[in] SamplesPerExternalRead Maximum number of samples to be read from the buffer in a single operation.
      * @param[in] tStampRequired Flag stating if this circular buffer will contain a channel for timestamp, which must mandatorily be the first
      * channel retrieved from the hardware layer through the DAQ packet.
      * @returns true if the parameters supplied to the method are valid, false otherwise.
@@ -96,9 +96,7 @@ class UEICircularBuffer : public Object {
 
     /**
      * @brief Method which checks the availalbe space on the buffer.
-     * @details This method checks if there is space available in the buffer for a new packet coming from the IOM for this map member.
-     * The minimum space needed on the buffer to write new data is the maximum size of the IOM packet (number of channels * number of samples per channel * 
-     * bytes per sample).
+     * @details This method checks if there is space available in the buffer for a full write operation (SamplesPerExternalWrite samples per channel).
      *
      * This method must be called prior to a write on writePointer to check if enough space is available. If no space is available the developer must not write
      * new data into the buffer, otherwise behavior of the buffer is not granted.
@@ -108,8 +106,7 @@ class UEICircularBuffer : public Object {
 
     /**
      * @brief Method which checks the availalbe space on the buffer.
-     * @details Variation of the CheckAvailableSpace() method which computes if a certain ammount of bytes may be 
-     * set into the buffer, therefore if enough space is still available on the buffer
+     * @details This method checks if there is space available in the buffer for a write operation of a certain ammount of bytes.
      * @param[in] writtenBytes Number of bytes to be written into the buffer
      * @returns true if the buffer has space for the specified number of bytes, false otherwise.
      */
@@ -117,16 +114,24 @@ class UEICircularBuffer : public Object {
     
     /**
      * @brief Method which checks if the buffer contains the needed ammount of samples to be delivered into the DataSource.
-     * @details This method checks if the amount of samples stored in the buffer is enough to deliver a full packet to the DataSource.
-     * The amount of samples needed by the DataSource is the one configured in InitialiseBuffer method.
+     * @details This method checks if the amount of samples stored in the buffer is enough to deliver a full read in a single operation 
+     * (SamplesPerExternalRead samples per channel)
      *
      * @returns true if the buffer has enough samples to deliver to the DataSource, false otherwise.
      */
     bool CheckReadReady();
+
+    /**
+     * @brief Method which checks if the buffer contains the needed ammount of samples to be delivered into the DataSource.
+     * @details This method checks if the amount of samples stored in the buffer is enough to deliver a read of a certain ammount of bytes 
+     * in a single operation 
+     *
+     * @returns true if the buffer has enough samples to deliver to the DataSource, false otherwise.
+     */
     bool CheckReadReady(uint32 readBytes);
     
     /**
-     * @brief Method which updates the buffer indexes and pointers after a data write into the buffer with data from IOM.
+     * @brief Method which updates the buffer indexes and pointers after a data write into the buffer.
      * @details This method must be called after each write to writePointer location providing the amount of bytes written in the buffer. The method
      * internally updates the indexes and pointers of the buffer to allow correct operation of the buffer.
      * @param[in] writtenBytes number of bytes written into the buffer on the last write operation to writePointer.
@@ -134,18 +139,28 @@ class UEICircularBuffer : public Object {
      */
     bool AdvanceBufferIndex(uint32 writtenBytes);
 
-
     /**
      * @brief Method which allows the data to be retrieved from the buffer.
      * @details The implementation of this method is done through the usage of UEIBufferPointers, which serve as virtual arrays effectively containing
-     * the samples for each of the retrieved channels in this circularBuffer.
+     * the samples for each of the retrieved channels in this circularBuffer. This method retrieves the memory of all the configured channels (minus the timestamp)
+     * in the buffer as an array of UEIBufferPointers (sorted by the channel setting order in the buffer)
      * @param[out] ok Flag stating if the read operation is valid by setting to true, or false otherwise.
      * @returns pointer to an array of UEIBufferPointer objects to access the virtual arrays for each of the channels. The channels are retrieved in the
      * same order as they're retrieved by the UEIDAQ hardware layer packet and therefore the configured order during map enabling.
      */
     UEIBufferPointer* ReadBuffer(bool& ok);
 
+    /**
+     * @brief Method which allows the data from a single channel to be retrieved from the buffer.
+     * @details The implementation of this method is done through the usage of UEIBufferPointers, which serve as virtual arrays effectively containing
+     * the samples for each of the retrieved channels in this circularBuffer. This method retrieves a single channel by channelIdx (index of the channel within
+     * the configured channels in configuration order).
+     * @param[in] chanelIdx Channel idx (index within the configured channels).
+     * @param[out] pointer UEIBufferPointer instance pointing to the data of the requested channel.
+     * @returns true if the read of the channel succeeded, false otherwise.
+     */
     bool ReadChannel(uint32 chanelIdx, UEIBufferPointer& pointer);
+
     /**
      * @brief Method which allows the timestamp channel data to be retrieved from the buffer.
      * @details The implementation of this method is done through the usage of UEIBufferPointers, which serve as virtual arrays effectively containing
@@ -169,6 +184,75 @@ class UEICircularBuffer : public Object {
      */
     bool ResetBuffer();
 
+    /**
+     * @brief Method to mark the data on the buffer as read and allow new data to come into the buffer without overflow.
+     * @details This method marks the next SamplesPerExternalRead samples per channel to be read as read, and frees the memory to be used in subsequent
+     * writes into the buffer. This method must be called upon a full read to free the buffer and allow the next samples to be read/written.
+     * @returns true if the operation was successful, false otherwise.
+     */
+    bool CheckoutBuffer();
+
+    /**
+     * @brief Method which advances the read pointer in the buffer 1 sample per channel.
+     * @details This method advances the read pointer in the buffer 1 sample per channel, effectively marking 1 sample per channel as read.
+     * This method is of special usefulness in DMap mode, where the data is read/written in a 1 sample basis.
+     * @returns true if the operation was successful, false otherwise.
+     */
+    bool AdvanceBufferReadOneSample();
+    
+    /**
+     * @brief Method which reads a certain ammount of bytes and copies them in a destination memory location.
+     * @details This method reads a certain amount of bytes into a destination location. It also may advance the read pointer a readBytes ammount if requested,
+     * effectively freeing the desired ammount of bytes for write operations.
+     * @param[in] readBytes number of bytes to read from the buffer into the destination location.
+     * @param[in] destination pointer to the destination area that will hold the requested read bytes.
+     * @param[in] advancePointer flag signaling if the readPointer should be advanced readBytes after copying the contents of the buffer into the 
+     * destination location.
+     * @returns true if the operation was successful, false otherwise.
+     */
+    bool ReadBytes(uint32 readBytes, uint8* destination, bool advancePointer);
+    
+    /**
+     * @brief Method which advances a certain ammount of bytes the read pointer.
+     * @details This method advances the read pointer the read bytes if requested,
+     * effectively freeing the desired ammount of bytes for write operations.
+     * @param[in] readBytes number of bytes to read from the buffer into the destination location.
+     * @returns true if the operation was successful, false otherwise.
+     */
+    bool AdvanceReadPointer(uint32 readBytes);
+
+    /**
+     * @brief Method which returns the number of bytes available to be read from the buffer.
+     * @returns number of bytes available for reading from the buffer.
+     */
+    uint32 GetAvailableBytesToRead();
+
+    /**
+     * @brief Method which sets a certain ammount of bytes (from the writePointer) to 0.
+     * @details This method sets the next bytesToWrite bytes to 0 at the writePointer location, effectively clearing any previous values.
+     * This method is specially useful when the write into the buffer depends on the current value of the sample and that needs a reset at some point.
+     * @param[in] bytesToWrite number of bytes to set to 0 from the writePointer location.
+     * @returns true if the operation whas successfull, false otherwise.
+     */
+    bool ZeroNextBytes(uint32 bytesToWrite);
+    
+    /**
+     * @brief Method to get a list of UEIBufferPointers pointing to the write locations for each of the configured channels.
+     * @details This method returns a list of UEIBufferPointers with the write locations of the next samples to be written into the buffer.
+     * @param[out] ok flag signaling if the operation was performed successfully.
+     * @returns a list of UEIBufferPointer pointing to the write locations for the configured channels.
+     */
+    UEIBufferPointer* GetBufferWritePointers(bool& ok);
+
+    /**
+     * @brief Method to get a UEIBufferPointer pointing to the write location for the requested channel.
+     * @details This method returns a UEIBufferPointer pointing to the next write location for the requested channel.
+     * @param[in] chanelIdx channel index within the configured channel list to be retrieved.
+     * @param[out] pointer returned UEIBufferPointer poiting to the write locations of the requested channel.
+     * @returns true if the operation is performed successfully.
+     */
+    bool GetWritePointer(uint32 chanelIdx, UEIBufferPointer& pointer);
+
     /*
     *   Public pointer allowing write access into the buffer. When new data is recieved from IOM it must be written into this location on the buffer.
     *   Before writting into such location the developer is responsible to check if enough space is available in the buffer by calling the CheckAvailableSpace method
@@ -176,19 +260,7 @@ class UEICircularBuffer : public Object {
     *   perform any actions other than writting on this pointer.
     */
     uint8* writePointer;
-    
-    /**
-     * @brief Method to mark the data on the buffer as read and allow new data to come into the buffer without overflow.
-     * @details This method must be called once the latest available batch of data on the buffer is no longer needed. This method
-     * allows further data to be written into the buffer and therefore prevent overflow.
-     * @returns true if the operation was successful, false otherwise.
-     */
-    bool CheckoutBuffer();
-    bool AdvanceBufferReadOneSample();
-    bool ReadBytes(uint32 readBytes, uint8* destination, bool advancePointer);
-    bool AdvanceReadPointer(uint32 readBytes);
-    uint32 GetAvailableBytesToRead();
-    bool ZeroNextBytes(uint32 bytesToWrite);
+
 protected:
 
     /**
@@ -254,16 +326,19 @@ protected:
     uint8 sizeOfSamples;
     
     /**
-    *   List of UEIBufferPointer objects to access the internal channel list of he buffer
+    *   List of UEIBufferPointer objects to access the internal channel list of the read buffer
     */
-    UEIBufferPointer* pointerList;
+    UEIBufferPointer* readPointerList;
     
+    /**
+    *   List of UEIBufferPointer objects to access the internal channel list of the write buffer
+    */
+    UEIBufferPointer* writePointerList;
+
     /**
     *   UEIBufferPointer object to access the timestamp
     */
     UEIBufferPointer timestampList;
-    
-
 };
 }
 #endif /* UEICircularBuffer_H_ */

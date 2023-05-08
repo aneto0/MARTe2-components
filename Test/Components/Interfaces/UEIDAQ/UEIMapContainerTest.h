@@ -87,6 +87,9 @@ class UEIMapContainerTest : public Object {
         bool TestInitialise_EmptyBlock();
         bool TestInitialise_TooManyOutputDevices();
         bool TestInitialise_TooManyInputDevices();
+        bool TestInitialise_IndependentThread();
+        bool TestInitialise_NoExecutionMode();
+        bool TestInitialise_InvalidExecutionMode();
         bool TestDAQHandleSetter();
         bool TestTimestampMethods();
         bool TestDSRegistration();

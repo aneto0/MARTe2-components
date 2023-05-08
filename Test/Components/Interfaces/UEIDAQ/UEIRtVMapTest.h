@@ -71,7 +71,6 @@ class UEIRtVMapTest : public Object {
         bool TestEnableMap();
         bool TestResetMap();
         bool TestStartMap();
-        bool TestPollForNewPacket();
 };
 
 /*---------------------------------------------------------------------------*/

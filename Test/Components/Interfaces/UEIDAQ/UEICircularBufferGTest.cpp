@@ -74,12 +74,12 @@ TEST(UEICircularBufferGTest,TestInitialiseBuffer_nBuffersFail) {
     ASSERT_TRUE(test.TestInitialiseBuffer_nBuffersFail());
 }
 
-TEST(UEICircularBufferGTest,FunctionalTest) {
-    UEICircularBufferTest test;
-    ASSERT_TRUE(test.FunctionalTest());
-}
-
 TEST(UEICircularBufferGTest,FunctionalTest_WithTimestamp) {
     UEICircularBufferTest test;
     ASSERT_TRUE(test.FunctionalTest_WithTimestamp());
+}
+
+TEST(UEICircularBufferGTest,FunctionalTest) {
+    UEICircularBufferTest test;
+    ASSERT_TRUE(test.FunctionalTest());
 }

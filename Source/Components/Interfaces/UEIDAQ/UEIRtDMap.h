@@ -59,7 +59,7 @@ namespace MARTe {
  * the UEIMasterObject to be properly configured. This class is derived from the generic UEIMapContainer class to
  * provide generic acces to maps from DataSource.
  *
- * The data acquisition mode managed through this specific class is capable and well-suited to retrieve data in real-time 
+ * The data acquisition mode managed through this specific class can retrieve data in real-time 
  * operation where the latest sample available must be retrieved but only one sample is to be used.
  *
  * An RtDMap is configured on a specific UEIDAQ device (the one represented by the UEIMasterObject where this map is
@@ -67,10 +67,30 @@ namespace MARTe {
  * retrieve the data must be declared in the Devices reference container of the UEIMasterObject for the UEIDAQ device.
  * The RtDMap's devices must be declared under the Inputs or Outputs section of its configuration.
  * 
- * Upon a call to PollForNewPacket, the map will be refreshed with latest-available samples for each channel. The DataSource
- * must interface the Map through calls to this method to retrieve latest data.
+ * The DMap retrieves data from the IOM at a rate specified by the ScanRate mandatory parameter (in Hz). The hardware layers
+ * do sample the inputs/outputs at the frequency configured for each one of them (in their respective UEIDevice instance), but the
+ * results of such sampling is read back into MARTe at the specified ScanRate. 
  *
+ * DMap only supports RealTimeThread ExecutionMode parameter, as no FIFO overflow error can occur, there's no need for separate
+ * threading. Therefore this map class only supports RealTimeThread.
+ *
+ * Example of DMap configuration in MARTe:
  * <pre>
+ *     +Map1 = {
+ *          Class           = UEIRtDMap
+ *          ExecutionMode   = RealTimeThread
+ *          ScanRate        = 2.0
+ *	        Inputs = {
+ *              dev0 = {
+ *                  Devn        = 0
+ *                  Channels    = {0, 1}
+ *              }
+ *              dev1 = {
+ *                  Devn        = 1
+ *                  Channels    = {0, 1}
+ *              }
+ *          }
+ *      }
  * </pre>
  */
 
@@ -117,10 +137,28 @@ class UEIRtDMap : public UEIMapContainer {
      */
     bool StartMap();
 
-    //TODO
+    /**
+     * @brief Method to retrieve the inputs of the map packet.
+     * @details This method checks wether there's new data available to be retrieved from the DAQ map and retrieves
+     * it from the devices input buffers into the MARTe signals (the ones configured in the DataSources).
+     *
+     * In this specific implementation, the Map is blocked up until the next sync point time arrives (blocking call) or it is
+     * surpassed, then the contents of the map are retrieved and copied into the DataSource input signal memory.
+     * @param[out] outputCode Variable holding the status code for the procedure performed during the call.
+     * @return true no error occurred during the retrieve procedure.
+     */
     bool GetInputs(MapReturnCode& outputCode);
 
-    //TODO
+    /**
+     * @brief Method to set the outputs of the map packet.
+     * @details This method pushes the output signal values from MARTe (through the DataSource) into the output buffers
+     * of the devices to be later pushed into the DAQ map
+     *
+     * In this specific implementation, the output signals memory from the DataSource are scaled and pushed into the IOM
+     * during the method call.
+     * @param[out] outputCode Variable holding the status code for the procedure performed during the call.
+     * @return true no error occurred during the setting procedure.
+     */
     bool SetOutputs(MapReturnCode& outputCode);
     
     /**
@@ -144,7 +182,21 @@ class UEIRtDMap : public UEIMapContainer {
      * @return true if the provided parameters are accepted for the Map, false otherwise.
      */
     bool ConfigureInputsForDataSource(uint32 nSamples, uint32 nChannels, uint64* inputTimestampAddress, uint8** signalAddresses, TypeDescriptor* signalTypes);
+    
+    /**
+     * @brief Configuration method for the destination signals in MARTe.
+     * @details This function provides the Map object the knowledge of where to retrieve the output samples in memory as output signals in MARTe,
+     * the desired number of samples to be pushed in such signals, the number of physical channels to be pushed and the types to which scale each
+     * of the output signals.
+     * @param[in] nSamples number of samples the map must push for each of the declared phyisical channels as MARTe signals.
+     * @param[in] nChannels number of channels the map needs to psuh into as output signals, this parameters serves as a check for the length of the provided arrays.
+     * @param[in] signalAddresses array of pointers to the memory locations of each of the output signals, must have a length of nChannels and be supplied in the same
+     * order as the configured physical channels.
+     * @param[in] signalTypes Array of types for each of the channels, stating the current output signal format and scaling.
+     * @return true if the provided parameters are accepted for the Map, false otherwise.
+     */
     bool ConfigureOutputsForDataSource(uint32 nSamples, uint32 nChannels, uint8** signalAddresses, TypeDescriptor* signalTypes);
+    
     /**
      * @brief Method to check the map coherency with the information on the devices assigned to each of the members.
      * @details This method is executed by UEIMasterObject right after the devices references are set into the corresponding map members

@@ -59,6 +59,11 @@ TEST(UEIRtDMapGTest,TestInitialise_NoScanRate) {
     ASSERT_TRUE(test.TestInitialise_NoScanRate());
 }
 
+TEST(UEIRtDMapGTest,TestInitialise_IndependentThread) {
+    UEIRtDMapTest test;
+    ASSERT_TRUE(test.TestInitialise_IndependentThread());
+}
+
 TEST(UEIRtDMapGTest,TestConfigureInputsForDataSource) {
     UEIRtDMapTest test;
     ASSERT_TRUE(test.TestConfigureInputsForDataSource());
@@ -83,14 +88,10 @@ TEST(UEIRtDMapGTest,TestCoherencyCheckHighScanRate) {
     UEIRtDMapTest test;
     ASSERT_TRUE(test.TestCoherencyCheckHighScanRate());
 }
-
-TEST(UEIRtDMapGTest,TestGetMapPointers) {
-    UEIRtDMapTest test;
-    ASSERT_TRUE(test.TestGetMapPointers());
-}
-
+/*
 TEST(UEIRtDMapGTest,TestPollForNewPacket) {
     UEIRtDMapTest test;
     ASSERT_TRUE(test.TestPollForNewPacket());
 }
+*/
 

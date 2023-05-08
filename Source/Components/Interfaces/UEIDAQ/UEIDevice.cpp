@@ -48,11 +48,11 @@ UEIDevice::UEIDevice() : Object() {
     samplingFrequency = 0.0;    //Set sampling frequency to invalid value (0.0)
     hardwareCorrespondence = false; //Set device as not correspondant to IOM device
     assignedToMap = false;          //Set device as not assigned to any map
-    outputBuffer = NULL_PTR(void*);
     nOutputChannels = 0;
     nInputChannels = 0;
     inputChannelList = NULL_PTR(uint32*);
     outputChannelList = NULL_PTR(uint32*);
+    timestampRequired = false;
 }
 
 UEIDevice::~UEIDevice(){
@@ -145,11 +145,6 @@ bool UEIDevice::ConfigureDevice(int32 DAQ_handle){
 }
 
 bool UEIDevice::AcceptedSignalType(TypeDescriptor signalType){
-    //Base implmentation returns false by default, this function must be implemented by child class.    
-    return false;
-}
-
-bool UEIDevice::GetChannelStatus(int32 DAQ_handle, uint32* errorBitField, uint32* pgaStatusArray){
     //Base implmentation returns false by default, this function must be implemented by child class.    
     return false;
 }
@@ -329,15 +324,16 @@ bool UEIDevice::AnyTypeToBoolean(uint32 nSamples, bool* booleanSignal, void* inp
             for (uint32 i = 0u; i < nSamples; i++){
                 booleanSignal[i] = (castedSignal[i] > 0);
             }
+        }else if (signalType == BooleanType){
+            bool* castedSignal = reinterpret_cast<bool*>(inputSignal);
+            for (uint32 i = 0u; i < nSamples; i++){
+                memcpy(booleanSignal, castedSignal, nSamples*sizeof(bool));
+            }
         }else{
             ok = false;
         }
     }
     return ok;
-}
-
-uint32 UEIDevice::GetWriteBufferSize(){
-    return 0u;
 }
 
 bool UEIDevice::GetHardwareChannels(SignalDirection direction, uint32& nChannels){

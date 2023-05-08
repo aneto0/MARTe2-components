@@ -136,10 +136,7 @@ bool UEIMapContainer::Initialise(StructuredDataI &data){
     if (ok) {
         name = data.GetName();
         ok = (name.Size() != 0ull);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "UEIMapContainer::Initialise - "
-                "Could not retrieve DAQ Map Container Name.");
-        }
+        if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not retrieve DAQ Map Container Name.");
     }
     if (ok){
         StreamString ExecModeStr;
@@ -179,9 +176,7 @@ bool UEIMapContainer::Initialise(StructuredDataI &data){
                 //Assign memory
                 outputMembersOrdered = new MapMember*[nOutputMembers];
                 ok = (outputMembersOrdered != NULL_PTR(MapMember**));
-                if (!ok){
-                    REPORT_ERROR(ErrorManagement::InitialisationError,"Could not allocate memory for outputMembersOrdered for map %s.", name.Buffer());     
-                }
+                if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError,"Could not allocate memory for outputMembersOrdered for map %s.", name.Buffer());     
             }
             if (ok){
                 //Perform the checks on the data supplied on Inputs/Outputs blocks on configuration of the object
@@ -212,9 +207,7 @@ bool UEIMapContainer::Initialise(StructuredDataI &data){
                 //Assign memory
                 inputMembersOrdered = new MapMember*[nInputMembers];
                 ok = (inputMembersOrdered != NULL_PTR(MapMember**));
-                if (!ok){
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "Could not allocate memory for inputMembersOrdered for map %s.", name.Buffer());     
-                }
+                if (!ok) REPORT_ERROR(ErrorManagement::InitialisationError, "Could not allocate memory for inputMembersOrdered for map %s.", name.Buffer());     
             }     
             if (ok){
                 //Perform the checks on the data supplied on Inputs/Outputs blocks on configuration of the object
@@ -715,17 +708,6 @@ bool UEIMapContainer::GetMapStatus(){
 UEIMapExecutionMode UEIMapContainer::GetExecutionMode(){
     return executionMode;
 }
-
-bool UEIMapContainer::SetExecutionMode(UEIMapExecutionMode mode){
-    //Mode can only be set if previously not set
-    bool ok = (executionMode == NoMode || (executionMode == mode && mode != NoMode));
-    if (ok){
-        executionMode = mode;
-    }
-    return ok;
-}
-
-
 
 CLASS_REGISTER(UEIMapContainer, "1.0")
 }

@@ -31,7 +31,8 @@ typedef enum{
     DqRtVmapInitEx_ERROR,
     DqRtVmapAddChannel_ERROR,
     DqRtVmapSetChannelList_ERROR,
-    DqRtVmapSetScanRate_ERROR
+    DqRtVmapSetScanRate_ERROR,
+    DqAdv404SetHyst_ERROR
 }UEIDAQErrors;
 
 
@@ -444,7 +445,13 @@ int inline DqRtDmapReadRawData(int handle, int dmapid, int dev, void* rawBuffer,
 }
 
 int inline DqAdv404SetHyst(int hd, int devn, int ref_volts, float *level0, float *level1){
-    return DQ_SUCCESS;
+    MARTe::UEIDAQMockupManager* manager = MARTe::UEIDAQMockupManager::getInstance();
+    if (manager->GetErrorCode() == MARTe::DqAdv404SetHyst_ERROR){
+        return -1;
+    }else{
+        return DQ_SUCCESS;
+    }
+
 }
 int inline DqRtDmapWriteRawData(int handle, int dmapid, int dev, void* rawBuffer, int bufferSize){
     return DQ_SUCCESS;

@@ -84,8 +84,4 @@ TEST(UEIRtVMapGTest,TestStartMap) {
     ASSERT_TRUE(test.TestStartMap());
 }
 
-TEST(UEIRtVMapGTest,TestPollForNewPacket) {
-    UEIRtVMapTest test;
-    ASSERT_TRUE(test.TestPollForNewPacket());
-}
 

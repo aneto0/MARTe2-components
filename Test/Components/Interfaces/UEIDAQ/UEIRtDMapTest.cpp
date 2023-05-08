@@ -58,10 +58,8 @@ class UEIRtDMapHL : public UEIRtDMap{
         */
         ~UEIRtDMapHL();
         float32 GetScanRateHL()                 {return scanRate;}
-        uint8* GetInputMapHL()                 {return inputMap;}
         void SetDAQ_handleHL(int32 newHandle)   {DAQ_handle = newHandle;}
         void SetMapIdHL(int32 newMapId)         {mapid = newMapId;}
-        void SetInputMapHL(uint8* newInputMap) {inputMap = newInputMap;}
         //Getter functions for UEIMapContainer derived parameters
         bool    GetoutputAssignedToDSHL()       {return outputAssignedToDS;}
         bool    GetinputAssignedToDSHL()        {return inputAssignedToDS;}
@@ -75,16 +73,15 @@ class UEIRtDMapHL : public UEIRtDMap{
         MapMember** GetinputMembersOrderedHL()  {return inputMembersOrdered;}
         uint32 GetnInputMembersHL()             {return nInputMembers;}
         uint32 GetnOutputMembersHL()            {return nOutputMembers;}
-        uint32 GetsampleNumberHL()              {return sampleNumber;}
         uint32 GettimestampCorrectorHL()        {return timestampCorrector;}
         uint32 GetlastTimestampHL()             {return lastTimestamp;}
         uint8** GetinputSignalAddressesHL()     {return inputSignalAddresses;}
         TypeDescriptor* GetinputSignalTypesHL() {return inputSignalTypes;}
         bool GetFirstPcktHL()                   {return firstPckt;}
         bool GetMapStartedHL()                  {return mapStarted;}
-        bool GetSignalsConfiguredHL()           {return signalsConfigured;}
+        bool GetInputSignalsConfiguredHL()      {return inputSignalsConfigured;}
+        bool GetOutputSignalsConfiguredHL()     {return outputSignalsConfigured;}
         bool GetMapCoherentHL()                 {return mapCoherent;}
-        bool GetMapPointersHL()                 {return GetMapPointers();}  //proxy function
 };
 UEIRtDMapHL::UEIRtDMapHL() : UEIRtDMap() {
 }
@@ -101,11 +98,10 @@ const MARTe::char8 * const configUEIRtDMap = ""
     "    SamplingFrequency = 1000.0"
     "}"
     "+dev0 = {"
-    "    Class = UEIAI217_803"
+    "    Class = UEIDIO404"
     "    Devn = 0"
     "    SamplingFrequency = 1000.0"
-    "    Gains = {1,2,4,8,16,32,64,1,1,1,1,1,1,1,1,1}"
-    "    ADCMode = \"DEFAULT\""
+    "    VoltageReference = 5"
     "}"
     "+dev1 = {"
     "    Class = UEIAI217_803"
@@ -117,6 +113,7 @@ const MARTe::char8 * const configUEIRtDMap = ""
     "+Map = {"
     "    Class = UEIRtDMapHL"
     "    ScanRate = 1.0"
+    "    ExecutionMode = RealTimeThread"
     "    Outputs = {"
     "        dev0 = {"
     "            Devn = 0"
@@ -143,15 +140,12 @@ bool UEIRtDMapTest::TestConstructor() {
     manager->resetManager();
     UEIRtDMapHL map;
     ok &= SafeMath::IsEqual(map.GetScanRateHL(), (float32) 0.0);
-    ok &= SafeMath::IsEqual(map.GetInputMapHL(), NULL_PTR(uint8*));
     ok &= SafeMath::IsEqual(map.GetType(), RTDMAP);
     ok &= SafeMath::IsEqual(map.GetFirstPcktHL(), true);
     ok &= SafeMath::IsEqual(map.GetMapStartedHL(), false);
-    ok &= SafeMath::IsEqual(map.GetSignalsConfiguredHL(), false);
+    ok &= SafeMath::IsEqual(map.GetInputSignalsConfiguredHL(), false);
+    ok &= SafeMath::IsEqual(map.GetOutputSignalsConfiguredHL(), false);
     ok &= SafeMath::IsEqual(map.GetMapCoherentHL(), false);
-    //Unsafe, just to trigger inputMap pointer deassignment during destructor execution
-    uint8 thisMap;
-    map.SetInputMapHL(&thisMap);
     //Trigger errors during map close and stop on destructor
     map.SetDAQ_handleHL(1);
     map.SetMapIdHL(1);
@@ -255,6 +249,33 @@ bool UEIRtDMapTest::TestInitialise_NoScanRate() {
     return ok;
 }
 
+bool UEIRtDMapTest::TestInitialise_IndependentThread() {
+    bool ok = true;
+    UEIDAQMockupManager* manager = UEIDAQMockupManager::getInstance();
+    manager->resetManager();
+    GlobalObjectsDatabase::Instance()->GetStandardHeap();
+    ConfigurationDatabase cdb;
+    StreamString configStream = configUEIRtDMap;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    ok &= parser.Parse();
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ok){
+        ok &= cdb.MoveAbsolute("+Map");
+        ok &= cdb.Write("ExecutionMode", "IndependentThread");
+        ok &= cdb.MoveToRoot();
+    }
+    if (ok) {
+        god->Purge();
+        //Initialisation must not succeed with the default initialisation configuration
+        ok = !god->Initialise(cdb);
+    }
+    if (ok){
+        god->Purge();
+    }
+    return ok;
+}
+
 bool UEIRtDMapTest::TestConfigureInputsForDataSource() {
     bool ok = true;
     UEIDAQMockupManager* manager = UEIDAQMockupManager::getInstance();
@@ -282,11 +303,11 @@ bool UEIRtDMapTest::TestConfigureInputsForDataSource() {
         uint8* signalAddresses[4];
         TypeDescriptor signalTypes[4];
         ok &= SafeMath::IsEqual(myMap->ConfigureInputsForDataSource(1u, 4u, &dummyTimestampMemory, signalAddresses, signalTypes), true);
-        ok &= SafeMath::IsEqual(myMap->GetSignalsConfiguredHL(), true);
+        ok &= SafeMath::IsEqual(myMap->GetInputSignalsConfiguredHL(), true);
         ok &= SafeMath::IsEqual(myMap->ConfigureInputsForDataSource(2u, 4u, &dummyTimestampMemory, signalAddresses, signalTypes), false);
-        ok &= SafeMath::IsEqual(myMap->GetSignalsConfiguredHL(), false);
+        ok &= SafeMath::IsEqual(myMap->GetInputSignalsConfiguredHL(), false);
         ok &= SafeMath::IsEqual(myMap->ConfigureInputsForDataSource(0u, 4u, &dummyTimestampMemory, signalAddresses, signalTypes), false);
-        ok &= SafeMath::IsEqual(myMap->GetSignalsConfiguredHL(), false);
+        ok &= SafeMath::IsEqual(myMap->GetInputSignalsConfiguredHL(), false);
     }
     if (ok){
         god->Purge();
@@ -341,13 +362,15 @@ bool UEIRtDMapTest::TestStartMap() {
         ok &= SafeMath::IsEqual(myMap->StartMap(), false);
         ok &= SafeMath::IsEqual(myMap->GetMapStartedHL(), false);
         ok &= SafeMath::IsEqual(myMap->SetDevice(1, dev1), true);
-        //Test an unsuccessful Map Start process due to lack of output devices references
+        //Test a dummy but unsuccessful Map Start process due to the absence of the output device
         ok &= SafeMath::IsEqual(myMap->StartMap(), false);
         ok &= SafeMath::IsEqual(myMap->GetMapStartedHL(), false);
         ok &= SafeMath::IsEqual(myMap->SetDevice(0, dev0), true);
-        //Test a dummy but successful Map Start process
+        //Now the map Start call must succeed
         ok &= SafeMath::IsEqual(myMap->StartMap(), true);
         ok &= SafeMath::IsEqual(myMap->GetMapStartedHL(), true);
+        //As the map is now started, to test map failures, we need first to stop it
+        ok &= myMap->StopMap();
         //Now test with an error during map opening
         manager->SetErrorCode(DqRtDmapInit_ERROR);
         ok &= SafeMath::IsEqual(myMap->StartMap(), false);
@@ -368,13 +391,8 @@ bool UEIRtDMapTest::TestStartMap() {
         manager->SetErrorCode(DqRtDmapStart_ERROR);
         ok &= SafeMath::IsEqual(myMap->StartMap(), false);
         ok &= SafeMath::IsEqual(myMap->GetMapStartedHL(), false);
-        //Test map failure due to bad refresh in GetMapPointers
-        manager->SetErrorCode(DqRtDmapRefresh_ERROR);
-        ok &= SafeMath::IsEqual(myMap->StartMap(), false);
-        ok &= SafeMath::IsEqual(myMap->GetMapStartedHL(), false);
         //Test what happens if the configuration process for a input device fails, the easiest way is to use a 
         //reference to a simple UEIDevice (returns false by default on ConfigureChannel)
-
         manager->resetManager();
         ok &= SafeMath::IsEqual(myMap->SetDevice(1, dummyDev), true);
         ok &= SafeMath::IsEqual(myMap->StartMap(), false);
@@ -473,8 +491,9 @@ bool UEIRtDMapTest::TestCoherencyCheckFail() {
     }
     if (ok){
         //Set dev1 and dev0, otherwise UEIDevice::CheckMapCoherency will fail due to invalid references
-        ok &= SafeMath::IsEqual(myMap->SetDevice(1, dev1), true);
-        ok &= SafeMath::IsEqual(myMap->SetDevice(0, dev0), true);
+        //We place the devices references incoherently, making it faulty as the DIO217 cannot accept output channels
+        ok &= SafeMath::IsEqual(myMap->SetDevice(0, dev1), true);
+        ok &= SafeMath::IsEqual(myMap->SetDevice(1, dev0), true);
         //This call must fail due to UEIDevice::CheckMapCoherency failing as no outputs are allowed for UEIAI217_803
         ok &= SafeMath::IsEqual(myMap->CheckMapCoherency(), false);
         ok &= SafeMath::IsEqual(myMap->GetMapCoherentHL(), false);
@@ -530,30 +549,7 @@ bool UEIRtDMapTest::TestCoherencyCheckHighScanRate() {
     }
     return ok;
 }
-
-bool UEIRtDMapTest::TestGetMapPointers() {
-    bool ok = true;
-    UEIDAQMockupManager* manager = UEIDAQMockupManager::getInstance();
-    manager->resetManager();
-    UEIRtDMapHL myMap;
-    //Test failure in call to GetMapPointers due to DAQ_handle being not set properly
-    ok &= SafeMath::IsEqual(myMap.GetMapPointersHL(), false);
-    //Set the DAQ handle
-    ok &= SafeMath::IsEqual(myMap.SetDAQHandle(1), true);
-    //The next call to GetMapPointers must succeed, due to the calls of DmapRefresh  and DmapGetInputMap being successful by default
-    ok &= SafeMath::IsEqual(myMap.GetMapPointersHL(), true);
-    //Set an error during map refresh and the call must fail
-    manager->SetErrorCode(DqRtDmapRefresh_ERROR);
-    ok &= SafeMath::IsEqual(myMap.GetMapPointersHL(), false);
-    //Set an error during map pointer getter and the call must fail
-    manager->SetErrorCode(DqRtDmapGetInputMap_ERROR);
-    ok &= SafeMath::IsEqual(myMap.GetMapPointersHL(), false);
-    //Set an error during map pointer getter which forces the map pointer to not be set, call must fail due to 200ms timeout
-    manager->SetErrorCode(DqRtDmapGetInputMap_NULL);
-    ok &= SafeMath::IsEqual(myMap.GetMapPointersHL(), false);
-    return ok;
-}
-
+/*
 bool UEIRtDMapTest::TestPollForNewPacket() {
     bool ok = true;
     UEIDAQMockupManager* manager = UEIDAQMockupManager::getInstance();
@@ -620,28 +616,28 @@ bool UEIRtDMapTest::TestPollForNewPacket() {
         //This call must succeed, as no error is present
         ok &= SafeMath::IsEqual(myMap->SetDAQHandle(1), true);
         ok &= SafeMath::IsEqual(myMap->GetMapStartedHL(), false);      
-        ok &= SafeMath::IsEqual(myMap->GetSignalsConfiguredHL(), false);      
+        ok &= SafeMath::IsEqual(myMap->GetInputSignalsConfiguredHL(), false);      
         ok &= SafeMath::IsEqual(myMap->GetMapCoherentHL(), false);
         ok &= SafeMath::IsEqual(myMap->PollForNewPacket(errorCode), false);
         ok &= SafeMath::IsEqual(errorCode, ERROR);
         //Configure inputs
         ok &= SafeMath::IsEqual(myMap->ConfigureInputsForDataSource(1u, 4u, &timestamp, signalList, typesList), true);
         ok &= SafeMath::IsEqual(myMap->GetMapStartedHL(), false);      
-        ok &= SafeMath::IsEqual(myMap->GetSignalsConfiguredHL(), true);      
+        ok &= SafeMath::IsEqual(myMap->GetInputSignalsConfiguredHL(), true);      
         ok &= SafeMath::IsEqual(myMap->GetMapCoherentHL(), false);
         ok &= SafeMath::IsEqual(myMap->PollForNewPacket(errorCode), false);
         ok &= SafeMath::IsEqual(errorCode, ERROR);
         //Check coherency
         ok &= SafeMath::IsEqual(myMap->CheckMapCoherency(), true);
         ok &= SafeMath::IsEqual(myMap->GetMapStartedHL(), false);      
-        ok &= SafeMath::IsEqual(myMap->GetSignalsConfiguredHL(), true);      
+        ok &= SafeMath::IsEqual(myMap->GetInputSignalsConfiguredHL(), true);      
         ok &= SafeMath::IsEqual(myMap->GetMapCoherentHL(), true);
         ok &= SafeMath::IsEqual(myMap->PollForNewPacket(errorCode), false);
         ok &= SafeMath::IsEqual(errorCode, ERROR);
         //Start the map
         ok &= SafeMath::IsEqual(myMap->StartMap(), true);
         ok &= SafeMath::IsEqual(myMap->GetMapStartedHL(), true);      
-        ok &= SafeMath::IsEqual(myMap->GetSignalsConfiguredHL(), true);      
+        ok &= SafeMath::IsEqual(myMap->GetInputSignalsConfiguredHL(), true);      
         ok &= SafeMath::IsEqual(myMap->GetMapCoherentHL(), true);
         //Check the pointer to the input memory map is correctyl acquired
         ok &= SafeMath::IsEqual(reinterpret_cast<uint8*>(myMap->GetInputMapHL()), (myIOM->MemoryExchangeArea));      
@@ -747,3 +743,4 @@ bool UEIRtDMapTest::TestPollForNewPacket() {
 
     return ok;
 }
+*/

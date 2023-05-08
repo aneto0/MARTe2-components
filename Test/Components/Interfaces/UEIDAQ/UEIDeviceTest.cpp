@@ -524,7 +524,20 @@ bool UEIDeviceTest::TestAnyTypeToBoolean(){
             }
         }
     }
-    ok &= (myDevice.AnyTypeToBooleanHL(10u, NULL_PTR(bool*), NULL_PTR(void*), BooleanType), false);
+    //Boolean test
+    if (ok){
+        bool BoolSamples [10] = {false, true, true, true, false, true, false, true, true, false};
+        bool F64BitSamples_solution [10] = {false, true, true, true, false, true, false, true, true, false};
+        bool* result = new bool [10];
+        ok &= (myDevice.AnyTypeToBooleanHL(10u, result, reinterpret_cast<void*>(BoolSamples), BooleanType), true);
+        ok &= (result != NULL_PTR(bool*));
+        if (ok){
+            for (uint32 i = 0u; i < 10u; i++){
+                ok &= SafeMath::IsEqual(result[i], BoolSamples[i]);
+            }
+        }
+    }
+    
     return ok;
 }
 

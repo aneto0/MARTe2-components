@@ -1,6 +1,6 @@
 /**
- * @file UEIRtDMaprTest.h
- * @brief Header file for class UEIRtDMapTest
+ * @file UEIDIO404Test.h
+ * @brief Header file for class UEIDIO404Test
  * @date 22/03/2023
  * @author Xavier Ruche
  *
@@ -16,13 +16,13 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class UEIRtDMaprest
+ * @details This header file contains the declaration of the class UEIDIO404Test
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef UEIRtDMap_UEIRtDMapTEST_H_
-#define UEIRtDMap_UEIRtDMapTEST_H_
+#ifndef UEIDIO404_UEIDIO404TEST_H_
+#define UEIDIO404_UEIDIO404TEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
@@ -32,53 +32,56 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "ConfigurationDatabase.h"
-#include "UEIDevice.h"
-#include "UEIAI217_803.h"
-#include "UEIRtDMap.h"
+#include "UEIDIO404.h"
+#include "UEIDIO404Test.h"
 #include "SafeMath.h"
-#include "UEIDAQMockup.h"
 #include "GlobalObjectsDatabase.h"
+#include "UEIDAQMockup.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
 using namespace MARTe;
-
 /**
- * @brief Tests all the UEIRtDMap methods
+ * @brief Tests all the UEIDIO404 methods
  */
-class UEIRtDMapTest : public Object {
+class UEIDIO404Test : public Object {
     public:
         /**
         * @brief Constructs the Test Unit environment basics
         */
-        UEIRtDMapTest();
+        UEIDIO404Test();
 
         /**
         * @brief Destructs the Test Unit environment
         */
-        ~UEIRtDMapTest();
+        ~UEIDIO404Test();
 
         /**
-        * @brief Tests the UEIRtDMap constructor
+        * @brief Tests the UEIDIO404 constructor
         */
         bool TestConstructor();
+        bool TestFixedParameters();
+        bool TestAcceptedSignalType();
         bool TestInitialise();
-        bool TestInitialise_TrueClass();
-        bool TestInitialise_NoScanRate();
-        bool TestInitialise_IndependentThread();
-        bool TestConfigureInputsForDataSource();
-        bool TestStartMap();
-        bool TestCoherencyCheck();
-        bool TestCoherencyCheckFail();
-        bool TestCoherencyCheckHighScanRate();
-        bool TestPollForNewPacket();
-
+        bool TestInitialise_InvalidVoltageReference();
+        bool TestInitialise_NoVoltageReference();
+        bool TestInitialise_IncompleteHysteresis();
+        bool TestInitialise_TooLowHysteresis();
+        bool TestInitialise_TooHighHysteresis();
+        bool TestInitialise_InvalidHysteresis();
+        bool TestInitialise_ValidHysteresis();
+        bool TestInitialise_class();
+        bool TestCheckChannelAndDirection();
+        bool TestConfigureChannel();
+        bool TestSignalScaling();
+        bool TestConfigureDevice();
+        bool TestOutputSignalSetter();        
 };
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* UEIRtDMap_UEIRtDMapTEST_H_ */
+#endif /* UEIDIO404_UEIDIO404TEST_H_ */
 

@@ -54,7 +54,8 @@ UEICircularBuffer::UEICircularBuffer() : Object() {
     sizeOfSamples = 0;
     samplesPerExternalWrite = 0;
     samplesPerExternalRead = 0;
-    pointerList = NULL_PTR(UEIBufferPointer*);
+    readPointerList = NULL_PTR(UEIBufferPointer*);
+    writePointerList = NULL_PTR(UEIBufferPointer*);
 }
 
 UEICircularBuffer::~UEICircularBuffer(){
@@ -64,8 +65,8 @@ UEICircularBuffer::~UEICircularBuffer(){
     if (headPointer != (NULL_PTR(uint8*))){
         free(headPointer);
     }
-    if (pointerList != NULL_PTR(UEIBufferPointer*)){
-        delete [] pointerList;
+    if (readPointerList != NULL_PTR(UEIBufferPointer*)){
+        delete [] readPointerList;
     }
 }
 
@@ -146,14 +147,17 @@ bool UEICircularBuffer::InitialiseBuffer(uint32 numberOfBuffers, uint32 channels
         // As the timestamp is always the first channel retrieved the values are fixed, offset 0 bytes, gain and number of samples
         timestampList.SetPointerCharacteristics(0u, (nChannels*sizeOfSamples) + sizeof(uint32), samplesPerExternalRead);
         //Try to allocate memory for the array of pointers
-        pointerList = new UEIBufferPointer[nChannels]; 
-        ok &= (pointerList != NULL_PTR(UEIBufferPointer*));
+        readPointerList  = new UEIBufferPointer[nChannels]; 
+        writePointerList = new UEIBufferPointer[nChannels]; 
+        ok &= (readPointerList != NULL_PTR(UEIBufferPointer*));
+        ok &= (writePointerList != NULL_PTR(UEIBufferPointer*));
         //Assign the different UEIBufferPointer objects accordingly
         for (uint32 i = 0; i < nChannels && ok; i++){
             uint32 offset = i*sizeOfSamples + sizeof(uint32)*timestampRequired;
             uint32 pointerGain = nChannels*sizeOfSamples + sizeof(uint32)*timestampRequired;
             uint32 maxLength = samplesPerExternalRead;
-            ok &= pointerList[i].SetPointerCharacteristics(offset, pointerGain, maxLength);
+            ok &= readPointerList[i].SetPointerCharacteristics(offset, pointerGain, maxLength);
+            ok &= writePointerList[i].SetPointerCharacteristics(offset, pointerGain, maxLength);
         }
     }
     return ok;
@@ -220,20 +224,42 @@ UEIBufferPointer* UEICircularBuffer::ReadBuffer(bool& ok){
     ok = CheckReadReady();
     if (ok){
         for (uint32 i = 0; i < nChannels; i++){
-            pointerList[i].SetHead(readPointer);
+            readPointerList[i].SetHead(readPointer);
         }
     }
-    return pointerList;
+    return readPointerList;
+}
+
+UEIBufferPointer* UEICircularBuffer::GetBufferWritePointers(bool& ok){
+    ok = CheckAvailableSpace(singleBufferLength);
+    if (ok){
+        for (uint32 i = 0; i < nChannels; i++){
+            writePointerList[i].SetHead(writePointer);
+        }
+    }
+    return writePointerList;
 }
 
 bool UEICircularBuffer::ReadChannel(uint32 chanelIdx, UEIBufferPointer& pointer){
     bool ok = CheckReadReady();
+    ok &= (chanelIdx < nChannels);
     if (ok){
-        pointerList[chanelIdx].SetHead(readPointer);
-        pointer=pointerList[chanelIdx];
+        readPointerList[chanelIdx].SetHead(readPointer);
+        pointer=readPointerList[chanelIdx];
     }
     return ok;
 }
+
+bool UEICircularBuffer::GetWritePointer(uint32 chanelIdx, UEIBufferPointer& pointer){
+    bool ok = CheckAvailableSpace(singleBufferLength);
+    ok &= (chanelIdx < nChannels);
+    if (ok){
+        writePointerList[chanelIdx].SetHead(writePointer);
+        pointer=writePointerList[chanelIdx];
+    }
+    return ok;
+}
+
 
 bool UEICircularBuffer::ReadTimestamp(UEIBufferPointer& pointer){
     bool ok = CheckReadReady() && timestampRequired;

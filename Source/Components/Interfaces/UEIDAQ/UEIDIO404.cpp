@@ -42,8 +42,9 @@ namespace MARTe {
 
 UEIDIO404::UEIDIO404() : UEIDevice() {
     referenceVoltage = 0.0;
+    lowerHysteresisThreshold = 0.0;
+    upperHysteresisThreshold = 0.0;
     hysteresisConfigured = false;
-    outputBuffer = 0u;
 }
 
 UEIDIO404::~UEIDIO404(){
@@ -80,7 +81,25 @@ bool UEIDIO404::Initialise(StructuredDataI &data){
     }
     if (ok){
         ok &= (upperHysteresisProvided == lowerHysteresisProvided);
-        hysteresisConfigured = ok;
+        if (ok){
+            hysteresisConfigured = upperHysteresisProvided;
+            ok &= (lowerHysteresisThreshold >= 0.0);
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::ParametersError, "LowerHysteresys for device %s cannot be lower than 0 volts", name.Buffer());
+            }
+            if (ok){
+                ok &= (upperHysteresisThreshold <= referenceVoltage);
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::ParametersError, "UpperHysteresys for device %s cannot be higher than referenfe voltage", name.Buffer());
+                }
+            }
+            if (ok){
+                ok &= (upperHysteresisThreshold >= lowerHysteresisThreshold);
+                if (!ok){
+                    REPORT_ERROR(ErrorManagement::ParametersError, "UpperHysteresys for device %s cannot be lower than LowerHysteresys", name.Buffer());
+                }
+            }
+        }
         if (!ok){
             REPORT_ERROR(ErrorManagement::InitialisationError, "Hysteresis must be provided for both upper and lower thresholds or not be provided (default values are used) for device %s", name.Buffer());
         }
@@ -112,7 +131,7 @@ bool UEIDIO404::CheckChannelAndDirection(uint32 channelNumber, SignalDirection d
 bool UEIDIO404::ConfigureDevice(int32 DAQ_handle){
     bool ok = (DAQ_handle > 0);
     if (!ok){
-        REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid IOM handle supplied to DIO-404 %s", name.Buffer());
+        REPORT_ERROR(ErrorManagement::InitialisationError, "Invalid IOM handle supplied to DIO-404 device %s", name.Buffer());
     }
     //Configure hysteresis into the device
     if (ok && hysteresisConfigured){
@@ -126,6 +145,13 @@ bool UEIDIO404::ConfigureDevice(int32 DAQ_handle){
         else ok = false;
         if (ok){
             ok &= (DqAdv404SetHyst(DAQ_handle, deviceId, voltageReference, &lowerHysteresisThreshold, &upperHysteresisThreshold) >= 0);
+            if (!ok){
+                REPORT_ERROR(ErrorManagement::CommunicationError, "Error while setting hysteresis for device %s", name.Buffer());
+            }else{
+                REPORT_ERROR(ErrorManagement::Information, "Actual configured voltage thresholds for device %s : ", name.Buffer());
+                REPORT_ERROR(ErrorManagement::Information, "    Lower Threshold %.4fv", lowerHysteresisThreshold);
+                REPORT_ERROR(ErrorManagement::Information, "    Upper Threshold %.4fv", upperHysteresisThreshold);
+            }
         }
     }
     return ok;
@@ -154,7 +180,7 @@ uint32 UEIDIO404::GetDeviceChannels(SignalDirection direction){
 }
 
 uint8 UEIDIO404::GetSampleSize(){
-    return sizeof(uint32); //TODO
+    return sizeof(uint32);
 }
 
 bool UEIDIO404::ConfigureChannels(SignalDirection direction, uint32** configurationBitfields, uint32& nConfigurationBitfields, MapType mapType){
@@ -191,7 +217,8 @@ bool UEIDIO404::AcceptedSignalType(TypeDescriptor signalType){
         signalType == UnsignedInteger8Bit||
         signalType == UnsignedInteger16Bit||
         signalType == UnsignedInteger32Bit||
-        signalType == UnsignedInteger64Bit){
+        signalType == UnsignedInteger64Bit||
+        signalType == BooleanType){
         accepted = true;
     }
     return accepted;
@@ -238,6 +265,12 @@ bool UEIDIO404::ScaleSignal(uint32 channelNumber, uint32 listLength, UEIBufferPo
                 castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
                 castedDestination[i] = (uint8)(0x01&(*castedRawData>>channelNumber));
             }
+        }else if (outputType == BooleanType){
+            bool* castedDestination = reinterpret_cast<bool*>(scaledData);
+            for (uint32 i = 0; i < listLength; i++){   
+                castedRawData = reinterpret_cast<uint32*>(rawData.GetSample(i)); 
+                castedDestination[i] = (0x01&(*castedRawData>>channelNumber));
+            }
         }else{
             ok = false;
         }
@@ -261,6 +294,8 @@ bool UEIDIO404::RetrieveInputSignal(uint32 channelIdx, uint32 nSamples, void* Si
 bool UEIDIO404::SetOutputSignal(uint32 channelIdx, uint32 nSamples, void* SignalPointer, TypeDescriptor signalType){
     //This implementation of the method always return false as this hardware layer can never accept output signals
     bool ok = (channelIdx < 12u);
+    //Check if there's space to write the needed samples
+    ok &= outputChannelsBuffer->CheckAvailableSpace(nSamples*GetSampleSize());
     if (ok){
         uint32 mask = ~(0x00000001<<(channelIdx));
         bool* statesList = new bool [nSamples];
@@ -286,17 +321,12 @@ bool UEIDIO404::InitBuffer(SignalDirection direction, uint32 nBuffers, uint32 wr
         break;
         case OutputSignals:
             ok &= outputChannelsBuffer->InitialiseBuffer(nBuffers, 1u, writeSamples, sizeof(uint32), readSammples, false);
-            outputBuffer = reinterpret_cast<void*>(new uint32 [1]);
         break;
         default:
             ok = false;
         break;
     }
     return ok;
-}
-uint32 UEIDIO404::GetWriteBufferSize(){
-    //For UEI DIO 404 layer, a single 32 bit word is used
-    return 1u;
 }
 
 bool UEIDIO404::GetHardwareChannels(SignalDirection direction, uint32& nChannels){

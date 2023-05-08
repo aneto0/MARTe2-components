@@ -78,26 +78,33 @@ namespace MARTe {
  * on the containing DataSource. A BufferSamples parameter must be provided to set the maximum ammount of samples stored in the
  * UEICircularBuffers associated with each device.
  *
- * Currently this Map class only supports synchronous data acquisition, in which the FIFOs on the hardware layers are only
- * serviced during the MARTe call to the Synchronize method of the Datasource associated to this map. The user is responsible
- * of guaranteeing a short enough MARTe loop period to service the FIFOs without overflowing.
+ * This map supports two operation modes, RealTimeThread and IndependentThread modes, configured through the ExecutionMode parameter.
+ * - RealTimeThread : In this mode the map exchange is only performed during the datasource synchronisation procedures (via GetInputs and SetOutpus).
+ * therefore the MARTe loop needs to be fast-enough to ensure no FIFO overflow errors happen due to long periods of no map syncs.
+ * - IndependentThread : In this mode the map spawns an independent thread upon map starting procedure. The separate thread is in charge of performing
+ * the map synchronisation procedures in an async manner. While MARTe loop executes, the separate thread performs the map synchronisation in parallel,
+ * allowing for decoupling the map exchange and MARTe loop times. In this mode, the DataSource sync points are only used to retrieve the data being
+ * updated by the separate thread and making it available to the MARTe application when ready.
  *
+ * Following a sample VMap configuration scheme is provided:
  * <pre>
- *  +Map1 = {
- *      Class             = UEIRtVMap
- *      Samples 	      = 128
- *	    BufferSamples	  = 1000
- *	    Inputs = {
- *          dev0 = {
- *              Devn        = 0
- *              Channels    = {0,1}
- *          }
- *          dev1 = {
- *              Devn        = 1
- *              Channels    = {0,1}
- *          }
- *      }
- *  }
+ * +Map1 = {
+ *     Class           = UEIRtVMap
+ *     Samples         = 128
+ *     BufferSamples   = 1000
+ *     ExecutionMode   = RealTimeThread
+ *     PollSleepPeriod = 1
+ *     Inputs = {
+ *         dev0 = {
+ *             Devn     = 0
+ *             Channels = {0,1}
+ *         }
+ *         dev1 = {
+ *             Devn     = 1
+ *             Channels = {0,1}
+ *         }
+ *     }
+ * }
  * </pre>
  */
 
@@ -144,10 +151,36 @@ class UEIRtVMap : public UEIMapContainer, public EmbeddedServiceMethodBinderT<UE
      */
     bool StartMap();
 
-
-    
+    /**
+     * @brief Method to retrieve the inputs of the map packet.
+     * @details This method checks wether there's new data available to be retrieved from the DAQ map and retrieves
+     * it from the devices input buffers into the MARTe signals (the ones configured in the DataSources)
+     *
+     * In this specific implementation, data is retrieved from the IOM during the call only if map is configured in ExecutionMode RealTimeThread, forcing
+     * a VMap exchange by calling to MapExvhange method and gathering new input data and setting new otuput data.
+     *
+     * If the map is configured in IndependentThread ExecutionMode, the call checks in a loop if the input devices buffers are ready for a full sample read.
+     * The map exchange retrieving new data to the IOM id performed thorugh the ExchangeMap call in the IndependentThreadCallback.
+     * @param[out] outputCode Variable holding the status code for the procedure performed during the call.
+     * @return true no error occurred during the retrieve procedure.
+     */
     bool GetInputs(MapReturnCode& outputCode);
+
+    /**
+     * @brief Method to set the outputs of the map packet.
+     * @details This method pushes the output signal values from MARTe (through the DataSource) into the output buffers
+     * of the devices to be later pushed into the DAQ map.
+     *
+     * In this specific implementation, data is pushed into the IOM during the call only if map is configured in ExecutionMode RealTimeThread, forcing
+     * a VMap exchange by calling to MapExvhange method and gathering new input data and setting new otuput data.
+     *
+     * If the map is configured in IndependentThread ExecutionMode, the call only sets the new output data into the output buffer of the relevant devices.
+     * The map exchange pushing the set data is later pushed to the IOM thorugh the ExchangeMap call in the IndependentThreadCallback.
+     * @param[out] outputCode Variable holding the status code for the procedure performed during the call.
+     * @return true no error occurred during the setting procedure.
+     */
     bool SetOutputs(MapReturnCode& outputCode);
+
     /**
      * @brief Getter for the type of the map.
      * @details Redefinition of the method stated in UEIMapContainer.
@@ -169,20 +202,61 @@ class UEIRtVMap : public UEIMapContainer, public EmbeddedServiceMethodBinderT<UE
      * @return true if the provided parameters are accepted for the Map, false otherwise.
      */
     bool ConfigureInputsForDataSource(uint32 nSamples, uint32 nChannels, uint64* inputTimestampAddress, uint8** signalAddresses, TypeDescriptor* signalTypes);
+    
+    /**
+     * @brief Configuration method for the destination signals in MARTe.
+     * @details This function provides the Map object the knowledge of where to retrieve the output samples in memory as output signals in MARTe,
+     * the desired number of samples to be pushed in such signals, the number of physical channels to be pushed and the types to which scale each
+     * of the output signals.
+     * @param[in] nSamples number of samples the map must push for each of the declared phyisical channels as MARTe signals.
+     * @param[in] nChannels number of channels the map needs to psuh into as output signals, this parameters serves as a check for the length of the provided arrays.
+     * @param[in] signalAddresses array of pointers to the memory locations of each of the output signals, must have a length of nChannels and be supplied in the same
+     * order as the configured physical channels.
+     * @param[in] signalTypes Array of types for each of the channels, stating the current output signal format and scaling.
+     * @return true if the provided parameters are accepted for the Map, false otherwise.
+     */
     bool ConfigureOutputsForDataSource(uint32 nSamples, uint32 nChannels, uint8** signalAddresses, TypeDescriptor* signalTypes);
+    
     /**
      * @brief Method to stop operation on the map.
      * @details This method is used to cease map operation.
      * @return true if the stopping request succeeded, false otherwise.
      */
     bool StopMap();
+    
+    /**
+     * @brief Method to check the map coherency with the information on the devices assigned to each of the members.
+     * @details This method is executed by UEIMasterObject right after the devices references are set into the corresponding map members
+     * by the call to SetDevices method on this class. During initialisation of the map objects, the object has no access to the device objects and
+     * therefore cannot execute a certain set of checks regarding the information. This method implement such checks and is to be called once the
+     * device references have been set appropriately.
+     * @return true if coherency check for the map has succeeded, false otherwise.
+     */
     bool CheckMapCoherency();
 
 protected:
-
-    ErrorManagement::ErrorType IndependentThreadCallback(ExecutionInfo &info);
     /**
-     * @brief TODO
+     * @brief Thread Callback for the independent thread
+     * @details This method is the callback function for the independent thread spawned upon map startup if the map is configured with
+     * IndependentThread ExecutionMode. This callback calls the ExchangeMap method of the class with a sleep pause of PollSleepPeriod ms.
+     * @return ErrorManagement::NoError.
+     */
+    ErrorManagement::ErrorType IndependentThreadCallback(ExecutionInfo &info);
+
+    /**
+     * @brief Protected internal method to perform the VMap packet exchange with the IOM
+     * @details This method performs the refresh of the VMap at the IOM and retrieves the new input data into the device's input buffers
+     * and pushes the output data into the Map paket to the IOM, emptying the output buffers in the process.
+     * 
+     * This method is invoked by both the GetInputs and SetOutputs methods if the map execution mode is set to RealTimeThread, in which case
+     * the data is only pushed/retrieved from the IOM during this calls, making the map susceptible to FIFO overflows if such methods are not called
+     * frequently enough.
+     *
+     * This method is invoked by the IndependetThreadCallback in a loop if the map execution mode is set to IndependentThread, in which case a separate
+     * thread is spawned and the map is exchanged with the IOM in a loop, making the map data retrieve/push rate independent from the main MARTe thread 
+     * execution and solving the FIFO overflow error in when long loop periods are expected for the main MARTe thread loop.
+     * @param [out] outputCode code notifying the status of the map exchange process.
+     * @return true if the exchange process was performed successfully, false otherwise.
      */
     bool ExchangeMap(MapReturnCode& outputCode);
 
