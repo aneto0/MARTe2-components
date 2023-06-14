@@ -51,6 +51,8 @@ EPICSPVADatabase::EPICSPVADatabase() :
     stackSize = THREADS_DEFAULT_STACKSIZE * 4u;
     cpuMask = 0xffu;
     shutdown = false;
+    allVariablesAdded = false;
+    threadError = false;
     ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
@@ -60,10 +62,6 @@ EPICSPVADatabase::EPICSPVADatabase() :
     if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
     }
-    if (!startSynch.Create()) {
-        REPORT_ERROR(ErrorManagement::FatalError, "Could not create start synch semaphore");
-    }
-    (void) startSynch.Reset();
 }
 
 EPICSPVADatabase::~EPICSPVADatabase() {
@@ -135,7 +133,10 @@ ErrorManagement::ErrorType EPICSPVADatabase::Start() {
     executor.SetName(GetName());
     ErrorManagement::ErrorType err = executor.Start();
     if (err.ErrorsCleared()) {
-        err = startSynch.Wait(10000);
+        if (!allVariablesAdded) {
+            Sleep::Sec(0.5f);
+        }
+        err = threadError;
     }
     return err;
 }
@@ -151,7 +152,8 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
         master = epics::pvDatabase::PVDatabase::getMaster();
         for (i = 0u; (i < nOfRecords) && (ok); i++) {
             ReferenceT<EPICSPVARecord> record = Get(i);
-            if (record.IsValid()) {
+            ok = record.IsValid();
+            if (ok) {
                 StreamString recordName;
                 record->GetRecordName(recordName);
                 epics::pvDatabase::PVRecordPtr pvRecordPtr = record->CreatePVRecord();
@@ -178,7 +180,7 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
                         serverContext = epics::pvAccess::ServerContext::create();
                         serverContext->printInfo();
                         mux.UnLock();
-                        ok = startSynch.Post();
+                        allVariablesAdded = true;
                         serverContext->run(0);
                     }
                     else {
@@ -187,9 +189,12 @@ ErrorManagement::ErrorType EPICSPVADatabase::Execute(ExecutionInfo& info) {
                 }
             }
             catch (epics::pvData::detail::ExceptionMixed<epics::pvData::BaseException> &ignored) {
+                ok = false;
             }
         }
+        allVariablesAdded = true;
         err = !ok;
+        threadError = !ok;
     }
     else if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
         Sleep::Sec(1.0);
