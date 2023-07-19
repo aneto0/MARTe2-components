@@ -233,6 +233,35 @@
              <channel number="2" variable="Signal3" label="Signal3" status="ENABLE" ></channel>
         </channelsInfo>
     </source>
+    
+    <source name="DANStreamTest_T100000_N10_uint16" >
+         <itemDanType >danUInt16</itemDanType>
+         <maxTransferRate >100000</maxTransferRate>
+         <advancedSource >
+             <checkPolicy >NO_CHECK</checkPolicy>
+             <streamType >DATA_D0</streamType>
+             <dataModel >DM_BLOCK2D_VAR</dataModel>
+             <queueSize >1000</queueSize>
+             <profMonitoring >1</profMonitoring>
+             <timeFormat >UTC</timeFormat>
+             <debug >
+                 <srvChunkHeaderSize >20</srvChunkHeaderSize>
+                 <srvChunkSize >10000</srvChunkSize>
+                 <srvBufferSize >2</srvBufferSize>
+            </debug>
+        </advancedSource>
+         <deviceInfo >
+             <deviceName >MARTeTest</deviceName>
+             <deviceVersion >v1.3</deviceVersion>
+             <operationalMode >0</operationalMode>
+             <manufactureCode >N1134342</manufactureCode>
+        </deviceInfo>
+         <channelsInfo sequence="SEQUENCIAL" >
+             <channel number="0" variable="Signal1" label="Signal1" status="ENABLE" ></channel>
+             <channel number="1" variable="Signal2" label="Signal2" status="ENABLE" ></channel>
+             <channel number="2" variable="Signal3" label="Signal3" status="ENABLE" ></channel>
+        </channelsInfo>
+    </source>
 
      <danStreamer name="DANSTREAMER0" >
          <link >ALL</link>

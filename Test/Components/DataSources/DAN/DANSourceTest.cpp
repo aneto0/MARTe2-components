@@ -27,7 +27,7 @@
 #include "dan/dan_DataCore.h"
 #include "dan/dan_Source.h"
 #include "dan/reader/dan_stream_reader_cpp.h"
-#include "tcn.h"
+#include <common/TimeTools.h> // ccs::HelperTools::GetCurrentTime, etc.
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -49,8 +49,8 @@
  * @brief GAM which generates a given signal trigger, time and signal pattern which is then sinked to the DANSource
  */
 class DANSourceGAMTriggerTestHelper: public MARTe::GAM {
-public:
-    CLASS_REGISTER_DECLARATION()DANSourceGAMTriggerTestHelper() {
+public:CLASS_REGISTER_DECLARATION()
+    DANSourceGAMTriggerTestHelper() {
         generateTrigger = false;
         useAbsoluteTime = false;
         counter = 0;
@@ -116,7 +116,7 @@ public:
                 ok = (lastElements == elements[n]);
             }
         }
-        (void) (tcn_get_time(&absTimeStamp) == TCN_SUCCESS);
+        absTimeStamp=ccs::HelperTools::GetCurrentTime();
 
         return ok;
     }
@@ -144,8 +144,9 @@ public:
             }
             if (interleave) {
                 uint8 *outputSignalMemory = static_cast<uint8 *>(GetOutputSignalMemory(n));
-                for (uint32 e=0; e<elements[0u]; e++) {
-                    for (; n<GetNumberOfOutputSignals(); n++) {
+                //all same size?
+                for (; n<GetNumberOfOutputSignals(); n++) {
+                    for (uint32 e=0; e<elements[n]; e++) {
                         TypeDescriptor signalType = GetSignalType(OutputSignals, n);
                         if (signalType == UnsignedInteger16Bit) {
                             uint16 *signalOut = reinterpret_cast<uint16 *>(outputSignalMemory);
@@ -265,7 +266,7 @@ public:
     MARTe::uint32 counter;
     MARTe::uint32 numberOfExecutes;
     MARTe::float32 period;
-    hpn_timestamp_t absTimeStamp;
+    MARTe::uint64 absTimeStamp;
 };
 CLASS_REGISTER(DANSourceGAMTriggerTestHelper, "1.0")
 
@@ -277,7 +278,8 @@ public:
 
     CLASS_REGISTER_DECLARATION()
 
-DANSourceSchedulerTestHelper    () : MARTe::GAMSchedulerI() {
+    DANSourceSchedulerTestHelper() :
+            MARTe::GAMSchedulerI() {
         scheduledStates = NULL;
     }
 
@@ -315,7 +317,8 @@ private:
 
 CLASS_REGISTER(DANSourceSchedulerTestHelper, "1.0")
 
-static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool destroy) {
+static bool TestIntegratedInApplication(const MARTe::char8 *const config,
+                                        bool destroy) {
     using namespace MARTe;
 
     ConfigurationDatabase cdb;
@@ -363,8 +366,8 @@ static bool WaitForDataToBeStored() {
         hd5FilesToTest.Scan("/tmp/data/", filterName.Buffer());
         uint64 currentDirSize = 0;
         uint32 i;
-        for (i=0; i<hd5FilesToTest.ListSize(); i++) {
-            Directory *f = (static_cast<Directory *>(hd5FilesToTest.ListPeek(i)));
+        for (i = 0; i < hd5FilesToTest.ListSize(); i++) {
+            Directory *f = (static_cast<Directory*>(hd5FilesToTest.ListPeek(i)));
             if (f != NULL) {
                 currentDirSize += f->GetSize();
             }
@@ -383,7 +386,12 @@ static bool WaitForDataToBeStored() {
     return found;
 }
 
-template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnTimeStamp, const MARTe::uint64 periodNanos, MARTe::uint32 *signalToVerify, MARTe::uint32 *timeToVerifyRelative, MARTe::uint32 toVerifyNumberOfElements) {
+template<typename typeToCheck> static bool VerifyData(const MARTe::uint64 hpnTimeStamp,
+                                                      const MARTe::uint64 periodNanos,
+                                                      MARTe::uint32 *signalToVerify,
+                                                      MARTe::uint32 *timeToVerifyRelative,
+                                                      MARTe::uint32 toVerifyNumberOfElements,
+                                                      bool fullNotation=false) {
     using namespace MARTe;
     //To discover the type
     typeToCheck tDiscover;
@@ -392,21 +400,26 @@ template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnT
     DirectoryScanner hd5FilesToTest;
     //Wait for the file to be created...
     StreamString filterName;
-    filterName.Printf("*DANStreamTest_%s*", TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDiscover.GetTypeDescriptor()));
+    if(fullNotation){
+        filterName.Printf("*DANStreamTest_T*_N*_%s*", TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDiscover.GetTypeDescriptor()));
+    }
+    else{
+        filterName.Printf("*DANStreamTest_%s*", TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDiscover.GetTypeDescriptor()));
+    }
     hd5FilesToTest.Scan("/tmp/data/", filterName.Buffer());
-    bool found = (static_cast<Directory *>(hd5FilesToTest.ListPeek(0u)) != NULL);
+    bool found = (static_cast<Directory*>(hd5FilesToTest.ListPeek(0u)) != NULL);
     bool ok = found;
     DanStreamReaderCpp danStreamReader;
     const char8 *channelNames[] = { "Signal1", "Signal2", "Signal3" };
     const uint32 numberOfChannels = 3;
     uint32 c;
- 
+
     if (ok) {
         found = false;
-        StreamString hd5FileName = static_cast<Directory *>(hd5FilesToTest.ListPeek(0u))->GetName();
+        StreamString hd5FileName = static_cast<Directory*>(hd5FilesToTest.ListPeek(0u))->GetName();
         ok = (danStreamReader.openFile(hd5FileName.Buffer()) >= 0);
         if (!ok) {
-	    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to open file: [%s]. Error: %s", hd5FileName.Buffer(), danStreamReader.getError().c_str());
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to open file: [%s]. Error: %s", hd5FileName.Buffer(), danStreamReader.getError().c_str());
         }
 #ifdef NO_HDF5_SET_CHANNEL // CCSv6.1 and above
         if (ok) {
@@ -437,7 +450,7 @@ template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnT
         const uint64 *absTimeStored = NULL;
         if (ok) {
 #ifdef NO_HDF5_SET_CHANNEL // CCSv6.1 and above
-	    ok = (danStreamReader.openDataPath(channelNames[c]) == 0);
+            ok = (danStreamReader.openDataPath(channelNames[c]) == 0);
 #else
             danStreamReader.setChannel(channelNames[c]);
 #endif
@@ -512,16 +525,27 @@ template<typename typeToCheck> static bool VerifyData(const hpn_timestamp_t hpnT
     return ok;
 }
 
-static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::uint32 *signalToGenerate, MARTe::uint32 toGenerateNumberOfElements, MARTe::uint8 *triggerToGenerate, MARTe::uint32 *signalToVerify,
-                                    MARTe::uint32 *timeToVerifyRelative, MARTe::uint32 toVerifyNumberOfElements, MARTe::uint32 numberOfBuffers, MARTe::uint32 numberOfPreTriggers, MARTe::uint32 numberOfPostTriggers, MARTe::float32 period,
-                                    MARTe::uint32 sleepMSec = 10, bool useAbsTime = false) {
+static bool TestIntegratedExecution(const MARTe::char8 *const config,
+                                    MARTe::uint32 *signalToGenerate,
+                                    MARTe::uint32 toGenerateNumberOfElements,
+                                    MARTe::uint8 *triggerToGenerate,
+                                    MARTe::uint32 *signalToVerify,
+                                    MARTe::uint32 *timeToVerifyRelative,
+                                    MARTe::uint32 toVerifyNumberOfElements,
+                                    MARTe::uint32 numberOfBuffers,
+                                    MARTe::uint32 numberOfPreTriggers,
+                                    MARTe::uint32 numberOfPostTriggers,
+                                    MARTe::float32 period,
+                                    MARTe::uint32 sleepMSec = 10,
+                                    bool useAbsTime = false,
+                                    bool fullNotation = false) {
     using namespace MARTe;
     //Delete any previous DAN test files
     DirectoryScanner hd5FilesToTest;
     hd5FilesToTest.Scan("/tmp/data/", "*DANStreamTest*");
     uint32 i = 0u;
     while (hd5FilesToTest.ListPeek(i)) {
-        Directory *toDelete = static_cast<Directory *>(hd5FilesToTest.ListPeek(i));
+        Directory *toDelete = static_cast<Directory*>(hd5FilesToTest.ListPeek(i));
         toDelete->Delete();
         i++;
     }
@@ -537,8 +561,10 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     cdb.Delete("Signal");
     Vector<uint32> signalV(signalToGenerate, toGenerateNumberOfElements);
     cdb.Write("Signal", signalV);
-    cdb.Delete("Period");
-    cdb.Write("Period", period);
+    if (period > 0.) {
+        cdb.Delete("Period");
+        cdb.Write("Period", period);
+    }
     if (triggerToGenerate != NULL) {
         cdb.Delete("Trigger");
         Vector<uint8> triggerV(triggerToGenerate, toGenerateNumberOfElements);
@@ -562,11 +588,14 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     if (triggerToGenerate != NULL) {
         n = 2;
     }
-    for (; n < nSignals; n++) {
-        cdb.MoveRelative(cdb.GetChildName(n));
-        cdb.Delete("Period");
-        cdb.Write("Period", period);
-        cdb.MoveToAncestor(1u);
+
+    if (period > 0.) {
+        for (; n < nSignals; n++) {
+            cdb.MoveRelative(cdb.GetChildName(n));
+            cdb.Delete("Period");
+            cdb.Write("Period", period);
+            cdb.MoveToAncestor(1u);
+        }
     }
 
     cdb.MoveToRoot();
@@ -624,7 +653,7 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
         ok = danSource->CloseStream();
     }
     godb->Purge();
-    
+
     ok = WaitForDataToBeStored();
     if (ok) {
         uint64 absTime = 0;
@@ -657,13 +686,16 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
         if (ok) {
             ok = VerifyData<float64>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
         }
+        if(ok && fullNotation){
+            ok = VerifyData<uint16>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements, true);
+        }
     }
 
     return ok;
 }
 
 //Standard configuration with no trigger source
-static const MARTe::char8 * const config1 = ""
+static const MARTe::char8 *const config1 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -879,8 +911,253 @@ static const MARTe::char8 * const config1 = ""
         "    }"
         "}";
 
+//Standard configuration with no trigger source
+static const MARTe::char8 *const config1a = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1}"
+        "            Period = 1e-3"
+        "            OutputSignals = {"
+        "                SignalUInt16F_1 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt16F_2 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt32F_1 = {"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt32F_2 = {"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt64F_1 = {"
+        "                    Type = uint64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt64F_2 = {"
+        "                    Type = uint64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt16F_1 = {"
+        "                    Type = int16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt16F_2 = {"
+        "                    Type = int16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt32F_1 = {"
+        "                    Type = int32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt32F_2 = {"
+        "                    Type = int32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt64F_1 = {"
+        "                    Type = int64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt64F_2 = {"
+        "                    Type = int64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat32F_1 = {"
+        "                    Type = float32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat32F_2 = {"
+        "                    Type = float32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat64F_1 = {"
+        "                    Type = float64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat64F_2 = {"
+        "                    Type = float64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat64F_3 = {"
+        "                    Type = float64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalFloat32F_3 = {"
+        "                    Type = float32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt64F_3 = {"
+        "                    Type = int64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt32F_3 = {"
+        "                    Type = int32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalInt16F_3 = {"
+        "                    Type = int16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt64F_3 = {"
+        "                    Type = uint64"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt32F_3 = {"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt16F_3 = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                }"
+        "                SignalUInt16F_1_A = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 10"
+        "                }"
+        "                SignalUInt16F_2_A = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 10"
+        "                }"
+        "                SignalUInt16F_3_A = {"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 10"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DANStreamTest = {"
+        "            Class = DANSource"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            StoreOnTrigger = 0"
+        "            DanBufferMultiplier = 4"
+        "            Signals = {"
+        "                SignalUInt16F_1 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalUInt16F_2 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalUInt32F_1 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalUInt32F_2 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalUInt64F_1 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalUInt64F_2 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalInt16F_1 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalInt16F_2 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalInt32F_1 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalInt32F_2 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalInt64F_1 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalInt64F_2 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalFloat32F_1 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalFloat32F_2 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalFloat64F_1 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalFloat64F_2 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalUInt16F_3 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalUInt32F_3 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalUInt64F_3 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalInt16F_3 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalInt32F_3 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalInt64F_3 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalFloat32F_3 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalFloat64F_3 = {"
+        "                    Period = 1e-3"
+        "                }"
+        "                SignalUInt16F_1_A = {"
+        "                    Period = 100e-6"
+        "                    NumberOfElements = 10"
+        "                }"
+        "                SignalUInt16F_2_A = {"
+        "                    Period = 100e-6"
+        "                    NumberOfElements = 10"
+        "                }"
+        "                SignalUInt16F_3_A = {"
+        "                    Period = 100e-6"
+        "                    NumberOfElements = 10"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = DANSourceSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 //Configuration with a trigger source and relative time
-static const MARTe::char8 * const config2 = ""
+static const MARTe::char8 *const config2 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1114,7 +1391,7 @@ static const MARTe::char8 * const config2 = ""
         "}";
 
 //Configuration with a trigger source and absolute time
-static const MARTe::char8 * const config3 = ""
+static const MARTe::char8 *const config3 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1350,7 +1627,7 @@ static const MARTe::char8 * const config3 = ""
         "}";
 
 //Configuration with more than one sample
-static const MARTe::char8 * const config4 = ""
+static const MARTe::char8 *const config4 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1407,7 +1684,7 @@ static const MARTe::char8 * const config4 = ""
         "}";
 
 //Configuration with more than one more than one time signal
-static const MARTe::char8 * const config5 = ""
+static const MARTe::char8 *const config5 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1490,7 +1767,7 @@ static const MARTe::char8 * const config5 = ""
         "}";
 
 //Configuration with no DAN signals
-static const MARTe::char8 * const config6 = ""
+static const MARTe::char8 *const config6 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1558,7 +1835,7 @@ static const MARTe::char8 * const config6 = ""
         "}";
 
 //Configuration with no time signal
-static const MARTe::char8 * const config7 = ""
+static const MARTe::char8 *const config7 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1624,7 +1901,7 @@ static const MARTe::char8 * const config7 = ""
         "}";
 
 //Configuration with a time signal that is not uint32
-static const MARTe::char8 * const config8 = ""
+static const MARTe::char8 *const config8 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1697,7 +1974,7 @@ static const MARTe::char8 * const config8 = ""
         "}";
 
 //Configuration with an absolute time signal that is not uint64
-static const MARTe::char8 * const config9 = ""
+static const MARTe::char8 *const config9 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1771,7 +2048,7 @@ static const MARTe::char8 * const config9 = ""
         "}";
 
 //Standard configuration with no trigger source
-static const MARTe::char8 * const config10 = ""
+static const MARTe::char8 *const config10 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1839,9 +2116,8 @@ static const MARTe::char8 * const config10 = ""
         "    }"
         "}";
 
-
 //Standard configuration with Period = 0
-static const MARTe::char8 * const config11 = ""
+static const MARTe::char8 *const config11 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1897,7 +2173,7 @@ static const MARTe::char8 * const config11 = ""
         "}";
 
 //Standard configuration with SamplingFrequency = 0
-static const MARTe::char8 * const config12 = ""
+static const MARTe::char8 *const config12 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1953,7 +2229,7 @@ static const MARTe::char8 * const config12 = ""
         "}";
 
 //Standard configuration with no trigger source
-static const MARTe::char8 * const config13 = ""
+static const MARTe::char8 *const config13 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -2171,7 +2447,6 @@ static const MARTe::char8 * const config13 = ""
         "    }"
         "}";
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -2280,18 +2555,27 @@ bool DANSourceTest::TestGetOutputBrokers() {
 
 bool DANSourceTest::TestIntegratedInApplication_NoTrigger() {
     using namespace MARTe;
-    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4,
-            5, 6, 7, 8, 9, 10, 11, 12 };
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3,
+            4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     const uint32 numberOfBuffers = 16;
     const float32 period = 1e-3;
     return TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, signalToGenerate, NULL, numberOfElements, numberOfBuffers, 0, 0, period);
 }
 
+bool DANSourceTest::TestIntegratedInApplication_FullStream() {
+    using namespace MARTe;
+    uint32 signalToGenerate[] = { 1, 2 };
+    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
+    const uint32 numberOfBuffers = 16;
+    const float32 period = -1.;
+    return TestIntegratedExecution(config1a, signalToGenerate, numberOfElements, NULL, signalToGenerate, NULL, numberOfElements, numberOfBuffers, 0, 0, period, 10, false, true);
+}
+
 bool DANSourceTest::TestIntegratedInApplication_Interleave() {
     using namespace MARTe;
-    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4,
-            5, 6, 7, 8, 9, 10, 11, 12 };
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3,
+            4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     const uint32 numberOfBuffers = 16;
     const float32 period = 1e-3;
@@ -2310,7 +2594,8 @@ bool DANSourceTest::TestIntegratedInApplication_Trigger() {
     const uint32 numberOfPreTriggers = 2;
     const uint32 numberOfPostTriggers = 1;
     const float32 period = 1e-3;
-    return TestIntegratedExecution(config2, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerifyRelative, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period);
+    return TestIntegratedExecution(config2, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerifyRelative,
+                                   numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period);
 }
 
 bool DANSourceTest::TestIntegratedInApplication_Trigger_AbsoluteTime() {
@@ -2325,7 +2610,8 @@ bool DANSourceTest::TestIntegratedInApplication_Trigger_AbsoluteTime() {
     const uint32 numberOfPreTriggers = 2;
     const uint32 numberOfPostTriggers = 1;
     const float32 period = 1e-3;
-    return TestIntegratedExecution(config3, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerifyRelative, numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, 10, true);
+    return TestIntegratedExecution(config3, signalToGenerate, numberOfElements, triggerToGenerate, signalToVerify, timeToVerifyRelative,
+                                   numberOfElementsToVerify, numberOfBuffers, numberOfPreTriggers, numberOfPostTriggers, period, 10, true);
 }
 
 bool DANSourceTest::TestInitialise() {
@@ -2339,6 +2625,8 @@ bool DANSourceTest::TestInitialise() {
     cdb.Write("StoreOnTrigger", 1);
     cdb.Write("NumberOfPreTriggers", 2);
     cdb.Write("NumberOfPostTriggers", 3);
+    cdb.Write("FullStreamName", 1);
+
     cdb.CreateRelative("Signals");
     cdb.MoveToRoot();
     bool ok = test.Initialise(cdb);
@@ -2366,7 +2654,6 @@ bool DANSourceTest::TestInitialise_False_NumberOfBuffers() {
     cdb.MoveToRoot();
     return !test.Initialise(cdb);
 }
-
 
 bool DANSourceTest::TestInitialise_False_NumberOfBuffers_0() {
     using namespace MARTe;
