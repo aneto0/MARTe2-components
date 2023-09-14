@@ -22,7 +22,11 @@
 #
 #############################################################
 
-OBJSX=OPCUANode.x \
+OBJSX=OPCUAClientI.x \
+    OPCUAClientRead.x \
+    OPCUAClientWrite.x \
+    OPCUAClientMethod.x \
+    OPCUANode.x \
     OPCUAObject.x \
     OPCUAReferenceContainer.x \
     OPCUAServer.x \
@@ -51,7 +55,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(OPEN62541_INCLUDE)/
 INCLUDES += -I$(ROOT_DIR)/Source/Components/DataSources/OPCUADataSource
 
-LIBRARIES += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
+LIBRARIES_STATIC += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
 
 all: $(OBJS)    \
     $(BUILD_DIR)/OPCUA$(LIBEXT) \

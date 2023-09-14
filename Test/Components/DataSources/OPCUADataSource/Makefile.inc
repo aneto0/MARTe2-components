@@ -23,11 +23,8 @@
 #############################################################
 
 OBJSX +=  OPCUADSOutputTest.x \
-    OPCUADSInputTest.x \
-    OPCUAClientITest.x \
-    OPCUAClientReadTest.x \
-    OPCUAClientWriteTest.x \
-    OPCUAClientMethodTest.x
+    OPCUADSInputTest.x
+
 
 PACKAGE=Components/DataSources
 
