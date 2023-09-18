@@ -592,7 +592,7 @@ void OPCUADSInput::GetStructureDimensions(const Introspection *const intro,
     }
 }
 
-bool OPCUADSInput::GetStructure(const Introspection * const intro,
+bool OPCUADSInput::GetStructure(const Introspection *const intro,
                                 uint32 *&entryArrayElements,
                                 TypeDescriptor *&entryTypes,
                                 uint32 *&entryNumberOfMembers,
