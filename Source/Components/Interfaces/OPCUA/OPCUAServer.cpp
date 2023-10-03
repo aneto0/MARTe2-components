@@ -32,11 +32,144 @@
 /*---------------------------------------------------------------------------*/
 
 #include "OPCUAServer.h"
+#include "File.h"
+#include "StandardParser.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+static UA_Boolean allowAddNode(UA_Server *server, UA_AccessControl *ac,
+                               const UA_NodeId *sessionId, 
+                               void *sessionContext,
+                               const UA_AddNodesItem *item) {
+    (void) server;
+    (void) ac;
+    (void) sessionId;
+    (void) sessionContext;
+    (void) item;
+    return UA_TRUE;
+}
 
+static UA_Boolean allowAddReference(UA_Server *server, UA_AccessControl *ac,
+                                    const UA_NodeId *sessionId,
+                                    void *sessionContext,
+                                    const UA_AddReferencesItem *item) {
+    (void) server;
+    (void) ac;
+    (void) sessionId;
+    (void) sessionContext;
+    (void) item;
+    return UA_TRUE;
+}
+
+static UA_Boolean allowDeleteNode(UA_Server *server, UA_AccessControl *ac,
+                                  const UA_NodeId *sessionId,
+                                  void *sessionContext,
+                                  const UA_DeleteNodesItem *item) {
+    (void) server;
+    (void) ac;
+    (void) sessionId;
+    (void) sessionContext;
+    (void) item;
+    return UA_FALSE; // Do not allow deletion from client
+}
+
+static UA_Boolean allowDeleteReference(UA_Server *server, UA_AccessControl *ac,
+                                       const UA_NodeId *sessionId,
+                                       void *sessionContext,
+                                       const UA_DeleteReferencesItem *item) {
+    (void) server;
+    (void) ac;
+    (void) sessionId;
+    (void) sessionContext;
+    (void) item;
+    return UA_TRUE;
+}
+
+static bool ReadAuthenticationKeys(MARTe::StructuredDataI &data, UA_UsernamePasswordLogin *&authKeys, MARTe::uint32 &nOfAuthKeys) {
+    bool ok = true;
+    using namespace MARTe;
+    StreamString userPasswordFile;
+    if (ok) {
+        ok = data.Read("UserPasswordFile", userPasswordFile);
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "'UserPasswordFile' not defined!");
+        }
+    }
+    File f;
+    if (ok) {
+        (void) userPasswordFile.Seek(0u);
+        ok = f.Open(userPasswordFile.Buffer(), BasicFile::ACCESS_MODE_R);
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed to open the file at path '%s'!", userPasswordFile.Buffer());
+        }
+    }
+    ConfigurationDatabase userPasswordDatabase;
+    if (ok) {
+        StandardParser parser(f, userPasswordDatabase);
+        ok = parser.Parse();
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed to parse the UserPasswordFile!");
+        }
+    }
+    if (f.IsOpen()) {
+        ok = f.Close();
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed to close the 'UserPasswordFile'!");
+        }
+    }
+    if (ok) {
+        ok = userPasswordDatabase.MoveRelative("AuthenticationKeys");
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "'AuthenticationKeys' not defined in the UserPasswordFile!");
+        }
+    }
+    if (ok) {
+        nOfAuthKeys = userPasswordDatabase.GetNumberOfChildren();
+        ok = nOfAuthKeys > 0u;
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "At least one authentication key must be defined in 'AuthenticationKeys'!");
+        }
+    }
+    if (ok) {
+        authKeys = new UA_UsernamePasswordLogin[nOfAuthKeys];
+        ok = (authKeys != NULL_PTR(UA_UsernamePasswordLogin *));
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to allocate memory for authentication keys!");
+        }
+        for (uint32 i = 0u; (i < nOfAuthKeys) && ok; i++) {
+            (void) userPasswordDatabase.MoveToChild(i);
+            StreamString temp;
+            ok = userPasswordDatabase.Read("Username", temp);
+            if (!ok) {
+                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed to read 'Username' for %s", userPasswordDatabase.GetName());
+            }
+            if (ok) {
+                authKeys[i].username = UA_String_fromChars(temp.Buffer());
+                ok = (authKeys[i].username.data != NULL_PTR(UA_Byte *));
+                if (!ok) {
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to copy UA username string!");
+                }
+            }
+            if (ok) {
+                temp = "";
+                ok = userPasswordDatabase.Read("Password", temp);
+                if (!ok) {
+                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed to read 'Password' for %s", userPasswordDatabase.GetName());
+                }
+            }
+            if (ok) {
+                authKeys[i].password = UA_String_fromChars(temp.Buffer());
+                ok = (authKeys[i].password.data != NULL_PTR(UA_Byte *));
+                if (!ok) {
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to copy UA password string!");
+                }
+            }
+            (void) userPasswordDatabase.MoveToAncestor(1u);
+        }
+    }
+    return ok;
+}
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -92,11 +225,70 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
             ok = true;
         }
     }
+    StreamString authentication;
+    if (ok) {
+        if (!data.Read("Authentication", authentication)) {
+            authentication = "None";
+            REPORT_ERROR(ErrorManagement::Warning, "'Authentication' not defined.");
+        }
+    }
+    bool authenticate = false;
+    if (ok) {
+        if (authentication == "None") {
+            authenticate = false;
+            REPORT_ERROR(ErrorManagement::Information, "Using 'None' authentication.");
+        }
+        else if (authentication == "UserPassword") {
+            authenticate = true;
+            REPORT_ERROR(ErrorManagement::Information, "Using 'UserPassword' authentication.");
+        }
+        else {
+            ok = false;
+            REPORT_ERROR(ErrorManagement::ParametersError, "'Authentication' parameter invalid (expected 'None' or 'UserPassword')!");
+        }
+    }
+    UA_UsernamePasswordLogin * authKeys = NULL_PTR(UA_UsernamePasswordLogin *);
+    uint32 nOfAuthKeys = 0u;
+    if (ok && authenticate) {
+        ok = ReadAuthenticationKeys(data, authKeys, nOfAuthKeys);
+    }
     if (ok) {
         /*lint -e{118} no argument needed*/
         opcuaServer = UA_Server_new();
+        
+        UA_ServerConfig *config = UA_Server_getConfig(opcuaServer);
         /*lint -e{526} -e{628} -e{1055} -e{746} function defined in open62541*/
-        (void)UA_ServerConfig_setDefault(UA_Server_getConfig(opcuaServer));
+        (void)UA_ServerConfig_setDefault(config);
+
+        if (authenticate) {
+            /* Disable anonymous logins, enable user/password logins */
+            config->accessControl.deleteMembers(&config->accessControl);
+            UA_StatusCode retval = UA_AccessControl_default(config, false,
+                    &config->securityPolicies[config->securityPoliciesSize-1].policyUri, nOfAuthKeys, authKeys);
+            if (retval != UA_STATUSCODE_GOOD) {
+                ok = false;
+                REPORT_ERROR(ErrorManagement::FatalError, "Setting access control configuration returned %d", retval);
+            }
+            if (ok) {
+                /* Set accessControl functions for nodeManagement */
+                config->accessControl.allowAddNode = allowAddNode;
+                config->accessControl.allowAddReference = allowAddReference;
+                config->accessControl.allowDeleteNode = allowDeleteNode;
+                config->accessControl.allowDeleteReference = allowDeleteReference;
+            }
+        }
+    }
+    if (authKeys != NULL_PTR(UA_UsernamePasswordLogin *)) {
+        for (uint32 i = 0u; i < nOfAuthKeys; i++) {
+            if (authKeys[i].username.data != NULL_PTR(UA_Byte *)) {
+                delete authKeys[i].username.data;
+            }
+            if (authKeys[i].password.data != NULL_PTR(UA_Byte *)) {
+                delete authKeys[i].password.data;
+            }
+        }
+        delete[] authKeys;
+        authKeys = NULL_PTR(UA_UsernamePasswordLogin *);
     }
     if (ok) {
         ok = cdb.MoveRelative("AddressSpace");
@@ -332,6 +524,7 @@ const uint32 OPCUAServer::GetStackSize() const {
 const uint16 OPCUAServer::GetPort() const {
     return port;
 }
+
 
 CLASS_REGISTER(OPCUAServer, "");
 

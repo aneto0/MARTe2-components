@@ -22,7 +22,8 @@
 #
 #############################################################
 
-OBJSX=OPCUAClientI.x \
+OBJSX=AuthUtils.x \
+	OPCUAClientI.x \
     OPCUAClientRead.x \
     OPCUAClientWrite.x \
     OPCUAClientMethod.x \

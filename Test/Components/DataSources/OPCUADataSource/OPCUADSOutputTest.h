@@ -96,6 +96,21 @@ public:
      */
     bool Test_SetConfiguredDatabase_ExtensionObject();
 
+    /**
+     * @brief Test the user/password Authentication capability of the OPC UA Server.
+     */
+    bool Test_Authentication();
+
+    /**
+     * @brief Test the user/password Authentication capability of the OPC UA Server with no creds.
+     */
+    bool Test_Authentication_NoCreds();
+
+    /**
+     * @brief Test the user/password Authentication capability of the OPC UA Server with bad creds.
+     */
+    bool Test_Authentication_BadCreds();
+
 };
 
 /*---------------------------------------------------------------------------*/

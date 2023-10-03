@@ -36,6 +36,7 @@
 #include "OPCUADSOutput.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
+#include "File.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -113,6 +114,7 @@ bool OPCUADSOutputTest::TestInitialise() {
             "        +OPCUA = {\n"
             "            Class = OPCUADataSource::OPCUADSOutput\n"
             "            Address = \"opc.tcp://localhost.localdomain:4840\""
+            "            Authentication = None\n"
             "            Signals = {\n"
             "                MyNode = {\n"
             "                    NamespaceIndex = 1\n"
@@ -243,6 +245,7 @@ bool OPCUADSOutputTest::TestInitialise_Introspection() {
             "        +OPCUAOut = {\n"
             "            Class = OPCUADataSource::OPCUADSOutput\n"
             "            Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "            Authentication = None\n"
             "            Signals = {\n"
             "                Sensor1 = {\n"
             "                    NamespaceIndex = 1\n"
@@ -373,6 +376,7 @@ bool OPCUADSOutputTest::TestInitialise_ExtensionObject() {
             "        +OPCUAIn = {\n"
             "            Class = OPCUADataSource::OPCUADSInput\n"
             "            Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "            Authentication = None\n"
             "            Synchronise = \"yes\"\n"
             "            Signals = {\n"
             "                MasterSet = {\n"
@@ -386,6 +390,7 @@ bool OPCUADSOutputTest::TestInitialise_ExtensionObject() {
             "        +OPCUAOut = {\n"
             "            Class = OPCUADataSource::OPCUADSOutput\n"
             "            Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "            Authentication = None\n"
             "            Signals = {\n"
             "                MasterSet = {\n"
             "                    NamespaceIndex = 1\n"
@@ -498,6 +503,7 @@ bool OPCUADSOutputTest::TestInitialise_NoAddress() {
             "        }\n"
             "        +OPCUA = {\n"
             "            Class = OPCUADataSource::OPCUADSOutput\n"
+            "            Authentication = None\n"
             "            Signals = {\n"
             "                MyNode = {\n"
             "                    NamespaceIndex = 1\n"
@@ -610,6 +616,7 @@ bool OPCUADSOutputTest::TestInitialise_NoSignals() {
             "        +OPCUA = {\n"
             "            Class = OPCUADataSource::OPCUADSOutput\n"
             "            Address = \"opc.tcp://localhost.localdomain:4840\""
+            "            Authentication = None\n"
             "        }\n"
             "    +Timer = {\n"
             "      Class = LinuxTimer\n"
@@ -715,6 +722,7 @@ bool OPCUADSOutputTest::TestInitialise_NoPath() {
             "        +OPCUA = {\n"
             "            Class = OPCUADataSource::OPCUADSOutput\n"
             "            Address = \"opc.tcp://localhost.localdomain:4840\""
+            "            Authentication = None\n"
             "            Signals = {\n"
             "                MyNode = {\n"
             "                    NamespaceIndex = 1\n"
@@ -826,6 +834,7 @@ bool OPCUADSOutputTest::TestInitialise_NoNamespaceIndex() {
             "        +OPCUA = {\n"
             "            Class = OPCUADataSource::OPCUADSOutput\n"
             "            Address = \"opc.tcp://localhost.localdomain:4840\""
+            "            Authentication = None\n"
             "            Signals = {\n"
             "                MyNode = {\n"
             "                    Path = MyNode\n"
@@ -883,6 +892,7 @@ bool OPCUADSOutputTest::Test_NumberOfDimensionsGreater1() {
     StreamString config = ""
             "+ServerTest = {\n"
             "  Class = OPCUA::OPCUAServer\n"
+            "  Authentication = None\n"
             "  CPUMask = 0x2\n"
             "  AddressSpace = {\n"
             "    MyNode = {\n"
@@ -947,6 +957,7 @@ bool OPCUADSOutputTest::Test_NumberOfDimensionsGreater1() {
             "    +OPCUAOut = {\n"
             "      Class = OPCUADataSource::OPCUADSOutput\n"
             "      Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "      Authentication = None\n"
             "      Signals = {\n"
             "        MyNode = {\n"
             "          NamespaceIndex = 1\n"
@@ -1020,6 +1031,7 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_FailSetServiceRequest() {
             "+ServerTest = {\n"
             "  Class = OPCUA::OPCUAServer\n"
             "  CPUMask = 0x2\n"
+            "  Authentication = None\n"
             "  AddressSpace = {\n"
             "    MyNode = {\n"
             "      Type = uint32\n"
@@ -1083,6 +1095,7 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_FailSetServiceRequest() {
             "    +OPCUAOut = {\n"
             "      Class = OPCUADataSource::OPCUADSOutput\n"
             "      Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "      Authentication = None\n"
             "      Signals = {\n"
             "        MyNode = {\n"
             "          NamespaceIndex = 1\n"
@@ -1176,6 +1189,7 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_ExtensionObject() {
             "+ServerTest = {\n"
             "  Class = OPCUA::OPCUAServer\n"
             "  Port = 4840\n"
+            "  Authentication = None\n"
             "  AddressSpace = {\n"
             "    MasterSet = {\n"
             "      Type = MasterSet\n"
@@ -1239,6 +1253,7 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_ExtensionObject() {
             "        +OPCUAOut = {\n"
             "            Class = OPCUADataSource::OPCUADSOutput\n"
             "            Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "            Authentication = None\n"
             "            Signals = {\n"
             "                Sensor1 = {\n"
             "                    NamespaceIndex = 1\n"
@@ -1301,5 +1316,396 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_ExtensionObject() {
     return ok;
 }
 
+bool OPCUADSOutputTest::Test_Authentication() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+ServerTest = {\n"
+            "    Class = OPCUA::OPCUAServer\n"
+            "    Port = 4840\n"
+            "    Authentication = UserPassword\n"
+            "    UserPasswordFile = /tmp/opcua_server_test_auth_keys.cfg\n"
+            "    AddressSpace = {\n"
+            "        Counter = {\n"
+            "            Type = uint32\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAMTimer = {\n"
+            "            Class = IOGAM\n"
+            "            InputSignals = {\n"
+            "                Counter = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = Timer\n"
+            "                }\n"
+            "            }\n"
+            "            OutputSignals = {\n"
+            "                Counter = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = OPCUAOut\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +OPCUAOut = {\n"
+            "            Class = OPCUADataSource::OPCUADSOutput\n"
+            "            Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "            Authentication = UserPassword\n"
+            "            UserPasswordFile = /tmp/opcua_client_test_auth_key.cfg\n"
+            "            Signals = {\n"
+            "                Counter = {\n"
+            "                    NamespaceIndex = 1\n"
+            "                    Path = Counter\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "        +Timer = {\n"
+            "            Class = LinuxTimer\n"
+            "            SleepNature = \"Default\"\n"
+            "            Signals = {\n"
+            "                Counter = {\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "                Time = {\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    Functions = {GAMTimer}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = GAMScheduler\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+    StreamString serverAuthKeys = ""
+            "AuthenticationKeys = {"
+            "   KeyA = {"
+            "       Username = user1"
+            "       Password = password1"
+            "   }"
+            "   KeyB = {"
+            "       Username = user2"
+            "       Password = password2"
+            "   }"
+            "}\n";
+    uint32 serverAuthKeysSize = serverAuthKeys.Size();
+    File serverAuthKeysFile;
+    bool ok = serverAuthKeysFile.Open("/tmp/opcua_server_test_auth_keys.cfg",
+    	BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
+    ok = ok && serverAuthKeysFile.Write(serverAuthKeys.Buffer(), serverAuthKeysSize);
+    (void) serverAuthKeysFile.Close();
 
+    StreamString clientAuthKey = ""
+            "AuthenticationKey = {"
+            "    Username = user2"
+            "    Password = password2"
+            "}\n";
+    uint32 clientAuthKeySize = clientAuthKey.Size();
+    File clientAuthKeyFile;
+    ok = ok && clientAuthKeyFile.Open("/tmp/opcua_client_test_auth_key.cfg",
+        BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
+    ok = ok && clientAuthKeyFile.Write(clientAuthKey.Buffer(), clientAuthKeySize);
+    (void) clientAuthKeyFile.Close();
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    ok = ok && parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    Sleep::MSec(200);
+    ReferenceT<RealTimeApplication> app;
+    if (ok) {
+        app = ord->Find("Test");
+        ok = app.IsValid();
+    }
+    if (ok) {
+        // ConfigureApplication() calls SetConfiguredDatabase() on the DS
+        // which uses a client to connect with authentication
+        ok = app->ConfigureApplication();
+    }
+    (void) remove("/tmp/opcua_server_test_auth_keys.cfg");
+    (void) remove("/tmp/opcua_client_test_auth_key.cfg");
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool OPCUADSOutputTest::Test_Authentication_NoCreds() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+ServerTest = {\n"
+            "    Class = OPCUA::OPCUAServer\n"
+            "    Port = 4840\n"
+            "    Authentication = UserPassword\n"
+            "    UserPasswordFile = /tmp/opcua_server_test_auth_keys.cfg\n"
+            "    AddressSpace = {\n"
+            "        Counter = {\n"
+            "            Type = uint32\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAMTimer = {\n"
+            "            Class = IOGAM\n"
+            "            InputSignals = {\n"
+            "                Counter = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = Timer\n"
+            "                }\n"
+            "            }\n"
+            "            OutputSignals = {\n"
+            "                Counter = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = OPCUAOut\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +OPCUAOut = {\n"
+            "            Class = OPCUADataSource::OPCUADSOutput\n"
+            "            Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "            Authentication = UserPassword\n"
+            "            Signals = {\n"
+            "                Counter = {\n"
+            "                    NamespaceIndex = 1\n"
+            "                    Path = Counter\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "        +Timer = {\n"
+            "            Class = LinuxTimer\n"
+            "            SleepNature = \"Default\"\n"
+            "            Signals = {\n"
+            "                Counter = {\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "                Time = {\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    Functions = {GAMTimer}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = GAMScheduler\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+    StreamString serverAuthKeys = ""
+            "AuthenticationKeys = {"
+            "   KeyA = {"
+            "       Username = user1"
+            "       Password = password1"
+            "   }"
+            "   KeyB = {"
+            "       Username = user2"
+            "       Password = password2"
+            "   }"
+            "}\n";
+    uint32 serverAuthKeysSize = serverAuthKeys.Size();
+    File serverAuthKeysFile;
+    bool ok = serverAuthKeysFile.Open("/tmp/opcua_server_test_auth_keys.cfg",
+    	BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
+    ok = ok && serverAuthKeysFile.Write(serverAuthKeys.Buffer(), serverAuthKeysSize);
+    (void) serverAuthKeysFile.Close();
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    ok = ok && parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = !(ord->Initialise(cdb));
+    }
+    Sleep::MSec(200);
+    (void) remove("/tmp/opcua_server_test_auth_keys.cfg");
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool OPCUADSOutputTest::Test_Authentication_BadCreds() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+ServerTest = {\n"
+            "    Class = OPCUA::OPCUAServer\n"
+            "    Port = 4840\n"
+            "    Authentication = UserPassword\n"
+            "    UserPasswordFile = /tmp/opcua_server_test_auth_keys.cfg\n"
+            "    AddressSpace = {\n"
+            "        Counter = {\n"
+            "            Type = uint32\n"
+            "        }\n"
+            "    }\n"
+            "}\n"
+            "$Test = {\n"
+            "    Class = RealTimeApplication\n"
+            "    +Functions = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +GAMTimer = {\n"
+            "            Class = IOGAM\n"
+            "            InputSignals = {\n"
+            "                Counter = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = Timer\n"
+            "                }\n"
+            "            }\n"
+            "            OutputSignals = {\n"
+            "                Counter = {\n"
+            "                    Type = uint32\n"
+            "                    DataSource = OPCUAOut\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Data = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Timings = {\n"
+            "            Class = TimingDataSource\n"
+            "        }\n"
+            "        +OPCUAOut = {\n"
+            "            Class = OPCUADataSource::OPCUADSOutput\n"
+            "            Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "            Authentication = UserPassword\n"
+            "            UserPasswordFile = /tmp/opcua_client_test_auth_key.cfg\n"
+            "            Signals = {\n"
+            "                Counter = {\n"
+            "                    NamespaceIndex = 1\n"
+            "                    Path = Counter\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "        +Timer = {\n"
+            "            Class = LinuxTimer\n"
+            "            SleepNature = \"Default\"\n"
+            "            Signals = {\n"
+            "                Counter = {\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "                Time = {\n"
+            "                    Type = uint32\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +States = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +State1 = {\n"
+            "            Class = RealTimeState\n"
+            "            +Threads = {\n"
+            "                Class = ReferenceContainer\n"
+            "                +Thread1 = {\n"
+            "                    Class = RealTimeThread\n"
+            "                    Functions = {GAMTimer}\n"
+            "                }\n"
+            "            }\n"
+            "        }\n"
+            "    }\n"
+            "    +Scheduler = {\n"
+            "        Class = GAMScheduler\n"
+            "        TimingDataSource = Timings\n"
+            "    }\n"
+            "}\n";
+    StreamString serverAuthKeys = ""
+            "AuthenticationKeys = {"
+            "   KeyA = {"
+            "       Username = user1"
+            "       Password = password1"
+            "   }"
+            "   KeyB = {"
+            "       Username = user2"
+            "       Password = password2"
+            "   }"
+            "}\n";
+    uint32 serverAuthKeysSize = serverAuthKeys.Size();
+    File serverAuthKeysFile;
+    bool ok = serverAuthKeysFile.Open("/tmp/opcua_server_test_auth_keys.cfg",
+    	BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
+    ok = ok && serverAuthKeysFile.Write(serverAuthKeys.Buffer(), serverAuthKeysSize);
+    (void) serverAuthKeysFile.Close();
+
+    StreamString clientAuthKey = ""
+            "AuthenticationKey = {"
+            "    Username = user2"
+            "    Password = password77"
+            "}\n";
+    uint32 clientAuthKeySize = clientAuthKey.Size();
+    File clientAuthKeyFile;
+    ok = ok && clientAuthKeyFile.Open("/tmp/opcua_client_test_auth_key.cfg",
+        BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
+    ok = ok && clientAuthKeyFile.Write(clientAuthKey.Buffer(), clientAuthKeySize);
+    (void) clientAuthKeyFile.Close();
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    ok = ok && parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    Sleep::MSec(200);
+    ReferenceT<RealTimeApplication> app;
+    if (ok) {
+        app = ord->Find("Test");
+        ok = app.IsValid();
+    }
+    if (ok) {
+        // ConfigureApplication() calls SetConfiguredDatabase() on the DS
+        // which uses a client to connect with authentication
+        ok = !(app->ConfigureApplication());
+    }
+    (void) remove("/tmp/opcua_server_test_auth_keys.cfg");
+    (void) remove("/tmp/opcua_client_test_auth_key.cfg");
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
 

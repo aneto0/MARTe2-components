@@ -92,6 +92,22 @@ TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_ExtensionObject) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject());
 }
+
+TEST(OPCUADSOutputGTest,Test_Authentication) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Authentication());
+}
+
+TEST(OPCUADSOutputGTest,Test_Authentication_NoCreds) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Authentication_NoCreds());
+}
+
+TEST(OPCUADSOutputGTest,Test_Authentication_BadCreds) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Authentication_BadCreds());
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
