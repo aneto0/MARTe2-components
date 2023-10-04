@@ -72,6 +72,15 @@ public:
     bool Connect();
 
     /**
+     * @brief Connects the Client to the Server
+     * @param[in] username
+     * @param[in] password
+     * @pre SetServerAddress
+     * @return true if the OPCUA connection return UA_STATUSCODE_GOOD
+     */
+    bool Connect(StreamString & username, StreamString & password);
+
+    /**
      * @brief Allocates the right amount of memory for every node to read or write.
      * @param[in] numberOfNodes The number of nodes to read/write
      */

@@ -57,11 +57,25 @@ namespace MARTe {
  * It supports int8/16/32/64, uint8/16/32/64, float32/64, and Introspection Structure. It also support OPCUA ExtensionObject structure.
  * Strings are not supported yet.
  *
+ * Authentication type can be defined (either None or UserPassword). When
+ * using the UserPassword option, the UserPassword property must also be
+ * defined with a value equal to the path of the file holding the 
+ * authentication key. The file's structure is:
+ * 
+ * ```
+ * AuthenticationKey = {
+ *     Username = "user1"
+ *     Password = "password1"
+ * }
+ * ```
+ * 
  * The configuration syntax is (names are only given as an example):
  * <pre>
  * +OPCUA = {
  *     Class = OPCUADataSource::OPCUADSInput
  *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
+ *     Authentication = None | UserPassword
+ *     UserPasswordFile = /path/to/the/file
  *     ReadMode = "Read" //"Read" uses OPCUA Read Service, "Monitor" uses OPCUA MonitoredItem Service. (Optional) Default = "Read"
  *     SamplingTime = 1 //ms. Only if ReadMode is "Monitor"
  *     Synchronise = "yes" //"yes" uses the Synchronise method (and thus is executed in the context of the real-time thread, "no" to enable a decoupled SingleThreadService Execute method). Default = "no"
@@ -92,6 +106,7 @@ namespace MARTe {
  * +OPCUA = {
  *     Class = OPCUADataSource::OPCUADSInput
  *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
+ *     ...
  *     Synchronise = "yes"
  *     Signals = {
  *         NodeStructure1 = {
@@ -346,6 +361,23 @@ private:
      */
     uint32 stackSize;
 
+    /**
+     * The flag defining if authentication is used when connecting to the server
+     * 
+     */
+    bool authenticate;
+
+    /**
+     * The username used for authentication
+     * 
+     */
+    StreamString username;
+
+    /**
+     * The password used for authentication
+     * 
+     */
+    StreamString password;
 };
 
 }

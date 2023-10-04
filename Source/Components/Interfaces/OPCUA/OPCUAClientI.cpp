@@ -91,6 +91,11 @@ bool OPCUAClientI::Connect() {
     return (retval == 0x00U); /* UA_STATUSCODE_GOOD */
 }
 
+bool OPCUAClientI::Connect(StreamString & username, StreamString & password) {
+    UA_StatusCode retval = UA_Client_connect_username(opcuaClient, const_cast<char8*>(serverAddress.Buffer()), username.Buffer(), password.Buffer());
+    return (retval == 0x00U); /* UA_STATUSCODE_GOOD */
+}
+
 void OPCUAClientI::SetValueMemories(const uint32 numberOfNodes) {
     valueMemories = new void*[numberOfNodes];
     for (uint32 i = 0u; i < numberOfNodes; i++) {
