@@ -35,6 +35,12 @@
 #include "File.h"
 #include "StandardParser.h"
 
+/*-e909 and -e9133 redefines bool. -e578 symbol ovveride in CLASS_REGISTER*/
+/*lint -save -e652 -e909 -e9133 -e578 -e9141 -e830 -e952 -e9147 -e1013 these callback functions need to have global scope and the members cannot be const*/
+#ifdef LINT
+#define UA_Boolean bool
+#endif
+
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -87,18 +93,16 @@ static UA_Boolean allowDeleteReference(UA_Server *server, UA_AccessControl *ac,
 }
 
 static bool ReadAuthenticationKeys(MARTe::StructuredDataI &data, UA_UsernamePasswordLogin *&authKeys, MARTe::uint32 &nOfAuthKeys) {
-    bool ok = true;
+    /*lint -e9144 allow using directive*/
     using namespace MARTe;
     StreamString userPasswordFile;
-    if (ok) {
-        ok = data.Read("UserPasswordFile", userPasswordFile);
-        if (!ok) {
-            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "'UserPasswordFile' not defined!");
-        }
+    bool ok = data.Read("UserPasswordFile", userPasswordFile);
+    if (!ok) {
+        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "'UserPasswordFile' not defined!");
     }
     File f;
     if (ok) {
-        (void) userPasswordFile.Seek(0u);
+        (void) userPasswordFile.Seek(0LLU);
         ok = f.Open(userPasswordFile.Buffer(), BasicFile::ACCESS_MODE_R);
         if (!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed to open the file at path '%s'!", userPasswordFile.Buffer());
@@ -173,8 +177,6 @@ static bool ReadAuthenticationKeys(MARTe::StructuredDataI &data, UA_UsernamePass
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-/*-e909 and -e9133 redefines bool. -e578 symbol ovveride in CLASS_REGISTER*/
-/*lint -save -e909 -e9133 -e578*/
 namespace MARTe {
 
 OPCUAServer::OPCUAServer() :
@@ -247,6 +249,7 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "'Authentication' parameter invalid (expected 'None' or 'UserPassword')!");
         }
     }
+    /*lint -e438 authKeys is not ignored.*/
     UA_UsernamePasswordLogin * authKeys = NULL_PTR(UA_UsernamePasswordLogin *);
     uint32 nOfAuthKeys = 0u;
     if (ok && authenticate) {
@@ -260,6 +263,7 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
         /*lint -e{526} -e{628} -e{1055} -e{746} function defined in open62541*/
         (void)UA_ServerConfig_setDefault(config);
 
+        /*lint -e40 -e64 -e9117 -e732 the callback functions are defined. Loss of sign is not an issue here.*/
         if (authenticate) {
             /* Disable anonymous logins, enable user/password logins */
             config->accessControl.deleteMembers(&config->accessControl);

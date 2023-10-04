@@ -149,13 +149,15 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
             }
             File f;
             if (ok) {
-                (void) userPasswordFile.Seek(0u);
+                (void) userPasswordFile.Seek(0LLU);
                 ok = f.Open(userPasswordFile.Buffer(), BasicFile::ACCESS_MODE_R);
                 if (!ok) {
                     REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed to open the file at path '%s'!", userPasswordFile.Buffer());
                 }
             }
-            ok = ok && ReadAuthenticationKey(f, username, password);
+            if (ok) {
+                ok = ReadAuthenticationKey(f, username, password);
+            }
             if (f.IsOpen()) {
                 ok = f.Close();
                 if (!ok) {
