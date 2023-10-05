@@ -75,7 +75,7 @@ namespace MARTe {
  *     CPUMask = 0xFEu //Compulsory. Affinity assigned to the threads responsible for asynchronously flush data into the file.
  *     StackSize = 10000000 //Compulsory. Stack size of the thread above.
  *     Filename = "test.bin" //Optional. If not set the filename shall be set using the OpenFile RPC.
- *     Overwrite = "yes" //Compulsory. If "yes" the file will be overwritten, otherwise new data will be added to the end of the existent file.
+ *     Overwrite = "yes" //Compulsory. If "yes" the file will be overwritten, otherwise new data will be added to the end of the existent file. If FileFormat is "binary", Overwrite must be "yes" because binaries can not be appended.
  *     FileFormat = "binary" //Compulsory. Possible values are: binary and csv.
  *     CSVSeparator = "," //Compulsory if Format=csv. Sets the file separator type.
  *     StoreOnTrigger = 1 //Compulsory. If 0 all the data in the circular buffer is continuously stored. If 1 data is stored when the Trigger signal is 1 (see below).
