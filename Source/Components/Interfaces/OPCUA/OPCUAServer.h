@@ -55,6 +55,25 @@ namespace MARTe {
  * and to create the OPCUA Address Space correctly.
  *
  * All the nodes added in the AddressSpace will be of OPCUA Variable type.
+ * 
+ * Authentication type can be defined (either None or UserPassword). When
+ * using the UserPassword option, the UserPassword property must also be
+ * defined with a value equal to the path of the file holding the 
+ * authentication keys. The file's structure is:
+ * 
+ * ```
+ * AuthenticationKeys = {
+ *     KeyA = {
+ *         Username = "user1"
+ *         Password = "password1"
+ *     }
+ *     KeyB = {
+ *         Username = "user2"
+ *         Password = "password2"
+ *     }
+ *     ...
+ * }
+ * ```
  *
  * The configuration syntax is  (names are only given as an example):
  * <pre>
@@ -62,6 +81,8 @@ namespace MARTe {
  *     Class = OPCUA::OPCUAServer
  *     Port = 4840 //Optional. Default is 4840
  *     CPUMask = 0x4
+ *     Authentication = None | UserPassword
+ *     UserPasswordFile = /path/to/the/file
  *     AddressSpace = {
  *         MyNodeStructure1 = {
  *             Type = MyIntrospectionStructure1

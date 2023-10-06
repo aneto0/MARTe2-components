@@ -1,7 +1,7 @@
 /**
- * @file OPCUATypes.h
- * @brief Header file for class OPCUATypes
- * @date 12/03/2019
+ * @file OPCUAClientITest.h
+ * @brief Header file for class OPCUAClientITest
+ * @date 28/10/2019
  * @author Luca Porzio
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
@@ -16,61 +16,67 @@
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
- * @details This header file contains the declaration of the class OPCUATypes
+ * @details This header file contains the declaration of the class OPCUAClientITest
  * with all of its public, protected and private members. It may also include
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#ifndef SOURCE_COMPONENTS_INTERFACES_OPCUA_OPCUATYPES_H_
-#define SOURCE_COMPONENTS_INTERFACES_OPCUA_OPCUATYPES_H_
+#ifndef TEST_COMPONENTS_DATASOURCES_OPCUADATASOURCE_OPCUACLIENTITEST_H_
+#define TEST_COMPONENTS_DATASOURCES_OPCUADATASOURCE_OPCUACLIENTITEST_H_
 
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "open62541.h"
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-#include "CompilerTypes.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
-namespace OPCUA {
-/*
- * Struct containing all the attributes and properties that belongs to a
- * OPC UA Node Variable
- */
-struct NodeProperties {
-    UA_VariableAttributes attr;
-    void* value;
-    UA_NodeId nodeId;
-    UA_QualifiedName nodeName;
-    UA_NodeId parentNodeId;
-    UA_NodeId parentReferenceNodeId;
+
+class OPCUAClientITest {
+public:
+
+    /**
+     * @brief Tests the constructor. NOOP
+     */
+    bool TestConstructor();
+
+    /**
+     * @brief Tests the SetServerAddress function.
+     */
+    bool Test_SetServerAddress();
+
+    /**
+     * @brief Tests the Connect function.
+     */
+    bool Test_Connect();
+
+    /**
+     * @brief Tests the SetValueMemories function.
+     */
+    bool Test_SetValueMemories();
+
+    /**
+     * @brief Tests the SetDataPtr function.
+     */
+    bool Test_SetDataPtr();
+
+    /**
+     * @brief Tests the GetSignalMemory function.
+     */
+    bool Test_GetSignalMemory();
+
+
+
 };
 
-typedef struct NodeProperties * OPCUANodeSettings;
-
-/*
- * Struct containing all the attributes and properties that belongs to a
- * OPC UA Node Object
- */
-struct ObjectProperties {
-    UA_ObjectAttributes attr;
-    UA_NodeId nodeId;
-    UA_QualifiedName nodeName;
-    UA_NodeId parentNodeId;
-    UA_NodeId parentReferenceNodeId;
-};
-
-typedef struct ObjectProperties * OPCUAObjectSettings;
-}
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
-#endif /* SOURCE_COMPONENTS_INTERFACES_OPCUA_OPCUATYPES_H_ */
-
+#endif /* TEST_COMPONENTS_DATASOURCES_OPCUADATASOURCE_OPCUACLIENTITEST_H_ */
+	

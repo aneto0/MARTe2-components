@@ -24,3 +24,4 @@
 
 include Makefile.inc
 
+LIBRARIES_STATIC += $(OPEN62541_LIB)/libopen62541$(LIBEXT)

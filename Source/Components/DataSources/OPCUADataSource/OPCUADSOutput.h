@@ -53,11 +53,25 @@ namespace MARTe {
  * It supports int8/16/32/64, uint8/16/32/64, float32/64, and Introspection Structure. It also support OPCUA ExtensionObject structure.
  * Strings are not supported yet.
  *
+ * Authentication type can be defined (either None or UserPassword). When
+ * using the UserPassword option, the UserPassword property must also be
+ * defined with a value equal to the path of the file holding the 
+ * authentication key. The file's structure is:
+ * 
+ * ```
+ * AuthenticationKey = {
+ *     Username = "user1"
+ *     Password = "password1"
+ * }
+ * ```
+ * 
  * The configuration syntax is (names are only given as an example):
  * <pre>
  * +OPCUA = {
  *     Class = OPCUADataSource::OPCUADSOutput
  *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
+ *     Authentication = None | UserPassword
+ *     UserPasswordFile = /path/to/the/file
  *     Signals = {
  *         Node1 = {
  *             Type = uint32
@@ -83,6 +97,7 @@ namespace MARTe {
  * +OPCUA = {
  *     Class = OPCUADataSource::OPCUADSOutput
  *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
+ *     ...
  *     Signals = {
  *         NodeStructure1 = {
  *             Type = MyStructure
@@ -296,6 +311,24 @@ private:
      * The array that stores the type name for structured data types (for ExtensionObject)
      */
     StreamString *structuredTypeNames;
+
+    /**
+     * The flag defining if authentication is used when connecting to the server
+     * 
+     */
+    bool authenticate;
+
+    /**
+     * The username used for authentication
+     * 
+     */
+    StreamString username;
+
+    /**
+     * The password used for authentication
+     * 
+     */
+    StreamString password;
 
 };
 
