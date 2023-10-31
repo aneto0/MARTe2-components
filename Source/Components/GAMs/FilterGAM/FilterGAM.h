@@ -34,13 +34,14 @@
 
 #include "GAM.h"
 #include "StructuredDataI.h"
+#include "FilterT.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
 /**
- * @brief GAM which allows to implement FIR & IIR filter with float32 type.
+ * @brief GAM which allows to implement FIR & IIR filter with int32 | int64 | float32 | float4 type.
  * @details The GAM configured coefficients of the filter must have
  * the numerator (num) and denominator (den) defined and normalised. If a FIR filter is implemented the Den = 1;
  *
@@ -61,14 +62,15 @@ namespace MARTe {
  * H(z)=\frac{\sum_{k=0}^{M-1} num[k]*z^{(-k)}}{1+\sum_{k=1}^{N-1} den[k]*z^{-k}}
  * \f$
  *
- * The GAM supports multiple input signals (and output signal) only if the characteristics of the input arrays are the same
- * (i.e. The input signals have the same number of elements, the same number of samples and the same type). Currently, the only type supported is float32.
+ * The GAM supports multiple input signals (and output signals) only if the characteristics of the input arrays are the same
+ * (i.e. The input signals have the same number of elements, the same number of samples and the same type). The GAM allows (Samples > 1 && NumberOfElements = 1) || (Samples = 1 && NumberOfElements >1),
+ * but (Samples && NumberOfelements) > 1 simultaneous.
  *
  * The inputs and outputs must be arrays (could be arrays of 1 elements).
  *
  * The class holds the coefficients and the last states for the next iteration. The filter can be reset (see PrepareNextState())
  *
- * Moreover the function offers the method StaticGain() in order to make available the real gain of the filter (after converting into float32).
+ * Moreover the function offers the method StaticGain() in order to make available the real gain of the filter (after converting into appropriate type, only relevant for floating point).
  *
  * @pre The filter must be normalised (den[0] = 1).
  * @pre The size of the numerator and the denominator must be at least 1;
@@ -106,8 +108,7 @@ namespace MARTe {
  * </pre>
  */
 class FilterGAM: public GAM, public StatefulI {
-public:
-    CLASS_REGISTER_DECLARATION()
+public:CLASS_REGISTER_DECLARATION()
     /**
      * @brief Default constructor.
      *
@@ -158,7 +159,7 @@ public:
      *   GetNumberOfSamples() = 0 &&
      *   GetNumberOfSignals() = 0
      */
-    virtual bool Initialise(StructuredDataI & data);
+    virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @brief Setup the inputs and the outputs of the GAM. Additionally, it verifies the correctness and consistency of the parameters.
@@ -201,7 +202,7 @@ public:
      * @brief Queries the value of resetInEachState
      * @return resetInEachState
      */
-    bool GetResetInEachState () const;
+    bool GetResetInEachState() const;
 
     /**
      * @brief Resets the lastInputs and lastOutputs if necessary.
@@ -217,8 +218,8 @@ public:
      *   lastOutput[m][n] = 0
      * where m denote the signal index and the n one of the last state of the signal m.
      */
-    virtual bool PrepareNextState(const char8 * const currentStateName,
-                                  const char8 * const nextStateName);
+    virtual bool PrepareNextState(const char8 *const currentStateName,
+                                  const char8 *const nextStateName);
 
     /**
      * @brief Gets the number of numerator coefficients.
@@ -239,7 +240,7 @@ public:
      * @pre
      *   Setup()
      */
-    bool GetNumCoeff(float32 * const coeff) const;
+    bool GetNumCoeff(void *const coeff) const;
 
     /**
      * @brief Gets the denominator coefficients.
@@ -248,7 +249,7 @@ public:
      * @pre
      *   Setup()
      */
-    bool GetDenCoeff(float32 * const coeff) const;
+    bool GetDenCoeff(void *const coeff) const;
 
     /**
      * @brief Checks that the coefficients are normalised.
@@ -282,35 +283,12 @@ public:
     uint32 GetNumberOfSignals() const;
 
 private:
-    /**
-     * Pointer to the numerator coefficients.
-     */
-    float32 *num;
 
-    /**
-     * Pointer to the denominator coefficients
-     */
-    float32 *den;
+    Filter *filterRef;
 
-    /**
-     * Holds the number of numerator coefficients
-     */
-    uint32 numberOfNumCoeff;
+    Filter **filters;
 
-    /**
-     * Holds the number of denominator coefficients
-     */
-    uint32 numberOfDenCoeff;
-
-    /**
-     * Array of pointer to the last input values
-     */
-    float32 **lastInputs;
-
-    /**
-     * Array of pointers to the last output values
-     */
-    float32 **lastOutputs;
+    TypeDescriptor filterType;
 
     /**
      * Holds the the static gain of the filter computed from its coefficients
@@ -320,22 +298,22 @@ private:
     /**
      * Array of pointers to the input buffers
      */
-    float32 **input;
+    void **input;
 
     /**
      * Array of pointers to the output buffers
      */
-    float32 **output;
+    void **output;
 
     /**
      * Number of values of each array. All arrays have the same numberOfSamples
      */
-    uint32 numberOfSamples;
+    uint32 nOfSamples;
 
     /**
      * Number of signals
      */
-    uint32 numberOfSignals;
+    uint32 nOfSignals;
 
     /**
      * When the gain is infinite this is set to true
