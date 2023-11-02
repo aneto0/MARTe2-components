@@ -61,7 +61,10 @@ public:
     virtual bool GetNumCoeff(void *coeff);
     virtual bool GetDenCoeff(void *coeff);
     virtual bool CheckNormalisation();
-
+    virtual float32 GetStaticGainFloat32(bool &isInfinite);
+    virtual float64 GetStaticGain(bool &isInfinite);
+//    virtual int32 GetStaticGain(bool &isInfinite);
+//    virtual int64 GetStaticGain(bool &isInfinite);
 private:
 
     /**
@@ -94,6 +97,12 @@ private:
      */
     T *lastOutputs;
 
+    T staticGain;
+
+    bool gainInfinite;
+
+    bool isInitialised;
+
     bool IsEqualO(int32 a,
                   int32 b);
     bool IsEqualO(int64 a,
@@ -113,6 +122,9 @@ FilterT<T>::FilterT() :
     den = NULL_PTR(T*);
     nOfNumCoeff = 0u;
     nOfDenCoeff = 0u;
+    isInitialised = false;
+    staticGain = 0;
+    gainInfinite = false;
 
 }
 template<class T>
@@ -129,6 +141,7 @@ FilterT<T>::~FilterT() {
     if (den != NULL_PTR(T*)) {
         delete[] den;
     }
+
 }
 template<class T>
 bool FilterT<T>::Initialise(void *numIn,
@@ -147,6 +160,34 @@ bool FilterT<T>::Initialise(void *numIn,
             ok = MemoryOperationsHelper::Copy(reinterpret_cast<void*>(den), reinterpret_cast<void*>(denIn), sizeof(T) * nOfDenCoeff);
         }
         Reset();
+    }
+    if (ok) {
+        if (ok) {
+            T sumNumerator = 0;
+            for (uint32 i = 0u; i < nOfNumCoeff; i++) {
+                //if due to MISRA rules however it is not necessary. At his line the initialization of num is guaranteed b the ok = true...
+                if (num != NULL_PTR(T*)) {
+                    sumNumerator += num[i];
+                }
+            }
+            T sumDenominator = 0;
+            for (uint32 i = 0u; i < nOfDenCoeff; i++) {
+                //if due to MISRA rules however it is not necessary. At his line the initialization of den is guaranteed b the ok = true...
+                if (den != NULL_PTR(T*)) {
+                    sumDenominator += den[i];
+                }
+            }
+            if (!IsEqualO(sumDenominator, static_cast<T>(0))) {
+                //lint -e{414} sumDenominator cannot be 0.
+                staticGain = sumNumerator / sumDenominator;
+            }
+            else {
+                gainInfinite = true;
+            }
+        }
+    }
+    if (ok) {
+        isInitialised = ok;
     }
     return ok;
 }
@@ -190,21 +231,40 @@ uint32 FilterT<T>::GetNumberOfDenCoeff() {
 }
 template<class T>
 bool FilterT<T>::GetNumCoeff(void *coeff) {
-    bool ok = MemoryOperationsHelper::Copy(coeff, num, sizeof(T) * nOfNumCoeff);
+    bool ok;
+    if (isInitialised) {
+        ok = MemoryOperationsHelper::Copy(coeff, num, sizeof(T) * nOfNumCoeff);
+    }
+    else {
+        ok = false;
+    }
     return ok;
 }
 
 template<class T>
 bool FilterT<T>::GetDenCoeff(void *coeff) {
-    bool ok = MemoryOperationsHelper::Copy(coeff, den, sizeof(T) * nOfDenCoeff);
+    bool ok;
+    if (isInitialised) {
+        ok = MemoryOperationsHelper::Copy(coeff, den, sizeof(T) * nOfDenCoeff);
+    }
+    else {
+        ok = false;
+    }
     return ok;
 }
 
 template<class T>
 bool FilterT<T>::CheckNormalisation() {
-    T aux = static_cast<T>(den[0]);
-    T aux2 = static_cast<T>(0);
-    return IsEqualO(aux, aux2);
+    bool ok;
+    if (isInitialised) {
+        T aux = static_cast<T>(den[0]);
+        T aux2 = static_cast<T>(0);
+        ok = IsEqualO(aux, aux2);
+    }
+    else {
+        ok = false;
+    }
+    return ok;
 }
 
 template<class T>
@@ -222,14 +282,49 @@ bool FilterT<T>::IsEqualO(int64 a,
 template<class T>
 bool FilterT<T>::IsEqualO(float32 a,
                           float32 b) {
-    return a == b;
+    return IsEqual(a, b);
 }
 
 template<class T>
 bool FilterT<T>::IsEqualO(float64 a,
                           float64 b) {
-    return a == b;
+    return IsEqual(a, b);
 }
-
+template<class T>
+float32 FilterT<T>::GetStaticGainFloat32(bool &isInfinite) {
+    T ret = 0.0;
+    if (isInitialised) {
+        ret = staticGain;
+        isInfinite = gainInfinite;
+    }
+    return ret;
+}
+template<class T>
+float64 FilterT<T>::GetStaticGain(bool &isInfinite) {
+    float64 ret = 0.0;
+    if (isInitialised) {
+        ret = staticGain;
+        isInfinite = gainInfinite;
+    }
+    return ret;
+}
+//template<class T>
+//int32 FilterT<T>::GetStaticGain(bool &isInfinite) {
+//    int32 ret = 0.0;
+//    if (isInitialised) {
+//        ret = staticGain;
+//        isInfinite = gainInfinite;
+//    }
+//    return ret;
+//}
+//template<class T>
+//int64 FilterT<T>::GetStaticGain(bool &isInfinite) {
+//    int64 ret = 0.0;
+//    if (isInitialised) {
+//        ret = staticGain;
+//        isInfinite = gainInfinite;
+//    }
+//    return ret;
+//}
 }
 #endif /* SOURCE_COMPONENTS_GAMS_FILTERGAM_FILTERT_H_ */

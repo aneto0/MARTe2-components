@@ -46,13 +46,14 @@ FilterGAM::FilterGAM() :
         GAM() {
     filterRef = NULL_PTR(Filter*);
     filters = NULL_PTR(Filter**);
-    staticGain = 0.0F;
+//    staticGain = 0.0F;
     nOfSamples = 0u;
     output = NULL_PTR(void**);
     input = NULL_PTR(void**);
     nOfSignals = 0u;
     gainInfinite = false;
     resetInEachState = true;
+    isInitialised = false;
 }
 
 FilterGAM::~FilterGAM() {
@@ -275,6 +276,9 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Wrong value for ResetInEachState (expected values 0 or 1)");
             }
         }
+    }
+    if (ok) {
+        isInitialised = true;
     }
     return ok;
 }
@@ -565,28 +569,62 @@ bool FilterGAM::PrepareNextState(const char8 *const currentStateName,
 }
 
 uint32 FilterGAM::GetNumberOfNumCoeff() const {
-    return filterRef->GetNumberOfNumCoeff();
+    uint32 ret = 0u;
+    if (isInitialised) {
+        ret = filterRef->GetNumberOfNumCoeff();
+    }
+    return ret;
 }
 
 uint32 FilterGAM::GetNumberOfDenCoeff() const {
-    return filterRef->GetNumberOfDenCoeff();
+    uint32 ret = 0u;
+    if (isInitialised) {
+        ret = filterRef->GetNumberOfDenCoeff();
+    }
+    return ret;
 }
 
 bool FilterGAM::GetNumCoeff(void *const coeff) const {
-    return filterRef->GetNumCoeff(coeff);
+    bool ok;
+    if (isInitialised) {
+        ok = filterRef->GetNumCoeff(coeff);
+    }
+    else {
+        ok = false;
+    }
+    return ok;
 }
 
 bool FilterGAM::GetDenCoeff(void *const coeff) const {
-    return filterRef->GetDenCoeff(coeff);
+    bool ok;
+    if (isInitialised) {
+        ok = filterRef->GetDenCoeff(coeff);
+    }
+    else {
+        ok = false;
+    }
+    return ok;
 }
 
 bool FilterGAM::CheckNormalisation() const {
-    return filterRef->CheckNormalisation();
+    bool ok;
+    if (isInitialised) {
+        ok = filterRef->CheckNormalisation();
+    }
+    else {
+        ok = false;
+    }
+    return ok;
 }
 
-float32 FilterGAM::GetStaticGain(bool &isInfinite) const {
+float32 FilterGAM::GetStaticGain(bool &isInfinite) {
     isInfinite = gainInfinite;
-    return staticGain;
+    return filterRef->GetStaticGainFloat32(isInfinite);
+}
+
+float64 FilterGAM::GetStaticGain(bool &isInfinite) {
+    isInfinite = gainInfinite;
+    return filterRef->GetStaticGain(isInfinite);
 }
 
 uint32 FilterGAM::GetNumberOfSignals() const {

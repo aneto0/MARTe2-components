@@ -43,7 +43,6 @@
 namespace MARTe {
 class Filter {
 public:
-    virtual ~Filter();
     virtual bool Initialise(void *numIn,
                             uint32 nOfNumCoeffIn,
                             void *denIn,
@@ -55,11 +54,14 @@ public:
     virtual uint32 GetNumberOfNumCoeff() = 0;
     virtual uint32 GetNumberOfDenCoeff() = 0;
     virtual bool GetNumCoeff(void *coeff) = 0;
+    virtual float32 GetStaticGainFloat32(bool &isInfinite) = 0;
+    virtual float64 GetStaticGain(bool &isInfinite) = 0;
+//    virtual int32 GetStaticGain(bool &isInfinite) = 0;
+//    virtual int64 GetStaticGain(bool &isInfinite) = 0;
     virtual bool GetDenCoeff(void *coeff) = 0;
     virtual bool CheckNormalisation() = 0;
 private:
 
 };
-
 }
 #endif /* SOURCE_COMPONENTS_GAMS_FILTERGAM_FILTER_H_ */

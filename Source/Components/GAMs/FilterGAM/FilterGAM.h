@@ -108,7 +108,9 @@ namespace MARTe {
  * </pre>
  */
 class FilterGAM: public GAM, public StatefulI {
-public:CLASS_REGISTER_DECLARATION()
+public:
+
+    CLASS_REGISTER_DECLARATION()
     /**
      * @brief Default constructor.
      *
@@ -266,8 +268,12 @@ public:CLASS_REGISTER_DECLARATION()
      * @param[in] isInfinite indicates if the gain is infinite.
      * @return the staticGain.
      */
-    float32 GetStaticGain(bool &isInfinite) const;
+    void GetStaticGain(bool &isInfinite, float32 &gain);
 
+    void GetStaticGain(bool &isInfinite, float64 &gain);
+
+    void GetStaticGain(bool &isInfinite, int32 &gain);
+    void GetStaticGain(bool &isInfinite, int64 &gain);
     /**
      * @brief Query the number of samples for each signal.
      * @return the number of samples.
@@ -293,7 +299,7 @@ private:
     /**
      * Holds the the static gain of the filter computed from its coefficients
      */
-    float32 staticGain;
+//    float32 staticGain;
 
     /**
      * Array of pointers to the input buffers
@@ -314,6 +320,8 @@ private:
      * Number of signals
      */
     uint32 nOfSignals;
+
+    bool isInitialised;
 
     /**
      * When the gain is infinite this is set to true

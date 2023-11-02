@@ -115,6 +115,9 @@ public:CLASS_REGISTER_DECLARATION()
             ret &= config.Write("Num", numVec);
             ret &= config.Write("Den", denVec);
             ret &= config.Write("ResetInEachState", false);
+            ret &= config.CreateRelative("InputSignals");
+            ret &= config.CreateRelative("Input0");
+            ret &= config.MoveToRoot();
             isInitialised = ret;
         }
         else {
