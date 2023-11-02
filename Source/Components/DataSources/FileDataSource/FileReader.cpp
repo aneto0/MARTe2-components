@@ -210,12 +210,14 @@ void FileReader::ConvertXAxisSignal() {
 
 bool FileReader::Synchronise() {
     bool ok = !fatalFileError;
+    bool resetInterpolation = false;
     if (ok) {
         bool lockAtLast = false;
         if (preload) {
             if (allData.interalBufferIdx == allData.dataFileByteSize) {
                 if (eofBehaviour == EOFRewind) { //move to the beginning
                     allData.interalBufferIdx = 0u;
+                    resetInterpolation = true;
                 }
                 else if (eofBehaviour == EOFLast) {
                     lockAtLast = true;
@@ -307,6 +309,9 @@ bool FileReader::Synchronise() {
         if (ok) {
             if (interpolate) {
                 ConvertXAxisSignal();
+                if (resetInterpolation) {
+                    interpolatedInputBroker->Reset();
+                }
             }
         }
     }
@@ -564,8 +569,11 @@ bool FileReader::SetConfiguredDatabase(StructuredDataI &data) {
     //Look for the XAxisSignal
     if (interpolate) {
         ok = GetSignalIndex(xAxisSignalIdx, xAxisSignalName.Buffer());
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "XAxisSignal: %s was not found", xAxisSignalName.Buffer());
+        if (ok) {
+            ok = GetSignalIndex(xAxisSignalIdx, xAxisSignalName.Buffer());
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "XAxisSignal: %s was not found", xAxisSignalName.Buffer());
+            }
         }
         if (ok) {
             xAxisSignalType = GetSignalType(xAxisSignalIdx);

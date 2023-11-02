@@ -22,7 +22,12 @@
 #
 #############################################################
 
-OBJSX=OPCUANode.x \
+OBJSX=AuthUtils.x \
+	OPCUAClientI.x \
+    OPCUAClientRead.x \
+    OPCUAClientWrite.x \
+    OPCUAClientMethod.x \
+    OPCUANode.x \
     OPCUAObject.x \
     OPCUAReferenceContainer.x \
     OPCUAServer.x \
@@ -44,6 +49,8 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
@@ -51,7 +58,7 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(OPEN62541_INCLUDE)/
 INCLUDES += -I$(ROOT_DIR)/Source/Components/DataSources/OPCUADataSource
 
-LIBRARIES += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
+LIBRARIES_STATIC += $(OPEN62541_LIB)/libopen62541$(LIBEXT)
 
 all: $(OBJS)    \
     $(BUILD_DIR)/OPCUA$(LIBEXT) \

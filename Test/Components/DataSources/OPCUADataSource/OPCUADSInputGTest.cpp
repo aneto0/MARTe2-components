@@ -131,5 +131,20 @@ TEST(OPCUADSInputGTest,Test_SetConfiguredDatabase_ExtensionObject) {
     ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject());
 }
 
+TEST(OPCUADSInputGTest,Test_Authentication) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_Authentication());
+}
+
+TEST(OPCUADSInputGTest,Test_Authentication_NoCreds) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_Authentication_NoCreds());
+}
+
+TEST(OPCUADSInputGTest,Test_Authentication_BadCreds) {
+    OPCUADSInputTest test;
+    ASSERT_TRUE(test.Test_Authentication_BadCreds());
+}
+
 
 	

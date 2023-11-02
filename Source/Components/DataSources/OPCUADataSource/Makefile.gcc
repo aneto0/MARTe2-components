@@ -24,3 +24,5 @@
 
 
 include Makefile.inc
+
+LIBRARIES += -L$(ROOT_DIR)/Build/x86-linux/Components/Interfaces/OPCUA -lOPCUA

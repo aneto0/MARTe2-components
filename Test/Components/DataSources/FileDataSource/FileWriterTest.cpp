@@ -338,7 +338,7 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config, bool 
 static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::uint32 *signalToGenerate, MARTe::uint32 toGenerateNumberOfElements,
                                     MARTe::uint8 *triggerToGenerate, MARTe::uint32 numberOfElements, MARTe::uint32 numberOfBuffers,
                                     MARTe::uint32 numberOfPreTriggers, MARTe::uint32 numberOfPostTriggers, MARTe::float32 period,
-                                    const MARTe::char8 * const filename, const MARTe::char8 * const expectedFileContent, bool csv,
+                                    const MARTe::char8 * const filename, const MARTe::char8 * const expectedFileContent, bool csv, bool deleteFile,
                                     const MARTe::uint32 sleepMSec = 100, 
                                     const MARTe::uint8 refreshContent = 0u, MARTe::uint32 * detectedSize = NULL) {
     using namespace MARTe;
@@ -503,8 +503,10 @@ static bool TestIntegratedExecution(const MARTe::char8 * const config, MARTe::ui
     }
 
     generatedFile.Close();
+    if (deleteFile) {
     Directory toDelete(filename);
     toDelete.Delete();
+    }
 
     if (triggerToGenerateWasNULL) {
         delete[] triggerToGenerate;
@@ -2905,6 +2907,166 @@ static const MARTe::char8 * const config16 = ""
         "    }"
         "}";
 
+// Configuration with overwrite set to no, for TestNoOverwrite_CSV 
+static const MARTe::char8 * const config17 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = FileWriterGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            InvertSigned = 1"
+        "            OutputSignals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                    DataSource = Drv1"
+        "                }"
+        "                SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated = {"
+        "                    Type = float64"
+        "                    DataSource = Drv1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +Drv1 = {"
+        "            Class = FileWriter"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            Filename = \"FileWriterTest_TestNoOverwrite\""
+        "            FileFormat = csv"
+        "            CSVSeparator = \";\""
+        "            Overwrite = no"
+        "            StoreOnTrigger = 0"
+        "            RefreshContent = 0"
+        "            Signals = {"
+        "                Trigger = {"
+        "                    Type = uint8"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt8 = {"
+        "                    Type = uint8"
+        "                }"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                }"
+        "                SignalInt8 = {"
+        "                    Type = int8"
+        "                }"
+        "                SignalInt16 = {"
+        "                    Type = int16"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                }"
+        "                SignalInt64 = {"
+        "                    Type = int64"
+        "                }"
+        "                SignalFloat32 = {"
+        "                    Type = float32"
+        "                }"
+        "                SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated = {"
+        "                    Type = float64"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = FileWriterSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}"
+        "+TestMessages = {"
+        "    Class = ReferenceContainer"
+        "    +MessageFlush = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = FlushFile"
+        "    }"
+        "    +MessageOpenFile = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = OpenFile"
+        "        +Parameters = {"
+        "            Class = ConfigurationDatabase"
+        "            param1 = FileWriterTest_TestNoOverwrite"
+        "        }"
+        "    }"
+        "    +MessageCloseFile = {"
+        "        Class = Message"
+        "        Destination = \"Test.Data.Drv1\""
+        "        Function = CloseFile"
+        "    }"
+        "}";
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -3135,6 +3297,25 @@ bool FileWriterTest::TestInitialise_Binary() {
     ok &= (test.GetNumberOfPreTriggers() == 2);
     ok &= (test.GetNumberOfPostTriggers() == 3);
     return ok;
+}
+
+bool FileWriterTest::TestInitialise_False_Binary_No_Overwrite() {
+    using namespace MARTe;
+    FileWriter test;
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 15);
+    cdb.Write("StackSize", 10000000);
+    cdb.Write("Filename", "FileWriterTest_TestInitialise");
+    cdb.Write("FileFormat", "binary");
+    cdb.Write("CSVSeparator", ",");
+    cdb.Write("Overwrite", "no");
+    cdb.Write("StoreOnTrigger", 1);
+    cdb.Write("NumberOfPreTriggers", 2);
+    cdb.Write("NumberOfPostTriggers", 3);
+    cdb.CreateRelative("Signals");
+    cdb.MoveToRoot();
+    return !test.Initialise(cdb);
 }
 
 bool FileWriterTest::TestInitialise_False_NumberOfBuffers() {
@@ -3522,7 +3703,7 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger( const MARTe::char8 *
         }
     }
 
-    bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, 1u, numberOfBuffers, 0, 0, period, filename, expectedFileContent, csv, 100, refreshContent, detectedFileSize);
+    bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, 1u, numberOfBuffers, 0, 0, period, filename, expectedFileContent, csv, true, 100, refreshContent, detectedFileSize);
     if (!csv) {
         if (expectedFileContent != NULL) {
             char8 *mem = const_cast<char8 *>(&expectedFileContent[0]);
@@ -3631,7 +3812,7 @@ bool FileWriterTest::TestIntegratedInApplication_NoTrigger_Array(const MARTe::ch
     }
 
     bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, NULL, ARRAY_SIZE, numberOfBuffers, 0, 0, period, filename,
-                                      expectedFileContent, csv);
+                                      expectedFileContent, csv, true);
     if (!csv) {
         if (expectedFileContent != NULL) {
             char8 *mem = const_cast<char8 *>(&expectedFileContent[0]);
@@ -3738,7 +3919,7 @@ bool FileWriterTest::TestIntegratedInApplication_Trigger(const MARTe::char8 *fil
     }
 
     bool ok = TestIntegratedExecution(config1, signalToGenerate, numberOfElements, triggerToGenerate, 1u, numberOfBuffers, 0, 0, period, filename,
-                                      expectedFileContent, csv);
+                                      expectedFileContent, csv, true);
     if (!csv) {
         if (expectedFileContent != NULL) {
             char8 *mem = const_cast<char8 *>(&expectedFileContent[0]);
@@ -3757,10 +3938,68 @@ bool FileWriterTest::TestIntegratedInApplication_NumberFormat() {
                                        "1234.00;4D2;1.234000E+3\n";
 
     bool ok = TestIntegratedExecution(config14, signalToGenerate, 1, NULL, 1, 100, 0, 0, 2, filename,
-                                      expectedFileContent, 1);
+                                      expectedFileContent, 1, true);
 
     return ok;
 
+}
+
+static bool TestIntegratedInApplication_NoOverwrite( const MARTe::char8 *filename, bool csv, MARTe::uint8 refreshContent, MARTe::uint32* detectedFileSize) {
+    using namespace MARTe;
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5 };
+    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
+        
+    const uint32 numberOfBuffers = 16;
+    const float32 period = 2;
+    const char8 * expectedFileContentFirstRun = NULL;
+    const char8 * expectedFileContentSecondRun = NULL;
+    if (csv) {
+        if(refreshContent == 0u) {
+            //Expect the whole file
+            expectedFileContentFirstRun =
+                    ""
+                            "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
+                            "0;0;1;1;1;1;1;1;1;1;1.000000;1.000000\n"
+                            "0;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
+                            "0;4000000;3;3;3;3;3;3;3;3;3.000000;3.000000\n"
+                            "0;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
+                            "0;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
+
+            expectedFileContentSecondRun = 
+                    ""
+                            "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
+                            "0;0;1;1;1;1;1;1;1;1;1.000000;1.000000\n"
+                            "0;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
+                            "0;4000000;3;3;3;3;3;3;3;3;3.000000;3.000000\n"
+                            "0;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
+                            "0;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n"
+                            "0;0;1;1;1;1;1;1;1;1;1.000000;1.000000\n"
+                            "0;2000000;2;2;2;2;-2;-2;-2;-2;-2.000000;-2.000000\n"
+                            "0;4000000;3;3;3;3;3;3;3;3;3.000000;3.000000\n"
+                            "0;6000000;4;4;4;4;-4;-4;-4;-4;-4.000000;-4.000000\n"
+                            "0;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
+        }
+        else {
+            //Expect the header and only the latest sample
+            expectedFileContentFirstRun =
+                    ""
+                            "#Trigger (uint8)[1];Time (uint32)[1];SignalUInt8 (uint8)[1];SignalUInt16 (uint16)[1];SignalUInt32 (uint32)[1];SignalUInt64 (uint64)[1];SignalInt8 (int8)[1];SignalInt16 (int16)[1];SignalInt32 (int32)[1];SignalInt64 (int64)[1];SignalFloat32 (float32)[1];SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated (float64)[1]\n"
+                            "Trigger = 0 ;Time = 8000000 ;SignalUInt8 = 5 ;SignalUInt16 = 5 ;SignalUInt32 = 5 ;SignalUInt64 = 5 ;SignalInt8 = 5 ;SignalInt16 = 5 ;SignalInt32 = 5 ;SignalInt64 = 5 ;SignalFloat32 = 5.000000 ;SignalFloat64WhichIsAlsoAVeryLongSignalNameSoThatItHasMoreThan32CharsAndIsHopefullyTruncated = 5.000000 ;";
+                            //"0;8000000;5;5;5;5;5;5;5;5;5.000000;5.000000\n";
+        }
+    }
+
+    bool ok = TestIntegratedExecution(config17, signalToGenerate, numberOfElements, NULL, 1u, numberOfBuffers, 0, 0, period, filename, expectedFileContentFirstRun, csv, false, 100, refreshContent, detectedFileSize);
+    if (ok) {
+        bool ok = TestIntegratedExecution(config17, signalToGenerate, numberOfElements, NULL, 1u, numberOfBuffers, 0, 0, period, filename, expectedFileContentSecondRun, csv, true, 100, refreshContent, detectedFileSize);
+    }
+    if (!csv) {
+        if (expectedFileContentFirstRun != NULL) {
+            char8 *mem = const_cast<char8 *>(&expectedFileContentFirstRun[0]);
+            GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(mem));
+        }
+    }
+    return ok;
 }
 
 bool FileWriterTest::TestOpenFile() {
@@ -3798,51 +4037,6 @@ bool FileWriterTest::TestOpenFile() {
     StreamString testFilename = "Test_MessageOpenTree.bin";
     if (ok) {
         ok = (fileWriter->GetFilename() == testFilename);
-    }
-    if (ok) {
-        Directory toDelete(testFilename.Buffer());
-        toDelete.Delete();
-    }
-    godb->Purge();
-    return ok;
-}
-
-bool FileWriterTest::TestOpenFile_Overwrite() {
-    using namespace MARTe;
-    bool ok = TestIntegratedInApplication(config13, false);
-    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
-
-    //Get the current pulse number
-    ReferenceT<FileWriter> fileWriter;
-    if (ok) {
-        fileWriter = godb->Find("Test.Data.Drv1");
-        ok = fileWriter.IsValid();
-    }
-    ReferenceT<Message> messageOpenFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageOpenFile");
-    if (ok) {
-        ok = messageOpenFile.IsValid();
-    }
-    if (ok) {
-        MessageI::SendMessage(messageOpenFile, NULL);
-    }
-    ReferenceT<Message> messageFlushFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageFlushFile");
-    if (ok) {
-        ok = messageOpenFile.IsValid();
-    }
-    if (ok) {
-        MessageI::SendMessage(messageFlushFile, NULL);
-    }
-    ReferenceT<Message> messageCloseFile = ObjectRegistryDatabase::Instance()->Find("TestMessages.MessageCloseFile");
-    if (ok) {
-        ok = messageCloseFile.IsValid();
-    }
-    if (ok) {
-        MessageI::SendMessage(messageCloseFile, NULL);
-    }
-
-    StreamString testFilename = "Test_MessageOpenTree.bin";
-    if (ok) {
-        ok = !(fileWriter->OpenFile(testFilename));
     }
     if (ok) {
         Directory toDelete(testFilename.Buffer());
@@ -4120,4 +4314,9 @@ bool FileWriterTest::TestInvalidMessageType() {
     using namespace MARTe;
     bool ok = TestIntegratedInApplication(config12, true);
     return !ok;
+}
+
+bool FileWriterTest::TestNoOverwrite_CSV()
+{
+    return TestIntegratedInApplication_NoOverwrite( "FileWriterTest_TestNoOverwrite", true, 0u, NULL);
 }

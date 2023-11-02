@@ -185,7 +185,16 @@ private:
      * To avoid racing conditions at shutdown
      */
     MutexSem mux;
-    EventSem startSynch;
+
+    /**
+     * EPICS Variables needed to be added in the thread context.
+     */
+    bool allVariablesAdded;
+
+    /**
+     * Check if there was an error while adding the variables.
+     */
+    bool threadError;
 
     /**
      * True if the server is to be shutdown

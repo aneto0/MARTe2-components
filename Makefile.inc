@@ -27,15 +27,16 @@
 #If SPB is directly exported as an environment variable it will also be evaluated as part of the subprojects SPB, thus
 #potentially overriding its value
 #Main target subprojects. May be overridden by shell definition.
-SPBM?=Source/Components/DataSources.x \
-	Source/Components/GAMs.x \
-	Source/Components/Interfaces.x
+SPBM?=Source/Components/Interfaces.x \
+        Source/Components/DataSources.x \
+        Source/Components/GAMs.x
+
 
 #Testing of the main target subprojects. May be overridden by shell definition.
-SPBMT?=Test/Components/DataSources.x \
+SPBMT?=Test/Components/Interfaces.x \
+    Test/Components/DataSources.x \
     Test/Components/GAMs.x \
-    Test/Components/Interfaces.x \
-	Test/GTest.x
+    Test/GTest.x
 
 #This really has to be defined locally.
 SUBPROJMAIN=$(SPBM:%.x=%.spb)

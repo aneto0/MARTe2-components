@@ -32,6 +32,8 @@
 /*---------------------------------------------------------------------------*/
 
 #include "OPCUADSInput.h"
+#include "AuthUtils.h"
+#include "File.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -70,6 +72,9 @@ OPCUADSInput::OPCUADSInput() :
     entryTypes = NULL_PTR(TypeDescriptor*);
     cpuMask = 0xffu;
     stackSize = THREADS_DEFAULT_STACKSIZE;
+    authenticate = false;
+    username = "";
+    password = "";
 }
 
 /*lint -e{1551} must stop the SingleThreadService in the destructor.*/
@@ -162,6 +167,51 @@ bool OPCUADSInput::Initialise(StructuredDataI &data) {
                 REPORT_ERROR(ErrorManagement::Information, "Sampling Time not set. Using default value: 250ms");
                 samplingTime = 250.0;
                 ok = true;
+            }
+        }
+        StreamString authentication;
+        if (ok) {
+            if (!data.Read("Authentication", authentication)) {
+                authentication = "None";
+                REPORT_ERROR(ErrorManagement::Warning, "'Authentication' not defined.");
+            }
+        }
+        if (ok) {
+            if (authentication == "None") {
+                authenticate = false;
+                REPORT_ERROR(ErrorManagement::Information, "Using 'None' authentication.");
+            }
+            else if (authentication == "UserPassword") {
+                authenticate = true;
+                REPORT_ERROR(ErrorManagement::Information, "Using 'UserPassword' authentication.");
+            }
+            else {
+                ok = false;
+                REPORT_ERROR(ErrorManagement::ParametersError, "'Authentication' parameter invalid (expected 'None' or 'UserPassword')!");
+            }
+        }
+        if (ok && authenticate) {
+            StreamString userPasswordFile;
+            ok = data.Read("UserPasswordFile", userPasswordFile);
+            if (!ok) {
+                REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "'UserPasswordFile' not defined!");
+            }
+            File f;
+            if (ok) {
+                (void) userPasswordFile.Seek(0LLU);
+                ok = f.Open(userPasswordFile.Buffer(), BasicFile::ACCESS_MODE_R);
+                if (!ok) {
+                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed to open the file at path '%s'!", userPasswordFile.Buffer());
+                }
+            }
+            if (ok) {
+                ok = ReadAuthenticationKey(f, username, password);
+            }
+            if (f.IsOpen()) {
+                ok = f.Close();
+                if (!ok) {
+                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed to close the 'UserPasswordFile'!");
+                }
             }
         }
         if (ok) {
@@ -388,7 +438,12 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
         /* Setting up the master Client who will perform the operations */
         masterClient = new OPCUAClientRead;
         masterClient->SetServerAddress(serverAddress);
-        ok = masterClient->Connect();
+        if (authenticate) {
+            ok = masterClient->Connect(username, password);
+        }
+        else {
+            ok = masterClient->Connect();
+        }
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Cannot Connect to the Server.");
         }

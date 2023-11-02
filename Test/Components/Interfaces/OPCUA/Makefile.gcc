@@ -26,6 +26,11 @@ OBJSX = OPCUAServerGTest.x \
 	OPCUANodeGTest.x \
 	OPCUAObjectGTest.x \
 	OPCUAReferenceContainerGTest.x \
-	OPCUAMessageClientGTest.x
+	OPCUAMessageClientGTest.x \
+    OPCUAClientIGTest.x \
+    OPCUAClientReadGTest.x \
+    OPCUAClientWriteGTest.x \
+    OPCUAClientMethodGTest.x
+	
 
 include Makefile.inc
