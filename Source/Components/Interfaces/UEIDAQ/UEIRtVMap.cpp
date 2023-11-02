@@ -352,7 +352,6 @@ bool UEIRtVMap::ExchangeMap(MapReturnCode& outputCode){
     }
     //Before the map exchange, set the outputs into the map (if any)
     if (ok){
-        printf("Refreshing\n");
         for (uint32 i = 0u; i < nOutputMembers && ok; i++){
             ReferenceT<UEIDevice> thisDevice = outputMembersOrdered[i]->reference;
             int32 updatesAccepted = 0;
@@ -484,8 +483,6 @@ bool UEIRtVMap::GetInputs(MapReturnCode& outputCode){
         ok &= (err == ErrorManagement::NoError);
         mutexAcquired = ok;
     }
-    //TODO
-    Sleep::MSec(10);
     if (ok){
         if(executionMode == UEIMapRealTimeThreadExecutionMode){
             //If the Map is executed in RealTimeThread mode, perform one map refresh as it will not refresh on itself
@@ -724,7 +721,6 @@ bool UEIRtVMap::CheckMapCoherency(){
 
 
 ErrorManagement::ErrorType UEIRtVMap::IndependentThreadCallback(ExecutionInfo &info) {
-    printf("Threading");
     MapReturnCode returnCode;
     //ExchangeMap method can be called right away, mutex and thread safety are managed inside the call
     // no need for a call to the mutex lock prior to this method call.

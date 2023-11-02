@@ -235,7 +235,9 @@ bool UEIReader::Synchronise() {
             firstSync = !ok;
             if (!ok){
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Could not start Map %s in DataSource %s", map->GetName(), name.Buffer());
-            }
+            }else{
+                REPORT_ERROR(ErrorManagement::Information, "Map %s started!", map->GetName());
+	    }
         }
     }
     //Start to poll for next packet to the Map. The memory access is handled by the Map Container
