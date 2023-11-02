@@ -32,8 +32,7 @@ SPB = EpicsDataSource.x \
     RealTimeThreadAsyncBridge.x \
     RealTimeThreadSynchronisation.x \
     UARTDataSource.x \
-    UDP.x \
-    UEIDataSource.x
+    UDP.x 
 
 ROOT_DIR=../../..
 include ProfinetDataSource/Makefile.detect
@@ -78,6 +77,11 @@ endif
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
 SPB   += SDN.x
 endif
+
+ifdef PDNA_INCLUDE
+SPB +=UEIDataSource.x
+endif
+
 
 PACKAGE=Components
 ROOT_DIR=../../..
