@@ -25,7 +25,11 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#ifdef CCS_LT_60
+#include <tcn.h>
+#else
 #include <common/TimeTools.h> // ccs::HelperTools::GetCurrentTime, etc.
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -189,7 +193,16 @@ bool DANSource::PrepareNextState(const char8 *const currentStateName,
     }
     bool ok = true;
     if (!useAbsoluteTime) {
+
+#ifdef CCS_LT_60
+        hpn_timestamp_t hpnTimeStamp;
+        ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
+        if (ok) {
+            absoluteStartTime = static_cast<uint64>(hpnTimeStamp);
+        }
+#else                                
         absoluteStartTime = ccs::HelperTools::GetCurrentTime();
+#endif
 
         for (s = 0u; (s < nOfDANStreams); s++) {
             /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
@@ -298,6 +311,14 @@ bool DANSource::Initialise(StructuredDataI &data) {
             }
         }
     }
+#ifdef CCS_LT_60
+    if (ok) {
+        ok = (tcn_init() == TCN_SUCCESS);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Failed to tcn_init");
+        }
+    }
+#endif
     if (ok) {
         ok = data.MoveRelative("Signals");
         if (!ok) {
