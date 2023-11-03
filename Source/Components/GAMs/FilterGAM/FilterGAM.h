@@ -209,11 +209,12 @@ public:
     /**
      * @brief Resets the lastInputs and lastOutputs if necessary.
      * @details The behaviour of this function can be configured in order to reset the filter every time
-     * it is called or when in the previous state the Execute() has not be called not called (and thus the filter has not be applied on such state).
+     * it is called or when in the previous state the Execute() has not be called (and thus the filter has not be applied on such state).
      * @return true if preconditions are met.
      * @pre
      *   lastInputs != NULL &&
      *   lastOutput != NULL  &&
+     *   isInitialised && isSetup
      *
      * @post
      *   lastInputs[m][n] = 0 &&
@@ -322,6 +323,8 @@ private:
     uint32 nOfSignals;
 
     bool isInitialised;
+
+    bool isSetup;
 
     /**
      * When the gain is infinite this is set to true

@@ -37,7 +37,7 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
-
+namespace MARTe {
 TEST(FilterGAMGTest,TestConstructor) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestConstructor());
@@ -152,7 +152,6 @@ TEST(FilterGAMGTest,TestSetupDifferentInputOutputSamples) {
     ASSERT_TRUE(test.TestSetupDifferentInputOutputSamples());
 }
 
-
 TEST(FilterGAMGTest,TestSetupFailNumberOfSamples) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestSetupFailNumberOfSamples());
@@ -263,7 +262,6 @@ TEST(FilterGAMGTest,TestSetupSeveralSignalsDiffNumberOfOutputElements) {
     ASSERT_TRUE(test.TestSetupSeveralSignalsDiffNumberOfOutputElements());
 }
 
-
 TEST(FilterGAMGTest,TestSetupSeveralSignalsDiffInputSamples) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestSetupSeveralSignalsDiffInputSamples());
@@ -309,7 +307,7 @@ TEST(FilterGAMGTest,TestResetOnlyWhenRequiredMemoryNotInit) {
     ASSERT_TRUE(test.TestResetOnlyWhenRequiredMemoryNotInit());
 }
 
-
+}
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

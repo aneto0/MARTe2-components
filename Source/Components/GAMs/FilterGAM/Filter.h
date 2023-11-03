@@ -55,9 +55,9 @@ public:
     virtual uint32 GetNumberOfDenCoeff() = 0;
     virtual bool GetNumCoeff(void *coeff) = 0;
     virtual float32 GetStaticGainFloat32(bool &isInfinite) = 0;
-    virtual float64 GetStaticGain(bool &isInfinite) = 0;
-//    virtual int32 GetStaticGain(bool &isInfinite) = 0;
-//    virtual int64 GetStaticGain(bool &isInfinite) = 0;
+    virtual float64 GetStaticGainFloat64(bool &isInfinite) = 0;
+    virtual int32 GetStaticGainInt32(bool &isInfinite) = 0;
+    virtual int64 GetStaticGainInt64(bool &isInfinite) = 0;
     virtual bool GetDenCoeff(void *coeff) = 0;
     virtual bool CheckNormalisation() = 0;
 private:

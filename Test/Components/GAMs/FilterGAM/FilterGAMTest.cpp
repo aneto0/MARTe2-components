@@ -36,456 +36,16 @@
 #include "FilterGAMTest.h"
 #include "Vector.h"
 #include "stdio.h"
+#include "FilterGAMTestHelper.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-class FilterGAMTestHelper: public MARTe::FilterGAM {
-public:CLASS_REGISTER_DECLARATION()
-
-    FilterGAMTestHelper(MARTe::uint32 elements = 10,
-                        MARTe::uint32 samples = 1) {
-        numberOfElements = elements;
-        numberOfSamples = samples;
-        if (numberOfElements > numberOfSamples) {
-            byteSize = numberOfElements * sizeof(MARTe::float32);
-        }
-        else {
-            byteSize = numberOfSamples * sizeof(MARTe::float32);
-        }
-        numH = NULL;
-        denH = NULL;
-        isInitialised = false;
-    }
-
-    virtual ~FilterGAMTestHelper() {
-
-        if (numH != NULL) {
-            delete[] numH;
-        }
-        if (denH != NULL) {
-            delete[] denH;
-        }
-
-    }
-
-    void* GetInputSignalsMemory() {
-        return MARTe::GAM::GetInputSignalsMemory();
-    }
-    void* GetOutputSignalsMemory() {
-        return MARTe::GAM::GetOutputSignalsMemory();
-    }
-    void* GetInputSignalsMemory(MARTe::uint32 idx) {
-        return MARTe::GAM::GetInputSignalMemory(idx);
-    }
-
-    void* GetOutputSignalsMemory(MARTe::uint32 idx) {
-        return MARTe::GAM::GetOutputSignalMemory(idx);
-    }
-    bool InitialiseNoFilter() {
-        bool ret = true;
-        if (isInitialised == false) {
-            numH = new MARTe::float32[1];
-            numH[0] = 1.0;
-            denH = new MARTe::float32[1];
-            denH[0] = 1.0;
-            MARTe::Vector<MARTe::float32> numVec(numH, 1);
-            MARTe::Vector<MARTe::float32> denVec(denH, 1);
-            ret &= config.Write("Num", numVec);
-            ret &= config.Write("Den", denVec);
-            ret &= config.Write("ResetInEachState", false);
-            isInitialised = ret;
-        }
-        else {
-            ret = false;
-        }
-        return ret;
-    }
-    bool InitialiseFilterFIR() {
-        bool ret = true;
-        if (isInitialised == false) {
-            numH = new MARTe::float32[2];
-            numH[0] = 0.5;
-            numH[1] = 0.5;
-            denH = new MARTe::float32[1];
-            denH[0] = 1;
-            MARTe::Vector<MARTe::float32> numVec(numH, 2);
-            MARTe::Vector<MARTe::float32> denVec(denH, 1);
-            ret &= config.Write("Num", numVec);
-            ret &= config.Write("Den", denVec);
-            ret &= config.Write("ResetInEachState", false);
-            ret &= config.CreateRelative("InputSignals");
-            ret &= config.CreateRelative("Input0");
-            ret &= config.MoveToRoot();
-            isInitialised = ret;
-        }
-        else {
-            ret = false;
-        }
-        return ret;
-    }
-
-    bool InitialiseAVG10() {
-        bool ret = true;
-        if (isInitialised == false) {
-            MARTe::uint32 nOfNumerators = 10;
-            numH = new MARTe::float32[nOfNumerators];
-            MARTe::float32 coeff = 1.0 / nOfNumerators;
-            for (MARTe::uint32 i = 0u; i < nOfNumerators; i++) {
-                numH[i] = coeff;
-            }
-            denH = new MARTe::float32[1];
-            denH[0] = 1.0;
-            MARTe::Vector<MARTe::float32> numVec(numH, nOfNumerators);
-            MARTe::Vector<MARTe::float32> denVec(denH, 1);
-            ret &= config.Write("Num", numVec);
-            ret &= config.Write("Den", denVec);
-            ret &= config.Write("ResetInEachState", false);
-            isInitialised = ret;
-        }
-        else {
-            ret = false;
-        }
-        return ret;
-    }
-
-    bool InitialiseFilterFIR2() {
-        bool ret = true;
-        if (isInitialised == false) {
-            numH = new MARTe::float32[2];
-            numH[0] = 0.6;
-            numH[1] = 0.4;
-            denH = new MARTe::float32[1];
-            denH[0] = 1;
-            MARTe::Vector<MARTe::float32> numVec(numH, 2);
-            MARTe::Vector<MARTe::float32> denVec(denH, 1);
-            ret &= config.Write("Num", numVec);
-            ret &= config.Write("Den", denVec);
-            bool resetInEachState = 0;
-            ret &= config.Write("ResetInEachState", resetInEachState);
-            isInitialised = ret;
-        }
-        else {
-            ret = false;
-        }
-        return ret;
-    }
-    bool InitialiseFilterIIR() {
-        bool ret = true;
-        if (isInitialised == false) {
-            numH = new MARTe::float32[1];
-            numH[0] = 1;
-            denH = new MARTe::float32[2];
-            denH[0] = 1;
-            denH[1] = -1;
-            MARTe::Vector<MARTe::float32> numVec(numH, 1);
-            MARTe::Vector<MARTe::float32> denVec(denH, 2);
-            ret &= config.Write("Num", numVec);
-            ret &= config.Write("Den", denVec);
-            bool resetInEachState = 0;
-            ret &= config.Write("ResetInEachState", resetInEachState);
-            isInitialised = ret;
-        }
-        else {
-            ret = false;
-        }
-        return ret;
-    }
-
-    bool InitialiseFilterIIR2() {
-        bool ret = true;
-        if (isInitialised == false) {
-            numH = new MARTe::float32[3];
-            numH[0] = 0.1;
-            numH[1] = 0.2;
-            numH[2] = 0.3;
-            denH = new MARTe::float32[3];
-            denH[0] = 1;
-            denH[1] = 0.5;
-            denH[2] = 0.2;
-            MARTe::Vector<MARTe::float32> numVec(numH, 3);
-            MARTe::Vector<MARTe::float32> denVec(denH, 3);
-            ret &= config.Write("Num", numVec);
-            ret &= config.Write("Den", denVec);
-            bool resetInEachState = 0;
-            ret &= config.Write("ResetInEachState", resetInEachState);
-            isInitialised = ret;
-        }
-        else {
-            ret = false;
-        }
-        return ret;
-    }
-
-    bool IsInitialised() {
-        return isInitialised;
-    }
-    bool InitialiseConfigDataBaseSignal1() {
-        bool ok = true;
-        MARTe::uint32 totalByteSize = byteSize;
-        ok &= configSignals.CreateAbsolute("Signals.InputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("QualifiedName", "InputSignal1");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.Write("Type", "float32");
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        ok &= configSignals.Write("NumberOfElements", numberOfElements);
-        ok &= configSignals.Write("ByteSize", byteSize);
-
-        ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.Write("ByteSize", totalByteSize);
-
-        ok &= configSignals.MoveToRoot();
-        ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("QualifiedName", "OutputSignal1");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.Write("Type", "float32");
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        if (numberOfSamples > numberOfElements) {
-            ok &= configSignals.Write("NumberOfElements", numberOfSamples);
-        }
-        else {
-            ok &= configSignals.Write("NumberOfElements", numberOfElements);
-        }
-        ok &= configSignals.Write("ByteSize", byteSize);
-
-        ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.Write("ByteSize", totalByteSize);
-
-        ok &= configSignals.MoveToRoot();
-
-        ok &= configSignals.CreateAbsolute("Memory.InputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.CreateRelative("Signals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("Samples", numberOfSamples);
-
-        ok &= configSignals.CreateAbsolute("Memory.OutputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.CreateRelative("Signals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("Samples", 1);
-
-        ok &= configSignals.MoveToRoot();
-        return ok;
-    }
-
-    bool InitialiseConfigDataBaseSignal2() {
-        using namespace MARTe;
-        bool ok = true;
-
-        uint32 numberOfSignals = 2;
-        uint32 totalByteSize = byteSize * numberOfSignals;
-        ok &= configSignals.CreateAbsolute("Signals.InputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("QualifiedName", "InputSignal1");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.Write("Type", "float32");
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        ok &= configSignals.Write("NumberOfElements", numberOfElements);
-        ok &= configSignals.Write("ByteSize", byteSize);
-
-        ok &= configSignals.MoveAbsolute("Signals.InputSignals");
-        ok &= configSignals.CreateRelative("1");
-        ok &= configSignals.Write("QualifiedName", "InputSignal2");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.Write("Type", "float32");
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        ok &= configSignals.Write("NumberOfElements", numberOfElements);
-        ok &= configSignals.Write("ByteSize", byteSize);
-
-        ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.Write("ByteSize", totalByteSize);
-
-        ok &= configSignals.MoveToRoot();
-        ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("QualifiedName", "OutputSignal1");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.Write("Type", "float32");
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        //The Filter GAM only support numberOfSamples 1 and numberOfElements>=1
-        if (numberOfSamples > numberOfElements) {
-            ok &= configSignals.Write("NumberOfElements", numberOfSamples);
-        }
-        else {
-            ok &= configSignals.Write("NumberOfElements", numberOfElements);
-        }
-        ok &= configSignals.Write("ByteSize", byteSize);
-
-        ok &= configSignals.MoveAbsolute("Signals.OutputSignals");
-        ok &= configSignals.CreateRelative("1");
-        ok &= configSignals.Write("QualifiedName", "OutputSignal2");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.Write("Type", "float32");
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        //The Filter GAM only support numberOfSamples 1 and numberOfElements>=1
-        if (numberOfSamples > numberOfElements) {
-            ok &= configSignals.Write("NumberOfElements", numberOfSamples);
-        }
-        else {
-            ok &= configSignals.Write("NumberOfElements", numberOfElements);
-        }
-        ok &= configSignals.Write("ByteSize", byteSize);
-
-        ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.Write("ByteSize", totalByteSize);
-
-        ok &= configSignals.MoveToRoot();
-
-        ok &= configSignals.CreateAbsolute("Memory.InputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.CreateRelative("Signals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("Samples", numberOfSamples);
-
-        ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.CreateRelative("1");
-        ok &= configSignals.Write("Samples", numberOfSamples);
-
-        ok &= configSignals.CreateAbsolute("Memory.OutputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.CreateRelative("Signals");
-        ok &= configSignals.CreateRelative("0");
-        //The Filter GAM only support numberOfSamples 1 and numberOfElements>=1
-        ok &= configSignals.Write("Samples", 1);
-
-        ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.CreateRelative("1");
-        ok &= configSignals.Write("Samples", 1);
-
-        ok &= configSignals.MoveToRoot();
-        return ok;
-    }
-
-    bool InitialiseConfigDataBaseSignal3() {
-        bool ok = true;
-        MARTe::uint32 totalByteSize = byteSize;
-        ok &= configSignals.CreateAbsolute("Signals.InputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("QualifiedName", "InputSignal1");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.Write("Type", "uint32");
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        ok &= configSignals.Write("NumberOfElements", numberOfElements);
-        ok &= configSignals.Write("ByteSize", byteSize);
-
-        ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.Write("ByteSize", totalByteSize);
-
-        ok &= configSignals.MoveToRoot();
-        ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("QualifiedName", "OutputSignal1");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.Write("Type", "float32");
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        if (numberOfSamples > numberOfElements) {
-            ok &= configSignals.Write("NumberOfElements", numberOfSamples);
-        }
-        else {
-            ok &= configSignals.Write("NumberOfElements", numberOfElements);
-        }
-        ok &= configSignals.Write("ByteSize", byteSize);
-
-        ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.Write("ByteSize", totalByteSize);
-
-        ok &= configSignals.MoveToRoot();
-
-        ok &= configSignals.CreateAbsolute("Memory.InputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.CreateRelative("Signals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("Samples", numberOfSamples);
-
-        ok &= configSignals.CreateAbsolute("Memory.OutputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.CreateRelative("Signals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("Samples", 1);
-
-        ok &= configSignals.MoveToRoot();
-        return ok;
-    }
-
-    bool InitialiseConfigDataBaseSignal4() {
-        bool ok = true;
-        MARTe::uint32 totalByteSize = byteSize;
-        ok &= configSignals.CreateAbsolute("Signals.InputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("QualifiedName", "InputSignal1");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.Write("Type", "float32");
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        ok &= configSignals.Write("NumberOfElements", numberOfElements);
-        ok &= configSignals.Write("ByteSize", byteSize);
-
-        ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.Write("ByteSize", totalByteSize);
-
-        ok &= configSignals.MoveToRoot();
-        ok &= configSignals.CreateAbsolute("Signals.OutputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("QualifiedName", "OutputSignal1");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.Write("Type", "uint32");
-        ok &= configSignals.Write("NumberOfDimensions", 1);
-        if (numberOfSamples > numberOfElements) {
-            ok &= configSignals.Write("NumberOfElements", numberOfSamples);
-        }
-        else {
-            ok &= configSignals.Write("NumberOfElements", numberOfElements);
-        }
-        ok &= configSignals.Write("ByteSize", byteSize);
-
-        ok &= configSignals.MoveToAncestor(1u);
-        ok &= configSignals.Write("ByteSize", totalByteSize);
-
-        ok &= configSignals.MoveToRoot();
-
-        ok &= configSignals.CreateAbsolute("Memory.InputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.CreateRelative("Signals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("Samples", numberOfSamples);
-
-        ok &= configSignals.CreateAbsolute("Memory.OutputSignals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("DataSource", "TestDataSource");
-        ok &= configSignals.CreateRelative("Signals");
-        ok &= configSignals.CreateRelative("0");
-        ok &= configSignals.Write("Samples", 1);
-
-        ok &= configSignals.MoveToRoot();
-        return ok;
-    }
-
-    MARTe::uint32 numberOfElements;
-    MARTe::uint32 numberOfSamples;
-    MARTe::uint32 byteSize;
-    MARTe::ConfigurationDatabase configSignals;
-    MARTe::ConfigurationDatabase config;
-    MARTe::float32 *numH;
-    MARTe::float32 *denH;
-private:
-    bool isInitialised;
-};
-CLASS_REGISTER(FilterGAMTestHelper, "1.0")
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
+namespace MARTe {
 FilterGAMTest::FilterGAMTest() {
 }
 
@@ -514,7 +74,9 @@ bool FilterGAMTest::TestConstructor() {
     }
     bool isInfinite;
     //Check that the static gain is 0
-    ok &= (0 == gam.GetStaticGain(isInfinite));
+    float32 gainReturn;
+    gam.GetStaticGain(isInfinite, gainReturn);
+    ok &= 0.0 == gainReturn;
     ok &= !isInfinite;
     //Check that the number of numerator coefficients is 0
     ok &= (0 == gam.GetNumberOfNumCoeff());
@@ -563,7 +125,9 @@ bool FilterGAMTest::TestInitialise() {
         ok &= (retDen[i] == gam.denH[i]);
     }
     bool isInfinite;
-    ok &= (1 == gam.GetStaticGain(isInfinite));
+    float32 gainReturn;
+    gam.GetStaticGain(isInfinite, gainReturn);
+    ok &= (1 == gainReturn);
     ok &= !isInfinite;
     ok &= (0 == gam.GetNumberOfSamples());
     ok &= (0 == gam.GetNumberOfSignals());
@@ -586,6 +150,9 @@ bool FilterGAMTest::TestInitialiseNoResetInEachState() {
     Vector<float32> denVec(den, 1);
     ok &= config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     ok &= gam.GetResetInEachState();
     delete[] num;
@@ -697,7 +264,9 @@ bool FilterGAMTest::TestStaticGainFIR() {
     ok &= gam.Initialise(gam.config);
     //Check static gain
     bool isInfinite = true;
-    ok &= (1 == gam.GetStaticGain(isInfinite));
+    float32 gainReturn;
+    gam.GetStaticGain(isInfinite, gainReturn);
+    ok &= (1 == gainReturn);
     ok &= !isInfinite;
 
     return ok;
@@ -713,7 +282,9 @@ bool FilterGAMTest::TestStaticGainIIR() {
     ok &= gam.Initialise(gam.config);
     //Check static gain
     bool isInfinite = false;
-    ok = (gam.GetStaticGain(isInfinite) == 0);
+    float32 gainReturn;
+    gam.GetStaticGain(isInfinite, gainReturn);
+    ok &= gainReturn == 0;
     ok &= isInfinite;
     return ok;
 }
@@ -819,6 +390,9 @@ bool FilterGAMTest::TestSetupNoInputSignal() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
 //    uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
@@ -893,6 +467,9 @@ bool FilterGAMTest::TestSetupNoOutputSignal() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     ok &= config.Write("ResetInEachState", false);
 //    uint32 numberOfSamples = 1;
@@ -969,6 +546,9 @@ bool FilterGAMTest::TestSetupNoInputSamples() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
 //    uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
@@ -1043,6 +623,9 @@ bool FilterGAMTest::TestSetupNoOutputSamples() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
 //    uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
@@ -1117,6 +700,9 @@ bool FilterGAMTest::TestSetupNoNumberOfElementsInput() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
@@ -1190,6 +776,9 @@ bool FilterGAMTest::TestSetupNoNumberOfElementsOutput() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
@@ -1263,6 +852,9 @@ bool FilterGAMTest::TestSetupNumberOfSamplesOutput2() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 10;
@@ -1338,6 +930,9 @@ bool FilterGAMTest::TestSetup0NumberOfElements() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 0;
@@ -1412,6 +1007,9 @@ bool FilterGAMTest::TestSetupFailNumberOfSamples() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 2;
     uint32 numberOfElements = 9;
@@ -1483,6 +1081,9 @@ bool FilterGAMTest::TestSetupDifferentInputOutputSamples() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 9;
@@ -1554,6 +1155,9 @@ bool FilterGAMTest::TestSetupNoInputDimension() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 9;
@@ -1625,6 +1229,9 @@ bool FilterGAMTest::TestSetupWrongInputDimension() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 9;
@@ -1695,6 +1302,9 @@ bool FilterGAMTest::TestSetupNoOutputDimension() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 9;
@@ -1766,6 +1376,9 @@ bool FilterGAMTest::TestSetupWrongOutputDimension() {
     bool ok = config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 9;
@@ -2199,7 +1812,9 @@ bool FilterGAMTest::TestExecuteFIRRampInput2DiffCoef() {
         gamMemoryIn[i] = i + 10;
         //gamMemoryOut[i] = 0;
     }
-    gam.Execute();
+    if (ok) {
+        gam.Execute();
+    }
     for (uint32 i = 1u; i < gam.numberOfElements; i++) {
         refValue = ((i + 10) * 0.6) + (i + 9) * 0.4;
         ok &= IsEqual(gamMemoryOut[i], refValue);
@@ -2338,6 +1953,9 @@ bool FilterGAMTest::TestExecuteIIRConstantDimArray1() {
     bool ok = config.Write("Num", numVec);
     ok = config.Write("Den", denVec);
     ok &= config.Write("ResetInEachState", false);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     uint32 numberOfElements = 1;
     uint32 numberOfSamples = 1;
@@ -3153,7 +2771,7 @@ bool FilterGAMTest::TestResetOnlyWhenRequiredMemoryNotInit() {
         gamMemoryOut1[i] = 0;
     }
     if (ok) {
-        ok &= gam.PrepareNextState("", "A");
+        ok &= !gam.PrepareNextState("", "A");
         ok &= !gam.PrepareNextState("B", "C");
     }
     return ok;
@@ -3171,3 +2789,4 @@ bool FilterGAMTest::MyIsEqual(MARTe::float32 f1,
     return ret;
 }
 
+}

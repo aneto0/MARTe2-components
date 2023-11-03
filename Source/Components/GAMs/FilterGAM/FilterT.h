@@ -62,9 +62,10 @@ public:
     virtual bool GetDenCoeff(void *coeff);
     virtual bool CheckNormalisation();
     virtual float32 GetStaticGainFloat32(bool &isInfinite);
-    virtual float64 GetStaticGain(bool &isInfinite);
-//    virtual int32 GetStaticGain(bool &isInfinite);
-//    virtual int64 GetStaticGain(bool &isInfinite);
+    virtual float64 GetStaticGainFloat64(bool &isInfinite);
+    virtual int32 GetStaticGainInt32(bool &isInfinite);
+    virtual int64 GetStaticGainInt64(bool &isInfinite);
+    //FilterT<T>& operator =(const FilterT<T> &that);
 private:
 
     /**
@@ -141,8 +142,8 @@ FilterT<T>::~FilterT() {
     if (den != NULL_PTR(T*)) {
         delete[] den;
     }
-
 }
+
 template<class T>
 bool FilterT<T>::Initialise(void *numIn,
                             uint32 nOfNumCoeffIn,
@@ -187,6 +188,14 @@ bool FilterT<T>::Initialise(void *numIn,
         }
     }
     if (ok) {
+        lastInputs = new T[nOfNumCoeff];
+        lastOutputs = new T[nOfDenCoeff];
+        ok = (lastInputs != NULL_PTR(T*)) && (lastOutputs != NULL_PTR(T*));
+        if (ok) {
+            ok = Reset();
+        }
+    }
+    if (ok) {
         isInitialised = ok;
     }
     return ok;
@@ -201,6 +210,7 @@ bool FilterT<T>::Reset() {
     }
     return ok;
 }
+
 template<class T>
 void FilterT<T>::Process(void *input,
                          void *output,
@@ -290,6 +300,7 @@ bool FilterT<T>::IsEqualO(float64 a,
                           float64 b) {
     return IsEqual(a, b);
 }
+
 template<class T>
 float32 FilterT<T>::GetStaticGainFloat32(bool &isInfinite) {
     T ret = 0.0;
@@ -299,32 +310,53 @@ float32 FilterT<T>::GetStaticGainFloat32(bool &isInfinite) {
     }
     return ret;
 }
+
 template<class T>
-float64 FilterT<T>::GetStaticGain(bool &isInfinite) {
-    float64 ret = 0.0;
+float64 FilterT<T>::GetStaticGainFloat64(bool &isInfinite) {
+    T ret = 0.0;
     if (isInitialised) {
         ret = staticGain;
         isInfinite = gainInfinite;
     }
     return ret;
 }
+
+template<class T>
+int32 FilterT<T>::GetStaticGainInt32(bool &isInfinite) {
+    T ret = 0.0;
+    if (isInitialised) {
+        ret = staticGain;
+        isInfinite = gainInfinite;
+    }
+    return ret;
+}
+
+template<class T>
+int64 FilterT<T>::GetStaticGainInt64(bool &isInfinite) {
+    T ret = 0.0;
+    if (isInitialised) {
+        ret = staticGain;
+        isInfinite = gainInfinite;
+    }
+    return ret;
+}
+
 //template<class T>
-//int32 FilterT<T>::GetStaticGain(bool &isInfinite) {
-//    int32 ret = 0.0;
-//    if (isInitialised) {
-//        ret = staticGain;
-//        isInfinite = gainInfinite;
+//FilterT<T>& FilterT<T>::operator =(const FilterT<T> &that) {
+//if (this != that) {
+//    if (that->isInitialised) {
+//        this->nOfNumCoeff = that->GetNumberOfNumCoeff();
+//        this->nOfDenCoeff = that->GetNumberOfDenCoeff();
+//        this->num = new T[this->nOfNumCoeff];
+//        this->den = new T[this->nOfDenCoeff];
+//        this->lastInputs = new T[this->nOfNumCoeff];
+//        this->lastOutputs = new T[this->nOfDenCoeff];
+//        this->staticGain = that->staticGain;
+//        this->gainInfinite = that->gainInfinite;
 //    }
-//    return ret;
 //}
-//template<class T>
-//int64 FilterT<T>::GetStaticGain(bool &isInfinite) {
-//    int64 ret = 0.0;
-//    if (isInitialised) {
-//        ret = staticGain;
-//        isInfinite = gainInfinite;
-//    }
-//    return ret;
+//return *this;
 //}
+
 }
 #endif /* SOURCE_COMPONENTS_GAMS_FILTERGAM_FILTERT_H_ */

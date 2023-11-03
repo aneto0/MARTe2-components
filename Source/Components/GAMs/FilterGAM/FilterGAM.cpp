@@ -54,6 +54,7 @@ FilterGAM::FilterGAM() :
     gainInfinite = false;
     resetInEachState = true;
     isInitialised = false;
+    isSetup = false;
 }
 
 FilterGAM::~FilterGAM() {
@@ -292,8 +293,8 @@ bool FilterGAM::Setup() {
     if (ok) {
         uint32 nOfOutputSignals;
         nOfOutputSignals = GetNumberOfOutputSignals();
-        ok = nOfOutputSignals != nOfSignals;
-        if (ok) {
+        ok = nOfOutputSignals == nOfSignals;
+        if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "numberOfOutputSignals = %u != %u = numberOfInputSignals", nOfOutputSignals, nOfSignals);
         }
     }
@@ -303,19 +304,43 @@ bool FilterGAM::Setup() {
         for (uint32 i = 0u; i < nOfSignals && ok; i++) {
             if (filterType == SignedInteger32Bit) {
                 filters[i] = new FilterT<int32>();
-                filters[i] = filterRef;
+                int32 *auxNum = new int32[filterRef->GetNumberOfNumCoeff()];
+                int32 *auxDen = new int32[filterRef->GetNumberOfDenCoeff()];
+                filterRef->GetNumCoeff(auxNum);
+                filterRef->GetDenCoeff(auxDen);
+                filters[i]->Initialise(auxNum, filterRef->GetNumberOfNumCoeff(), auxDen, filterRef->GetNumberOfDenCoeff());
+                delete[] auxNum;
+                delete[] auxDen;
             }
             else if (filterType == SignedInteger64Bit) {
                 filters[i] = new FilterT<int64>();
-                filters[i] = filterRef;
+                int64 *auxNum = new int64[filterRef->GetNumberOfNumCoeff()];
+                int64 *auxDen = new int64[filterRef->GetNumberOfDenCoeff()];
+                filterRef->GetNumCoeff(auxNum);
+                filterRef->GetDenCoeff(auxDen);
+                filters[i]->Initialise(auxNum, filterRef->GetNumberOfNumCoeff(), auxDen, filterRef->GetNumberOfDenCoeff());
+                delete[] auxNum;
+                delete[] auxDen;
             }
             else if (filterType == Float32Bit) {
                 filters[i] = new FilterT<float32>();
-                filters[i] = filterRef;
+                float32 *auxNum = new float32[filterRef->GetNumberOfNumCoeff()];
+                float32 *auxDen = new float32[filterRef->GetNumberOfDenCoeff()];
+                filterRef->GetNumCoeff(auxNum);
+                filterRef->GetDenCoeff(auxDen);
+                filters[i]->Initialise(auxNum, filterRef->GetNumberOfNumCoeff(), auxDen, filterRef->GetNumberOfDenCoeff());
+                delete[] auxNum;
+                delete[] auxDen;
             }
             else if (filterType == Float64Bit) {
                 filters[i] = new FilterT<float64>();
-                filters[i] = filterRef;
+                float64 *auxNum = new float64[filterRef->GetNumberOfNumCoeff()];
+                float64 *auxDen = new float64[filterRef->GetNumberOfDenCoeff()];
+                filterRef->GetNumCoeff(auxNum);
+                filterRef->GetDenCoeff(auxDen);
+                filters[i]->Initialise(auxNum, filterRef->GetNumberOfNumCoeff(), auxDen, filterRef->GetNumberOfDenCoeff());
+                delete[] auxNum;
+                delete[] auxDen;
             }
         }
     }
@@ -508,6 +533,9 @@ bool FilterGAM::Setup() {
     if (numberOfElementsOutput != NULL_PTR(uint32*)) {
         delete[] numberOfElementsOutput;
     }
+    if (ok) {
+        isSetup = true;
+    }
     return ok;
 }
 
@@ -529,7 +557,7 @@ bool FilterGAM::GetResetInEachState() const {
 }
 bool FilterGAM::PrepareNextState(const char8 *const currentStateName,
                                  const char8 *const nextStateName) {
-    bool ret = true;
+    bool ret = isInitialised && isSetup;
     if (resetInEachState) {
         for (uint32 sIdx = 0u; (sIdx < nOfSignals) && ret; sIdx++) {
             ret = filters[sIdx]->Reset();
@@ -617,14 +645,54 @@ bool FilterGAM::CheckNormalisation() const {
     return ok;
 }
 
-float32 FilterGAM::GetStaticGain(bool &isInfinite) {
-    isInfinite = gainInfinite;
-    return filterRef->GetStaticGainFloat32(isInfinite);
+void FilterGAM::GetStaticGain(bool &isInfinite,
+                              float32 &gain) {
+    if (isInitialised) {
+        isInfinite = gainInfinite;
+        gain = filterRef->GetStaticGainFloat32(isInfinite);
+    }
+    else {
+        gain = 0.0;
+        isInfinite = false;
+    }
+    return;
 }
 
-float64 FilterGAM::GetStaticGain(bool &isInfinite) {
-    isInfinite = gainInfinite;
-    return filterRef->GetStaticGain(isInfinite);
+void FilterGAM::GetStaticGain(bool &isInfinite,
+                              float64 &gain) {
+    if (isInitialised) {
+        isInfinite = gainInfinite;
+        gain = filterRef->GetStaticGainFloat64(isInfinite);
+    }
+    else {
+        gain = 0.0;
+        isInfinite = false;
+    }
+    return;
+}
+void FilterGAM::GetStaticGain(bool &isInfinite,
+                              int32 &gain) {
+    if (isInitialised) {
+        isInfinite = gainInfinite;
+        gain = filterRef->GetStaticGainInt32(isInfinite);
+    }
+    else {
+        gain = 0.0;
+        isInfinite = false;
+    }
+    return;
+}
+void FilterGAM::GetStaticGain(bool &isInfinite,
+                              int64 &gain) {
+    if (isInfinite) {
+        isInfinite = gainInfinite;
+        gain = filterRef->GetStaticGainInt64(isInfinite);
+    }
+    else {
+        gain = 0.0;
+        isInfinite = false;
+    }
+    return;
 }
 
 uint32 FilterGAM::GetNumberOfSignals() const {
