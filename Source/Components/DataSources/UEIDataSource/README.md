@@ -3,7 +3,8 @@ UEIDAQ DataSource is a MARTe2 component allowing to interface and configure dire
 
 This brief manual describes the basic operation of the DataSource and how to configure a data acquisition process through a UEIDAQ device
 
-
+# Compilation dependencies
+The UEIDAQ compiler (PPC) and libraries are available in the CODAC NAS (/mnt/nas-syno2/45CODAC-Common/3rdPartySoftware/UEI/ from srv03).
 
 ## DataSource configuration structure
 The UEIDAQ DataSource component itself is a generic datasource which can read and write to DAQ Memory Maps configured for a certain device in MARTe and also acquire single data points via Point-by-Point data acquisition mode.
