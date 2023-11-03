@@ -563,7 +563,7 @@ bool CounterCheckerTest::TestCheck_ReturnFalse() {
         bool aWrite = false;
         uint64 aSample = 128ull;
         ret = !aCounterChecker->Check(reinterpret_cast<uint8 *>(&aSample), aWrite);
-        ret &= aWrite;
+        ret &= !aWrite;
     }
     if (ret) {
         ret = (aCounterChecker->GetAcquireFromCounter() == 1ull);
@@ -621,6 +621,57 @@ bool CounterCheckerTest::TestCheck_ConsecutiveCalls() {
     ObjectRegistryDatabase::Instance()->Purge();
     return ret;
 }
+
+
+bool CounterCheckerTest::TestCheck_ConsecutiveCalls_NSteps() {
+
+    HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StreamString configStream =  counterCheckerTestconfig0;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ret = parser.Parse();
+
+    if (ret) {
+        ret = cdb.MoveAbsolute("+ACounterChecker");
+        ret &= cdb.Write("AcquireFromCounter", "0");
+        ret &= cdb.Write("CounterStep", "2");
+        ret &= cdb.Write("CheckCounterAfterNSteps", "8");
+        ret &= cdb.MoveToRoot();
+    }
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+    if (ret) {
+        god->Purge();
+        ret = god->Initialise(cdb);
+    }
+    ReferenceT<CounterCheckerTestHelper> aCounterChecker;
+    if (ret) {
+        aCounterChecker = ObjectRegistryDatabase::Instance()->Find("ACounterChecker");
+        ret = aCounterChecker.IsValid();
+    }
+    if (ret) {
+        ret = (aCounterChecker->GetPacketCounter() == 2ull);
+        ret &= (aCounterChecker->GetAcquireFromCounter() == 0ull);
+        ret &= (aCounterChecker->GetCounterStep() == 2u);
+        ret &= (aCounterChecker->GetCheckCounterAfterNSteps() == 8u);
+        ret &= (aCounterChecker->GetNextPacketCheck() == 2ull);
+        ret &= (aCounterChecker->GetSampleSize() == 8u);
+        ret &= (aCounterChecker->GetNFrameForSync() == 2u);
+    }
+    uint64 aSample = 0ull;
+    bool aWrite = false;
+    uint32 runs = 13u;
+    for (uint32 i = 0u; (i < runs) && (ret) ; i++) {
+        aSample += aCounterChecker->GetCounterStep();
+        ret = aCounterChecker->Check(reinterpret_cast<uint8 *>(&aSample), aWrite);
+        ret &= aWrite;
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ret;
+}
+
 
 bool CounterCheckerTest::TestSynchronise() {
 
