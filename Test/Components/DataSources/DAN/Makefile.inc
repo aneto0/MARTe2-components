@@ -60,6 +60,7 @@ ifdef CODAC_ROOT
 HDF5_SET_CHANNEL = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -le 60 ]; then echo 1; else echo 0; fi)
 ifeq "$(HDF5_SET_CHANNEL)" "0"
 CPPFLAGS += -DNO_HDF5_SET_CHANNEL
+else
 CPPFLAGS += -DCCS_LT_60
 endif
 endif
