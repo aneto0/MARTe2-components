@@ -27,7 +27,11 @@
 #include "dan/dan_DataCore.h"
 #include "dan/dan_Source.h"
 #include "dan/reader/dan_stream_reader_cpp.h"
+#ifdef CCS_LT_60
+#include <tcn.h>
+#else
 #include <common/TimeTools.h> // ccs::HelperTools::GetCurrentTime, etc.
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -116,7 +120,11 @@ public:CLASS_REGISTER_DECLARATION()
                 ok = (lastElements == elements[n]);
             }
         }
-        absTimeStamp=ccs::HelperTools::GetCurrentTime();
+#ifdef CCS_LT_60
+        (void) (tcn_get_time(&absTimeStamp) == TCN_SUCCESS);
+#else
+        absTimeStamp = ccs::HelperTools::GetCurrentTime();
+#endif
 
         return ok;
     }
@@ -266,7 +274,11 @@ public:CLASS_REGISTER_DECLARATION()
     MARTe::uint32 counter;
     MARTe::uint32 numberOfExecutes;
     MARTe::float32 period;
+#ifdef CCS_LT_60
+    hpn_timestamp_t absTimeStamp;
+#else
     MARTe::uint64 absTimeStamp;
+#endif
 };
 CLASS_REGISTER(DANSourceGAMTriggerTestHelper, "1.0")
 
