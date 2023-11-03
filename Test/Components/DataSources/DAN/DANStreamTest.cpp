@@ -27,7 +27,11 @@
 #include "dan/dan_DataCore.h"
 #include "dan/dan_Source.h"
 #include "dan/reader/dan_stream_reader_cpp.h"
-#include "tcn.h"
+#ifdef CCS_LT_60
+#include <tcn.h>
+#else
+#include <common/TimeTools.h> // ccs::HelperTools::GetCurrentTime, etc.
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -104,19 +108,24 @@ template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = f
         ds.Reset();
 
         ok = ds.OpenStream();
+
+#ifdef CCS_LT_60
         hpn_timestamp_t hpnTimeStamp;
         if (ok) {
-            uint32 j;
             ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
+        }
+#else
+        uint64 hpnTimeStamp = ccs::HelperTools::GetCurrentTime();
+#endif
+        if (ok) {
+            uint32 j;
             if (!useAbsoluteTime) {
-                if (ok) {
                     ds.SetAbsoluteStartTime(hpnTimeStamp);
                     if (useRelativeTime) {
                         for (j = 0; (j < (numberOfWrites + 1)) && (ok); j++) {
                             externalTimeRelativeArr[j] = (j * periodNanos * numberOfSamples / 1000); //Relative time is in us
                         }
                     }
-                }
             }
             else {
                 for (j = 0; (j < (numberOfWrites + 1)) && (ok); j++) {

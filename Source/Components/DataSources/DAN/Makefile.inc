@@ -30,6 +30,7 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 INCLUDES += -I.
+INCLUDES += -I$(CODAC_ROOT)/include
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects

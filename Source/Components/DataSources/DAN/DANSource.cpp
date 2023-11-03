@@ -25,7 +25,11 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#ifdef CCS_LT_60
 #include <tcn.h>
+#else
+#include <common/TimeTools.h> // ccs::HelperTools::GetCurrentTime, etc.
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -45,7 +49,8 @@
 namespace MARTe {
 
 DANSource::DANSource() :
-        DataSourceI(), MessageI() {
+        DataSourceI(),
+        MessageI() {
     storeOnTrigger = false;
     numberOfPreTriggers = 0u;
     numberOfPostTriggers = 0u;
@@ -61,8 +66,9 @@ DANSource::DANSource() :
     useAbsoluteTime = false;
     absoluteStartTime = 0LLU;
     interleave = true;
-    danStreams = NULL_PTR(DANStream **);
-    filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    fullStreamName = false;
+    danStreams = NULL_PTR(DANStream**);
+    filter = ReferenceT < RegisteredMethodsMessageFilter > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
     if (!ret.ErrorsCleared()) {
@@ -72,7 +78,7 @@ DANSource::DANSource() :
 
 /*lint -e{1551} -e{1740} must destroy all the DANStreams in the destructor.*/
 DANSource::~DANSource() {
-    if (danStreams != NULL_PTR(DANStream **)) {
+    if (danStreams != NULL_PTR(DANStream**)) {
         uint32 s;
         for (s = 0u; s < nOfDANStreams; s++) {
             delete danStreams[s];
@@ -92,7 +98,9 @@ uint32 DANSource::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
-bool DANSource::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
+bool DANSource::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                      const uint32 bufferIdx,
+                                      void *&signalAddress) {
     uint32 d;
     bool ok = false;
     if (storeOnTrigger) {
@@ -113,7 +121,7 @@ bool DANSource::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
             ok = true;
         }
     }
-    if (danStreams != NULL_PTR(DANStream **)) {
+    if (danStreams != NULL_PTR(DANStream**)) {
         for (d = 0u; (d < nOfDANStreams) && (!ok); d++) {
             ok = danStreams[d]->GetSignalMemoryBuffer(signalIdx, signalAddress);
         }
@@ -122,8 +130,9 @@ bool DANSource::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction and on the storeOnTrigger property (which is load before).*/
-const char8* DANSource::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
-    const char8* brokerName = "";
+const char8* DANSource::GetBrokerName(StructuredDataI &data,
+                                      const SignalDirection direction) {
+    const char8 *brokerName = "";
     if (direction == OutputSignals) {
         if (storeOnTrigger) {
             brokerName = "MemoryMapAsyncTriggerOutputBroker";
@@ -136,32 +145,33 @@ const char8* DANSource::GetBrokerName(StructuredDataI& data, const SignalDirecti
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: InputBrokers are not supported. Function returns false irrespectively of the parameters.*/
-bool DANSource::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool DANSource::GetInputBrokers(ReferenceContainer &inputBrokers,
+                                const char8 *const functionName,
+                                void *const gamMemPtr) {
     return false;
 }
 
-bool DANSource::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool DANSource::GetOutputBrokers(ReferenceContainer &outputBrokers,
+                                 const char8 *const functionName,
+                                 void *const gamMemPtr) {
     bool ok = true;
     if (storeOnTrigger) {
-        brokerAsyncTrigger = ReferenceT<MemoryMapAsyncTriggerOutputBroker>("MemoryMapAsyncTriggerOutputBroker");
-        ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr,
-                                                              numberOfBuffers, numberOfPreTriggers,
-                                                              numberOfPostTriggers, cpuMask, stackSize);
+        brokerAsyncTrigger = ReferenceT < MemoryMapAsyncTriggerOutputBroker > ("MemoryMapAsyncTriggerOutputBroker");
+        ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
+                                                           numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsyncTrigger);
         }
     }
     else {
-        brokerAsyncOutput = ReferenceT<MemoryMapAsyncOutputBroker> ("MemoryMapAsyncOutputBroker");
-        ok = brokerAsyncOutput->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers,
-                                                   cpuMask, stackSize);
+        brokerAsyncOutput = ReferenceT < MemoryMapAsyncOutputBroker > ("MemoryMapAsyncOutputBroker");
+        ok = brokerAsyncOutput->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsyncOutput);
         }
     }
     return ok;
 }
-
 
 bool DANSource::Synchronise() {
     bool ok = true;
@@ -174,7 +184,8 @@ bool DANSource::Synchronise() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool DANSource::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool DANSource::PrepareNextState(const char8 *const currentStateName,
+                                 const char8 *const nextStateName) {
     uint32 s;
     for (s = 0u; (s < nOfDANStreams); s++) {
         /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
@@ -182,23 +193,26 @@ bool DANSource::PrepareNextState(const char8* const currentStateName, const char
     }
     bool ok = true;
     if (!useAbsoluteTime) {
+
+#ifdef CCS_LT_60
         hpn_timestamp_t hpnTimeStamp;
         ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
         if (ok) {
             absoluteStartTime = static_cast<uint64>(hpnTimeStamp);
-            for (s = 0u; (s < nOfDANStreams); s++) {
-                /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
-                danStreams[s]->SetAbsoluteStartTime(absoluteStartTime);
-            }
         }
-        else {
-            REPORT_ERROR(ErrorManagement::FatalError, "Failed to tcn_get_time");
+#else                                
+        absoluteStartTime = ccs::HelperTools::GetCurrentTime();
+#endif
+
+        for (s = 0u; (s < nOfDANStreams); s++) {
+            /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
+            danStreams[s]->SetAbsoluteStartTime(absoluteStartTime);
         }
     }
     return ok;
 }
 
-bool DANSource::Initialise(StructuredDataI& data) {
+bool DANSource::Initialise(StructuredDataI &data) {
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
         ok = data.Read("NumberOfBuffers", numberOfBuffers);
@@ -236,6 +250,12 @@ bool DANSource::Initialise(StructuredDataI& data) {
         }
         interleave = (interleaveU8 > 0u);
         REPORT_ERROR(ErrorManagement::Information, "Interleave parameter set to %d", interleave ? 1u : 0u);
+
+        uint8 fullStreamNameU8 = 0u;
+        if (!data.Read("FullStreamName", fullStreamNameU8)) {
+            fullStreamNameU8 = 0u;
+        }
+        fullStreamName = (fullStreamNameU8 > 0u);
     }
 
     if (ok) {
@@ -291,12 +311,14 @@ bool DANSource::Initialise(StructuredDataI& data) {
             }
         }
     }
+#ifdef CCS_LT_60
     if (ok) {
         ok = (tcn_init() == TCN_SUCCESS);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Failed to tcn_init");
         }
     }
+#endif
     if (ok) {
         ok = data.MoveRelative("Signals");
         if (!ok) {
@@ -326,7 +348,7 @@ bool DANSource::Initialise(StructuredDataI& data) {
 }
 
 /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
-bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
+bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok) {
         ok = data.MoveRelative("Signals");
@@ -413,14 +435,21 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
                 if (ok) {
                     typeDesc = GetSignalType(n);
                     bool found = false;
+                    bool typeOk = false;
                     uint32 t;
+                    /*lint -e{414} samplingFrequency != 0 is checked above*/
+                    float64 periodNanosF = (1e9 / samplingFrequency);
+                    uint64 periodNanos = static_cast<uint64>(periodNanosF);
                     for (t = 0u; (t < nOfDANStreams) && (!found); t++) {
-                        /*lint -e{414} samplingFrequency != 0 is checked above*/
-                        float64 periodNanosF = (1e9 / samplingFrequency);
-                        uint64 periodNanos = static_cast<uint64>(periodNanosF);
-                        found = (danStreams[t]->GetPeriodNanos() == periodNanos);
+                        if (!typeOk) {
+                            typeOk = (danStreams[t]->GetType() == typeDesc);
+                        }
+                        found = (danStreams[t]->GetType() == typeDesc);
                         if (found) {
-                            found = (danStreams[t]->GetType() == typeDesc);
+                            found = (danStreams[t]->GetPeriodNanos() == periodNanos);
+                        }
+                        if (found) {
+                            found = (danStreams[t]->GetNumberOfSamples() == numberOfElements);
                         }
                         if (found) {
                             danStreams[t]->AddSignal(n);
@@ -428,16 +457,26 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
                     }
                     if (!found) {
                         uint32 nOfDANStreamsP1 = (nOfDANStreams + 1u);
-                        DANStream **newDanStreams = new DANStream *[nOfDANStreamsP1];
+                        DANStream **newDanStreams = new DANStream*[nOfDANStreamsP1];
                         for (t = 0u; t < nOfDANStreams; t++) {
                             newDanStreams[t] = danStreams[t];
                         }
-                        if (danStreams != NULL_PTR(DANStream **)) {
+                        if (danStreams != NULL_PTR(DANStream**)) {
                             delete[] danStreams;
                         }
                         danStreams = newDanStreams;
 
-                        danStreams[nOfDANStreams] = new DANStream(typeDesc, GetName(), danBufferMultiplier, samplingFrequency, numberOfElements, interleave);
+                        StreamString name = GetName();
+                        if ((typeOk) || (fullStreamName)) {
+                            //found another with same type... don't overwrite it... use a different name
+                            name = "";
+                            name.Printf("%s_T%d_N%d", GetName(), periodNanos, numberOfElements);
+                        }
+                        REPORT_ERROR_STATIC(ErrorManagement::Information, "Creating stream %s_%s", name.Buffer(),
+                                            TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDesc));
+
+                        danStreams[nOfDANStreams] = new DANStream(typeDesc, name.Buffer(), danBufferMultiplier, samplingFrequency, numberOfElements,
+                                                                  interleave);
                         danStreams[nOfDANStreams]->AddSignal(n);
                         nOfDANStreams++;
                     }
@@ -520,7 +559,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI& data) {
 
 ErrorManagement::ErrorType DANSource::OpenStream() {
     uint32 t;
-    bool ok = (danStreams != NULL_PTR(DANStream **));
+    bool ok = (danStreams != NULL_PTR(DANStream**));
     for (t = 0u; (t < nOfDANStreams) && (ok); t++) {
         /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
         ok = danStreams[t]->OpenStream();
@@ -532,7 +571,7 @@ ErrorManagement::ErrorType DANSource::OpenStream() {
 
 ErrorManagement::ErrorType DANSource::CloseStream() {
     uint32 t;
-    bool ok = (danStreams != NULL_PTR(DANStream **));
+    bool ok = (danStreams != NULL_PTR(DANStream**));
     for (t = 0u; (t < nOfDANStreams) && (ok); t++) {
         /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
         ok = danStreams[t]->CloseStream();
