@@ -74,6 +74,42 @@ FilterGAM::~FilterGAM() {
         }
         delete[] output;
     }
+    if (filterRef != NULL_PTR(Filter*)) {
+        if (filterType == SignedInteger32Bit) {
+            delete reinterpret_cast<FilterT<int32>*>(filterRef);
+        }
+        else if (filterType == SignedInteger64Bit) {
+            delete reinterpret_cast<FilterT<int64>*>(filterRef);
+        }
+        else if (filterType == Float32Bit) {
+            delete reinterpret_cast<FilterT<float32>*>(filterRef);
+        }
+        else if (filterType == Float64Bit) {
+            delete reinterpret_cast<FilterT<float64>*>(filterRef);
+        }
+        filterRef = NULL_PTR(Filter*);
+    }
+    if (filters != NULL_PTR(Filter**)) {
+        for (uint32 i = 0; i < nOfSignals; i++) {
+            if (filters[i] != NULL_PTR(Filter*)) {
+                if (filterType == SignedInteger32Bit) {
+                    delete reinterpret_cast<FilterT<int32>*>(filters[i]);
+                }
+                else if (filterType == SignedInteger64Bit) {
+                    delete reinterpret_cast<FilterT<int64>*>(filters[i]);
+                }
+                else if (filterType == Float32Bit) {
+                    delete reinterpret_cast<FilterT<float32>*>(filters[i]);
+                }
+                else if (filterType == Float64Bit) {
+                    delete reinterpret_cast<FilterT<float64>*>(filters[i]);
+                }
+                filters[i] = NULL_PTR(Filter*);
+            }
+        }
+        delete[] filters;
+        filters = NULL_PTR(Filter**);
+    }
 }
 
 bool FilterGAM::Initialise(StructuredDataI &data) {
@@ -117,7 +153,7 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
             filterRef = new FilterT<int32>();
         }
         else if (filterType == SignedInteger64Bit) {
-            filterRef = new FilterT<int64>();
+            filterRef = new FilterT<int64>;
         }
         else if (filterType == Float32Bit) {
             filterRef = new FilterT<float32>();
@@ -129,9 +165,9 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
 
     if (ok) { //Read filter coefficients
         uint32 auxNOfNumCoeff = 0u;
-        void *auxNum;
+        void *auxNum = NULL_PTR(void*);
         uint32 auxNOfDenCoeff = 0u;
-        void *auxDen;
+        void *auxDen = NULL_PTR(void*);
         AnyType functionsArrayNum = data.GetType("Num");
         AnyType functionsArrayDen = data.GetType("Den");
         ok = (functionsArrayNum.GetDataPointer() != NULL);
@@ -229,12 +265,44 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
                 ok = false;
             }
         }
+
         if (ok) {
             ok = filterRef->Initialise(auxNum, auxNOfNumCoeff, auxDen, auxNOfDenCoeff);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "filter Initialise failed");
             }
 
+        }
+        if (auxNum != NULL_PTR(void*)) {
+            if (filterType == SignedInteger32Bit) {
+                delete[] reinterpret_cast<int32*>(auxNum);
+            }
+            else if (filterType == SignedInteger64Bit) {
+                delete[] reinterpret_cast<int64*>(auxNum);
+            }
+            else if (filterType == Float64Bit) {
+                delete[] reinterpret_cast<float64*>(auxNum);
+            }
+            else if (filterType == Float32Bit) {
+                delete[] reinterpret_cast<float32*>(auxNum);
+            }
+            auxNum = NULL_PTR(void*);
+        }
+        if (auxDen != NULL_PTR(void*)) {
+            if (filterType == SignedInteger32Bit) {
+                delete[] reinterpret_cast<int32*>(auxDen);
+            }
+            else if (filterType == SignedInteger64Bit) {
+                delete[] reinterpret_cast<int64*>(auxDen);
+            }
+            else if (filterType == Float64Bit) {
+                delete[] reinterpret_cast<float64*>(auxDen);
+            }
+            else if (filterType == Float32Bit) {
+                delete[] reinterpret_cast<float32*>(auxDen);
+            }
+
+            auxDen = NULL_PTR(void*);
         }
     }
     /*
@@ -281,6 +349,7 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
     if (ok) {
         isInitialised = true;
     }
+
     return ok;
 }
 
@@ -396,15 +465,21 @@ bool FilterGAM::Setup() {
             }
         }
         if (ok) {
-            ok = (GetSignalType(InputSignals, i) == Float32Bit);
+            TypeDescriptor auxType = GetSignalType(InputSignals, i);
+            ok = ((auxType == Float32Bit) || (auxType == Float64Bit) || (auxType == SignedInteger32Bit) || (auxType == SignedInteger64Bit));
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "GetSignalType for the input signal %u failed (not float32 as it should be) ", auxIndex);
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                             "GetSignalType for the input signal %u is %s (supported types are int32 | int64 | float32 | float64)", auxIndex,
+                             TypeDescriptor::GetTypeNameFromTypeDescriptor(auxType));
             }
         }
         if (ok) {
-            ok = (GetSignalType(OutputSignals, i) == Float32Bit);
+            TypeDescriptor auxType = GetSignalType(OutputSignals, i);
+            ok = ((auxType == Float32Bit) || (auxType == Float64Bit) || (auxType == SignedInteger32Bit) || (auxType == SignedInteger64Bit));
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "GetSignalType for the input signal %u failed (not float32 as it should be)", auxIndex);
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                             "GetSignalType for the output signal %u is %s (supported types are int32 | int64 | float32 | float64)",
+                             TypeDescriptor::GetTypeNameFromTypeDescriptor(auxType));
             }
         }
     }
