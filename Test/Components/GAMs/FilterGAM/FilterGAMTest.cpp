@@ -52,6 +52,101 @@ FilterGAMTest::FilterGAMTest() {
 FilterGAMTest::~FilterGAMTest() {
 }
 
+bool FilterGAMTest::TestInitialise_GAMInitialiseFail() {
+    FilterGAM gam;
+    ConfigurationDatabase cfg;
+    cfg.CreateRelative("+LLCN");
+    cfg.MoveToRoot();
+    bool ok = !gam.Initialise(cfg);
+    return ok;
+}
+
+bool FilterGAMTest::TestInitialise_ZeroInputSignals() {
+    FilterGAM gam;
+    ConfigurationDatabase cfg;
+    cfg.CreateRelative("InputSignals");
+    cfg.MoveToRoot();
+    bool ok = !gam.Initialise(cfg);
+    return ok;
+}
+
+bool FilterGAMTest::TestInitialise_UnsupportedInputType() {
+    FilterGAM gam;
+    ConfigurationDatabase cfg;
+    cfg.CreateAbsolute("InputSignals.Input0");
+    cfg.Write("Type", "InvalidType");
+    cfg.MoveToRoot();
+    bool ok = !gam.Initialise(cfg);
+    return ok;
+}
+
+bool FilterGAMTest::TestInitialise_WrongFilterCoeff() {
+    using namespace MARTe;
+    FilterGAM gam;
+    gam.SetName("Test");
+    bool ok = true;
+    ConfigurationDatabase config;
+    float32 *num = new float32[2];
+    float32 *den = new float32[1];
+    num[0] = 1;
+    num[1] = 2;
+    den[0] = 0;
+    Vector<float32> numVec(num, 2);
+    Vector<float32> denVec(den, 1);
+    ok &= config.Write("Num", numVec);
+    ok &= config.Write("Den", denVec);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
+    ok &= !gam.Initialise(config);
+    delete[] num;
+    delete[] den;
+    return ok;
+}
+
+bool FilterGAMTest::TestInitialise_WrongRestInEachState() {
+    using namespace MARTe;
+    FilterGAM gam;
+    gam.SetName("Test");
+    bool ok = true;
+    ConfigurationDatabase config;
+    float32 *num = new float32[2];
+    float32 *den = new float32[1];
+    num[0] = 1;
+    num[1] = 2;
+    den[0] = 1;
+    Vector<float32> numVec(num, 2);
+    Vector<float32> denVec(den, 1);
+    ok &= config.Write("ResetInEachState", 2);
+    ok &= config.Write("Num", numVec);
+    ok &= config.Write("Den", denVec);
+    ok &= config.CreateRelative("InputSignals");
+    ok &= config.CreateRelative("Input0");
+    ok &= config.MoveToRoot();
+    ok &= !gam.Initialise(config);
+    delete[] num;
+    delete[] den;
+    return ok;
+}
+
+bool FilterGAMTest::TestInitialise_CheckNormalisationBeforeInitialise() {
+    using namespace MARTe;
+    FilterGAMTestHelper<float32> gam;
+    gam.SetName("Test");
+    bool ok = !gam.CheckNormalisation();
+    return ok;
+}
+
+bool FilterGAMTest::TestInitialise_NoNum() {
+    FilterGAM gam;
+    ConfigurationDatabase cfg;
+    cfg.CreateAbsolute("InputSignals.Input0");
+    cfg.Write("Type", "float64");
+    cfg.MoveToRoot();
+    bool ok = !gam.Initialise(cfg);
+    return ok;
+}
+
 bool FilterGAMTest::TestConstructor() {
     using namespace MARTe;
     FilterGAM gam;
@@ -64,35 +159,34 @@ bool FilterGAMTest::TestConstructor() {
         num[i] = 0;
         den[i] = 0;
     }
-    //try to get the num and denominator vales of the filter
+//try to get the num and denominator vales of the filter
     ok &= !gam.GetNumCoeff(num);
     ok &= !gam.GetDenCoeff(den);
-    //Check that the values are not changed
+//Check that the values are not changed
     for (uint32 i = 0; i < sizeMem; i++) {
         ok &= (num[i] == 0);
         ok &= (den[i] == 0);
     }
     bool isInfinite;
-    //Check that the static gain is 0
+//Check that the static gain is 0
     float32 gainReturn;
     gam.GetStaticGain(isInfinite, gainReturn);
     ok &= 0.0 == gainReturn;
     ok &= !isInfinite;
-    //Check that the number of numerator coefficients is 0
+//Check that the number of numerator coefficients is 0
     ok &= (0 == gam.GetNumberOfNumCoeff());
-    // Idem denominator
+// Idem denominator
     ok &= (0 == gam.GetNumberOfDenCoeff());
-    //Check normalisation
+//Check normalisation
     ok &= !gam.CheckNormalisation();
     ok &= (0 == gam.GetNumberOfSamples());
     ok &= (0 == gam.GetNumberOfSignals());
-    //The constructor initialise resetInEachState = true
+//The constructor initialise resetInEachState = true
     ok &= gam.GetResetInEachState();
     delete[] num;
     delete[] den;
     return ok;
 }
-
 
 bool FilterGAMTest::TestInitialiseNoResetInEachState() {
     using namespace MARTe;
@@ -150,6 +244,8 @@ bool FilterGAMTest::TestInitialiseNoNum() {
     Vector<float32> denVec(den, 1);
     ok &= config.Write("otherNames", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.CreateAbsolute("InputSignals.Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     delete[] num;
     delete[] den;
@@ -169,6 +265,8 @@ bool FilterGAMTest::TestInitialiseWrongNumType() {
     Vector<float32> denVec(den, 1);
     ok &= config.Write("Num", ok);
     ok &= config.Write("Den", denVec);
+    ok &= config.CreateAbsolute("InputSignals.Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     delete[] num;
     delete[] den;
@@ -186,6 +284,8 @@ bool FilterGAMTest::TestInitialiseNoDen() {
     num[1] = 0.5;
     Vector<float32> numVec(num, numberOfNumCoeff);
     bool ok = config.Write("Num", numVec);
+    ok &= config.CreateAbsolute("InputSignals.Input0");
+    ok &= config.MoveToRoot();
     ok &= gam.Initialise(config);
     ok &= (0 == gam.GetNumberOfDenCoeff());
     delete[] num;
@@ -228,6 +328,8 @@ bool FilterGAMTest::TestFailNormalise() {
     Vector<float32> denVec(den, numberOfDenCoeff);
     ok &= config.Write("Num", numVec);
     ok &= config.Write("Den", denVec);
+    ok &= config.CreateAbsolute("InputSignals.Input0");
+    ok &= config.MoveToRoot();
     ok &= !gam.Initialise(config);
     ok &= !gam.CheckNormalisation();
     delete[] num;
@@ -760,7 +862,7 @@ bool FilterGAMTest::TestSetupNumberOfSamplesOutput2() {
     configSignals.Write("DataSource", "TestDataSource");
     configSignals.CreateRelative("Signals");
     configSignals.CreateRelative("0");
-    //Wrong number of output samples
+//Wrong number of output samples
     configSignals.Write("Samples", 2);
 
     configSignals.MoveToRoot();
@@ -796,7 +898,7 @@ bool FilterGAMTest::TestSetup0NumberOfElements() {
     ok &= gam.Initialise(config);
     uint32 numberOfSamples = 1;
     uint32 numberOfElements = 0;
-    //It fake the byteSize, but otherwise memory allocation fails..
+//It fake the byteSize, but otherwise memory allocation fails..
     uint32 byteSize = 1 * sizeof(float32);
     uint32 totalByteSize = byteSize;
     ConfigurationDatabase configSignals;
@@ -1029,7 +1131,7 @@ bool FilterGAMTest::TestSetupNoInputDimension() {
     configSignals.Write("QualifiedName", "InputSignal1");
     configSignals.Write("DataSource", "TestDataSource");
     configSignals.Write("Type", "float32");
-    //configSignals.Write("NumberOfDimensions", 1);
+//configSignals.Write("NumberOfDimensions", 1);
     configSignals.Write("NumberOfElements", numberOfElements);
     configSignals.Write("ByteSize", byteSize);
 
@@ -1189,7 +1291,7 @@ bool FilterGAMTest::TestSetupNoOutputDimension() {
     configSignals.Write("QualifiedName", "OutputSignal1");
     configSignals.Write("DataSource", "TestDataSource");
     configSignals.Write("Type", "float32");
-    //configSignals.Write("NumberOfDimensions", 1);
+//configSignals.Write("NumberOfDimensions", 1);
     configSignals.Write("NumberOfElements", numberOfElements);
     configSignals.Write("ByteSize", byteSize);
 

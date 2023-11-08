@@ -37,6 +37,7 @@
 /*---------------------------------------------------------------------------*/
 #include "CompilerTypes.h"
 #include "Filter.h"
+#include "AdvancedErrorManagement.h"
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
@@ -55,7 +56,7 @@ public:
     virtual bool Reset();
     virtual void Process(void *input,
                          void *output,
-                         uint32 nOflements);
+                         const uint32 nOfElements);
     virtual uint32 GetNumberOfNumCoeff();
     virtual uint32 GetNumberOfDenCoeff();
     virtual bool GetNumCoeff(void *coeff);
@@ -104,8 +105,8 @@ private:
 
     bool isInitialised;
 
-    bool IsEqualO(int32 a,
-                  int32 b);
+    bool IsEqualO(const int32 a,
+                  const int32 b);
     bool IsEqualO(int64 a,
                   int64 b);
     bool IsEqualO(float32 a,
@@ -156,35 +157,39 @@ bool FilterT<T>::Initialise(void *numIn,
         nOfDenCoeff = nOfDenCoeffIn;
         num = new T[nOfNumCoeff];
         den = new T[nOfDenCoeff];
-        ok = MemoryOperationsHelper::Copy(reinterpret_cast<void*>(num), reinterpret_cast<void*>(numIn), sizeof(T) * nOfNumCoeff);
+        ok = MemoryOperationsHelper::Copy(reinterpret_cast<void*>(num), numIn, static_cast<uint32>(sizeof(T)) * nOfNumCoeff);
         if (ok) {
-            ok = MemoryOperationsHelper::Copy(reinterpret_cast<void*>(den), reinterpret_cast<void*>(denIn), sizeof(T) * nOfDenCoeff);
+            ok = MemoryOperationsHelper::Copy(reinterpret_cast<void*>(den), denIn, static_cast<uint32>(sizeof(T)) * nOfDenCoeff);
         }
-        Reset();
+
     }
     if (ok) {
-        if (ok) {
-            T sumNumerator = 0;
-            for (uint32 i = 0u; i < nOfNumCoeff; i++) {
-                //if due to MISRA rules however it is not necessary. At his line the initialization of num is guaranteed b the ok = true...
-                if (num != NULL_PTR(T*)) {
-                    sumNumerator += num[i];
-                }
+        ok = IsEqualO(den[0], static_cast<T>(1));
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::InitialisationError, "The transfer function should be normalised. The den[0] should be 1");
+        }
+    }
+    if (ok) {
+        T sumNumerator = 0;
+        for (uint32 i = 0u; i < nOfNumCoeff; i++) {
+            //if due to MISRA rules however it is not necessary. At his line the initialization of num is guaranteed b the ok = true...
+            if (num != NULL_PTR(T*)) {
+                sumNumerator += num[i];
             }
-            T sumDenominator = 0;
-            for (uint32 i = 0u; i < nOfDenCoeff; i++) {
-                //if due to MISRA rules however it is not necessary. At his line the initialization of den is guaranteed b the ok = true...
-                if (den != NULL_PTR(T*)) {
-                    sumDenominator += den[i];
-                }
+        }
+        T sumDenominator = 0;
+        for (uint32 i = 0u; i < nOfDenCoeff; i++) {
+            //if due to MISRA rules however it is not necessary. At his line the initialization of den is guaranteed b the ok = true...
+            if (den != NULL_PTR(T*)) {
+                sumDenominator += den[i];
             }
-            if (!IsEqualO(sumDenominator, static_cast<T>(0))) {
-                //lint -e{414} sumDenominator cannot be 0.
-                staticGain = sumNumerator / sumDenominator;
-            }
-            else {
-                gainInfinite = true;
-            }
+        }
+        if (!IsEqualO(sumDenominator, static_cast<T>(0))) {
+            //lint -e{414} sumDenominator cannot be 0.
+            staticGain = sumNumerator / sumDenominator;
+        }
+        else {
+            gainInfinite = true;
         }
     }
     if (ok) {
@@ -203,21 +208,25 @@ bool FilterT<T>::Initialise(void *numIn,
 
 template<class T>
 bool FilterT<T>::Reset() {
-    bool ok = (lastInputs != NULL_PTR(T*)) | (lastOutputs != NULL_PTR(T*));
+    bool ok = (lastInputs != NULL_PTR(T*)) || (lastOutputs != NULL_PTR(T*));
     if (ok) {
-        MARTe::MemoryOperationsHelper::Set(lastInputs, static_cast<MARTe::char8>(0), sizeof(T) * nOfNumCoeff);
-        MARTe::MemoryOperationsHelper::Set(lastOutputs, static_cast<MARTe::char8>(0), sizeof(T) * nOfDenCoeff);
+        ok = MARTe::MemoryOperationsHelper::Set(lastInputs, static_cast<MARTe::char8>(0), static_cast<uint32>(sizeof(T)) * nOfNumCoeff);
+        if (ok) {
+            ok = MARTe::MemoryOperationsHelper::Set(lastOutputs, static_cast<MARTe::char8>(0), static_cast<uint32>(sizeof(T)) * nOfDenCoeff);
+        }
     }
     return ok;
 }
 
 template<class T>
+//lint -e{613} Possible use of null pointer --> Process cannot be called if initialised does not succeed.
 void FilterT<T>::Process(void *input,
                          void *output,
-                         uint32 nOfElements) {
+                         const uint32 nOfElements) {
+    //lint -e{613} Possible use of null pointer --> Process cannot be called if initialised does not succeed.
     for (uint32 elIdx = 0; elIdx < nOfElements; elIdx++) {
         lastInputs[0] = reinterpret_cast<T*>(input)[elIdx];
-        lastOutputs[0] = 0.0;
+        lastOutputs[0] = static_cast<T>(0);
         for (MARTe::uint32 i = nOfNumCoeff - 1u; i > 0u; i--) {
             lastOutputs[0] += lastInputs[i] * num[i];
             lastInputs[i] = lastInputs[i - 1u];
@@ -268,7 +277,7 @@ bool FilterT<T>::CheckNormalisation() {
     bool ok;
     if (isInitialised) {
         T aux = static_cast<T>(den[0]);
-        T aux2 = static_cast<T>(0);
+        T aux2 = static_cast<T>(1);
         ok = IsEqualO(aux, aux2);
     }
     else {
@@ -278,8 +287,8 @@ bool FilterT<T>::CheckNormalisation() {
 }
 
 template<class T>
-bool FilterT<T>::IsEqualO(int32 a,
-                          int32 b) {
+bool FilterT<T>::IsEqualO(const int32 a,
+                          const int32 b) {
     return a == b;
 }
 
@@ -303,7 +312,7 @@ bool FilterT<T>::IsEqualO(float64 a,
 
 template<class T>
 float32 FilterT<T>::GetStaticGainFloat32(bool &isInfinite) {
-    T ret = 0.0;
+    float32 ret = 0.0;
     if (isInitialised) {
         ret = staticGain;
         isInfinite = gainInfinite;
@@ -313,7 +322,7 @@ float32 FilterT<T>::GetStaticGainFloat32(bool &isInfinite) {
 
 template<class T>
 float64 FilterT<T>::GetStaticGainFloat64(bool &isInfinite) {
-    T ret = 0.0;
+    float64 ret = 0.0;
     if (isInitialised) {
         ret = staticGain;
         isInfinite = gainInfinite;
@@ -323,7 +332,7 @@ float64 FilterT<T>::GetStaticGainFloat64(bool &isInfinite) {
 
 template<class T>
 int32 FilterT<T>::GetStaticGainInt32(bool &isInfinite) {
-    T ret = 0.0;
+    int32 ret = 0;
     if (isInitialised) {
         ret = staticGain;
         isInfinite = gainInfinite;
@@ -333,30 +342,13 @@ int32 FilterT<T>::GetStaticGainInt32(bool &isInfinite) {
 
 template<class T>
 int64 FilterT<T>::GetStaticGainInt64(bool &isInfinite) {
-    T ret = 0.0;
+    int64 ret = 0;
     if (isInitialised) {
         ret = staticGain;
         isInfinite = gainInfinite;
     }
     return ret;
 }
-
-//template<class T>
-//FilterT<T>& FilterT<T>::operator =(const FilterT<T> &that) {
-//if (this != that) {
-//    if (that->isInitialised) {
-//        this->nOfNumCoeff = that->GetNumberOfNumCoeff();
-//        this->nOfDenCoeff = that->GetNumberOfDenCoeff();
-//        this->num = new T[this->nOfNumCoeff];
-//        this->den = new T[this->nOfDenCoeff];
-//        this->lastInputs = new T[this->nOfNumCoeff];
-//        this->lastOutputs = new T[this->nOfDenCoeff];
-//        this->staticGain = that->staticGain;
-//        this->gainInfinite = that->gainInfinite;
-//    }
-//}
-//return *this;
-//}
 
 }
 #endif /* SOURCE_COMPONENTS_GAMS_FILTERGAM_FILTERT_H_ */

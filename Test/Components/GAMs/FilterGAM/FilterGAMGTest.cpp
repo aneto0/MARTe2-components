@@ -38,14 +38,104 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
+TEST(FilterGAMGTest,TestInitialise_GAMInitialiseFail) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_GAMInitialiseFail());
+}
+
+TEST(FilterGAMGTest,TestInitialise_ZeroInputSignals) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_ZeroInputSignals());
+}
+
+TEST(FilterGAMGTest,TestInitialise_UnsupportedInputType) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_UnsupportedInputType());
+}
+
+TEST(FilterGAMGTest,TestInitialise_NoNum) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_NoNum());
+}
+
+TEST(FilterGAMGTest,TestInitialise_EmptyNumFloat32) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_EmptyNum<float32>());
+}
+
+TEST(FilterGAMGTest,TestInitialise_EmptyNumFloat64) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_EmptyNum<float64>());
+}
+
+TEST(FilterGAMGTest,TestInitialise_EmptyNumInt32) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_EmptyNum<int32>());
+}
+
+TEST(FilterGAMGTest,TestInitialise_EmptyNumInt4) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_EmptyNum<int64>());
+}
+
+TEST(FilterGAMGTest,TestInitialise_EmptyDenFlota32) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_EmptyDen<float32>());
+}
+
+TEST(FilterGAMGTest,TestInitialise_EmptyDenFlota64) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_EmptyDen<float64>());
+}
+
+TEST(FilterGAMGTest,TestInitialise_EmptyDenInt32) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_EmptyDen<int32>());
+}
+
+TEST(FilterGAMGTest,TestInitialise_EmptyDenInt64) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_EmptyDen<int64>());
+}
+
+TEST(FilterGAMGTest,TestInitialise_WrongFilterCoeff) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_WrongFilterCoeff());
+}
+
+TEST(FilterGAMGTest,TestInitialise_WrongRestInEachState) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_WrongRestInEachState());
+}
+
+TEST(FilterGAMGTest,TestInitialise_CheckNormalisationBeforeInitialise) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise_CheckNormalisationBeforeInitialise());
+}
+
 TEST(FilterGAMGTest,TestConstructor) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestConstructor());
 }
 
-TEST(FilterGAMGTest,TestInitialise) {
+TEST(FilterGAMGTest,TestInitialiseFloat32) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestInitialise<float32>());
+}
+
+TEST(FilterGAMGTest,TestInitialiseFloat64) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise<float64>());
+}
+
+TEST(FilterGAMGTest,TestInitialiseInt32) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise<int32>());
+}
+
+TEST(FilterGAMGTest,TestInitialiseInt64) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestInitialise<int64>());
 }
 
 TEST(FilterGAMGTest,TestInitialiseNoResetInEachState) {
@@ -78,9 +168,21 @@ TEST(FilterGAMGTest,TestInitialiseWrongDenType) {
     ASSERT_TRUE(test.TestInitialiseWrongDenType());
 }
 
-TEST(FilterGAMGTest,TestStaticGainFIR) {
+TEST(FilterGAMGTest,TestStaticGainFIRFloat32) {
     FilterGAMTest test;
     ASSERT_TRUE(test.TestStaticGainFIR<float32>());
+}
+TEST(FilterGAMGTest,TestStaticGainFIRFloat64) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestStaticGainFIR<float64>());
+}
+TEST(FilterGAMGTest,TestStaticGainFIRInt32) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestStaticGainFIR<int32>());
+}
+TEST(FilterGAMGTest,TestStaticGainFIRInt64) {
+    FilterGAMTest test;
+    ASSERT_TRUE(test.TestStaticGainFIR<int64>());
 }
 
 TEST(FilterGAMGTest,TestStaticGainIIR) {

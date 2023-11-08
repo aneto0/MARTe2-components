@@ -133,7 +133,8 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
                 if (data.Read("Type", typeStr)) {
                     ok = typeStr == "int32" || typeStr == "int64" || typeStr == "float32" || typeStr == "float64";
                     if (!ok) {
-                        REPORT_ERROR(ErrorManagement::InitialisationError, "Unsupported type = %s. Supported types = int32 | int64 | float32 | float64");
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Unsupported type = %s. Supported types = int32 | int64 | float32 | float64",
+                                     typeStr.Buffer());
                     }
                     if (ok) {
                         filterType = TypeDescriptor::GetTypeDescriptorFromTypeName(typeStr.Buffer());
@@ -143,9 +144,13 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
                     REPORT_ERROR(ErrorManagement::Warning, "Type for signal 0 not specified. Using default float32");
                     filterType = TypeDescriptor::GetTypeDescriptorFromTypeName("float32");
                 }
+                if (ok) {
+                    ok = data.MoveToAncestor(1u);
+                }
+            }
+            if (ok) {
                 ok = data.MoveToAncestor(1u);
             }
-            ok = data.MoveToAncestor(1u);
         }
     }
     if (ok) {
@@ -172,7 +177,7 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
         AnyType functionsArrayDen = data.GetType("Den");
         ok = (functionsArrayNum.GetDataPointer() != NULL);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Error getting pointer to the numerator");
+            REPORT_ERROR(ErrorManagement::InitialisationError, "Error getting pointer to the numerator. Is Num defined?");
         }
         if (ok) {
             auxNOfNumCoeff = functionsArrayNum.GetNumberOfElements(0u);
@@ -185,7 +190,7 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
         if (ok) {
             ok = (functionsArrayDen.GetDataPointer() != NULL);
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::InitialisationError, "Error getting pointer to the denominator");
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Error getting pointer to the denominator. Is Den defined?");
             }
         }
         if (ok) {
@@ -305,30 +310,6 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
             auxDen = NULL_PTR(void*);
         }
     }
-    /*
-     if (ok) {
-     float32 sumNumerator = 0.0F;
-     for (uint32 i = 0u; i < numberOfNumCoeff; i++) {
-     //if due to MISRA rules however it is not necessary. At his line the initialization of num is guaranteed b the ok = true...
-     if (num != NULL_PTR(float32*)) {
-     sumNumerator += num[i];
-     }
-     }
-     float32 sumDenominator = 0.0F;
-     for (uint32 i = 0u; i < numberOfDenCoeff; i++) {
-     //if due to MISRA rules however it is not necessary. At his line the initialization of den is guaranteed b the ok = true...
-     if (den != NULL_PTR(float32*)) {
-     sumDenominator += den[i];
-     }
-     }
-     if (!IsEqual(sumDenominator, 0.0F)) {
-     //lint -e{414} sumDenominator cannot be 0.
-     staticGain = sumNumerator / sumDenominator;
-     }
-     else {
-     gainInfinite = true;
-     }
-     }*/
     if (ok) {
         uint32 aux;
         if (!data.Read("ResetInEachState", aux)) {
@@ -342,6 +323,7 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
                 resetInEachState = false;
             }
             else {
+                ok = false;
                 REPORT_ERROR(ErrorManagement::InitialisationError, "Wrong value for ResetInEachState (expected values 0 or 1)");
             }
         }
@@ -759,7 +741,7 @@ void FilterGAM::GetStaticGain(bool &isInfinite,
 }
 void FilterGAM::GetStaticGain(bool &isInfinite,
                               int64 &gain) {
-    if (isInfinite) {
+    if (isInitialised) {
         isInfinite = gainInfinite;
         gain = filterRef->GetStaticGainInt64(isInfinite);
     }

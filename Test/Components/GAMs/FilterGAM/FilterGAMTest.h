@@ -52,6 +52,53 @@ public:
     virtual ~FilterGAMTest();
 
     /**
+     * @brief Test initialise on error
+     */
+    bool TestInitialise_GAMInitialiseFail();
+
+    /**
+     * @brief Test initialise on error
+     */
+    bool TestInitialise_ZeroInputSignals();
+
+    /**
+     * @brief Test initialise on error
+     */
+    bool TestInitialise_UnsupportedInputType();
+
+    /**
+     * @brief Test initialise on error
+     */
+    bool TestInitialise_NoNum();
+
+    /**
+     * @brief Test initialise on error
+     */
+    template<typename T>
+    bool TestInitialise_EmptyNum();
+
+    /**
+     * @brief Test initialise on error
+     */
+    template<typename T>
+    bool TestInitialise_EmptyDen();
+
+    /**
+     * @brief Test initialise on error
+     */
+    bool TestInitialise_WrongFilterCoeff();
+
+    /**
+     * @brief Test initialise on error
+     */
+    bool TestInitialise_WrongRestInEachState();
+
+    /**
+     * @brief Test initialise on error
+     */
+    bool TestInitialise_CheckNormalisationBeforeInitialise();
+
+    /**
      * @brief Tests default constructor.
      * @details checks all the post conditions
      */
@@ -480,6 +527,40 @@ private:
 };
 
 template<typename T>
+bool FilterGAMTest::TestInitialise_EmptyNum() {
+    using namespace MARTe;
+    FilterGAMTestHelper<T> gam;
+    ConfigurationDatabase cfg;
+    cfg.CreateAbsolute("InputSignals.Input0");
+    T auxVar = 0;
+    StreamString auxStr = gam.GetTypeString(auxVar);
+    cfg.Write("Type", auxStr.Buffer());
+    cfg.MoveToRoot();
+    cfg.Write("Num", "");
+    cfg.Write("Den", "");
+    bool ok = !gam.Initialise(cfg);
+    return ok;
+}
+
+template<typename T>
+bool FilterGAMTest::TestInitialise_EmptyDen() {
+    using namespace MARTe;
+    FilterGAMTestHelper<T> gam;
+    ConfigurationDatabase cfg;
+    cfg.CreateAbsolute("InputSignals.Input0");
+    T auxVar = 0;
+    StreamString auxStr = gam.GetTypeString(auxVar);
+    cfg.Write("Type", auxStr.Buffer());
+    cfg.MoveToRoot();
+    Vector<T> auxVec(1);
+    auxVec[0] = 1;
+    cfg.Write("Num", auxVec);
+    cfg.Write("Den", "");
+    bool ok = !gam.Initialise(cfg);
+    return ok;
+}
+
+template<typename T>
 bool FilterGAMTest::TestInitialise() {
     using namespace MARTe;
     FilterGAMTestHelper<T> gam;
@@ -512,7 +593,7 @@ bool FilterGAMTest::TestInitialise() {
         ok &= (retDen[i] == gam.denH[i]);
     }
     bool isInfinite;
-    float32 gainReturn;
+    T gainReturn;
     gam.GetStaticGain(isInfinite, gainReturn);
     ok &= (2 == gainReturn);
     ok &= !isInfinite;
@@ -521,6 +602,7 @@ bool FilterGAMTest::TestInitialise() {
     ok &= !gam.GetResetInEachState();
     delete[] retNum;
     delete[] retDen;
+    ok &= gam.CheckNormalisation();
     return ok;
 }
 
@@ -528,16 +610,17 @@ template<typename T>
 bool FilterGAMTest::TestStaticGainFIR() {
     using namespace MARTe;
     FilterGAMTestHelper<T> gam;
+    T gainReturn;
+    bool isInfinite = true;
     gam.SetName("Test");
     bool ok = true;
-
+    gam.GetStaticGain(isInfinite, gainReturn);
     ok &= gam.InitialiseFilterFIR();
     ok &= gam.Initialise(gam.config);
     //Check static gain
-    bool isInfinite = true;
-    float32 gainReturn;
+
     gam.GetStaticGain(isInfinite, gainReturn);
-    ok &= (2 == gainReturn);
+    ok &= (static_cast<T>(2) == gainReturn);
     ok &= !isInfinite;
 
     return ok;

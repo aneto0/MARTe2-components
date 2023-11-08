@@ -49,7 +49,7 @@ public:
                             uint32 nOfDenCoeffIn) = 0;
     virtual void Process(void *input,
                          void *output,
-                         uint32 nOfElements) = 0;
+                         const uint32 nOfElements) = 0;
     virtual bool Reset() = 0;
     virtual uint32 GetNumberOfNumCoeff() = 0;
     virtual uint32 GetNumberOfDenCoeff() = 0;
