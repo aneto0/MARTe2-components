@@ -64,11 +64,12 @@ namespace MARTe {
  *
  * The GAM supports multiple input signals (and output signals) only if the characteristics of the input arrays are the same
  * (i.e. The input signals have the same number of elements, the same number of samples and the same type). The GAM allows (Samples > 1 && NumberOfElements = 1) || (Samples = 1 && NumberOfElements >1),
- * but (Samples && NumberOfelements) > 1 simultaneous.
+ * but (Samples && NumberOfelements) > 1 simultaneous. For each input a FilterT is created, but all the filters uses the same coefficients. THe FilterT hold the coefficients to apply and the last
+ * input/output values.
  *
  * The inputs and outputs must be arrays (could be arrays of 1 elements).
  *
- * The class holds the coefficients and the last states for the next iteration. The filter can be reset (see PrepareNextState())
+ * The filter can be reset (see PrepareNextState())
  *
  * Moreover the function offers the method StaticGain() in order to make available the real gain of the filter (after converting into appropriate type, only relevant for floating point).
  *
@@ -87,7 +88,7 @@ namespace MARTe {
  *     InputSignals = {
  *         InputSignal1 = { //Filter will be applied to each signal. The number of input and output signals must be the same.
  *             DataSource = "DDB1"
- *             Type = float32 //Only supported type.
+ *             Type = float32 // Also float64 | int32 | int64 are possible.
  *         }
  *         InputSignal2 = {
  *             DataSource = "DDB1"
@@ -136,9 +137,7 @@ public:
 
     /**
      * @brief Initialise the GAM from a configuration file.
-     * @details Allocates memory for the numerator and denominator coefficients and load their values.
-     * Allocates memory for the last input and output values (final state)
-     * Checks that the coefficients are normalised.
+     * @details Allocates memory for the filterRef and initialise the filter class.
      * @param[in] data the GAM configuration.
      * @return true on succeed
      * @pre
@@ -165,7 +164,7 @@ public:
 
     /**
      * @brief Setup the inputs and the outputs of the GAM. Additionally, it verifies the correctness and consistency of the parameters.
-     * @details Checks that the input and output pointers are correctly obtained and the number of input and
+     * @details Initialise one filterT for each input signal, checks that the input and output pointers are correctly obtained and the number of input and
      * output parameters are equal and non zero.
      * @return true if all the parameters are specified as described in the class description.
      * @pre
@@ -176,8 +175,6 @@ public:
      *   GetNumberOfSignals() = numberOfSignals &&
      *   input != NULL &&
      *   output != NULL &&
-     *   lastInputs != NULL &&
-     *   lastOutputs != NULL
      */
     virtual bool Setup();
 
@@ -269,12 +266,35 @@ public:
      * @param[in] isInfinite indicates if the gain is infinite.
      * @return the staticGain.
      */
-    void GetStaticGain(bool &isInfinite, float32 &gain);
+    void GetStaticGain(bool &isInfinite,
+                       float32 &gain);
 
-    void GetStaticGain(bool &isInfinite, float64 &gain);
+    /**
+     * @brief Gets the filter static gain value.
+     * @details staticGain= SUM(num)/SUM(den). If the gain is infinite the static gain is 0 and the variable isInfinite is set true
+     * @param[in] isInfinite indicates if the gain is infinite.
+     * @return the staticGain.
+     */
+    void GetStaticGain(bool &isInfinite,
+                       float64 &gain);
 
-    void GetStaticGain(bool &isInfinite, int32 &gain);
-    void GetStaticGain(bool &isInfinite, int64 &gain);
+    /**
+     * @brief Gets the filter static gain value.
+     * @details staticGain= SUM(num)/SUM(den). If the gain is infinite the static gain is 0 and the variable isInfinite is set true
+     * @param[in] isInfinite indicates if the gain is infinite.
+     * @return the staticGain.
+     */
+    void GetStaticGain(bool &isInfinite,
+                       int32 &gain);
+
+    /**
+     * @brief Gets the filter static gain value.
+     * @details staticGain= SUM(num)/SUM(den). If the gain is infinite the static gain is 0 and the variable isInfinite is set true
+     * @param[in] isInfinite indicates if the gain is infinite.
+     * @return the staticGain.
+     */
+    void GetStaticGain(bool &isInfinite,
+                       int64 &gain);
     /**
      * @brief Query the number of samples for each signal.
      * @return the number of samples.
@@ -291,17 +311,25 @@ public:
 
 private:
 
+    /**
+     * FilterRef is the filter initialised in the initialise and will be used to initialise the rest of the filters.
+     */
     Filter *filterRef;
 
+    /**
+     * Arry of filters one for each input signal. All filters has the same coefficients.
+     */
     Filter **filters;
 
+    /**
+     * Holds the type of the filter. All inputs/outputs shall have the same type.
+     */
     TypeDescriptor filterType;
 
     /**
      * Holds the the static gain of the filter computed from its coefficients
      */
 //    float32 staticGain;
-
     /**
      * Array of pointers to the input buffers
      */
@@ -322,8 +350,14 @@ private:
      */
     uint32 nOfSignals;
 
+    /**
+     * Indicates if the Initialise functions succeeded. If Initialised was not called -> isInitialised = false.
+     */
     bool isInitialised;
 
+    /**
+     * Indicates if Setup functions succeeded. If Setup was not called isSetup = false.
+     */
     bool isSetup;
 
     /**

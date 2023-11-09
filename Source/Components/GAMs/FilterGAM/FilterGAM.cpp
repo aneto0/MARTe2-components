@@ -75,37 +75,38 @@ FilterGAM::~FilterGAM() {
         delete[] output;
     }
     if (filterRef != NULL_PTR(Filter*)) {
-        if (filterType == SignedInteger32Bit) {
-            delete reinterpret_cast<FilterT<int32>*>(filterRef);
-        }
-        else if (filterType == SignedInteger64Bit) {
-            delete reinterpret_cast<FilterT<int64>*>(filterRef);
-        }
-        else if (filterType == Float32Bit) {
-            delete reinterpret_cast<FilterT<float32>*>(filterRef);
-        }
-        else if (filterType == Float64Bit) {
-            delete reinterpret_cast<FilterT<float64>*>(filterRef);
-        }
+        //lint -e{1551} Function may throw exception. No exceptions are managed
+        delete filterRef;
         filterRef = NULL_PTR(Filter*);
+
     }
+
+//    if (filters != NULL_PTR(Filter**)) {
+//        for (uint32 i = 0; i < nOfSignals; i++) {
+//            if (filters[i] != NULL_PTR(Filter*)) {
+//                if (filterType == SignedInteger32Bit) {
+//                    delete reinterpret_cast<FilterT<int32>*>(filters[i]);
+//                }
+//                else if (filterType == SignedInteger64Bit) {
+//                    delete reinterpret_cast<FilterT<int64>*>(filters[i]);
+//                }
+//                else if (filterType == Float32Bit) {
+//                    delete reinterpret_cast<FilterT<float32>*>(filters[i]);
+//                }
+//                else if (filterType == Float64Bit) {
+//                    delete reinterpret_cast<FilterT<float64>*>(filters[i]);
+//                }
+//                filters[i] = NULL_PTR(Filter*);
+//            }
+//        }
+//        delete[] filters;
+//        filters = NULL_PTR(Filter**);
+//    }
     if (filters != NULL_PTR(Filter**)) {
-        for (uint32 i = 0; i < nOfSignals; i++) {
-            if (filters[i] != NULL_PTR(Filter*)) {
-                if (filterType == SignedInteger32Bit) {
-                    delete reinterpret_cast<FilterT<int32>*>(filters[i]);
-                }
-                else if (filterType == SignedInteger64Bit) {
-                    delete reinterpret_cast<FilterT<int64>*>(filters[i]);
-                }
-                else if (filterType == Float32Bit) {
-                    delete reinterpret_cast<FilterT<float32>*>(filters[i]);
-                }
-                else if (filterType == Float64Bit) {
-                    delete reinterpret_cast<FilterT<float64>*>(filters[i]);
-                }
-                filters[i] = NULL_PTR(Filter*);
-            }
+        for (uint32 i = 0u; i < nOfSignals; i++) {
+            //lint -e{1551} Function may throw exception. No exceptions are managed
+            delete filters[i];
+            filters[i] = NULL_PTR(Filter*);
         }
         delete[] filters;
         filters = NULL_PTR(Filter**);
@@ -131,7 +132,8 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
             if (ok) {
                 StreamString typeStr;
                 if (data.Read("Type", typeStr)) {
-                    ok = typeStr == "int32" || typeStr == "int64" || typeStr == "float32" || typeStr == "float64";
+                    //lint -e{9007} side effects on right hand of logical operator, ''||'' [MISRA C++ Rule 5-14-1]. The string comparison has not side effect
+                    ok = (((typeStr == "int32") || (typeStr == "int64")) || (typeStr == "float32")) || (typeStr == "float64");
                     if (!ok) {
                         REPORT_ERROR(ErrorManagement::InitialisationError, "Unsupported type = %s. Supported types = int32 | int64 | float32 | float64",
                                      typeStr.Buffer());
@@ -165,6 +167,9 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
         }
         else if (filterType == Float64Bit) {
             filterRef = new FilterT<float64>();
+        }
+        else { //nothing to do. Previously checked, but misra complines
+
         }
     }
 
@@ -272,6 +277,7 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
         }
 
         if (ok) {
+            //lint -e{613} Possible use of null pointer 'MARTe::FilterGAM::filterRef' in left argument to operator '->'. Not possible since right initialisation is assessed in the if(ok).
             ok = filterRef->Initialise(auxNum, auxNOfNumCoeff, auxDen, auxNOfDenCoeff);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::InitialisationError, "filter Initialise failed");
@@ -291,7 +297,9 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
             else if (filterType == Float32Bit) {
                 delete[] reinterpret_cast<float32*>(auxNum);
             }
-            auxNum = NULL_PTR(void*);
+            else { //nothing to do. Lint complains...
+
+            }
         }
         if (auxDen != NULL_PTR(void*)) {
             if (filterType == SignedInteger32Bit) {
@@ -306,9 +314,11 @@ bool FilterGAM::Initialise(StructuredDataI &data) {
             else if (filterType == Float32Bit) {
                 delete[] reinterpret_cast<float32*>(auxDen);
             }
+            else { //nothing to do. Lint complains...
 
-            auxDen = NULL_PTR(void*);
+            }
         }
+        //lint -e{593} Custodial pointer 'auxDen' and ' auxNum' (line 178) possibly not freed or returned. No possbile all cases covered
     }
     if (ok) {
         uint32 aux;
@@ -352,14 +362,19 @@ bool FilterGAM::Setup() {
 //initialise all filters
     if (ok) {
         filters = new Filter*[nOfSignals];
-        for (uint32 i = 0u; i < nOfSignals && ok; i++) {
+        //lint -e{613} Possible use of null pointer. Not possible. The initialisations is guaranteed by the if(ok)
+        for (uint32 i = 0u; (i < nOfSignals) && ok; i++) {
             if (filterType == SignedInteger32Bit) {
                 filters[i] = new FilterT<int32>();
                 int32 *auxNum = new int32[filterRef->GetNumberOfNumCoeff()];
                 int32 *auxDen = new int32[filterRef->GetNumberOfDenCoeff()];
-                filterRef->GetNumCoeff(auxNum);
-                filterRef->GetDenCoeff(auxDen);
-                filters[i]->Initialise(auxNum, filterRef->GetNumberOfNumCoeff(), auxDen, filterRef->GetNumberOfDenCoeff());
+                ok = filterRef->GetNumCoeff(auxNum);
+                if (ok) {
+                    ok = filterRef->GetDenCoeff(auxDen);
+                }
+                if (ok) {
+                    ok = filters[i]->Initialise(auxNum, filterRef->GetNumberOfNumCoeff(), auxDen, filterRef->GetNumberOfDenCoeff());
+                }
                 delete[] auxNum;
                 delete[] auxDen;
             }
@@ -367,9 +382,13 @@ bool FilterGAM::Setup() {
                 filters[i] = new FilterT<int64>();
                 int64 *auxNum = new int64[filterRef->GetNumberOfNumCoeff()];
                 int64 *auxDen = new int64[filterRef->GetNumberOfDenCoeff()];
-                filterRef->GetNumCoeff(auxNum);
-                filterRef->GetDenCoeff(auxDen);
-                filters[i]->Initialise(auxNum, filterRef->GetNumberOfNumCoeff(), auxDen, filterRef->GetNumberOfDenCoeff());
+                ok = filterRef->GetNumCoeff(auxNum);
+                if (ok) {
+                    ok = filterRef->GetDenCoeff(auxDen);
+                }
+                if (ok) {
+                    ok = filters[i]->Initialise(auxNum, filterRef->GetNumberOfNumCoeff(), auxDen, filterRef->GetNumberOfDenCoeff());
+                }
                 delete[] auxNum;
                 delete[] auxDen;
             }
@@ -377,9 +396,13 @@ bool FilterGAM::Setup() {
                 filters[i] = new FilterT<float32>();
                 float32 *auxNum = new float32[filterRef->GetNumberOfNumCoeff()];
                 float32 *auxDen = new float32[filterRef->GetNumberOfDenCoeff()];
-                filterRef->GetNumCoeff(auxNum);
-                filterRef->GetDenCoeff(auxDen);
-                filters[i]->Initialise(auxNum, filterRef->GetNumberOfNumCoeff(), auxDen, filterRef->GetNumberOfDenCoeff());
+                ok = filterRef->GetNumCoeff(auxNum);
+                if (ok) {
+                    ok = filterRef->GetDenCoeff(auxDen);
+                }
+                if (ok) {
+                    ok = filters[i]->Initialise(auxNum, filterRef->GetNumberOfNumCoeff(), auxDen, filterRef->GetNumberOfDenCoeff());
+                }
                 delete[] auxNum;
                 delete[] auxDen;
             }
@@ -387,11 +410,17 @@ bool FilterGAM::Setup() {
                 filters[i] = new FilterT<float64>();
                 float64 *auxNum = new float64[filterRef->GetNumberOfNumCoeff()];
                 float64 *auxDen = new float64[filterRef->GetNumberOfDenCoeff()];
-                filterRef->GetNumCoeff(auxNum);
-                filterRef->GetDenCoeff(auxDen);
-                filters[i]->Initialise(auxNum, filterRef->GetNumberOfNumCoeff(), auxDen, filterRef->GetNumberOfDenCoeff());
+                ok = filterRef->GetNumCoeff(auxNum);
+                if (ok) {
+                    ok = filterRef->GetDenCoeff(auxDen);
+                }
+                if (ok) {
+                    ok = filters[i]->Initialise(auxNum, filterRef->GetNumberOfNumCoeff(), auxDen, filterRef->GetNumberOfDenCoeff());
+                }
                 delete[] auxNum;
                 delete[] auxDen;
+            }else{//Nothing to do. Misra rules..
+
             }
         }
     }
@@ -416,7 +445,8 @@ bool FilterGAM::Setup() {
         }
     }
 //Read input-output samples and elements for each signal.
-    for (uint32 i = 0u; i < nOfSignals && ok; i++) {
+    //lint -e{613} Possible use of null pointer. Not possible. The correct initialisation is guaranteed by the ok == true
+    for (uint32 i = 0u; (i < nOfSignals) && ok; i++) {
         uint32 auxIndex = i;
         ok = GetSignalNumberOfSamples(InputSignals, i, nOfSamplesInput[i]);
         if (!ok) {
@@ -448,6 +478,7 @@ bool FilterGAM::Setup() {
         }
         if (ok) {
             TypeDescriptor auxType = GetSignalType(InputSignals, i);
+            //lint -e{9007} side effects on right hand of logical operator, ''||'' [MISRA C++ Rule 5-14-1]. the string comparison does not have side effects
             ok = ((auxType == Float32Bit) || (auxType == Float64Bit) || (auxType == SignedInteger32Bit) || (auxType == SignedInteger64Bit));
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError,
@@ -457,6 +488,7 @@ bool FilterGAM::Setup() {
         }
         if (ok) {
             TypeDescriptor auxType = GetSignalType(OutputSignals, i);
+            //lint -e{9007} side effects on right hand of logical operator, ''||'' [MISRA C++ Rule 5-14-1]. the string comparison does not have side effects
             ok = ((auxType == Float32Bit) || (auxType == Float64Bit) || (auxType == SignedInteger32Bit) || (auxType == SignedInteger64Bit));
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError,
@@ -540,9 +572,11 @@ bool FilterGAM::Setup() {
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "GetSignalNumberOfDimensions for InputSignals fails");
             }
-            ok = (inputDimension == 1u);
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "InputDimension = %u. It must be 1 (array)", inputDimension);
+            if (ok) {
+                ok = (inputDimension == 1u);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "InputDimension = %u. It must be 1 (array)", inputDimension);
+                }
             }
         }
     }
@@ -596,8 +630,9 @@ bool FilterGAM::Setup() {
     return ok;
 }
 
+//lint -e{613} Possible use of null pointer. Not possible Execute only called if initalise and setup succeeds.
 bool FilterGAM::Execute() {
-    for (uint32 sIdx = 0; sIdx < nOfSignals; sIdx++) {
+    for (uint32 sIdx = 0u; sIdx < nOfSignals; sIdx++) {
         //for (uint32 elIdx = 0; elIdx < nOfSamples; elIdx++) {
         filters[sIdx]->Process(input[sIdx], output[sIdx], nOfSamples);
         //}
@@ -612,6 +647,7 @@ bool FilterGAM::Execute() {
 bool FilterGAM::GetResetInEachState() const {
     return resetInEachState;
 }
+//lint -e{613} Possible use of null pointer. Not possible PrepareNextState only called if initalise and setup succeeds.
 bool FilterGAM::PrepareNextState(const char8 *const currentStateName,
                                  const char8 *const nextStateName) {
     bool ret = isInitialised && isSetup;
@@ -652,7 +688,7 @@ bool FilterGAM::PrepareNextState(const char8 *const currentStateName,
     }
     return ret;
 }
-
+//lint -e{613} Possible use of null pointer. Not possible protected by is Initailised.
 uint32 FilterGAM::GetNumberOfNumCoeff() const {
     uint32 ret = 0u;
     if (isInitialised) {
@@ -660,7 +696,7 @@ uint32 FilterGAM::GetNumberOfNumCoeff() const {
     }
     return ret;
 }
-
+//lint -e{613} Possible use of null pointer. Not possible protected by isInitailised.
 uint32 FilterGAM::GetNumberOfDenCoeff() const {
     uint32 ret = 0u;
     if (isInitialised) {
@@ -668,7 +704,7 @@ uint32 FilterGAM::GetNumberOfDenCoeff() const {
     }
     return ret;
 }
-
+//lint -e{613} Possible use of null pointer. Not possible protected by isInitailised.
 bool FilterGAM::GetNumCoeff(void *const coeff) const {
     bool ok;
     if (isInitialised) {
@@ -679,7 +715,7 @@ bool FilterGAM::GetNumCoeff(void *const coeff) const {
     }
     return ok;
 }
-
+//lint -e{613} Possible use of null pointer. Not possible protected by isInitailised.
 bool FilterGAM::GetDenCoeff(void *const coeff) const {
     bool ok;
     if (isInitialised) {
@@ -690,7 +726,7 @@ bool FilterGAM::GetDenCoeff(void *const coeff) const {
     }
     return ok;
 }
-
+//lint -e{613} Possible use of null pointer. Not possible protected by isInitailised.
 bool FilterGAM::CheckNormalisation() const {
     bool ok;
     if (isInitialised) {
@@ -701,7 +737,7 @@ bool FilterGAM::CheckNormalisation() const {
     }
     return ok;
 }
-
+//lint -e{613} Possible use of null pointer. Not possible protected by isInitailised.
 void FilterGAM::GetStaticGain(bool &isInfinite,
                               float32 &gain) {
     if (isInitialised) {
@@ -709,12 +745,12 @@ void FilterGAM::GetStaticGain(bool &isInfinite,
         gain = filterRef->GetStaticGainFloat32(isInfinite);
     }
     else {
-        gain = 0.0;
+        gain = 0.0F;
         isInfinite = false;
     }
     return;
 }
-
+//lint -e{613} Possible use of null pointer. Not possible protected by isInitailised.
 void FilterGAM::GetStaticGain(bool &isInfinite,
                               float64 &gain) {
     if (isInitialised) {
@@ -727,6 +763,7 @@ void FilterGAM::GetStaticGain(bool &isInfinite,
     }
     return;
 }
+//lint -e{613} Possible use of null pointer. Not possible protected by isInitailised.
 void FilterGAM::GetStaticGain(bool &isInfinite,
                               int32 &gain) {
     if (isInitialised) {
@@ -734,11 +771,12 @@ void FilterGAM::GetStaticGain(bool &isInfinite,
         gain = filterRef->GetStaticGainInt32(isInfinite);
     }
     else {
-        gain = 0.0;
+        gain = 0;
         isInfinite = false;
     }
     return;
 }
+//lint -e{613} Possible use of null pointer. Not possible protected by isInitailised.
 void FilterGAM::GetStaticGain(bool &isInfinite,
                               int64 &gain) {
     if (isInitialised) {
@@ -746,7 +784,7 @@ void FilterGAM::GetStaticGain(bool &isInfinite,
         gain = filterRef->GetStaticGainInt64(isInfinite);
     }
     else {
-        gain = 0.0;
+        gain = 0;
         isInfinite = false;
     }
     return;
