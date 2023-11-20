@@ -23,7 +23,7 @@
 # $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
 #
 #############################################################
-OBJSX=FilterGAM.x
+OBJSX=FilterGAM.x Filter.x
 
 PACKAGE=Components/GAMs
 

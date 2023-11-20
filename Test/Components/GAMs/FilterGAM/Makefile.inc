@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  FilterGAMTest.x
+OBJSX +=  FilterGAMTest.x FilterGAMTestHelper.x
 		
 PACKAGE=Components/GAMs
 ROOT_DIR=../../../..
