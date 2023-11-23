@@ -49,7 +49,8 @@ public:
     /**
      * @see ConversionHelper::ConversionHelper
      */
-    ConversionHelperT(const void * inputMemoryIn, void * outputMemoryIn);
+    ConversionHelperT(const void *inputMemoryIn,
+                      void *outputMemoryIn);
 
     /**
      * @brief Default destructor. NOOP.
@@ -67,16 +68,25 @@ public:
      */
     virtual bool LoadGain(StructuredDataI &data);
 
+    /**
+     * @see ConversionHelper::LoadOffset.
+     */
+    virtual void LoadOffset(StructuredDataI &data);
+
 private:
     /**
      * True if the Gain parameter was defined.
      */
-    bool gainDefined;
-
+    //bool gainDefined;
     /**
      * The gain that is used to scale the input signal.
      */
     outputType gain;
+
+    /**
+     * The offset that is sum to the input signal.
+     */
+    outputType offset;
     /*lint -e{1712} This class does not have a default constructor because
      * the inputMemory and the outputMemory must be defined on construction and both remain constant
      * during the object's lifetime*/
@@ -88,12 +98,12 @@ private:
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 template<typename inputType, typename outputType>
-ConversionHelperT<inputType, outputType>::ConversionHelperT(
-        const void * const inputMemoryIn, void * const outputMemoryIn) :
+ConversionHelperT<inputType, outputType>::ConversionHelperT(const void *const inputMemoryIn,
+                                                            void *const outputMemoryIn) :
         ConversionHelper(inputMemoryIn, outputMemoryIn) {
-    gainDefined = false;
     /*lint -e{9117} [MISRA C++ Rule 5-0-4]. Justification: the type of the gain will depend on the outputType.*/
-    gain = static_cast<outputType>(0);
+    gain = static_cast<outputType>(1.0);
+    offset = static_cast<outputType>(0.0);
 }
 
 template<typename inputType, typename outputType>
@@ -103,8 +113,19 @@ ConversionHelperT<inputType, outputType>::~ConversionHelperT() {
 
 template<typename inputType, typename outputType>
 bool ConversionHelperT<inputType, outputType>::LoadGain(StructuredDataI &data) {
-    gainDefined = data.Read("Gain", gain);
+    bool gainDefined = true;
+    if (!data.Read("Gain", gain)) {
+        gain = static_cast<outputType>(1.0);
+        gainDefined = false;
+    }
     return gainDefined;
+}
+
+template<typename inputType, typename outputType>
+void ConversionHelperT<inputType, outputType>::LoadOffset(StructuredDataI &data) {
+    if (!data.Read("Offset", offset)) {
+        offset = static_cast<outputType>(0.0);
+    }
 }
 
 template<typename inputType, typename outputType>
@@ -112,21 +133,15 @@ void ConversionHelperT<inputType, outputType>::Convert() {
     uint32 s;
     uint32 n;
     uint32 idx;
-    outputType *dest = reinterpret_cast<outputType *>(outputMemory);
-    const inputType *src = reinterpret_cast<const inputType *>(inputMemory);
+    outputType *dest = reinterpret_cast<outputType*>(outputMemory);
+    const inputType *src = reinterpret_cast<const inputType*>(inputMemory);
     if ((dest != NULL) && (src != NULL)) {
         for (s = 0u; s < numberOfSamples; s++) {
             for (n = 0u; n < numberOfElements; n++) {
                 idx = s * numberOfElements;
                 idx += n;
-                if (gainDefined) {
-                    /*lint -e{734} -e{571} Loss of precision is responsibility of the conversion requested by the user.*/
-                    dest[idx] = gain * static_cast<outputType>(src[idx]);
-                }
-                else {
-                    /*lint -e{734} -e{571} Loss of precision is responsibility of the conversion requested by the user.*/
-                    dest[idx] = static_cast<outputType>(src[idx]);
-                }
+                /*lint -e{734} -e{571} Loss of precision is responsibility of the conversion requested by the user.*/
+                dest[idx] = gain * static_cast<outputType>(src[idx]) + offset;
             }
         }
     }

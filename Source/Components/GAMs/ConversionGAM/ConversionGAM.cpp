@@ -45,15 +45,15 @@ namespace MARTe {
 ConversionGAM::ConversionGAM() :
         GAM() {
     numberOfSignals = 0u;
-    conversionHelpers = NULL_PTR(ConversionHelper **);
+    conversionHelpers = NULL_PTR(ConversionHelper**);
 }
 
 /*lint -e{1551} the destructor must guarantee that the conversionHelpers memory is freed.*/
 ConversionGAM::~ConversionGAM() {
     uint32 i;
-    if (conversionHelpers != NULL_PTR(ConversionHelper **)) {
+    if (conversionHelpers != NULL_PTR(ConversionHelper**)) {
         for (i = 0u; i < numberOfSignals; i++) {
-            if (conversionHelpers[i] != NULL_PTR(ConversionHelper *)) {
+            if (conversionHelpers[i] != NULL_PTR(ConversionHelper*)) {
                 delete conversionHelpers[i];
             }
         }
@@ -61,7 +61,7 @@ ConversionGAM::~ConversionGAM() {
     }
 }
 
-bool ConversionGAM::Initialise(StructuredDataI & data) {
+bool ConversionGAM::Initialise(StructuredDataI &data) {
     bool ok = GAM::Initialise(data);
     if (ok) {
         ok = data.Copy(cdb);
@@ -83,7 +83,7 @@ bool ConversionGAM::Setup() {
         numberOfSignals = GetNumberOfInputSignals();
         conversionHelpers = new ConversionHelper*[numberOfSignals];
         for (n = 0u; n < numberOfSignals; n++) {
-            conversionHelpers[n] = NULL_PTR(ConversionHelper *);
+            conversionHelpers[n] = NULL_PTR(ConversionHelper*);
         }
     }
     if (ret) {
@@ -489,7 +489,7 @@ bool ConversionGAM::Setup() {
                 ret = false;
             }
             if (ret) {
-                if (conversionHelpers[idx] != NULL_PTR(ConversionHelper *)) {
+                if (conversionHelpers[idx] != NULL_PTR(ConversionHelper*)) {
                     conversionHelpers[idx]->SetNumberOfElements(signalNumberOfElements);
                     conversionHelpers[idx]->SetNumberOfSamples(signalNumberOfSamples);
 
@@ -500,6 +500,7 @@ bool ConversionGAM::Setup() {
                         if (conversionHelpers[idx]->LoadGain(cdb)) {
                             REPORT_ERROR(ErrorManagement::ParametersError, "Gain set for conversion %d", idx);
                         }
+                        conversionHelpers[idx]->LoadOffset(cdb);
                         ret = cdb.MoveToAncestor(1u);
                     }
                 }
@@ -512,7 +513,7 @@ bool ConversionGAM::Setup() {
 
 bool ConversionGAM::Execute() {
     uint32 i;
-    if (conversionHelpers != NULL_PTR(ConversionHelper **)) {
+    if (conversionHelpers != NULL_PTR(ConversionHelper**)) {
         for (i = 0u; i < numberOfSignals; i++) {
             conversionHelpers[i]->Convert();
         }

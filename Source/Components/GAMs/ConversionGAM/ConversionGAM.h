@@ -42,7 +42,7 @@ namespace MARTe {
  * @brief GAM which allows to convert between different signal types.
  *
  * @details This GAM converts and copies the input signals to the output signals. A gain can
- * also be specified so that outputSignal[i] = gain[i] * inputSignal[i], where i is the input signal index (see GetNumberOfInputSignals()).
+ * also be specified so that outputSignal[i] = gain[i] * inputSignal[i] + offset[i], where i is the input signal index (see GetNumberOfInputSignals()).
  * If the signal is an array (or has more than one sample), this operation is applied to each element/sample.
  *
  * The number of input and output signals shall be the same, i.e. GetNumberOfInputSignals() == GetNumberOfOutputSignals().
@@ -77,6 +77,7 @@ namespace MARTe {
  *         Signal2 = {
  *             DataSource = "LCD"
  *             Type = int32
+ *             Offset = 4
  *         }
  *     }
  * }

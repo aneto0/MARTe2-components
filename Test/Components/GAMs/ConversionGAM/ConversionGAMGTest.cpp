@@ -149,6 +149,56 @@ TEST(ConversionGAMGTest,TestExecute_FromFloat64_Gain) {
     ASSERT_TRUE(test.TestExecute<MARTe::float64>(-1.0, true, 2.0));
 }
 
+TEST(ConversionGAMGTest,TestExecute_FromFloat64_Gain_Offset) {
+    ConversionGAMTest test;
+    ASSERT_TRUE(test.TestExecute<MARTe::float64>(-1.0, true, 2.0, true, 1));
+}
+
+TEST(ConversionGAMGTest,TestExecute_FromFloat32_Gain_Offset) {
+    ConversionGAMTest test;
+    ASSERT_TRUE(test.TestExecute<MARTe::float32>(-1.0, true, 2.0, true, 1));
+}
+
+TEST(ConversionGAMGTest,TestExecute_FromInt64_Gain_Offset) {
+    ConversionGAMTest test;
+    ASSERT_TRUE(test.TestExecute<MARTe::int64>(-1.0, true, 2.0, true, 1));
+}
+
+TEST(ConversionGAMGTest,TestExecute_FromUInt64_Gain_Offset) {
+    ConversionGAMTest test;
+    ASSERT_TRUE(test.TestExecute<MARTe::uint64>(0xffffffffffffffff, true, 2.0, true, 1));
+}
+
+TEST(ConversionGAMGTest,TestExecute_FromInt32_Gain_Offset) {
+    ConversionGAMTest test;
+    ASSERT_TRUE(test.TestExecute<MARTe::int32>(-1.0, true, 2.0, true, 1));
+}
+
+TEST(ConversionGAMGTest,TestExecute_FromUInt32_Gain_Offset) {
+    ConversionGAMTest test;
+    ASSERT_TRUE(test.TestExecute<MARTe::uint32>(0xffffffff, true, 2.0, true, 1));
+}
+
+TEST(ConversionGAMGTest,TestExecute_FromInt16_Gain_Offset) {
+    ConversionGAMTest test;
+    ASSERT_TRUE(test.TestExecute<MARTe::int16>(-1.0, true, 2.0, true, 1));
+}
+
+TEST(ConversionGAMGTest,TestExecute_FromUInt16_Gain_Offset) {
+    ConversionGAMTest test;
+    ASSERT_TRUE(test.TestExecute<MARTe::uint16>(0xffff, true, 2.0, true, 1));
+}
+
+TEST(ConversionGAMGTest,TestExecute_FromInt8_Gain_Offset) {
+    ConversionGAMTest test;
+    ASSERT_TRUE(test.TestExecute<MARTe::int8>(-1.0, true, 2.0, true, 1));
+}
+
+TEST(ConversionGAMGTest,TestExecute_FromUInt8_Gain_Offset) {
+    ConversionGAMTest test;
+    ASSERT_TRUE(test.TestExecute<MARTe::uint8>(0xff, true, 2.0, true, 1));
+}
+
 TEST(ConversionGAMGTest,TestSetup_False_InvalidOutputSignalType_FromUInt8) {
     ConversionGAMTest test;
     ASSERT_TRUE(test.TestSetup_False_InvalidOutputSignalType<MARTe::uint8>());
