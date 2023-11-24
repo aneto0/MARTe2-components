@@ -141,7 +141,7 @@ void ConversionHelperT<inputType, outputType>::Convert() {
                 idx = s * numberOfElements;
                 idx += n;
                 /*lint -e{734} -e{571} Loss of precision is responsibility of the conversion requested by the user.*/
-                dest[idx] = gain * static_cast<outputType>(src[idx]) + offset;
+                dest[idx] = (gain * static_cast<outputType>(src[idx])) + offset;
             }
         }
     }

@@ -846,7 +846,9 @@ bool ConversionGAMTest::TestExecute(baseType typeValue,
                 signalName = "";
                 signalName.Printf("Signal%d", (i + 1));
                 ok = cdb.MoveRelative(signalName.Buffer());
-                cdb.Write("Gain", offsetValue);
+                ok &= cdb.Delete("Gain");
+                cdb.Write("Gain", gainValue);
+                cdb.Write("Offset", offsetValue);
                 if (ok) {
                     cdb.MoveToAncestor(1u);
                 }
