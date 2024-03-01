@@ -34,7 +34,6 @@
 #include "StreamString.h"
 #include "TypeDescriptor.h"
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -54,7 +53,12 @@ public:
      * @param[in] numberOfSamplesIn the number of samples written on every PutData call.
      * @param[in] interleaveIn if false the data will not be interleaved (i.e. it will be assumed to be already interleaved).
      */
-    DANStream(const TypeDescriptor & tdIn, StreamString baseNameIn, uint32 danBufferMultiplierIn, float64 samplingFrequencyIn, uint32 numberOfSamplesIn, bool interleaveIn);
+    DANStream(const StreamString,
+              const StreamString baseNameIn,
+              const uint32 danBufferMultiplierIn,
+              const float64 samplingFrequencyIn,
+              const uint32 numberOfSamplesIn,
+              const bool interleaveIn);
 
     /**
      * @brief Frees the allocated memory and calls dan_publisher_unpublishSource.
@@ -65,7 +69,7 @@ public:
      * @brief Gets the signal type associated to this stream.
      * @return the signal type associated to this stream.
      */
-    TypeDescriptor GetType() const;
+    void GetType(StreamString &typeNameOut) const;
 
     /**
      * @brief Gets the signal period in nano-seconds associated to this stream.
@@ -91,6 +95,8 @@ public:
      */
     void AddSignal(uint32 signalIdx);
 
+    bool AddToStructure(const uint32 fieldSize,
+                        const uint32 fieldIdx);
     /**
      * @brief All the signals have been added. Call dan_publisher_publishSource_withDAQBuffer with the final buffer size.
      * @details The computed buffer size will be given by numberOfSignals * typeSize * numberOfSamples * danBufferMultiplier
@@ -125,7 +131,8 @@ public:
      * @param[out] signalAddress where the memory address will be assigned.
      * @return true if the signalIdx exists.
      */
-    bool GetSignalMemoryBuffer(const uint32 signalIdx, void*& signalAddress);
+    bool GetSignalMemoryBuffer(const uint32 signalIdx,
+                               void *&signalAddress);
 
     /**
      * @brief Resets the counter used by PutData.
@@ -151,10 +158,11 @@ public:
     void SetAbsoluteStartTime(uint64 absoluteStartTimeIn);
 
 private:
+
     /**
-     * The type descriptor of the stream.
+     * The name of the DANSource that holds this DANStream.
      */
-    TypeDescriptor td;
+    StreamString typeName;
 
     /**
      * Stores the signal offsets in the DANSource.
@@ -255,6 +263,21 @@ private:
      * If false the data will be assumed to be already interleaved.
      */
     bool interleave;
+
+    bool isStruct;
+
+    uint32 nFieldsAllocated;
+
+    uint32 numberOfFields;
+
+    uint32 *fieldInStructOffset;
+
+    uint32 totalNumberOfFields;
+    uint32 totalNumberOfFieldsAllocated;
+
+    uint32 *fieldIndexOffset;
+    uint32 *structIdx;
+    uint32 *fieldIdx;
 
     /*lint -e{1712} This class does not have a default constructor because
      * the constructor input parameters must be defined on construction and both remain constant

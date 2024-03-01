@@ -356,9 +356,8 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
     //Do not allow samples
     if (ok) {
         uint32 functionNumberOfSignals = 0u;
-        uint32 n;
         if (GetFunctionNumberOfSignals(OutputSignals, 0u, functionNumberOfSignals)) {
-            for (n = 0u; (n < functionNumberOfSignals) && (ok); n++) {
+            for (uint32 n = 0u; (n < functionNumberOfSignals) && (ok); n++) {
                 uint32 nSamples;
                 ok = GetFunctionSignalSamples(OutputSignals, 0u, n, nSamples);
                 if (ok) {
@@ -373,14 +372,12 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
 
     //Check the signal index of the timing signal.
     uint32 nOfSignals = GetNumberOfSignals();
+    uint32 cnt = 0u;
     if (ok) {
-        uint32 n;
-        for (n = 0u; (n < nOfSignals) && (ok); n++) {
-            ok = data.MoveRelative(data.GetChildName(n));
-            if (ok) {
-                //Have to read properties from the original configuration file
-                ok = originalSignalInformation.MoveRelative(originalSignalInformation.GetChildName(n));
-            }
+        for (uint32 n = 0u; (n < originalSignalInformation.GetNumberOfChildren()) && (ok); n++) {
+            //Have to read properties from the original configuration file
+            ok = originalSignalInformation.MoveRelative(originalSignalInformation.GetChildName(n));
+
             //Check if the signal is defined as a TimeSignal
             uint32 timeSignal;
             if (originalSignalInformation.Read("TimeSignal", timeSignal)) {
@@ -389,76 +386,75 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                     ok = false;
                 }
                 if (timeSignal > 0u) {
-                    timeSignalIdx = static_cast<int32>(n);
+                    timeSignalIdx = static_cast<int32>(cnt);
                     uint32 absoluteTime;
                     if (originalSignalInformation.Read("AbsoluteTime", absoluteTime)) {
                         useAbsoluteTime = (absoluteTime == 1u);
                     }
                 }
             }
-            //Check if the signal Period or the SamplingFrequency are defined
+
+            bool addSignal = false;
             float64 period;
             float64 samplingFrequency = 0.F;
-            uint32 numberOfElements;
-            TypeDescriptor typeDesc;
-            //Only add signals that have Period SamplingFrequency specified
-            bool addSignal = false;
-            if (ok) {
-                addSignal = (originalSignalInformation.Read("Period", period));
-                if (addSignal) {
-                    if (period > 0.F) {
-                        samplingFrequency = (1.F / period);
-                    }
-                    else {
-                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Period shall be > 0");
-                        ok = false;
-                    }
+            addSignal = (originalSignalInformation.Read("Period", period));
+            if (addSignal) {
+                if (period > 0.F) {
+                    samplingFrequency = (1.F / period);
                 }
                 else {
-                    addSignal = (originalSignalInformation.Read("SamplingFrequency", samplingFrequency));
-                    if (addSignal) {
-                        ok = (samplingFrequency > 0.F);
-                        if (!ok) {
-                            REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "SamplingFrequency shall be > 0");
-                        }
-                    }
-                }
-                if (!addSignal) {
-                    StreamString signalName;
-                    (void) GetSignalName(n, signalName);
-                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "No Period nor SamplingFrequency specified for signal %s", signalName.Buffer());
+                    REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Period shall be > 0");
+                    ok = false;
                 }
             }
-            //Only add signals that had Period or SamplingFrequency specified
+            else {
+                addSignal = (originalSignalInformation.Read("SamplingFrequency", samplingFrequency));
+                if (addSignal) {
+                    ok = (samplingFrequency > 0.F);
+                    if (!ok) {
+                        REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "SamplingFrequency shall be > 0");
+                    }
+                }
+            }
+            if (!addSignal) {
+                REPORT_ERROR_STATIC(ErrorManagement::Warning, "No Period nor SamplingFrequency specified for %s", originalSignalInformation.GetChildName(n));
+            }
+
             if ((ok) && (addSignal)) {
-                ok = GetSignalNumberOfElements(n, numberOfElements);
-                if (ok) {
-                    typeDesc = GetSignalType(n);
+                float64 periodNanosF = (1e9 / samplingFrequency);
+                uint64 periodNanos = static_cast<uint64>(periodNanosF);
+
+                StreamString structType;
+                if (originalSignalInformation.Read("StructType", structType)) {
+
+                    uint32 numberOfSamples = 1u;
+                    originalSignalInformation.Read("Samples", numberOfSamples);
+
+                    uint32 danSourceIdx = 0u;
                     bool found = false;
                     bool typeOk = false;
-                    uint32 t;
-                    /*lint -e{414} samplingFrequency != 0 is checked above*/
-                    float64 periodNanosF = (1e9 / samplingFrequency);
-                    uint64 periodNanos = static_cast<uint64>(periodNanosF);
-                    for (t = 0u; (t < nOfDANStreams) && (!found); t++) {
+                    for (uint32 t = 0u; (t < nOfDANStreams) && (!found); t++) {
+                        StreamString typeNameStream;
+                        danStreams[t]->GetType(typeNameStream);
                         if (!typeOk) {
-                            typeOk = (danStreams[t]->GetType() == typeDesc);
+                            typeOk = (typeNameStream == structType);
                         }
-                        found = (danStreams[t]->GetType() == typeDesc);
+                        found = (typeNameStream == structType);
                         if (found) {
                             found = (danStreams[t]->GetPeriodNanos() == periodNanos);
                         }
                         if (found) {
-                            found = (danStreams[t]->GetNumberOfSamples() == numberOfElements);
+                            found = (danStreams[t]->GetNumberOfSamples() == numberOfSamples);
                         }
                         if (found) {
-                            danStreams[t]->AddSignal(n);
+                            danStreams[t]->AddSignal(cnt);
+                            danSourceIdx = t;
                         }
                     }
                     if (!found) {
                         uint32 nOfDANStreamsP1 = (nOfDANStreams + 1u);
                         DANStream **newDanStreams = new DANStream*[nOfDANStreamsP1];
-                        for (t = 0u; t < nOfDANStreams; t++) {
+                        for (uint32 t = 0u; t < nOfDANStreams; t++) {
                             newDanStreams[t] = danStreams[t];
                         }
                         if (danStreams != NULL_PTR(DANStream**)) {
@@ -470,23 +466,94 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                         if ((typeOk) || (fullStreamName)) {
                             //found another with same type... don't overwrite it... use a different name
                             name = "";
-                            name.Printf("%s_T%d_N%d", GetName(), periodNanos, numberOfElements);
+                            name.Printf("%s_T%d_N%d", GetName(), periodNanos, numberOfSamples);
                         }
-                        REPORT_ERROR_STATIC(ErrorManagement::Information, "Creating stream %s_%s", name.Buffer(),
-                                            TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDesc));
+                        REPORT_ERROR_STATIC(ErrorManagement::Information, "Creating stream %s_%s", name.Buffer(), structType.Buffer());
 
-                        danStreams[nOfDANStreams] = new DANStream(typeDesc, name.Buffer(), danBufferMultiplier, samplingFrequency, numberOfElements,
+                        danStreams[nOfDANStreams] = new DANStream(structType, name.Buffer(), danBufferMultiplier, samplingFrequency, numberOfSamples,
                                                                   interleave);
-                        danStreams[nOfDANStreams]->AddSignal(n);
+                        danStreams[nOfDANStreams]->AddSignal(cnt);
+                        danSourceIdx = nOfDANStreams;
                         nOfDANStreams++;
                     }
+
+                    for (uint32 h = 0u; (h < originalSignalInformation.GetNumberOfChildren()) && ok; h++) {
+                        if (originalSignalInformation.MoveRelative(originalSignalInformation.GetChildName(h))) {
+                            uint32 numberOfElements;
+                            ok = GetSignalNumberOfElements(cnt, numberOfElements);
+                            if (ok) {
+                                TypeDescriptor typeDesc = GetSignalType(cnt);
+                                uint32 fieldSize = static_cast<uint32>(typeDesc.numberOfBits) / 8u;
+                                fieldSize *= numberOfElements;
+                                danStreams[danSourceIdx]->AddToStructure(fieldSize, cnt);
+                                originalSignalInformation.MoveToAncestor(1u);
+                            }
+                            cnt++;
+                        }
+                    }
                 }
+                else {
+                    uint32 numberOfElements;
+                    ok = GetSignalNumberOfElements(cnt, numberOfElements);
+                    if (ok) {
+                        TypeDescriptor typeDesc = GetSignalType(cnt);
+                        uint32 fieldSize = static_cast<uint32>(typeDesc.numberOfBits) / 8u;
+                        StreamString typeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDesc);
+                        bool found = false;
+                        bool typeOk = false;
+                        /*lint -e{414} samplingFrequency != 0 is checked above*/
+                        for (uint32 t = 0u; (t < nOfDANStreams) && (!found); t++) {
+                            StreamString typeNameStream;
+                            danStreams[t]->GetType(typeNameStream);
+                            if (!typeOk) {
+                                typeOk = (typeNameStream == typeName);
+                            }
+                            found = (typeNameStream == typeName);
+                            if (found) {
+                                found = (danStreams[t]->GetPeriodNanos() == periodNanos);
+                            }
+                            if (found) {
+                                found = (danStreams[t]->GetNumberOfSamples() == numberOfElements);
+                            }
+                            if (found) {
+                                danStreams[t]->AddSignal(cnt);
+                                danStreams[t]->AddToStructure(fieldSize, cnt);
+                            }
+                        }
+                        if (!found) {
+                            uint32 nOfDANStreamsP1 = (nOfDANStreams + 1u);
+                            DANStream **newDanStreams = new DANStream*[nOfDANStreamsP1];
+                            for (uint32 t = 0u; t < nOfDANStreams; t++) {
+                                newDanStreams[t] = danStreams[t];
+                            }
+                            if (danStreams != NULL_PTR(DANStream**)) {
+                                delete[] danStreams;
+                            }
+                            danStreams = newDanStreams;
+
+                            StreamString name = GetName();
+                            if ((typeOk) || (fullStreamName)) {
+                                //found another with same type... don't overwrite it... use a different name
+                                name = "";
+                                name.Printf("%s_T%d_N%d", GetName(), periodNanos, numberOfElements);
+                            }
+                            REPORT_ERROR_STATIC(ErrorManagement::Information, "Creating stream %s_%s", name.Buffer(), typeName.Buffer());
+
+                            danStreams[nOfDANStreams] = new DANStream(typeName, name.Buffer(), danBufferMultiplier, samplingFrequency, numberOfElements,
+                                                                      interleave);
+                            danStreams[nOfDANStreams]->AddSignal(cnt);
+                            danStreams[nOfDANStreams]->AddToStructure(fieldSize, cnt);
+                            nOfDANStreams++;
+                        }
+                    }
+                    cnt++;
+                }
+            }
+            else {
+                cnt++;
             }
             if (ok) {
                 ok = originalSignalInformation.MoveToAncestor(1u);
-            }
-            if (ok) {
-                ok = data.MoveToAncestor(1u);
             }
         }
     }
