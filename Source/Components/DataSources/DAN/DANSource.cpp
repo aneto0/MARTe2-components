@@ -479,13 +479,24 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
 
                     for (uint32 h = 0u; (h < originalSignalInformation.GetNumberOfChildren()) && ok; h++) {
                         if (originalSignalInformation.MoveRelative(originalSignalInformation.GetChildName(h))) {
+                            StreamString unit;
+                            if (!originalSignalInformation.Read("Unit", unit)) {
+                                unit = "Unknown";
+                            }
+                            StreamString description;
+                            if (!originalSignalInformation.Read("Description", description)) {
+                                description = "Unknown";
+                            }
+
                             uint32 numberOfElements;
+                            uint8 numberOfDimensions;
                             ok = GetSignalNumberOfElements(cnt, numberOfElements);
                             if (ok) {
+                                ok = GetSignalNumberOfDimensions(cnt, numberOfDimensions);
+                            }
+                            if (ok) {
                                 TypeDescriptor typeDesc = GetSignalType(cnt);
-                                uint32 fieldSize = static_cast<uint32>(typeDesc.numberOfBits) / 8u;
-                                fieldSize *= numberOfElements;
-                                danStreams[danSourceIdx]->AddToStructure(fieldSize, cnt);
+                                danStreams[danSourceIdx]->AddToStructure(cnt, typeDesc, numberOfElements, numberOfDimensions, unit, description);
                                 originalSignalInformation.MoveToAncestor(1u);
                             }
                             cnt++;
@@ -517,7 +528,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                             }
                             if (found) {
                                 danStreams[t]->AddSignal(cnt);
-                                danStreams[t]->AddToStructure(fieldSize, cnt);
+                                danStreams[t]->AddToStructure(cnt, typeDesc, 1u, 0u, "Unknown", "Unknown");
                             }
                         }
                         if (!found) {
@@ -542,7 +553,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                             danStreams[nOfDANStreams] = new DANStream(typeName, name.Buffer(), danBufferMultiplier, samplingFrequency, numberOfElements,
                                                                       interleave);
                             danStreams[nOfDANStreams]->AddSignal(cnt);
-                            danStreams[nOfDANStreams]->AddToStructure(fieldSize, cnt);
+                            danStreams[nOfDANStreams]->AddToStructure(cnt, typeDesc, 1u, 0u, "Unknown", "Unknown");
                             nOfDANStreams++;
                         }
                     }
@@ -608,14 +619,16 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
     }
     uint32 s;
     if (ok) {
-        for (s = 0u; (s < nOfDANStreams); s++) {
-            danStreams[s]->Finalise();
-            if (useTimeSignal) {
-                if (useAbsoluteTime) {
-                    danStreams[s]->SetAbsoluteTimeSignal(&timeUInt64);
-                }
-                else {
-                    danStreams[s]->SetRelativeTimeSignal(&timeUInt32);
+        for (s = 0u; (s < nOfDANStreams) && ok; s++) {
+            ok = (danStreams[s]->Finalise());
+            if (ok) {
+                if (useTimeSignal) {
+                    if (useAbsoluteTime) {
+                        danStreams[s]->SetAbsoluteTimeSignal(&timeUInt64);
+                    }
+                    else {
+                        danStreams[s]->SetRelativeTimeSignal(&timeUInt32);
+                    }
                 }
             }
         }

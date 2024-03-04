@@ -95,13 +95,17 @@ public:
      */
     void AddSignal(uint32 signalIdx);
 
-    bool AddToStructure(const uint32 fieldSize,
-                        const uint32 fieldIdx);
+    bool AddToStructure(const uint32 fieldIdx,
+                        const TypeDescriptor typeDesc,
+                        const uint32 numberOfElements,
+                        const uint8 numberOfDimensions,
+                        const StreamString unitIn,
+                        const StreamString descriptionIn);
     /**
      * @brief All the signals have been added. Call dan_publisher_publishSource_withDAQBuffer with the final buffer size.
      * @details The computed buffer size will be given by numberOfSignals * typeSize * numberOfSamples * danBufferMultiplier
      */
-    void Finalise();
+    bool Finalise();
 
     /**
      * @brief Streams the signals data into DAN.
@@ -167,7 +171,7 @@ private:
     /**
      * Stores the signal offsets in the DANSource.
      */
-    uint32 *signalIndexOffset;
+    uint32 *signalIndexMap;
 
     /**
      * Holds the memory required to store the samples of all signals.
@@ -275,9 +279,16 @@ private:
     uint32 totalNumberOfFields;
     uint32 totalNumberOfFieldsAllocated;
 
-    uint32 *fieldIndexOffset;
+    uint32 *fieldIndexMap;
     uint32 *structIdx;
     uint32 *fieldIdx;
+
+    TypeDescriptor *types;
+    uint32 *numberOfElements;
+    uint8 *numberOfDimensions;
+
+    StreamString *units;
+    StreamString *descriptions;
 
     /*lint -e{1712} This class does not have a default constructor because
      * the constructor input parameters must be defined on construction and both remain constant

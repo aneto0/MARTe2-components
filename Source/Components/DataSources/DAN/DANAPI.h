@@ -31,7 +31,8 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
+#include "TypeDescriptor.h"
+#include "StreamString.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -53,7 +54,7 @@ bool InitLibrary();
 /**
  * @brief see dan_initLibrary_icprog
  */
-bool InitLibraryICProg(const char8 * const progName);
+bool InitLibraryICProg(const char8 *const progName);
 
 /**
  * @brief see dan_closeLibrary
@@ -63,27 +64,40 @@ void CloseLibrary();
 /**
  * @brief see dan_publisher_putDataBlock
  */
-bool PutDataBlock(void * danSource, uint64 timeStamp, char8 *blockInterleavedMemory, uint32 blockSize);
+bool PutDataBlock(void *danSource,
+                  uint64 timeStamp,
+                  char8 *blockInterleavedMemory,
+                  uint32 blockSize);
 
 /**
  * @brief see dan_publisher_openStream
  */
-bool OpenStream(void * danSource, float64 samplingFrequency);
+bool OpenStream(void *danSource,
+                float64 samplingFrequency);
 
 /**
  * @brief see dan_publisher_closeStream
  */
-bool CloseStream(void * danSource);
+bool CloseStream(void *danSource);
 
 /**
  * @brief see dan_publisher_publishSource_withDAQBuffer
  */
-void *PublishSource(const char8 * const sourceName, uint64 bufferSize);
+void* PublishSource(const char8 *const sourceName,
+                    uint64 bufferSize);
 
 /**
  * @brief see dan_publisher_unpublishSource
  */
-void UnpublishSource(void * danSource);
+void UnpublishSource(void *danSource);
+
+int32 DeclareStruct(void *danSource,
+                    const TypeDescriptor *const types,
+                    const uint32 *const numberOfElements,
+                    const uint8 *const numberOfDimensions,
+                    StreamString *units,
+                    StreamString *descriptions,
+                    const uint32 numberOfTypes);
 
 }
 }

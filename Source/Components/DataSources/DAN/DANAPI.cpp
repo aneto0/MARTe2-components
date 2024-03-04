@@ -24,14 +24,12 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <dan/dan_DataCore.h>
-#include <dan/dan_Source.h>
+#include <danApi.h>
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
-#include "CompilerTypes.h"
-
+#include "DANAPI.h"
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -59,7 +57,7 @@ bool InitLibrary() {
     return ok;
 }
 
-bool InitLibraryICProg(const char8 * const progName) {
+bool InitLibraryICProg(const char8 *const progName) {
     bool ok = true;
     if (danDataCore == NULL_PTR(dan_DataCore)) {
 #ifdef CCS_LT_60
@@ -79,30 +77,88 @@ void CloseLibrary() {
     }
 }
 
-bool PutDataBlock(void * danSource, uint64 timeStamp, char8 *blockInterleavedMemory, uint32 blockSize) {
-    return (dan_publisher_putDataBlock(reinterpret_cast<dan_Source>(danSource), timeStamp, blockInterleavedMemory, static_cast<ssize_t>(blockSize), NULL_PTR(char8 *)) >= 0);
+bool PutDataBlock(void *danSource,
+                  uint64 timeStamp,
+                  char8 *blockInterleavedMemory,
+                  uint32 blockSize) {
+    return (dan_publisher_putDataBlock(reinterpret_cast<dan_Source>(danSource), timeStamp, blockInterleavedMemory, static_cast<ssize_t>(blockSize),
+                                       NULL_PTR(char8*)) >= 0);
 }
 
-bool OpenStream(void * danSource, float64 samplingFrequency) {
+bool OpenStream(void *danSource,
+                float64 samplingFrequency) {
     return (dan_publisher_openStream(reinterpret_cast<dan_Source>(danSource), samplingFrequency, static_cast<ssize_t>(0)) == 0);
 }
 
-bool CloseStream(void * danSource) {
+bool CloseStream(void *danSource) {
     return (dan_publisher_closeStream(reinterpret_cast<dan_Source>(danSource)) == 0);
 }
 
-void * PublishSource(const char8 * const sourceName, uint64 bufferSize) {
+void* PublishSource(const char8 *const sourceName,
+                    uint64 bufferSize) {
     return dan_publisher_publishSource_withDAQBuffer(danDataCore, sourceName, bufferSize);
 }
 
 void UnpublishSource(void *danSource) {
-    if ((danDataCore != NULL_PTR(dan_DataCore)) && (danSource != NULL_PTR(void *))) {
+    if ((danDataCore != NULL_PTR(dan_DataCore)) && (danSource != NULL_PTR(void*))) {
         // DAN v3.1 has replaced dan_publisher_unpublishSource with a macro which follows
         // an expression such as s = new_method (d,s) which imposes the second parameter
         // passed to dan_publisher_unpublishSource to be a valid lvalue argument.
         dan_Source lvSource = reinterpret_cast<dan_Source>(danSource);
         dan_publisher_unpublishSource(danDataCore, lvSource);
     }
+}
+
+int32 DeclareStruct(void *danSource,
+                    const TypeDescriptor * const types,
+                    const uint32 *const numberOfElements,
+                    const uint8 *const numberOfDimensions,
+                    StreamString *units,
+                    StreamString *descriptions,
+                    const uint32 numberOfTypes) {
+
+    field_type *typeFields = new field_type[numberOfTypes];
+    for (uint32 i = 0u; i < numberOfTypes; i++) {
+        StreamString id;
+        id.Printf("Val_%d", i);
+        if (numberOfDimensions > 0u) {
+            id.Printf("[%d]", numberOfElements);
+        }
+        if (types[i] == UnsignedInteger8Bit) {
+            set_type_field(&typeFields[i], danItemUint8, id.Buffer(), units[i].Buffer(), descriptions[i].Buffer());
+        }
+        else if (types[i] == SignedInteger8Bit) {
+            set_type_field(&typeFields[i], danItemInt8, id.Buffer(), units[i].Buffer(), descriptions[i].Buffer());
+        }
+        else if (types[i] == UnsignedInteger16Bit) {
+            set_type_field(&typeFields[i], danItemUint16, id.Buffer(), units[i].Buffer(), descriptions[i].Buffer());
+        }
+        else if (types[i] == SignedInteger16Bit) {
+            set_type_field(&typeFields[i], danItemInt16, id.Buffer(), units[i].Buffer(), descriptions[i].Buffer());
+        }
+        else if (types[i] == UnsignedInteger32Bit) {
+            set_type_field(&typeFields[i], danItemUint32, id.Buffer(), units[i].Buffer(), descriptions[i].Buffer());
+        }
+        else if (types[i] == SignedInteger32Bit) {
+            set_type_field(&typeFields[i], danItemInt32, id.Buffer(), units[i].Buffer(), descriptions[i].Buffer());
+        }
+        else if (types[i] == UnsignedInteger64Bit) {
+            set_type_field(&typeFields[i], danItemUint64, id.Buffer(), units[i].Buffer(), descriptions[i].Buffer());
+        }
+        else if (types[i] == SignedInteger64Bit) {
+            set_type_field(&typeFields[i], danItemInt64, id.Buffer(), units[i].Buffer(), descriptions[i].Buffer());
+        }
+        else if (types[i] == Float32Bit) {
+            set_type_field(&typeFields[i], danItemFloat, id.Buffer(), units[i].Buffer(), descriptions[i].Buffer());
+        }
+        else if (types[i] == Float64Bit) {
+            set_type_field(&typeFields[i], danItemDouble, id.Buffer(), units[i].Buffer(), descriptions[i].Buffer());
+        }
+    }
+    int32 result = dan_publisher_setStream_itemTypeFields(danSource, numberOfTypes, typeFields);
+    delete[] typeFields;
+    return result;
+
 }
 }
 }
