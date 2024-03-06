@@ -1044,7 +1044,7 @@ bool FilterGAMTest::TestExecuteFIRRampInput2() {
     }
     ok &= (gamMemoryOut[0] == 0);
     for (uint32 i = 1u; i < gam.numberOfElements; i++) {
-        ok &= (gamMemoryOut[i] == 2 * i - 1);
+        ok &= (gamMemoryOut[i] == static_cast<int32>(2 * i - 1));
     }
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
         gamMemoryIn[i] = i + 10;
@@ -1052,7 +1052,7 @@ bool FilterGAMTest::TestExecuteFIRRampInput2() {
     }
     gam.Execute();
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
-        ok &= (gamMemoryOut[i] == 20 + 2 * i - 1);
+        ok &= (gamMemoryOut[i] == static_cast<int32>(20 + 2 * i - 1));
     }
     return ok;
 }
@@ -1135,7 +1135,7 @@ bool FilterGAMTest::TestExecuteIIRConstant() {
     }
     ok &= (gamMemoryOut[0] == 1);
     for (uint32 i = 1u; i < gam.numberOfElements; i++) {
-        ok &= (gamMemoryOut[i] == 1 + i);
+        ok &= (gamMemoryOut[i] == static_cast<int32>(1 + i));
     }
     return ok;
 }
@@ -1224,11 +1224,11 @@ bool FilterGAMTest::TestExecuteIIRConstant2() {
     }
     ok &= (gamMemoryOut[0] == 1);
     for (uint32 i = 1u; i < gam.numberOfElements; i++) {
-        ok &= (gamMemoryOut[i] == 1 + i);
+        ok &= (gamMemoryOut[i] == static_cast<int32>(1 + i));
     }
     gam.Execute();
     for (uint32 i = 0u; i < gam.numberOfElements; i++) {
-        ok &= (gamMemoryOut[i] == 10 + 1 + i);
+        ok &= (gamMemoryOut[i] == static_cast<int32>(10 + 1 + i));
     }
     return ok;
 }
