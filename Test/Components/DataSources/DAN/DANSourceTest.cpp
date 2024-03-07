@@ -49,6 +49,16 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+struct __attribute__((__packed__)) Struct1 {
+    MARTe::uint16 channel1[10];
+    MARTe::uint32 channel2[20];
+};
+
+struct __attribute__((__packed__)) Struct2 {
+    MARTe::int8 channel1[10];
+    MARTe::float32 channel2[5];
+};
+
 /**
  * @brief GAM which generates a given signal trigger, time and signal pattern which is then sinked to the DANSource
  */
@@ -156,6 +166,11 @@ public:CLASS_REGISTER_DECLARATION()
                 for (; n<GetNumberOfOutputSignals(); n++) {
                     for (uint32 e=0; e<elements[n]; e++) {
                         TypeDescriptor signalType = GetSignalType(OutputSignals, n);
+                        if (signalType == UnsignedInteger8Bit) {
+                            uint8 *signalOut = reinterpret_cast<uint8 *>(outputSignalMemory);
+                            *signalOut = static_cast<uint8>(signalToGenerate[counter]);
+                            outputSignalMemory += sizeof(uint8);
+                        }
                         if (signalType == UnsignedInteger16Bit) {
                             uint16 *signalOut = reinterpret_cast<uint16 *>(outputSignalMemory);
                             *signalOut = static_cast<uint16>(signalToGenerate[counter]);
@@ -170,6 +185,11 @@ public:CLASS_REGISTER_DECLARATION()
                             uint64 *signalOut = reinterpret_cast<uint64 *>(outputSignalMemory);
                             *signalOut = static_cast<uint64>(signalToGenerate[counter]);
                             outputSignalMemory += sizeof(uint64);
+                        }
+                        else if (signalType == SignedInteger8Bit) {
+                            int8 *signalOut = reinterpret_cast<int8 *>(outputSignalMemory);
+                            *signalOut = static_cast<int8>(signalToGenerate[counter]);
+                            outputSignalMemory += sizeof(int8);
                         }
                         else if (signalType == SignedInteger16Bit) {
                             int16 *signalOut = reinterpret_cast<int16 *>(outputSignalMemory);
@@ -202,6 +222,13 @@ public:CLASS_REGISTER_DECLARATION()
             else {
                 for (; n<GetNumberOfOutputSignals(); n++) {
                     TypeDescriptor signalType = GetSignalType(OutputSignals, n);
+                    if (signalType == UnsignedInteger8Bit) {
+                        uint8 *signalOut = reinterpret_cast<uint8 *>(GetOutputSignalMemory(n));
+                        uint32 e;
+                        for (e=0; e<elements[n]; e++) {
+                            signalOut[e] = static_cast<uint8>(signalToGenerate[counter]);
+                        }
+                    }
                     if (signalType == UnsignedInteger16Bit) {
                         uint16 *signalOut = reinterpret_cast<uint16 *>(GetOutputSignalMemory(n));
                         uint32 e;
@@ -221,6 +248,13 @@ public:CLASS_REGISTER_DECLARATION()
                         uint64 e;
                         for (e=0; e<elements[n]; e++) {
                             signalOut[e] = static_cast<uint64>(signalToGenerate[counter]);
+                        }
+                    }
+                    else if (signalType == SignedInteger8Bit) {
+                        int8 *signalOut = reinterpret_cast<int8 *>(GetOutputSignalMemory(n));
+                        uint32 e;
+                        for (e=0; e<elements[n]; e++) {
+                            signalOut[e] = static_cast<int8>(signalToGenerate[counter]);
                         }
                     }
                     else if (signalType == SignedInteger16Bit) {
@@ -403,7 +437,7 @@ template<typename typeToCheck> static bool VerifyData(const MARTe::uint64 hpnTim
                                                       MARTe::uint32 *signalToVerify,
                                                       MARTe::uint32 *timeToVerifyRelative,
                                                       MARTe::uint32 toVerifyNumberOfElements,
-                                                      bool fullNotation=false) {
+                                                      bool fullNotation = false) {
     using namespace MARTe;
     //To discover the type
     typeToCheck tDiscover;
@@ -412,10 +446,10 @@ template<typename typeToCheck> static bool VerifyData(const MARTe::uint64 hpnTim
     DirectoryScanner hd5FilesToTest;
     //Wait for the file to be created...
     StreamString filterName;
-    if(fullNotation){
+    if (fullNotation) {
         filterName.Printf("*DANStreamTest_T*_N*_%s*", TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDiscover.GetTypeDescriptor()));
     }
-    else{
+    else {
         filterName.Printf("*DANStreamTest_%s*", TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDiscover.GetTypeDescriptor()));
     }
     hd5FilesToTest.Scan("/tmp/data/", filterName.Buffer());
@@ -436,8 +470,8 @@ template<typename typeToCheck> static bool VerifyData(const MARTe::uint64 hpnTim
 #ifdef NO_HDF5_SET_CHANNEL // CCSv6.1 and above
         if (ok) {
             found = true;
-	    for (c = 0; (c < numberOfChannels) && (ok) && (found); c++) {
-	        found = (danStreamReader.openDataPath(channelNames[c]) == 0);
+            for (c = 0; (c < numberOfChannels) && (ok) && (found); c++) {
+                found = (danStreamReader.openDataPath(channelNames[c]) == 0);
                 if (found) {
                     danStreamReader.closeStream();
                 }
@@ -507,19 +541,25 @@ template<typename typeToCheck> static bool VerifyData(const MARTe::uint64 hpnTim
             else if (typeDiscover.GetTypeDescriptor() == Float64Bit) {
                 channelDataStored = (typeToCheck *) pDataChannel->asDouble();
             }
+            uint32 numberOfSamples=1u;
+            if(fullNotation) {
+                numberOfSamples=10u;
+            }
             uint32 k;
             for (k = 0; (k < toVerifyNumberOfElements) && (ok); k++) {
-                ok = (((uint32) channelDataStored[k]) == signalToVerify[k]);
-                if (!ok) {
-                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "[%d] %d != %d", k, (uint32 ) channelDataStored[k], signalToVerify[k]);
-                }
-                if (ok) {
-                    if (timeToVerifyRelative == NULL) {
-                        ok = (absTimeStored[k] == (hpnTimeStamp + (k * periodNanos)));
+                for (uint32 h = 0; (h < numberOfSamples) && (ok); h++) {
+                    ok = (((uint32) channelDataStored[k*numberOfSamples+h]) == signalToVerify[k]);
+                    if (!ok) {
+                        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "[%d] %d != %d", k, (uint32 ) channelDataStored[k], signalToVerify[k]);
                     }
-                    else {
-                        //ok = (absTimeStored[k] == (hpnTimeStamp + (timeToVerifyRelative[k] * 1000)));
-                        //TODO there seems to be a bug with the DanStreamReaderCpp that does not compute well discontinuous time samples
+                    if (ok) {
+                        if (timeToVerifyRelative == NULL) {
+                            ok = (absTimeStored[k*numberOfSamples+h] == (hpnTimeStamp + (((k * numberOfSamples)+h)* periodNanos)));
+                        }
+                        else {
+                            //ok = (absTimeStored[k] == (hpnTimeStamp + (timeToVerifyRelative[k] * 1000)));
+                            //TODO there seems to be a bug with the DanStreamReaderCpp that does not compute well discontinuous time samples
+                        }
                     }
                 }
             }
@@ -530,6 +570,192 @@ template<typename typeToCheck> static bool VerifyData(const MARTe::uint64 hpnTim
             danStreamReader.closeStream();
 #endif
         }
+    }
+    if (ok) {
+        danStreamReader.closeFile();
+    }
+    return ok;
+}
+
+static bool VerifyStructData(const MARTe::char8 *structName,
+                             const MARTe::uint64 hpnTimeStamp,
+                             const MARTe::uint64 periodNanos,
+                             MARTe::uint32 *signalToVerify,
+                             MARTe::uint32 *timeToVerifyRelative,
+                             MARTe::uint32 toVerifyNumberOfElements,
+                             bool fullNotation = false) {
+    using namespace MARTe;
+    StreamString structNameStr = structName;
+
+    DirectoryScanner hd5FilesToTest;
+    //Wait for the file to be created...
+    StreamString filterName;
+    if (fullNotation) {
+        filterName.Printf("*DANStreamTest_T*_N*_%s*", structName);
+    }
+    else {
+        filterName.Printf("*DANStreamTest_%s*", structName);
+    }
+    hd5FilesToTest.Scan("/tmp/data/", filterName.Buffer());
+    bool found = (static_cast<Directory*>(hd5FilesToTest.ListPeek(0u)) != NULL);
+    bool ok = found;
+    DanStreamReaderCpp danStreamReader;
+    const char8 *channelNames[] = { "Struct1", "Struct2" };
+    uint32 numberOfChannels = 2;
+    uint32 c;
+
+    if (ok) {
+        found = false;
+        StreamString hd5FileName = static_cast<Directory*>(hd5FilesToTest.ListPeek(0u))->GetName();
+        ok = (danStreamReader.openFile(hd5FileName.Buffer()) >= 0);
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to open file: [%s]. Error: %s", hd5FileName.Buffer(), danStreamReader.getError().c_str());
+        }
+#ifdef NO_HDF5_SET_CHANNEL // CCSv6.1 and above
+        if (ok) {
+            found = true;
+            for (c = 0; (c < numberOfChannels) && (ok) && (found); c++) {
+                found = (danStreamReader.openVariable(channelNames[c]) == 0);
+                if (found) {
+                    danStreamReader.closeStream();
+                }
+            }
+       }
+#else
+        if (ok) {
+            found = (danStreamReader.getCurSamples() == toVerifyNumberOfElements);
+        }
+#endif
+        if (ok) {
+            ok = found;
+        }
+    }
+
+#if CCS_VER < 60
+    //Remove the following line when DAN bug 9699 is solved.
+    toVerifyNumberOfElements--;
+#endif
+
+#if CCS_VER < 72
+    //Bug found in versions<7.2
+    //Fail to read from second channels on
+    numberOfChannels=1u;
+#endif
+
+    for (c = 0; (c < numberOfChannels) && (ok); c++) {
+        DanDataHolder *pDataChannel = NULL;
+        DanDataHolder *pDataTime = NULL;
+        const uint64 *absTimeStored = NULL;
+        if (ok) {
+#ifdef NO_HDF5_SET_CHANNEL // CCSv6.1 and above
+            ok = (danStreamReader.openVariable(channelNames[c]) == 0);
+#else
+            danStreamReader.setChannel(channelNames[c]);
+#endif
+        }
+        if (ok) {
+            DataInterval interval = danStreamReader.getIntervalWhole();
+            pDataChannel = NULL;
+#if CCS_VER >= 63
+            pDataChannel = danStreamReader.getRawValuesAll(channelNames[c], &interval, -1);
+            ok = (pDataChannel != NULL);
+#endif
+
+            pDataTime = danStreamReader.getTimeAbs(&interval, -1);
+            if (ok) {
+                ok = (pDataTime != NULL);
+            }
+            if (ok) {
+                ok = (interval.getTimeFrom() == (long) hpnTimeStamp);
+                absTimeStored = reinterpret_cast<const uint64 *>(pDataTime->asUInt64());
+            }
+        }
+        if (ok) {
+
+            if(structNameStr=="Struct1" ) {
+                uint32 toVerifyNumberOfSamples=10u;
+                if(fullNotation) {
+                    uint32 toVerifyNumberOfSamples=20u;
+                }
+                uint32 k;
+                for (k = 0; (k < toVerifyNumberOfElements) && (ok); k++) {
+                    for (uint32 h = 0; (h < toVerifyNumberOfSamples) && (ok); h++) {
+#if CCS_VER >= 63
+                        Struct1 *channelDataStored=(Struct1 *)pDataChannel->getItemPtr(k*toVerifyNumberOfSamples+h);
+                        for(uint32 n=0u; (n<10u) && ok; n++) {
+                            ok = (((uint32) channelDataStored->channel1[n]) == signalToVerify[k]);
+                            if (!ok) {
+                                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "[%d] %d != %d", k, ((uint32) channelDataStored[k].channel1[n]), signalToVerify[k]);
+                            }
+                        }
+                        if (ok) {
+                            for(uint32 n=0u; (n<20u) && ok; n++) {
+                                ok = (((uint32) channelDataStored->channel2[n]) == signalToVerify[k]);
+                                if (!ok) {
+                                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "[%d] %d != %d", k, ((uint32) channelDataStored[k].channel2[n]), signalToVerify[k]);
+                                }
+                            }
+                        }
+#endif
+                        if (ok) {
+                            if (timeToVerifyRelative == NULL) {
+                                ok = (absTimeStored[k*toVerifyNumberOfSamples+h] == (hpnTimeStamp + (((k * toVerifyNumberOfSamples)+h)* periodNanos)));
+                            }
+                            else {
+                                //ok = (absTimeStored[k] == (hpnTimeStamp + (timeToVerifyRelative[k] * 1000)));
+                                //TODO there seems to be a bug with the DanStreamReaderCpp that does not compute well discontinuous time samples
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(structNameStr=="Struct2" ) {
+                uint32 toVerifyNumberOfSamples=20u;
+                uint32 k;
+                for (k = 0; (k < toVerifyNumberOfElements) && (ok); k++) {
+                    for (uint32 h = 0; (h < toVerifyNumberOfSamples) && (ok); h++) {
+#if CCS_VER >= 63
+                        Struct2 *channelDataStored=(Struct2 *)pDataChannel->getItemPtr(k*toVerifyNumberOfSamples+h);
+                        for(uint32 n=0u; (n<10u) && ok; n++) {
+                            ok = (((uint32) channelDataStored->channel1[n]) == signalToVerify[k]);
+                            if (!ok) {
+                                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "[%d] %d != %d", k, ((uint32) channelDataStored[k].channel1[n]), signalToVerify[k]);
+                            }
+                        }
+                        if (ok) {
+                            for(uint32 n=0u; (n<5u) && ok; n++) {
+                                ok = (((uint32) channelDataStored->channel2[n]) == signalToVerify[k]);
+                                if (!ok) {
+                                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "[%d] %d != %d", k, ((uint32) channelDataStored[k].channel2[n]), signalToVerify[k]);
+                                }
+                            }
+                        }
+#endif
+                        if (ok) {
+                            if (timeToVerifyRelative == NULL) {
+                                ok = (absTimeStored[k*toVerifyNumberOfSamples+h] == (hpnTimeStamp + (((k * toVerifyNumberOfSamples)+h)* periodNanos)));
+                            }
+                            else {
+                                //ok = (absTimeStored[k] == (hpnTimeStamp + (timeToVerifyRelative[k] * 1000)));
+                                //TODO there seems to be a bug with the DanStreamReaderCpp that does not compute well discontinuous time samples
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if(pDataChannel!=NULL) {
+            delete pDataChannel;
+        }
+        if(pDataTime!=NULL) {
+            delete pDataTime;
+        }
+
+#ifdef NO_HDF5_SET_CHANNEL // CCSv6.1 and above
+        danStreamReader.closeStream();
+#endif
     }
     if (ok) {
         danStreamReader.closeFile();
@@ -550,9 +776,10 @@ static bool TestIntegratedExecution(const MARTe::char8 *const config,
                                     MARTe::float32 period,
                                     MARTe::uint32 sleepMSec = 10,
                                     bool useAbsTime = false,
-                                    bool fullNotation = false) {
+                                    bool fullNotation = false,
+                                    bool isStruct = false) {
     using namespace MARTe;
-    //Delete any previous DAN test files
+//Delete any previous DAN test files
     DirectoryScanner hd5FilesToTest;
     hd5FilesToTest.Scan("/tmp/data/", "*DANStreamTest*");
     uint32 i = 0u;
@@ -596,7 +823,7 @@ static bool TestIntegratedExecution(const MARTe::char8 *const config,
     cdb.MoveRelative("Signals");
     uint32 nSignals = cdb.GetNumberOfChildren();
     uint32 n = 0;
-    //Do not patch the trigger and the timing signal
+//Do not patch the trigger and the timing signal
     if (triggerToGenerate != NULL) {
         n = 2;
     }
@@ -676,30 +903,38 @@ static bool TestIntegratedExecution(const MARTe::char8 *const config,
             absTime = danSource->GetAbsoluteStartTime();
         }
 
-        ok = VerifyData<uint16>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
-        if (ok) {
-            ok = VerifyData<uint32>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+        if (isStruct) {
+            ok = VerifyStructData("Struct1", absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+            if (ok) {
+                ok = VerifyStructData("Struct2", absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+            }
         }
-        if (ok) {
-            ok = VerifyData<uint64>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
-        }
-        if (ok) {
-            ok = VerifyData<int16>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
-        }
-        if (ok) {
-            ok = VerifyData<int32>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
-        }
-        if (ok) {
-            ok = VerifyData<int64>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
-        }
-        if (ok) {
-            ok = VerifyData<float32>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
-        }
-        if (ok) {
-            ok = VerifyData<float64>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
-        }
-        if(ok && fullNotation){
-            ok = VerifyData<uint16>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements, true);
+        else {
+            ok = VerifyData<uint16>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+            if (ok) {
+                ok = VerifyData<uint32>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+            }
+            if (ok) {
+                ok = VerifyData<uint64>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+            }
+            if (ok) {
+                ok = VerifyData<int16>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+            }
+            if (ok) {
+                ok = VerifyData<int32>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+            }
+            if (ok) {
+                ok = VerifyData<int64>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+            }
+            if (ok) {
+                ok = VerifyData<float32>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+            }
+            if (ok) {
+                ok = VerifyData<float64>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
+            }
+            if (ok && fullNotation) {
+                ok = VerifyData<uint16>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements, true);
+            }
         }
     }
 
@@ -932,7 +1167,6 @@ static const MARTe::char8 *const config1a = ""
         "        +GAM1 = {"
         "            Class = DANSourceGAMTriggerTestHelper"
         "            Signal =  {0 1}"
-        "            Period = 1e-3"
         "            OutputSignals = {"
         "                SignalUInt16F_1 = {"
         "                    Type = uint16"
@@ -1135,15 +1369,15 @@ static const MARTe::char8 *const config1a = ""
         "                    Period = 1e-3"
         "                }"
         "                SignalUInt16F_1_A = {"
-        "                    Period = 100e-6"
+        "                    Period = 1e-3"
         "                    NumberOfElements = 10"
         "                }"
         "                SignalUInt16F_2_A = {"
-        "                    Period = 100e-6"
+        "                    Period = 1e-3"
         "                    NumberOfElements = 10"
         "                }"
         "                SignalUInt16F_3_A = {"
-        "                    Period = 100e-6"
+        "                    Period = 1e-3"
         "                    NumberOfElements = 10"
         "                }"
         "            }"
@@ -2459,6 +2693,219 @@ static const MARTe::char8 *const config13 = ""
         "    }"
         "}";
 
+//Standard configuration with no trigger source
+static const MARTe::char8 *const configStruct = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1 = {"
+        "            Class = DANSourceGAMTriggerTestHelper"
+        "            Signal =  {0 1 2 3 4 5 6 7 8 9 8 7 6 5}"
+        "            OutputSignals = {"
+        "                SignalUInt16F_1 = {"
+        "                    Alias = Struct1_A.Channel_UInt16"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 100"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt32F_1 = {"
+        "                    Alias = Struct1_A.Channel_UInt32"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 200"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt16F_2 = {"
+        "                    Alias = Struct1_B.Channel_UInt16"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 100"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt32F_2 = {"
+        "                    Alias = Struct1_B.Channel_UInt32"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 200"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt16F_3 = {"
+        "                    Alias = Struct1_C.Channel_UInt16"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 200"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt32F_3 = {"
+        "                    Alias = Struct1_C.Channel_UInt32"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 400"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalInt8F_1 = {"
+        "                    Alias = Struct2_A.Channel_Int8"
+        "                    Type = int8"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 200"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalFloat32F_1 = {"
+        "                    Alias = Struct2_A.Channel_Float32"
+        "                    Type = float32"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 100"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalInt8F_2 = {"
+        "                    Alias = Struct2_B.Channel_Int8"
+        "                    Type = int8"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 200"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalFloat32F_2 = {"
+        "                    Alias = Struct2_B.Channel_Float32"
+        "                    Type = float32"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 100"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +DANStreamTest = {"
+        "            Class = DANSource"
+        "            NumberOfBuffers = 10"
+        "            CPUMask = 15"
+        "            StackSize = 10000000"
+        "            StoreOnTrigger = 0"
+        "            DanBufferMultiplier = 4"
+        "            Signals = {"
+        "                Struct1_A = {"
+        "                    StructType = Struct1Type"
+        "                    Period = 1e-3"
+        "                    NumberOfSamples = 10"
+        "                    Channel_UInt16 = {"
+        "                        Type = uint16"
+        "                        NumberOfElements = 100"
+        "                        NumberOfDimensions = 1"
+        "                        Unit = Volt"
+        "                        Description = Voltage"
+        "                    }"
+        "                    Channel_UInt32 = {"
+        "                        Type = uint32"
+        "                        NumberOfElements = 200"
+        "                        NumberOfDimensions = 1"
+        "                        Unit = Ampere"
+        "                        Description = Current"
+        "                    }"
+        "                }"
+        "                Struct2_A = {"
+        "                    StructType = Struct2Type"
+        "                    Period = 1e-3"
+        "                    NumberOfSamples = 20"
+        "                    Channel_Int8 = {"
+        "                        Type = int8"
+        "                        NumberOfElements = 200"
+        "                        NumberOfDimensions = 1"
+        "                    }"
+        "                    Channel_Float32 = {"
+        "                        Type = float32"
+        "                        NumberOfElements = 100"
+        "                        NumberOfDimensions = 1"
+        "                    }"
+        "                }"
+        "                Struct1_B = {"
+        "                    StructType = Struct1Type"
+        "                    Period = 1e-3"
+        "                    NumberOfSamples = 10"
+        "                    Channel_UInt16 = {"
+        "                        Type = uint16"
+        "                        NumberOfElements = 100"
+        "                        NumberOfDimensions = 1"
+        "                    }"
+        "                    Channel_UInt32 = {"
+        "                        Type = uint32"
+        "                        NumberOfElements = 200"
+        "                        NumberOfDimensions = 1"
+        "                    }"
+        "                }"
+        "                Struct2_B = {"
+        "                    StructType = Struct2Type"
+        "                    Period = 1e-3"
+        "                    NumberOfSamples = 20"
+        "                    Channel_Int8 = {"
+        "                        Type = int8"
+        "                        NumberOfElements = 200"
+        "                        NumberOfDimensions = 1"
+        "                    }"
+        "                    Channel_Float32 = {"
+        "                        Type = float32"
+        "                        NumberOfElements = 100"
+        "                        NumberOfDimensions = 1"
+        "                    }"
+        "                }"
+        "                Struct1_C = {"
+        "                    StructType = Struct1Type"
+        "                    Period = 1e-3"
+        "                    NumberOfSamples = 20"
+        "                    Channel_UInt16 = {"
+        "                        Type = uint16"
+        "                        NumberOfElements = 200"
+        "                        NumberOfDimensions = 1"
+        "                    }"
+        "                    Channel_UInt32 = {"
+        "                        Type = uint32"
+        "                        NumberOfElements = 400"
+        "                        NumberOfDimensions = 1"
+        "                    }"
+        "                }"
+        "                Struct1_D = {"
+        "                    StructType = Struct1Type"
+        "                    Period = 1e-3"
+        "                    NumberOfSamples = 20"
+        "                    Channel_UInt16 = {"
+        "                        Type = uint16"
+        "                        NumberOfElements = 200"
+        "                        NumberOfDimensions = 1"
+        "                    }"
+        "                    Channel_UInt32 = {"
+        "                        Type = uint32"
+        "                        NumberOfElements = 400"
+        "                        NumberOfDimensions = 1"
+        "                    }"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = DANSourceSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -2577,11 +3024,25 @@ bool DANSourceTest::TestIntegratedInApplication_NoTrigger() {
 
 bool DANSourceTest::TestIntegratedInApplication_FullStream() {
     using namespace MARTe;
-    uint32 signalToGenerate[] = { 1, 2 };
+    uint32 signalToGenerate[] = { 1, 2, 3, 4 };
     uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
     const uint32 numberOfBuffers = 16;
-    const float32 period = -1.;
+    const float32 period = 1e-3;
     return TestIntegratedExecution(config1a, signalToGenerate, numberOfElements, NULL, signalToGenerate, NULL, numberOfElements, numberOfBuffers, 0, 0, period, 10, false, true);
+}
+
+bool DANSourceTest::TestIntegratedInApplication_Struct() {
+#if CCS_VER < 60
+    //not supported
+    return true;
+#else
+    using namespace MARTe;
+    uint32 signalToGenerate[] = { 1, 2, 3, 4, 5 };
+    uint32 numberOfElements = sizeof(signalToGenerate) / sizeof(uint32);
+    const uint32 numberOfBuffers = 16;
+    const float32 period = 1e-3;
+    return TestIntegratedExecution(configStruct, signalToGenerate, numberOfElements, NULL, signalToGenerate, NULL, numberOfElements, numberOfBuffers, 0, 0, period, 10, false, true, true);
+#endif
 }
 
 bool DANSourceTest::TestIntegratedInApplication_Interleave() {

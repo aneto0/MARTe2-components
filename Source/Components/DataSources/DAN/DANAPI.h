@@ -91,7 +91,13 @@ void* PublishSource(const char8 *const sourceName,
  */
 void UnpublishSource(void *danSource);
 
+/**
+ * @brief Declares a DAN structure
+ * @see set_type_field
+ * @see dan_publisher_setStream_itemTypeFields
+ */
 int32 DeclareStruct(void *danSource,
+                    StreamString *fielNames,
                     const TypeDescriptor *const types,
                     const uint32 *const numberOfElements,
                     const uint8 *const numberOfDimensions,

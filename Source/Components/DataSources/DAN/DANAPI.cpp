@@ -60,7 +60,7 @@ bool InitLibrary() {
 bool InitLibraryICProg(const char8 *const progName) {
     bool ok = true;
     if (danDataCore == NULL_PTR(dan_DataCore)) {
-#ifdef CCS_LT_60
+#if CCS_VER < 60
         ok = (danDataCore != NULL_PTR(dan_DataCore));
 #else
         danDataCore = dan_initLibrary_icprog(progName); // CCSv6.0 and above
@@ -110,19 +110,21 @@ void UnpublishSource(void *danSource) {
 }
 
 int32 DeclareStruct(void *danSource,
-                    const TypeDescriptor * const types,
+                    StreamString *fielNames,
+                    const TypeDescriptor *const types,
                     const uint32 *const numberOfElements,
                     const uint8 *const numberOfDimensions,
                     StreamString *units,
                     StreamString *descriptions,
                     const uint32 numberOfTypes) {
-
+#if CCS_VER < 60
+    int32 result = -1;
+#else
     field_type *typeFields = new field_type[numberOfTypes];
     for (uint32 i = 0u; i < numberOfTypes; i++) {
-        StreamString id;
-        id.Printf("Val_%d", i);
-        if (numberOfDimensions > 0u) {
-            id.Printf("[%d]", numberOfElements);
+        StreamString id = fielNames[i];
+        if (numberOfDimensions[i] > 0u) {
+            id.Printf("[%d]", numberOfElements[i]);
         }
         if (types[i] == UnsignedInteger8Bit) {
             set_type_field(&typeFields[i], danItemUint8, id.Buffer(), units[i].Buffer(), descriptions[i].Buffer());
@@ -157,6 +159,7 @@ int32 DeclareStruct(void *danSource,
     }
     int32 result = dan_publisher_setStream_itemTypeFields(danSource, numberOfTypes, typeFields);
     delete[] typeFields;
+#endif
     return result;
 
 }

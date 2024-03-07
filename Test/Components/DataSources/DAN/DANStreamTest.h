@@ -75,6 +75,11 @@ public:
     bool TestAddSignal();
 
     /**
+     * @brief Tests the AddToStructure method.
+     */
+    bool TestAddToStructure();
+
+    /**
      * @brief Tests the Finalise method.
      */
     bool TestFinalise();

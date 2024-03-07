@@ -44,8 +44,8 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-DANStream::DANStream(const StreamString typeNameIn,
-                     const StreamString baseNameIn,
+DANStream::DANStream(const char8 *typeNameIn,
+                     const char8 *baseNameIn,
                      const uint32 danBufferMultiplierIn,
                      const float64 samplingFrequencyIn,
                      const uint32 numberOfSamplesIn,
@@ -86,10 +86,14 @@ DANStream::DANStream(const StreamString typeNameIn,
     numberOfDimensions = NULL_PTR(uint8*);
     units = NULL_PTR(StreamString*);
     descriptions = NULL_PTR(StreamString*);
+    fieldNames = NULL_PTR(StreamString*);
 }
 
 /*lint -e{1551} the destructor must guarantee that the DANSource is unpublished at the of the object life-cycle. The internal buffering memory is also cleaned in this function.*/
 DANStream::~DANStream() {
+    if (danSource != NULL_PTR(void*)) {
+        DANAPI::UnpublishSource(danSource);
+    }
     if (signalIndexMap != NULL_PTR(uint32*)) {
         delete[] signalIndexMap;
     }
@@ -120,9 +124,8 @@ DANStream::~DANStream() {
     if (descriptions != NULL_PTR(StreamString*)) {
         delete[] descriptions;
     }
-
-    if (danSource != NULL_PTR(void*)) {
-        DANAPI::UnpublishSource(danSource);
+    if (fieldNames != NULL_PTR(StreamString*)) {
+        delete[] fieldNames;
     }
     if (blockMemory != NULL_PTR(char8*)) {
         GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void*&>(blockMemory));
@@ -198,10 +201,10 @@ bool DANStream::PutData() {
             //Interleave the memory data
             for (uint32 s = 0u; (s < numberOfSignals) && (ok); s++) {
                 for (uint32 h = 0u; (h < numberOfFields) && (ok); h++) {
-                    uint32 size = static_cast<uint32>(types[h].numberOfBits) / 8u;
+                    uint32 size = (static_cast<uint32>(types[h].numberOfBits) / 8u) * numberOfElements[h];
                     for (uint32 z = 0u; (z < numberOfSamples) && (ok); z++) {
                         //interleave within the structure
-                        uint32 blockMemoryIdx = (s * numberOfSamples + typeSize) + (fieldInStructOffset[h] * numberOfSamples) + (z * size);
+                        uint32 blockMemoryIdx = (s * numberOfSamples * typeSize) + (fieldInStructOffset[h] * numberOfSamples) + (z * size);
                         src = &blockMemory[blockMemoryIdx];
 
                         uint32 blockInterleavedMemoryIdx = (s * typeSize) + (z * numberOfSignals * typeSize) + fieldInStructOffset[h];
@@ -251,10 +254,14 @@ bool DANStream::Finalise() {
     danBufferSize *= static_cast<uint64>(danBufferMultiplier);
     danSource = DANAPI::PublishSource(danSourceName.Buffer(), danBufferSize);
     if (isStruct) {
-        int32 result = DANAPI::DeclareStruct(danSource, types, numberOfElements, numberOfDimensions, units, descriptions, numberOfFields);
+        int32 result = DANAPI::DeclareStruct(danSource, fieldNames, types, numberOfElements, numberOfDimensions, units, descriptions, numberOfFields);
         ret = (result >= 0);
         if (!ret) {
+#if CCS_VER < 60
+            REPORT_ERROR_STATIC(ErrorManagement::UnsupportedFeature, "Structures not supported in CCS < 6.0");
+#else
             REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Incorrect setting of composite type fields from I&C");
+#endif
         }
     }
     return ret;
@@ -263,8 +270,7 @@ bool DANStream::Finalise() {
 void DANStream::AddSignal(const uint32 signalIdx) {
     uint32 numberOfSignalsP1 = (numberOfSignals + 1u);
     uint32 *newSignalIndexOffset = new uint32[numberOfSignalsP1];
-    uint32 i;
-    for (i = 0u; i < numberOfSignals; i++) {
+    for (uint32 i = 0u; i < numberOfSignals; i++) {
         /*lint -e{613} signalIndexMap cannot be NULL as numberOfSignals is initialised to zero in the constructor*/
         newSignalIndexOffset[i] = signalIndexMap[i];
     }
@@ -279,11 +285,12 @@ void DANStream::AddSignal(const uint32 signalIdx) {
 }
 
 bool DANStream::AddToStructure(const uint32 fieldIdxIn,
+                               const char8 *fieldNameIn,
                                const TypeDescriptor typeDesc,
                                const uint32 numberOfElementsIn,
                                const uint8 numberOfDimensionsIn,
-                               const StreamString unitIn,
-                               const StreamString descriptionIn) {
+                               const char8 *unitIn,
+                               const char8 *descriptionIn) {
     bool ret = (numberOfSignals > 0u);
     if (ret) {
         uint32 fieldSize = (static_cast<uint32>(typeDesc.numberOfBits) / 8u) * numberOfElementsIn;
@@ -296,6 +303,7 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
             uint8 *newNumberOfDimensions = new uint8[nFieldsAllocated];
             StreamString *newUnits = new StreamString[nFieldsAllocated];
             StreamString *newDesc = new StreamString[nFieldsAllocated];
+            StreamString *newFieldNames = new StreamString[nFieldsAllocated];
             for (uint32 i = 0u; i < nFieldsAllocated; i++) {
                 if (i < numberOfFields) {
                     newfieldInStructOffset[i] = fieldInStructOffset[i];
@@ -304,6 +312,7 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
                     newNumberOfDimensions[i] = numberOfDimensions[i];
                     newUnits[i] = units[i];
                     newDesc[i] = descriptions[i];
+                    newFieldNames[i] = fieldNames[i];
                 }
                 else {
                     newfieldInStructOffset[i] = 0u;
@@ -311,7 +320,8 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
                     newNumberOfElements[i] = 0u;
                     newNumberOfDimensions[i] = 0u;
                     newUnits[i] = "Unknown";
-                    newDesc[i] = "";
+                    newDesc[i] = "Unknown";
+                    newFieldNames[i] = "Unknown";
                 }
             }
             if (numberOfFields > 0u) {
@@ -319,6 +329,9 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
                 delete[] types;
                 delete[] numberOfElements;
                 delete[] numberOfDimensions;
+                delete[] units;
+                delete[] descriptions;
+                delete[] fieldNames;
             }
             fieldInStructOffset = newfieldInStructOffset;
             types = newTypes;
@@ -326,6 +339,7 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
             numberOfDimensions = newNumberOfDimensions;
             units = newUnits;
             descriptions = newDesc;
+            fieldNames = newFieldNames;
         }
         if (types[numberOfFields] != InvalidType) {
             ret = (types[numberOfFields] == typeDesc);
@@ -339,7 +353,7 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
                 ret = (numberOfElements[numberOfFields] == numberOfElementsIn);
                 if (!ret) {
                     REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Number of elements mismatch for signal %d in struct %d. Found %d. Expected %d",
-                                        fieldIdxIn, signalIndexMap[numberOfSignals - 1u], numberOfElements[numberOfFields], numberOfElementsIn);
+                                        fieldIdxIn, signalIndexMap[numberOfSignals - 1u], numberOfElementsIn, numberOfElements[numberOfFields]);
                 }
             }
 
@@ -347,7 +361,7 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
                 ret = (numberOfDimensions[numberOfFields] == numberOfDimensionsIn);
                 if (!ret) {
                     REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Number of elements mismatch for signal %d in struct %d. Found %d. Expected %d",
-                                        fieldIdxIn, signalIndexMap[numberOfSignals - 1u], numberOfDimensions[numberOfFields], numberOfDimensionsIn);
+                                        fieldIdxIn, signalIndexMap[numberOfSignals - 1u], numberOfDimensionsIn, numberOfDimensions[numberOfFields]);
                 }
             }
 
@@ -356,20 +370,22 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
             fieldInStructOffset[numberOfFields] = typeSize;
             types[numberOfFields] = typeDesc;
             numberOfElements[numberOfFields] = numberOfElementsIn;
-            numberOfDimensions[numberOfFields] = numberOfElementsIn;
+            numberOfDimensions[numberOfFields] = numberOfDimensionsIn;
             units[numberOfFields] = unitIn;
             descriptions[numberOfFields] = descriptionIn;
+            fieldNames[numberOfFields] = fieldNameIn;
         }
         typeSize += fieldSize;
         numberOfFields++;
 
-        if (totalNumberOfFields > totalNumberOfFieldsAllocated) {
+        uint32 totalNumberOfFieldsP1 = (totalNumberOfFields + 1u);
+        if (totalNumberOfFieldsP1 > totalNumberOfFieldsAllocated) {
             totalNumberOfFieldsAllocated += 8u;
-            uint32 *newFieldIndexOffset = new uint32[totalNumberOfFieldsAllocated];
+            uint32 *newFieldIndexMap = new uint32[totalNumberOfFieldsAllocated];
             uint32 *newStructIdx = new uint32[totalNumberOfFieldsAllocated];
             uint32 *newFieldIdx = new uint32[totalNumberOfFieldsAllocated];
             for (uint32 i = 0u; i < totalNumberOfFields; i++) {
-                newFieldIndexOffset[i] = fieldIndexMap[i];
+                newFieldIndexMap[i] = fieldIndexMap[i];
                 newStructIdx[i] = structIdx[i];
                 newFieldIdx[i] = fieldIdx[i];
             }
@@ -378,13 +394,13 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
                 delete[] structIdx;
                 delete[] fieldIdx;
             }
-            fieldIndexMap = newFieldIndexOffset;
+            fieldIndexMap = newFieldIndexMap;
             structIdx = newStructIdx;
             fieldIdx = newFieldIdx;
         }
         //mapping
         fieldIndexMap[totalNumberOfFields] = fieldIdxIn;
-        structIdx[totalNumberOfFields] = signalIndexMap[numberOfSignals - 1u];
+        structIdx[totalNumberOfFields] = (numberOfSignals - 1u);
         fieldIdx[totalNumberOfFields] = fieldInStructOffset[numberOfFields - 1u];
         totalNumberOfFields++;
     }
@@ -398,17 +414,15 @@ bool DANStream::GetSignalMemoryBuffer(const uint32 signalIdx,
                                       void *&signalAddress) {
 
     bool found = false;
-    for (uint32 i = 0u; (i < numberOfSignals) && (!found); i++) {
+    for (uint32 i = 0u; (i < totalNumberOfFields) && (!found); i++) {
         found = (fieldIndexMap[i] == signalIdx);
         if (found) {
             uint32 structFieldIdx = structIdx[i];
-            uint32 fieldOffset = fieldInStructOffset[i];
+            uint32 fieldOffset = fieldIdx[i];
             if (blockMemory != NULL_PTR(char8*)) {
-                for (uint32 n = 0u; n < numberOfSamples; n++) {
-                    uint32 memSignalAddressIdx = ((typeSize * structFieldIdx) + fieldOffset) * numberOfSamples;
-                    char8 *memSignalAddress = &blockMemory[memSignalAddressIdx];
-                    signalAddress = reinterpret_cast<void*&>(memSignalAddress);
-                }
+                uint32 memSignalAddressIdx = ((typeSize * structFieldIdx) + fieldOffset) * numberOfSamples;
+                char8 *memSignalAddress = &blockMemory[memSignalAddressIdx];
+                signalAddress = reinterpret_cast<void*&>(memSignalAddress);
             }
             else {
                 found = false;

@@ -63,6 +63,10 @@ CPPFLAGS += -DNO_HDF5_SET_CHANNEL
 else
 CPPFLAGS += -DCCS_LT_60
 endif
+
+CCS_VER = $(shell codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g')
+CPPFLAGS += -DCCS_VER=$(CCS_VER)
+
 endif
 
 #TODO Temporary to fix in hpn.h
