@@ -130,11 +130,11 @@ namespace MARTe {
  *   - DANSource_0_uint16 (Period_ns=1000000, N_samples=1)
  *       - SignalUInt16F_0
  *       - SignalUInt16F_1
- *   - DANSource_0_uint16_T1000_N1000 (Period_ns=1000, N_samples=1000)
+ *   - DANSource_0_T1000_N1000_uint16 (Period_ns=1000, N_samples=1000)
  *       - SignalUInt16F_2
  *   - DANSource_0_uint32 (Period_ns=1000, N_samples=1000)
  *       - SignalUInt32F_0
- *   - DANSource_0_uint32_T1000000_N1 (Period_ns=1000000, N_samples=1)
+ *   - DANSource_0_T1000000_N1_uint32 (Period_ns=1000000, N_samples=1)
  *       - SignalUInt32F_0
  *       - SignalUInt32F_0
  *
@@ -224,7 +224,7 @@ namespace MARTe {
  *   - DANSource_0_Spectrum (Period_ns=1000000, N_samples=1000)
  *     - Channel_0
  *     - Channel_2
- *   - DANSource_0_Spectrum_T1000000_N100 (Period_ns=1000000, N_samples=100)
+ *   - DANSource_0_T1000000_N100_Spectrum (Period_ns=1000000, N_samples=100)
  *     - Channel_1
  *   - DANSource_0_Compound (Period_ns=1000000, N_samples=1)
  *     - Acq_0
