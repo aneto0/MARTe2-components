@@ -425,7 +425,6 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                 if ((ok) && (addSignal)) {
                     float64 periodNanosF = (1e9 / samplingFrequency);
                     uint64 periodNanos = static_cast<uint64>(periodNanosF);
-#if CCS_VER >= 60
                     StreamString structType;
                     if (originalSignalInformation.Read("StructType", structType)) {
                         uint32 numberOfSamples = 1u;
@@ -514,7 +513,6 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                         }
                     }
                     else {
-#endif
                         uint32 numberOfElements;
                         ok = GetSignalNumberOfElements(cnt, numberOfElements);
                         if (ok) {
@@ -569,9 +567,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                             }
                         }
                         cnt++;
-#if CCS_VER >= 60
                     }
-#endif
                 }
                 else {
                     cnt++;

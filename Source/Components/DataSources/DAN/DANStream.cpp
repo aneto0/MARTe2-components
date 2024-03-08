@@ -364,6 +364,20 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
                                         fieldIdxIn, signalIndexMap[numberOfSignals - 1u], numberOfDimensionsIn, numberOfDimensions[numberOfFields]);
                 }
             }
+            if(ret){
+                if((units[numberOfFields]!="Unknown") && (units[numberOfFields]!=unitIn)){
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Unit redefined for signal %d in struct %d. Found %s. Expected and keeping %s",
+                                        fieldIdxIn, signalIndexMap[numberOfSignals - 1u], unitIn, units[numberOfFields].Buffer());
+                }
+                if((descriptions[numberOfFields]!="Unknown") && (descriptions[numberOfFields]!=descriptionIn)){
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Description redefined for signal %d in struct %d. Found %s. Expected and keeping %s",
+                                        fieldIdxIn, signalIndexMap[numberOfSignals - 1u], descriptionIn, descriptions[numberOfFields].Buffer());
+                }
+                if((fieldNames[numberOfFields]!="Unknown") && (fieldNames[numberOfFields]!=fieldNameIn)){
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Field name redefined for signal %d in struct %d. Found %s. Expected and keeping %s",
+                                        fieldIdxIn, signalIndexMap[numberOfSignals - 1u], fieldNameIn, fieldNames[numberOfFields].Buffer());
+                }
+            }
 
         }
         else {
@@ -371,9 +385,15 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
             types[numberOfFields] = typeDesc;
             numberOfElements[numberOfFields] = numberOfElementsIn;
             numberOfDimensions[numberOfFields] = numberOfDimensionsIn;
-            units[numberOfFields] = unitIn;
-            descriptions[numberOfFields] = descriptionIn;
-            fieldNames[numberOfFields] = fieldNameIn;
+            if (units[numberOfFields] == "Unknown") {
+                units[numberOfFields] = unitIn;
+            }
+            if (descriptions[numberOfFields] == "Unknown") {
+                descriptions[numberOfFields] = descriptionIn;
+            }
+            if (fieldNames[numberOfFields] == "Unknown") {
+                fieldNames[numberOfFields] = fieldNameIn;
+            }
         }
         typeSize += fieldSize;
         numberOfFields++;
