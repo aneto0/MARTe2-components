@@ -639,7 +639,7 @@ static bool VerifyStructData(const MARTe::char8 *structName,
 #if CCS_VER < 72
     //Bug found in versions<7.2
     //Fail to read from second channels on
-    numberOfChannels=1u;
+    numberOfChannels = 1u;
 #endif
 
     for (c = 0; (c < numberOfChannels) && (ok); c++) {
@@ -675,7 +675,7 @@ static bool VerifyStructData(const MARTe::char8 *structName,
             if(structNameStr=="Struct1" ) {
                 uint32 toVerifyNumberOfSamples=10u;
                 if(fullNotation) {
-                    uint32 toVerifyNumberOfSamples=20u;
+                    toVerifyNumberOfSamples=20u;
                 }
                 uint32 k;
                 for (k = 0; (k < toVerifyNumberOfElements) && (ok); k++) {
@@ -933,6 +933,14 @@ static bool TestIntegratedExecution(const MARTe::char8 *const config,
                 ok = VerifyData<float64>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements);
             }
             if (ok && fullNotation) {
+                ok = VerifyData<uint16>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements, true);
+            }
+        }
+        if (ok && fullNotation) {
+            if (isStruct) {
+                ok = VerifyStructData("Struct1", absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements, true);
+            }
+            else {
                 ok = VerifyData<uint16>(absTime, period * 1e9, signalToVerify, timeToVerifyRelative, toVerifyNumberOfElements, true);
             }
         }
@@ -2740,6 +2748,20 @@ static const MARTe::char8 *const configStruct = ""
         "                }"
         "                SignalUInt32F_3 = {"
         "                    Alias = Struct1_C.Channel_UInt32"
+        "                    Type = uint32"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 400"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt16F_4 = {"
+        "                    Alias = Struct1_D.Channel_UInt16"
+        "                    Type = uint16"
+        "                    DataSource = DANStreamTest"
+        "                    NumberOfElements = 200"
+        "                    NumberOfDimensions = 1"
+        "                }"
+        "                SignalUInt32F_4 = {"
+        "                    Alias = Struct1_D.Channel_UInt32"
         "                    Type = uint32"
         "                    DataSource = DANStreamTest"
         "                    NumberOfElements = 400"
