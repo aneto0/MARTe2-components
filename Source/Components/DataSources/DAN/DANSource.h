@@ -90,7 +90,7 @@ namespace MARTe {
  *
  * @details A DANStream called [DataSource Name]_[signal type] is created when a signal with [signal type] has been encountered, with the sampling frequency and the number of samples of that same signal.
  * All the other signal matching the type, the sampling frequency and the number of samples of are added to the [DataSource Name]_[signal type] stream.
- * If a signal with the same type but different sampling frequency or signal is encountered, a new stream called [DataSource Name]_[signal type]_T[signal period in ns]_N[signal number of samples]
+ * If a signal with the same type but different sampling frequency or signal is encountered, a new stream called [DataSource Name]_T[signal period in ns]_N[signal number of samples]_[signal type]
  * is created. This has to be taken into account for the DAN.xml where all the streams are declared.
  * For example:
  * <pre>
