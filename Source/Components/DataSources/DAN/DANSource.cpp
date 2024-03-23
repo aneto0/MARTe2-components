@@ -25,7 +25,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#ifdef CCS_LT_60
+#if (defined(CCS_LT_60) || defined(LINT))
 #include <tcn.h>
 #else
 #include <common/TimeTools.h> // ccs::HelperTools::GetCurrentTime, etc.
