@@ -62,7 +62,7 @@ bool InitLibrary() {
 bool InitLibraryICProg(const char8 * const progName) {
     bool ok = true;
     if (danDataCore == NULL_PTR(dan_DataCore)) {
-#ifdef CCS_LT_60
+#ifdef CCS_LT_61
         ok = (danDataCore != NULL_PTR(dan_DataCore));
 #else
         danDataCore = dan_initLibrary_icprog(progName); // CCSv6.0 and above

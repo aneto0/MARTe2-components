@@ -25,7 +25,7 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#if (defined(CCS_LT_60) || defined(LINT))
+#if (defined(CCS_LT_61) || defined(LINT))
 #include <tcn.h>
 #else
 #include <common/TimeTools.h> // ccs::HelperTools::GetCurrentTime, etc.
@@ -194,7 +194,7 @@ bool DANSource::PrepareNextState(const char8 *const currentStateName,
     bool ok = true;
     if (!useAbsoluteTime) {
 
-#ifdef CCS_LT_60
+#ifdef CCS_LT_61
         hpn_timestamp_t hpnTimeStamp;
         ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
         if (ok) {
@@ -311,7 +311,7 @@ bool DANSource::Initialise(StructuredDataI &data) {
             }
         }
     }
-#ifdef CCS_LT_60
+#ifdef CCS_LT_61
     if (ok) {
         ok = (tcn_init() == TCN_SUCCESS);
         if (!ok) {
