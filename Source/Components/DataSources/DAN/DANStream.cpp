@@ -44,8 +44,8 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-DANStream::DANStream(const char8 *typeNameIn,
-                     const char8 *baseNameIn,
+DANStream::DANStream(const char8 * const typeNameIn,
+                     const char8 * const baseNameIn,
                      const uint32 danBufferMultiplierIn,
                      const float64 samplingFrequencyIn,
                      const uint32 numberOfSamplesIn,
@@ -174,6 +174,7 @@ void DANStream::SetRelativeTimeSignal(uint32 *const timeRelativeSignalIn) {
     }
 }
 
+/*lint -e{613} fields cannot be NULL if ok = true*/
 bool DANStream::PutData() {
     bool ok = true;
     uint64 timeStamp = 0u;
@@ -284,13 +285,14 @@ void DANStream::AddSignal(const uint32 signalIdx) {
     typeSize = 0u;
 }
 
+/*lint -e{613} fields cannot be NULL if ret = true*/
 bool DANStream::AddToStructure(const uint32 fieldIdxIn,
-                               const char8 *fieldNameIn,
+                               const char8 * const fieldNameIn,
                                const TypeDescriptor typeDesc,
                                const uint32 numberOfElementsIn,
                                const uint8 numberOfDimensionsIn,
-                               const char8 *unitIn,
-                               const char8 *descriptionIn) {
+                               const char8 * const unitIn,
+                               const char8 * const descriptionIn) {
     bool ret = (numberOfSignals > 0u);
     if (ret) {
         uint32 fieldSize = (static_cast<uint32>(typeDesc.numberOfBits) / 8u) * numberOfElementsIn;
@@ -364,6 +366,7 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
                                         fieldIdxIn, signalIndexMap[numberOfSignals - 1u], numberOfDimensionsIn, numberOfDimensions[numberOfFields]);
                 }
             }
+            /*lint -e{9007} no side effect in comparisons below*/
             if (ret && isStruct) {
                 if ((units[numberOfFields] != "Unknown") && (units[numberOfFields] != unitIn)) {
                     REPORT_ERROR_STATIC(ErrorManagement::Warning, "Unit redefined for signal %d in struct %d. Found %s. Expected and keeping %s", fieldIdxIn,

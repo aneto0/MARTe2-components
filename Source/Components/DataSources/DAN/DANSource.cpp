@@ -25,6 +25,9 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#ifdef LINT
+#define CCS_VER 0
+#endif
 #if CCS_VER < 60
 #include <tcn.h>
 #else
@@ -371,7 +374,6 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
     }
 
     //Check the signal index of the timing signal.
-    uint32 nOfSignals = GetNumberOfSignals();
     uint32 cnt = 0u;
     if (ok) {
         for (uint32 n = 0u; (n < originalSignalInformation.GetNumberOfChildren()) && (ok); n++) {
@@ -395,10 +397,9 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                     }
                 }
 
-                bool addSignal = false;
                 float64 period;
                 float64 samplingFrequency = 0.F;
-                addSignal = (originalSignalInformation.Read("Period", period));
+                bool addSignal = (originalSignalInformation.Read("Period", period));
                 if (addSignal) {
                     if (period > 0.F) {
                         samplingFrequency = (1.F / period);
@@ -423,12 +424,13 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                 }
 
                 if ((ok) && (addSignal)) {
+                    /*lint -e{414} samplingFrequency != 0 is checked above*/
                     float64 periodNanosF = (1e9 / samplingFrequency);
                     uint64 periodNanos = static_cast<uint64>(periodNanosF);
                     StreamString structType;
                     if (originalSignalInformation.Read("StructType", structType)) {
                         uint32 numberOfSamples = 1u;
-                        originalSignalInformation.Read("NumberOfSamples", numberOfSamples);
+                        (void) originalSignalInformation.Read("NumberOfSamples", numberOfSamples);
 
                         ok = (numberOfSamples > 0u);
                         if (ok) {
@@ -468,7 +470,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                                 if ((typeOk) || (fullStreamName)) {
                                     //found another with same type... don't overwrite it... use a different name
                                     name = "";
-                                    name.Printf("%s_T%d_N%d", GetName(), periodNanos, numberOfSamples);
+                                    (void) name.Printf("%s_T%d_N%d", GetName(), periodNanos, numberOfSamples);
                                 }
                                 REPORT_ERROR_STATIC(ErrorManagement::Information, "Creating stream %s_%s", name.Buffer(), structType.Buffer());
 
@@ -491,19 +493,20 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                                         description = "Unknown";
                                     }
 
-                                    uint32 numberOfElements;
-                                    uint8 numberOfDimensions;
+                                    uint32 numberOfElements = 0u;
+                                    uint8 numberOfDimensions = 0u;
                                     ok = GetSignalNumberOfElements(cnt, numberOfElements);
                                     if (ok) {
                                         ok = GetSignalNumberOfDimensions(cnt, numberOfDimensions);
                                     }
+                                    /*lint -e{613} danStreams cannot be NULL if ok = true*/
                                     if (ok) {
                                         numberOfElements /= numberOfSamples;
                                         TypeDescriptor typeDesc = GetSignalType(cnt);
                                         ok = danStreams[danSourceIdx]->AddToStructure(cnt, fieldName.Buffer(), typeDesc, numberOfElements, numberOfDimensions, unit.Buffer(),
                                                                                       description.Buffer());
                                     }
-                                    originalSignalInformation.MoveToAncestor(1u);
+                                    (void) originalSignalInformation.MoveToAncestor(1u);
                                     cnt++;
                                 }
                             }
@@ -517,7 +520,6 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                         ok = GetSignalNumberOfElements(cnt, numberOfElements);
                         if (ok) {
                             TypeDescriptor typeDesc = GetSignalType(cnt);
-                            uint32 fieldSize = static_cast<uint32>(typeDesc.numberOfBits) / 8u;
                             StreamString typeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDesc);
                             bool found = false;
                             bool typeOk = false;
@@ -535,6 +537,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                                 if (found) {
                                     found = (danStreams[t]->GetNumberOfSamples() == numberOfElements);
                                 }
+                                /*lint -e{613} danStreams cannot be NULL if ok = true*/
                                 if (found) {
                                     danStreams[t]->AddSignal(cnt);
                                     ok = danStreams[t]->AddToStructure(cnt, signalName.Buffer(), typeDesc, 1u, 0u, "Unknown", "Unknown");
@@ -555,7 +558,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                                 if ((typeOk) || (fullStreamName)) {
                                     //found another with same type... don't overwrite it... use a different name
                                     name = "";
-                                    name.Printf("%s_T%d_N%d", GetName(), periodNanos, numberOfElements);
+                                    (void) name.Printf("%s_T%d_N%d", GetName(), periodNanos, numberOfElements);
                                 }
                                 REPORT_ERROR_STATIC(ErrorManagement::Information, "Creating stream %s_%s", name.Buffer(), typeName.Buffer());
 

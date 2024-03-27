@@ -107,13 +107,13 @@ public:
      * @param[in] unitIn the field unit
      * @param[in] descriptionIn the field description
      */
-    bool AddToStructure(const uint32 fieldIdx,
-                        const char8 *fieldNameIn,
+    bool AddToStructure(const uint32 fieldIdxIn,
+                        const char8 * const fieldNameIn,
                         const TypeDescriptor typeDesc,
-                        const uint32 numberOfElements,
-                        const uint8 numberOfDimensions,
-                        const char8 *unitIn,
-                        const char8 *descriptionIn);
+                        const uint32 numberOfElementsIn,
+                        const uint8 numberOfDimensionsIn,
+                        const char8 * const unitIn,
+                        const char8 * const descriptionIn);
     /**
      * @brief All the signals have been added. Call dan_publisher_publishSource_withDAQBuffer with the final buffer size.
      * @details The computed buffer size will be given by numberOfSignals * typeSize * numberOfSamples * danBufferMultiplier
