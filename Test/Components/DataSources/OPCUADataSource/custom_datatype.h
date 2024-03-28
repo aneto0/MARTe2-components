@@ -15,7 +15,7 @@ static UA_DataTypeMember Point_members[3] = {
         /* x */
         {
                 UA_TYPENAME("x") /* .memberName */
-                UA_TYPES_FLOAT,  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
+                &UA_TYPES[UA_TYPES_FLOAT],  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
                 0,               /* .padding */
                 true,            /* .namespaceZero, see .memberTypeIndex */
                 false            /* .isArray */
@@ -24,29 +24,28 @@ static UA_DataTypeMember Point_members[3] = {
         /* y */
         {
                 UA_TYPENAME("y")
-                UA_TYPES_FLOAT, Point_padding_y, true, false
+                &UA_TYPES[UA_TYPES_FLOAT], Point_padding_y, true, false
         },
 
         /* z */
         {
                 UA_TYPENAME("z")
-                UA_TYPES_FLOAT, Point_padding_z, true, false
+                &UA_TYPES[UA_TYPES_FLOAT], Point_padding_z, true, false
         }
 };
 
 static const UA_DataType PointType = {
         UA_TYPENAME("Point")             /* .typeName */
         {1, UA_NODEIDTYPE_NUMERIC, {4242}}, /* .typeId */
+        {1, UA_NODEIDTYPE_NUMERIC, {0}}, /* .binaryEncodingId, the numeric
+                                         identifier used on the wire (the
+                                         namespaceindex is from .typeId) */
         sizeof(Point),                   /* .memSize */
-        0,                               /* .typeIndex, in the array of custom types */
         UA_DATATYPEKIND_STRUCTURE,       /* .typeKind */
         true,                            /* .pointerFree */
         false,                           /* .overlayable (depends on endianness and
                                          the absence of padding) */
         3,                               /* .membersSize */
-        0,                               /* .binaryEncodingId, the numeric
-                                         identifier used on the wire (the
-                                         namespaceindex is from .typeId) */
         Point_members
 };
 
@@ -66,7 +65,7 @@ static UA_DataTypeMember PointArraySByte_members[3] = {
         /* x */
         {
                 UA_TYPENAME("x") /* .memberName */
-                UA_TYPES_SBYTE,  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
+                &UA_TYPES[UA_TYPES_SBYTE],  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
                 0,               /* .padding */
                 true,            /* .namespaceZero, see .memberTypeIndex */
                 false            /* .isArray */
@@ -75,29 +74,28 @@ static UA_DataTypeMember PointArraySByte_members[3] = {
         /* y */
         {
                 UA_TYPENAME("y")
-                UA_TYPES_SBYTE, PointArraySByte_padding_y, true, false
+                &UA_TYPES[UA_TYPES_SBYTE], PointArraySByte_padding_y, true, false
         },
 
         /* z */
         {
                 UA_TYPENAME("z")
-                UA_TYPES_SBYTE, PointArraySByte_padding_z, true, true
+                &UA_TYPES[UA_TYPES_SBYTE], PointArraySByte_padding_z, true, true
         }
 };
 
 static const UA_DataType PointArraySByteType = {
         UA_TYPENAME("PointArraySByte")             /* .typeName */
         {1, UA_NODEIDTYPE_NUMERIC, {4243}}, /* .typeId */
+        {1, UA_NODEIDTYPE_NUMERIC, {0}}, /* .binaryEncodingId, the numeric
+                                         identifier used on the wire (the
+                                         namespaceindex is from .typeId) */
         sizeof(PointArraySByte),                   /* .memSize */
-        0,                               /* .typeIndex, in the array of custom types */
         UA_DATATYPEKIND_STRUCTURE,       /* .typeKind */
         true,                            /* .pointerFree */
         false,                           /* .overlayable (depends on endianness and
                                          the absence of padding) */
         3,                               /* .membersSize */
-        0,                               /* .binaryEncodingId, the numeric
-                                         identifier used on the wire (the
-                                         namespaceindex is from .typeId) */
         PointArraySByte_members
 };
 
@@ -116,7 +114,7 @@ static UA_DataTypeMember PointArrayByte_members[3] = {
         /* x */
         {
                 UA_TYPENAME("x") /* .memberName */
-                UA_TYPES_BYTE,  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
+                &UA_TYPES[UA_TYPES_BYTE],  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
                 0,               /* .padding */
                 true,            /* .namespaceZero, see .memberTypeIndex */
                 false            /* .isArray */
@@ -125,29 +123,28 @@ static UA_DataTypeMember PointArrayByte_members[3] = {
         /* y */
         {
                 UA_TYPENAME("y")
-                UA_TYPES_BYTE, PointArrayByte_padding_y, true, false
+                &UA_TYPES[UA_TYPES_BYTE], PointArrayByte_padding_y, true, false
         },
 
         /* z */
         {
                 UA_TYPENAME("z")
-                UA_TYPES_BYTE, PointArrayByte_padding_z, true, true
+                &UA_TYPES[UA_TYPES_BYTE], PointArrayByte_padding_z, true, true
         }
 };
 
 static const UA_DataType PointArrayByteType = {
         UA_TYPENAME("PointArrayByte")             /* .typeName */
         {1, UA_NODEIDTYPE_NUMERIC, {4244}}, /* .typeId */
+        {1, UA_NODEIDTYPE_NUMERIC, {0}}, /* .binaryEncodingId, the numeric
+                                         identifier used on the wire (the
+                                         namespaceindex is from .typeId) */
         sizeof(PointArrayByte),                   /* .memSize */
-        0,                               /* .typeIndex, in the array of custom types */
         UA_DATATYPEKIND_STRUCTURE,       /* .typeKind */
         true,                            /* .pointerFree */
         false,                           /* .overlayable (depends on endianness and
                                          the absence of padding) */
         3,                               /* .membersSize */
-        0,                               /* .binaryEncodingId, the numeric
-                                         identifier used on the wire (the
-                                         namespaceindex is from .typeId) */
         PointArrayByte_members
 };
 
@@ -166,7 +163,7 @@ static UA_DataTypeMember PointArrayInt16_members[3] = {
         /* x */
         {
                 UA_TYPENAME("x") /* .memberName */
-                UA_TYPES_INT16,  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
+                &UA_TYPES[UA_TYPES_INT16],  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
                 0,               /* .padding */
                 true,            /* .namespaceZero, see .memberTypeIndex */
                 false            /* .isArray */
@@ -175,29 +172,28 @@ static UA_DataTypeMember PointArrayInt16_members[3] = {
         /* y */
         {
                 UA_TYPENAME("y")
-                UA_TYPES_INT16, PointArrayInt16_padding_y, true, false
+                &UA_TYPES[UA_TYPES_INT16], PointArrayInt16_padding_y, true, false
         },
 
         /* z */
         {
                 UA_TYPENAME("z")
-                UA_TYPES_INT16, PointArrayInt16_padding_z, true, true
+                &UA_TYPES[UA_TYPES_INT16], PointArrayInt16_padding_z, true, true
         }
 };
 
 static const UA_DataType PointArrayInt16Type = {
         UA_TYPENAME("PointArrayInt16")             /* .typeName */
         {1, UA_NODEIDTYPE_NUMERIC, {4245}}, /* .typeId */
+        {1, UA_NODEIDTYPE_NUMERIC, {0}}, /* .binaryEncodingId, the numeric
+                                         identifier used on the wire (the
+                                         namespaceindex is from .typeId) */
         sizeof(PointArrayInt16),                   /* .memSize */
-        0,                               /* .typeIndex, in the array of custom types */
         UA_DATATYPEKIND_STRUCTURE,       /* .typeKind */
         true,                            /* .pointerFree */
         false,                           /* .overlayable (depends on endianness and
                                          the absence of padding) */
         3,                               /* .membersSize */
-        0,                               /* .binaryEncodingId, the numeric
-                                         identifier used on the wire (the
-                                         namespaceindex is from .typeId) */
         PointArrayInt16_members
 };
 
@@ -216,7 +212,7 @@ static UA_DataTypeMember PointArrayUInt16_members[3] = {
         /* x */
         {
                 UA_TYPENAME("x") /* .memberName */
-                UA_TYPES_UINT16,  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
+                &UA_TYPES[UA_TYPES_UINT16],  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
                 0,               /* .padding */
                 true,            /* .namespaceZero, see .memberTypeIndex */
                 false            /* .isArray */
@@ -225,29 +221,28 @@ static UA_DataTypeMember PointArrayUInt16_members[3] = {
         /* y */
         {
                 UA_TYPENAME("y")
-                UA_TYPES_UINT16, PointArrayUInt16_padding_y, true, false
+                &UA_TYPES[UA_TYPES_UINT16], PointArrayUInt16_padding_y, true, false
         },
 
         /* z */
         {
                 UA_TYPENAME("z")
-                UA_TYPES_UINT16, PointArrayUInt16_padding_z, true, true
+                &UA_TYPES[UA_TYPES_UINT16], PointArrayUInt16_padding_z, true, true
         }
 };
 
 static const UA_DataType PointArrayUInt16Type = {
         UA_TYPENAME("PointArrayUInt16")             /* .typeName */
         {1, UA_NODEIDTYPE_NUMERIC, {4246}}, /* .typeId */
+        {1, UA_NODEIDTYPE_NUMERIC, {0}}, /* .binaryEncodingId, the numeric
+                                         identifier used on the wire (the
+                                         namespaceindex is from .typeId) */
         sizeof(PointArrayUInt16),                   /* .memSize */
-        0,                               /* .typeIndex, in the array of custom types */
         UA_DATATYPEKIND_STRUCTURE,       /* .typeKind */
         true,                            /* .pointerFree */
         false,                           /* .overlayable (depends on endianness and
                                          the absence of padding) */
         3,                               /* .membersSize */
-        0,                               /* .binaryEncodingId, the numeric
-                                         identifier used on the wire (the
-                                         namespaceindex is from .typeId) */
         PointArrayUInt16_members
 };
 
@@ -266,7 +261,7 @@ static UA_DataTypeMember PointArrayInt32_members[3] = {
         /* x */
         {
                 UA_TYPENAME("x") /* .memberName */
-                UA_TYPES_INT32,  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
+                &UA_TYPES[UA_TYPES_INT32],  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
                 0,               /* .padding */
                 true,            /* .namespaceZero, see .memberTypeIndex */
                 false            /* .isArray */
@@ -275,29 +270,28 @@ static UA_DataTypeMember PointArrayInt32_members[3] = {
         /* y */
         {
                 UA_TYPENAME("y")
-                UA_TYPES_INT32, PointArrayInt32_padding_y, true, false
+                &UA_TYPES[UA_TYPES_INT32], PointArrayInt32_padding_y, true, false
         },
 
         /* z */
         {
                 UA_TYPENAME("z")
-                UA_TYPES_INT32, PointArrayInt32_padding_z, true, true
+                &UA_TYPES[UA_TYPES_INT32], PointArrayInt32_padding_z, true, true
         }
 };
 
 static const UA_DataType PointArrayInt32Type = {
         UA_TYPENAME("PointArrayInt32")             /* .typeName */
         {1, UA_NODEIDTYPE_NUMERIC, {4247}}, /* .typeId */
+        {1, UA_NODEIDTYPE_NUMERIC, {0}}, /* .binaryEncodingId, the numeric
+                                         identifier used on the wire (the
+                                         namespaceindex is from .typeId) */
         sizeof(PointArrayInt32),                   /* .memSize */
-        0,                               /* .typeIndex, in the array of custom types */
         UA_DATATYPEKIND_STRUCTURE,       /* .typeKind */
         true,                            /* .pointerFree */
         false,                           /* .overlayable (depends on endianness and
                                          the absence of padding) */
         3,                               /* .membersSize */
-        0,                               /* .binaryEncodingId, the numeric
-                                         identifier used on the wire (the
-                                         namespaceindex is from .typeId) */
         PointArrayInt32_members
 };
 
@@ -316,7 +310,7 @@ static UA_DataTypeMember PointArrayUInt32_members[3] = {
         /* x */
         {
                 UA_TYPENAME("x") /* .memberName */
-                UA_TYPES_UINT32,  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
+                &UA_TYPES[UA_TYPES_UINT32],  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
                 0,               /* .padding */
                 true,            /* .namespaceZero, see .memberTypeIndex */
                 false            /* .isArray */
@@ -325,29 +319,28 @@ static UA_DataTypeMember PointArrayUInt32_members[3] = {
         /* y */
         {
                 UA_TYPENAME("y")
-                UA_TYPES_UINT32, PointArrayUInt32_padding_y, true, false
+                &UA_TYPES[UA_TYPES_UINT32], PointArrayUInt32_padding_y, true, false
         },
 
         /* z */
         {
                 UA_TYPENAME("z")
-                UA_TYPES_UINT32, PointArrayUInt32_padding_z, true, true
+                &UA_TYPES[UA_TYPES_UINT32], PointArrayUInt32_padding_z, true, true
         }
 };
 
 static const UA_DataType PointArrayUInt32Type = {
         UA_TYPENAME("PointArrayUInt32")             /* .typeName */
         {1, UA_NODEIDTYPE_NUMERIC, {4248}}, /* .typeId */
+        {1, UA_NODEIDTYPE_NUMERIC, {0}}, /* .binaryEncodingId, the numeric
+                                         identifier used on the wire (the
+                                         namespaceindex is from .typeId) */
         sizeof(PointArrayUInt32),                   /* .memSize */
-        0,                               /* .typeIndex, in the array of custom types */
         UA_DATATYPEKIND_STRUCTURE,       /* .typeKind */
         true,                            /* .pointerFree */
         false,                           /* .overlayable (depends on endianness and
                                          the absence of padding) */
         3,                               /* .membersSize */
-        0,                               /* .binaryEncodingId, the numeric
-                                         identifier used on the wire (the
-                                         namespaceindex is from .typeId) */
         PointArrayUInt32_members
 };
 
@@ -366,7 +359,7 @@ static UA_DataTypeMember PointArrayInt64_members[3] = {
         /* x */
         {
                 UA_TYPENAME("x") /* .memberName */
-                UA_TYPES_INT64,  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
+                &UA_TYPES[UA_TYPES_INT64],  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
                 0,               /* .padding */
                 true,            /* .namespaceZero, see .memberTypeIndex */
                 false            /* .isArray */
@@ -375,29 +368,28 @@ static UA_DataTypeMember PointArrayInt64_members[3] = {
         /* y */
         {
                 UA_TYPENAME("y")
-                UA_TYPES_INT64, PointArrayInt64_padding_y, true, false
+                &UA_TYPES[UA_TYPES_INT64], PointArrayInt64_padding_y, true, false
         },
 
         /* z */
         {
                 UA_TYPENAME("z")
-                UA_TYPES_INT64, PointArrayInt64_padding_z, true, true
+                &UA_TYPES[UA_TYPES_INT64], PointArrayInt64_padding_z, true, true
         }
 };
 
 static const UA_DataType PointArrayInt64Type = {
         UA_TYPENAME("PointArrayInt64")             /* .typeName */
         {1, UA_NODEIDTYPE_NUMERIC, {4249}}, /* .typeId */
+        {1, UA_NODEIDTYPE_NUMERIC, {0}}, /* .binaryEncodingId, the numeric
+                                         identifier used on the wire (the
+                                         namespaceindex is from .typeId) */
         sizeof(PointArrayInt64),                   /* .memSize */
-        0,                               /* .typeIndex, in the array of custom types */
         UA_DATATYPEKIND_STRUCTURE,       /* .typeKind */
         true,                            /* .pointerFree */
         false,                           /* .overlayable (depends on endianness and
                                          the absence of padding) */
         3,                               /* .membersSize */
-        0,                               /* .binaryEncodingId, the numeric
-                                         identifier used on the wire (the
-                                         namespaceindex is from .typeId) */
         PointArrayInt64_members
 };
 
@@ -416,7 +408,7 @@ static UA_DataTypeMember PointArrayUInt64_members[3] = {
         /* x */
         {
                 UA_TYPENAME("x") /* .memberName */
-                UA_TYPES_UINT64,  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
+                &UA_TYPES[UA_TYPES_UINT64],  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
                 0,               /* .padding */
                 true,            /* .namespaceZero, see .memberTypeIndex */
                 false            /* .isArray */
@@ -425,29 +417,28 @@ static UA_DataTypeMember PointArrayUInt64_members[3] = {
         /* y */
         {
                 UA_TYPENAME("y")
-                UA_TYPES_UINT64, PointArrayUInt64_padding_y, true, false
+                &UA_TYPES[UA_TYPES_UINT64], PointArrayUInt64_padding_y, true, false
         },
 
         /* z */
         {
                 UA_TYPENAME("z")
-                UA_TYPES_UINT64, PointArrayUInt64_padding_z, true, true
+                &UA_TYPES[UA_TYPES_UINT64], PointArrayUInt64_padding_z, true, true
         }
 };
 
 static const UA_DataType PointArrayUInt64Type = {
         UA_TYPENAME("PointArrayUInt64")             /* .typeName */
         {1, UA_NODEIDTYPE_NUMERIC, {4250}}, /* .typeId */
+        {1, UA_NODEIDTYPE_NUMERIC, {0}}, /* .binaryEncodingId, the numeric
+                                         identifier used on the wire (the
+                                         namespaceindex is from .typeId) */
         sizeof(PointArrayUInt64),                   /* .memSize */
-        0,                               /* .typeIndex, in the array of custom types */
         UA_DATATYPEKIND_STRUCTURE,       /* .typeKind */
         true,                            /* .pointerFree */
         false,                           /* .overlayable (depends on endianness and
                                          the absence of padding) */
         3,                               /* .membersSize */
-        0,                               /* .binaryEncodingId, the numeric
-                                         identifier used on the wire (the
-                                         namespaceindex is from .typeId) */
         PointArrayUInt64_members
 };
 
@@ -466,7 +457,7 @@ static UA_DataTypeMember PointArrayFloat_members[3] = {
         /* x */
         {
                 UA_TYPENAME("x") /* .memberName */
-                UA_TYPES_FLOAT,  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
+                &UA_TYPES[UA_TYPES_FLOAT],  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
                 0,               /* .padding */
                 true,            /* .namespaceZero, see .memberTypeIndex */
                 false            /* .isArray */
@@ -475,29 +466,28 @@ static UA_DataTypeMember PointArrayFloat_members[3] = {
         /* y */
         {
                 UA_TYPENAME("y")
-                UA_TYPES_FLOAT, PointArrayFloat_padding_y, true, false
+                &UA_TYPES[UA_TYPES_FLOAT], PointArrayFloat_padding_y, true, false
         },
 
         /* z */
         {
                 UA_TYPENAME("z")
-                UA_TYPES_FLOAT, PointArrayFloat_padding_z, true, true
+                &UA_TYPES[UA_TYPES_FLOAT], PointArrayFloat_padding_z, true, true
         }
 };
 
 static const UA_DataType PointArrayFloatType = {
         UA_TYPENAME("PointArrayFloat")             /* .typeName */
         {1, UA_NODEIDTYPE_NUMERIC, {4251}}, /* .typeId */
+        {1, UA_NODEIDTYPE_NUMERIC, {0}}, /* .binaryEncodingId, the numeric
+                                         identifier used on the wire (the
+                                         namespaceindex is from .typeId) */
         sizeof(PointArrayFloat),                   /* .memSize */
-        0,                               /* .typeIndex, in the array of custom types */
         UA_DATATYPEKIND_STRUCTURE,       /* .typeKind */
         true,                            /* .pointerFree */
         false,                           /* .overlayable (depends on endianness and
                                          the absence of padding) */
         3,                               /* .membersSize */
-        0,                               /* .binaryEncodingId, the numeric
-                                         identifier used on the wire (the
-                                         namespaceindex is from .typeId) */
         PointArrayFloat_members
 };
 
@@ -516,7 +506,7 @@ static UA_DataTypeMember PointArrayDouble_members[3] = {
         /* x */
         {
                 UA_TYPENAME("x") /* .memberName */
-                UA_TYPES_DOUBLE,  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
+                &UA_TYPES[UA_TYPES_DOUBLE],  /* .memberTypeIndex, points into UA_TYPES since namespaceZero is true */
                 0,               /* .padding */
                 true,            /* .namespaceZero, see .memberTypeIndex */
                 false            /* .isArray */
@@ -525,28 +515,27 @@ static UA_DataTypeMember PointArrayDouble_members[3] = {
         /* y */
         {
                 UA_TYPENAME("y")
-                UA_TYPES_DOUBLE, PointArrayDouble_padding_y, true, false
+                &UA_TYPES[UA_TYPES_DOUBLE], PointArrayDouble_padding_y, true, false
         },
 
         /* z */
         {
                 UA_TYPENAME("z")
-                UA_TYPES_DOUBLE, PointArrayDouble_padding_z, true, true
+                &UA_TYPES[UA_TYPES_DOUBLE], PointArrayDouble_padding_z, true, true
         }
 };
 
 static const UA_DataType PointArrayDoubleType = {
         UA_TYPENAME("PointArrayDouble")             /* .typeName */
         {1, UA_NODEIDTYPE_NUMERIC, {4252}}, /* .typeId */
+        {1, UA_NODEIDTYPE_NUMERIC, {0}}, /* .binaryEncodingId, the numeric
+                                         identifier used on the wire (the
+                                         namespaceindex is from .typeId) */
         sizeof(PointArrayDouble),                   /* .memSize */
-        0,                               /* .typeIndex, in the array of custom types */
         UA_DATATYPEKIND_STRUCTURE,       /* .typeKind */
         true,                            /* .pointerFree */
         false,                           /* .overlayable (depends on endianness and
                                          the absence of padding) */
         3,                               /* .membersSize */
-        0,                               /* .binaryEncodingId, the numeric
-                                         identifier used on the wire (the
-                                         namespaceindex is from .typeId) */
         PointArrayDouble_members
 };
