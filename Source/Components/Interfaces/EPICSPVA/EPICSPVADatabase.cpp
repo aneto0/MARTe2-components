@@ -80,7 +80,7 @@ void EPICSPVADatabase::Purge(ReferenceContainer &purgeList) {
                     else {
                         REPORT_ERROR(ErrorManagement::FatalError, "Failed to remove record %s", recordName.Buffer());
                     }
-                    pvRecord->destroy();
+                    pvRecord->remove();
                 }
             }
         }
