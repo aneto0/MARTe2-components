@@ -50,10 +50,9 @@ LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_str
 #CPPFLAGS += -std=c++0x -Wno-error=narrowing
 
 ## Compatibility issue with dan_initLibrary_icprog pre CCSv6.0
-CCS_LT_61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -lt 61 ]; then echo 1; else echo 0; fi)
-ifeq "$(CCS_LT_61)" "1"
-CPPFLAGS += -DCCS_LT_61
-endif
+CCS_VER = $(shell codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g')
+CPPFLAGS += -DCCS_VER=$(CCS_VER)
+
 
 endif
 

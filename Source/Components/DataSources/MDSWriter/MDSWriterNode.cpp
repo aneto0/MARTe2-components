@@ -39,6 +39,7 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+/*lint -e{641} nodeType needs to be treated as an int*/
 namespace MARTe {
 MDSWriterNode::MDSWriterNode() {
     nodeName = "";
@@ -495,7 +496,7 @@ bool MDSWriterNode::ForceSegment() {
 
     //lint -e{429} freed by MDSplus upon deletion of dimension
     MDSplus::Data *dimension = new MDSplus::Range(startD, endD, new MDSplus::Float64(newPeriod));
-    //lint -e{429} freed by MDSplus upon deletion of array
+    //lint -e{429, 578} freed by MDSplus upon deletion of array. Ignore collision of array name with mdsplus header file.
     MDSplus::Array *array = NULL_PTR(MDSplus::Array*);
 
     if (!useTimeVector) {

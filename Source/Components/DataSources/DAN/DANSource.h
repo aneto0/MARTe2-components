@@ -86,7 +86,151 @@ namespace MARTe {
  *     }
  * }
  * </pre>
- * A DANStream instance will be created for every different signal_type/sampling_frequency pair. Signals must be listed in the same order as they appear on the DAN xml.
+ * A DANStream instance will be created for every different (signal_type, sampling_frequency, number of samples) triplet. Signals must be listed in the same order as they appear on the DAN xml.
+ *
+ * @details A DANStream called [DataSource Name]_[signal type] is created when a signal with [signal type] has been encountered, with the sampling frequency and the number of samples of that same signal.
+ * All the other signal matching the type, the sampling frequency and the number of samples of are added to the [DataSource Name]_[signal type] stream.
+ * If a signal with the same type but different sampling frequency or signal is encountered, a new stream called [DataSource Name]_T[signal period in ns]_N[signal number of samples]_[signal type]
+ * is created. This has to be taken into account for the DAN.xml where all the streams are declared.
+ * For example:
+ * <pre>
+ * +DANSource_0 = {
+ *     ...
+ *     Signals = {
+ *         SignalUInt16F_0 = {
+ *             Period = 1e-3
+ *             Type = uint16
+ *         }
+ *         SignalUInt16F_1 = {
+ *             Period = 1e-3
+ *             Type = uint16
+ *         }
+ *         SignalUInt16F_2 = {
+ *             Period = 1e-6
+ *             NumberOfElements = 1000
+ *             Type = uint16
+ *         }
+ *         SignalUInt32F_0 = {
+ *             Period = 1e-6
+ *             NumberOfElements = 1000
+ *             Type = uint32
+ *         }
+ *         SignalUInt32F_1 = {
+ *             Period = 1e-3
+ *             Type = uint32
+ *         }
+ *         SignalUInt32F_2 = {
+ *             Period = 1e-3
+ *             Type = uint32
+ *         }
+ *     }
+ * }
+ * </pre>
+ * will create the following four streams:
+ *   - DANSource_0_uint16 (Period_ns=1000000, N_samples=1)
+ *       - SignalUInt16F_0
+ *       - SignalUInt16F_1
+ *   - DANSource_0_T1000_N1000_uint16 (Period_ns=1000, N_samples=1000)
+ *       - SignalUInt16F_2
+ *   - DANSource_0_uint32 (Period_ns=1000, N_samples=1000)
+ *       - SignalUInt32F_0
+ *   - DANSource_0_T1000000_N1_uint32 (Period_ns=1000000, N_samples=1)
+ *       - SignalUInt32F_0
+ *       - SignalUInt32F_0
+ *
+ * @details It is possible to declare structured signal. DAN supports flat structures (not nested) which allow also array fields.
+ * For this reason if we want to store samples of an array signal we need to declare a structure.
+ * As per scalar signals, the structured type is considered exactly as the basic type, thus a stream is created for each different
+ * (structure_type, sampling_frequency, number of samples) triplet, following the approach described above.
+ * The syntax to declare structure signals is the following
+ * +DANSource_0 = {
+ *     ...
+ *     Signals = {
+ *         Channel_0  = {
+ *             StructType = Spectrum
+ *             NumberOfSamples = 1000
+ *             Period = 1e-3
+ *             Spectrum = {
+ *                 Type = uint16
+ *                 NumberOfElements = 100000
+ *                 NumberOfDimensions = 1
+ *                 Description = "Acquired Spectrum"
+ *             }
+ *             Voltage = {
+ *                 Type = float32
+ *                 NumberOfElements = 1000
+ *                 NumberOfDimensions = 1
+ *                 Unit = "V"
+ *             }
+ *         }
+ *         Channel_1  = {
+ *             StructType = Spectrum
+ *             NumberOfSamples = 100
+ *             Period = 1e-3
+ *             Spectrum = {
+ *                 Type = uint16
+ *                 NumberOfElements = 10000
+ *                 NumberOfDimensions = 1
+ *             }
+ *             Voltage = {
+ *                 Type = float32
+ *                 NumberOfElements = 100
+ *                 NumberOfDimensions = 1
+ *             }
+ *         }
+ *         Channel_2  = {
+ *             StructType = Spectrum
+ *             NumberOfSamples = 1000
+ *             Period = 1e-3
+ *             Spectrum = {
+ *                 Type = uint16
+ *                 NumberOfElements = 100000
+ *                 NumberOfDimensions = 1
+ *             }
+ *             Voltage = {
+ *                 Type = float32
+ *                 NumberOfElements = 1000
+ *                 NumberOfDimensions = 1
+ *             }
+ *         }
+ *         Acq_0  = {
+ *             StructType = Compound
+ *             NumberOfSamples = 1
+ *             Period = 1e-3
+ *             Current = {
+ *                 Type = float32
+ *                 NumberOfElements = 100
+ *                 NumberOfDimensions = 1
+ *             }
+ *             Voltage = {
+ *                 Type = float32
+ *             }
+ *         }
+ *     }
+ * }
+ * </pre>
+ * This will declare the following structures:
+ * struct Spectrum {
+ *     uint16 Spectrum[100]
+ *     float32 Voltage[1]
+ * }
+ * for Channel_0, Channel_1 and Channel_2 signals, and
+ * struct Compound {
+ *     float32 Current[100]
+ *     float32 Voltage
+ * }
+ * for the signal Acq_0.
+ * The created streams are the following:
+ *   - DANSource_0_Spectrum (Period_ns=1000000, N_samples=1000)
+ *     - Channel_0
+ *     - Channel_2
+ *   - DANSource_0_T1000000_N100_Spectrum (Period_ns=1000000, N_samples=100)
+ *     - Channel_1
+ *   - DANSource_0_Compound (Period_ns=1000000, N_samples=1)
+ *     - Acq_0
+ *
+ * @warning Please pay attention when declaring structures. The NumberOfElements declared in each signal must be equal to the number of elements of the
+ * field multiplied by the number of samples to be acquired for the whole structure, namely the total number of elements to be acquired per cycle.
  */
 class DANSource: public DataSourceI, public MessageI {
 public:

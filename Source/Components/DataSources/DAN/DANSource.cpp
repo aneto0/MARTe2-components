@@ -25,7 +25,12 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#if (defined(CCS_LT_61) || defined(LINT))
+#ifdef LINT
+/*lint -e1923 macro needs to be defined to detect CSS version*/
+#define CCS_VER 0
+/*lint +e1923*/
+#endif
+#if CCS_VER <= 60
 #include <tcn.h>
 #else
 #include <common/TimeTools.h> // ccs::HelperTools::GetCurrentTime, etc.
@@ -194,7 +199,7 @@ bool DANSource::PrepareNextState(const char8 *const currentStateName,
     bool ok = true;
     if (!useAbsoluteTime) {
 
-#ifdef CCS_LT_61
+#if CCS_VER <= 60
         hpn_timestamp_t hpnTimeStamp;
         ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
         if (ok) {
@@ -311,7 +316,7 @@ bool DANSource::Initialise(StructuredDataI &data) {
             }
         }
     }
-#ifdef CCS_LT_61
+#if CCS_VER < 60
     if (ok) {
         ok = (tcn_init() == TCN_SUCCESS);
         if (!ok) {
@@ -356,9 +361,8 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
     //Do not allow samples
     if (ok) {
         uint32 functionNumberOfSignals = 0u;
-        uint32 n;
         if (GetFunctionNumberOfSignals(OutputSignals, 0u, functionNumberOfSignals)) {
-            for (n = 0u; (n < functionNumberOfSignals) && (ok); n++) {
+            for (uint32 n = 0u; (n < functionNumberOfSignals) && (ok); n++) {
                 uint32 nSamples;
                 ok = GetFunctionSignalSamples(OutputSignals, 0u, n, nSamples);
                 if (ok) {
@@ -372,39 +376,32 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
     }
 
     //Check the signal index of the timing signal.
-    uint32 nOfSignals = GetNumberOfSignals();
+    uint32 cnt = 0u;
     if (ok) {
-        uint32 n;
-        for (n = 0u; (n < nOfSignals) && (ok); n++) {
-            ok = data.MoveRelative(data.GetChildName(n));
+        for (uint32 n = 0u; (n < originalSignalInformation.GetNumberOfChildren()) && (ok); n++) {
+            //Have to read properties from the original configuration file
+            StreamString signalName=originalSignalInformation.GetChildName(n);
+            ok = originalSignalInformation.MoveRelative(signalName.Buffer());
             if (ok) {
-                //Have to read properties from the original configuration file
-                ok = originalSignalInformation.MoveRelative(originalSignalInformation.GetChildName(n));
-            }
-            //Check if the signal is defined as a TimeSignal
-            uint32 timeSignal;
-            if (originalSignalInformation.Read("TimeSignal", timeSignal)) {
-                if (timeSignalIdx != -1) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "Only one TimeSignal shall be defined");
-                    ok = false;
-                }
-                if (timeSignal > 0u) {
-                    timeSignalIdx = static_cast<int32>(n);
-                    uint32 absoluteTime;
-                    if (originalSignalInformation.Read("AbsoluteTime", absoluteTime)) {
-                        useAbsoluteTime = (absoluteTime == 1u);
+                //Check if the signal is defined as a TimeSignal
+                uint32 timeSignal;
+                if (originalSignalInformation.Read("TimeSignal", timeSignal)) {
+                    if (timeSignalIdx != -1) {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Only one TimeSignal shall be defined");
+                        ok = false;
+                    }
+                    if (timeSignal > 0u) {
+                        timeSignalIdx = static_cast<int32>(cnt);
+                        uint32 absoluteTime;
+                        if (originalSignalInformation.Read("AbsoluteTime", absoluteTime)) {
+                            useAbsoluteTime = (absoluteTime == 1u);
+                        }
                     }
                 }
-            }
-            //Check if the signal Period or the SamplingFrequency are defined
-            float64 period;
-            float64 samplingFrequency = 0.F;
-            uint32 numberOfElements;
-            TypeDescriptor typeDesc;
-            //Only add signals that have Period SamplingFrequency specified
-            bool addSignal = false;
-            if (ok) {
-                addSignal = (originalSignalInformation.Read("Period", period));
+
+                float64 period;
+                float64 samplingFrequency = 0.F;
+                bool addSignal = (originalSignalInformation.Read("Period", period));
                 if (addSignal) {
                     if (period > 0.F) {
                         samplingFrequency = (1.F / period);
@@ -424,69 +421,165 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                     }
                 }
                 if (!addSignal) {
-                    StreamString signalName;
-                    (void) GetSignalName(n, signalName);
-                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "No Period nor SamplingFrequency specified for signal %s", signalName.Buffer());
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "No Period nor SamplingFrequency specified for %s",
+                                        signalName.Buffer());
                 }
-            }
-            //Only add signals that had Period or SamplingFrequency specified
-            if ((ok) && (addSignal)) {
-                ok = GetSignalNumberOfElements(n, numberOfElements);
-                if (ok) {
-                    typeDesc = GetSignalType(n);
-                    bool found = false;
-                    bool typeOk = false;
-                    uint32 t;
+
+                if ((ok) && (addSignal)) {
                     /*lint -e{414} samplingFrequency != 0 is checked above*/
                     float64 periodNanosF = (1e9 / samplingFrequency);
                     uint64 periodNanos = static_cast<uint64>(periodNanosF);
-                    for (t = 0u; (t < nOfDANStreams) && (!found); t++) {
-                        if (!typeOk) {
-                            typeOk = (danStreams[t]->GetType() == typeDesc);
+                    StreamString structType;
+                    if (originalSignalInformation.Read("StructType", structType)) {
+                        uint32 numberOfSamples = 1u;
+                        (void) originalSignalInformation.Read("NumberOfSamples", numberOfSamples);
+
+                        ok = (numberOfSamples > 0u);
+                        if (ok) {
+                            uint32 danSourceIdx = 0u;
+                            bool found = false;
+                            bool typeOk = false;
+                            for (uint32 t = 0u; (t < nOfDANStreams) && (!found); t++) {
+                                StreamString typeNameStream;
+                                danStreams[t]->GetType(typeNameStream);
+                                if (!typeOk) {
+                                    typeOk = (typeNameStream == structType);
+                                }
+                                found = (typeNameStream == structType);
+                                if (found) {
+                                    found = (danStreams[t]->GetPeriodNanos() == periodNanos);
+                                }
+                                if (found) {
+                                    found = (danStreams[t]->GetNumberOfSamples() == numberOfSamples);
+                                }
+                                if (found) {
+                                    danStreams[t]->AddSignal(cnt);
+                                    danSourceIdx = t;
+                                }
+                            }
+                            if (!found) {
+                                uint32 nOfDANStreamsP1 = (nOfDANStreams + 1u);
+                                DANStream **newDanStreams = new DANStream*[nOfDANStreamsP1];
+                                for (uint32 t = 0u; t < nOfDANStreams; t++) {
+                                    newDanStreams[t] = danStreams[t];
+                                }
+                                if (danStreams != NULL_PTR(DANStream**)) {
+                                    delete[] danStreams;
+                                }
+                                danStreams = newDanStreams;
+
+                                StreamString name = GetName();
+                                if ((typeOk) || (fullStreamName)) {
+                                    //found another with same type... don't overwrite it... use a different name
+                                    name = "";
+                                    (void) name.Printf("%s_T%d_N%d", GetName(), periodNanos, numberOfSamples);
+                                }
+                                REPORT_ERROR_STATIC(ErrorManagement::Information, "Creating stream %s_%s", name.Buffer(), structType.Buffer());
+
+                                danStreams[nOfDANStreams] = new DANStream(structType.Buffer(), name.Buffer(), danBufferMultiplier, samplingFrequency,
+                                                                          numberOfSamples, interleave);
+                                danStreams[nOfDANStreams]->AddSignal(cnt);
+                                danSourceIdx = nOfDANStreams;
+                                nOfDANStreams++;
+                            }
+
+                            for (uint32 h = 0u; (h < originalSignalInformation.GetNumberOfChildren()) && ok; h++) {
+                                StreamString fieldName=originalSignalInformation.GetChildName(h);
+                                if (originalSignalInformation.MoveRelative(fieldName.Buffer())) {
+                                    StreamString unit;
+                                    if (!originalSignalInformation.Read("Unit", unit)) {
+                                        unit = "Unknown";
+                                    }
+                                    StreamString description;
+                                    if (!originalSignalInformation.Read("Description", description)) {
+                                        description = "Unknown";
+                                    }
+
+                                    uint32 numberOfElements = 0u;
+                                    uint8 numberOfDimensions = 0u;
+                                    ok = GetSignalNumberOfElements(cnt, numberOfElements);
+                                    if (ok) {
+                                        ok = GetSignalNumberOfDimensions(cnt, numberOfDimensions);
+                                    }
+                                    /*lint -e{613} danStreams cannot be NULL if ok = true*/
+                                    if (ok) {
+                                        numberOfElements /= numberOfSamples;
+                                        TypeDescriptor typeDesc = GetSignalType(cnt);
+                                        ok = danStreams[danSourceIdx]->AddToStructure(cnt, fieldName.Buffer(), typeDesc, numberOfElements, numberOfDimensions, unit.Buffer(),
+                                                                                      description.Buffer());
+                                    }
+                                    (void) originalSignalInformation.MoveToAncestor(1u);
+                                    cnt++;
+                                }
+                            }
                         }
-                        found = (danStreams[t]->GetType() == typeDesc);
-                        if (found) {
-                            found = (danStreams[t]->GetPeriodNanos() == periodNanos);
-                        }
-                        if (found) {
-                            found = (danStreams[t]->GetNumberOfSamples() == numberOfElements);
-                        }
-                        if (found) {
-                            danStreams[t]->AddSignal(n);
+                        else{
+                            REPORT_ERROR_STATIC(ErrorManagement::Information, "NumberOfSamples must be > 0");
                         }
                     }
-                    if (!found) {
-                        uint32 nOfDANStreamsP1 = (nOfDANStreams + 1u);
-                        DANStream **newDanStreams = new DANStream*[nOfDANStreamsP1];
-                        for (t = 0u; t < nOfDANStreams; t++) {
-                            newDanStreams[t] = danStreams[t];
-                        }
-                        if (danStreams != NULL_PTR(DANStream**)) {
-                            delete[] danStreams;
-                        }
-                        danStreams = newDanStreams;
+                    else {
+                        uint32 numberOfElements;
+                        ok = GetSignalNumberOfElements(cnt, numberOfElements);
+                        if (ok) {
+                            TypeDescriptor typeDesc = GetSignalType(cnt);
+                            StreamString typeName = TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDesc);
+                            bool found = false;
+                            bool typeOk = false;
+                            /*lint -e{414} samplingFrequency != 0 is checked above*/
+                            for (uint32 t = 0u; (t < nOfDANStreams) && (!found); t++) {
+                                StreamString typeNameStream;
+                                danStreams[t]->GetType(typeNameStream);
+                                if (!typeOk) {
+                                    typeOk = (typeNameStream == typeName);
+                                }
+                                found = (typeNameStream == typeName);
+                                if (found) {
+                                    found = (danStreams[t]->GetPeriodNanos() == periodNanos);
+                                }
+                                if (found) {
+                                    found = (danStreams[t]->GetNumberOfSamples() == numberOfElements);
+                                }
+                                /*lint -e{613} danStreams cannot be NULL if ok = true*/
+                                if (found) {
+                                    danStreams[t]->AddSignal(cnt);
+                                    ok = danStreams[t]->AddToStructure(cnt, signalName.Buffer(), typeDesc, 1u, 0u, "Unknown", "Unknown");
+                                }
+                            }
+                            if (ok && (!found)) {
+                                uint32 nOfDANStreamsP1 = (nOfDANStreams + 1u);
+                                DANStream **newDanStreams = new DANStream*[nOfDANStreamsP1];
+                                for (uint32 t = 0u; t < nOfDANStreams; t++) {
+                                    newDanStreams[t] = danStreams[t];
+                                }
+                                if (danStreams != NULL_PTR(DANStream**)) {
+                                    delete[] danStreams;
+                                }
+                                danStreams = newDanStreams;
 
-                        StreamString name = GetName();
-                        if ((typeOk) || (fullStreamName)) {
-                            //found another with same type... don't overwrite it... use a different name
-                            name = "";
-                            name.Printf("%s_T%d_N%d", GetName(), periodNanos, numberOfElements);
-                        }
-                        REPORT_ERROR_STATIC(ErrorManagement::Information, "Creating stream %s_%s", name.Buffer(),
-                                            TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDesc));
+                                StreamString name = GetName();
+                                if ((typeOk) || (fullStreamName)) {
+                                    //found another with same type... don't overwrite it... use a different name
+                                    name = "";
+                                    (void) name.Printf("%s_T%d_N%d", GetName(), periodNanos, numberOfElements);
+                                }
+                                REPORT_ERROR_STATIC(ErrorManagement::Information, "Creating stream %s_%s", name.Buffer(), typeName.Buffer());
 
-                        danStreams[nOfDANStreams] = new DANStream(typeDesc, name.Buffer(), danBufferMultiplier, samplingFrequency, numberOfElements,
-                                                                  interleave);
-                        danStreams[nOfDANStreams]->AddSignal(n);
-                        nOfDANStreams++;
+                                danStreams[nOfDANStreams] = new DANStream(typeName.Buffer(), name.Buffer(), danBufferMultiplier, samplingFrequency,
+                                                                          numberOfElements, interleave);
+                                danStreams[nOfDANStreams]->AddSignal(cnt);
+                                ok = danStreams[nOfDANStreams]->AddToStructure(cnt, signalName.Buffer(),typeDesc, 1u, 0u, "Unknown", "Unknown");
+                                nOfDANStreams++;
+                            }
+                        }
+                        cnt++;
                     }
                 }
-            }
-            if (ok) {
-                ok = originalSignalInformation.MoveToAncestor(1u);
-            }
-            if (ok) {
-                ok = data.MoveToAncestor(1u);
+                else {
+                    cnt++;
+                }
+                if (ok) {
+                    ok = originalSignalInformation.MoveToAncestor(1u);
+                }
             }
         }
     }
@@ -541,14 +634,16 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
     }
     uint32 s;
     if (ok) {
-        for (s = 0u; (s < nOfDANStreams); s++) {
-            danStreams[s]->Finalise();
-            if (useTimeSignal) {
-                if (useAbsoluteTime) {
-                    danStreams[s]->SetAbsoluteTimeSignal(&timeUInt64);
-                }
-                else {
-                    danStreams[s]->SetRelativeTimeSignal(&timeUInt32);
+        for (s = 0u; (s < nOfDANStreams) && ok; s++) {
+            ok = (danStreams[s]->Finalise());
+            if (ok) {
+                if (useTimeSignal) {
+                    if (useAbsoluteTime) {
+                        danStreams[s]->SetAbsoluteTimeSignal(&timeUInt64);
+                    }
+                    else {
+                        danStreams[s]->SetRelativeTimeSignal(&timeUInt32);
+                    }
                 }
             }
         }
@@ -558,9 +653,8 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
 }
 
 ErrorManagement::ErrorType DANSource::OpenStream() {
-    uint32 t;
     bool ok = (danStreams != NULL_PTR(DANStream**));
-    for (t = 0u; (t < nOfDANStreams) && (ok); t++) {
+    for (uint32 t = 0u; (t < nOfDANStreams) && (ok); t++) {
         /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
         ok = danStreams[t]->OpenStream();
     }
@@ -570,9 +664,8 @@ ErrorManagement::ErrorType DANSource::OpenStream() {
 }
 
 ErrorManagement::ErrorType DANSource::CloseStream() {
-    uint32 t;
     bool ok = (danStreams != NULL_PTR(DANStream**));
-    for (t = 0u; (t < nOfDANStreams) && (ok); t++) {
+    for (uint32 t = 0u; (t < nOfDANStreams) && (ok); t++) {
         /*lint -e{613} danStream cannot be NULL as nOfDANStreams is initialised to zero in the constructor*/
         ok = danStreams[t]->CloseStream();
     }

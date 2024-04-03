@@ -34,7 +34,6 @@
 #include "StreamString.h"
 #include "TypeDescriptor.h"
 
-
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -54,7 +53,12 @@ public:
      * @param[in] numberOfSamplesIn the number of samples written on every PutData call.
      * @param[in] interleaveIn if false the data will not be interleaved (i.e. it will be assumed to be already interleaved).
      */
-    DANStream(const TypeDescriptor & tdIn, StreamString baseNameIn, uint32 danBufferMultiplierIn, float64 samplingFrequencyIn, uint32 numberOfSamplesIn, bool interleaveIn);
+    DANStream(const char8 *typeNameIn,
+              const char8 *baseNameIn,
+              const uint32 danBufferMultiplierIn,
+              const float64 samplingFrequencyIn,
+              const uint32 numberOfSamplesIn,
+              const bool interleaveIn);
 
     /**
      * @brief Frees the allocated memory and calls dan_publisher_unpublishSource.
@@ -65,7 +69,7 @@ public:
      * @brief Gets the signal type associated to this stream.
      * @return the signal type associated to this stream.
      */
-    TypeDescriptor GetType() const;
+    void GetType(StreamString &typeNameOut) const;
 
     /**
      * @brief Gets the signal period in nano-seconds associated to this stream.
@@ -86,16 +90,35 @@ public:
     uint32 GetNumberOfSamples() const;
 
     /**
-     * @brief Adds a new signal to this stream.
+     * @brief Adds a new channel to this stream.
+     * @details A channel can be a scalar or a structure. Call this function must be followed by one (if scalar) or more (if a multi-field structure)
+     * calls to AddToStructure(*)
      * @param[in] signalIdx the index of the signal in the DANSource.
      */
     void AddSignal(uint32 signalIdx);
 
     /**
+     * @brief Add a field to a channel
+     * @param[in] fieldIdx the index of the data source signal
+     * @param[in] fieldNameIn the field name (name of the data source field signal)
+     * @param[in] typeDesc the field typa
+     * @param[in] numberOfElements the field number of elements
+     * @param[in] numberOfDimensions the field number of dimensions
+     * @param[in] unitIn the field unit
+     * @param[in] descriptionIn the field description
+     */
+    bool AddToStructure(const uint32 fieldIdxIn,
+                        const char8 * const fieldNameIn,
+                        const TypeDescriptor typeDesc,
+                        const uint32 numberOfElementsIn,
+                        const uint8 numberOfDimensionsIn,
+                        const char8 * const unitIn,
+                        const char8 * const descriptionIn);
+    /**
      * @brief All the signals have been added. Call dan_publisher_publishSource_withDAQBuffer with the final buffer size.
      * @details The computed buffer size will be given by numberOfSignals * typeSize * numberOfSamples * danBufferMultiplier
      */
-    void Finalise();
+    bool Finalise();
 
     /**
      * @brief Streams the signals data into DAN.
@@ -125,7 +148,8 @@ public:
      * @param[out] signalAddress where the memory address will be assigned.
      * @return true if the signalIdx exists.
      */
-    bool GetSignalMemoryBuffer(const uint32 signalIdx, void*& signalAddress);
+    bool GetSignalMemoryBuffer(const uint32 signalIdx,
+                               void *&signalAddress);
 
     /**
      * @brief Resets the counter used by PutData.
@@ -151,15 +175,16 @@ public:
     void SetAbsoluteStartTime(uint64 absoluteStartTimeIn);
 
 private:
+
     /**
-     * The type descriptor of the stream.
+     * The name of the DANSource that holds this DANStream.
      */
-    TypeDescriptor td;
+    StreamString typeName;
 
     /**
      * Stores the signal offsets in the DANSource.
      */
-    uint32 *signalIndexOffset;
+    uint32 *signalIndexMap;
 
     /**
      * Holds the memory required to store the samples of all signals.
@@ -255,6 +280,81 @@ private:
      * If false the data will be assumed to be already interleaved.
      */
     bool interleave;
+
+    /**
+     * Flag if a structure stream or not
+     */
+    bool isStruct;
+
+    /**
+     * Holds the number of allocated elements for the number of field lists
+     */
+    uint32 nFieldsAllocated;
+
+    /**
+     * The number of fields in the structure
+     */
+    uint32 numberOfFields;
+
+    /**
+     * The offsets of each field in the structure
+     */
+    uint32 *fieldInStructOffset;
+
+    /**
+     * The total number of fields in the stream (numberOfFields*numberOfStructures)
+     */
+    uint32 totalNumberOfFields;
+
+    /**
+     * Holds the number of allocated elements for the total number of fields lists
+     */
+    uint32 totalNumberOfFieldsAllocated;
+
+    /**
+     * Maps the field to the data source signal index
+     */
+    uint32 *fieldIndexMap;
+
+    /**
+     * Maps the field to the structure index
+     */
+    uint32 *structIdx;
+
+    /**
+     * Maps the field to the index in the structure
+     */
+    uint32 *fieldIdx;
+
+    /**
+     * Holds the fields types
+     */
+    TypeDescriptor *types;
+
+    /**
+     * Holds the fields number of elements
+     */
+    uint32 *numberOfElements;
+
+    /**
+     * Holds the fields number of dimensions
+     */
+    uint8 *numberOfDimensions;
+
+    /**
+     * Holds the fields units
+     */
+    StreamString *units;
+
+    /**
+     * Holds the fields descriptions
+     */
+    StreamString *descriptions;
+
+    /**
+     * Holds the fields names
+     */
+    StreamString *fieldNames;
 
     /*lint -e{1712} This class does not have a default constructor because
      * the constructor input parameters must be defined on construction and both remain constant

@@ -111,6 +111,11 @@ public:
     bool TestIntegratedInApplication_FullStream();
 
     /**
+     * @brief Tests the DANSource integrated in an application where structured signals are declared
+     */
+    bool TestIntegratedInApplication_Struct();
+
+    /**
      * @brief Tests the Synchronise method. This is tested by the TestIntegratedInApplication_NoTrigger.
      */
     bool TestSynchronise();
