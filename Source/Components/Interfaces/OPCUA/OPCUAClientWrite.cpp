@@ -190,6 +190,8 @@ bool OPCUAClientWrite::SetServiceRequest(const uint16 *const namespaceIndexes,
                 }
             }
             UA_Array_delete(browsePath.relativePath.elements, static_cast<osulong>(pathSize), &UA_TYPES[UA_TYPES_RELATIVEPATHELEMENT]);
+            UA_TranslateBrowsePathsToNodeIdsResponse_deleteMembers(&tbpResp);
+            UA_BrowseRequest_deleteMembers(&bReq);
         }
         delete[] ids;
         delete[] path;
@@ -304,6 +306,8 @@ bool OPCUAClientWrite::SetExtensionObject() {
     /*lint -e{526} -e{628} -e{1551} -e{1055} no exception thrown, function defined in open62541*/
     (void) UA_ReadValueId_clear(readValues);
     UA_ReadValueId_delete(readValues);
+    //UA_ReadRequest_deleteMembers(&readRequest);-->double-free corruption
+    UA_ReadResponse_deleteMembers(&readResponse);
     return ok;
 }
 
@@ -519,6 +523,8 @@ bool OPCUAClientWrite::UnregisterNodes(const UA_NodeId *const monitoredNodes) {
         UA_UnregisterNodesResponse rResp = UA_Client_Service_unregisterNodes(opcuaClient, rReq);
         ok = (rResp.responseHeader.serviceResult == 0x00U);
         UA_Array_delete(rReq.nodesToUnregister, static_cast<osulong>(nOfNodes), &UA_TYPES[UA_TYPES_NODEID]);
+        UA_UnregisterNodesResponse_deleteMembers(&rResp);
+        //UA_UnregisterNodesRequest_deleteMembers(&rReq); -->double-free corruption
     }
     return ok;
 }
