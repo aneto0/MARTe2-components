@@ -29,6 +29,12 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#ifdef LINT
+/*lint -e1923 macro needs to be defined to detect CSS version*/
+#define CCS_VER 0
+/*lint +e1923*/
+#endif
+
 #include "AdvancedErrorManagement.h"
 #include "CompilerTypes.h"
 #include "DANAPI.h"
@@ -285,7 +291,7 @@ void DANStream::AddSignal(const uint32 signalIdx) {
     typeSize = 0u;
 }
 
-/*lint -e{613} fields cannot be NULL if ret = true*/
+/*lint -e{613,1746} fields cannot be NULL if ret = true. typeDesc cannot be a constant ref.*/
 bool DANStream::AddToStructure(const uint32 fieldIdxIn,
                                const char8 * const fieldNameIn,
                                const TypeDescriptor typeDesc,
@@ -433,6 +439,7 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
     return ret;
 }
 
+/*lint -e{613} GetSignalMemoryBuffer will only be called if fieldIndexMap, structIdx and fieldIdx are != NULL*/
 bool DANStream::GetSignalMemoryBuffer(const uint32 signalIdx,
                                       void *&signalAddress) {
 

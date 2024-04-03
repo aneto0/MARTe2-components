@@ -122,6 +122,7 @@ EventConditionTrigger.cpp
 FileReader.cpp
 FileWriter.cpp
 FilterGAM.cpp
+Filter.cpp
 FlattenedStructIOGAM.cpp
 HighResolutionTimeProvider.cpp
 HighResolutionTimestampProvider.cpp

@@ -26,7 +26,9 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 #ifdef LINT
+/*lint -e1923 macro needs to be defined to detect CSS version*/
 #define CCS_VER 0
+/*lint +e1923*/
 #endif
 #if CCS_VER < 60
 #include <tcn.h>
