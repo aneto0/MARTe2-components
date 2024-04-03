@@ -30,7 +30,7 @@
 #define CCS_VER 0
 /*lint +e1923*/
 #endif
-#if CCS_VER < 60
+#if CCS_VER <= 60
 #include <tcn.h>
 #else
 #include <common/TimeTools.h> // ccs::HelperTools::GetCurrentTime, etc.
@@ -199,7 +199,7 @@ bool DANSource::PrepareNextState(const char8 *const currentStateName,
     bool ok = true;
     if (!useAbsoluteTime) {
 
-#if CCS_VER < 60
+#if CCS_VER <= 60
         hpn_timestamp_t hpnTimeStamp;
         ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
         if (ok) {
