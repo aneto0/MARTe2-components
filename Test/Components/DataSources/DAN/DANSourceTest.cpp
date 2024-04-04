@@ -611,7 +611,7 @@ static bool VerifyStructData(const MARTe::char8 *structName,
         if (!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to open file: [%s]. Error: %s", hd5FileName.Buffer(), danStreamReader.getError().c_str());
         }
-#ifdef NO_HDF5_SET_CHANNEL // CCSv6.1 and above
+#if CCS_VER > 62
         if (ok) {
             found = true;
             for (c = 0; (c < numberOfChannels) && (ok) && (found); c++) {
@@ -647,10 +647,14 @@ static bool VerifyStructData(const MARTe::char8 *structName,
         DanDataHolder *pDataTime = NULL;
         const uint64 *absTimeStored = NULL;
         if (ok) {
-#ifdef NO_HDF5_SET_CHANNEL // CCSv6.1 and above
+#if CCS_VER > 62 
             ok = (danStreamReader.openVariable(channelNames[c]) == 0);
 #else
+#ifdef NO_HDF5_SET_CHANNEL // CCSv6.1 and above
+            ok = (danStreamReader.openDataPath(channelNames[c]) == 0);
+#else
             danStreamReader.setChannel(channelNames[c]);
+#endif
 #endif
         }
         if (ok) {
