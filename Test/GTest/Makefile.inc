@@ -97,6 +97,10 @@ ifdef MATLAB_DIR
 LIBRARIES += -Wl,-rpath-link,$(MATLAB_DIR)/bin/glnxa64 "$(MATLAB_DIR)/sys/os/glnxa64/libstdc++.so.6" -L$(MATLAB_DIR)/extern/bin/glnxa64/ -L$(MATLAB_DIR)/bin/glnxa64/ -lMatlabDataArray -lMatlabEngine -lmx -lmex -lmat -lm -lstdc++ -leng
 endif
 
+ifdef PDNA_LIB
+LIBRARIES += -lpowerdna -L$(PDNA_LIB)
+endif
+
 #Allow to rename the MainGTest.ex 
 ifndef RENAME_GTEST_EX
 all: $(BUILD_DIR)/MainGTest$(EXEEXT)

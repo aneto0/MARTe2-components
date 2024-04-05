@@ -106,6 +106,16 @@ public:
     bool TestIntegratedInApplication_Interleave();
 
     /**
+     * @brief Tests the DANSource integrated in an application with stream with full id
+     */
+    bool TestIntegratedInApplication_FullStream();
+
+    /**
+     * @brief Tests the DANSource integrated in an application where structured signals are declared
+     */
+    bool TestIntegratedInApplication_Struct();
+
+    /**
      * @brief Tests the Synchronise method. This is tested by the TestIntegratedInApplication_NoTrigger.
      */
     bool TestSynchronise();

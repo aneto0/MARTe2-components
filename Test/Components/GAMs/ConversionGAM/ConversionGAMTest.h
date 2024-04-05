@@ -99,42 +99,47 @@ public:
      * @brief Tests the Execute method for all the basic types.
      */
     template<typename baseType>
-    bool TestExecute(baseType typeValue, bool setGain = false, MARTe::float32 gainValue = 1.0);
+    bool TestExecute(baseType typeValue,
+                     bool setGain = false,
+                     MARTe::float32 gainValue = 1.0,
+                     bool setOffset = false,
+                     MARTe::float64 offsetValue = 0.0);
 
 private:
     /**
      * Starts a MARTe application that uses this GAM instance.
      */
-    bool TestIntegratedInApplication(const MARTe::char8 * const config, bool destroy = true);
+    bool TestIntegratedInApplication(const MARTe::char8 *const config,
+                                     bool destroy = true);
 };
 
 /**
  * Gives access to the ConversionGAM memory.
  */
 class ConversionGAMTestHelper: public MARTe::ConversionGAM {
-public:
-    CLASS_REGISTER_DECLARATION()
+public:CLASS_REGISTER_DECLARATION()
 
-ConversionGAMTestHelper    () : MARTe::ConversionGAM() {
+    ConversionGAMTestHelper() :
+            MARTe::ConversionGAM() {
     }
 
     virtual ~ConversionGAMTestHelper() {
 
     }
 
-    void *GetInputSignalsMemory() {
+    void* GetInputSignalsMemory() {
         return ConversionGAM::GetInputSignalsMemory();
     }
 
-    void *GetOutputSignalsMemory() {
+    void* GetOutputSignalsMemory() {
         return ConversionGAM::GetOutputSignalsMemory();
     }
 
-    void *GetInputSignalMemory(MARTe::uint32 signalIdx) {
+    void* GetInputSignalMemory(MARTe::uint32 signalIdx) {
         return ConversionGAM::GetInputSignalMemory(signalIdx);
     }
 
-    void *GetOutputSignalMemory(MARTe::uint32 signalIdx) const {
+    void* GetOutputSignalMemory(MARTe::uint32 signalIdx) const {
         return ConversionGAM::GetOutputSignalMemory(signalIdx);
     }
 };
@@ -143,7 +148,7 @@ ConversionGAMTestHelper    () : MARTe::ConversionGAM() {
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 //From basic type to all types (with elements and samples)
-static const MARTe::char8 * const configFromBasicTypeTemplate = ""
+static const MARTe::char8 *const configFromBasicTypeTemplate = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -554,7 +559,11 @@ bool ConversionGAMTest::TestSetup_False_InvalidOutputSignalType() {
 }
 
 template<typename baseType>
-bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::float32 gainValue) {
+bool ConversionGAMTest::TestExecute(baseType typeValue,
+                                    bool setGain,
+                                    MARTe::float32 gainValue,
+                                    bool setOffset,
+                                    MARTe::float64 offsetValue) {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = configFromBasicTypeTemplate;
@@ -644,7 +653,7 @@ bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::flo
     float64 *float64Signal;
     uint32 i;
     if (ok) {
-        inputSignals = static_cast<baseType *>(gam->GetInputSignalsMemory());
+        inputSignals = static_cast<baseType*>(gam->GetInputSignalsMemory());
         uint32 c = 0u;
         for (i = 0; i < gam->GetNumberOfInputSignals(); i++) {
             uint32 numberOfSamples;
@@ -672,7 +681,233 @@ bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::flo
         //z is to test the version with one element, many elements one sample and many elements many samples
         for (z = 0; z < numberOfSignals; z += 10) {
             uint32 signalIdx = i + z;
-            uint8Signal = reinterpret_cast<uint8 *>(gam->GetOutputSignalMemory(signalIdx));
+            uint8Signal = reinterpret_cast<uint8*>(gam->GetOutputSignalMemory(signalIdx));
+            gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
+            uint32 c = 0u;
+            for (s = 0; s < numberOfSamples; s++) {
+                uint32 numberOfElements;
+                gam->GetSignalNumberOfElements(OutputSignals, signalIdx, numberOfElements);
+                uint32 e;
+                for (e = 0; e < numberOfElements; e++) {
+                    ok &= (uint8Signal[c++] == static_cast<uint8>((static_cast<uint8>(gainValue) * static_cast<uint8>(typeValue))));
+                }
+            }
+        }
+
+        i++;
+        for (z = 0; z < numberOfSignals; z += 10) {
+            uint32 signalIdx = i + z;
+            int8Signal = reinterpret_cast<int8*>(gam->GetOutputSignalMemory(signalIdx));
+            gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
+            uint32 c = 0u;
+            for (s = 0; s < numberOfSamples; s++) {
+                uint32 numberOfElements;
+                gam->GetSignalNumberOfElements(OutputSignals, signalIdx, numberOfElements);
+                uint32 e;
+                for (e = 0; e < numberOfElements; e++) {
+                    ok &= (int8Signal[c++] == static_cast<int8>((static_cast<int8>(gainValue) * static_cast<int8>(typeValue))));
+                }
+            }
+        }
+        i++;
+        for (z = 0; z < numberOfSignals; z += 10) {
+            uint32 signalIdx = i + z;
+            uint16Signal = reinterpret_cast<uint16*>(gam->GetOutputSignalMemory(signalIdx));
+            gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
+            uint32 c = 0u;
+            for (s = 0; s < numberOfSamples; s++) {
+                uint32 numberOfElements;
+                gam->GetSignalNumberOfElements(OutputSignals, signalIdx, numberOfElements);
+                uint32 e;
+                for (e = 0; e < numberOfElements; e++) {
+                    ok &= (uint16Signal[c++] == static_cast<uint16>((static_cast<uint16>(gainValue) * static_cast<uint16>(typeValue))));
+                }
+            }
+        }
+        i++;
+        for (z = 0; z < numberOfSignals; z += 10) {
+            uint32 signalIdx = i + z;
+            int16Signal = reinterpret_cast<int16*>(gam->GetOutputSignalMemory(signalIdx));
+            gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
+            uint32 c = 0u;
+            for (s = 0; s < numberOfSamples; s++) {
+                uint32 numberOfElements;
+                gam->GetSignalNumberOfElements(OutputSignals, signalIdx, numberOfElements);
+                uint32 e;
+                for (e = 0; e < numberOfElements; e++) {
+                    ok &= (int16Signal[c++] == static_cast<int16>((static_cast<int16>(gainValue) * static_cast<int16>(typeValue))));
+                }
+            }
+        }
+        i++;
+        for (z = 0; z < numberOfSignals; z += 10) {
+            uint32 signalIdx = i + z;
+            uint32Signal = reinterpret_cast<uint32*>(gam->GetOutputSignalMemory(signalIdx));
+            gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
+            uint32 c = 0u;
+            for (s = 0; s < numberOfSamples; s++) {
+                uint32 numberOfElements;
+                gam->GetSignalNumberOfElements(OutputSignals, signalIdx, numberOfElements);
+                uint32 e;
+                for (e = 0; e < numberOfElements; e++) {
+                    ok &= (uint32Signal[c++] == static_cast<uint32>((static_cast<uint32>(gainValue) * static_cast<uint32>(typeValue))));
+                }
+            }
+        }
+        i++;
+        for (z = 0; z < numberOfSignals; z += 10) {
+            uint32 signalIdx = i + z;
+            int32Signal = reinterpret_cast<int32*>(gam->GetOutputSignalMemory(signalIdx));
+            gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
+            uint32 c = 0u;
+            for (s = 0; s < numberOfSamples; s++) {
+                uint32 numberOfElements;
+                gam->GetSignalNumberOfElements(OutputSignals, signalIdx, numberOfElements);
+                uint32 e;
+                for (e = 0; e < numberOfElements; e++) {
+                    ok &= (int32Signal[c++] == static_cast<int32>((static_cast<int32>(gainValue) * static_cast<int32>(typeValue))));
+                }
+            }
+        }
+        i++;
+        for (z = 0; z < numberOfSignals; z += 10) {
+            uint32 signalIdx = i + z;
+            uint64Signal = reinterpret_cast<uint64*>(gam->GetOutputSignalMemory(signalIdx));
+            gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
+            uint32 c = 0u;
+            for (s = 0; s < numberOfSamples; s++) {
+                uint32 numberOfElements;
+                gam->GetSignalNumberOfElements(OutputSignals, signalIdx, numberOfElements);
+                uint32 e;
+                for (e = 0; e < numberOfElements; e++) {
+                    ok &= (uint64Signal[c++] == static_cast<uint64>((static_cast<uint64>(gainValue) * static_cast<uint64>(typeValue))));
+                }
+            }
+        }
+        i++;
+        for (z = 0; z < numberOfSignals; z += 10) {
+            uint32 signalIdx = i + z;
+            int64Signal = reinterpret_cast<int64*>(gam->GetOutputSignalMemory(signalIdx));
+            gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
+            uint32 c = 0u;
+            for (s = 0; s < numberOfSamples; s++) {
+                uint32 numberOfElements;
+                gam->GetSignalNumberOfElements(OutputSignals, signalIdx, numberOfElements);
+                uint32 e;
+                for (e = 0; e < numberOfElements; e++) {
+                    ok &= (int64Signal[c++] == static_cast<int64>((static_cast<int64>(gainValue) * static_cast<int64>(typeValue))));
+                }
+            }
+        }
+        i++;
+        for (z = 0; z < numberOfSignals; z += 10) {
+            uint32 signalIdx = i + z;
+            float32Signal = reinterpret_cast<float32*>(gam->GetOutputSignalMemory(signalIdx));
+            gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
+            uint32 c = 0u;
+            for (s = 0; s < numberOfSamples; s++) {
+                uint32 numberOfElements;
+                gam->GetSignalNumberOfElements(OutputSignals, signalIdx, numberOfElements);
+                uint32 e;
+                for (e = 0; e < numberOfElements; e++) {
+                    ok &= (float32Signal[c++] == static_cast<float32>((static_cast<float32>(gainValue) * static_cast<float32>(typeValue))));
+                }
+            }
+        }
+        i++;
+        for (z = 0; z < numberOfSignals; z += 10) {
+            uint32 signalIdx = i + z;
+            float64Signal = reinterpret_cast<float64*>(gam->GetOutputSignalMemory(signalIdx));
+            gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
+            uint32 c = 0u;
+            for (s = 0; s < numberOfSamples; s++) {
+                uint32 numberOfElements;
+                gam->GetSignalNumberOfElements(OutputSignals, signalIdx, numberOfElements);
+                uint32 e;
+                for (e = 0; e < numberOfElements; e++) {
+                    ok &= (float64Signal[c++] == static_cast<float64>((static_cast<float64>(gainValue) * static_cast<float64>(typeValue))));
+                }
+            }
+        }
+
+    }
+    god->Purge();
+    /****************
+     * offset tests *
+     ****************/
+    if (setOffset) {
+        if (ok) {
+            ok = cdb.MoveAbsolute("$Test.+Functions.+GAM1.OutputSignals");
+        }
+        if (ok) {
+            uint32 i;
+            StreamString signalName;
+            for (i = 0; (i < numberOfSignals) && (ok); i++) {
+                signalName = "";
+                signalName.Printf("Signal%d", (i + 1));
+                ok = cdb.MoveRelative(signalName.Buffer());
+                ok &= cdb.Delete("Gain");
+                cdb.Write("Gain", gainValue);
+                cdb.Write("Offset", offsetValue);
+                if (ok) {
+                    cdb.MoveToAncestor(1u);
+                }
+            }
+        }
+    }
+    ObjectRegistryDatabase *god2 = ObjectRegistryDatabase::Instance();
+
+    //Initialise the application
+    if (ok) {
+        cdb.MoveToRoot();
+        god2->Purge();
+        ok = god2->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application2;
+    if (ok) {
+        application2 = god->Find("Test");
+        ok = application2.IsValid();
+    }
+    if (ok) {
+        ok = application2->ConfigureApplication();
+    }
+
+    gam = god->Find("Test.Functions.GAM1");
+    if (ok) {
+        ok = gam.IsValid();
+    }
+
+    //Execute the GAM and check that the values match
+    if (ok) {
+        inputSignals = static_cast<baseType*>(gam->GetInputSignalsMemory());
+        uint32 c = 0u;
+        for (i = 0; i < gam->GetNumberOfInputSignals(); i++) {
+            uint32 numberOfSamples;
+            gam->GetSignalNumberOfSamples(InputSignals, i, numberOfSamples);
+            uint32 s;
+            for (s = 0; s < numberOfSamples; s++) {
+                uint32 numberOfElements;
+                gam->GetSignalNumberOfElements(InputSignals, i, numberOfElements);
+                uint32 e;
+                for (e = 0; e < numberOfElements; e++) {
+                    inputSignals[c++] = typeValue;
+                }
+            }
+        }
+    }
+    if (ok) {
+        ok = gam->Execute();
+    }
+    if (ok) {
+        uint32 numberOfSamples;
+        uint32 s;
+        uint32 z;
+
+        i = 0u;
+        //z is to test the version with one element, many elements one sample and many elements many samples
+        for (z = 0; z < numberOfSignals; z += 10) {
+            uint32 signalIdx = i + z;
+            uint8Signal = reinterpret_cast<uint8*>(gam->GetOutputSignalMemory(signalIdx));
             gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
             uint32 c = 0u;
             for (s = 0; s < numberOfSamples; s++) {
@@ -681,7 +916,7 @@ bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::flo
                 uint32 e;
                 for (e = 0; e < numberOfElements; e++) {
                     ok &= (uint8Signal[c++]
-                            == static_cast<uint8>((static_cast<uint8>(gainValue) * static_cast<uint8>(typeValue))));
+                            == static_cast<uint8>((static_cast<uint8>(gainValue) * static_cast<uint8>(typeValue)) + static_cast<uint8>(offsetValue)));
                 }
             }
         }
@@ -689,7 +924,7 @@ bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::flo
         i++;
         for (z = 0; z < numberOfSignals; z += 10) {
             uint32 signalIdx = i + z;
-            int8Signal = reinterpret_cast<int8 *>(gam->GetOutputSignalMemory(signalIdx));
+            int8Signal = reinterpret_cast<int8*>(gam->GetOutputSignalMemory(signalIdx));
             gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
             uint32 c = 0u;
             for (s = 0; s < numberOfSamples; s++) {
@@ -697,15 +932,16 @@ bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::flo
                 gam->GetSignalNumberOfElements(OutputSignals, signalIdx, numberOfElements);
                 uint32 e;
                 for (e = 0; e < numberOfElements; e++) {
-                    ok &= (int8Signal[c++]
-                            == static_cast<int8>((static_cast<int8>(gainValue) * static_cast<int8>(typeValue))));
+                    ok &=
+                            (int8Signal[c++]
+                                    == static_cast<int8>((static_cast<int8>(gainValue) * static_cast<int8>(typeValue)) + static_cast<int8>(offsetValue)));
                 }
             }
         }
         i++;
         for (z = 0; z < numberOfSignals; z += 10) {
             uint32 signalIdx = i + z;
-            uint16Signal = reinterpret_cast<uint16 *>(gam->GetOutputSignalMemory(signalIdx));
+            uint16Signal = reinterpret_cast<uint16*>(gam->GetOutputSignalMemory(signalIdx));
             gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
             uint32 c = 0u;
             for (s = 0; s < numberOfSamples; s++) {
@@ -714,14 +950,14 @@ bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::flo
                 uint32 e;
                 for (e = 0; e < numberOfElements; e++) {
                     ok &= (uint16Signal[c++]
-                            == static_cast<uint16>((static_cast<uint16>(gainValue) * static_cast<uint16>(typeValue))));
+                            == static_cast<uint16>((static_cast<uint16>(gainValue) * static_cast<uint16>(typeValue)) + static_cast<uint16>(offsetValue)));
                 }
             }
         }
         i++;
         for (z = 0; z < numberOfSignals; z += 10) {
             uint32 signalIdx = i + z;
-            int16Signal = reinterpret_cast<int16 *>(gam->GetOutputSignalMemory(signalIdx));
+            int16Signal = reinterpret_cast<int16*>(gam->GetOutputSignalMemory(signalIdx));
             gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
             uint32 c = 0u;
             for (s = 0; s < numberOfSamples; s++) {
@@ -730,14 +966,14 @@ bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::flo
                 uint32 e;
                 for (e = 0; e < numberOfElements; e++) {
                     ok &= (int16Signal[c++]
-                            == static_cast<int16>((static_cast<int16>(gainValue) * static_cast<int16>(typeValue))));
+                            == static_cast<int16>((static_cast<int16>(gainValue) * static_cast<int16>(typeValue)) + static_cast<int16>(offsetValue)));
                 }
             }
         }
         i++;
         for (z = 0; z < numberOfSignals; z += 10) {
             uint32 signalIdx = i + z;
-            uint32Signal = reinterpret_cast<uint32 *>(gam->GetOutputSignalMemory(signalIdx));
+            uint32Signal = reinterpret_cast<uint32*>(gam->GetOutputSignalMemory(signalIdx));
             gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
             uint32 c = 0u;
             for (s = 0; s < numberOfSamples; s++) {
@@ -746,14 +982,14 @@ bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::flo
                 uint32 e;
                 for (e = 0; e < numberOfElements; e++) {
                     ok &= (uint32Signal[c++]
-                            == static_cast<uint32>((static_cast<uint32>(gainValue) * static_cast<uint32>(typeValue))));
+                            == static_cast<uint32>((static_cast<uint32>(gainValue) * static_cast<uint32>(typeValue)) + static_cast<uint32>(offsetValue)));
                 }
             }
         }
         i++;
         for (z = 0; z < numberOfSignals; z += 10) {
             uint32 signalIdx = i + z;
-            int32Signal = reinterpret_cast<int32 *>(gam->GetOutputSignalMemory(signalIdx));
+            int32Signal = reinterpret_cast<int32*>(gam->GetOutputSignalMemory(signalIdx));
             gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
             uint32 c = 0u;
             for (s = 0; s < numberOfSamples; s++) {
@@ -762,14 +998,14 @@ bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::flo
                 uint32 e;
                 for (e = 0; e < numberOfElements; e++) {
                     ok &= (int32Signal[c++]
-                            == static_cast<int32>((static_cast<int32>(gainValue) * static_cast<int32>(typeValue))));
+                            == static_cast<int32>((static_cast<int32>(gainValue) * static_cast<int32>(typeValue)) + static_cast<int32>(offsetValue)));
                 }
             }
         }
         i++;
         for (z = 0; z < numberOfSignals; z += 10) {
             uint32 signalIdx = i + z;
-            uint64Signal = reinterpret_cast<uint64 *>(gam->GetOutputSignalMemory(signalIdx));
+            uint64Signal = reinterpret_cast<uint64*>(gam->GetOutputSignalMemory(signalIdx));
             gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
             uint32 c = 0u;
             for (s = 0; s < numberOfSamples; s++) {
@@ -778,14 +1014,14 @@ bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::flo
                 uint32 e;
                 for (e = 0; e < numberOfElements; e++) {
                     ok &= (uint64Signal[c++]
-                            == static_cast<uint64>((static_cast<uint64>(gainValue) * static_cast<uint64>(typeValue))));
+                            == static_cast<uint64>((static_cast<uint64>(gainValue) * static_cast<uint64>(typeValue)) + static_cast<uint64>(offsetValue)));
                 }
             }
         }
         i++;
         for (z = 0; z < numberOfSignals; z += 10) {
             uint32 signalIdx = i + z;
-            int64Signal = reinterpret_cast<int64 *>(gam->GetOutputSignalMemory(signalIdx));
+            int64Signal = reinterpret_cast<int64*>(gam->GetOutputSignalMemory(signalIdx));
             gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
             uint32 c = 0u;
             for (s = 0; s < numberOfSamples; s++) {
@@ -794,14 +1030,14 @@ bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::flo
                 uint32 e;
                 for (e = 0; e < numberOfElements; e++) {
                     ok &= (int64Signal[c++]
-                            == static_cast<int64>((static_cast<int64>(gainValue) * static_cast<int64>(typeValue))));
+                            == static_cast<int64>((static_cast<int64>(gainValue) * static_cast<int64>(typeValue)) + static_cast<int64>(offsetValue)));
                 }
             }
         }
         i++;
         for (z = 0; z < numberOfSignals; z += 10) {
             uint32 signalIdx = i + z;
-            float32Signal = reinterpret_cast<float32 *>(gam->GetOutputSignalMemory(signalIdx));
+            float32Signal = reinterpret_cast<float32*>(gam->GetOutputSignalMemory(signalIdx));
             gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
             uint32 c = 0u;
             for (s = 0; s < numberOfSamples; s++) {
@@ -809,17 +1045,15 @@ bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::flo
                 gam->GetSignalNumberOfElements(OutputSignals, signalIdx, numberOfElements);
                 uint32 e;
                 for (e = 0; e < numberOfElements; e++) {
-                    ok &=
-                            (float32Signal[c++]
-                                    == static_cast<float32>((static_cast<float32>(gainValue)
-                                            * static_cast<float32>(typeValue))));
+                    ok &= (float32Signal[c++]
+                            == static_cast<float32>((static_cast<float32>(gainValue) * static_cast<float32>(typeValue)) + static_cast<float32>(offsetValue)));
                 }
             }
         }
         i++;
         for (z = 0; z < numberOfSignals; z += 10) {
             uint32 signalIdx = i + z;
-            float64Signal = reinterpret_cast<float64 *>(gam->GetOutputSignalMemory(signalIdx));
+            float64Signal = reinterpret_cast<float64*>(gam->GetOutputSignalMemory(signalIdx));
             gam->GetSignalNumberOfSamples(OutputSignals, signalIdx, numberOfSamples);
             uint32 c = 0u;
             for (s = 0; s < numberOfSamples; s++) {
@@ -827,16 +1061,14 @@ bool ConversionGAMTest::TestExecute(baseType typeValue, bool setGain, MARTe::flo
                 gam->GetSignalNumberOfElements(OutputSignals, signalIdx, numberOfElements);
                 uint32 e;
                 for (e = 0; e < numberOfElements; e++) {
-                    ok &=
-                            (float64Signal[c++]
-                                    == static_cast<float64>((static_cast<float64>(gainValue)
-                                            * static_cast<float64>(typeValue))));
+                    ok &= (float64Signal[c++]
+                            == static_cast<float64>((static_cast<float64>(gainValue) * static_cast<float64>(typeValue)) + static_cast<float64>(offsetValue)));
                 }
             }
         }
 
     }
-    god->Purge();
+    god2->Purge();
     return ok;
 }
 #endif /* CONVERSIONGAMTEST_H_ */

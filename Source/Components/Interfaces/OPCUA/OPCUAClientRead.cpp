@@ -295,6 +295,7 @@ bool OPCUAClientRead::Read(const TypeDescriptor *const types,
         REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "ReadError - OPC UA Status Code (Part 4 - 7.34): %x", readResponse.responseHeader.serviceResult);
         (void) UA_Client_run_iterate(opcuaClient, 100u);
     }
+    UA_ReadResponse_deleteMembers(&readResponse);
     return ok;
 }
 

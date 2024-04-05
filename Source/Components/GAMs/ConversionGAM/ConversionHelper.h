@@ -49,7 +49,8 @@ public:
      * @param[in] inputMemoryIn memory address where the signal is to be read from.
      * @param[in] outputMemoryIn  memory address where the signal is to be written to.
      */
-    ConversionHelper(const void * inputMemoryIn, void * outputMemoryIn);
+    ConversionHelper(const void *inputMemoryIn,
+                     void *outputMemoryIn);
 
     /**
      * @brief Destructor. NOOP.
@@ -68,6 +69,13 @@ public:
      * @return true if the Gain was specified.
      */
     virtual bool LoadGain(StructuredDataI &data) = 0;
+
+    /**
+     * @brief Reads the Offset parameter which is used to move the offset up and down.
+     * @param data where to read the Gain parameter.
+     * @return true if the Offset was specified.
+     */
+    virtual void LoadOffset(StructuredDataI &data) = 0;
 
     /**
      * @brief Gets a pointer to input signal memory.
@@ -119,12 +127,12 @@ protected:
     /**
      * The signal input memory.
      */
-    const void * inputMemory;
+    const void *inputMemory;
 
     /**
      * The signal output memory.
      */
-    void * outputMemory;
+    void *outputMemory;
 
     /*lint -e{1712} This class does not have a default constructor because
      * the inputMemory and the outputMemory must be defined on construction and both remain constant

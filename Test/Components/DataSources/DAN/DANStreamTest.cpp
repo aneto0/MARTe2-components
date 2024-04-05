@@ -27,7 +27,11 @@
 #include "dan/dan_DataCore.h"
 #include "dan/dan_Source.h"
 #include "dan/reader/dan_stream_reader_cpp.h"
-#include "tcn.h"
+#ifdef CCS_LT_60
+#include <tcn.h>
+#else
+#include <common/TimeTools.h> // ccs::HelperTools::GetCurrentTime, etc.
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
@@ -74,10 +78,14 @@ template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = f
     uint64 externalTimeAbsoluteArr[numberOfWrites + 1];
     uint32 externalTimeRelativeArr[numberOfWrites + 1];
 
-    DANStream ds(typeDiscover.GetTypeDescriptor(), "DANStreamTest", 4, samplingFrequency, numberOfSamples, true);
+    TypeDescriptor typeDesc=typeDiscover.GetTypeDescriptor();
+    DANStream ds(TypeDescriptor::GetTypeNameFromTypeDescriptor(typeDesc), "DANStreamTest", 4, samplingFrequency, numberOfSamples, true);
     ds.AddSignal(0u);
+    ds.AddToStructure(0u, "Signal0", typeDesc, 1u, 0u, "Unknown", "Unknown");
     ds.AddSignal(2u);
+    ds.AddToStructure(2u, "Signal2", typeDesc, 1u, 0u, "Unknown", "Unknown");
     ds.AddSignal(5u);
+    ds.AddToStructure(5u, "Signal5", typeDesc, 1u, 0u, "Unknown", "Unknown");
     ds.Finalise();
     typeToCheck *signal0Ptr = NULL;
     ok &= ds.GetSignalMemoryBuffer(0u, reinterpret_cast<void *&>(signal0Ptr));
@@ -104,19 +112,24 @@ template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = f
         ds.Reset();
 
         ok = ds.OpenStream();
+
+#ifdef CCS_LT_60
         hpn_timestamp_t hpnTimeStamp;
         if (ok) {
-            uint32 j;
             ok = (tcn_get_time(&hpnTimeStamp) == TCN_SUCCESS);
+        }
+#else
+        uint64 hpnTimeStamp = ccs::HelperTools::GetCurrentTime();
+#endif
+        if (ok) {
+            uint32 j;
             if (!useAbsoluteTime) {
-                if (ok) {
                     ds.SetAbsoluteStartTime(hpnTimeStamp);
                     if (useRelativeTime) {
                         for (j = 0; (j < (numberOfWrites + 1)) && (ok); j++) {
                             externalTimeRelativeArr[j] = (j * periodNanos * numberOfSamples / 1000); //Relative time is in us
                         }
                     }
-                }
             }
             else {
                 for (j = 0; (j < (numberOfWrites + 1)) && (ok); j++) {
@@ -271,8 +284,10 @@ template<typename typeToCheck> static bool TestPutDataT(bool useAbsoluteTime = f
 
 bool DANStreamTest::TestConstructor() {
     using namespace MARTe;
-    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8, true);
-    bool ok = (ds.GetType() == Float32Bit);
+    DANStream ds("float32", "DANStreamTest", 4, 2e6, 8, true);
+    StreamString typeOut;
+    ds.GetType(typeOut);
+    bool ok = ( typeOut == "float32");
     ok &= (ds.GetDANBufferMultiplier() == 4);
     ok &= (ds.GetPeriodNanos() == 500);
     ok &= (ds.GetNumberOfSamples() == 8);
@@ -310,12 +325,15 @@ bool DANStreamTest::TestAddSignal() {
     DANSource danSource;
     bool ok = danSource.Initialise(cdb);
 
-    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8, true);
+    DANStream ds("float32", "DANStreamTest", 4, 2e6, 8, true);
     float32 *signalPtr = NULL;
 
     ds.AddSignal(2u);
+    ds.AddToStructure(2u, "Signal2", Float32Bit, 1u, 0u, "Unknown", "Unknown");
     ds.AddSignal(0u);
+    ds.AddToStructure(0u, "Signal0", Float32Bit, 1u, 0u, "Unknown", "Unknown");
     ds.AddSignal(1u);
+    ds.AddToStructure(1u, "Signal1", Float32Bit, 1u, 0u, "Unknown", "Unknown");
     ok &= !ds.GetSignalMemoryBuffer(0u, reinterpret_cast<void *&>(signalPtr));
 
     ds.Finalise();
@@ -332,6 +350,36 @@ bool DANStreamTest::TestAddSignal() {
 
     return ok;
 }
+
+bool DANStreamTest::TestAddToStructure() {
+    using namespace MARTe;
+    //This is required in order to create the dan_initLibrary
+    ConfigurationDatabase cdb;
+    cdb.Write("NumberOfBuffers", 10);
+    cdb.Write("CPUMask", 1);
+    cdb.Write("StackSize", 1048576);
+    cdb.Write("DanBufferMultiplier", 4);
+    cdb.Write("StoreOnTrigger", 0);
+    cdb.CreateAbsolute("Signals");
+    cdb.MoveToRoot();
+    DANSource danSource;
+    bool ok = danSource.Initialise(cdb);
+
+    DANStream ds("float32", "DANStreamTest", 4, 2e6, 8, true);
+    float32 *signalPtr = NULL;
+
+    ds.AddSignal(0u);
+    ok &= ds.AddToStructure(0u, "Field0", Float32Bit, 1u, 0u, "Unknown", "Unknown");
+    ok &= ds.AddToStructure(1u, "Field1", UnsignedInteger32Bit, 1u, 0u, "Unknown", "Unknown");
+    ok &= ds.AddToStructure(2u, "Field2", SignedInteger8Bit, 1u, 0u, "Unknown", "Unknown");
+
+    ds.AddSignal(3u);
+    ok &= ds.AddToStructure(3u, "Field0", Float32Bit, 1u, 0u, "Unknown", "Unknown");
+    ok &= !ds.AddToStructure(4u, "Field1", Float64Bit, 1u, 0u, "Unknown", "Unknown");
+
+    return ok;
+}
+
 
 bool DANStreamTest::TestFinalise() {
     return TestAddSignal();
@@ -352,10 +400,13 @@ bool DANStreamTest::TestPutData_False() {
     DANSource danSource;
     danSource.Initialise(cdb);
 
-    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 1000, true);
+    DANStream ds("float32", "DANStreamTest", 4, 2e6, 1000, true);
     ds.AddSignal(0u);
+    ds.AddToStructure(0u, "Signal0", Float32Bit, 1u, 0u, "Unknown", "Unknown");
     ds.AddSignal(2u);
+    ds.AddToStructure(2u, "Signal2", Float32Bit, 1u, 0u, "Unknown", "Unknown");
     ds.AddSignal(5u);
+    ds.AddToStructure(5u, "Signal5", Float32Bit, 1u, 0u, "Unknown", "Unknown");
     return !ds.PutData();
 }
 
@@ -405,10 +456,13 @@ bool DANStreamTest::TestOpenStream() {
     DANSource danSource;
     bool ok = danSource.Initialise(cdb);
 
-    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8, true);
+    DANStream ds("float32", "DANStreamTest", 4, 2e6, 8, true);
     ds.AddSignal(2u);
+    ds.AddToStructure(2u, "Signal2", Float32Bit, 1u, 0u, "Unknown", "Unknown");
     ds.AddSignal(0u);
+    ds.AddToStructure(0u, "Signal0", Float32Bit, 1u, 0u, "Unknown", "Unknown");
     ds.AddSignal(1u);
+    ds.AddToStructure(1u, "Signal1", Float32Bit, 1u, 0u, "Unknown", "Unknown");
     ds.Finalise();
 
     ok &= ds.OpenStream();
@@ -419,7 +473,7 @@ bool DANStreamTest::TestOpenStream() {
 
 bool DANStreamTest::TestOpenStream_NoFinalise() {
     using namespace MARTe;
-    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8, true);
+    DANStream ds("float32", "DANStreamTest", 4, 2e6, 8, true);
 
     return !ds.OpenStream();
 }
@@ -438,10 +492,13 @@ bool DANStreamTest::TestCloseStream() {
     DANSource danSource;
     bool ok = danSource.Initialise(cdb);
 
-    DANStream ds(Float32Bit, "DANStreamTest", 4, 2e6, 8, true);
+    DANStream ds("float32", "DANStreamTest", 4, 2e6, 8, true);
     ds.AddSignal(2u);
+    ds.AddToStructure(2u, "Signal2", Float32Bit, 1u, 0u, "Unknown", "Unknown");
     ds.AddSignal(0u);
+    ds.AddToStructure(0u, "Signal0", Float32Bit, 1u, 0u, "Unknown", "Unknown");
     ds.AddSignal(1u);
+    ds.AddToStructure(1u, "Signal1", Float32Bit, 1u, 0u, "Unknown", "Unknown");
     ds.Finalise();
 
     ds.OpenStream();

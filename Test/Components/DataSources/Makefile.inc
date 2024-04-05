@@ -75,6 +75,10 @@ ifdef PROFINET_COMPILE
 SPB    += ProfinetDataSource.x
 endif
 
+ifdef UEIDAQ_MOCKUP
+SPB    += UEIDataSource.x
+endif
+
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 # Current assumption is prior installation of CODAC Core System on the build node
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""

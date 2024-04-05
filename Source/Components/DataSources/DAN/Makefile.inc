@@ -30,6 +30,7 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 INCLUDES += -I.
+INCLUDES += -I$(CODAC_ROOT)/include
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
@@ -49,10 +50,9 @@ LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_str
 #CPPFLAGS += -std=c++0x -Wno-error=narrowing
 
 ## Compatibility issue with dan_initLibrary_icprog pre CCSv6.0
-CCS_LT_60 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -lt 60 ]; then echo 1; else echo 0; fi)
-ifeq "$(CCS_LT_60)" "1"
-CPPFLAGS += -DCCS_LT_60
-endif
+CCS_VER = $(shell codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g')
+CPPFLAGS += -DCCS_VER=$(CCS_VER)
+
 
 endif
 

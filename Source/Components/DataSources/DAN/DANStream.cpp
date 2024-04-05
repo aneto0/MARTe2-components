@@ -29,6 +29,12 @@
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
+#ifdef LINT
+/*lint -e1923 macro needs to be defined to detect CSS version*/
+#define CCS_VER 0
+/*lint +e1923*/
+#endif
+
 #include "AdvancedErrorManagement.h"
 #include "CompilerTypes.h"
 #include "DANAPI.h"
@@ -44,17 +50,23 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-DANStream::DANStream(const TypeDescriptor & tdIn, const StreamString baseNameIn, const uint32 danBufferMultiplierIn, const float64 samplingFrequencyIn, const uint32 numberOfSamplesIn, const bool interleaveIn) {
-    td = tdIn;
-    typeSize = static_cast<uint32>(td.numberOfBits) / 8u;
+DANStream::DANStream(const char8 * const typeNameIn,
+                     const char8 * const baseNameIn,
+                     const uint32 danBufferMultiplierIn,
+                     const float64 samplingFrequencyIn,
+                     const uint32 numberOfSamplesIn,
+                     const bool interleaveIn) {
+    typeName = typeNameIn;
+    isStruct = (TypeDescriptor::GetTypeDescriptorFromTypeName(typeName.Buffer()) == InvalidType);
+    typeSize = 0u;
     numberOfSignals = 0u;
     blockSize = 0u;
     useExternalAbsoluteTimingSignal = false;
     useExternalRelativeTimingSignal = false;
-    signalIndexOffset = NULL_PTR(uint32 *);
-    blockMemory = NULL_PTR(char8 *);
-    blockInterleavedMemory = NULL_PTR(char8 *);
-    danSource = NULL_PTR(void *);
+    signalIndexMap = NULL_PTR(uint32*);
+    blockMemory = NULL_PTR(char8*);
+    blockInterleavedMemory = NULL_PTR(char8*);
+    danSource = NULL_PTR(void*);
     baseName = baseNameIn;
     danBufferMultiplier = danBufferMultiplierIn;
     samplingFrequency = samplingFrequencyIn;
@@ -62,32 +74,76 @@ DANStream::DANStream(const TypeDescriptor & tdIn, const StreamString baseNameIn,
     float64 periodNanosF = (1e9 / samplingFrequency);
     periodNanos = static_cast<uint64>(periodNanosF);
     absoluteStartTime = 0u;
-    timeAbsoluteSignal = NULL_PTR(uint64 *);
-    timeRelativeSignal = NULL_PTR(uint32 *);
+    timeAbsoluteSignal = NULL_PTR(uint64*);
+    timeRelativeSignal = NULL_PTR(uint32*);
     writeCounts = 0u;
     danSourceName = "";
     interleave = interleaveIn;
+    nFieldsAllocated = 0u;
+    numberOfFields = 0u;
+    fieldInStructOffset = NULL_PTR(uint32*);
+    totalNumberOfFields = 0u;
+    fieldIndexMap = NULL_PTR(uint32*);
+    structIdx = NULL_PTR(uint32*);
+    fieldIdx = NULL_PTR(uint32*);
+    totalNumberOfFieldsAllocated = 0u;
+    types = NULL_PTR(TypeDescriptor*);
+    numberOfElements = NULL_PTR(uint32*);
+    numberOfDimensions = NULL_PTR(uint8*);
+    units = NULL_PTR(StreamString*);
+    descriptions = NULL_PTR(StreamString*);
+    fieldNames = NULL_PTR(StreamString*);
 }
 
 /*lint -e{1551} the destructor must guarantee that the DANSource is unpublished at the of the object life-cycle. The internal buffering memory is also cleaned in this function.*/
 DANStream::~DANStream() {
-    if (signalIndexOffset != NULL_PTR(uint32 *)) {
-        delete[] signalIndexOffset;
-    }
-    if (danSource != NULL_PTR(void *)) {
+    if (danSource != NULL_PTR(void*)) {
         DANAPI::UnpublishSource(danSource);
     }
-    if (blockMemory != NULL_PTR(char8 *)) {
-        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(blockMemory));
+    if (signalIndexMap != NULL_PTR(uint32*)) {
+        delete[] signalIndexMap;
     }
-    if (blockInterleavedMemory != NULL_PTR(char8 *)) {
-        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(blockInterleavedMemory));
+    if (fieldInStructOffset != NULL_PTR(uint32*)) {
+        delete[] fieldInStructOffset;
+    }
+    if (fieldIndexMap != NULL_PTR(uint32*)) {
+        delete[] fieldIndexMap;
+    }
+    if (structIdx != NULL_PTR(uint32*)) {
+        delete[] structIdx;
+    }
+    if (fieldIdx != NULL_PTR(uint32*)) {
+        delete[] fieldIdx;
+    }
+    if (types != NULL_PTR(TypeDescriptor*)) {
+        delete[] types;
+    }
+    if (numberOfElements != NULL_PTR(uint32*)) {
+        delete[] numberOfElements;
+    }
+    if (numberOfDimensions != NULL_PTR(uint8*)) {
+        delete[] numberOfDimensions;
+    }
+    if (units != NULL_PTR(StreamString*)) {
+        delete[] units;
+    }
+    if (descriptions != NULL_PTR(StreamString*)) {
+        delete[] descriptions;
+    }
+    if (fieldNames != NULL_PTR(StreamString*)) {
+        delete[] fieldNames;
+    }
+    if (blockMemory != NULL_PTR(char8*)) {
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void*&>(blockMemory));
+    }
+    if (blockInterleavedMemory != NULL_PTR(char8*)) {
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void*&>(blockInterleavedMemory));
     }
     /*lint -e{1740} the pointer danSource is cleaned by the dan_publisher_unpublishSource the pointers timeRelativeSignals and timeAbsoluteSignal are cleaned by the DANSource*/
 }
 
-TypeDescriptor DANStream::GetType() const {
-    return td;
+void DANStream::GetType(StreamString &typeNameOut) const {
+    typeNameOut = typeName;
 }
 
 uint64 DANStream::GetPeriodNanos() const {
@@ -110,20 +166,21 @@ void DANStream::SetAbsoluteStartTime(const uint64 absoluteStartTimeIn) {
     absoluteStartTime = absoluteStartTimeIn;
 }
 
-void DANStream::SetAbsoluteTimeSignal(uint64 * const timeAbsoluteSignalIn) {
+void DANStream::SetAbsoluteTimeSignal(uint64 *const timeAbsoluteSignalIn) {
     timeAbsoluteSignal = timeAbsoluteSignalIn;
-    if (timeAbsoluteSignal != NULL_PTR(uint64 *)) {
+    if (timeAbsoluteSignal != NULL_PTR(uint64*)) {
         useExternalAbsoluteTimingSignal = true;
     }
 }
 
-void DANStream::SetRelativeTimeSignal(uint32 * const timeRelativeSignalIn) {
+void DANStream::SetRelativeTimeSignal(uint32 *const timeRelativeSignalIn) {
     timeRelativeSignal = timeRelativeSignalIn;
-    if (timeRelativeSignal != NULL_PTR(uint32 *)) {
+    if (timeRelativeSignal != NULL_PTR(uint32*)) {
         useExternalRelativeTimingSignal = true;
     }
 }
 
+/*lint -e{613} fields cannot be NULL if ok = true*/
 bool DANStream::PutData() {
     bool ok = true;
     uint64 timeStamp = 0u;
@@ -144,23 +201,23 @@ bool DANStream::PutData() {
         timeStamp += writeCounts * static_cast<uint64>(numberOfSamples) * periodNanos;
         writeCounts++;
     }
-    if ((blockInterleavedMemory != NULL_PTR(char8 *)) && (blockMemory != NULL_PTR(char8 *))) {
-        char8 *src = NULL_PTR(char8 *);
-        char8 *dest = NULL_PTR(char8 *);
+    if ((blockInterleavedMemory != NULL_PTR(char8*)) && (blockMemory != NULL_PTR(char8*))) {
+        char8 *src = NULL_PTR(char8*);
+        char8 *dest = NULL_PTR(char8*);
         if (interleave) {
-            uint32 s;
-            uint32 z;
             //Interleave the memory data
-            for (s = 0u; (s < numberOfSignals) && (ok); s++) {
-                for (z = 0u; (z < numberOfSamples) && (ok); z++) {
-                    uint32 blockMemoryIdx = s * numberOfSamples * typeSize;
-                    blockMemoryIdx += (z * typeSize);
-                    src = &blockMemory[blockMemoryIdx];
+            for (uint32 s = 0u; (s < numberOfSignals) && (ok); s++) {
+                for (uint32 h = 0u; (h < numberOfFields) && (ok); h++) {
+                    uint32 size = (static_cast<uint32>(types[h].numberOfBits) / 8u) * numberOfElements[h];
+                    for (uint32 z = 0u; (z < numberOfSamples) && (ok); z++) {
+                        //interleave within the structure
+                        uint32 blockMemoryIdx = (s * numberOfSamples * typeSize) + (fieldInStructOffset[h] * numberOfSamples) + (z * size);
+                        src = &blockMemory[blockMemoryIdx];
 
-                    uint32 blockInterleavedMemoryIdx = s * typeSize;
-                    blockInterleavedMemoryIdx += (z * numberOfSignals * typeSize);
-                    dest = &blockInterleavedMemory[blockInterleavedMemoryIdx];
-                    ok = MemoryOperationsHelper::Copy(dest, src, typeSize);
+                        uint32 blockInterleavedMemoryIdx = (s * typeSize) + (z * numberOfSignals * typeSize) + fieldInStructOffset[h];
+                        dest = &blockInterleavedMemory[blockInterleavedMemoryIdx];
+                        ok = MemoryOperationsHelper::Copy(dest, src, size);
+                    }
                 }
             }
         }
@@ -192,45 +249,210 @@ bool DANStream::CloseStream() {
     return DANAPI::CloseStream(danSource);
 }
 
-void DANStream::Finalise() {
+bool DANStream::Finalise() {
+    bool ret = true;
     blockSize = numberOfSignals * typeSize * numberOfSamples;
-    blockMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(blockSize));
-    blockInterleavedMemory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(blockSize));
+    blockMemory = reinterpret_cast<char8*>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(blockSize));
+    blockInterleavedMemory = reinterpret_cast<char8*>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(blockSize));
     (void) danSourceName.Seek(0LLU);
-    (void) danSourceName.Printf("%s_%s", baseName.Buffer(), TypeDescriptor::GetTypeNameFromTypeDescriptor(td));
+    (void) danSourceName.Printf("%s_%s", baseName.Buffer(), typeName.Buffer());
     (void) danSourceName.Seek(0LLU);
     uint64 danBufferSize = static_cast<uint64>(blockSize);
     danBufferSize *= static_cast<uint64>(danBufferMultiplier);
     danSource = DANAPI::PublishSource(danSourceName.Buffer(), danBufferSize);
+    if (isStruct) {
+        int32 result = DANAPI::DeclareStruct(danSource, fieldNames, types, numberOfElements, numberOfDimensions, units, descriptions, numberOfFields);
+        ret = (result >= 0);
+        if (!ret) {
+#if CCS_VER < 60
+            REPORT_ERROR_STATIC(ErrorManagement::UnsupportedFeature, "Structures not supported in CCS < 6.0");
+#else
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Incorrect setting of composite type fields from I&C");
+#endif
+        }
+    }
+    return ret;
 }
 
 void DANStream::AddSignal(const uint32 signalIdx) {
     uint32 numberOfSignalsP1 = (numberOfSignals + 1u);
     uint32 *newSignalIndexOffset = new uint32[numberOfSignalsP1];
-    uint32 i;
-    for (i = 0u; i < numberOfSignals; i++) {
-        /*lint -e{613} signalIndexOffset cannot be NULL as numberOfSignals is initialised to zero in the constructor*/
-        newSignalIndexOffset[i] = signalIndexOffset[i];
+    for (uint32 i = 0u; i < numberOfSignals; i++) {
+        /*lint -e{613} signalIndexMap cannot be NULL as numberOfSignals is initialised to zero in the constructor*/
+        newSignalIndexOffset[i] = signalIndexMap[i];
     }
     if (numberOfSignals > 0u) {
-        delete[] signalIndexOffset;
+        delete[] signalIndexMap;
     }
-    signalIndexOffset = newSignalIndexOffset;
-    signalIndexOffset[numberOfSignals] = signalIdx;
+    signalIndexMap = newSignalIndexOffset;
+    signalIndexMap[numberOfSignals] = signalIdx;
     numberOfSignals++;
+    numberOfFields = 0u;
+    typeSize = 0u;
 }
 
-bool DANStream::GetSignalMemoryBuffer(const uint32 signalIdx, void*& signalAddress) {
-    uint32 s;
+/*lint -e{613,1746} fields cannot be NULL if ret = true. typeDesc cannot be a constant ref.*/
+bool DANStream::AddToStructure(const uint32 fieldIdxIn,
+                               const char8 * const fieldNameIn,
+                               const TypeDescriptor typeDesc,
+                               const uint32 numberOfElementsIn,
+                               const uint8 numberOfDimensionsIn,
+                               const char8 * const unitIn,
+                               const char8 * const descriptionIn) {
+    bool ret = (numberOfSignals > 0u);
+    if (ret) {
+        uint32 fieldSize = (static_cast<uint32>(typeDesc.numberOfBits) / 8u) * numberOfElementsIn;
+        uint32 numberOfFieldsP1 = (numberOfFields + 1u);
+        if (numberOfFieldsP1 > nFieldsAllocated) {
+            nFieldsAllocated += 8u;
+            uint32 *newfieldInStructOffset = new uint32[nFieldsAllocated];
+            TypeDescriptor *newTypes = new TypeDescriptor[nFieldsAllocated];
+            uint32 *newNumberOfElements = new uint32[nFieldsAllocated];
+            uint8 *newNumberOfDimensions = new uint8[nFieldsAllocated];
+            StreamString *newUnits = new StreamString[nFieldsAllocated];
+            StreamString *newDesc = new StreamString[nFieldsAllocated];
+            StreamString *newFieldNames = new StreamString[nFieldsAllocated];
+            for (uint32 i = 0u; i < nFieldsAllocated; i++) {
+                if (i < numberOfFields) {
+                    newfieldInStructOffset[i] = fieldInStructOffset[i];
+                    newTypes[i] = types[i];
+                    newNumberOfElements[i] = numberOfElements[i];
+                    newNumberOfDimensions[i] = numberOfDimensions[i];
+                    newUnits[i] = units[i];
+                    newDesc[i] = descriptions[i];
+                    newFieldNames[i] = fieldNames[i];
+                }
+                else {
+                    newfieldInStructOffset[i] = 0u;
+                    newTypes[i] = InvalidType;
+                    newNumberOfElements[i] = 0u;
+                    newNumberOfDimensions[i] = 0u;
+                    newUnits[i] = "Unknown";
+                    newDesc[i] = "Unknown";
+                    newFieldNames[i] = "Unknown";
+                }
+            }
+            if (numberOfFields > 0u) {
+                delete[] fieldInStructOffset;
+                delete[] types;
+                delete[] numberOfElements;
+                delete[] numberOfDimensions;
+                delete[] units;
+                delete[] descriptions;
+                delete[] fieldNames;
+            }
+            fieldInStructOffset = newfieldInStructOffset;
+            types = newTypes;
+            numberOfElements = newNumberOfElements;
+            numberOfDimensions = newNumberOfDimensions;
+            units = newUnits;
+            descriptions = newDesc;
+            fieldNames = newFieldNames;
+        }
+        if (types[numberOfFields] != InvalidType) {
+            ret = (types[numberOfFields] == typeDesc);
+            if (!ret) {
+                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Type mismatch for signal %d in struct %d. Found %s, Expected %s", fieldIdxIn,
+                                    signalIndexMap[numberOfSignals - 1u], TypeDescriptor::GetTypeNameFromTypeDescriptor(types[numberOfFields]),
+                                    TypeDescriptor::GetTypeNameFromTypeDescriptor(types[numberOfFields]));
+
+            }
+            if (ret) {
+                ret = (numberOfElements[numberOfFields] == numberOfElementsIn);
+                if (!ret) {
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Number of elements mismatch for signal %d in struct %d. Found %d. Expected %d",
+                                        fieldIdxIn, signalIndexMap[numberOfSignals - 1u], numberOfElementsIn, numberOfElements[numberOfFields]);
+                }
+            }
+
+            if (ret) {
+                ret = (numberOfDimensions[numberOfFields] == numberOfDimensionsIn);
+                if (!ret) {
+                    REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Number of elements mismatch for signal %d in struct %d. Found %d. Expected %d",
+                                        fieldIdxIn, signalIndexMap[numberOfSignals - 1u], numberOfDimensionsIn, numberOfDimensions[numberOfFields]);
+                }
+            }
+            /*lint -e{9007} no side effect in comparisons below*/
+            if (ret && isStruct) {
+                if ((units[numberOfFields] != "Unknown") && (units[numberOfFields] != unitIn)) {
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Unit redefined for signal %d in struct %d. Found %s. Expected and keeping %s", fieldIdxIn,
+                                        signalIndexMap[numberOfSignals - 1u], unitIn, units[numberOfFields].Buffer());
+                }
+                if ((descriptions[numberOfFields] != "Unknown") && (descriptions[numberOfFields] != descriptionIn)) {
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Description redefined for signal %d in struct %d. Found %s. Expected and keeping %s",
+                                        fieldIdxIn, signalIndexMap[numberOfSignals - 1u], descriptionIn, descriptions[numberOfFields].Buffer());
+                }
+                if ((fieldNames[numberOfFields] != "Unknown") && (fieldNames[numberOfFields] != fieldNameIn)) {
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "Field name redefined for signal %d in struct %d. Found %s. Expected and keeping %s",
+                                        fieldIdxIn, signalIndexMap[numberOfSignals - 1u], fieldNameIn, fieldNames[numberOfFields].Buffer());
+                }
+            }
+
+        }
+        else {
+            fieldInStructOffset[numberOfFields] = typeSize;
+            types[numberOfFields] = typeDesc;
+            numberOfElements[numberOfFields] = numberOfElementsIn;
+            numberOfDimensions[numberOfFields] = numberOfDimensionsIn;
+            if (units[numberOfFields] == "Unknown") {
+                units[numberOfFields] = unitIn;
+            }
+            if (descriptions[numberOfFields] == "Unknown") {
+                descriptions[numberOfFields] = descriptionIn;
+            }
+            if (fieldNames[numberOfFields] == "Unknown") {
+                fieldNames[numberOfFields] = fieldNameIn;
+            }
+        }
+        typeSize += fieldSize;
+        numberOfFields++;
+
+        uint32 totalNumberOfFieldsP1 = (totalNumberOfFields + 1u);
+        if (totalNumberOfFieldsP1 > totalNumberOfFieldsAllocated) {
+            totalNumberOfFieldsAllocated += 8u;
+            uint32 *newFieldIndexMap = new uint32[totalNumberOfFieldsAllocated];
+            uint32 *newStructIdx = new uint32[totalNumberOfFieldsAllocated];
+            uint32 *newFieldIdx = new uint32[totalNumberOfFieldsAllocated];
+            for (uint32 i = 0u; i < totalNumberOfFields; i++) {
+                newFieldIndexMap[i] = fieldIndexMap[i];
+                newStructIdx[i] = structIdx[i];
+                newFieldIdx[i] = fieldIdx[i];
+            }
+            if (totalNumberOfFields > 0u) {
+                delete[] fieldIndexMap;
+                delete[] structIdx;
+                delete[] fieldIdx;
+            }
+            fieldIndexMap = newFieldIndexMap;
+            structIdx = newStructIdx;
+            fieldIdx = newFieldIdx;
+        }
+        //mapping
+        fieldIndexMap[totalNumberOfFields] = fieldIdxIn;
+        structIdx[totalNumberOfFields] = (numberOfSignals - 1u);
+        fieldIdx[totalNumberOfFields] = fieldInStructOffset[numberOfFields - 1u];
+        totalNumberOfFields++;
+    }
+    else {
+        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Number of Signals == 0 in AddToStructure. Did you call AddSignal before?");
+    }
+    return ret;
+}
+
+/*lint -e{613} GetSignalMemoryBuffer will only be called if fieldIndexMap, structIdx and fieldIdx are != NULL*/
+bool DANStream::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                      void *&signalAddress) {
+
     bool found = false;
-    for (s = 0u; (s < numberOfSignals) && (!found); s++) {
-        /*lint -e{613} signalIndexOffset cannot be NULL as numberOfSignals is initialised to zero in the constructor*/
-        found = (signalIndexOffset[s] == signalIdx);
+    for (uint32 i = 0u; (i < totalNumberOfFields) && (!found); i++) {
+        found = (fieldIndexMap[i] == signalIdx);
         if (found) {
-            if (blockMemory != NULL_PTR(char8 *)) {
-                uint32 memSignalAddressIdx = (s * typeSize * numberOfSamples);
-                char8* memSignalAddress = &blockMemory[memSignalAddressIdx];
-                signalAddress = reinterpret_cast<void *&>(memSignalAddress);
+            uint32 structFieldIdx = structIdx[i];
+            uint32 fieldOffset = fieldIdx[i];
+            if (blockMemory != NULL_PTR(char8*)) {
+                uint32 memSignalAddressIdx = ((typeSize * structFieldIdx) + fieldOffset) * numberOfSamples;
+                char8 *memSignalAddress = &blockMemory[memSignalAddressIdx];
+                signalAddress = reinterpret_cast<void*&>(memSignalAddress);
             }
             else {
                 found = false;

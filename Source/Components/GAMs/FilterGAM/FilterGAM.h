@@ -34,13 +34,14 @@
 
 #include "GAM.h"
 #include "StructuredDataI.h"
+#include "FilterT.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
 /**
- * @brief GAM which allows to implement FIR & IIR filter with float32 type.
+ * @brief GAM which allows to implement FIR & IIR filter with int32 | int64 | float32 | float4 type.
  * @details The GAM configured coefficients of the filter must have
  * the numerator (num) and denominator (den) defined and normalised. If a FIR filter is implemented the Den = 1;
  *
@@ -61,14 +62,16 @@ namespace MARTe {
  * H(z)=\frac{\sum_{k=0}^{M-1} num[k]*z^{(-k)}}{1+\sum_{k=1}^{N-1} den[k]*z^{-k}}
  * \f$
  *
- * The GAM supports multiple input signals (and output signal) only if the characteristics of the input arrays are the same
- * (i.e. The input signals have the same number of elements, the same number of samples and the same type). Currently, the only type supported is float32.
+ * The GAM supports multiple input signals (and output signals) only if the characteristics of the input arrays are the same
+ * (i.e. The input signals have the same number of elements, the same number of samples and the same type). The GAM allows (Samples > 1 && NumberOfElements = 1) || (Samples = 1 && NumberOfElements >1),
+ * but (Samples && NumberOfelements) > 1 simultaneous. For each input a FilterT is created, but all the filters uses the same coefficients. THe FilterT hold the coefficients to apply and the last
+ * input/output values.
  *
  * The inputs and outputs must be arrays (could be arrays of 1 elements).
  *
- * The class holds the coefficients and the last states for the next iteration. The filter can be reset (see PrepareNextState())
+ * The filter can be reset (see PrepareNextState())
  *
- * Moreover the function offers the method StaticGain() in order to make available the real gain of the filter (after converting into float32).
+ * Moreover the function offers the method StaticGain() in order to make available the real gain of the filter (after converting into appropriate type, only relevant for floating point).
  *
  * @pre The filter must be normalised (den[0] = 1).
  * @pre The size of the numerator and the denominator must be at least 1;
@@ -85,7 +88,7 @@ namespace MARTe {
  *     InputSignals = {
  *         InputSignal1 = { //Filter will be applied to each signal. The number of input and output signals must be the same.
  *             DataSource = "DDB1"
- *             Type = float32 //Only supported type.
+ *             Type = float32 // Also float64 | int32 | int64 are possible.
  *         }
  *         InputSignal2 = {
  *             DataSource = "DDB1"
@@ -107,6 +110,7 @@ namespace MARTe {
  */
 class FilterGAM: public GAM, public StatefulI {
 public:
+
     CLASS_REGISTER_DECLARATION()
     /**
      * @brief Default constructor.
@@ -133,9 +137,7 @@ public:
 
     /**
      * @brief Initialise the GAM from a configuration file.
-     * @details Allocates memory for the numerator and denominator coefficients and load their values.
-     * Allocates memory for the last input and output values (final state)
-     * Checks that the coefficients are normalised.
+     * @details Allocates memory for the filterRef and initialise the filter class.
      * @param[in] data the GAM configuration.
      * @return true on succeed
      * @pre
@@ -158,11 +160,11 @@ public:
      *   GetNumberOfSamples() = 0 &&
      *   GetNumberOfSignals() = 0
      */
-    virtual bool Initialise(StructuredDataI & data);
+    virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @brief Setup the inputs and the outputs of the GAM. Additionally, it verifies the correctness and consistency of the parameters.
-     * @details Checks that the input and output pointers are correctly obtained and the number of input and
+     * @details Initialise one filterT for each input signal, checks that the input and output pointers are correctly obtained and the number of input and
      * output parameters are equal and non zero.
      * @return true if all the parameters are specified as described in the class description.
      * @pre
@@ -173,8 +175,6 @@ public:
      *   GetNumberOfSignals() = numberOfSignals &&
      *   input != NULL &&
      *   output != NULL &&
-     *   lastInputs != NULL &&
-     *   lastOutputs != NULL
      */
     virtual bool Setup();
 
@@ -201,24 +201,25 @@ public:
      * @brief Queries the value of resetInEachState
      * @return resetInEachState
      */
-    bool GetResetInEachState () const;
+    bool GetResetInEachState() const;
 
     /**
      * @brief Resets the lastInputs and lastOutputs if necessary.
      * @details The behaviour of this function can be configured in order to reset the filter every time
-     * it is called or when in the previous state the Execute() has not be called not called (and thus the filter has not be applied on such state).
+     * it is called or when in the previous state the Execute() has not be called (and thus the filter has not be applied on such state).
      * @return true if preconditions are met.
      * @pre
      *   lastInputs != NULL &&
      *   lastOutput != NULL  &&
+     *   isInitialised && isSetup
      *
      * @post
      *   lastInputs[m][n] = 0 &&
      *   lastOutput[m][n] = 0
      * where m denote the signal index and the n one of the last state of the signal m.
      */
-    virtual bool PrepareNextState(const char8 * const currentStateName,
-                                  const char8 * const nextStateName);
+    virtual bool PrepareNextState(const char8 *const currentStateName,
+                                  const char8 *const nextStateName);
 
     /**
      * @brief Gets the number of numerator coefficients.
@@ -239,7 +240,7 @@ public:
      * @pre
      *   Setup()
      */
-    bool GetNumCoeff(float32 * const coeff) const;
+    bool GetNumCoeff(void *const coeff) const;
 
     /**
      * @brief Gets the denominator coefficients.
@@ -248,7 +249,7 @@ public:
      * @pre
      *   Setup()
      */
-    bool GetDenCoeff(float32 * const coeff) const;
+    bool GetDenCoeff(void *const coeff) const;
 
     /**
      * @brief Checks that the coefficients are normalised.
@@ -265,8 +266,35 @@ public:
      * @param[in] isInfinite indicates if the gain is infinite.
      * @return the staticGain.
      */
-    float32 GetStaticGain(bool &isInfinite) const;
+    void GetStaticGain(bool &isInfinite,
+                       float32 &gain);
 
+    /**
+     * @brief Gets the filter static gain value.
+     * @details staticGain= SUM(num)/SUM(den). If the gain is infinite the static gain is 0 and the variable isInfinite is set true
+     * @param[in] isInfinite indicates if the gain is infinite.
+     * @return the staticGain.
+     */
+    void GetStaticGain(bool &isInfinite,
+                       float64 &gain);
+
+    /**
+     * @brief Gets the filter static gain value.
+     * @details staticGain= SUM(num)/SUM(den). If the gain is infinite the static gain is 0 and the variable isInfinite is set true
+     * @param[in] isInfinite indicates if the gain is infinite.
+     * @return the staticGain.
+     */
+    void GetStaticGain(bool &isInfinite,
+                       int32 &gain);
+
+    /**
+     * @brief Gets the filter static gain value.
+     * @details staticGain= SUM(num)/SUM(den). If the gain is infinite the static gain is 0 and the variable isInfinite is set true
+     * @param[in] isInfinite indicates if the gain is infinite.
+     * @return the staticGain.
+     */
+    void GetStaticGain(bool &isInfinite,
+                       int64 &gain);
     /**
      * @brief Query the number of samples for each signal.
      * @return the number of samples.
@@ -282,60 +310,55 @@ public:
     uint32 GetNumberOfSignals() const;
 
 private:
-    /**
-     * Pointer to the numerator coefficients.
-     */
-    float32 *num;
 
     /**
-     * Pointer to the denominator coefficients
+     * FilterRef is the filter initialised in the initialise and will be used to initialise the rest of the filters.
      */
-    float32 *den;
+    Filter *filterRef;
 
     /**
-     * Holds the number of numerator coefficients
+     * Arry of filters one for each input signal. All filters has the same coefficients.
      */
-    uint32 numberOfNumCoeff;
+    Filter **filters;
 
     /**
-     * Holds the number of denominator coefficients
+     * Holds the type of the filter. All inputs/outputs shall have the same type.
      */
-    uint32 numberOfDenCoeff;
-
-    /**
-     * Array of pointer to the last input values
-     */
-    float32 **lastInputs;
-
-    /**
-     * Array of pointers to the last output values
-     */
-    float32 **lastOutputs;
+    TypeDescriptor filterType;
 
     /**
      * Holds the the static gain of the filter computed from its coefficients
      */
-    float32 staticGain;
-
+//    float32 staticGain;
     /**
      * Array of pointers to the input buffers
      */
-    float32 **input;
+    void **input;
 
     /**
      * Array of pointers to the output buffers
      */
-    float32 **output;
+    void **output;
 
     /**
      * Number of values of each array. All arrays have the same numberOfSamples
      */
-    uint32 numberOfSamples;
+    uint32 nOfSamples;
 
     /**
      * Number of signals
      */
-    uint32 numberOfSignals;
+    uint32 nOfSignals;
+
+    /**
+     * Indicates if the Initialise functions succeeded. If Initialised was not called -> isInitialised = false.
+     */
+    bool isInitialised;
+
+    /**
+     * Indicates if Setup functions succeeded. If Setup was not called isSetup = false.
+     */
+    bool isSetup;
 
     /**
      * When the gain is infinite this is set to true

@@ -91,7 +91,7 @@ bool CounterChecker::Initialise(StructuredDataI &data) {
             if (ret) {
                 ret = ((checkCounterAfterNSteps % counterStep) == 0u);
                 if (!ret) {
-                    REPORT_ERROR(ErrorManagement::InitialisationError, "CounterChecker::Initialise CheckCounterAfterNPackets=%d must divide exactly CounterStep=%d", checkCounterAfterNSteps, counterStep);
+                    REPORT_ERROR(ErrorManagement::InitialisationError, "CounterChecker::Initialise CheckCounterAfterNPackets=%d must be divided exactly by CounterStep=%d", checkCounterAfterNSteps, counterStep);
                 }
                 else {
                     ret = (((acquireFromCounter - packetCounter) % counterStep) == 0u);
@@ -115,28 +115,27 @@ bool CounterChecker::Check(uint8 *sample,
                            bool &write) {
 
     bool ret = true;
-    write = true;
 
     if (packetCounter == nextPacketCheck) {
         ret = (MemoryOperationsHelper::Compare(&packetCounter, sample, sampleSize) == 0);
+        nextPacketCheck = (packetCounter + checkCounterAfterNSteps);
     }
     if (ret) {
-        nextPacketCheck = (packetCounter + checkCounterAfterNSteps);
         packetCounter += counterStep;
         //before the first packet, check each packet
         if (acquireFromCounter > 0ull) {
             /*lint -e{340} -e{928} -e{927} -e{826} -e{740} Allowed cast from pointer to pointer*/
             /*lint -e{613} NULL pointer checked*/
-            if (MemoryOperationsHelper::Compare(&(sample[0]), reinterpret_cast<uint8*>((&acquireFromCounter)), sampleSize) != 0) {
+            if (MemoryOperationsHelper::Compare(sample, reinterpret_cast<uint8*>((&acquireFromCounter)), sampleSize) != 0) {
                 nextPacketCheck = packetCounter;
-                //return without adding nothing to the circular buffer
-                write = false;
+                //return without adding nothing to the circular buffer (write=false)
             }
             else {
                 acquireFromCounter = 0ull;
             }
         }
     }
+    write = (acquireFromCounter == 0ull);
 
     return ret;
 }

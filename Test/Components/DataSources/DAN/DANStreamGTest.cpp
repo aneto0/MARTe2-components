@@ -69,6 +69,11 @@ TEST(DANStreamGTest,TestAddSignal) {
     ASSERT_TRUE(test.TestAddSignal());
 }
 
+TEST(DANStreamGTest,TestAddToStructure) {
+    DANStreamTest test;
+    ASSERT_TRUE(test.TestAddToStructure());
+}
+
 TEST(DANStreamGTest,TestFinalise) {
     DANStreamTest test;
     ASSERT_TRUE(test.TestFinalise());
