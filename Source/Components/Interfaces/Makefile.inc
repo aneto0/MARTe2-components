@@ -23,6 +23,7 @@
 #############################################################
 
 SPB=MemoryGate.x \
+	ObjectLoader.x \
 	SysLogger.x 
 
 ifdef OPEN62541_LIB
