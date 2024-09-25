@@ -39,7 +39,7 @@
 #include "LoadableLibrary.h"
 #include "MessageI.h"
 #include "ReferenceT.h"
-#include "SimulinkClasses.h"
+#include "SimulinkInterfaces.h"
 #include "StreamString.h"
 
 /*---------------------------------------------------------------------------*/
@@ -166,7 +166,8 @@ namespace MARTe {
  *        - the full path otherwise (e.g. `Library = "/path/to/library/modelName.so"`)
  *    - *SymbolPrefix*: the model name, used during code generation as a
  *      prefix for the symbols exposed by the library. Note that the model
- *      name is often, but not always, the same as the file name.
+ *      name is often, but not always, the same as the file name
+ *      without the extension.
  *    - *InputSignals* and *OutputSignals*: the signals to and from this
  *      GAM, as required by standard MARTe configuration syntax. See
  *      [Input and output signals](#input-and-output-signals) section
@@ -224,19 +225,19 @@ namespace MARTe {
  * The GAM can Actualise() (i.e. update the value of) tunable parameters
  * contained in the model.
  * New values for the parameters can be provided in two ways:
- *   1. By declaring a `Parameters` leaf in the GAM configuration.
+ *   1. By declaring a `Parameters` node in the GAM configuration.
  *   2. By linking the GAM to an external source of parameters.
  * The external source of parameters is expected to be a ReferenceContainer
  * populated by references to AnyObject whose name is the same of the
  * parameters to be updated. Such an object can be created from any other
  * object of the framework, thus guaranteeing interoperability.
  * 
- * During Setup(), the GAM will loop over all tunable parameters found
+ * During Setup(), the GAM will cycle over all tunable parameters found
  * in the model and will then look for a parameter of the same name
  * in the `Parameters` node and in the external parameter source. In
  * case such a parameter is found, the GAM will compare the model parameter
  * and the actualisation parameter and, if the actualisation parameter is 
- * appropriate, update the old value with the new value.
+ * compatible, update the old value with the new value.
  * Actualisation fails if the model parameter and the actualisation parameter
  * differ in one of the following properties: name, datatype, dimensions
  * (scalar, vector, matrix or 3D matrix), number of elements for each dimension,
@@ -246,7 +247,7 @@ namespace MARTe {
  * the model parameter.
  * 
  * When actualisation fails, the parameter compile time value (that is,
- * the value stored in the library) can be used is `SkipInvalidTunableParams`
+ * the value stored in the library) can be used if `SkipInvalidTunableParams`
  * is set to 1. If `SkipInvalidTunableParams` is set to 0 the Setup() method
  * will fail.
  * 
@@ -275,17 +276,19 @@ namespace MARTe {
  * ### Actualise a parameter using an external source ###
  * 
  * Alternatively, one can specify a tunable parameter source by using
- * the `ExternalTunableParamSource` node. The GAM expects as external
+ * the `ExternalTunableParamSource` node. The `ExternalTunableParamSource`
+ * parameter will be the absolute path of the external source in the
+ * configuration file. The GAM expects as external
  * tunable parameter source a MARTe::ReferenceContainer which contains
  * References to AnyObject. Such an external source can be generated
  * by another class of the framework and initialised in the Standard 
  * Heap. The GAM will then look in the root level of the
  * MARTe::ObjectRegistryDatabase for an Object with the name specified
- * in the `ExternalTunableParamSource` node, check if it a ReferenceContainer,
+ * in the `ExternalTunableParamSource` node, check if it is a ReferenceContainer,
  * and if it is, look for References with the same names as the tunable
  * parameters in the model.
  * 
- * 
+ *
  * Structured parameters
  * ----------------------------------------------------------------------------
  * 
@@ -294,21 +297,123 @@ namespace MARTe {
  * block can have its gain value set to `structParameters.gain1`, or
  * even more nested: `structParameters.gains.gain1`.
  * 
+ * ### In the `Parameters` node of the configuration file ###
+ *
  * If this is the case, then the parameter name in the `Parameters` node
  * or in the external parameter source must be specified in a structured
  * fashion:
- * 
+ *
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * Parameters = {
- *     structParameters-gains-gain1 = (float32) { 2.0 2.0 2.0 2.0 }
+ *     structParameters = {
+ *         gains = {
+ *             gain1 = (float32) { 2.0 2.0 2.0 2.0 }
+ *             gain2 = (uint16)  2
+ *         }
+ *     }
  * }
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * 
- * Note that the minus sign (`-`) is here used instead of the dot (`.`).
- * This is required since in the standard MARTe2 configuration language
- * the dot is a reserved character. 
+ * In newer versions of MARTe2 it is possibile to declare structured
+ * parameters in a flattened fashion, using a dot (`.`) as separator.
+ * This is useful for example if only some of the structured
+ * tunable parameters must be actualised, and declaring the whole
+ * structure can be avoided:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Parameters = {
+ *     structParameters.gains.gain1 = (float32) { 2.0 2.0 2.0 2.0 }
+ *     structParameters.gains.gain2 = (uint16)  2
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * To maintain retrocompatibility with previous versions of this GAM,
+ * it is still possible to use a dash (`-`) instead of the dot as separator.
+ * The dash (`-`) was used instead of the dot (`.`) since in the
+ * standard MARTe2 configuration language the dot is a reserved character
+ * and names containing a dot used to be not permitted:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Parameters = {
+ *     structParameters-gains-gain1 = (float32) { 2.0 2.0 2.0 2.0 }
+ *     structParameters-gains-gain2 = (uint16)  2
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * 
- * 
+ * ### In the external parameters source ###
+ *
+ * When using an external parameter source, the parameters must be
+ * `AnyObject`s contained in a `ReferenceContainer`.
+ * The name of the `AnyObject`s shall be the flattened version
+ * of the parameters name:
+ *
+ * @warning The following is NOT a valid MARTe2 configuration syntax.
+ *          It is only given as an example of the structure that
+ *          `ExtParamSource` shall have and that must be created
+ *          programmatically.
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * +ExtParamSource = {
+ *     Class = InheritingFromReferenceContainer
+ *     // WARNING: NOT a valid MARTe2 configuration syntax!
+ *     +structParameters.gains.gain1 = { Class = AnyObject Value = { 2.0 2.0 2.0 2.0 } }
+ *     +structParameters.gains.gain2 = { Class = AnyObject Value = 2                   }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ *
+ * Structure arrays                                         {#structure-arrays}
+ * ----------------------------------------------------------------------------
+ *
+ * The same structure can be repeated with the same fields but different
+ * values associated to each field. The resulting data structure is called
+ * an *array of structure*, *structure array* or simply *struct array*.
+ * A model may use struct arrays as parameters or as input/output signals.
+ * In the latter case, the struct arrays are called *arrays of buses*.
+ *
+ * This section is about the use of structured arrays as parameters. For usage
+ * of arrays of buses as signals see [Arrays of buses](#arrays-of-buses).
+ *
+ * ### In the `Parameters` node of the configuration file ###
+ *
+ * Struct arrays can be declared in a structured fashion:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Parameters = {
+ *     structParameters[0][0] = {
+ *         gains = {
+ *             gain1 = (float32) { 1.0 1.0 1.0 1.0 }
+ *             gain2 = (uint16)  1
+ *         }
+ *     }
+ *     structParameters[0][1] = {
+ *         gains = {
+ *             gain1 = (float32) { 2.0 2.0 2.0 2.0 }
+ *             gain2 = (uint16)  2
+ *         }
+ *     }
+ *    // ...
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * Struct arrays can also be declared in a flattened fashion:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Parameters = {
+ *     structParameters[0][0].gains.gain1 = (float32) { 1.0 1.0 1.0 1.0 }
+ *     structParameters[0][0].gains.gain2 = (uint16)  1
+ *     structParameters[0][1].gains.gain1 = (float32) { 2.0 2.0 2.0 2.0 }
+ *     structParameters[0][1].gains.gain2 = (uint16)  2
+ *     // ...
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * ### In the external parameters source ###
+ *
+ * The external parameter source shall contain AnyObjects with names
+ * declared in the flattened fashion of the section above.
+ *
+ *
  * Enumeration parameters
  * ----------------------------------------------------------------------------
  * 
@@ -333,20 +438,21 @@ namespace MARTe {
  *          or from an external parameter source to verify that the value is within
  *          the model enumeration range.
  * 
+ *
  * Actualisation mechanism
  * ----------------------------------------------------------------------------
  * 
  * The actualisation mechanism works as follows:
- * 1. ScanTunableParameters() method retrieves informations about model
+ * 1. ScanInterfaces() method retrieves informations about model
  *    parameters from the model shared library using the C APIs,
  *    and saves them in the modelParameters array 
- * 2. The GAM loops over all the retrieved tunable parameters in the
+ * 2. The GAM cycles over all the retrieved tunable parameters in the
  *    modelParameters array and looks for a souce of data of the same
  *    name in the `Parameters` configuration node and in the declared
  *    external parameter source (if any).
  * 3. If a source of data is found, the GAM retrieves the corresponding
- *    AnyType and passes it to the SimulinkParameter::Actualise() method.
- * 4. The SimulinkParameter::Actualise() method checks that the parameter
+ *    AnyType and passes it to the SimulinkInterface::Actualise() method.
+ * 4. The SimulinkInterface::Actualise() method checks that the parameter
  *    from the model shared library and the input AnyType are coherent
  *    (same type, same dimensions). If all checks are OK, then the
  *    parameter value in the model shared library is updated with
@@ -567,7 +673,193 @@ namespace MARTe {
  *     }
  * }
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * 
+ *
+ * Arrays of buses                                           {#arrays-of-buses}
+ * ----------------------------------------------------------------------------
+ *
+ * The same structure can be repeated with the same fields but different
+ * values associated to each field. The resulting data structure is called
+ * an *array of structure*, *structure array* or simply *struct array*.
+ * A model may use struct arrays as parameters or as input/output signals.
+ * In the latter case, the struct arrays are called *arrays of buses*.
+ *
+ * This section is about the use of structured arrays as signals. For usage
+ * of structure arrays as parameters see [Structured arrays](#structured-arrays).
+ *
+ * Arrays of buses can be mapped:
+ * 1. by declaring the flattened array of buses directly into the GAM input
+ *    or output signal section (explicit syntax)
+ * 2. by declaring the structure of the array of buses as an IntrospectionStructure
+ *    and then using this as the signal type (previously declared structure)
+ *
+ * The following examples show how to declare an array of buses of size [2x3],
+ * each entry of which is a bus of 2 elements, the first being a `float32` scalar
+ * and the second being a `uint32` vector of 8 elements:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * ArrayOfBuses [2x3]
+ *  |
+ *  +-- .BusElement1 (float32)[1]
+ *  |
+ *  +-- .BusElement2 (uint32)[8]
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * @warning The array of buses is expressed differently whether it is
+ *          a root-level input/output or it is an element within another bus.
+ *          This is due to the fact that the shape of root-level GAM inputs/outputs
+ *          cannot be specified, and only the number of elements of such signals
+ *          can be specified. As a result, a root-level array of buses
+ *          shall always be expressed as a one-dimensional array.
+ *
+ * ### Explicit syntax ###
+ *
+ * #### As root-level signal ####
+ *
+ * Use the following syntax to explicitly declare an array of buses
+ * as a *root-level input/output*:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * OutputSignals = {
+ *     ArrayOfBuses[0].BusElement1  = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     ArrayOfBuses[1].BusElement2  = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ *     ArrayOfBuses[2].BusElement1  = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     ArrayOfBuses[3].BusElement2  = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ *     ArrayOfBuses[4].BusElement1  = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     ArrayOfBuses[5].BusElement2  = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ *     ArrayOfBuses[6].BusElement1  = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     ArrayOfBuses[7].BusElement2  = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ *     ArrayOfBuses[8].BusElement1  = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     ArrayOfBuses[9].BusElement2  = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ *     ArrayOfBuses[10].BusElement1 = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     ArrayOfBuses[11].BusElement2 = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * #### Within a bus ####
+ *
+ * Use the following syntax to explicitly declare an array of buses *within*
+ * a bus with another `uint8` scalar signal:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * OutputSignals = {
+ *     BusSignal.Scalar                         = { Type = uint8    NumberOfElements = 2  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[0][0].BusElement1 = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[0][0].BusElement2 = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[0][1].BusElement1 = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[0][1].BusElement2 = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[0][2].BusElement1 = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[0][2].BusElement2 = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[1][0].BusElement1 = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[1][0].BusElement2 = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[1][1].BusElement1 = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[1][1].BusElement2 = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[1][2].BusElement1 = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[1][2].BusElement2 = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * Note that, if `ArrayOfBuses` is a vector array and not a matrix array,
+ * the syntax is the same as the root-level array of buses:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * OutputSignals = {
+ *     BusSignal.Scalar                      = { Type = uint8    NumberOfElements = 2  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[0].BusElement1 = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[0].BusElement2 = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[1].BusElement1 = { Type = float32  NumberOfElements = 1  DataSource = DDB1 }
+ *     BusSignal.ArrayOfBuses[1].BusElement2 = { Type = uint32   NumberOfElements = 8  DataSource = DDB1 }
+ *     // ...
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * ### Previously declared structure ###
+ *
+ * #### As root-level signal ####
+ *
+ * An array of buses can be mapped to a structure previously declared using the
+ * framework IntrospectionStructure component. Use the following syntax to
+ * explicitly declare an array of buses as a *root-level input/output*:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * // Outside the RealTimeApplication
+ * +Types = {
+ *     Class = ReferenceContainer
+ *
+ *     +ArrayOfBuses_Type = {
+ *         Class = IntrospectionStructure
+ *         BusElement1 = {
+ *             Type               = float64
+ *             NumberOfElements   = 1
+ *         }
+ *         BusElement2 = {
+ *             Type               = uint32
+ *             NumberOfElements   = 8
+ *         }
+ *     }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * The GAM configuration syntax is then as follows (note that the bus cannot
+ * be declared as 3x2, but must be declared as `NumberOfElements = 6`):
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * OutputSignals = {
+ *     ArrayOfBuses = {
+ *         Type = ArrayOfBuses_Type
+ *         NumberOfElements = 6      // 3x2
+ *     }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * #### Within a bus ####
+ *
+ * Use the following syntax to explicitly declare an array of buses *within*
+ * a bus with another `uint8` scalar signal:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * // Outside the RealTimeApplication
+ * +Types = {
+ *     Class = ReferenceContainer
+ *
+ *     +ArrayOfBuses_Type = {
+ *         Class = IntrospectionStructure
+ *         BusElement1 = {
+ *             Type               = float64
+ *             NumberOfElements   = 1
+ *         }
+ *         BusElement2 = {
+ *             Type               = uint32
+ *             NumberOfElements   = 8
+ *         }
+ *     }
+ *
+ *     +BusSignal_Type =  {
+ *         Class = IntrospectionStructure
+ *         Scalar = {
+ *             Type = uint8
+ *             NumberOfElements = 1
+ *         }
+ *         ArrayOfBuses = {
+ *             Type = ArrayOfBuses_Type
+ *             NumberOfElements = {3, 2}
+ *         }
+ *     }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * The GAM configuration syntax is then as follows (note that in this case
+ * the `ArrayOfBuses` has been declared as [3x2] in the IntrospectionStructure):
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * OutputSignals = {
+ *     BusSignal = {
+ *         Type = BusSignal_Type
+ *         NumberOfElements = 1
+ *     }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ *
  * Enumeration signals
  * ----------------------------------------------------------------------------
  * 
@@ -597,6 +889,46 @@ namespace MARTe {
  *          the model enumeration range.
  * 
  * 
+ * Signal logging                                             {#signal-logging}
+ * ----------------------------------------------------------------------------
+ *
+ * Internal signals of the model (that is, signals that are not connected to
+ * root-level input/output ports) can be made available to the GAM. These
+ * signals are called *logging signals*.
+ * For details on how to configure the model to log a signal see
+ * [Configuration of logging signals](#logging-signals-conf).
+ *
+ * Logging signals are available as GAM outputs and all the rules described
+ * above for inputs and outputs apply:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * OutputSignals = {
+ *     output_port = {
+ *         Type               = int16
+ *         NumberOfDimensions = 0
+ *         NumberOfElements   = 1
+ *         DataSource = DDB1
+ *     }
+ *     // this signal does not map an output port but a logging signal
+ *     logging_signal = {
+ *         Type               = float32
+ *         NumberOfDimensions = 1
+ *         NumberOfElements   = 6
+ *         DataSource         = DDB1
+ *     }
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * The name of the GAM output signal must match that of the logging signal
+ * for the signal to be mapped.
+ *
+ * @warning The connection of logging signals to a GAM output *is not*
+ *          enforced by setting the `EnforceModelSignalCoverage` to true.
+ *          This means that if the model containg a logging signal named
+ *          `logging_signal` but no GAM signal named `logging_signal`
+ *          is declared, the logging signal *will not* be logged and no
+ *          error or warning will be issued.
+ *
  * Model configuration                                   {#model-configuration}
  * =============================================================================
  * 
@@ -639,7 +971,7 @@ namespace MARTe {
  *        - on the Block Parameters dialog check `Output as nonvirtual bus`
  *        - attach the port output to a `Bus Selector` block to use its elements
  *           in the model.
- * 
+ *
  * Configuration of parameters
  * ----------------------------------------------------------------------------
  * 
@@ -652,9 +984,33 @@ namespace MARTe {
  *    To set the same option for each single parameter, click on `Configure...`
  *    in the same window.
  * 
- * The script that is shown below automatically sets all parameters to tunable. 
+ * The script that is shown in the [Code generation options](#code-gen-opt)
+ * section automatically sets all parameters to tunable.
  * 
- * Code generation options
+ *
+ * Configuration of logging signals                     {#logging-signals-conf}
+ * ----------------------------------------------------------------------------
+ *
+ * Internal signals of the model (that is, signals that are not connected to
+ * root-level input/output ports) can be made available to the GAM. These
+ * signals are called *logging signals*.
+ *
+ * To prepare a signal to be logged the next steps must be followed:
+ *
+ *   1. Make sure that the signal to be logged is named
+ *   2. Open the `Embedded Coder` app
+ *   3. Select the signal to be logged in the model
+ *   4. Move the pointer to the 3 dots that appear (`...`) and click
+ *      on the first button to the left (`Add selected signals to code mappings`)
+ *   5. Open the `C Code` tab
+ *   6. Go to `Code Interface > Default Code Mappings`
+ *   7. In the `Signals/States` tab, make sure that the storage class of
+ *      the signal to be logged is set to `ExportedGlobal`
+ *
+ * For details on how to map these signals to the GAM, see the
+ * [Signal logging](#signal-logging) section.
+ *
+ * Code generation options                                      {#code-gen-opt}
  * ----------------------------------------------------------------------------
  * 
  * The code generated from the model must meet some requirements.
@@ -679,21 +1035,20 @@ namespace MARTe {
  * set_param(model_name, 'GenerateReport', 0);
  * 
  * % Comments
- * set_param(model_name, 'GenerateComments', 0);
+ * set_param(model_name, 'GenerateComments', 1);
  * 
  * % Custom code (MODEL is a coder keyword for the model name)
  * set_param(model_name, 'CustomSourceCode', ...
- *     [ ...
- *     '#define CONCAT(str1, str2, str3) CONCAT_(str1, str2, str3)'            newline, ...
- *     '#define CONCAT_(str1, str2, str3) str1 ## str2 ## str3'                newline, ...
- *     '#define GET_MMI_FUNC    CONCAT(MODEL     , _GetCAPImmi ,    )'         newline, ...
- *     '#define RT_MODEL_STRUCT CONCAT(RT_MODEL_ , MODEL       , _T )'         newline, ...
- *                                                                             newline, ...
- *     'void* GET_MMI_FUNC(void* voidPtrToRealTimeStructure)'                  newline, ...
- *     '{'                                                                     newline, ...
- *     '   rtwCAPI_ModelMappingInfo* mmiPtr = &(rtmGetDataMapInfo( ( RT_MODEL_STRUCT * )(voidPtrToRealTimeStructure) ).mmi);' newline, ...
- *     '   return (void*) mmiPtr;'                                             newline, ...
- *     '}' ...
+ *     [  ...
+ *     '#define UTSTRUCTNAME(NAME) RT_MODEL_##NAME##_T'                         newline ...
+ *     '#define TSTRUCTNAME(NAME) UTSTRUCTNAME(NAME)'                           newline ...
+ *     '#define UGETMMIFCN(NAME) NAME##_GetCAPImmi'                             newline ...
+ *     '#define GETMMIFCN(NAME) UGETMMIFCN(NAME)'                               newline ...
+ *                                                                              newline ...
+ *     'rtwCAPI_ModelMappingInfo* GETMMIFCN(MODEL) ( TSTRUCTNAME(MODEL) *rtm )' newline ...
+ *     '{'                                                                      newline ...
+ *     '    return &(rtmGetDataMapInfo(rtm).mmi);'                              newline ...
+ *     '}'                                                                      newline ...
  *     ] ...
  * );
  * 
@@ -722,18 +1077,6 @@ namespace MARTe {
  * 
  * Once set for a model, the configuration settings can then be exported
  * from the Model Explorer and imported to other models.
- * 
- * 
- * @todo This class relies on pointer arithmetic for offset calculation.
- *       While it looks safe, it should probably be refactored to
- *       increase realiability. Linter errors reporting this (923,
- *       9016 and 9091) are currently ignored.
- * 
- * @todo Fix nonvirtual bus padding bug: when a bus is populated
- *       with data of different types, if the last element is
- *       smaller in size with respect to the previous one, a padding
- *       is introduced. The size inconsistency is detected by the GAM and
- *       Setup() fails.
  * 
  * @todo Fix int64/uint64 issue: models with [u]int64 signals when compiled
  *       export such signals as [u]fix64, which is currently incompatible
@@ -804,19 +1147,23 @@ protected:
     
     // those members are protected for testing purpose
     
+    // TODO change these to StaticLists or Vectors?
+    SimulinkRootInterface* inputs;      //!< Array of data about the model inputs retrieved from the model using the C APIs
+    SimulinkRootInterface* outputs;     //!< Array of data about the model outoputs retrieved from the model using the C APIs
+    SimulinkRootInterface* params;      //!< Array of data about the model tunable parameters retrieved from the model using the C APIs
+    SimulinkRootInterface* signals;     //!< Array of data about the model internal logging signals retrieved from the model using the C APIs
+
     /**
-     * @brief   List of SimulinkParameter objects.
-     * @details This array is used to store informations about each parameter
-     *          used in the dynamically linked model.
+     * @name Number of interfaces
      */
-    StaticList<SimulinkParameter*> modelParameters;
-    
-    /**
-     * @brief   List of SimulinkPort objects.
-     * @details This array is used to store informations about each port
-     *          used in the dynamically linked model.
-     */
-    StaticList<SimulinkPort*> modelPorts;
+    //@{
+    uint32 modelNumOfInputs;            //!< Number of inputs of the model.
+    uint32 modelNumOfOutputs;           //!< Number of outputs of the model.
+    uint32 modelNumOfParameters;        //!< Number of tunable parameters of the model.
+    uint32 modelNumOfSignals;           //!< Number of internal logging signals of the model.
+    //@}
+
+    ErrorManagement::ErrorType status;  //!< The error state of the GAM
     
     /**
      * @brief Experimental function. Print model version info
@@ -827,15 +1174,6 @@ protected:
 private:
 
     /**
-     * @name Number of interfaces
-     */
-    //@{
-    uint32 modelNumOfInputs;            //!< Number of inputs of the model.
-    uint32 modelNumOfOutputs;           //!< Number of outputs of the model.
-    uint32 modelNumOfParameters;        //!< Number of tunable parameters of the model.
-    //@}
-
-    /**
      * @name    GAM settings
      * @brief   Setting retrieved from the configuration files.
      * @details See [GAM configuration](#gam-configuration) section for details.
@@ -844,8 +1182,10 @@ private:
     StreamString libraryName;                       //!< Name of the shared library file or full path to it.
     StreamString symbolPrefix;                      //!< Name of the model (may or may not differ from the name of the library).
     StreamString tunableParamExternalSource;        //!< Name of the ReferenceContainer containing References to AnyObjects that hold value for parameter actualisation.
-    bool         skipInvalidTunableParams;          //!< If `true`, when a parameter actualisation fails the compile time value is used.
     uint8        verbosityLevel;                    //!< How verbose should the output be. Min: 0, max: 2, default: 0.
+    bool         skipInvalidTunableParams;          //!< If `true`, when a parameter actualisation fails the compile time value is used.
+    bool         enforceModelSignalCoverage;        //!< When enabled, all the Simulink model I/O must be matched to a GAM I/O
+    SimulinkNonVirtualBusMode nonVirtualBusMode;    //!< Copy mode of structured signals (element by element or raw whole copy)
     //@}
     
     /**
@@ -879,138 +1219,56 @@ private:
      *          data introspection.
      */
     //@{
-    const rtwCAPI_ModelParameters* modelParams;     //!< Pointer to the structure storing parameter data.
+    const rtwCAPI_ModelParameters* modelParams;     //!< Pointer to the structure storing tunable parameter data.
     const rtwCAPI_Signals*         rootInputs;      //!< Pointer to the structure storing root input data.
     const rtwCAPI_Signals*         rootOutputs;     //!< Pointer to the structure storing root output data.
-    const rtwCAPI_Signals*         sigGroup;        //!< Pointer to rootInputs or rootOutputs depending on what structure the GAM is parsing.
+    const rtwCAPI_Signals*         logSignals;      //!< Pointer to the structure storing internal logging signals.
     const rtwCAPI_DataTypeMap*     dataTypeMap;     //!< Pointer to the structure storing data types of parameters, inputs and outputs.
     const rtwCAPI_ElementMap*      elementMap;      //!< Pointer to the structure storing data for elements of a structured parameter or signal.
     const rtwCAPI_DimensionMap*    dimMap;          //!< Pointer to the structure storing the dimensions of parameters, inputs and outputs.
     const uint32*                  dimArray;        //!< Pointer to the array storing the number of elements for each dimension of parameters, inputs and outputs.
     void**                         dataAddrMap;     //!< Pointer to the structure storing the memory location of parameters, inputs and outputs.
     //@}
-    
-    /**
-     * @brief Enum that specifies where to retrieve data for a parameter
-     */
-    enum ParameterMode {
-        
-        ParamFromParameters,
-        ParamFromElementMap
-    };
-    
-    /**
-     * @brief Enum that specifies where to retrieve data for a signal
-     */
-    enum SignalMode {
-        
-        SignalFromSignals,
-        SignalFromElementMap
-    };
-    
-    /**
-     * @brief Used internally to address the underlying copy mode for the ports/signals, in respect to
-     *        the "structure as byte array" behaviour
-     */
-    SimulinkNonVirtualBusMode nonVirtualBusMode;
 
     /**
-     * @brief   Pointer to the current port being analyzed by ScanSignal().
-     * @details This pointer is a shared (within the class) pointer to a SimulinkPort
-     *          object used by the ScanSignal function set to build a port object
-     *          out of the model C API introspection code.
+     * @name  Interface scan methods
+     * @brief These methods are used to retrieve information about the model interfaces
      */
-    SimulinkPort* currentPort;
+    //@{
 
     /**
-     * @brief     Scans the tunable parameters tree of the loaded model.
-     * @param[in] mmi pointer to the C API mmi (Model Mapping Information) data structure.
-     *                This pointer has to be retrieved from the loaded .so
-     *                calling the `<modelname>_GetCAPImmi()` function exposed
-     *                by the .so (special custom code needed here during
-     *                simulink code generation).
-     * @returns  `true` if all parameters are correctly scanned, `false` otherwise.
+     * @brief Scan the root level interfaces of a certain type
+     * @param[out] interfaceArray   array of `SimulinkRootInterface`s that will contain the information
+     * @param[in]  interfaceStruct  struct provided by the C APIs
+     * @param[in]  numOfInterfaces  number of root interfaces to be retrieved
+     * @param[in]  mode             interface type (InputPort, OutputPort, Parameter, Signal, Element)
      */
-    bool ScanTunableParameters(const rtwCAPI_ModelMappingInfo* const mmi);
+    ErrorManagement::ErrorType ScanInterfaces(SimulinkRootInterface* interfaceArray, const void* const interfaceStruct, const uint32 numOfInterfaces, const InterfaceType mode);
 
     /**
-     * @brief Helper function to navigate the parameter tree.
-     * @param[in] dataTypeIdx  index of the datatype in the dataTypeMap struct to analyze
-     * @param[in] depth        tree depth level at call (for recursive callings)
-     * @param[in] startAddress current start allocated address at the callng (for recursive callings)
-     * @param[in] baseName     name of the parent parameter structure
-     * @param[in] baseOffset   offset of the parent parameter structure
-     * @param[in] spacer       spacer for Printf(), it is different if this is the last parameter of a structure
-     * @returns `true` if the parameter structure has been correctly scanned, `false` otherwise.
+     * @brief Scan the single interfaces of a certain type
+     * @param[in,out] interfaceArray   array of `SimulinkRootInterface`s that will contain the information
+     * @param[in]     interfaceStruct  struct provided by the C APIs
+     * @param[in]     sigIdx           index of the interface
+     * @param[in]     numOfInterfaces  number of root interfaces to be retrieved
+     * @param[in]     mode             interface type (InputPort, OutputPort, Parameter, Signal, Element)
+     * @param[in]     parentAddr       pointer to the memory of the parent interface
+     * @param[in]     parentName       name of the parent interface
      */
-    bool ScanParametersStruct(const uint32 dataTypeIdx, const uint32 depth, void* const startAddress, StreamString baseName, const uint64 baseOffset, StreamString spacer);
+    ErrorManagement::ErrorType ScanInterface(SimulinkRootInterface &interfaceArray, const void* const interfaceStruct, const uint32 sigIdx, const InterfaceType mode, void* const parentAddr = NULL_PTR(void*), const StreamString parentName = "");
+    //@}
 
-
-    /**
-     * @brief Helper function to scan a parameter.
-     * @param[in] parIdx       index of the element in the modelParams or elementMap to print
-     * @param[in] depth        tree depth level at call (for recursive callings)
-     * @param[in] mode         `ParamFromParameters` if param to print stays in the modelParams data structure
-     *                         `ParamFromElementMap` if param to print stays in the elementMap data struct
-     * @param[in] startAddress start address to compute parameter access virtual address
-     * @param[in] baseName     name of the parent parameter structure
-     * @param[in] baseOffset   offset of the parent parameter structure
-     * @param[in] spacer       the spacer to prerpint before the function outputs the parameter
-     *                         descriptive string
-     * @returns `true` if the parameter has been correctly scanned, `false` otherwise.
-     */
-    bool ScanParameter(const uint16 parIdx, const uint32 depth, const ParameterMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, StreamString spacer);
-
-    /**
-     * @brief Scans the root level input or output tree of the loaded model.
-     * @param[in] mmi  pointer to the CAPI mmi (Model Mapping Information) data structure.
-     *                This pointer has to be retrieved from the loaded .so
-     *                calling the `<modelname>_GetCAPImmi()` function exposed
-     *                by the .so (special EPFL-SPC TLC patch needed here during
-     *                simulink code generation).
-     * @param[in] mode sets whether to analyze the inputs ports or the outputs ports
-     * @returns `true` if all signals have been correctly scanned, `false` otherwise.
-     */
-    bool ScanRootIO(const rtwCAPI_ModelMappingInfo* const mmi, const SignalDirection mode);
-
-    /**
-     * @brief Helper function to navigate the signal tree.
-     * @param[in] dataTypeIdx  index of the datatype in the dataTypeMap struct to analyze
-     * @param[in] depth        tree depth level at call (for recursive callings)
-     * @param[in] startAddress current start allocated address at the callng (for recursive callings)
-     * @param[in] baseName     name of the parent signal structure (for recursive callings)
-     * @param[in] baseOffset   base offset of the structure in the port (for recursive callings)
-     * @param[in] spacer       spacer for Printf(), it is different if this is the last parameter of a structure
-     * @returns `true` if the signal structure has been correctly scanned, `false` otherwise.
-     */
-    bool ScanSignalsStruct(const uint32 dataTypeIdx, const uint32 depth, void* const startAddress, StreamString baseName, const uint64 baseOffset, StreamString spacer);
-
-    /**
-     * @brief     Helper function to scan a signal.
-     * @param[in] sigIdx      index of the element in the sigGroup or elementMap to print
-     * @param[in] depth       tree depth level at call (for recursive callings)
-     * @param[in] mode        `SignalFromSignals` if param to print stays in the sigGroup data structure
-     *                        `SignalFromElementMap` if param to print stays in the elementMap data struct
-     * @param[in] startAddress start address to compute parameter access virtual address
-     * @param[in] baseName    name of the parent signal structure (for recursive callings)
-     * @param[in] baseOffset  base offset of the structure in the port (for recursive callings)
-     * @param[in] spacer      the spacer to prerpint before the function outputs the parameter
-     *                        descriptive string
-     * @returns `true` if the signal has been correctly scanned, `false` otherwise.
-     */
-    bool ScanSignal(const uint16 sigIdx, const uint32 depth, const SignalMode mode, void* const startAddress, StreamString baseName, const uint64 baseOffset, StreamString spacer);
-    
     /**
      * @brief     Check coherence between model ports and GAM signals and map them.
-     * @param[in] direction specifies if the method will map input or outpus
-     *                      signals
+     * @param[in] interfaceType specifies if the method will map inputs, outputs,
+     *                          parameters or logging signals
      */
-    bool MapPorts(const SignalDirection direction);
+    ErrorManagement::ErrorType MapPorts(const InterfaceType interfaceType);
     
     /**
      * @brief Prepare model for execution.
      */
-    bool SetupSimulink();
+    ErrorManagement::ErrorType SetupSimulink();
     
     /**
      * @brief     Returns `true` if a C API type has the same size of checkSize.
@@ -1019,51 +1277,23 @@ private:
      * @returns   `true` if a C type has the same size of checkSize.
      */
     bool CheckrtwCAPITypeAgainstSize(StreamString cTypeName, const uint16 checkSize) const;
-    
-    /**
-     * @brief separator for building structured parameters full paths.
-     */
-    StreamString paramSeparator;
 
-    /**
-     * @brief separator for building structured signals (a.k.a. buses) full paths.
-     */
-    StreamString signalSeparator;
-    
-    /**
-     * @brief Holds port and parameter addresses while scanning.
-     */
-    StaticList<void*> lastAddressVector;
-    
-    /**
-     * @brief Base address of the parameter currently under parsing.
-     */
-    void* currentParamBaseAddress;
-    
-    /**
-     * @brief Last address of the parameter currently under parsing.
-     */
-    void* paramlastaddress;
-    
     /**
      * @brief Set to `true` if one of the parameters is an array of structures (currently unsupported).
      */
     bool paramsHaveStructArrays;
-    
+
+    /**
+     * @brief Set to true if the corresponding GAM signal is mapped to a model input/output port
+     *        or logging signal. Used to ensure that all GAM signals are mapped.
+     */
+    Vector<bool> isInputMapped;
+    Vector<bool> isOutputMapped;
+
     /**
      * @brief Container of the parameters retrieved from the configuration file.
      */
     ReferenceT<ReferenceContainer> cfgParameterContainer;
-    
-    /**
-     * @brief A database storing absolute paths of parameters found in configuration file.
-     */
-    ConfigurationDatabase cfgParameterDatabase;
-    
-    /**
-     * @brief A database storing absolute paths of parameters found in an external loader class.
-     */
-    ConfigurationDatabase externalParameterDatabase;
     
     /**
      * @brief Structure that holds data about the current version of the model.
@@ -1073,11 +1303,6 @@ private:
         char8  gitLog[81];
         uint32 expCode;
     };
-
-    /**
-     * @brief When enabled, all the Simulink model I/O must be matched to a GAM I/O
-     */
-    bool enforceModelSignalCoverage;
 
 };
 

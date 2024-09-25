@@ -91,8 +91,9 @@ public:
     /**
      * @brief Helper method to test Initialise by passing a ConfigurationDatabase.
      * @param[in] configIn the configuration database with the configuration to be tested.
+     * @param[out] status  the status of the GAM
      */
-    bool TestInitialiseWithConfiguration(MARTe::ConfigurationDatabase configIn);
+    bool TestInitialiseWithConfiguration(MARTe::ConfigurationDatabase configIn, MARTe::ErrorManagement::ErrorType& status);
     
     /**
      * @brief General method to test GAM setup. The method allows to
@@ -101,19 +102,21 @@ public:
      * @param[in] inputSignals a string containing the input signal configuration for current test
      * @param[in] outputSignals a string containing the output signal configuration for current test
      * @param[in] parameters a string containing the parameter configuration for current test
+     * @param[out] status the error status of the GAM for further testing
      * @param[in] objRegDatabase (optional) if specified, a pointer to the registry
      *          of the current MARTe2 is returned (but then it is
      *          up to the user to call objRegDatabase->Purge()).
      */
     bool TestSetupWithTemplate(MARTe::StreamString scriptCall,
-                                                   MARTe::StreamString skipUnlinkedParams,
-                                                   MARTe::StreamString inputSignals,
-                                                   MARTe::StreamString outputSignals,
-                                                   MARTe::StreamString parameters,
-                                                   MARTe::ObjectRegistryDatabase* objRegDatabase, /* = NULL_PTR(ObjectRegistryDatabase*)*/
-                                                   bool         structuredSignalsAsByteArrays, /* = true */
-                                                   bool         enforceModelSignalCoverage /*= false */
-                                                   );
+                                MARTe::StreamString skipUnlinkedParams,
+                                MARTe::StreamString inputSignals,
+                                MARTe::StreamString outputSignals,
+                                MARTe::StreamString parameters,
+                                MARTe::ErrorManagement::ErrorType& status,
+                                MARTe::ObjectRegistryDatabase* objRegDatabase, /* = NULL_PTR(ObjectRegistryDatabase*)*/
+                                bool         structuredSignalsAsByteArrays, /* = true */
+                                bool         enforceModelSignalCoverage /*= false */
+                                );
     
     /**
      * @brief Tests the Initialise() method if optional settings are missing.
@@ -298,13 +301,13 @@ public:
      * @brief Tests the Setup() method when the model has struct arrays
      *        used as parameters.
      */
-    bool TestSetup_Failed_StructArraysAsParams();
+    bool TestSetup_StructArraysAsParams();
     
     /**
      * @brief Tests the Setup() method when the model has nested struct arrays
      *        used as parameters.
      */
-    bool TestSetup_Failed_NestedStructArraysAsParams();
+    bool TestSetup_NestedStructArraysAsParams();
     
     /**
      * @brief Tests the Setup() method when the configuration has
@@ -317,6 +320,7 @@ public:
      *        Type != uint8 for a struct signal.
      */
     bool TestSetup_Failed_WrongDatatypeWithStructSignals();
+
 #ifdef ROW_MAJOR_ND_FEATURE    
     /**
      * @brief Tests the correct actualisation of parameters in a model
@@ -368,13 +372,31 @@ public:
     /**
      * @brief Test execution and coherence when working with mixed signals and transposition takes place
      */
-    bool Test_MultiMixedSignalsTranspose(bool transpose);
+    bool TestExecute_MultiMixedSignalsTranspose(bool transpose);
 
     /**
      * @brief Test the behaviour when working in pure structured signal mode, while enforcing
      * MARTe2 - Simulink parameter coverage (1:1 mapping)
      */
-    bool Test_StructuredSignals_Failed();
+    bool TestSetup_DisconnectedOutputSignal_Failed();
+
+    /**
+     * @brief Test the behaviour when working in pure structured signal mode, while enforcing
+     * MARTe2 - Simulink parameter coverage (1:1 mapping)
+     */
+    bool TestSetup_DisconnectedOutputStructuredSignal_Failed();
+
+    /**
+     * @brief Test the behaviour when working in pure structured signal mode, while enforcing
+     * MARTe2 - Simulink parameter coverage (1:1 mapping)
+     */
+    bool TestSetup_DisconnectedInputSignal_Failed();
+
+    /**
+     * @brief Test the behaviour when working in pure structured signal mode, while enforcing
+     * MARTe2 - Simulink parameter coverage (1:1 mapping)
+     */
+    bool TestSetup_DisconnectedInputStructuredSignal_Failed();
 
 
     /**
@@ -391,7 +413,7 @@ public:
     /**
      * @brief Tests the setup of a model with struct parameters from external AnyObject source
      */
-    bool TestSetup_StructTunableParametersFromExternalSource_Failed();
+    bool TestSetup_StructTunableParametersFromExternalSource_Unlinked();
     
 #ifdef ENUM_FEATURE
     /**
