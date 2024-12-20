@@ -57,6 +57,16 @@ public:
     bool TestInitialise_NoAddressSpace();
 
     /**
+     * @brief Tests the ServerStart method.
+     */
+    bool TestServerStart();
+
+    /**
+     * @brief Tests the ServerStop method.
+     */
+    bool TestServerStop();
+
+    /**
      * @brief Tests the Execute method.
      */
     bool TestExecute();
