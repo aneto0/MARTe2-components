@@ -34,6 +34,7 @@
 #include "OPCUAServer.h"
 #include "File.h"
 #include "StandardParser.h"
+#include "RegisteredMethodsMessageFilter.h"
 
 /*-e909 and -e9133 redefines bool. -e578 symbol ovveride in CLASS_REGISTER*/
 /*lint -save -e652 -e909 -e9133 -e578 -e9141 -e830 -e952 -e9147 -e1013 these callback functions need to have global scope and the members cannot be const*/
@@ -187,6 +188,7 @@ namespace MARTe {
 
 OPCUAServer::OPCUAServer() :
         Object(),
+        MessageI(),
         EmbeddedServiceMethodBinderI(),
         service(*this) {
     opcuaConfig = NULL_PTR(UA_ServerConfig*);
@@ -199,7 +201,7 @@ OPCUAServer::OPCUAServer() :
     initialised = false;
     autorun = false;
     initSleepMs = 500u;
-    startServer=false;
+    startServer = false;
 }
 /*lint -e{1551} No exception thrown.*/
 /*lint -e{1579} opcuaConfig and opcuaServer haven't been freed by any function before.*/
@@ -277,6 +279,19 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "'Authentication' parameter invalid (expected 'None' or 'UserPassword')!");
         }
     }
+
+    if (ok) {
+        // Install message filter
+        ReferenceT<RegisteredMethodsMessageFilter> registeredMethodsMessageFilter("RegisteredMethodsMessageFilter");
+
+        ok = registeredMethodsMessageFilter.IsValid();
+
+        if (ok) {
+            registeredMethodsMessageFilter->SetDestination(this);
+            ok = InstallMessageFilter(registeredMethodsMessageFilter);
+        }
+    }
+
     /*lint -e438 authKeys is not ignored.*/
     UA_UsernamePasswordLogin *authKeys = NULL_PTR(UA_UsernamePasswordLogin*);
     uint32 nOfAuthKeys = 0u;
@@ -418,7 +433,7 @@ ErrorManagement::ErrorType OPCUAServer::ServerStartJob() {
                 sem.FastUnLock();
             }
             if (!initTmp) {
-                Sleep::MSec (initSleepMs);
+                Sleep::MSec(initSleepMs);
             }
         }
 
@@ -442,7 +457,7 @@ ErrorManagement::ErrorType OPCUAServer::ServerStart() {
 
 ErrorManagement::ErrorType OPCUAServer::ServerStop() {
 
-    if(GetRunning()){
+    if (GetRunning()) {
         if (sem.FastLock() == ErrorManagement::NoError) {
             startServer = false;
             sem.FastUnLock();
@@ -468,10 +483,10 @@ ErrorManagement::ErrorType OPCUAServer::Execute(ExecutionInfo &info) {
     }
     else if (info.GetStage() == ExecutionInfo::MainStage) {
 
-        if(IsStartCmd() && (!GetRunning())){
+        if (IsStartCmd() && (!GetRunning())) {
             err = ServerStartJob();
         }
-        else{
+        else {
             Sleep::MSec(initSleepMs);
         }
     }

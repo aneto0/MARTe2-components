@@ -44,6 +44,7 @@
 #include "ReferenceContainer.h"
 #include "SingleThreadService.h"
 #include "FastPollingMutexSem.h"
+#include "MessageI.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -105,7 +106,7 @@ namespace MARTe {
  *     }
  * </pre>
  */
-class OPCUAServer: public Object, public EmbeddedServiceMethodBinderI {
+class OPCUAServer: public Object, public MessageI, public EmbeddedServiceMethodBinderI {
 public:
 
     CLASS_REGISTER_DECLARATION()
