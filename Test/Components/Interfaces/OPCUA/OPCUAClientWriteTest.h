@@ -31,7 +31,12 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "open62541.h"
+#if (UA_OPEN62541_VER_MAJOR > 1) || (UA_OPEN62541_VER_MINOR >= 2)
+#include "custom_datatype_1_3.h"
+#else
 #include "custom_datatype.h"
+#endif
 #include "EmbeddedServiceMethodBinderI.h"
 #include "SingleThreadService.h"
 #include "StreamString.h"

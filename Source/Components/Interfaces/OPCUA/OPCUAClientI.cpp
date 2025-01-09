@@ -92,7 +92,11 @@ bool OPCUAClientI::Connect() {
 }
 
 bool OPCUAClientI::Connect(StreamString & username, StreamString & password) {
+#if (UA_OPEN62541_VER_MAJOR > 1) || (UA_OPEN62541_VER_MINOR >= 2)
+    UA_StatusCode retval = UA_Client_connectUsername(opcuaClient, const_cast<char8*>(serverAddress.Buffer()), username.Buffer(), password.Buffer());
+#else
     UA_StatusCode retval = UA_Client_connect_username(opcuaClient, const_cast<char8*>(serverAddress.Buffer()), username.Buffer(), password.Buffer());
+#endif
     return (retval == 0x00U); /* UA_STATUSCODE_GOOD */
 }
 
@@ -169,7 +173,7 @@ uint32 OPCUAClientI::GetReferences(const UA_BrowseRequest bReq,
                         }
                         else if (ref.nodeId.nodeId.identifierType == UA_NODEIDTYPE_STRING) {
                             if (stringNodeId != NULL_PTR(char8*)) {
-                                delete stringNodeId;
+                                delete [] stringNodeId;
                             }
                             stringNodeId = new char8[ref.nodeId.nodeId.identifier.string.length + 1u];
                             ok = StringHelper::Copy(stringNodeId, reinterpret_cast<char8*>(ref.nodeId.nodeId.identifier.string.data));

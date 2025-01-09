@@ -266,9 +266,18 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
         /*lint -e40 -e64 -e9117 -e732 the callback functions are defined. Loss of sign is not an issue here.*/
         if (authenticate) {
             /* Disable anonymous logins, enable user/password logins */
+#if (UA_OPEN62541_VER_MAJOR > 1) || (UA_OPEN62541_VER_MINOR >= 2)
+            //UA_deleteMembers(&config->accessControl, &UA_TYPES[UA_TYPES_ACCESSCONTROL]);
+#else
             config->accessControl.deleteMembers(&config->accessControl);
+#endif
+#if (UA_OPEN62541_VER_MAJOR > 1) || (UA_OPEN62541_VER_MINOR >= 2)
+            UA_StatusCode retval = UA_AccessControl_default(config, false,
+                    &config->certificateVerification, &config->securityPolicies[config->securityPoliciesSize-1].policyUri, nOfAuthKeys, authKeys);
+#else
             UA_StatusCode retval = UA_AccessControl_default(config, false,
                     &config->securityPolicies[config->securityPoliciesSize-1].policyUri, nOfAuthKeys, authKeys);
+#endif
             if (retval != UA_STATUSCODE_GOOD) {
                 ok = false;
                 REPORT_ERROR(ErrorManagement::FatalError, "Setting access control configuration returned %d", retval);

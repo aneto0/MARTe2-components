@@ -74,6 +74,7 @@ bool OPCUAClientReadTest::Test_SetServiceRequest() {
     if (ok) {
         ok = ord->Initialise(cdb);
     }
+    Sleep::MSec(2000);
     StreamString *path = new StreamString("MyNode");
     uint16 ns = 1;
     uint16 *nsp = &ns;
@@ -731,7 +732,7 @@ bool OPCUAClientReadTest::Test_Read_ExtensionObject_Complex() {
     if (ok) {
         ok = ord->Initialise(cdb);
     }
-    Sleep::MSec(200);
+    Sleep::MSec(2000);
     ReferenceT<RealTimeApplication> app;
     if (ok) {
         app = ord->Find("Test");

@@ -66,7 +66,7 @@ OPCUAClientMethod::~OPCUAClientMethod() {
     else {
         if (eos != NULL_PTR(UA_ExtensionObject*)) {
             /*lint -e{526} -e{628} -e{1551} -e{1055} -e{746} no exception thrown, function defined in open62541*/
-            (void) UA_ExtensionObject_clear(eos);
+            //(void) UA_ExtensionObject_clear(eos);
         }
     }
 }
@@ -147,7 +147,7 @@ bool OPCUAClientMethod::SetServiceRequest(const uint16 *const namespaceIndexes,
                     elem->targetName = UA_QUALIFIEDNAME_ALLOC(namespaceIndexes[i], const_cast<char8*>(path[j].Buffer()));
                 }
                 if (tempStringNodeId != NULL_PTR(char8*)) {
-                    delete tempStringNodeId;
+                    delete [] tempStringNodeId;
                 }
             }
 
@@ -421,8 +421,11 @@ bool OPCUAClientMethod::MethodCall() {
     UA_StatusCode retval;
     retval = readResponse.responseHeader.serviceResult;
     if (retval == 0x00U) {
-        if ((eos != NULL_PTR(UA_ExtensionObject*)) && (valuePtr != NULL_PTR(UA_ExtensionObject*)) && (tempVariant != NULL_PTR(UA_Variant*))
-                && (dataPtr != NULL_PTR(void*))) {
+        if ((eos != NULL_PTR(UA_ExtensionObject*)) && 
+            (valuePtr != NULL_PTR(UA_ExtensionObject*)) && 
+            (tempVariant != NULL_PTR(UA_Variant*)) && 
+            (dataPtr != NULL_PTR(void*))) {
+
             uint32 actualBodyLength;
             if (nOfEos > 1u) {
                 for (uint32 j = 0u; j < nOfEos; j++) {
@@ -463,7 +466,7 @@ bool OPCUAClientMethod::SetExtensionObject() {
     /* Reading Extension Object Information */
     UA_ReadValueId *readValues = UA_ReadValueId_new();
     UA_ReadValueId_init(&readValues[0u]);
-    readValues[0u].attributeId = 13u; /* UA_ATTRIBUTEID_VALUE */
+    readValues[0u].attributeId = UA_ATTRIBUTEID_VALUE; /* UA_ATTRIBUTEID_VALUE */
 
     if (monitoredNodes != NULL_PTR(UA_NodeId*)) {
         (void) UA_NodeId_copy(&monitoredNodes[0u], &(readValues[0u].nodeId));
@@ -481,9 +484,7 @@ bool OPCUAClientMethod::SetExtensionObject() {
             /* Setting EO Memory */
             if (readResponse.results[0].value.arrayLength > 1u) {
                 nOfEos = static_cast<uint32>(readResponse.results[0].value.arrayLength);
-                eos = reinterpret_cast<UA_ExtensionObject*>(UA_Array_new(static_cast<osulong>(nOfEos), &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]));
-                UA_Variant_setArray(&tempVariant[0u], eos, static_cast<osulong>(readResponse.results[0].value.arrayLength),
-                                    &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
+                eos = reinterpret_cast<UA_ExtensionObject*>(UA_Array_new(static_cast<osulong>(nOfEos), &UA_TYPES[UA_TYPES_EXTENSIONOBJECT])); UA_Variant_setArray(&tempVariant[0u], eos, static_cast<osulong>(readResponse.results[0].value.arrayLength), &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
             }
             else {
                 nOfEos = 1u;

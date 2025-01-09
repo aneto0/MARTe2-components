@@ -40,6 +40,7 @@
 #include "OPCUAClientWrite.h"
 #include "OPCUAClientWriteTest.h"
 #include "OPCUADSOutput.h"
+#include "OPCUAServer.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
 #include <iostream>
@@ -192,6 +193,7 @@ bool OPCUAClientWriteTest::Test_SetServiceRequest() {
     if (ok) {
         ok = ord->Initialise(cdb);
     }
+    Sleep::Sec(2.0);
     StreamString *path = new StreamString("MyNode");
     uint16 ns = 1;
     uint16 *nsp = &ns;
@@ -557,6 +559,7 @@ bool OPCUAClientWriteTest::Test_SetWriteRequest(const MARTe::char8 *typeUT, MART
     if (ok) {
         ok = ord->Initialise(cdb);
     }
+    Sleep::Sec(2.0);
     ReferenceT<OPCUADSOutput> odo;
     if (ok) {
         odo = ord->Find("TestApp.Data.OPCUAOut");
@@ -589,6 +592,10 @@ bool OPCUAClientWriteTest::Test_SetWriteRequest(const MARTe::char8 *typeUT, MART
     if (ok) {
         ok = app->StopCurrentStateExecution();
     }
+
+    ReferenceT<OPCUAServer> ots = ord->Find("ServerTest");
+    ots->SetRunning(false);
+    ots->service.Stop();
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }

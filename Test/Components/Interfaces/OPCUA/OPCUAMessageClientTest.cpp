@@ -54,6 +54,7 @@ bool OPCUAMessageClientTest::TestInitialise() {
     using namespace MARTe;
     OPCUATestServer ots;
     ots.service.Start();
+    Sleep::Sec(1.0);
     StreamString config = ""
             "+OPCUATypes = {"
             "    Class = ReferenceContainer"
@@ -98,7 +99,7 @@ bool OPCUAMessageClientTest::TestInitialise() {
     if (ok) {
         ok = ord->Initialise(cdb);
     }
-    Sleep::MSec(500);
+    Sleep::Sec(1.0);
     ots.SetRunning(false);
     ots.service.Stop();
     ord->Purge();
@@ -109,6 +110,7 @@ bool OPCUAMessageClientTest::TestInitialise_NoServerAddress() {
     using namespace MARTe;
     OPCUATestServer ots;
     ots.service.Start();
+    Sleep::Sec(1.0);
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -152,6 +154,7 @@ bool OPCUAMessageClientTest::TestInitialise_NoServerAddress() {
     if (ok) {
         ok = ord->Initialise(cdb);
     }
+    Sleep::Sec(1.0);
     ots.SetRunning(false);
     ots.service.Stop();
     ord->Purge();
@@ -162,6 +165,7 @@ bool OPCUAMessageClientTest::TestInitialise_NoMethodSection() {
     using namespace MARTe;
     OPCUATestServer ots;
     ots.service.Start();
+    Sleep::Sec(1.0);
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -212,6 +216,7 @@ bool OPCUAMessageClientTest::TestInitialise_NoNamespaceIndex_Method() {
     using namespace MARTe;
     OPCUATestServer ots;
     ots.service.Start();
+    Sleep::Sec(1.0);
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -265,6 +270,7 @@ bool OPCUAMessageClientTest::TestInitialise_NoPath_Method() {
     using namespace MARTe;
     OPCUATestServer ots;
     ots.service.Start();
+    Sleep::Sec(1.0);
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -318,6 +324,7 @@ bool OPCUAMessageClientTest::TestInitialise_NoStructureSection() {
     using namespace MARTe;
     OPCUATestServer ots;
     ots.service.Start();
+    Sleep::Sec(1.0);
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -364,6 +371,7 @@ bool OPCUAMessageClientTest::TestInitialise_NoPath_Structure() {
     using namespace MARTe;
     OPCUATestServer ots;
     ots.service.Start();
+    Sleep::Sec(1.0);
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -417,6 +425,7 @@ bool OPCUAMessageClientTest::TestInitialise_NoNamespaceIndex_Structure() {
     using namespace MARTe;
     OPCUATestServer ots;
     ots.service.Start();
+    Sleep::Sec(1.0);
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -470,7 +479,7 @@ bool OPCUAMessageClientTest::TestInitialise_NoNumberOfElements_Structure() {
     using namespace MARTe;
     OPCUATestServer ots;
     ots.service.Start();
-    Sleep::MSec(500);
+    Sleep::Sec(1.0);
     StreamString config = ""
             "+OPCUATypes = {"
             "    Class = ReferenceContainer"
@@ -525,6 +534,7 @@ bool OPCUAMessageClientTest::TestInitialise_NoType_Structure() {
     using namespace MARTe;
     OPCUATestServer ots;
     ots.service.Start();
+    Sleep::Sec(1.0);
     StreamString config = ""
                           "+OPCUATypes = {"
                           "    Class = ReferenceContainer"
@@ -578,7 +588,7 @@ bool OPCUAMessageClientTest::TestOPCUAMethodCall_WrongMessage() {
     using namespace MARTe;
     OPCUATestServer ots;
     ots.service.Start();
-    Sleep::MSec(500);
+    Sleep::MSec(2000);
     StreamString config = ""
             "+OPCUATypes = {"
             "    Class = ReferenceContainer"
@@ -638,7 +648,7 @@ bool OPCUAMessageClientTest::TestOPCUAMethodCall_Single() {
     using namespace MARTe;
     OPCUATestServer ots;
     ots.service.Start();
-    Sleep::MSec(500);
+    Sleep::MSec(2000);
     StreamString config = ""
             "+OPCUATypes = {"
             "    Class = ReferenceContainer"
