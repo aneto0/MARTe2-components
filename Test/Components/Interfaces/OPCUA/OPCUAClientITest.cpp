@@ -112,6 +112,7 @@ bool OPCUAClientITest::Test_Connect() {
     TestHelperClass thc;
     ok = false;
     thc.SetServerAddress("opc.tcp://localhost:4840");
+    Sleep::Sec(1.0);
     ok = thc.Connect();
     return ok;
 }

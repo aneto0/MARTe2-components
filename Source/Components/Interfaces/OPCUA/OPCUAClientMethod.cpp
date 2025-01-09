@@ -466,6 +466,7 @@ bool OPCUAClientMethod::SetExtensionObject() {
     /* Reading Extension Object Information */
     UA_ReadValueId *readValues = UA_ReadValueId_new();
     UA_ReadValueId_init(&readValues[0u]);
+    /*lint -e{641} -e{9117} enum to int conversion required by the lib*/
     readValues[0u].attributeId = UA_ATTRIBUTEID_VALUE; /* UA_ATTRIBUTEID_VALUE */
 
     if (monitoredNodes != NULL_PTR(UA_NodeId*)) {

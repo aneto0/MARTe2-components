@@ -54,6 +54,16 @@ TEST(OPCUAServerGTest,TestInitialise_NoAddressSpace) {
     ASSERT_TRUE(test.TestInitialise_NoAddressSpace());
 }
 
+TEST(OPCUAServerGTest,TestServerStart) {
+    OPCUAServerTest test;
+    ASSERT_TRUE(test.TestServerStart());
+}
+
+TEST(OPCUAServerGTest,TestServerStop) {
+    OPCUAServerTest test;
+    ASSERT_TRUE(test.TestServerStop());
+}
+
 TEST(OPCUAServerGTest,TestExecute) {
     OPCUAServerTest test;
     ASSERT_TRUE(test.TestExecute());
