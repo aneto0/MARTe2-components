@@ -32,7 +32,12 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "ConfigurationDatabase.h"
+#include "open62541.h"
+#if (UA_OPEN62541_VER_MAJOR > 1) || (UA_OPEN62541_VER_MINOR >= 2)
+#include "custom_datatype_1_3.h"
+#else
 #include "custom_datatype.h"
+#endif
 #include "EmbeddedServiceMethodBinderI.h"
 #include "ObjectRegistryDatabase.h"
 #include "MessageI.h"
@@ -40,6 +45,7 @@
 #include "OPCUAMessageClient.h"
 #include "SingleThreadService.h"
 #include "StandardParser.h"
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -264,7 +270,7 @@ private:
             pInt32.z = zArrayInt32;
 
             PointArrayUInt32 pUInt32;
-            UA_UInt32 *zArrayUInt32 = (UA_UInt32*) UA_Array_new(2, &UA_TYPES[UA_TYPES_UINT32]);
+            UA_UInt32 *zArrayUInt32 = (UA_UInt32*) UA_Array_new(2u, &UA_TYPES[UA_TYPES_UINT32]);
             pUInt32.zLength = 2;
             pUInt32.z = zArrayUInt32;
 

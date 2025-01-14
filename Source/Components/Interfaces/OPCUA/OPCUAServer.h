@@ -35,6 +35,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
+#include "CLASSMETHODREGISTER.h"
 #include "EmbeddedServiceMethodBinderT.h"
 #include "ObjectRegistryDatabase.h"
 #include "OPCUANode.h"
@@ -42,6 +43,8 @@
 #include "OPCUAReferenceContainer.h"
 #include "ReferenceContainer.h"
 #include "SingleThreadService.h"
+#include "FastPollingMutexSem.h"
+#include "MessageI.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -75,6 +78,10 @@ namespace MARTe {
  * }
  * ```
  *
+ * @detail It is possible to start and stop the server asynchronously at runtime (i.e. using a Message). The functions are:
+ * - ServerStart : to start the server if not in execution
+ * - ServerStop : to stop the server if in execution
+ *
  * The configuration syntax is  (names are only given as an example):
  * <pre>
  * +OPCUAServer
@@ -83,6 +90,8 @@ namespace MARTe {
  *     CPUMask = 0x4
  *     Authentication = None | UserPassword
  *     UserPasswordFile = /path/to/the/file
+ *     Run = 1 // 0 or 1 to start the server at startup. Default is 1
+ *     InitSleepMs = 500 // cycle sleep period for the server start to wait for initialisation
  *     AddressSpace = {
  *         MyNodeStructure1 = {
  *             Type = MyIntrospectionStructure1
@@ -97,7 +106,7 @@ namespace MARTe {
  *     }
  * </pre>
  */
-class OPCUAServer: public Object, public EmbeddedServiceMethodBinderI {
+class OPCUAServer: public Object, public MessageI, public EmbeddedServiceMethodBinderI {
 public:
 
     CLASS_REGISTER_DECLARATION()
@@ -121,6 +130,7 @@ public:
      */
     virtual bool Initialise(StructuredDataI &data);
 
+
     /**
      * @brief Provides the context to read information from the IntrospectionStructures and Initialise
      * the Address Space.
@@ -128,6 +138,16 @@ public:
      * @see EmbeddedServiceMethodBinderI::Execute
      */
     virtual ErrorManagement::ErrorType Execute(ExecutionInfo & info);
+
+    /**
+     * @brief Start the server.This function is callable asynchronously for instance from a Message
+     */
+    virtual ErrorManagement::ErrorType ServerStart();
+
+    /**
+     * @brief Stop the server.This function is callable asynchronously for instance from a Message
+     */
+    virtual ErrorManagement::ErrorType ServerStop();
 
     /**
      * @brief Set the running mode
@@ -139,7 +159,7 @@ public:
      * @brief Provides running mode
      * @return true if server is currently running
      */
-    const bool GetRunning() const;
+    const bool GetRunning();
 
     /**
      * @brief Provides CPU mask
@@ -166,6 +186,9 @@ public:
 
 private:
 
+    bool InitStructure();
+
+
     /**
      * @brief Create the OPCUA Address Space starting from a OPCUAReferenceContainer.
      * @details Recursively read all the OPCUAReferenceContainer and create the OPCUAObject or OPCUANode.
@@ -182,6 +205,17 @@ private:
      * @return true if the structure has been loaded correctly with no issues about the type or the format
      */
     bool GetStructure(ReferenceT<OPCUAReferenceContainer> refContainer, const Introspection * const intro);
+
+
+    /**
+     * @brief Start OPCUA server
+     */
+    ErrorManagement::ErrorType ServerStartJob();
+
+    /**
+     * @brief Retrieves start server command
+     */
+    const bool IsStartCmd();
 
     /**
      * open62541 server object declaration
@@ -223,6 +257,30 @@ private:
      */
     ConfigurationDatabase cdb;
 
+    /**
+     * Fast sem for concurrent executions
+     */
+    FastPollingMutexSem sem;
+
+    /**
+     * To flag the initialised status
+     */
+    bool initialised;
+
+    /**
+     * From configuration, if the server must start or not automatically at startup
+     */
+    bool autorun;
+
+    /**
+     * Cycle sleep period for the server start to wait for initialisation
+     */
+    uint32 initSleepMs;
+
+    /**
+     * Start server command
+     */
+    bool startServer;
 };
 }
 

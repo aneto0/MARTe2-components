@@ -278,8 +278,7 @@ bool OPCUAMessageClient::Initialise(StructuredDataI &data) {
                                 uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1u);
                                 while (nodeCounter < numberOfNodesForEachIteration) {
                                     if (ok) {
-                                        ok = masterClient->GetExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize,
-                                                                                        nodeCounter, index);
+                                        ok = masterClient->GetExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, index);
                                     }
                                 }
                             }

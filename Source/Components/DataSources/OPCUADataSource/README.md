@@ -6,6 +6,8 @@ The DataSource Makefiles assume static linking against the amalgamated version o
 
 ## Instructions
 
+These instructions also apply to version 1.3. of the library. Filenames and paths need to be updated accordingly.
+
 1. Download version 1.0 of the library [here](https://api.github.com/repos/open62541/open62541/tarball/v1.0)
 2. Copy to your projects folder, e.g. /opt: `cp open62541-open62541-v1.0-0-gce5209d.tar.gz /opt/`
 3. `cd /opt/`
