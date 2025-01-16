@@ -152,7 +152,7 @@ public:
      * Configuration.
      * @param model the NI crate model being used.
      */
-    bool TestInitialise_FalseNoConfig(uint32 model);
+    bool TestInitialise_NoConfig(uint32 model);
 
     /**
      * @brief Tests the NI9157Device::Initialise method with the
