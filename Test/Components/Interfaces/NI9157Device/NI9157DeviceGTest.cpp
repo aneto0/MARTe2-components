@@ -233,15 +233,15 @@ TEST(NI9157DeviceGTest,TestInitialise_NoOpenResetRun) {
     ASSERT_TRUE(ret);
 }
 
-TEST(NI9157DeviceGTest,TestInitialise_FalseNoConfig) {
+TEST(NI9157DeviceGTest,TestInitialise_NoConfig) {
     NI9157DeviceTest test;
     bool ret = true;
     for (uint32 idx = 0; idx < nDevices; idx++) {
         if(testAllRetTrue) {
-            ret &= test.TestInitialise_FalseNoConfig(idx);
+            ret &= test.TestInitialise_NoConfig(idx);
         }
         else {
-            ret = test.TestInitialise_FalseNoConfig(idx);
+            ret = test.TestInitialise_NoConfig(idx);
             if (ret) {
                 break;
             }
