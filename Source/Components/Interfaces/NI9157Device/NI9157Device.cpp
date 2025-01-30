@@ -61,7 +61,7 @@ NI9157Device::NI9157Device() :
     REPORT_ERROR(ErrorManagement::Information, "NI9157Device::NI9157Device InstallMessageFilter() returned %s", err.ErrorsCleared() ? "true" : "false");
 }
 
-/*lint -e{1551} Possible exceptions trown in destructor are safely ignored*/
+/*lint -e{1551} -e{1506} Possible exceptions trown in destructor are safely ignored*/
 NI9157Device::~NI9157Device() {
     REPORT_ERROR(ErrorManagement::Information, "NI9157Device::~NI9157Device Closing RIO Device");
     if (isOpened > 0u) {
@@ -646,7 +646,6 @@ NiFpga_Status NI9157Device::NiWrite(const uint32 control,
 NiFpga_Status NI9157Device::NiConfigureFifo(const uint32 fifo,
                                             const uint32 requestedDepth,
                                             uint32 &actualDepth) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t requestedDepthST = static_cast<size_t>(requestedDepth);
     size_t actualDepthST = static_cast<size_t>(0u);
@@ -670,7 +669,6 @@ NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo,
                                        const uint32 numberOfElements,
                                        const uint32 timeout,
                                        uint32 &elementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t elementsRemainingST = static_cast<size_t>(0u);
@@ -685,7 +683,6 @@ NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo,
                                        const uint32 numberOfElements,
                                        const uint32 timeout,
                                        uint32 &elementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t elementsRemainingST = static_cast<size_t>(0u);
@@ -699,7 +696,6 @@ NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo,
                                        const uint32 numberOfElements,
                                        const uint32 timeout,
                                        uint32 &elementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t elementsRemainingST = static_cast<size_t>(0u);
@@ -714,7 +710,6 @@ NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo,
                                        const uint32 numberOfElements,
                                        const uint32 timeout,
                                        uint32 &elementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t elementsRemainingST = static_cast<size_t>(0u);
@@ -729,7 +724,6 @@ NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo,
                                        const uint32 numberOfElements,
                                        const uint32 timeout,
                                        uint32 &elementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t elementsRemainingST = static_cast<size_t>(0u);
@@ -744,7 +738,6 @@ NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo,
                                        const uint32 numberOfElements,
                                        const uint32 timeout,
                                        uint32 &elementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t elementsRemainingST = static_cast<size_t>(0u);
@@ -759,7 +752,6 @@ NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo,
                                        const uint32 numberOfElements,
                                        const uint32 timeout,
                                        uint32 &elementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t elementsRemainingST = static_cast<size_t>(0u);
@@ -774,7 +766,6 @@ NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo,
                                        const uint32 numberOfElements,
                                        const uint32 timeout,
                                        uint32 &elementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t elementsRemainingST = static_cast<size_t>(0u);
@@ -789,7 +780,6 @@ NiFpga_Status NI9157Device::NiReadFifo(const uint32 fifo,
                                        const uint32 numberOfElements,
                                        const uint32 timeout,
                                        uint32 &elementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t elementsRemainingST = static_cast<size_t>(0u);
@@ -804,7 +794,6 @@ NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo,
                                         const uint32 numberOfElements,
                                         const uint32 timeout,
                                         uint32 &emptyElementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t emptyElementsRemainingST = static_cast<size_t>(0u);
@@ -819,7 +808,6 @@ NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo,
                                         const uint32 numberOfElements,
                                         const uint32 timeout,
                                         uint32 &emptyElementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t emptyElementsRemainingST = static_cast<size_t>(0u);
@@ -834,7 +822,6 @@ NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo,
                                         const uint32 numberOfElements,
                                         const uint32 timeout,
                                         uint32 &emptyElementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t emptyElementsRemainingST = static_cast<size_t>(0u);
@@ -849,7 +836,6 @@ NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo,
                                         const uint32 numberOfElements,
                                         const uint32 timeout,
                                         uint32 &emptyElementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t emptyElementsRemainingST = static_cast<size_t>(0u);
@@ -864,7 +850,6 @@ NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo,
                                         const uint32 numberOfElements,
                                         const uint32 timeout,
                                         uint32 &emptyElementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t emptyElementsRemainingST = static_cast<size_t>(0u);
@@ -879,7 +864,6 @@ NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo,
                                         const uint32 numberOfElements,
                                         const uint32 timeout,
                                         uint32 &emptyElementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t emptyElementsRemainingST = static_cast<size_t>(0u);
@@ -894,7 +878,6 @@ NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo,
                                         const uint32 numberOfElements,
                                         const uint32 timeout,
                                         uint32 &emptyElementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t emptyElementsRemainingST = static_cast<size_t>(0u);
@@ -909,7 +892,6 @@ NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo,
                                         const uint32 numberOfElements,
                                         const uint32 timeout,
                                         uint32 &emptyElementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t emptyElementsRemainingST = static_cast<size_t>(0u);
@@ -924,7 +906,6 @@ NiFpga_Status NI9157Device::NiWriteFifo(const uint32 fifo,
                                         const uint32 numberOfElements,
                                         const uint32 timeout,
                                         uint32 &emptyElementsRemaining) {
-    NiFpga_Status localStatus;
     NiFpgaEx_DmaFifo niFifo = static_cast<NiFpgaEx_Resource>(fifo);
     size_t numberOfElementsST = static_cast<size_t>(numberOfElements);
     size_t emptyElementsRemainingST = static_cast<size_t>(0u);
