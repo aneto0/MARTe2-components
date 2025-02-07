@@ -111,6 +111,12 @@ public:
      */
     bool TestInitialise_False_BadSamplingFrequency();
 
+    bool TestInitialise_False_BadSamplingFrequency2();
+
+    bool TestInitialise_False_BadConvertFrequency();
+
+    bool TestInitialise_False_BadConvertFrequency2();
+
     /**
      * @brief Tests the Initialise method specifying a zero sampling frequency.
      */
@@ -129,7 +135,7 @@ public:
     /**
      * @brief Tests the Initialise method without specifying the delay divisor.
      */
-    bool TestInitialise_False_NoDelayDivisor();
+    bool TestInitialise_Default_NoDelayDivisor();
 
     /**
      * @brief Tests the Initialise method with all the possible clock sources.
@@ -139,7 +145,7 @@ public:
     /**
      * @brief Tests the Initialise method without specifying a clock source.
      */
-    bool TestInitialise_False_NoClockSampleSource();
+    bool TestInitialise_Default_NoClockSampleSource();
 
     /**
      * @brief Tests the Initialise method with an invalid clock source.
@@ -154,7 +160,7 @@ public:
     /**
      * @brief Tests the Initialise method without specifying a clock polarity.
      */
-    bool TestInitialise_False_NoClockSamplePolarity();
+    bool TestInitialise_Default_NoClockSamplePolarity();
 
     /**
      * @brief Tests the Initialise method with an invalid clock polarity.
@@ -169,7 +175,7 @@ public:
     /**
      * @brief Tests the Initialise method without specifying a clock source.
      */
-    bool TestInitialise_False_NoClockConvertSource();
+    bool TestInitialise_Default_NoClockConvertSource();
 
     /**
      * @brief Tests the Initialise method with an invalid clock source.
@@ -184,7 +190,7 @@ public:
     /**
      * @brief Tests the Initialise method without specifying a clock polarity.
      */
-    bool TestInitialise_False_NoClockConvertPolarity();
+    bool TestInitialise_Default_NoClockConvertPolarity();
 
     /**
      * @brief Tests the Initialise method with an invalid clock polarity.
@@ -292,11 +298,6 @@ public:
     bool TestSetConfiguredDatabase_False_WrongDeviceName();
 
     /**
-     * @brief Tests the SetConfiguredDatabase specifying a wrong combination of the number of samples and frequency.
-     */
-    bool TestSetConfiguredDatabase_False_WrongFrequencyVsSamples();
-
-    /**
      * @brief Tests the SetConfiguredDatabase specifying more than one sample for the timer.
      */
     bool TestSetConfiguredDatabase_False_CounterSamples();
@@ -314,13 +315,18 @@ public:
     /**
      * @brief Tests the SetConfiguredDatabase without specifying a synchronising GAM.
      */
-    bool TestSetConfiguredDatabase_False_NotSynchronisingGAM();
+    bool TestSetConfiguredDatabase_NotSynchronisingGAM();
 
 
     /**
      * @brief Tests the NI6259 integrated in an application
      */
     bool TestIntegrated();
+
+
+    bool TestIntegrated_RealTimeThreadExecutionMode();
+
+    bool TestIntegrated_RealTimeThreadExecutionMode_NoSync();
 
 };
 
