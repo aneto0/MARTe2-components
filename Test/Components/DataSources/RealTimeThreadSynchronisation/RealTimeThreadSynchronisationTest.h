@@ -146,6 +146,11 @@ public:
     bool TestSynchronise();
 
     /**
+     * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI when the first signal is not consumed
+     */
+    bool TestSynchronise_2();
+
+    /**
      * @brief Tests that GetNumberOfStatefulMemoryBuffers returns 2
      */
     bool TestGetNumberOfStatefulMemoryBuffers();
