@@ -735,8 +735,10 @@ set_param(model_name, 'GenerateSampleERTMain', 0);
 try
     rtwbuild(model_name)
     model_compiled = true;
-catch
+catch ME
     model_compiled = false;
+    warning('on', ME.identifier);
+    warning(ME.identifier, '%s', ME.message)
 end
 
 
