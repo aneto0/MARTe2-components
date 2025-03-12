@@ -761,6 +761,8 @@ warning('on', 'all');
 
 end   % function
 
+%% functions
+
 %Helper functions, just to keep main code flow tidy, block-structured and
 %easier to focus on
 
@@ -879,8 +881,10 @@ function helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableP
         if hasTunableParams == true
             if hasStructParams == true && hasStructArrayParams == true
                 set_param([model_name '/In6_MatrixUint32'], 'Value',          'paramMatrix(1,2).two');
-            else
+            elseif hasStructParams == true && hasStructArrayParams == false
                 set_param([model_name '/In6_MatrixUint32'], 'Value',          'structMixed.mat');
+            else
+                set_param([model_name '/In6_MatrixUint32'], 'Value',          'uint32(matrixConstant2)');
             end
         else
             set_param([model_name '/In6_MatrixUint32'],  'Value',          'ones(6,6)');

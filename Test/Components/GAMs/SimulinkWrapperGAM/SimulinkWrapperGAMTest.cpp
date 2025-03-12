@@ -362,7 +362,7 @@ void SimulinkGAMGTestEnvironment::DeleteTestModel() {
         if (toDelete.Exists()) {
 
             //Comment to avoid recompilation
-            //ok = toDelete.Delete();
+            ok = toDelete.Delete();
         }
         
         if (!ok) {
