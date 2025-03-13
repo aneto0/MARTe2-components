@@ -1,8 +1,8 @@
-function model_compiled = createTestModel(varargin)
+function [model_compiled, model_name] = createTestModel(varargin)
 
 evalin('base', 'clear matrixConstant vectorConstant structScalar structMixed');
 
-global model_name  model_compiled
+model_compiled = false;
 
 %% settings
 
@@ -81,8 +81,6 @@ model_name = ['testMdl' int2str(modelComplexity)  int2str(hasAllocFcn)     int2s
                         int2str(hasInputs)        int2str(hasOutputs)      int2str(hasStructSignals) ...
                         int2str(isRowMajor)       int2str(hasEnums)        int2str(useType) ...
              ];
-
-model_compiled = false;
 
 if isfile([model_name '.so'])
     return

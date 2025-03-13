@@ -304,7 +304,6 @@ void SimulinkGAMGTestEnvironment::SetupTestEnvironment(std::unique_ptr<matlab::e
     // Execute setup lines
     matlabPtr->eval(u"clear variables;");
     matlabPtr->eval(convertUTF8StringToUTF16String(addpathCommand.Buffer()));
-    matlabPtr->eval(u"global model_name model_compiled");
     
     // Get the name of the work directory
     matlabPtr->eval(u"current_folder = pwd;");
@@ -313,15 +312,16 @@ void SimulinkGAMGTestEnvironment::SetupTestEnvironment(std::unique_ptr<matlab::e
     modelFolder = (currentFolder.toAscii()).c_str();
 }
 
-MARTe::StreamString SimulinkGAMGTestEnvironment::CreateTestModel(MARTe::StreamString scriptCall) {
+MARTe::StreamString SimulinkGAMGTestEnvironment::CreateTestModel(MARTe::StreamString scriptCallIn) {
     
     using namespace MARTe;
     
-    StreamString modelName = "";
-    
+    StreamString scriptCall = "[model_compiled, model_name] = ";
+    scriptCall += scriptCallIn;
+
     matlabPtr->eval(matlab::engine::convertUTF8StringToUTF16String(scriptCall.Buffer()));
     matlab::data::CharArray modelNameCharArray = matlabPtr->getVariable(u"model_name");
-    modelName = (modelNameCharArray.toAscii()).c_str();
+    StreamString modelName = (modelNameCharArray.toAscii()).c_str();
     
     // Verify that model has been correctly compiled
     matlab::data::TypedArray<bool> modelCompiled = matlabPtr->getVariable(u"model_compiled");
