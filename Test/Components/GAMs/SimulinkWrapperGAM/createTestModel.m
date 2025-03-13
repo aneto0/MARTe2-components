@@ -4,8 +4,6 @@ evalin('base', 'clear matrixConstant vectorConstant structScalar structMixed');
 
 global model_name  model_compiled
 
-warning('off', 'all');
-
 %% settings
 
 % default values
@@ -88,6 +86,14 @@ model_compiled = false;
 
 if isfile([model_name '.so'])
     return
+end
+
+warning('on', 'verbose');
+warning('off', 'Coder:buildProcess:TerminateFunctionNecessaryRequiredOff');
+warning('off', 'Simulink:blocks:BusCC_ElementNameMismatchWarning');
+if ~hasOutputs
+    % disable warning when all signals end in Terminator blocks
+    warning('off', 'Simulink:Engine:NoNonVirtualBlocksInModel');
 end
 
 %% define constants
@@ -756,7 +762,6 @@ delete(sprintf('%s.slxc',model_name));
 delete(sprintf('%s.slx.bak',model_name));
 
 %
-warning('on','MATLAB:DELETE:FileNotFound');
 warning('on', 'all');
 
 end   % function
