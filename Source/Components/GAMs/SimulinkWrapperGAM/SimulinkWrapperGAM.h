@@ -1005,7 +1005,7 @@ namespace MARTe {
  *   5. Open the `C Code` tab
  *   6. Go to `Code Interface > Default Code Mappings`
  *   7. In the `Signals/States` tab, make sure that the storage class of
- *      the signal to be logged is set to `ExportedGlobal`
+ *      the signal to be logged is set to `MultiInstance`
  *
  * For details on how to map these signals to the GAM, see the
  * [Signal logging](#signal-logging) section.

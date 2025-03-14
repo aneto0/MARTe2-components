@@ -15,8 +15,8 @@ hasStructParams      = false;
 hasStructArrayParams = false;
 hasInputs            = true;
 hasOutputs           = true;
+hasLoggingSignals    = false;
 hasStructSignals     = false;
-hasStructInputs      = false;
 hasEnums             = false;
 dataOrientation      = 'Column-major';   isRowMajor = 0;
 useType              = 0;
@@ -49,6 +49,9 @@ while ~isempty(varargin)
         case 'hasOutputs'
             hasOutputs = varargin{2};
 
+        case 'hasLoggingSignals'
+            hasLoggingSignals = varargin{2};
+
         case 'hasStructSignals'
             hasStructSignals = varargin{2};
 
@@ -71,15 +74,14 @@ while ~isempty(varargin)
     varargin(1:2) = [];
 end
 
-if ((hasStructSignals == true) && (hasInputs == true))
-    hasStructInputs = true;
-end
+hasStructInputs = ((hasStructSignals == true) && (hasInputs == true));
 
 % warning: the model name is limited to 20 characters
 model_name = ['testMdl' int2str(modelComplexity)  int2str(hasAllocFcn)     int2str(hasGetmmiFcn) ...
                         int2str(hasTunableParams) int2str(hasStructParams) int2str(hasStructArrayParams) ...
                         int2str(hasInputs)        int2str(hasOutputs)      int2str(hasStructSignals) ...
                         int2str(isRowMajor)       int2str(hasEnums)        int2str(useType) ...
+                        int2str(hasLoggingSignals) ...
              ];
 
 if isfile([model_name '.so'])
@@ -192,6 +194,80 @@ delete(sprintf('%s.slx',model_name));
 
 % create the new model
 new_system(model_name);
+
+%% code generation options
+% name of each option is available by right-clicking on the option name
+% in Model Settings dialog and then on "What's This?"
+
+% Solver
+set_param(model_name, 'SolverType', 'Fixed-step');
+
+% Code Generation
+set_param(model_name, 'SystemTargetFile', 'ert_shrlib.tlc');
+set_param(model_name, 'RTWVerbose', 0);
+
+% Optimization
+if hasTunableParams == true
+    set_param(model_name, 'DefaultParameterBehavior', 'Tunable');
+else
+    set_param(model_name, 'DefaultParameterBehavior', 'Inlined');
+end
+set_param(model_name, 'OptimizationCustomize', 1);
+set_param(model_name, 'GlobalVariableUsage', 'None');
+
+% Report
+set_param(model_name, 'GenerateReport', 0);
+
+% Comments
+set_param(model_name, 'GenerateComments', 0);
+
+% Custom code (MODEL is a coder macro for the model name)
+if hasGetmmiFcn == true
+    set_param(model_name, 'CustomSourceCode', ...
+        [  ...
+        '#define UTSTRUCTNAME(NAME) RT_MODEL_##NAME##_T'                         newline ...
+        '#define TSTRUCTNAME(NAME) UTSTRUCTNAME(NAME)'                           newline ...
+        '#define UGETMMIFCN(NAME) NAME##_GetCAPImmi'                             newline ...
+        '#define GETMMIFCN(NAME) UGETMMIFCN(NAME)'                               newline ...
+                                                                                 newline ...
+        'rtwCAPI_ModelMappingInfo* GETMMIFCN(MODEL) ( TSTRUCTNAME(MODEL) *rtm )' newline ...
+        '{'                                                                      newline ...
+        '    return &(rtmGetDataMapInfo(rtm).mmi);'                              newline ...
+        '}'                                                                      newline ...
+        ] ...
+    );
+end
+
+% Interface
+set_param(model_name, 'SupportComplex', 0);
+set_param(model_name, 'SupportAbsoluteTime', 0);
+set_param(model_name, 'SuppressErrorStatus', 1);
+
+set_param(model_name, 'CodeInterfacePackaging', 'Reusable function');
+
+set_param(model_name, 'RootIOFormat', 'Part of model data structure');
+
+set_param(model_name, 'RTWCAPIParams', 1);
+set_param(model_name, 'RTWCAPIRootIO', 1);
+if hasLoggingSignals == true
+    set_param(model_name, 'RTWCAPISignals', 1);
+    set_param(model_name, 'SignalLogging', 'on');
+end
+
+if hasAllocFcn == true
+    set_param(model_name, 'GenerateAllocFcn', 1);
+end
+
+set_param(model_name, 'IncludeMdlTerminateFcn', 0);
+set_param(model_name, 'CombineSignalStateStructs', 1);
+
+if ~verLessThan('matlab', '9.5')
+    set_param(model_name, 'ArrayLayout', dataOrientation);
+end
+
+% Templates
+set_param(model_name, 'GenerateSampleERTMain', 0);
+
 save_system(model_name);
 
 %% adding blocks
@@ -228,7 +304,7 @@ if modelComplexity >= 3
 end
 
 % input ports
-helper_input_gen(model_name, hasInputs, hasStructInputs, modelComplexity, hasTunableParams, hasStructParams, hasStructArrayParams, hasEnums);
+helper_input_gen(model_name, hasInputs, hasStructInputs, modelComplexity, hasTunableParams, hasStructParams, hasStructArrayParams, hasEnums, hasLoggingSignals);
 
 % output ports
 if hasOutputs == true
@@ -615,12 +691,22 @@ if (hasInputs == false) && (hasOutputs == true)
 
     name_input_signal([model_name '/Out1_ScalarDouble'], 1, 'Out1_ScalarDouble');
     name_input_signal([model_name '/Out2_ScalarUint32'], 1, 'Out2_ScalarUint32');
+
+    if hasLoggingSignals
+        map_output_signal([model_name '/In1_ScalarDouble'], 1, 'In1_ScalarDouble');
+        map_output_signal([model_name '/In2_ScalarUint32'], 1, 'In2_ScalarUint32');
+    end
 else
     name_input_signal([model_name '/Out1_ScalarDouble'], 1, 'Out1_ScalarDouble');
     name_input_signal([model_name '/Out2_ScalarUint32'], 1, 'Out2_ScalarUint32');
 
     name_output_signal([model_name '/In1_ScalarDouble'], 1, 'In1_ScalarDouble');
     name_output_signal([model_name '/In2_ScalarUint32'], 1, 'In2_ScalarUint32');
+
+    if hasLoggingSignals
+        map_output_signal([model_name '/In1_ScalarDouble'], 1, 'In1_ScalarDouble');
+        map_output_signal([model_name '/In2_ScalarUint32'], 1, 'In2_ScalarUint32');
+    end
 end
 
 if hasStructSignals == true
@@ -641,6 +727,11 @@ if modelComplexity >= 2
 
     name_input_signal([model_name '/Out3_VectorDouble'], 1, 'Out3_VectorDouble');
     name_input_signal([model_name '/Out4_VectorUint32'], 1, 'Out4_VectorUint32');
+
+    if hasLoggingSignals
+        map_output_signal([model_name '/In3_VectorDouble'], 1, 'In3_VectorDouble');
+        map_output_signal([model_name '/In4_VectorUint32'], 1, 'In4_VectorUint32');
+    end
 end
 
 if modelComplexity >= 3
@@ -649,6 +740,11 @@ if modelComplexity >= 3
 
     name_input_signal([model_name '/Out5_MatrixDouble'], 1, 'Out5_MatrixDouble');
     name_input_signal([model_name '/Out6_MatrixUint32'], 1, 'Out6_MatrixUint32');
+
+    if hasLoggingSignals
+        map_output_signal([model_name '/In5_MatrixDouble'], 1, 'In5_MatrixDouble');
+        map_output_signal([model_name '/In6_MatrixUint32'], 1, 'In6_MatrixUint32');
+    end
 end
 
 if modelComplexity >= 4
@@ -657,6 +753,11 @@ if modelComplexity >= 4
 
     name_input_signal([model_name '/Out7_3DMatrixDouble'], 1, 'Out7_3DMatrixDouble');
     name_input_signal([model_name '/Out8_3DMatrixUint32'], 1, 'Out8_3DMatrixUint32');
+
+    if hasLoggingSignals
+        map_output_signal([model_name '/In7_3DMatrixDouble'], 1, 'In7_3DMatrixDouble');
+        map_output_signal([model_name '/In8_3DMatrixUint32'], 1, 'In8_3DMatrixUint32');
+    end
 end
 %% arranging block layout
 % alternatively to setting the position of each block, the system can be
@@ -664,75 +765,6 @@ end
 if ~verLessThan('matlab', '9.5')
     Simulink.BlockDiagram.arrangeSystem(model_name);
 end
-
-%% code generation
-% name of each option is available by right-clicking on the option name
-% in Model Settings dialog and then on "What's This?"
-
-% Solver
-set_param(model_name, 'SolverType', 'Fixed-step');
-
-% Code Generation
-set_param(model_name, 'SystemTargetFile', 'ert_shrlib.tlc');
-set_param(model_name, 'RTWVerbose', 0);
-
-% Optimization
-if hasTunableParams == true
-    set_param(model_name, 'DefaultParameterBehavior', 'Tunable');
-else
-    set_param(model_name, 'DefaultParameterBehavior', 'Inlined');
-end
-set_param(model_name, 'OptimizationCustomize', 1);
-set_param(model_name, 'GlobalVariableUsage', 'None');
-
-% Report
-set_param(model_name, 'GenerateReport', 0);
-
-% Comments
-set_param(model_name, 'GenerateComments', 0);
-
-% Custom code (MODEL is a coder macro for the model name)
-if hasGetmmiFcn == true
-    set_param(model_name, 'CustomSourceCode', ...
-        [  ...
-        '#define UTSTRUCTNAME(NAME) RT_MODEL_##NAME##_T'                         newline ...
-        '#define TSTRUCTNAME(NAME) UTSTRUCTNAME(NAME)'                           newline ...
-        '#define UGETMMIFCN(NAME) NAME##_GetCAPImmi'                             newline ...
-        '#define GETMMIFCN(NAME) UGETMMIFCN(NAME)'                               newline ...
-                                                                                 newline ...
-        'rtwCAPI_ModelMappingInfo* GETMMIFCN(MODEL) ( TSTRUCTNAME(MODEL) *rtm )' newline ...
-        '{'                                                                      newline ...
-        '    return &(rtmGetDataMapInfo(rtm).mmi);'                              newline ...
-        '}'                                                                      newline ...
-        ] ...
-    );
-end
-
-% Interface
-set_param(model_name, 'SupportComplex', 0);
-set_param(model_name, 'SupportAbsoluteTime', 0);
-set_param(model_name, 'SuppressErrorStatus', 1);
-
-set_param(model_name, 'CodeInterfacePackaging', 'Reusable function');
-
-set_param(model_name, 'RootIOFormat', 'Part of model data structure');
-
-set_param(model_name, 'RTWCAPIParams', 1);
-set_param(model_name, 'RTWCAPIRootIO', 1);
-
-if hasAllocFcn == true
-    set_param(model_name, 'GenerateAllocFcn', 1);
-end
-
-set_param(model_name, 'IncludeMdlTerminateFcn', 0);
-set_param(model_name, 'CombineSignalStateStructs', 1);
-
-if ~verLessThan('matlab', '9.5')
-    set_param(model_name, 'ArrayLayout', dataOrientation);
-end
-
-% Templates
-set_param(model_name, 'GenerateSampleERTMain', 0);
 
 %% model build
 
@@ -751,9 +783,12 @@ save_system(model_name);
 close_system(model_name);
 
 % clean build directory
-
-rmdir('slprj', 's');
-rmdir([model_name '_ert_shrlib_rtw'], 's');
+try
+    rmdir('slprj', 's');
+    rmdir([model_name '_ert_shrlib_rtw'], 's');
+catch ME
+    warning(ME.identifier, '%s', ME.message)
+end
 
 delete(sprintf('%s.slx',model_name));
 delete(sprintf('%s.slxc',model_name));
@@ -914,7 +949,7 @@ function helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableP
 
 end
 
-function helper_input_gen_WithStructInputs(model_name, modelComplexity)
+function helper_input_gen_WithStructInputs(model_name, modelComplexity, hasLoggingSignals)
 
     evalin('base', 'clear inputBusElems;');
 
@@ -955,6 +990,7 @@ function helper_input_gen_WithStructInputs(model_name, modelComplexity)
 
     add_line(model_name, 'In1_Structured/1', 'InputSelector/1');
     name_output_signal([model_name '/In1_Structured'], 1, 'In1_Structured');
+    if hasLoggingSignals, map_output_signal([model_name '/In1_Structured'], 1, 'In1_Structured'); end
 
     if modelComplexity > 1
         evalin('base', 'clear inputBusElems2;');
@@ -995,6 +1031,7 @@ function helper_input_gen_WithStructInputs(model_name, modelComplexity)
 
         add_line(model_name, 'In2_Structured/1', 'InputSelector2/1');
         name_output_signal([model_name '/In2_Structured'], 1, 'In2_Structured');
+        if hasLoggingSignals, map_output_signal([model_name '/In2_Structured'], 1, 'In2_Structured'); end
     end
 
     if modelComplexity > 2
@@ -1035,14 +1072,15 @@ function helper_input_gen_WithStructInputs(model_name, modelComplexity)
 
         add_line(model_name, 'In3_Structured/1', 'InputSelector3/1');
         name_output_signal([model_name '/In3_Structured'], 1, 'In3_Structured');
+        if hasLoggingSignals, map_output_signal([model_name '/In3_Structured'], 1, 'In3_Structured'); end
     end
 end
 
-function helper_input_gen(modelName, withInputs, withStructs, modelComplexity, hasTunableParams, hasStructParams, hasStructArrayParams, hasEnums)
+function helper_input_gen(modelName, withInputs, withStructs, modelComplexity, hasTunableParams, hasStructParams, hasStructArrayParams, hasEnums, hasLoggingSignals)
 
     if withInputs == true
        if withStructs == true
-           helper_input_gen_WithStructInputs(modelName, modelComplexity);
+           helper_input_gen_WithStructInputs(modelName, modelComplexity, hasLoggingSignals);
        else
            helper_input_gen_WithInputs(modelName, modelComplexity, hasEnums);
        end
@@ -1066,4 +1104,20 @@ function name_output_signal(address, signal_index, signal_name)
     l = get_param(p.Outport(signal_index),'Line');
     set_param(l,'Name', signal_name);
 
+end
+
+function map_output_signal(address, signal_index, signal_name)
+    path = split(address, '/');
+    model_name = path{1};
+    disp(model_name)
+    try
+        cm = coder.mapping.api.get(model_name);
+    catch
+        cm = coder.mapping.utils.create(model_name);
+    end
+    setDataDefault(cm,"InternalData","StorageClass","MultiInstance");
+    p = get_param(address, 'PortHandles');
+    l = p.Outport(signal_index);
+    addSignal(cm, l);
+    setSignal(cm, l, "StorageClass","Model default");
 end
