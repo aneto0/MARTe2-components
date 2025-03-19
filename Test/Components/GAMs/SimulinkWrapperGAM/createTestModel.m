@@ -75,6 +75,10 @@ while ~isempty(varargin)
 end
 
 hasStructInputs = ((hasStructSignals == true) && (hasInputs == true));
+if verLessThan('matlab', '9.9')
+    hasLoggingSignals = false;
+    warning('This version does not support configuring logging signals programmatically. hasLoggingSignals set to false.');
+end
 
 % warning: the model name is limited to 20 characters
 model_name = ['testMdl' int2str(modelComplexity)  int2str(hasAllocFcn)     int2str(hasGetmmiFcn) ...
@@ -95,6 +99,10 @@ if ~hasOutputs
     % disable warning when all signals end in Terminator blocks
     warning('off', 'Simulink:Engine:NoNonVirtualBlocksInModel');
 end
+
+%% define handle arrays
+
+outPorts = [];
 
 %% define constants
 
@@ -304,15 +312,15 @@ if modelComplexity >= 3
 end
 
 % input ports
-helper_input_gen(model_name, hasInputs, hasStructInputs, modelComplexity, hasTunableParams, hasStructParams, hasStructArrayParams, hasEnums, hasLoggingSignals);
+inPorts = helper_input_gen(model_name, hasInputs, hasStructInputs, modelComplexity, hasTunableParams, hasStructParams, hasStructArrayParams, hasEnums, hasLoggingSignals);
 
 % output ports
 if hasOutputs == true
-    add_block('simulink/Sinks/Out1',  [model_name '/Out1_ScalarDouble']);
+    outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out1_ScalarDouble']);
     set_param([model_name '/Out1_ScalarDouble'], 'IconDisplay',    'Signal name');
     set_param([model_name '/Out1_ScalarDouble'], 'OutDataTypeStr', 'double');
 
-    add_block('simulink/Sinks/Out1',  [model_name '/Out2_ScalarUint32']);
+    outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out2_ScalarUint32']);
     set_param([model_name '/Out2_ScalarUint32'], 'IconDisplay',    'Signal name');
     if hasEnums == false
         set_param([model_name '/Out2_ScalarUint32'], 'OutDataTypeStr', 'uint32');
@@ -321,28 +329,28 @@ if hasOutputs == true
     end
 
     if modelComplexity >= 2
-        add_block('simulink/Sinks/Out1',  [model_name '/Out3_VectorDouble']);
+        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out3_VectorDouble']);
         set_param([model_name '/Out3_VectorDouble'], 'IconDisplay',    'Signal name');
         set_param([model_name '/Out3_VectorDouble'], 'OutDataTypeStr', 'double');
 
-        add_block('simulink/Sinks/Out1',  [model_name '/Out4_VectorUint32']);
+        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out4_VectorUint32']);
         set_param([model_name '/Out4_VectorUint32'], 'IconDisplay',    'Signal name');
         set_param([model_name '/Out4_VectorUint32'], 'OutDataTypeStr', 'uint32');
     end
 
     if modelComplexity >= 3
-        add_block('simulink/Sinks/Out1',  [model_name '/Out5_MatrixDouble']);
+        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out5_MatrixDouble']);
         set_param([model_name '/Out5_MatrixDouble'], 'IconDisplay',    'Signal name');
         set_param([model_name '/Out5_MatrixDouble'], 'OutDataTypeStr', 'double');
 
-        add_block('simulink/Sinks/Out1',  [model_name '/Out6_MatrixUint32']);
+        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out6_MatrixUint32']);
         set_param([model_name '/Out6_MatrixUint32'], 'IconDisplay',    'Signal name');
         set_param([model_name '/Out6_MatrixUint32'], 'OutDataTypeStr', 'uint32');
     end
 
     if modelComplexity >= 4
         % MARTe does not support 3D signals, so the ports output only a page of the 3D signal
-        add_block('simulink/Sinks/Out1',  [model_name '/Out7_3DMatrixDouble']);
+        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out7_3DMatrixDouble']);
         set_param([model_name '/Out5_MatrixDouble'], 'IconDisplay',    'Signal name');
         set_param([model_name '/Out5_MatrixDouble'], 'OutDataTypeStr', 'double');
 
@@ -351,7 +359,7 @@ if hasOutputs == true
             'NumberOfDimensions', '3', 'IndexOptions', 'Index vector (dialog),Index vector (dialog),Index vector (dialog)',...
             'Indices',           '[1:4],[1:4],2');
 
-        add_block('simulink/Sinks/Out1',  [model_name '/Out8_3DMatrixUint32']);
+        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out8_3DMatrixUint32']);
         set_param([model_name '/Out6_MatrixUint32'], 'IconDisplay',    'Signal name');
         set_param([model_name '/Out6_MatrixUint32'], 'OutDataTypeStr', 'uint32');
 
@@ -405,7 +413,7 @@ if hasStructSignals == true
     set_param([model_name '/BusCreator1'],         'NonVirtualBus',  'on');
     set_param([model_name '/BusCreator1'],         'OutDataTypeStr', 'Bus: STRUCTSIGNAL1');
 
-    add_block('simulink/Sinks/Out1',  [model_name '/Out20_NonVirtualBus']);
+    outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out20_NonVirtualBus']);
     set_param([model_name '/Out20_NonVirtualBus'], 'IconDisplay',    'Signal name');
     set_param([model_name '/Out20_NonVirtualBus'], 'OutDataTypeStr', 'Inherit: auto');
 
@@ -435,7 +443,7 @@ if hasStructSignals == true
         set_param([model_name '/BusCreator21'],         'NonVirtualBus',  'on');
         set_param([model_name '/BusCreator21'],         'OutDataTypeStr', 'Bus: STRUCTSIGNAL21');
 
-        add_block('simulink/Sinks/Out1',  [model_name '/Out21_NonVirtualBus']);
+        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out21_NonVirtualBus']);
         set_param([model_name '/Out21_NonVirtualBus'], 'IconDisplay',    'Signal name');
         set_param([model_name '/Out21_NonVirtualBus'], 'OutDataTypeStr', 'Inherit: auto');
     end
@@ -466,7 +474,7 @@ if hasStructSignals == true
         set_param([model_name '/BusCreator31'],         'NonVirtualBus',  'on');
         set_param([model_name '/BusCreator31'],         'OutDataTypeStr', 'Bus: STRUCTSIGNAL31');
 
-        add_block('simulink/Sinks/Out1',  [model_name '/Out31_NonVirtualBus']);
+        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out31_NonVirtualBus']);
         set_param([model_name '/Out31_NonVirtualBus'], 'IconDisplay',    'Signal name');
         set_param([model_name '/Out31_NonVirtualBus'], 'OutDataTypeStr', 'Inherit: auto');
 
@@ -498,7 +506,7 @@ if hasStructSignals == true
             set_param([model_name '/BusCreator2031'],         'NonVirtualBus',  'on');
             set_param([model_name '/BusCreator2031'],         'OutDataTypeStr', 'Bus: STRUCTSIGNAL2031');
 
-        add_block('simulink/Sinks/Out1',  [model_name '/Out2031_NonVirtualBus']);
+        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out2031_NonVirtualBus']);
         set_param([model_name '/Out2031_NonVirtualBus'], 'IconDisplay',    'Signal name');
         set_param([model_name '/Out2031_NonVirtualBus'], 'OutDataTypeStr', 'Inherit: auto');
 
@@ -506,7 +514,7 @@ if hasStructSignals == true
         add_line(model_name, 'BusCreator31/1',            'BusCreator2031/2');
         add_line(model_name, 'BusCreator2031/1',          'Out2031_NonVirtualBus/1');
 
-        name_input_signal([model_name '/Out2031_NonVirtualBus'], 1, 'Out2031_NonVirtualBus');
+        name_output_signal([model_name '/Out2031_NonVirtualBus'], 1, 'Out2031_NonVirtualBus');
     end
 
 end
@@ -684,81 +692,40 @@ end
 
 %% signal naming
 
-% name the signals
-if (hasInputs == false) && (hasOutputs == true)
-    name_output_signal([model_name '/In1_ScalarDouble'], 1, 'In1_ScalarDouble');
-    name_output_signal([model_name '/In2_ScalarUint32'], 1, 'In2_ScalarUint32');
+% name the output signals
+for port = outPorts
+    p = get_param(port, 'PortHandles');
+    n = get_param(port, 'Name');
+    l = get_param(p.Inport(1), 'Line');
+    set_param(l, 'Name', n);
+end
 
-    name_input_signal([model_name '/Out1_ScalarDouble'], 1, 'Out1_ScalarDouble');
-    name_input_signal([model_name '/Out2_ScalarUint32'], 1, 'Out2_ScalarUint32');
+% name the input signals
+for port = inPorts
+    p = get_param(port, 'PortHandles');
+    n = get_param(port, 'Name');
+    l = get_param(p.Outport(1), 'Line');
+    set_param(l, 'Name', n);
+end
 
-    if hasLoggingSignals
-        map_output_signal([model_name '/In1_ScalarDouble'], 1, 'In1_ScalarDouble');
-        map_output_signal([model_name '/In2_ScalarUint32'], 1, 'In2_ScalarUint32');
+%% logging of block signals
+
+if hasLoggingSignals
+    try
+        cm = coder.mapping.api.get(model_name);
+    catch
+        cm = coder.mapping.utils.create(model_name);
     end
-else
-    name_input_signal([model_name '/Out1_ScalarDouble'], 1, 'Out1_ScalarDouble');
-    name_input_signal([model_name '/Out2_ScalarUint32'], 1, 'Out2_ScalarUint32');
+    setDataDefault(cm, "InternalData", "StorageClass", "MultiInstance");
 
-    name_output_signal([model_name '/In1_ScalarDouble'], 1, 'In1_ScalarDouble');
-    name_output_signal([model_name '/In2_ScalarUint32'], 1, 'In2_ScalarUint32');
-
-    if hasLoggingSignals
-        map_output_signal([model_name '/In1_ScalarDouble'], 1, 'In1_ScalarDouble');
-        map_output_signal([model_name '/In2_ScalarUint32'], 1, 'In2_ScalarUint32');
+    for port = inPorts
+        p = get_param(port, 'PortHandles');
+        l = p.Outport(1);
+        addSignal(cm, l);
+        setSignal(cm, l, "StorageClass", "Model default");
     end
 end
 
-if hasStructSignals == true
-    name_input_signal([model_name '/Out20_NonVirtualBus'], 1, 'Out20_NonVirtualBus');
-
-    if modelComplexity >= 2
-        name_input_signal([model_name '/Out21_NonVirtualBus'], 1, 'Out21_NonVirtualBus');
-    end
-
-    if modelComplexity >= 3
-        name_input_signal([model_name '/Out31_NonVirtualBus'], 1, 'Out31_NonVirtualBus');
-    end
-end
-
-if modelComplexity >= 2
-    name_output_signal([model_name '/In3_VectorDouble'], 1, 'In3_VectorDouble');
-    name_output_signal([model_name '/In4_VectorUint32'], 1, 'In4_VectorUint32');
-
-    name_input_signal([model_name '/Out3_VectorDouble'], 1, 'Out3_VectorDouble');
-    name_input_signal([model_name '/Out4_VectorUint32'], 1, 'Out4_VectorUint32');
-
-    if hasLoggingSignals
-        map_output_signal([model_name '/In3_VectorDouble'], 1, 'In3_VectorDouble');
-        map_output_signal([model_name '/In4_VectorUint32'], 1, 'In4_VectorUint32');
-    end
-end
-
-if modelComplexity >= 3
-    name_output_signal([model_name '/In5_MatrixDouble'], 1, 'In5_MatrixDouble');
-    name_output_signal([model_name '/In6_MatrixUint32'], 1, 'In6_MatrixUint32');
-
-    name_input_signal([model_name '/Out5_MatrixDouble'], 1, 'Out5_MatrixDouble');
-    name_input_signal([model_name '/Out6_MatrixUint32'], 1, 'Out6_MatrixUint32');
-
-    if hasLoggingSignals
-        map_output_signal([model_name '/In5_MatrixDouble'], 1, 'In5_MatrixDouble');
-        map_output_signal([model_name '/In6_MatrixUint32'], 1, 'In6_MatrixUint32');
-    end
-end
-
-if modelComplexity >= 4
-    name_output_signal([model_name '/In7_3DMatrixDouble'], 1, 'In7_3DMatrixDouble');
-    name_output_signal([model_name '/In8_3DMatrixUint32'], 1, 'In8_3DMatrixUint32');
-
-    name_input_signal([model_name '/Out7_3DMatrixDouble'], 1, 'Out7_3DMatrixDouble');
-    name_input_signal([model_name '/Out8_3DMatrixUint32'], 1, 'Out8_3DMatrixUint32');
-
-    if hasLoggingSignals
-        map_output_signal([model_name '/In7_3DMatrixDouble'], 1, 'In7_3DMatrixDouble');
-        map_output_signal([model_name '/In8_3DMatrixUint32'], 1, 'In8_3DMatrixUint32');
-    end
-end
 %% arranging block layout
 % alternatively to setting the position of each block, the system can be
 % arranged automatically
@@ -769,7 +736,7 @@ end
 %% model build
 
 try
-    rtwbuild(model_name)
+%     rtwbuild(model_name)
     model_compiled = true;
 catch ME
     model_compiled = false;
@@ -790,7 +757,7 @@ catch ME
     warning(ME.identifier, '%s', ME.message)
 end
 
-delete(sprintf('%s.slx',model_name));
+% delete(sprintf('%s.slx',model_name));
 delete(sprintf('%s.slxc',model_name));
 delete(sprintf('%s.slx.bak',model_name));
 
@@ -804,13 +771,15 @@ end   % function
 %Helper functions, just to keep main code flow tidy, block-structured and
 %easier to focus on
 
-function helper_input_gen_WithInputs(model_name, modelComplexity, hasEnums)
+function tempInPorts = helper_input_gen_WithInputs(model_name, modelComplexity, hasEnums)
 
-  add_block('simulink/Sources/In1', [model_name '/In1_ScalarDouble']);
+    tempInPorts = [];
+
+    tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In1_ScalarDouble']);
     set_param([model_name '/In1_ScalarDouble'], 'IconDisplay',    'Signal name');
     set_param([model_name '/In1_ScalarDouble'], 'OutDataTypeStr', 'double');
 
-    add_block('simulink/Sources/In1', [model_name '/In2_ScalarUint32' ]);
+    tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In2_ScalarUint32' ]);
     set_param([model_name '/In2_ScalarUint32'],  'IconDisplay',    'Signal name');
     if hasEnums == false
         set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'uint32');
@@ -819,36 +788,36 @@ function helper_input_gen_WithInputs(model_name, modelComplexity, hasEnums)
     end
 
     if modelComplexity >= 2
-        add_block('simulink/Sources/In1', [model_name '/In3_VectorDouble' ], ...
+        tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In3_VectorDouble' ], ...
             'IconDisplay',    'Signal name', ...
             'OutdataTypeStr', 'double',      ...
             'PortDimensions', '[8 1]');
 
-        add_block('simulink/Sources/In1', [model_name '/In4_VectorUint32' ], ...
+        tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In4_VectorUint32' ], ...
             'IconDisplay',    'Signal name', ...
             'OutdataTypeStr', 'uint32',      ...
             'PortDimensions', '[8 1]' );
     end
 
     if modelComplexity >= 3
-        add_block('simulink/Sources/In1', [model_name '/In5_MatrixDouble' ], ...
+        tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In5_MatrixDouble' ], ...
             'IconDisplay',    'Signal name', ...
             'OutdataTypeStr', 'double',      ...
             'PortDimensions', '[6 6]' );
 
-        add_block('simulink/Sources/In1', [model_name '/In6_MatrixUint32' ], ...
+        tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In6_MatrixUint32' ], ...
             'IconDisplay',    'Signal name', ...
             'OutdataTypeStr', 'uint32',      ...
             'PortDimensions', '[6 6]' );
     end
 
     if modelComplexity >= 4
-        add_block('simulink/Sources/In1', [model_name '/In7_3DMatrixDouble' ], ...
+        tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In7_3DMatrixDouble' ], ...
             'IconDisplay',    'Signal name', ...
             'OutdataTypeStr', 'double', ...
             'PortDimensions',  '[4 4]');
 
-        add_block('simulink/Sources/In1', [model_name '/In8_3DMatrixUint32' ], ...
+        tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In8_3DMatrixUint32' ], ...
             'IconDisplay',    'Signal name', ...
             'OutdataTypeStr', 'uint32', ...
             'PortDimensions',  '[4 4]');
@@ -861,16 +830,18 @@ function helper_input_gen_WithInputs(model_name, modelComplexity, hasEnums)
             'NumInputs',            '2', ...
             'ConcatenateDimension', '3')
     end
-
+    
 end
 
-function helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableParams, hasStructParams, hasStructArrayParams, hasEnums)
+function tempInPorts = helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableParams, hasStructParams, hasStructArrayParams, hasEnums)
 
-    add_block('simulink/Sources/Constant', [model_name '/In1_ScalarDouble']);
+    tempInPorts = [];
+
+    tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In1_ScalarDouble']);
     set_param([model_name '/In1_ScalarDouble'], 'Value',          '1');
     set_param([model_name '/In1_ScalarDouble'], 'OutDataTypeStr', 'double');
 
-    add_block('simulink/Sources/Constant', [model_name '/In2_ScalarUint32']);
+    tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In2_ScalarUint32']);
     if hasEnums == false
         set_param([model_name '/In2_ScalarUint32'], 'Value',          '1');
         set_param([model_name '/In2_ScalarUint32'], 'OutDataTypeStr', 'uint32');
@@ -884,7 +855,7 @@ function helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableP
     end
 
     if (modelComplexity >= 2)
-        add_block('simulink/Sources/Constant', [model_name '/In3_VectorDouble']);
+        tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In3_VectorDouble']);
         set_param([model_name '/In3_VectorDouble'], 'OutDataTypeStr', 'double');
         if hasTunableParams == true
             set_param([model_name '/In3_VectorDouble'],  'Value',          'vectorConstant2');
@@ -892,7 +863,7 @@ function helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableP
             set_param([model_name '/In3_VectorDouble'],  'Value',          'rand(8,1)');
         end
 
-        add_block('simulink/Sources/Constant', [model_name '/In4_VectorUint32']);
+        tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In4_VectorUint32']);
         set_param([model_name '/In4_VectorUint32'],  'OutDataTypeStr', 'uint32');
         if hasStructParams == true
             set_param([model_name '/In4_VectorUint32'], 'Value',          'uint32(structMixed.vec)');
@@ -902,7 +873,7 @@ function helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableP
     end
 
     if (modelComplexity >= 3)
-        add_block('simulink/Sources/Constant', [model_name '/In5_MatrixDouble']);
+        tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In5_MatrixDouble']);
         set_param([model_name '/In5_MatrixDouble'], 'OutDataTypeStr', 'double');
         if hasTunableParams == true
             if hasStructParams == true && hasStructArrayParams == true
@@ -914,7 +885,7 @@ function helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableP
             set_param([model_name '/In5_MatrixDouble'], 'Value',          'rand(6,6)');
         end
 
-        add_block('simulink/Sources/Constant', [model_name '/In6_MatrixUint32']);
+        tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In6_MatrixUint32']);
         set_param([model_name '/In6_MatrixUint32'],  'OutDataTypeStr', 'uint32');
         if hasTunableParams == true
             if hasStructParams == true && hasStructArrayParams == true
@@ -930,7 +901,7 @@ function helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableP
     end
 
     if (modelComplexity >= 4)
-        add_block('simulink/Sources/Constant', [model_name '/In7_3DMatrixDouble']);
+        tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In7_3DMatrixDouble']);
         set_param([model_name '/In7_3DMatrixDouble'], 'OutDataTypeStr', 'double');
         if hasTunableParams == true
             set_param([model_name '/In7_3DMatrixDouble'],  'Value',          'matrixConstant3d');
@@ -938,7 +909,7 @@ function helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableP
             set_param([model_name '/In7_3DMatrixDouble'], 'Value',          'rand(4,4,4)');
         end
 
-        add_block('simulink/Sources/Constant', [model_name '/In8_3DMatrixUint32']);
+        tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In8_3DMatrixUint32']);
         set_param([model_name '/In8_3DMatrixUint32'],  'OutDataTypeStr', 'uint32');
         if hasStructParams == true
             set_param([model_name '/In8_3DMatrixUint32'], 'Value',          'structMixed.mat3d');
@@ -949,7 +920,9 @@ function helper_input_gen_WithoutInputs(model_name, modelComplexity, hasTunableP
 
 end
 
-function helper_input_gen_WithStructInputs(model_name, modelComplexity, hasLoggingSignals)
+function tempInPorts = helper_input_gen_WithStructInputs(model_name, modelComplexity, hasLoggingSignals)
+
+    tempInPorts = [];
 
     evalin('base', 'clear inputBusElems;');
 
@@ -972,7 +945,7 @@ function helper_input_gen_WithStructInputs(model_name, modelComplexity, hasLoggi
     evalin('base', 'INSTRUCTSIGNAL1 = Simulink.Bus;');
     evalin('base', 'INSTRUCTSIGNAL1.Elements = inputBusElems;');
 
-    add_block('simulink/Sources/In1', [model_name '/In1_Structured']);
+    tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In1_Structured']);
     set_param([model_name '/In1_Structured'], 'IconDisplay',    'Signal name');
     set_param([model_name '/In1_Structured'], 'OutDataTypeStr', 'Bus: INSTRUCTSIGNAL1');
     set_param([model_name '/In1_Structured'], 'BusOutputAsStruct',  'on');
@@ -989,8 +962,8 @@ function helper_input_gen_WithStructInputs(model_name, modelComplexity, hasLoggi
     add_line(model_name, 'InputSelector/1', 'In2_ScalarUint32/1');
 
     add_line(model_name, 'In1_Structured/1', 'InputSelector/1');
-    name_output_signal([model_name '/In1_Structured'], 1, 'In1_Structured');
-    if hasLoggingSignals, map_output_signal([model_name '/In1_Structured'], 1, 'In1_Structured'); end
+    name_input_signal([model_name '/In1_Structured'], 1, 'In1_Structured');
+    if hasLoggingSignals, log_input_signal([model_name '/In1_Structured'], 1); end
 
     if modelComplexity > 1
         evalin('base', 'clear inputBusElems2;');
@@ -1013,7 +986,7 @@ function helper_input_gen_WithStructInputs(model_name, modelComplexity, hasLoggi
         evalin('base', 'INSTRUCTSIGNAL2 = Simulink.Bus;');
         evalin('base', 'INSTRUCTSIGNAL2.Elements = inputBusElems2;');
 
-        add_block('simulink/Sources/In1', [model_name '/In2_Structured']);
+        tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In2_Structured']);
         set_param([model_name '/In2_Structured'], 'IconDisplay',    'Signal name');
         set_param([model_name '/In2_Structured'], 'OutDataTypeStr', 'Bus: INSTRUCTSIGNAL2');
         set_param([model_name '/In2_Structured'], 'BusOutputAsStruct',  'on');
@@ -1030,8 +1003,8 @@ function helper_input_gen_WithStructInputs(model_name, modelComplexity, hasLoggi
         add_line(model_name, 'InputSelector2/1', 'In4_VectorUint32/1');
 
         add_line(model_name, 'In2_Structured/1', 'InputSelector2/1');
-        name_output_signal([model_name '/In2_Structured'], 1, 'In2_Structured');
-        if hasLoggingSignals, map_output_signal([model_name '/In2_Structured'], 1, 'In2_Structured'); end
+        name_input_signal([model_name '/In2_Structured'], 1, 'In2_Structured');
+        if hasLoggingSignals, log_input_signal([model_name '/In2_Structured'], 1); end
     end
 
     if modelComplexity > 2
@@ -1054,7 +1027,7 @@ function helper_input_gen_WithStructInputs(model_name, modelComplexity, hasLoggi
         evalin('base', 'INSTRUCTSIGNAL3 = Simulink.Bus;');
         evalin('base', 'INSTRUCTSIGNAL3.Elements = inputBusElems3;');
 
-        add_block('simulink/Sources/In1', [model_name '/In3_Structured']);
+        tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In3_Structured']);
         set_param([model_name '/In3_Structured'], 'IconDisplay',    'Signal name');
         set_param([model_name '/In3_Structured'], 'OutDataTypeStr', 'Bus: INSTRUCTSIGNAL3');
         set_param([model_name '/In3_Structured'], 'BusOutputAsStruct',  'on');
@@ -1071,26 +1044,26 @@ function helper_input_gen_WithStructInputs(model_name, modelComplexity, hasLoggi
         add_line(model_name, 'InputSelector3/1', 'In6_MatrixUint32/1');
 
         add_line(model_name, 'In3_Structured/1', 'InputSelector3/1');
-        name_output_signal([model_name '/In3_Structured'], 1, 'In3_Structured');
-        if hasLoggingSignals, map_output_signal([model_name '/In3_Structured'], 1, 'In3_Structured'); end
+        name_input_signal([model_name '/In3_Structured'], 1, 'In3_Structured');
+        if hasLoggingSignals, log_input_signal([model_name '/In3_Structured'], 1); end
     end
 end
 
-function helper_input_gen(modelName, withInputs, withStructs, modelComplexity, hasTunableParams, hasStructParams, hasStructArrayParams, hasEnums, hasLoggingSignals)
+function inPorts = helper_input_gen(modelName, withInputs, withStructs, modelComplexity, hasTunableParams, hasStructParams, hasStructArrayParams, hasEnums, hasLoggingSignals)
 
     if withInputs == true
        if withStructs == true
-           helper_input_gen_WithStructInputs(modelName, modelComplexity, hasLoggingSignals);
+           inPorts = helper_input_gen_WithStructInputs(modelName, modelComplexity, hasLoggingSignals);
        else
-           helper_input_gen_WithInputs(modelName, modelComplexity, hasEnums);
+           inPorts = helper_input_gen_WithInputs(modelName, modelComplexity, hasEnums);
        end
     else
-        helper_input_gen_WithoutInputs(modelName, modelComplexity, hasTunableParams, hasStructParams, hasStructArrayParams, hasEnums);
+        inPorts = helper_input_gen_WithoutInputs(modelName, modelComplexity, hasTunableParams, hasStructParams, hasStructArrayParams, hasEnums);
     end
 
 end
 
-function name_input_signal(address, signal_index, signal_name)
+function name_output_signal(address, signal_index, signal_name)
 
     p = get_param(address, 'PortHandles');
     l = get_param(p.Inport(signal_index),'Line');
@@ -1098,7 +1071,7 @@ function name_input_signal(address, signal_index, signal_name)
 
 end
 
-function name_output_signal(address, signal_index, signal_name)
+function name_input_signal(address, signal_index, signal_name)
 
     p = get_param(address, 'PortHandles');
     l = get_param(p.Outport(signal_index),'Line');
@@ -1106,10 +1079,9 @@ function name_output_signal(address, signal_index, signal_name)
 
 end
 
-function map_output_signal(address, signal_index, signal_name)
+function log_input_signal(address, signal_index)
     path = split(address, '/');
     model_name = path{1};
-    disp(model_name)
     try
         cm = coder.mapping.api.get(model_name);
     catch
