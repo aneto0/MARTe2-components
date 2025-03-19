@@ -50,6 +50,14 @@ CFLAGS += -DENUM_FEATURE
 CPPFLAGS += -DENUM_FEATURE
 endif
 
+# Tests of logging signals require coder.mapping, available from version 2020b (9.09) onwards
+ifeq ($(shell [ $(MATLAB_VERSION) -ge 909 ]; echo $$?),0)
+CFLAGS += -DBLOCKSIGNAL_TEST_FEATURE
+CPPFLAGS += -DBLOCKSIGNAL_TEST_FEATURE
+else
+$(warning MATLAB Version is less than 9.9. Logging Signals tests cannot be performed.)
+endif
+
 
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
