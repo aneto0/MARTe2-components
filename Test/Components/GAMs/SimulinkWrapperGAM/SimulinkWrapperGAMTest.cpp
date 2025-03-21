@@ -2306,9 +2306,9 @@ bool SimulinkWrapperGAMTest::TestSetup_NestedStructArraysAsParams() {
         "structParamArray[0].two = (float64) 1 "
         "structParamArray[1].one = (float64) 2 "
         "structParamArray[1].two = (float64) 2 "
-        "structMixed.structParamArray[0].one = (float64) 1 "
+        "structMixed.structParamArray[0].one = (uint32) 1 "
         "structMixed.structParamArray[0].two = (float64) 1 "
-        "structMixed.structParamArray[1].one = (float64) 2 "
+        "structMixed.structParamArray[1].one = (uint32) 2 "
         "structMixed.structParamArray[1].two = (float64) 2 ";
     
     // Test setup
