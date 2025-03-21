@@ -80,6 +80,11 @@ if verLessThan('matlab', '9.9')
     warning('This version does not support configuring logging signals programmatically. hasLoggingSignals set to false.');
 end
 
+if hasLoggingSignals && hasEnums
+    warning('Enum signals cannot be logged, turning off logging.')
+    hasLoggingSignals = false;
+end
+
 % warning: the model name is limited to 20 characters
 model_name = ['testMdl' int2str(modelComplexity)  int2str(hasAllocFcn)     int2str(hasGetmmiFcn) ...
                         int2str(hasTunableParams) int2str(hasStructParams) int2str(hasStructArrayParams) ...
@@ -539,7 +544,8 @@ add_line(model_name, 'Gain1/1',            'Out1_ScalarDouble/1');
 if hasEnums == true
     % gain block does not support enums
     delete_block([model_name '/Gain2']);
-    add_block('simulink/Signal Attributes/Signal Specification', [model_name '/Gain2' ]);
+    add_block('simulink/Signal Attributes/Signal Specification', [model_name '/Gain2' ], ...
+            'OutDataTypeStr', 'Enum:TestEnum');
 end
 add_line(model_name, 'Gain2/1',            'Out2_ScalarUint32/1');
 
@@ -578,7 +584,15 @@ if hasLoggingSignals
     set_param([model_name, '/Gain1'], 'Name', 'Gain1_ForLogging', 'OutDataTypeStr', 'double');
     set_param([model_name, '/Gain2'], 'Name', 'Gain2_ForLogging', 'OutDataTypeStr', 'uint32');
     logBlocks(end + 1) = add_block('simulink/Math Operations/Gain', [model_name '/Gain1'], 'OutDataTypeStr', 'double');
-    logBlocks(end + 1) = add_block('simulink/Math Operations/Gain', [model_name '/Gain2'], 'OutDataTypeStr', 'uint32');
+    if hasEnums
+        %gain block does not support enums
+        logBlocks(end + 1) = add_block('simulink/Signal Attributes/Signal Specification', [model_name '/Gain2'], ...
+            'OutDataTypeStr', 'Enum:TestEnum');
+        set_param([model_name, '/Gain2_ForLogging'], 'OutDataTypeStr', 'Enum:TestEnum');
+    else
+        logBlocks(end + 1) = add_block('simulink/Math Operations/Gain', [model_name '/Gain2'], ...
+            'OutDataTypeStr', 'uint32');
+    end
     l1 = add_line(model_name, 'Gain1/1', 'Gain1_ForLogging/1');
     l2 = add_line(model_name, 'Gain2/1', 'Gain2_ForLogging/1');
     set_param(l1, 'Name', 'Log1');
@@ -689,6 +703,10 @@ if useType == 1
             set_param([model_name '/Out5_MatrixDouble'],   'OutDataTypeStr', 'uint8');
             set_param([model_name '/Out6_MatrixUint32'],   'OutDataTypeStr', 'uint16');
         end
+        if hasLoggingSignals
+            set_param([model_name '/Gain5_ForLogging'], 'OutDataTypeStr',   'uint8');
+            set_param([model_name '/Gain6_ForLogging'], 'OutDataTypeStr',   'uint16');
+        end
     end
     if modelComplexity >= 4
         set_param([model_name '/In7_3DMatrixDouble'], 'OutDataTypeStr', 'uint32');
@@ -712,6 +730,10 @@ if useType == 2
             set_param([model_name '/Out5_MatrixDouble'],   'OutDataTypeStr', 'int8');
             set_param([model_name '/Out6_MatrixUint32'],   'OutDataTypeStr', 'int16');
         end
+        if hasLoggingSignals
+            set_param([model_name '/Gain5_ForLogging'], 'OutDataTypeStr',   'int8');
+            set_param([model_name '/Gain6_ForLogging'], 'OutDataTypeStr',   'int16');
+        end
     end
     if modelComplexity >= 4
         set_param([model_name '/In7_3DMatrixDouble'], 'OutDataTypeStr', 'int32');
@@ -734,6 +756,10 @@ if useType == 4
         if hasOutputs == true
             set_param([model_name '/Out5_MatrixDouble'],   'OutDataTypeStr', 'int32');
             set_param([model_name '/Out6_MatrixUint32'],   'OutDataTypeStr', 'single');
+        end
+        if hasLoggingSignals
+            set_param([model_name '/Gain5_ForLogging'], 'OutDataTypeStr',   'int32');
+            set_param([model_name '/Gain6_ForLogging'], 'OutDataTypeStr',   'single');
         end
     end
     if modelComplexity >= 4
