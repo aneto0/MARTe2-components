@@ -40,6 +40,7 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+
 TEST(NI6368ADCGTest,TestConstructor) {
     NI6368ADCTest test;
     ASSERT_TRUE(test.TestConstructor());
@@ -115,14 +116,34 @@ TEST(NI6368ADCGTest,TestInitialise_False_NoDeviceName) {
     ASSERT_TRUE(test.TestInitialise_False_NoDeviceName());
 }
 
+TEST(NI6368ADCGTest,TestInitialise_False_BadSamplingFrequency) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadSamplingFrequency());
+}
+
+TEST(NI6368ADCGTest,TestInitialise_False_BadSamplingFrequency2) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadSamplingFrequency2());
+}
+
+TEST(NI6368ADCGTest,TestInitialise_False_BadConvertFrequency) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadConvertFrequency());
+}
+
+TEST(NI6368ADCGTest,TestInitialise_False_BadConvertFrequency2) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestInitialise_False_BadConvertFrequency2());
+}
+
 TEST(NI6368ADCGTest,TestInitialise_False_NoBoardId) {
     NI6368ADCTest test;
     ASSERT_TRUE(test.TestInitialise_False_NoBoardId());
 }
 
-TEST(NI6368ADCGTest,TestInitialise_False_NoDMABufferSize) {
+TEST(NI6368ADCGTest,TestInitialise_Default_NoDMABufferSize) {
     NI6368ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoDMABufferSize());
+    ASSERT_TRUE(test.TestInitialise_Default_NoDMABufferSize());
 }
 
 TEST(NI6368ADCGTest,TestInitialise_False_NoScanIntervalCounterPeriod) {
@@ -130,9 +151,9 @@ TEST(NI6368ADCGTest,TestInitialise_False_NoScanIntervalCounterPeriod) {
     ASSERT_TRUE(test.TestInitialise_False_NoScanIntervalCounterPeriod());
 }
 
-TEST(NI6368ADCGTest,TestInitialise_False_NoScanIntervalCounterDelay) {
+TEST(NI6368ADCGTest,TestInitialise_Default_NoScanIntervalCounterDelay) {
     NI6368ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoScanIntervalCounterDelay());
+    ASSERT_TRUE(test.TestInitialise_Default_NoScanIntervalCounterDelay());
 }
 
 TEST(NI6368ADCGTest,TestInitialise_ClockSampleSource) {
@@ -140,9 +161,9 @@ TEST(NI6368ADCGTest,TestInitialise_ClockSampleSource) {
     ASSERT_TRUE(test.TestInitialise_ClockSampleSource());
 }
 
-TEST(NI6368ADCGTest,TestInitialise_False_NoClockSampleSource) {
+TEST(NI6368ADCGTest,TestInitialise_Default_NoClockSampleSource) {
     NI6368ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoClockSampleSource());
+    ASSERT_TRUE(test.TestInitialise_Default_NoClockSampleSource());
 }
 
 TEST(NI6368ADCGTest,TestInitialise_False_BadClockSampleSource) {
@@ -155,9 +176,9 @@ TEST(NI6368ADCGTest,TestInitialise_ClockSamplePolarity) {
     ASSERT_TRUE(test.TestInitialise_ClockSamplePolarity());
 }
 
-TEST(NI6368ADCGTest,TestInitialise_False_NoClockSamplePolarity) {
+TEST(NI6368ADCGTest,TestInitialise_Default_NoClockSamplePolarity) {
     NI6368ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoClockSamplePolarity());
+    ASSERT_TRUE(test.TestInitialise_Default_NoClockSamplePolarity());
 }
 
 TEST(NI6368ADCGTest,TestInitialise_False_BadClockSamplePolarity) {
@@ -170,9 +191,9 @@ TEST(NI6368ADCGTest,TestInitialise_ClockConvertSource) {
     ASSERT_TRUE(test.TestInitialise_ClockConvertSource());
 }
 
-TEST(NI6368ADCGTest,TestInitialise_False_NoClockConvertSource) {
+TEST(NI6368ADCGTest,TestInitialise_Default_NoClockConvertSource) {
     NI6368ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoClockConvertSource());
+    ASSERT_TRUE(test.TestInitialise_Default_NoClockConvertSource());
 }
 
 TEST(NI6368ADCGTest,TestInitialise_False_BadClockConvertSource) {
@@ -185,9 +206,9 @@ TEST(NI6368ADCGTest,TestInitialise_ClockConvertPolarity) {
     ASSERT_TRUE(test.TestInitialise_ClockConvertPolarity());
 }
 
-TEST(NI6368ADCGTest,TestInitialise_False_NoClockConvertPolarity) {
+TEST(NI6368ADCGTest,TestInitialise_Default_NoClockConvertPolarity) {
     NI6368ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoClockConvertPolarity());
+    ASSERT_TRUE(test.TestInitialise_Default_NoClockConvertPolarity());
 }
 
 TEST(NI6368ADCGTest,TestInitialise_False_BadClockConvertPolarity) {
@@ -200,9 +221,9 @@ TEST(NI6368ADCGTest,TestInitialise_ScanIntervalCounterSource) {
     ASSERT_TRUE(test.TestInitialise_ScanIntervalCounterSource());
 }
 
-TEST(NI6368ADCGTest,TestInitialise_False_NoScanIntervalCounterSource) {
+TEST(NI6368ADCGTest,TestInitialise_Default_NoScanIntervalCounterSource) {
     NI6368ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoScanIntervalCounterSource());
+    ASSERT_TRUE(test.TestInitialise_Default_NoScanIntervalCounterSource());
 }
 
 TEST(NI6368ADCGTest,TestInitialise_False_BadScanIntervalCounterSource) {
@@ -215,9 +236,9 @@ TEST(NI6368ADCGTest,TestInitialise_ScanIntervalCounterPolarity) {
     ASSERT_TRUE(test.TestInitialise_ScanIntervalCounterPolarity());
 }
 
-TEST(NI6368ADCGTest,TestInitialise_False_NoScanIntervalCounterPolarity) {
+TEST(NI6368ADCGTest,TestInitialise_Default_NoScanIntervalCounterPolarity) {
     NI6368ADCTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoScanIntervalCounterPolarity());
+    ASSERT_TRUE(test.TestInitialise_Default_NoScanIntervalCounterPolarity());
 }
 
 TEST(NI6368ADCGTest,TestInitialise_False_BadScanIntervalCounterPolarity) {
@@ -305,11 +326,6 @@ TEST(NI6368ADCGTest,TestSetConfiguredDatabase_False_WrongDeviceName) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_WrongDeviceName());
 }
 
-TEST(NI6368ADCGTest,TestSetConfiguredDatabase_False_WrongFrequencyVsSamples) {
-    NI6368ADCTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_WrongFrequencyVsSamples());
-}
-
 TEST(NI6368ADCGTest,TestSetConfiguredDatabase_False_CounterSamples) {
     NI6368ADCTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_CounterSamples());
@@ -325,11 +341,6 @@ TEST(NI6368ADCGTest,TestSetConfiguredDatabase_False_MoreThanOneGAM) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneGAM());
 }
 
-TEST(NI6368ADCGTest,TestSetConfiguredDatabase_False_NotSynchronisingGAM) {
-    NI6368ADCTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_NotSynchronisingGAM());
-}
-
 TEST(NI6368ADCGTest,TestGetLastBufferIdx) {
     NI6368ADCTest test;
     ASSERT_TRUE(test.TestGetLastBufferIdx());
@@ -343,4 +354,14 @@ TEST(NI6368ADCGTest,TestIsSynchronising) {
 TEST(NI6368ADCGTest,TestIntegrated) {
     NI6368ADCTest test;
     ASSERT_TRUE(test.TestIntegrated());
+}
+
+TEST(NI6368ADCGTest,TestIntegrated_RealTimeThreadExecutionMode) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestIntegrated_RealTimeThreadExecutionMode());
+}
+
+TEST(NI6368ADCGTest,TestIntegrated_RealTimeThreadExecutionMode_NoSync) {
+    NI6368ADCTest test;
+    ASSERT_TRUE(test.TestIntegrated_RealTimeThreadExecutionMode_NoSync());
 }
