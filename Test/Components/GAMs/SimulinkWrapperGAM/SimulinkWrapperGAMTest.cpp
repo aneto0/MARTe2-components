@@ -1500,6 +1500,36 @@ bool SimulinkWrapperGAMTest::TestSetup_WithNestedStructSignals() {
     return (ok) && (status.ErrorsCleared());
 }
 
+bool SimulinkWrapperGAMTest::TestSetup_WithLoggingSignals() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasLoggingSignals', true);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "    In1_Structured  = { DataSource = Drv1   Type = uint8   NumberOfElements = 16   NumberOfDimensions = 1 }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble    = { DataSource = DDB1    Type = float64    NumberOfElements = 1   NumberOfDimensions = 0 }"
+        "    Out2_ScalarUint32    = { DataSource = DDB1    Type = uint32     NumberOfElements = 1   NumberOfDimensions = 0 }"
+        "    Out20_NonVirtualBus  = { DataSource = DDB1    Type = uint8      NumberOfElements = 16  NumberOfDimensions = 1 }"
+        "    Log1_ScalarDouble    = { DataSource = DDB1    Type = float64    NumberOfElements = 1   NumberOfDimensions = 0 }"
+        "    Log2_ScalarUint32    = { DataSource = DDB1    Type = uint32     NumberOfElements = 1   NumberOfDimensions = 0 }"
+        "}";
+
+    StreamString parameters = "";
+
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+
+    return (ok) && (status.ErrorsCleared());
+}
+
 bool SimulinkWrapperGAMTest::TestSetup_SkipInvalidTunableParams() {
 
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;

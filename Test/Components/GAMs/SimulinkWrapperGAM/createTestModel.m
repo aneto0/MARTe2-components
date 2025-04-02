@@ -595,8 +595,8 @@ if hasLoggingSignals
     end
     l1 = add_line(model_name, 'Gain1/1', 'Gain1_ForLogging/1');
     l2 = add_line(model_name, 'Gain2/1', 'Gain2_ForLogging/1');
-    set_param(l1, 'Name', 'Log1');
-    set_param(l2, 'Name', 'Log2');
+    set_param(l1, 'Name', 'Log1_ScalarDouble');
+    set_param(l2, 'Name', 'Log2_ScalarUint32');
 
     if modelComplexity >= 2
         set_param([model_name, '/Gain3'], 'Name', 'Gain3_ForLogging', 'OutDataTypeStr', 'double');
@@ -605,8 +605,8 @@ if hasLoggingSignals
         logBlocks(end + 1) = add_block('simulink/Math Operations/Gain', [model_name '/Gain4'], 'OutDataTypeStr', 'uint32');
         l1 = add_line(model_name, 'Gain3/1', 'Gain3_ForLogging/1');
         l2 = add_line(model_name, 'Gain4/1', 'Gain4_ForLogging/1');
-        set_param(l1, 'Name', 'Log3');
-        set_param(l2, 'Name', 'Log4');
+        set_param(l1, 'Name', 'Log3_VectorDouble');
+        set_param(l2, 'Name', 'Log4_VectorUint32');
     end
     
     if modelComplexity >= 3
@@ -616,8 +616,8 @@ if hasLoggingSignals
         logBlocks(end + 1) = add_block('simulink/Math Operations/Gain', [model_name '/Gain6'], 'OutDataTypeStr', 'uint32');
         l1 = add_line(model_name, 'Gain5/1', 'Gain5_ForLogging/1');
         l2 = add_line(model_name, 'Gain6/1', 'Gain6_ForLogging/1');
-        set_param(l1, 'Name', 'Log5');
-        set_param(l2, 'Name', 'Log6');
+        set_param(l1, 'Name', 'Log5_MatrixDouble');
+        set_param(l2, 'Name', 'Log6_MatrixUint32');
     end
 end
 

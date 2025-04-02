@@ -212,6 +212,11 @@ public:
     bool TestSetup_WithNestedStructSignals();
     
     /**
+     * @brief Tests the Setup() method when block signals are logged.
+     */
+    bool TestSetup_WithLoggingSignals();
+
+    /**
      * @brief Tests the Setup() method when told to skip not ok tunable parameters.
      */
     bool TestSetup_SkipInvalidTunableParams();

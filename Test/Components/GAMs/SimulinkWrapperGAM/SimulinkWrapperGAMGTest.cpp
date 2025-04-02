@@ -137,7 +137,6 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_SkipInvalidTunableParams) {
     ASSERT_TRUE(test.TestSetup_SkipInvalidTunableParams());
 }
 
-
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithStructSignals) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_WithStructSignals());
@@ -146,6 +145,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_WithStructSignals) {
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithNestedStructSignals) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_WithNestedStructSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithLoggingSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithLoggingSignals());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_DontSkipUnlinkedTunableParams) {
