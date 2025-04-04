@@ -1063,7 +1063,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
             }
 
             if (ret.ErrorsCleared()) {
-                ret.illegalOperation = ( numberOfGAMOutputSignals != (modelNumOfOutputs + modelNumOfSignals) );
+                ret.illegalOperation = ( (numberOfGAMOutputSignals < modelNumOfOutputs) || (numberOfGAMOutputSignals > (modelNumOfOutputs + modelNumOfSignals)) );
                 if (ret.illegalOperation) {
                     REPORT_ERROR(ret, "[%s] - Number of output signals mismatch (GAM: %u, model %u)",
                         GetName(), numberOfGAMOutputSignals,  modelNumOfOutputs + modelNumOfSignals);
