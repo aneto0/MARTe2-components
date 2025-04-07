@@ -249,16 +249,28 @@ public:
     bool TestSetup_Failed_WrongNumberOfOutputs();
     
     /**
+     * @brief Tests the Setup() method when the number of model logging signals
+     *        do not match the ones declared in the configuration.
+     */
+    bool TestSetup_Failed_WrongNumberOfLoggingSignals();
+
+    /**
      * @brief Tests the Setup() method when an input signal name does
      *        not match.
      */
     bool TestSetup_Failed_WrongInputName();
-    
+
     /**
      * @brief Tests the Setup() method when an output signal name does
      *        not match.
      */
     bool TestSetup_Failed_WrongOutputName();
+
+    /**
+     * @brief Tests the Setup() method when an output signal name does
+     *        not match.
+     */
+    bool TestSetup_Failed_WrongLoggingSignalName();
     
     /**
      * @brief Tests the Setup() method  when a signal number of elements
@@ -271,12 +283,18 @@ public:
      *        does not match.
      */
     bool TestSetup_Failed_WrongNumberOfDimensions();
-    
+
     /**
      * @brief Tests the Setup() method  when a signal type
      *        does not match.
      */
     bool TestSetup_Failed_WrongDatatype();
+
+    /**
+     * @brief Tests the Setup() method  when a logging signal type
+     *        does not match.
+     */
+    bool TestSetup_Failed_LoggingSignalWrongDatatype();
     
     /**
      * @brief Tests the Setup() method  when a parameter number of dimensions
@@ -367,12 +385,15 @@ public:
      */
     bool Test_StructuredSignals();
 
+    /**
+     * @brief Test execution and coherence with logging signals
+     */
+    bool TestExecute_WithLoggingSignals();
 
     /**
      * @brief Test execution and coherence when working in pure structured mode
      */
     bool TestExecute_WithStructuredSignals();
-
 
     /**
      * @brief Test execution and coherence when working with mixed signals and transposition takes place

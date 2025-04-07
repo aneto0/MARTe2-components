@@ -167,6 +167,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfOutputs) {
     ASSERT_TRUE(test.TestSetup_Failed_WrongNumberOfOutputs());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfLoggingSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_WrongNumberOfLoggingSignals());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongInputName) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_WrongInputName());
@@ -175,6 +180,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongInputName) {
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongOutputName) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_WrongOutputName());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongLoggingSignalName) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_WrongLoggingSignalName());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfElements) {
@@ -190,6 +200,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfDimensions) {
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongDatatype) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_WrongDatatype());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_LoggingSignalWrongDatatype) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_LoggingSignalWrongDatatype());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_ParamWrongNumberOfDimensions) {
@@ -284,6 +299,11 @@ TEST(SimulinkWrapperGAMGTest, TestPrintAlgoInfo) {
 TEST(SimulinkWrapperGAMGTest, Test_StructuredSignals) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.Test_StructuredSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_WithLoggingSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_WithLoggingSignals());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_DisconnectedOutputSignal_Failed) {

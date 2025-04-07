@@ -70,6 +70,14 @@ public:
     MARTe::SimulinkRootInterface* GetOutputs() {
         return outputs;
     }
+
+    MARTe::SimulinkRootInterface* GetSignals() {
+        return signals;
+    }
+
+    MARTe::uint32 GetNumberOfLoggingSignals() {
+        return modelNumOfSignals;
+    }
     
     MARTe::ErrorManagement::ErrorType GetStatus() {
         return this->status;
@@ -1713,6 +1721,37 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
     return (!ok) && (status.illegalOperation);
 }
 
+bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfLoggingSignals() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::NoError;
+
+    StreamString scriptCall = "createTestModel('hasLoggingSignals', true);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "    In1_ScalarDouble  = { DataSource = Drv1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    In2_ScalarUint32  = { DataSource = Drv1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out2_ScalarUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Log1_ScalarDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Log2_ScalarUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Log3_Error        = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "}";
+
+    StreamString parameters = "";
+
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+
+    return (!ok) && (status.illegalOperation);
+}
+
 bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongInputName() {
     
     ErrorManagement::ErrorType status = ErrorManagement::NoError;
@@ -1806,6 +1845,37 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongOutputName() {
     // Test setup
     bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
+    return (!ok) && (status.internalSetupError);
+}
+
+
+bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongLoggingSignalName() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::NoError;
+
+    StreamString scriptCall = "createTestModel('hasLoggingSignals', true);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "    In1_ScalarDouble  = { DataSource = Drv1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    In2_ScalarUint32  = { DataSource = Drv1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out2_ScalarUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Log1_ScalarDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Log2_Error        = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "}";
+
+    StreamString parameters = "";
+
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+
     return (!ok) && (status.internalSetupError);
 }
 
@@ -1950,6 +2020,36 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfDimensions() {
     // Test setup
     bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
+    return (!ok) && (status.internalSetupError);
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_Failed_LoggingSignalWrongDatatype() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::NoError;
+
+    StreamString scriptCall = "createTestModel('hasLoggingSignals', true);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "    In1_ScalarDouble  = { DataSource = Drv1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    In2_ScalarUint32  = { DataSource = Drv1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out2_ScalarUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Log1_ScalarDouble = { DataSource = DDB1    Type = uint64     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Log2_ScalarUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "}";
+
+    StreamString parameters = "";
+
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+
     return (!ok) && (status.internalSetupError);
 }
 
@@ -3619,6 +3719,294 @@ bool SimulinkWrapperGAMTest::Test_StructuredSignals() {
 
     return ok && status;
 }
+
+bool SimulinkWrapperGAMTest::TestExecute_WithLoggingSignals() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+
+    StreamString scriptCall = " createTestModel('modelComplexity', 4, 'hasTunableParams', true, 'hasLoggingSignals', true);";
+
+    StreamString skipUnlinkedParams = "0";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "    In1_ScalarDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    In2_ScalarUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    In3_VectorDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "    In4_VectorUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "    In5_MatrixDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 36   NumberOfDimensions = 2 }"
+        "    In6_MatrixUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 36   NumberOfDimensions = 2 }"
+        "    In7_3DMatrixDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 16   NumberOfDimensions = 2 }"
+        "    In8_3DMatrixUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 16   NumberOfDimensions = 2 }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out2_ScalarUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 10   NumberOfDimensions = 1 }"
+        "    Out3_VectorDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "    Out4_VectorUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "    Out5_MatrixDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 36   NumberOfDimensions = 2 }"
+        "    Out6_MatrixUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 36   NumberOfDimensions = 2 }"
+        "    Out7_3DMatrixDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 16   NumberOfDimensions = 2 }"
+        "    Out8_3DMatrixUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 16   NumberOfDimensions = 2 }"
+        "    Log1_ScalarDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Log2_ScalarUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 10   NumberOfDimensions = 1 }"
+        "    Log3_VectorDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "    Log4_VectorUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "    Log5_MatrixDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 36   NumberOfDimensions = 2 }"
+        "    Log6_MatrixUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 36   NumberOfDimensions = 2 }"
+        "}";
+
+    StreamString parameters = ""
+        "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }";
+
+    StreamString inputValues = ""
+        "In1_ScalarDouble = (float64) 3.141592653 "
+        "In2_ScalarUint32 = (uint32)  2 "
+        "In3_VectorDouble = (float64) { 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0 } "
+        "In4_VectorUint32 = (uint32)  { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 } "
+        "In5_MatrixDouble = (float64) { { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12} }"
+        "In6_MatrixUint32 = (uint32)  { { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12} }"
+        "In7_3DMatrixDouble = (float64) { { 20, 21, 22, 23 },"
+        "                                 { 20, 21, 22, 23 },"
+        "                                 { 20, 21, 22, 23 },"
+        "                                 { 20, 21, 22, 23 } }"
+        "In8_3DMatrixUint32 = (uint32)  { { 20, 21, 22, 23 },"
+        "                                 { 20, 21, 22, 23 },"
+        "                                 { 20, 21, 22, 23 },"
+        "                                 { 20, 21, 22, 23 } }"
+        ;
+
+    // Model is column-major, so matrices are expected to be transposed when copied
+    StreamString expectedInputValues = ""
+        "In1_ScalarDouble = (float64) 3.141592653 "
+        "In2_ScalarUint32 = (uint32)  2 "
+        "In3_VectorDouble = (float64) { 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0 } "
+        "In4_VectorUint32 = (uint32)  { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 } "
+        "In5_MatrixDouble = (float64) { { 10, 10, 10, 10, 10, 10}, "
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 12, 12, 12, 12, 12, 12} }"
+        "In6_MatrixUint32 = (uint32)  { { 10, 10, 10, 10, 10, 10}, "
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 11, 11, 11, 11, 11, 11},"
+        "                               { 12, 12, 12, 12, 12, 12} }"
+        "In7_3DMatrixDouble = (float64) { { 20, 20, 20, 20 },"
+        "                                 { 21, 21, 21, 21 },"
+        "                                 { 22, 22, 22, 22 },"
+        "                                 { 23, 23, 23, 23 } }"
+        "In8_3DMatrixUint32 = (uint32)  { { 20, 20, 20, 20 },"
+        "                                 { 21, 21, 21, 21 },"
+        "                                 { 22, 22, 22, 22 },"
+        "                                 { 23, 23, 23, 23 } }"
+        ;
+
+    StreamString expectedOutputValues = ""
+        "Out1_ScalarDouble = (float64) 3.141592653 "
+        "Out2_ScalarUint32 = (uint32)  { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 } "
+        "Out3_VectorDouble = (float64) { 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0 } "
+        "Out4_VectorUint32 = (uint32)  { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 } "
+        "Out5_MatrixDouble = (float64) { { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12} }"
+        "Out6_MatrixUint32 = (uint32)  { { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12} }"
+        "Out7_3DMatrixDouble = (float64) { { 20, 21, 22, 23 },"
+        "                                 { 20, 21, 22, 23 },"
+        "                                 { 20, 21, 22, 23 },"
+        "                                 { 20, 21, 22, 23 } }"
+        "Out8_3DMatrixUint32 = (uint32)  { { 20, 21, 22, 23 },"
+        "                                 { 20, 21, 22, 23 },"
+        "                                 { 20, 21, 22, 23 },"
+        "                                 { 20, 21, 22, 23 } }"
+        ;
+
+    StreamString expectedSignalValues = ""
+        "Log1_ScalarDouble = (float64) 3.141592653 "
+        "Log2_ScalarUint32 = (uint32)  { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 } "
+        "Log3_VectorDouble = (float64) { 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0 } "
+        "Log4_VectorUint32 = (uint32)  { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 } "
+        "Log5_MatrixDouble = (float64) { { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12} }"
+        "Log6_MatrixUint32 = (uint32)  { { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12},"
+        "                               { 10, 11, 11, 11, 11, 12} }"
+        ;
+
+    // Setup GAM
+    ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
+
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
+
+    // Build a database with what shall be loaded as input
+    ConfigurationDatabase cdb;
+    if (ok) {
+        inputValues.Seek(0u);
+        StandardParser parser(inputValues, cdb);
+        ok = parser.Parse();
+    }
+
+    if (ok) {
+        ReferenceT<SimulinkWrapperGAMHelper> gam = ord->Find("Test.Functions.GAM1");
+
+        ok = gam.IsValid();
+
+        // Copy inputValues to the GAM input signal memory
+        if (ok) {
+
+            for (uint32 signalIdx = 0u; (signalIdx < gam->GetNumberOfInputSignals()) && ok ; signalIdx++) {
+
+                StreamString signalName;
+                ok = gam->GetSignalName(InputSignals, signalIdx, signalName);
+
+                AnyType arrayDescription = cdb.GetType(signalName.Buffer());
+                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
+
+                //
+                uint32 memoryAllocationSize = 0u;
+                switch (arrayDescription.GetNumberOfDimensions()) {
+
+                    case 0u:
+                        memoryAllocationSize = arrayDescription.GetByteSize();
+                        break;
+
+                    case 1u:
+                        memoryAllocationSize = arrayDescription.GetByteSize() * arrayDescription.GetNumberOfElements(0u);
+                        break;
+
+                    case 2u:
+                        memoryAllocationSize = arrayDescription.GetByteSize() * arrayDescription.GetNumberOfElements(0u) * arrayDescription.GetNumberOfElements(1u);
+                        break;
+                }
+                if (ok) {
+                    ok = MemoryOperationsHelper::Copy(gam->GetInputSignalMemoryTest(signalIdx), arrayDescription.GetDataPointer(), memoryAllocationSize);
+                }
+            }
+
+            ok = gam->Execute();
+
+        }
+
+        // Check if signals were correctly copied in the model
+
+        ConfigurationDatabase inCdb;
+        if (ok) {
+            expectedInputValues.Seek(0u);
+            StandardParser parser(expectedInputValues, inCdb);
+            ok = parser.Parse();
+        }
+
+        ConfigurationDatabase outCdb;
+        if (ok) {
+            expectedOutputValues.Seek(0u);
+            StandardParser parser(expectedOutputValues, outCdb);
+            ok = parser.Parse();
+        }
+
+        ConfigurationDatabase sigCdb;
+        if (ok) {
+            expectedSignalValues.Seek(0u);
+            StandardParser parser(expectedSignalValues, sigCdb);
+            ok = parser.Parse();
+        }
+
+        // Compare input, outputs and logging signals with expected values
+        if (ok) {
+
+            SimulinkRootInterface* inputs = gam->GetInputs();
+
+            for (uint32 rootInputIdx = 0u; (rootInputIdx < gam->GetNumberOfInputSignals()) && ok; rootInputIdx++) {
+
+                StreamString inputName = inputs[rootInputIdx].fullPath;
+                uint32       inputSize = inputs[rootInputIdx].byteSize;
+                void*        inputAddr = inputs[rootInputIdx].destPtr;
+
+                AnyType arrayDescription = inCdb.GetType(inputName.Buffer());
+                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
+                if (ok) {
+                    ok = (MemoryOperationsHelper::Compare(inputAddr, arrayDescription.GetDataPointer(), inputSize) == 0u);
+                    if (!ok) {
+                        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Signal %s comparison failed.", inputName.Buffer());
+                    }
+                }
+            }
+
+            SimulinkRootInterface* outputs = gam->GetOutputs();
+
+            for (uint32 rootOutputIdx = 0u; (rootOutputIdx < (gam->GetNumberOfOutputSignals() - gam->GetNumberOfLoggingSignals())) && ok; rootOutputIdx++) {
+
+                StreamString outputName = outputs[rootOutputIdx].fullPath;
+                uint32       outputSize = outputs[rootOutputIdx].byteSize;
+                void*        outputAddr = outputs[rootOutputIdx].destPtr;
+
+                AnyType arrayDescription = outCdb.GetType(outputName.Buffer());
+                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
+
+                if (ok) {
+                    ok = (MemoryOperationsHelper::Compare(outputAddr, arrayDescription.GetDataPointer(), outputSize) == 0u);
+                    if (!ok) {
+                        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Signal %s comparison failed.", outputName.Buffer());
+                    }
+                }
+            }
+
+            SimulinkRootInterface* signals = gam->GetSignals();
+
+            for (uint32 loggingSignalIdx = 0u; (loggingSignalIdx < gam->GetNumberOfLoggingSignals()) && ok; loggingSignalIdx++) {
+
+                StreamString signalName = signals[loggingSignalIdx].fullPath;
+                uint32       signalSize = signals[loggingSignalIdx].byteSize;
+                void*        signalAddr = signals[loggingSignalIdx].destPtr;
+
+                AnyType arrayDescription = sigCdb.GetType(signalName.Buffer());
+                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
+
+                if (ok) {
+                    ok = (MemoryOperationsHelper::Compare(signalAddr, arrayDescription.GetDataPointer(), signalSize) == 0u);
+                    if (!ok) {
+                        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Signal %s comparison failed.", signalName.Buffer());
+                    }
+                }
+            }
+        }
+    }
+
+    if (ok) {
+        ord->Purge();
+    }
+
+    return ok && status;
+}
+
 
 bool SimulinkWrapperGAMTest::TestExecute_WithStructuredSignals() {
 
