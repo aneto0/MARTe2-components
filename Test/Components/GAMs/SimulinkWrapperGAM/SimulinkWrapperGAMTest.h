@@ -402,6 +402,11 @@ public:
     bool TestExecute_WithStructuredSignals();
 
     /**
+     * @brief Test execution and coherence when working in pure structured mode
+     */
+    bool TestExecute_WithStructuredLoggingSignals();
+
+    /**
      * @brief Test execution and coherence when working with mixed signals and transposition takes place
      */
     bool TestExecute_MultiMixedSignalsTranspose(bool transpose);

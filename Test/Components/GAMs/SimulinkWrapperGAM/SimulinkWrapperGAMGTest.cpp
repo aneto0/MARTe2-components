@@ -311,6 +311,11 @@ TEST(SimulinkWrapperGAMGTest, TestExecute_WithLoggingSignals) {
     ASSERT_TRUE(test.TestExecute_WithLoggingSignals());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestExecute_WithStructuredLoggingSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_WithStructuredLoggingSignals());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_DisconnectedOutputSignal_Failed) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_DisconnectedOutputSignal_Failed());

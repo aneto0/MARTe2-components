@@ -3744,6 +3744,10 @@ bool SimulinkWrapperGAMTest::TestSetup_WithStructuredLoggingSignals() {
         "        Signal1  = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
         "        Signal2  = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
         "    }"
+        "    Log20_NonVirtualBus = { "
+        "        Signal1  = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "        Signal2  = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    }"
         "}";
 
     StreamString parameters = "";
@@ -4211,6 +4215,151 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructuredSignals() {
     
     return ok && status;
 }
+
+
+bool SimulinkWrapperGAMTest::TestExecute_WithStructuredLoggingSignals() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'hasLoggingSignals', true);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "    In1_Structured = { "
+        "        In1_ScalarDouble  = { DataSource = Drv1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "        In2_ScalarUint32  = { DataSource = Drv1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out2_ScalarUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out20_NonVirtualBus = { "
+        "        Signal1  = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "        Signal2  = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    }"
+        "    Log20_NonVirtualBus = { "
+        "        Signal1  = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "        Signal2  = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    }"
+        "}";
+
+    StreamString inputValues = ""
+        "In1_Structured.In1_ScalarDouble = (float64) 3.141592653 "
+        "In1_Structured.In2_ScalarUint32 = (uint32)  2";
+
+    StreamString expectedLoggingSignalValues = ""
+        "Log20_NonVirtualBus.Signal2 = (float64) 3.141592653 "
+        "Log20_NonVirtualBus.Signal1 = (uint32)  2";
+
+    StreamString parameters = "";
+
+    ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord, false, false);
+
+    ConfigurationDatabase cdb;
+    if (ok) {
+        inputValues.Seek(0u);
+        StandardParser parser(inputValues, cdb);
+        ok = parser.Parse();
+    }
+
+    ConfigurationDatabase sigCdb;
+    if (ok) {
+        expectedLoggingSignalValues.Seek(0u);
+        StandardParser parser(expectedLoggingSignalValues, sigCdb);
+        ok = parser.Parse();
+    }
+
+    if (ok) {
+        ReferenceT<SimulinkWrapperGAMHelper> gam = ord->Find("Test.Functions.GAM1");
+
+        ok = gam.IsValid();
+
+        // Copy inputValues to the GAM input signal memory
+        if (ok) {
+
+            for (uint32 signalIdx = 0u; (signalIdx < gam->GetNumberOfInputSignals()) && ok ; signalIdx++) {
+
+                StreamString signalName;
+                ok = gam->GetSignalName(InputSignals, signalIdx, signalName);
+
+
+                AnyType arrayDescription = cdb.GetType(signalName.Buffer());
+                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
+
+                //
+                uint32 memoryAllocationSize = 0u;
+                switch (arrayDescription.GetNumberOfDimensions()) {
+
+                    case 0u:
+                        memoryAllocationSize = arrayDescription.GetByteSize();
+                        break;
+
+                    case 1u:
+                        memoryAllocationSize = arrayDescription.GetByteSize() * arrayDescription.GetNumberOfElements(0u);
+                        break;
+
+                    case 2u:
+                        memoryAllocationSize = arrayDescription.GetByteSize() * arrayDescription.GetNumberOfElements(0u) * arrayDescription.GetNumberOfElements(1u);
+                        break;
+                }
+                if (ok) {
+                    ok = MemoryOperationsHelper::Copy(gam->GetInputSignalMemoryTest(signalIdx), arrayDescription.GetDataPointer(), memoryAllocationSize);
+                }
+            }
+
+            ok = gam->Execute();
+        }
+
+        if(ok) {
+            SimulinkRootInterface* inputs = gam->GetInputs();
+            SimulinkInterface* in1 = inputs[0][0];
+            SimulinkInterface* in2 = inputs[0][1];
+
+            AnyType adIn1 = cdb.GetType(in1->fullPath.Buffer());
+            AnyType adIn2 = cdb.GetType(in2->fullPath.Buffer());
+
+            ok =    adIn1.GetDataPointer() != NULL_PTR(void *) &&
+                    adIn2.GetDataPointer() != NULL_PTR(void *);
+
+            if(ok) {
+                ok =    (MemoryOperationsHelper::Compare(in1->destPtr, adIn1.GetDataPointer(), in1->byteSize) == 0u) &&
+                        (MemoryOperationsHelper::Compare(in2->destPtr, adIn2.GetDataPointer(), in2->byteSize) == 0u);
+            }
+            else {
+                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Wrong data pointers");
+            }
+        }
+
+        if (ok) {
+            SimulinkRootInterface* signals = gam->GetSignals();
+            SimulinkInterface* sig1 = signals[0][0];
+            SimulinkInterface* sig2 = signals[0][1];
+
+            AnyType adOut1 = sigCdb.GetType(sig1->fullPath.Buffer());
+            AnyType adOut2 = sigCdb.GetType(sig2->fullPath.Buffer());
+
+            ok =    adOut1.GetDataPointer() != NULL_PTR(void *) &&
+                    adOut2.GetDataPointer() != NULL_PTR(void *);
+            if(ok) {
+                ok =    (SafeMath::IsEqual<float64>( *( (float64*) sig2->destPtr), *( (float64*) adOut2.GetDataPointer() ) ) ) &&
+                        (SafeMath::IsEqual<uint32> ( *( (uint32*)  sig1->destPtr), *( (uint32*)  adOut1.GetDataPointer() ) ) );
+            }
+        }
+    }
+
+    if (ok) {
+        ord->Purge();
+    }
+
+    return ok && status;
+}
+
 
 bool SimulinkWrapperGAMTest::TestSetup_DisconnectedOutputSignal_Failed() {
 
