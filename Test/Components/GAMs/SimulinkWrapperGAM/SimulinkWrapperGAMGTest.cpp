@@ -172,6 +172,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfLoggingSignals) {
     ASSERT_TRUE(test.TestSetup_Failed_WrongNumberOfLoggingSignals());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_EmptyInterfaceName) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_EmptyInterfaceName());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongInputName) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_WrongInputName());

@@ -18,6 +18,7 @@ hasOutputs           = true;
 hasLoggingSignals    = false;
 hasStructSignals     = false;
 hasEnums             = false;
+hasSignalNames       = true;
 dataOrientation      = 'Column-major';   isRowMajor = 0;
 useType              = 0;
 
@@ -58,6 +59,9 @@ while ~isempty(varargin)
         case 'hasEnums'
             hasEnums = varargin{2};
 
+        case 'hasSignalNames'
+            hasSignalNames = varargin{2};
+
         case 'dataOrientation'
             dataOrientation = varargin{2};
             if strcmp(dataOrientation, 'Row-major')
@@ -86,11 +90,11 @@ if hasLoggingSignals && hasEnums
 end
 
 % warning: the model name is limited to 20 characters
-model_name = ['testMdl' int2str(modelComplexity)  int2str(hasAllocFcn)     int2str(hasGetmmiFcn) ...
-                        int2str(hasTunableParams) int2str(hasStructParams) int2str(hasStructArrayParams) ...
-                        int2str(hasInputs)        int2str(hasOutputs)      int2str(hasStructSignals) ...
-                        int2str(isRowMajor)       int2str(hasEnums)        int2str(useType) ...
-                        int2str(hasLoggingSignals) ...
+model_name = ['tstMdl' int2str(modelComplexity)  int2str(hasAllocFcn)     int2str(hasGetmmiFcn) ...
+                       int2str(hasTunableParams) int2str(hasStructParams) int2str(hasStructArrayParams) ...
+                       int2str(hasInputs)        int2str(hasOutputs)      int2str(hasStructSignals) ...
+                       int2str(isRowMajor)       int2str(hasEnums)        int2str(hasSignalNames) ...
+                       int2str(useType)          int2str(hasLoggingSignals) ...
              ];
 
 if isfile([model_name '.so'])
@@ -809,7 +813,7 @@ for port = outPorts
     p           = get_param(port, 'PortHandles');
     signal_name = get_param(port, 'Name');
     l           = get_param(p.Inport(1), 'Line');
-    set_param(l, 'Name', signal_name);
+    if hasSignalNames, set_param(l, 'Name', signal_name); end
 end
 
 % name the input signals
@@ -817,7 +821,7 @@ for port = inPorts
     p           = get_param(port, 'PortHandles');
     signal_name = get_param(port, 'Name');
     l           = get_param(p.Outport(1), 'Line');
-    set_param(l, 'Name', signal_name);
+    if hasSignalNames, set_param(l, 'Name', signal_name); end
 end
 
 %% logging of block signals

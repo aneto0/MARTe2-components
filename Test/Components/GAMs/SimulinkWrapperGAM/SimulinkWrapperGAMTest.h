@@ -258,6 +258,12 @@ public:
      * @brief Tests the Setup() method when an input signal name does
      *        not match.
      */
+    bool TestSetup_Failed_EmptyInterfaceName();
+
+    /**
+     * @brief Tests the Setup() method when an input signal name does
+     *        not match.
+     */
     bool TestSetup_Failed_WrongInputName();
 
     /**

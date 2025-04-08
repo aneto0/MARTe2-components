@@ -1752,6 +1752,34 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfLoggingSignals() {
     return (!ok) && (status.illegalOperation);
 }
 
+bool SimulinkWrapperGAMTest::TestSetup_Failed_EmptyInterfaceName() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::NoError;
+
+    StreamString scriptCall = "createTestModel('hasSignalNames', false);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "    In1_ScalarDouble  = { DataSource = Drv1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    In2_ScalarUINT32  = { DataSource = Drv1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out2_ScalarUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "}";
+
+    StreamString parameters = "";
+
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+
+    return (!ok) && (status.illegalOperation);
+}
+
 bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongInputName() {
     
     ErrorManagement::ErrorType status = ErrorManagement::NoError;
