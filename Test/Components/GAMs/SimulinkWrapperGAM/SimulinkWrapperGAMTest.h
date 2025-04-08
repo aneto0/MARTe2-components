@@ -379,11 +379,17 @@ public:
      * @brief Tests the PrintAlgoInfo() method.
      */
     bool TestPrintAlgoInfo();
-    
+
     /**
      * @brief Test the behaviour when working in pure structured signal mode
      */
     bool Test_StructuredSignals();
+
+    /**
+     * @brief Test the behaviour when working in pure structured signal mode
+     *        and having logging signals
+     */
+    bool TestSetup_WithStructuredLoggingSignals();
 
     /**
      * @brief Test execution and coherence with logging signals

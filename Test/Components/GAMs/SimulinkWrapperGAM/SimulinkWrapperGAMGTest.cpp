@@ -301,6 +301,11 @@ TEST(SimulinkWrapperGAMGTest, Test_StructuredSignals) {
     ASSERT_TRUE(test.Test_StructuredSignals());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithStructuredLoggingSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithStructuredLoggingSignals());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestExecute_WithLoggingSignals) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestExecute_WithLoggingSignals());

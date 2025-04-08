@@ -622,9 +622,8 @@ if hasLoggingSignals
 
     if hasStructSignals == true
         % empty subsystem to create structured signals for logging
-
         delete_line(model_name, 'BusCreator1/1',      'Out20_NonVirtualBus/1');
-        add_block('simulink/Ports & Subsystems/Subsystem', [model_name '/Gain20_ForLogging' ]);
+        add_block('simulink/Ports & Subsystems/Atomic Subsystem', [model_name '/Gain20_ForLogging' ]);
         l1 = add_line(model_name, 'BusCreator1/1',       'Gain20_ForLogging/1');
         add_line(model_name, 'Gain20_ForLogging/1', 'Out20_NonVirtualBus/1');
         logBlocks(end + 1) = get_param([model_name '/BusCreator1'], 'Handle');
@@ -632,7 +631,7 @@ if hasLoggingSignals
     
         if modelComplexity >= 2
             delete_line(model_name, 'BusCreator21/1',      'Out21_NonVirtualBus/1');
-            add_block('simulink/Ports & Subsystems/Subsystem', [model_name '/Gain21_ForLogging' ]);
+            add_block('simulink/Ports & Subsystems/Atomic Subsystem', [model_name '/Gain21_ForLogging' ]);
             l1 = add_line(model_name, 'BusCreator21/1',      'Gain21_ForLogging/1');
             add_line(model_name, 'Gain21_ForLogging/1', 'Out21_NonVirtualBus/1');
             logBlocks(end + 1) = get_param([model_name '/BusCreator21'], 'Handle');
@@ -641,7 +640,7 @@ if hasLoggingSignals
     
         if modelComplexity >= 3
             delete_line(model_name, 'BusCreator31/1',      'Out31_NonVirtualBus/1');
-            add_block('simulink/Ports & Subsystems/Subsystem', [model_name '/Gain31_ForLogging' ]);
+            add_block('simulink/Ports & Subsystems/Atomic Subsystem', [model_name '/Gain31_ForLogging' ]);
             l1 = add_line(model_name, 'BusCreator31/1',      'Gain31_ForLogging/1');
             add_line(model_name, 'Gain31_ForLogging/1', 'Out31_NonVirtualBus/1');
             logBlocks(end + 1) = get_param([model_name '/BusCreator31'], 'Handle');
