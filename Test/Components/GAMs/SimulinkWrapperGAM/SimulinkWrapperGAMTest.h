@@ -108,6 +108,7 @@ public:
      *          up to the user to call objRegDatabase->Purge()).
      */
     bool TestSetupWithTemplate(MARTe::StreamString scriptCall,
+                               MARTe::StreamString verbosity,
                                 MARTe::StreamString skipUnlinkedParams,
                                 MARTe::StreamString inputSignals,
                                 MARTe::StreamString outputSignals,
@@ -225,11 +226,21 @@ public:
      * @brief Tests the Setup() method when there are no inputs.
      */
     bool TestSetup_NoInputs();
-    
+
     /**
      * @brief Tests the Setup() method when there are no outputs.
      */
     bool TestSetup_NoOutputs();
+
+    /**
+     * @brief Tests the Setup() method when verbosity level is set to 1.
+     */
+    bool TestSetup_LowVerbosity();
+
+    /**
+     * @brief Tests the Setup() method when verbosity level is set to 0.
+     */
+    bool TestSetup_ZeroVerbosity();
     
     /**
      * @brief Tests the Setup() method when told not to skip not ok tunable parameters.
@@ -500,7 +511,7 @@ public:
         "            Class = SimulinkWrapperGAMHelper"
         "            Library = \"%s\""
         "            SymbolPrefix = \"%s\""
-        "            Verbosity = 2"
+        "            Verbosity = %s"
         "            TunableParamExternalSource = ExtSource"
         "            NonVirtualBusMode = %s"
         "            EnforceModelSignalCoverage = %s"

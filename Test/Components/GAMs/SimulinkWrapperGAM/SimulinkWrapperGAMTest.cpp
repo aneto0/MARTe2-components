@@ -406,6 +406,7 @@ bool SimulinkWrapperGAMTest::TestInitialiseWithConfiguration(ConfigurationDataba
 }
 
 bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString scriptCall,
+                                                   StreamString verbosity,
                                                    StreamString skipUnlinkedParams,
                                                    StreamString inputSignals,
                                                    StreamString outputSignals,
@@ -435,6 +436,7 @@ bool SimulinkWrapperGAMTest::TestSetupWithTemplate(StreamString scriptCall,
     config.Printf(configTemplate.Buffer(),
                   modelFullPath.Buffer(),
                   modelName.Buffer(),
+                  verbosity.Buffer(),
                   structuredSignalsAsByteArrays ? "ByteArray" : "Structured",
                   enforceModelSignalCoverage ? "1" : "0",
                   skipUnlinkedParams.Buffer(),
@@ -866,7 +868,9 @@ bool SimulinkWrapperGAMTest::TestSetup() {
         "                              {11, 11, 11, 11, 11, 11},"
         "                              {12, 12, 12, 12, 12, 12}}";
     
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (ok) && (status.ErrorsCleared());
 }
@@ -920,7 +924,9 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters_1() {
         "structScalar.pnested2.one = (float64) 1 "
         "structScalar.pnested2.two = (float64) 1 ";
     
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
 
     return (ok) && (status.ErrorsCleared());
 }
@@ -1006,7 +1012,9 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters_2() {
         "                              {11, 11, 11, 11, 11, 11},"
         "                              {12, 12, 12, 12, 12, 12}}";
     
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
 
     return (ok) && (status.ErrorsCleared());
 }
@@ -1117,6 +1125,7 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters_3() {
     config.Printf(configTemplate.Buffer(),
                   modelFullPath.Buffer(),
                   modelName.Buffer(),
+                  "2",
                   "ByteArray",
                   "0",
                   skipUnlinkedParams.Buffer(),
@@ -1277,6 +1286,7 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParametersFromExternalSource
     config.Printf(configTemplate.Buffer(),
                   modelFullPath.Buffer(),
                   modelName.Buffer(),
+                  "2",
                   "ByteArray",
                   "0",
                   skipUnlinkedParams.Buffer(),
@@ -1397,7 +1407,9 @@ bool SimulinkWrapperGAMTest::TestSetup_NoTunableParameters() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (ok) && (status.ErrorsCleared());
 }
@@ -1445,7 +1457,9 @@ bool SimulinkWrapperGAMTest::TestSetup_WithStructSignals() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (ok) && (status.ErrorsCleared());
 }
@@ -1503,7 +1517,9 @@ bool SimulinkWrapperGAMTest::TestSetup_WithNestedStructSignals() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (ok) && (status.ErrorsCleared());
 }
@@ -1533,7 +1549,9 @@ bool SimulinkWrapperGAMTest::TestSetup_WithLoggingSignals() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
 
     return (ok) && (status.ErrorsCleared());
 }
@@ -1583,7 +1601,9 @@ bool SimulinkWrapperGAMTest::TestSetup_SkipInvalidTunableParams() {
         "vectorConstant = (float64) {1, 1, 1, 1, 1, 1, 1, 1}";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (ok) && (status.ErrorsCleared());
 }
@@ -1632,7 +1652,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_DontSkipUnlinkedTunableParams() {
     StreamString parameters = ""
         "vectorConstant = (float64) {1, 1, 1, 1, 1, 1, 1, 1}";
 
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
 
     return (!ok) && (status.internalSetupError);
 }
@@ -1674,7 +1696,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfInputs() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (!ok) && (status.illegalOperation);
 }
@@ -1716,7 +1740,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfOutputs() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (!ok) && (status.illegalOperation);
 }
@@ -1747,7 +1773,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfLoggingSignals() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
 
     return (!ok) && (status.illegalOperation);
 }
@@ -1775,7 +1803,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_EmptyInterfaceName() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
 
     return (!ok) && (status.illegalOperation);
 }
@@ -1823,7 +1853,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongInputName() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (!ok) && (status.internalSetupError);
 }
@@ -1871,7 +1903,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongOutputName() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (!ok) && (status.internalSetupError);
 }
@@ -1902,7 +1936,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongLoggingSignalName() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
 
     return (!ok) && (status.internalSetupError);
 }
@@ -1950,7 +1986,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongDatatype() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (!ok) && (status.internalSetupError);
 }
@@ -1998,7 +2036,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfElements() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (!ok) && (status.internalSetupError);
 }
@@ -2046,7 +2086,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfDimensions() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (!ok) && (status.internalSetupError);
 }
@@ -2076,7 +2118,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_LoggingSignalWrongDatatype() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
 
     return (!ok) && (status.internalSetupError);
 }
@@ -2125,7 +2169,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_ParamWrongNumberOfDimensions() {
         "vectorConstant = (uint32) { {1, 1}, {1, 1} }";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (!ok) && (status.internalSetupError);
 }
@@ -2174,7 +2220,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_ParamWrongDimensions() {
         "vectorConstant = (uint32) {1, 1}";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (!ok) && (status.internalSetupError);
 }
@@ -2242,7 +2290,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_ParamWrongDimensions_Matrix() {
         ;
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (!ok) && (status.internalSetupError);
 }
@@ -2291,7 +2341,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_ParamWrongDatatype() {
         "vectorConstant = (float64) {1, 1, 1, 1, 1, 1, 1, 1, 1, 1,}";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (!ok) && (status.internalSetupError);
 }
@@ -2325,20 +2377,22 @@ bool SimulinkWrapperGAMTest::TestSetup_NoInputs() {
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return ok && status.ErrorsCleared();
 }
 
 
 bool SimulinkWrapperGAMTest::TestSetup_NoOutputs() {
-    
+
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
 
     StreamString scriptCall = "createTestModel('hasOutputs', false);";
-    
+
     StreamString skipUnlinkedParams = "1";
-    
+
     StreamString inputSignals = ""
         "InputSignals = { "
         "In1_ScalarDouble  = {"
@@ -2354,14 +2408,80 @@ bool SimulinkWrapperGAMTest::TestSetup_NoOutputs() {
         "    NumberOfDimensions = 0"
         "}"
         "}";
-    
+
     StreamString outputSignals = ""
         "";
+
+    StreamString parameters = "";
+
+    // Test setup
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+
+    return ok && status.ErrorsCleared();
+}
+
+
+bool SimulinkWrapperGAMTest::TestSetup_LowVerbosity() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+
+    StreamString scriptCall = "createTestModel();";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "   In1_ScalarDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "   In2_ScalarUint32 = { DataSource = Drv1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out2_ScalarUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "}"
+        ;
+
+    StreamString parameters = "";
+
+    // Test setup
+    StreamString verbosity = " 1 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+
+    return ok && status.ErrorsCleared();
+}
+
+
+bool SimulinkWrapperGAMTest::TestSetup_ZeroVerbosity() {
+    
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+
+    StreamString scriptCall = "createTestModel();";
+    
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "   In1_ScalarDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "   In2_ScalarUint32 = { DataSource = Drv1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "}";
+    
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out2_ScalarUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "}"
+        ;
     
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 0 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return ok && status.ErrorsCleared();
 }
@@ -2413,7 +2533,9 @@ bool SimulinkWrapperGAMTest::TestSetup_StructArraysAsParams() {
         "structParamArray[1].two = (float64) 2 ";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (ok) && (status);
 }
@@ -2470,7 +2592,9 @@ bool SimulinkWrapperGAMTest::TestSetup_NestedStructArraysAsParams() {
         "structMixed.structParamArray[1].two = (float64) 2 ";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (ok) && (status);
 }
@@ -2519,7 +2643,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongNumberOfDimensionsWithStructS
     StreamString parameters = "";
     
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return (!ok) && (status.internalSetupError);
 }
@@ -2567,7 +2693,9 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_WrongDatatypeWithStructSignals() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
 
     return (!ok) && (status.internalSetupError);
 }
@@ -2655,7 +2783,9 @@ bool SimulinkWrapperGAMTest::TestParameterActualisation_RowMajorModel() {
     // Test setup
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
     
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
     
     // Now check if parameter values have been correctly loaded.
     
@@ -2809,7 +2939,9 @@ bool SimulinkWrapperGAMTest::TestParameterActualisation_ColumnMajorModel() {
     // Test setup
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
     
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
     
     // Now check if parameter values have been correctly loaded.
     
@@ -2961,7 +3093,9 @@ bool SimulinkWrapperGAMTest::TestParameterActualisation_Uint() {
     // Test setup
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
     
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
     
     // Now check if parameter values have been correctly loaded.
     
@@ -3113,7 +3247,9 @@ bool SimulinkWrapperGAMTest::TestParameterActualisation_Int() {
     // Test setup
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
     
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
     
     // Now check if parameter values have been correctly loaded.
 
@@ -3265,7 +3401,9 @@ bool SimulinkWrapperGAMTest::TestParameterActualisation_Float() {
     // Test setup
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
     
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
     
     // Now check if parameter values have been correctly loaded.
     
@@ -3512,7 +3650,9 @@ bool SimulinkWrapperGAMTest::TestExecute() {
     // Setup GAM
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
     
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
     
     // Build a database with what shall be loaded as input
     ConfigurationDatabase cdb;
@@ -3742,7 +3882,9 @@ bool SimulinkWrapperGAMTest::Test_StructuredSignals() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
 
 
     return ok && status;
@@ -3781,7 +3923,9 @@ bool SimulinkWrapperGAMTest::TestSetup_WithStructuredLoggingSignals() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
 
 
     return ok && status;
@@ -3932,7 +4076,9 @@ bool SimulinkWrapperGAMTest::TestExecute_WithLoggingSignals() {
     // Setup GAM
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
 
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
 
     // Build a database with what shall be loaded as input
     ConfigurationDatabase cdb;
@@ -4143,7 +4289,9 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructuredSignals() {
 
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord, false, false);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord, false, false);
 
     ConfigurationDatabase cdb;
     if (ok) {
@@ -4287,7 +4435,9 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructuredLoggingSignals() {
 
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord, false, false);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord, false, false);
 
     ConfigurationDatabase cdb;
     if (ok) {
@@ -4442,7 +4592,9 @@ bool SimulinkWrapperGAMTest::TestSetup_DisconnectedOutputSignal_Failed() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, true);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, true);
 
     return (!ok) && (!status);
 }
@@ -4500,7 +4652,9 @@ bool SimulinkWrapperGAMTest::TestSetup_DisconnectedOutputStructuredSignal_Failed
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, true);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, true);
 
     return (!ok) && (!status);
 }
@@ -4542,7 +4696,9 @@ bool SimulinkWrapperGAMTest::TestSetup_DisconnectedInputSignal_Failed() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, true);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, true);
 
     return (!ok) && (!status);
 }
@@ -4600,7 +4756,9 @@ bool SimulinkWrapperGAMTest::TestSetup_DisconnectedInputStructuredSignal_Failed(
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, true);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, true);
 
     return (!ok) && (!status);
 }
@@ -4784,7 +4942,9 @@ bool SimulinkWrapperGAMTest::TestExecute_MultiMixedSignalsTranspose(bool transpo
 
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord, false, false);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord, false, false);
 
     ConfigurationDatabase cdb;
     if (ok) {
@@ -5067,7 +5227,9 @@ bool SimulinkWrapperGAMTest::TestSetup_WithNotFoundParameter_Failed(bool skipUnl
         "                              {12, 12, 12, 12, 12, 12}}";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
 
     return (ok != skipUnlinked) && (status.internalSetupError == skipUnlinked);
 }
@@ -5114,7 +5276,9 @@ bool SimulinkWrapperGAMTest::TestSetup_WithNestedSingleSignals() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
 
     return ok && status;
 }
@@ -5184,6 +5348,7 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParametersFromExternalSource
     config.Printf(configTemplate.Buffer(),
                   modelFullPath.Buffer(),
                   modelName.Buffer(),
+                  "2",
                   "ByteArray",
                   "0",
                   skipUnlinkedParams.Buffer(),
@@ -5295,7 +5460,9 @@ bool SimulinkWrapperGAMTest::TestSetup_WithOutputEnumSignals() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
 
     return ok && status;
 }
@@ -5329,7 +5496,9 @@ bool SimulinkWrapperGAMTest::TestSetup_WithOutputEnumSignals_FailedWrongType() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
 
     return (!ok) && (status.internalSetupError);
 }
@@ -5377,7 +5546,9 @@ bool SimulinkWrapperGAMTest::TestSetup_WithEnumSignals() {
     StreamString parameters = "";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
 
     return ok && status;
 }
@@ -5412,7 +5583,9 @@ bool SimulinkWrapperGAMTest::TestSetup_WithEnumParameters() {
         "EnumParam = (int32) 1";
 
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
 
     return ok && status;
 }
@@ -5469,7 +5642,9 @@ bool SimulinkWrapperGAMTest::TestExecute_WithEnumSignals() {
 
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
     // Test setup
-    bool ok = TestSetupWithTemplate(scriptCall, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord, false, false);
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord, false, false);
 
     ConfigurationDatabase cdb;
     if (ok) {

@@ -384,7 +384,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         }
         else {
             status.parametersError = true;
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Error getting Library parameter.");
+            REPORT_ERROR(status, "Error getting Library parameter.");
         }
     }
 
@@ -397,7 +397,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         else
         {
             status.parametersError = true;
-            REPORT_ERROR(ErrorManagement::InitialisationError, "Error getting SymbolPrefix parameter.");
+            REPORT_ERROR(status, "Error getting SymbolPrefix parameter.");
         }
     }
 
@@ -425,7 +425,9 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         uint16 itemp;
         if(data.Read("SkipInvalidTunableParams", itemp)) {
             skipInvalidTunableParams = (itemp != 0u);
-            REPORT_ERROR(ErrorManagement::Information, "SkipInvalidTunableParams set to %d.", itemp);
+            if (verbosityLevel > 1u) {
+                REPORT_ERROR(ErrorManagement::Information, "SkipInvalidTunableParams set to %d.", itemp);
+            }
         }
         else {
             REPORT_ERROR(ErrorManagement::Information, "SkipInvalidTunableParams not set, by default it is set to true.");
@@ -444,15 +446,19 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
             else {
                 ok = false;
                 status.parametersError = true;
-                REPORT_ERROR(ErrorManagement::ParametersError, "Invalid NonVirtualBusMode: %s (can be ByteArray or Structured).", copyModeString.Buffer());
+                REPORT_ERROR(status, "Invalid NonVirtualBusMode: %s (can be ByteArray or Structured).", copyModeString.Buffer());
             }
             
             if (ok) {
-                REPORT_ERROR(ErrorManagement::Information, "NonVirtualBusMode mode set to %s", copyModeString.Buffer());
+                if (verbosityLevel > 1u) {
+                    REPORT_ERROR(ErrorManagement::Information, "NonVirtualBusMode mode set to %s", copyModeString.Buffer());
+                }
             }
         }
         else {
-            REPORT_ERROR(ErrorManagement::Information, "NonVirtualBusMode mode not set, by default it is set to ByteArray");
+            if (verbosityLevel > 1u) {
+                REPORT_ERROR(ErrorManagement::Information, "NonVirtualBusMode mode not set, by default it is set to ByteArray");
+            }
         }
         
     }
@@ -471,9 +477,10 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         else {
             enforceModelSignalCoverage = false;
         }
-
-        REPORT_ERROR(ErrorManagement::Information, "GAM I/O %s cover Simulink I/O",
-                     enforceModelSignalCoverage ? "must" : "has not to");
+        if (verbosityLevel > 1u) {
+            REPORT_ERROR(ErrorManagement::Information, "GAM I/O %s cover Simulink I/O",
+                        enforceModelSignalCoverage ? "must" : "has not to");
+        }
     }
 
     /// 2. Opening of model code shared object library.
@@ -489,11 +496,13 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
     if ((libraryHandle != NULL) && ok) { // Load library
         ok = libraryHandle->Open(libraryName.Buffer());
         if (ok) {
-            REPORT_ERROR(ErrorManagement::Information, "Library %s successfully loaded.", libraryName.Buffer());
+            if (verbosityLevel > 0u) {
+                REPORT_ERROR(ErrorManagement::Information, "Library %s successfully loaded.", libraryName.Buffer());
+            }
         }
         else {
             status.initialisationError = true;
-            REPORT_ERROR(ErrorManagement::Information, "Couldn't open library: %s", libraryName.Buffer());
+            REPORT_ERROR(status, "Couldn't open library: %s", libraryName.Buffer());
         }
     }
     
@@ -511,7 +520,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
             ok = (static_cast<void*(*)(void)>(NULL) != instFunction);
             if (!ok) {
                 status.initialisationError = true;
-                REPORT_ERROR(ErrorManagement::Information, "Couldn't find %s symbol in model library (instFunction == NULL).", symbol);
+                REPORT_ERROR(status, "Couldn't find %s symbol in model library (instFunction == NULL).", symbol);
             }
         }
 
@@ -528,7 +537,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
             ok = (static_cast<void*(*)(void*)>(NULL) != getMmiFunction);
             if (!ok) {
                 status.initialisationError = true;
-                REPORT_ERROR(ErrorManagement::Warning, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
+                REPORT_ERROR(status, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
             }
         }
 
@@ -545,7 +554,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
             ok = (static_cast<void(*)(void*)>(NULL) != initFunction);
             if (!ok) {
                 status.initialisationError = true;
-                REPORT_ERROR(ErrorManagement::Information, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
+                REPORT_ERROR(status, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
             }
         }
         
@@ -562,7 +571,7 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
             ok = (static_cast<void(*)(void*)>(NULL) != stepFunction);
             if (!ok) {
                 status.initialisationError = true;
-                REPORT_ERROR(ErrorManagement::Warning, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
+                REPORT_ERROR(status, "Couldn't find %s symbol in model library (%s == NULL).", symbol, symbol);
             }
         }
 
@@ -690,10 +699,12 @@ bool SimulinkWrapperGAM::Setup() {
     // (see f4e example)
 
     if (status.ErrorsCleared()) {
-        REPORT_ERROR(ErrorManagement::Information, "[%s] - Setup done, now init-ing the Simulink model", GetName());
+        if (verbosityLevel > 0u) {
+            REPORT_ERROR(ErrorManagement::Information, "[%s] - Setup done, now init-ing the Simulink model", GetName());
+        }
     }
     else {
-        REPORT_ERROR(ErrorManagement::InternalSetupError, "SetupSimulink() failed.");
+        REPORT_ERROR(ErrorManagement::InternalSetupError, "[%s] - SetupSimulink() failed.", GetName());
     }
 
     // Simulink initFunction call, init of the Simulink model
@@ -705,9 +716,11 @@ bool SimulinkWrapperGAM::Setup() {
     if (status.ErrorsCleared()) {
         ReferenceT<Message> simulinkReadyMessage = Get(0u);
         if (simulinkReadyMessage.IsValid()) {
-            REPORT_ERROR(ErrorManagement::Information, "Sending Simulink ready message 1.");
+            if (verbosityLevel > 1u) {
+                REPORT_ERROR(ErrorManagement::Information, "[%s] - Sending Simulink ready message 1.", GetName());
+            }
             if(!SendMessage(simulinkReadyMessage, this)) {
-                REPORT_ERROR(ErrorManagement::Warning, "Failed to send ready message 1.");
+                REPORT_ERROR(ErrorManagement::Warning, "[%s] - Failed to send ready message 1.", GetName());
             }
         }
     }
@@ -719,7 +732,9 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
     
-    REPORT_ERROR(ErrorManagement::Information, "[%s] - Allocating Simulink model dynamic memory...", GetName());
+    if (verbosityLevel > 1u) {
+        REPORT_ERROR(ErrorManagement::Information, "[%s] - Allocating Simulink model dynamic memory...", GetName());
+    }
 
     // Simulink instFunction call, dynamic allocation of model data structures
     if (instFunction != NULL) {
@@ -871,7 +886,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
     }
 
 
-    if (ret.ErrorsCleared()) {
+    if (ret.ErrorsCleared() && (verbosityLevel > 0u)) {
 
         StreamString fillerWhiteSpaces    = "";
         StreamString fillerEqualSign      = "";
@@ -1274,39 +1289,51 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
 
             // Cases in which execution can continue
             if ( isLoaded && isActualised ) {
-                REPORT_ERROR(ErrorManagement::Information,
-                    "[%s] - Parameter %s correctly actualized from %s.",
-                    GetName(), alignedParamName.Buffer(), parameterSourceName.Buffer());
+                if (verbosityLevel > 1u) {
+                    REPORT_ERROR(ErrorManagement::Information,
+                        "[%s] - Parameter %s correctly actualized from %s.",
+                        GetName(), alignedParamName.Buffer(), parameterSourceName.Buffer());
+                }
             }
             else if ( isLoaded && (!isActualised) && isUnlinked ) {
-                REPORT_ERROR(ErrorManagement::Information,
-                             "[%s] - Parameter %s unlinked, using compile time value",
-                             GetName(), alignedParamName.Buffer());
+                if (verbosityLevel > 1u) {
+                    REPORT_ERROR(ErrorManagement::Information,
+                        "[%s] - Parameter %s unlinked, using compile time value",
+                        GetName(), alignedParamName.Buffer());
+                }
             }
             else if ( isLoaded && (!isActualised) && (!isUnlinked) && skipInvalidTunableParams ) {
                 //ret.warning = true;
-                REPORT_ERROR(ErrorManagement::Information,
-                             "[%s] - Parameter %s cannot be actualized, using compile time value",
-                             GetName(), alignedParamName.Buffer());
+                if (verbosityLevel > 1u) {
+                    REPORT_ERROR(ErrorManagement::Information,
+                        "[%s] - Parameter %s cannot be actualized, using compile time value",
+                        GetName(), alignedParamName.Buffer());
+                }
             }
             else if ( (!isLoaded) && (!isActualised) && skipInvalidTunableParams ) {
                 //ret.warning = true;
-                REPORT_ERROR(ErrorManagement::Information,
-                             "[%s] - Parameter %s not found, using compile time value",
-                             GetName(), alignedParamName.Buffer());
+                if (verbosityLevel > 1u) {
+                    REPORT_ERROR(ErrorManagement::Information,
+                        "[%s] - Parameter %s not found, using compile time value",
+                        GetName(), alignedParamName.Buffer());
+                }
             }
             // Cases in which execution should be stopped
             else if ( (!isLoaded) && (!isActualised) && (!skipInvalidTunableParams) ) {
                 ret.internalSetupError = true;
-                REPORT_ERROR(ret,
-                             "[%s] - Parameter %s not found, failing",
-                             GetName(), alignedParamName.Buffer());
+                if (verbosityLevel > 1u) {
+                    REPORT_ERROR(ret,
+                        "[%s] - Parameter %s not found, failing",
+                        GetName(), alignedParamName.Buffer());
+                }
             }
             else {
                 ret.internalSetupError = true;
-                REPORT_ERROR(ret,
-                             "SkipInvalidTunableParams is false and parameter %s cannot be actualized, failing",
-                             currentParamName);
+                if (verbosityLevel > 1u) {
+                    REPORT_ERROR(ret,
+                        "SkipInvalidTunableParams is false and parameter %s cannot be actualized, failing",
+                        currentParamName);
+                }
             }
 
         }
@@ -1628,8 +1655,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
         isMapped                = &isOutputMapped;
     }
     else {
-        REPORT_ERROR(ErrorManagement::InitialisationError, "[%s] - Unsupported signal direction in MapPorts()", GetName());
         ret.unsupportedFeature = true;
+        REPORT_ERROR(ret, "[%s] - Unsupported signal direction in MapPorts()", GetName());
     }
 
     // cycle over GAM signals (to map each to a model signal)
