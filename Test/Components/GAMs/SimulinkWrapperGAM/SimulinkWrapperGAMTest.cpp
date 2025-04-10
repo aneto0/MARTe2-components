@@ -2456,31 +2456,74 @@ bool SimulinkWrapperGAMTest::TestSetup_LowVerbosity() {
 
 
 bool SimulinkWrapperGAMTest::TestSetup_ZeroVerbosity() {
-    
+
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
 
     StreamString scriptCall = "createTestModel();";
-    
+
     StreamString skipUnlinkedParams = "1";
-    
+
     StreamString inputSignals = ""
         "InputSignals = { "
         "   In1_ScalarDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
         "   In2_ScalarUint32 = { DataSource = Drv1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
         "}";
-    
+
     StreamString outputSignals = ""
         "OutputSignals = { "
         "    Out1_ScalarDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
         "    Out2_ScalarUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
         "}"
         ;
+
+    StreamString parameters = "";
+
+    StreamString verbosity = " 0 ";
+
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
+
+    return ok && status.ErrorsCleared();
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_With3DSignals() {
+    
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+
+    StreamString scriptCall = "createTestModel('modelComplexity', 4, 'hasStructSignals', true);";
+    
+    StreamString skipUnlinkedParams = "1";
+    
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "   In1_Structured = { DataSource = Drv1    Type = uint8     NumberOfElements = 16   NumberOfDimensions = 1 }"
+        "   In2_Structured = { DataSource = Drv1    Type = uint8     NumberOfElements = 96   NumberOfDimensions = 1 }"
+        "   In3_Structured = { DataSource = Drv1    Type = uint8     NumberOfElements = 432  NumberOfDimensions = 1 }"
+        "   In4_Structured = { DataSource = Drv1    Type = uint8     NumberOfElements = 768  NumberOfDimensions = 1 }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble     = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out2_ScalarUint32     = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out3_VectorDouble     = { DataSource = DDB1    Type = float64    NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "    Out4_VectorUint32     = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "    Out5_MatrixDouble     = { DataSource = DDB1    Type = float64    NumberOfElements = 36   NumberOfDimensions = 2 }"
+        "    Out6_MatrixUint32     = { DataSource = DDB1    Type = uint32     NumberOfElements = 36   NumberOfDimensions = 2 }"
+        "    Out7_3DMatrixDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 16   NumberOfDimensions = 2 }"
+        "    Out8_3DMatrixUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 16   NumberOfDimensions = 2 }"
+        "    Out20_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 16   NumberOfDimensions = 1 }"
+        "    Out21_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 96   NumberOfDimensions = 1 }"
+        "    Out31_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 432  NumberOfDimensions = 1 }"
+        "    Out2031_NonVirtualBus = { DataSource = DDB1    Type = uint8      NumberOfElements = 528  NumberOfDimensions = 1 }"
+        "}"
+        ;
     
     StreamString parameters = "";
     
-    // Test setup
-    StreamString verbosity = " 0 ";
+    StreamString verbosity = " 2 ";
 
+    // Test setup
     bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status);
     
     return ok && status.ErrorsCleared();

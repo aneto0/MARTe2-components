@@ -241,6 +241,11 @@ public:
      * @brief Tests the Setup() method when verbosity level is set to 0.
      */
     bool TestSetup_ZeroVerbosity();
+
+    /**
+     * @brief Tests the Setup() method with 3D signals in the bus input.
+     */
+    bool TestSetup_With3DSignals();
     
     /**
      * @brief Tests the Setup() method when told not to skip not ok tunable parameters.

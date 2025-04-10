@@ -262,6 +262,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_ZeroVerbosity) {
     ASSERT_TRUE(test.TestSetup_ZeroVerbosity());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_With3DSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_With3DSignals());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfDimensionsWithStructSignals) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_WrongNumberOfDimensionsWithStructSignals());

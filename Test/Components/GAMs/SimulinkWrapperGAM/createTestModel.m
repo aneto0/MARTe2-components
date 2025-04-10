@@ -1167,6 +1167,55 @@ function tempInPorts = helper_input_gen_WithStructInputs(model_name, modelComple
         add_line(model_name, 'In3_Structured/1', 'InputSelector3/1');
         name_input_signal([model_name '/In3_Structured'], 1, 'In3_Structured');
     end
+
+    if modelComplexity > 3
+        evalin('base', 'inputBusElems4(2) = Simulink.BusElement;');
+        evalin('base', 'inputBusElems4(2).Name = ''In7_3DMatrixDouble'';');
+        evalin('base', 'inputBusElems4(2).Dimensions = [4 4 4];');
+        evalin('base', 'inputBusElems4(2).DimensionsMode = ''Fixed'';');
+        evalin('base', 'inputBusElems4(2).DataType = ''double'';');
+        evalin('base', 'inputBusElems4(2).SampleTime = -1;');
+        evalin('base', 'inputBusElems4(2).Complexity = ''real'';');
+
+        evalin('base', 'inputBusElems4(1) = Simulink.BusElement;');
+        evalin('base', 'inputBusElems4(1).Name = ''In8_3DMatrixUint32'';');
+        evalin('base', 'inputBusElems4(1).Dimensions = [4 4 4];');
+        evalin('base', 'inputBusElems4(1).DimensionsMode = ''Fixed'';');
+        evalin('base', 'inputBusElems4(1).DataType = ''uint32'';');
+        evalin('base', 'inputBusElems4(1).SampleTime = -1;');
+        evalin('base', 'inputBusElems4(1).Complexity = ''real'';');
+
+        evalin('base', 'INSTRUCTSIGNAL4 = Simulink.Bus;');
+        evalin('base', 'INSTRUCTSIGNAL4.Elements = inputBusElems4;');
+
+        tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In4_Structured'], ...
+            'IconDisplay',    'Signal name', ...
+            'OutDataTypeStr', 'Bus: INSTRUCTSIGNAL4', ...
+            'BusOutputAsStruct',  'on');
+
+        add_block('simulink/Math Operations/Gain', [model_name '/In7_3DMatrixDouble'], ...
+            'OutDataTypeStr', 'double');
+        add_block('simulink/Math Operations/Gain', [model_name '/In8_3DMatrixUint32'], ...
+            'OutDataTypeStr', 'uint32');
+
+        add_block('simulink/Signal Routing/Bus Selector', [model_name '/InputSelector4'], ...
+            'OutputSignals', 'In7_3DMatrixDouble,In8_3DMatrixUint32');
+
+        add_block('simulink/Math Operations/Matrix Concatenate', [model_name '/Concatenate7'], ...
+            'NumInputs',            '2', ...
+            'ConcatenateDimension', '3')
+
+        add_block('simulink/Math Operations/Matrix Concatenate', [model_name '/Concatenate8'], ...
+            'NumInputs',            '2', ...
+            'ConcatenateDimension', '3')
+
+        add_line(model_name, 'InputSelector4/2', 'In7_3DMatrixDouble/1');
+        add_line(model_name, 'InputSelector4/1', 'In8_3DMatrixUint32/1');
+
+        add_line(model_name, 'In4_Structured/1', 'InputSelector4/1');
+
+        name_input_signal([model_name '/In4_Structured'], 1, 'In4_Structured');
+    end
 end
 
 function inPorts = helper_input_gen(modelName, withInputs, withStructs, modelComplexity, hasTunableParams, hasStructParams, hasStructArrayParams, hasEnums)
