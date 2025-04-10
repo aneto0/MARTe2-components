@@ -21,6 +21,7 @@ hasEnums             = false;
 hasSignalNames       = true;
 dataOrientation      = 'Column-major';   isRowMajor = 0;
 useType              = 0;
+debugMode            = false;
 
 while ~isempty(varargin)
 
@@ -70,6 +71,9 @@ while ~isempty(varargin)
 
         case 'useType'
             useType = varargin{2};
+
+        case 'debugMode'
+            debugMode = varargin{2};
 
         otherwise
             error(['Unexpected option: ' varargin{1}])
@@ -850,13 +854,15 @@ end
 
 %% model build
 
-try
-    rtwbuild(model_name)
-    model_compiled = true;
-catch ME
-    model_compiled = false;
-    warning('on', ME.identifier);
-    warning(ME.identifier, '%s', ME.message)
+if ~debugMode
+    try
+        rtwbuild(model_name)
+        model_compiled = true;
+    catch ME
+        model_compiled = false;
+        warning('on', ME.identifier);
+        warning(ME.identifier, '%s', ME.message)
+    end
 end
 
 
@@ -872,7 +878,9 @@ catch ME
     warning(ME.identifier, '%s', ME.message)
 end
 
-delete(sprintf('%s.slx',model_name));
+if ~debugMode
+    delete(sprintf('%s.slx',model_name));
+end
 delete(sprintf('%s.slxc',model_name));
 delete(sprintf('%s.slx.bak',model_name));
 
