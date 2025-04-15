@@ -137,6 +137,16 @@ public:
     bool TestGetOutputOffset_Blocking();
 
     /**
+     * @brief Tests the GetInputOffset method in blocking mode 2
+     */
+    bool TestGetInputOffset_Blocking2();
+
+    /**
+     * @brief Tests the GetOutputOffset method in blocking mode 2
+     */
+    bool TestGetOutputOffset_Blocking2();
+
+    /**
      * @brief Tests the GetInputOffset method that returns false if all the buffers are busy
      */
     bool TestGetInputOffset_False_BufferBusy();
