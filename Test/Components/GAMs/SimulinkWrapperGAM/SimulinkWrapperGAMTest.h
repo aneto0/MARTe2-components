@@ -221,7 +221,7 @@ public:
      * @brief Tests the Setup() method when told to skip not ok tunable parameters.
      */
     bool TestSetup_SkipInvalidTunableParams();
-    
+
     /**
      * @brief Tests the Setup() method when there are no inputs.
      */
@@ -434,6 +434,16 @@ public:
     bool TestExecute_MultiMixedSignalsTranspose(bool transpose);
 
     /**
+     * @brief Test execution and coherence when working with 3D signals
+     */
+    bool TestExecute_With3DSignals(bool transpose);
+
+    /**
+     * @brief Test execution and coherence when working with 3D signals
+     */
+    bool TestExecute_With3DSignals_NoInputs(bool transpose);
+
+    /**
      * @brief Test the behaviour when working in pure structured signal mode, while enforcing
      * MARTe2 - Simulink parameter coverage (1:1 mapping)
      */
@@ -559,8 +569,8 @@ public:
         "    +Scheduler = {"
         "        Class = GAMScheduler"
         "        TimingDataSource = Timings"
-        "    }"
-        "}";
+        "    } "
+        "} ";
 
 };
 

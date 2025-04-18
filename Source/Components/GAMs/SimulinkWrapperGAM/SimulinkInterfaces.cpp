@@ -300,18 +300,18 @@ bool SimulinkInterface::TransposeAndCopyT(void *const destination, const void *c
 
     uint32 numberOfRows    = dimensions[0u];
     uint32 numberOfColumns = dimensions[1u];
-    uint32 numberOfPages   = dimensions.GetNumberOfElements() <= 2u ? 1u : dimensions[3u];
+    uint32 numberOfPages   = dimensions.GetNumberOfElements() <= 2u ? 1u : dimensions[2u];
 
     if (numberOfPages > 1u) {
         // 3D matrix
         for (uint32 rowIdx = 0u; rowIdx < numberOfRows; rowIdx++) {
             for (uint32 colIdx = 0u; colIdx < numberOfColumns; colIdx++) {
                 for (uint32 pagIdx = 0u; pagIdx < numberOfPages; pagIdx++) {
-                    if (mode == InputPort || mode == Parameter) {
+                    if (mode == InputPort || mode == Parameter) {   // row-major to col-major
                         *((T *)destination + rowIdx + numberOfRows  * colIdx + numberOfColumns * numberOfRows  * pagIdx)
                         = *((T *)source    + pagIdx + numberOfPages * colIdx + numberOfColumns * numberOfPages * rowIdx);
                     }
-                    else {
+                    else {   // col-major to row-major
                         *((T *)destination + pagIdx + numberOfPages * colIdx + numberOfColumns * numberOfPages * rowIdx)
                         = *((T *)source    + rowIdx + numberOfRows  * colIdx + numberOfColumns * numberOfRows  * pagIdx);
                     }
@@ -361,39 +361,37 @@ bool SimulinkRootInterface::CopyData(const SimulinkNonVirtualBusMode copyMode) {
     bool ok = true;
     // Copy signal content, telling apart the two modes (struct or byte array)
     // If address==NULL, this signal or port has no corresponding MARTe signal and thus is not mapped
-    if (ok) {
-        if (!transpose) {
-            if( (copyMode == StructuredBusMode) && (isStructured) ) {
-                for(uint32 carriedSignalIdx = 0u; (carriedSignalIdx < GetSize()) && ok; carriedSignalIdx++) {
-                    if((*this)[carriedSignalIdx]->destPtr != NULL) {
-                        ok = MemoryOperationsHelper::Copy((*this)[carriedSignalIdx]->destPtr, (*this)[carriedSignalIdx]->sourcePtr, (*this)[carriedSignalIdx]->byteSize);
-                    }
-                }
-            }
-            else {
-                if(destPtr != NULL) {
-                    ok = MemoryOperationsHelper::Copy(destPtr, sourcePtr, byteSize);
+    if (!transpose) {
+        if( (copyMode == StructuredBusMode) && (isStructured) ) {
+            for(uint32 carriedSignalIdx = 0u; (carriedSignalIdx < GetSize()) && ok; carriedSignalIdx++) {
+                if((*this)[carriedSignalIdx]->destPtr != NULL) {
+                    ok = MemoryOperationsHelper::Copy((*this)[carriedSignalIdx]->destPtr, (*this)[carriedSignalIdx]->sourcePtr, (*this)[carriedSignalIdx]->byteSize);
                 }
             }
         }
         else {
-            if( (copyMode == StructuredBusMode) && (isStructured ) ) {
-                for(uint32 carriedSignalIdx = 0u; (carriedSignalIdx < GetSize()) && ok; carriedSignalIdx++) {
-                    if((*this)[carriedSignalIdx]->destPtr != NULL) {
-                        ok = (*this)[carriedSignalIdx]->TransposeAndCopy((*this)[carriedSignalIdx]->destPtr, (*this)[carriedSignalIdx]->sourcePtr, interfaceType);
-                    }
+            if(destPtr != NULL) {
+                ok = MemoryOperationsHelper::Copy(destPtr, sourcePtr, byteSize);
+            }
+        }
+    }
+    else {
+        if( (copyMode == StructuredBusMode) && (isStructured ) ) {
+            for(uint32 carriedSignalIdx = 0u; (carriedSignalIdx < GetSize()) && ok; carriedSignalIdx++) {
+                if((*this)[carriedSignalIdx]->destPtr != NULL) {
+                    ok = (*this)[carriedSignalIdx]->TransposeAndCopy((*this)[carriedSignalIdx]->destPtr, (*this)[carriedSignalIdx]->sourcePtr, interfaceType);
                 }
             }
-            else if ( (copyMode == ByteArrayBusMode) && (isStructured ) ) {
-                // Always plain copy in this case as the port is always a 1D data buffer
-                if(destPtr != NULL) {
-                    ok = MemoryOperationsHelper::Copy(destPtr, sourcePtr, byteSize);
-                }
+        }
+        else if ( (copyMode == ByteArrayBusMode) && (isStructured ) ) {
+            // Always plain copy in this case as the port is always a 1D data buffer
+            if(destPtr != NULL) {
+                ok = MemoryOperationsHelper::Copy(destPtr, sourcePtr, byteSize);
             }
-            else {
-                if(destPtr != NULL) {
-                    ok = TransposeAndCopy(destPtr, sourcePtr, interfaceType);
-                }
+        }
+        else {
+            if(destPtr != NULL) {
+                ok = TransposeAndCopy(destPtr, sourcePtr, interfaceType);
             }
         }
     }

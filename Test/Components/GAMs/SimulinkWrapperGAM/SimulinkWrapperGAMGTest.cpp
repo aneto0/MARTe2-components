@@ -375,6 +375,26 @@ TEST(SimulinkWrapperGAMGTest, TestExecute_MultiMixedSignalsNorm) {
 
 #endif /* ROW_MAJOR_ND_FEATURE */
 
+TEST(SimulinkWrapperGAMGTest, TestExecute_With3DSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_With3DSignals(false));
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_With3DSignals_ColumnMajor) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_With3DSignals(true));
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_With3DSignals_NoInputs) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_With3DSignals_NoInputs(false));
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_With3DSignals_NoInputs_ColumnMajor) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_With3DSignals_NoInputs(true));
+}
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithNotFoundParameterAndProcessUnlinked_Failed) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(true));

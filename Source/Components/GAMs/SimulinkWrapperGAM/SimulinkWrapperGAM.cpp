@@ -906,7 +906,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
         StreamString horizontalLine = "";
         StreamString sectionTitle = "";
 
-        header.Printf( "%s| type    | dims | elems | shape               | address            | bytesize", fillerWhiteSpaces.Buffer());
+        header.Printf( "%s| type    | dims | elems | shape               | model address      | bytesize", fillerWhiteSpaces.Buffer());
         horizontalLine = "+---------+------+-------+---------------------+--------------------+------------------";
 
         REPORT_ERROR(ErrorManagement::Information, "========================================= [%s] - MODEL INTERFACES =========================%s", GetName(), fillerEqualSign.Buffer());
@@ -1355,13 +1355,13 @@ bool SimulinkWrapperGAM::Execute() {
     for (portIdx = 0u; (portIdx < modelNumOfInputs) && ok; portIdx++) {
         ok = inputs[portIdx].CopyData(nonVirtualBusMode);
     }
-    
+
     // Model step
     if ( (stepFunction != NULL) && ok) {
         (*stepFunction)(states);
     }
 
-    // Ouputs update
+    // Outputs update
     for (portIdx = 0u; (portIdx < modelNumOfOutputs) && ok; portIdx++) {
         ok = outputs[portIdx].CopyData(nonVirtualBusMode);
     }
@@ -1587,7 +1587,6 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
             interfaceArray.Add(currentInterface);
 
             interfaceArray.transpose = (transpose || interfaceArray.transpose);
-            interfaceArray.interfaceType = mode;
 
             (interfaceArray.rootStructure).Write(interfaceName.Buffer(), interfaceArray.GetSize() - 1u); // store the index of the signal in the associated list
         }
@@ -1805,23 +1804,32 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
                 if (interfaceType == InputPort || interfaceType == Parameter) {
 
                     signalList[portIdx][signalInPortIdx]->MARTeAddress = GetInputSignalMemory(signalIdx);
+                    signalList[portIdx][signalInPortIdx]->sourcePtr    = signalList[portIdx][signalInPortIdx]->MARTeAddress;
+                    signalList[portIdx][signalInPortIdx]->destPtr      = signalList[portIdx][signalInPortIdx]->dataAddr;
 
-                    signalList[portIdx][signalInPortIdx]->sourcePtr = signalList[portIdx][signalInPortIdx]->MARTeAddress;
-                    signalList[portIdx][signalInPortIdx]->destPtr   = signalList[portIdx][signalInPortIdx]->dataAddr;
+                    if (signalInPortIdx == 0u) {
+                        signalList[portIdx].MARTeAddress = GetInputSignalMemory(signalIdx);
+                        signalList[portIdx].sourcePtr    = signalList[portIdx].MARTeAddress;
+                        signalList[portIdx].destPtr      = signalList[portIdx].dataAddr;
+                    }
                 }
                 else if (interfaceType == OutputPort || interfaceType == Signal) {
 
                     signalList[portIdx][signalInPortIdx]->MARTeAddress = GetOutputSignalMemory(signalIdx);
+                    signalList[portIdx][signalInPortIdx]->sourcePtr    = signalList[portIdx][signalInPortIdx]->dataAddr;
+                    signalList[portIdx][signalInPortIdx]->destPtr      = signalList[portIdx][signalInPortIdx]->MARTeAddress;
 
-                    signalList[portIdx][signalInPortIdx]->sourcePtr = signalList[portIdx][signalInPortIdx]->dataAddr;
-                    signalList[portIdx][signalInPortIdx]->destPtr   = signalList[portIdx][signalInPortIdx]->MARTeAddress;
+                    if (signalInPortIdx == 0u) {
+                        signalList[portIdx].MARTeAddress = GetOutputSignalMemory(signalIdx);
+                        signalList[portIdx].sourcePtr    = signalList[portIdx].dataAddr;
+                        signalList[portIdx].destPtr      = signalList[portIdx].MARTeAddress;
+                    }
                 }
                 else {
                     REPORT_ERROR(ErrorManagement::ParametersError, "[%s] - Invalid InterfaceType in MapPorts()", GetName());
                 }
             }
             else {
-
                 if (interfaceType == InputPort || interfaceType == Parameter) {
 
                     signalList[portIdx].MARTeAddress = GetInputSignalMemory(signalIdx);

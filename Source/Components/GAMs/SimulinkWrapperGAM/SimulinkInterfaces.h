@@ -120,9 +120,8 @@ public:
     uint16 dataTypeSize;                 //!< Size of the type of this data.
     //@}
 
-    void* destPtr;                       //<! Pointer to where the buffer of this interface should be copied
-    void* sourcePtr;                     //<! Pointer to where this interface shall retrive its buffer
-
+    void* destPtr;                       //<! Pointer to where the buffer of this interface should be copied to
+    void* sourcePtr;                     //<! Pointer to where this interface shall retrive its buffer from
     bool transpose;                      //<! Whether the interface needs to be converted from col-major to row-major layout or viceversa.
     bool isStructured;                   //<! Whether the interface carries a structured data.
 

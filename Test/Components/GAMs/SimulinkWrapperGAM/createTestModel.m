@@ -378,7 +378,7 @@ if hasOutputs == true
         % selector to select the output page
         add_block('simulink/Signal Routing/Selector', [model_name '/SelectorDouble'],...
             'NumberOfDimensions', '3', 'IndexOptions', 'Index vector (dialog),Index vector (dialog),Index vector (dialog)',...
-            'Indices',           '[1:4],[1:4],2');
+            'Indices',           '[1:3],[1:4],2');
 
         outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out8_3DMatrixUint32'], ...
             'SignalName',     'Out8_3DMatrixUint32', ...
@@ -387,7 +387,7 @@ if hasOutputs == true
 
         add_block('simulink/Signal Routing/Selector', [model_name '/Selector3DUint32'],...
             'NumberOfDimensions', '3', 'IndexOptions', 'Index vector (dialog),Index vector (dialog),Index vector (dialog)',...
-            'Indices',           '[1:4],[1:4],2');
+            'Indices',           '[1:3],[1:4],2');
     end
 
 else
@@ -506,6 +506,37 @@ if hasStructSignals == true
     end
 
     if modelComplexity > 3
+        evalin('base', 'clear bus41Elems;');
+        evalin('base', 'bus41Elems(1) = Simulink.BusElement;');
+        evalin('base', 'bus41Elems(1).Name = ''Signal1'';');
+        evalin('base', 'bus41Elems(1).Dimensions = [3 4 5];');
+        evalin('base', 'bus41Elems(1).DimensionsMode = ''Fixed'';');
+        evalin('base', 'bus41Elems(1).DataType = ''uint32'';');
+        evalin('base', 'bus41Elems(1).SampleTime = -1;');
+        evalin('base', 'bus41Elems(1).Complexity = ''real'';');
+
+        evalin('base', 'bus41Elems(2) = Simulink.BusElement;');
+        evalin('base', 'bus41Elems(2).Name = ''Signal2'';');
+        evalin('base', 'bus41Elems(2).Dimensions = [3 4 5];');
+        evalin('base', 'bus41Elems(2).DimensionsMode = ''Fixed'';');
+        evalin('base', 'bus41Elems(2).DataType = ''double'';');
+        evalin('base', 'bus41Elems(2).SampleTime = -1;');
+        evalin('base', 'bus41Elems(2).Complexity = ''real'';');
+
+        evalin('base', 'STRUCTSIGNAL41 = Simulink.Bus;');
+        evalin('base', 'STRUCTSIGNAL41.Elements = bus41Elems;');
+
+        add_block('simulink/Signal Routing/Bus Creator', [model_name '/BusCreator41']);
+            set_param([model_name '/BusCreator41'],         'Inputs',         '2');
+            set_param([model_name '/BusCreator41'],         'NonVirtualBus',  'on');
+            set_param([model_name '/BusCreator41'],         'OutDataTypeStr', 'Bus: STRUCTSIGNAL41');
+
+        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out41_NonVirtualBus'], ...
+            'SignalName',     'Out41_NonVirtualBus', ...
+            'IconDisplay',    'Signal name', ...
+            'OutDataTypeStr', 'Inherit: auto');
+
+        % bus of buses
         evalin('base', 'clear bus2031Elems;');
         evalin('base', 'bus2031Elems(1) = Simulink.BusElement;');
         evalin('base', 'bus2031Elems(1).Name = ''Signal1'';');
@@ -574,15 +605,21 @@ if hasStructSignals == true
     add_line(model_name, 'BusCreator1/1',      'Out20_NonVirtualBus/1');
 
     if modelComplexity >= 2
-        add_line(model_name, 'BusCreator21/1',      'Out21_NonVirtualBus/1');
+        add_line(model_name, 'BusCreator21/1',     'Out21_NonVirtualBus/1');
         add_line(model_name, 'Gain3/1',            'BusCreator21/2');
         add_line(model_name, 'Gain4/1',            'BusCreator21/1');
     end
 
     if modelComplexity >= 3
-        add_line(model_name, 'BusCreator31/1',      'Out31_NonVirtualBus/1');
+        add_line(model_name, 'BusCreator31/1',     'Out31_NonVirtualBus/1');
         add_line(model_name, 'Gain5/1',            'BusCreator31/2');
         add_line(model_name, 'Gain6/1',            'BusCreator31/1');
+    end
+
+    if modelComplexity >= 4
+        add_line(model_name, 'BusCreator41/1',     'Out41_NonVirtualBus/1');
+        add_line(model_name, 'In7_3DMatrixDouble/1',            'BusCreator41/2');
+        add_line(model_name, 'In8_3DMatrixUint32/1',            'BusCreator41/1');
     end
 
 end
@@ -675,9 +712,9 @@ end
 if modelComplexity >= 4
     if hasInputs == true
         add_line(model_name, 'In7_3DMatrixDouble/1', 'Concatenate7/1');
-        add_line(model_name, 'In7_3DMatrixDouble/1', 'Concatenate7/2');
+        if ~hasStructInputs, add_line(model_name, 'In7_3DMatrixDouble/1', 'Concatenate7/2'); end
         add_line(model_name, 'In8_3DMatrixUint32/1', 'Concatenate8/1');
-        add_line(model_name, 'In8_3DMatrixUint32/1', 'Concatenate8/2');
+        if ~hasStructInputs, add_line(model_name, 'In8_3DMatrixUint32/1', 'Concatenate8/2'); end
 
         add_line(model_name, 'Concatenate7/1', 'SelectorDouble/1');
         add_line(model_name, 'Concatenate8/1', 'Selector3DUint32/1');
@@ -814,16 +851,16 @@ end
 
 % name the output signals
 for port = outPorts
-    p           = get_param(port, 'PortHandles');
     signal_name = get_param(port, 'Name');
+    p           = get_param(port, 'PortHandles');
     l           = get_param(p.Inport(1), 'Line');
     if hasSignalNames, set_param(l, 'Name', signal_name); end
 end
 
 % name the input signals
 for port = inPorts
-    p           = get_param(port, 'PortHandles');
     signal_name = get_param(port, 'Name');
+    p           = get_param(port, 'PortHandles');
     l           = get_param(p.Outport(1), 'Line');
     if hasSignalNames, set_param(l, 'Name', signal_name); end
 end
@@ -983,7 +1020,7 @@ function tempInPorts = helper_input_gen_WithoutInputs(model_name, modelComplexit
         if hasTunableParams == true
             set_param([model_name '/In3_VectorDouble'],  'Value',          'vectorConstant2');
         else
-            set_param([model_name '/In3_VectorDouble'],  'Value',          'rand(8,1)');
+            set_param([model_name '/In3_VectorDouble'],  'Value',          '7:-1:0');
         end
 
         tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In4_VectorUint32'], ...
@@ -1005,7 +1042,7 @@ function tempInPorts = helper_input_gen_WithoutInputs(model_name, modelComplexit
                 set_param([model_name '/In5_MatrixDouble'],  'Value',          'matrixConstant2');
             end
         else
-            set_param([model_name '/In5_MatrixDouble'], 'Value',          'rand(6,6)');
+            set_param([model_name '/In5_MatrixDouble'], 'Value',          'reshape([1:18 1:18], 6, 6)');
         end
 
         tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In6_MatrixUint32'], ...
@@ -1029,7 +1066,7 @@ function tempInPorts = helper_input_gen_WithoutInputs(model_name, modelComplexit
         if hasTunableParams == true
             set_param([model_name '/In7_3DMatrixDouble'],  'Value',          'matrixConstant3d');
         else
-            set_param([model_name '/In7_3DMatrixDouble'], 'Value',          'rand(4,4,4)');
+            set_param([model_name '/In7_3DMatrixDouble'], 'Value',          'reshape(1:60, [3,4,5])');
         end
 
         tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In8_3DMatrixUint32'], ...
@@ -1037,7 +1074,7 @@ function tempInPorts = helper_input_gen_WithoutInputs(model_name, modelComplexit
         if hasStructParams == true
             set_param([model_name '/In8_3DMatrixUint32'], 'Value',          'structMixed.mat3d');
         else
-            set_param([model_name '/In8_3DMatrixUint32'],  'Value',          'ones(4,4,4)');
+            set_param([model_name '/In8_3DMatrixUint32'],  'Value',          'reshape(uint32(1:60), [3,4,5])');
         end
     end
 
@@ -1171,7 +1208,7 @@ function tempInPorts = helper_input_gen_WithStructInputs(model_name, modelComple
     if modelComplexity > 3
         evalin('base', 'inputBusElems4(2) = Simulink.BusElement;');
         evalin('base', 'inputBusElems4(2).Name = ''In7_3DMatrixDouble'';');
-        evalin('base', 'inputBusElems4(2).Dimensions = [4 4 4];');
+        evalin('base', 'inputBusElems4(2).Dimensions = [3 4 5];');
         evalin('base', 'inputBusElems4(2).DimensionsMode = ''Fixed'';');
         evalin('base', 'inputBusElems4(2).DataType = ''double'';');
         evalin('base', 'inputBusElems4(2).SampleTime = -1;');
@@ -1179,7 +1216,7 @@ function tempInPorts = helper_input_gen_WithStructInputs(model_name, modelComple
 
         evalin('base', 'inputBusElems4(1) = Simulink.BusElement;');
         evalin('base', 'inputBusElems4(1).Name = ''In8_3DMatrixUint32'';');
-        evalin('base', 'inputBusElems4(1).Dimensions = [4 4 4];');
+        evalin('base', 'inputBusElems4(1).Dimensions = [3 4 5];');
         evalin('base', 'inputBusElems4(1).DimensionsMode = ''Fixed'';');
         evalin('base', 'inputBusElems4(1).DataType = ''uint32'';');
         evalin('base', 'inputBusElems4(1).SampleTime = -1;');
@@ -1201,16 +1238,14 @@ function tempInPorts = helper_input_gen_WithStructInputs(model_name, modelComple
         add_block('simulink/Signal Routing/Bus Selector', [model_name '/InputSelector4'], ...
             'OutputSignals', 'In7_3DMatrixDouble,In8_3DMatrixUint32');
 
-        add_block('simulink/Math Operations/Matrix Concatenate', [model_name '/Concatenate7'], ...
-            'NumInputs',            '2', ...
-            'ConcatenateDimension', '3')
+        add_block('simulink/Math Operations/Gain', [model_name '/Concatenate7'], ...
+            'OutDataTypeStr', 'double');
 
-        add_block('simulink/Math Operations/Matrix Concatenate', [model_name '/Concatenate8'], ...
-            'NumInputs',            '2', ...
-            'ConcatenateDimension', '3')
+        add_block('simulink/Math Operations/Gain', [model_name '/Concatenate8'], ...
+            'OutDataTypeStr', 'uint32')
 
-        add_line(model_name, 'InputSelector4/2', 'In7_3DMatrixDouble/1');
-        add_line(model_name, 'InputSelector4/1', 'In8_3DMatrixUint32/1');
+        add_line(model_name, 'InputSelector4/1', 'In7_3DMatrixDouble/1');
+        add_line(model_name, 'InputSelector4/2', 'In8_3DMatrixUint32/1');
 
         add_line(model_name, 'In4_Structured/1', 'InputSelector4/1');
 
