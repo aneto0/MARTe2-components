@@ -243,6 +243,11 @@ public:
     bool TestSetup_ZeroVerbosity();
 
     /**
+     * @brief Tests the GetInterfaceBytesize method of SimulinkRootInterface.
+     */
+    bool TestSetup_StructSignalBytesize();
+
+    /**
      * @brief Tests the Setup() method with 3D signals in the bus input.
      */
     bool TestSetup_With3DSignals();

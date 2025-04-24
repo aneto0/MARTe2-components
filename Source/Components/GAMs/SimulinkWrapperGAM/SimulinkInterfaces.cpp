@@ -473,7 +473,7 @@ void SimulinkRootInterface::Print(uint64 paddingLength /*= 50u*/, StreamString p
                 if (rootStructure.Delete("__Dimensions__")) {}
             }
 
-            // calculare the substructure bytesize
+            // calculate the substructure bytesize
             uint32 structBytesize = GetInterfaceBytesize(rootStructure);
 
             REPORT_ERROR_STATIC(ErrorManagement::Information, "%s| struct  | % 4d | % 5d | % 4!%s | %p | %d total", printName.Buffer(),

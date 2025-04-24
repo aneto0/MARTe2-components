@@ -2446,6 +2446,135 @@ bool SimulinkWrapperGAMTest::TestSetup_ZeroVerbosity() {
     return ok && status.ErrorsCleared();
 }
 
+bool SimulinkWrapperGAMTest::TestSetup_StructSignalBytesize() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+
+    StreamString scriptCall = "createTestModel('modelComplexity', 4, 'hasStructSignals', true);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "   In1_Structured = { DataSource = Drv1    Type = uint8     NumberOfElements = 16   NumberOfDimensions = 1 }"
+        "   In2_Structured = { DataSource = Drv1    Type = uint8     NumberOfElements = 96   NumberOfDimensions = 1 }"
+        "   In3_Structured = { DataSource = Drv1    Type = uint8     NumberOfElements = 432  NumberOfDimensions = 1 }"
+        "   In4_Structured = { DataSource = Drv1    Type = uint8     NumberOfElements = 720  NumberOfDimensions = 1 }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble     = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out2_ScalarUint32     = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out3_VectorDouble     = { DataSource = DDB1    Type = float64    NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "    Out4_VectorUint32     = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "    Out5_MatrixDouble     = { DataSource = DDB1    Type = float64    NumberOfElements = 36   NumberOfDimensions = 2 }"
+        "    Out6_MatrixUint32     = { DataSource = DDB1    Type = uint32     NumberOfElements = 36   NumberOfDimensions = 2 }"
+        "    Out7_3DMatrixDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 12   NumberOfDimensions = 2 }"
+        "    Out8_3DMatrixUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 12   NumberOfDimensions = 2 }"
+        "    Out20_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 16   NumberOfDimensions = 1 }"
+        "    Out21_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 96   NumberOfDimensions = 1 }"
+        "    Out31_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 432  NumberOfDimensions = 1 }"
+        "    Out41_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 720  NumberOfDimensions = 1 }"
+        "    Out2031_NonVirtualBus = { DataSource = DDB1    Type = uint8      NumberOfElements = 528  NumberOfDimensions = 1 }"
+        "}"
+        ;
+
+    StreamString parameters = "";
+
+    StreamString verbosity = " 2 ";
+
+    StreamString expectedBytesizes = ""
+        "Out1_ScalarDouble = (uint32) 8       "
+        "Out2_ScalarUint32 = (uint32) 4       "
+        "Out3_VectorDouble = (uint32) 64      "
+        "Out4_VectorUint32 = (uint32) 32      "
+        "Out5_MatrixDouble = (uint32) 288     "
+        "Out6_MatrixUint32 = (uint32) 144     "
+        "Out7_3DMatrixDouble = (uint32) 96    "
+        "Out8_3DMatrixUint32 = (uint32) 48    "
+        "Out20_NonVirtualBus = (uint32) 12    "
+        "Out21_NonVirtualBus = (uint32) 96    "
+        "Out31_NonVirtualBus = (uint32) 432   "
+        "Out41_NonVirtualBus = (uint32) 720   "
+        "Out2031_NonVirtualBus = (uint32) 528 "
+        "Signal1 = (uint32) 96                "
+        "Signal2 = (uint32) 432               "
+        ""
+        ;
+
+    ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
+
+    // Test setup
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, ord);
+
+    ConfigurationDatabase cdb;
+    if (ok) {
+        expectedBytesizes.Seek(0u);
+        StandardParser parser(expectedBytesizes, cdb);
+        ok = parser.Parse();
+    }
+
+    // Check bytesizes
+    if (ok) {
+        ReferenceT<SimulinkWrapperGAMHelper> gam = ord->Find("Test.Functions.GAM1");
+
+        ok = gam.IsValid();
+        if (ok) {
+            SimulinkRootInterface* outputs = gam->GetOutputs();
+            for (uint32 rootOutputIdx = 0u; (rootOutputIdx < gam->GetNumberOfOutputSignals()) && ok; rootOutputIdx++) {
+                ConfigurationDatabase sizeDb = outputs[rootOutputIdx].rootStructure;
+                uint32 currNumOfChildren = sizeDb.GetNumberOfChildren();
+
+                for (uint32 parIdx = 0u; parIdx < currNumOfChildren; parIdx++) {
+
+                    uint32 byteSize = 0u;
+                    StreamString signalName = "";
+
+                    // struct
+                    if (sizeDb.MoveToChild(parIdx)) {
+                        signalName = sizeDb.GetName();
+                        byteSize = outputs[rootOutputIdx].GetInterfaceBytesize(sizeDb);
+                        uint32 expectedBytesize = *((uint32*) cdb.GetType(signalName.Buffer()).GetDataPointer());
+
+                        ok = (byteSize == expectedBytesize);
+
+                        for (uint32 subIdx = 0u; (subIdx < sizeDb.GetNumberOfChildren()) && ok; subIdx++) {
+                            if (sizeDb.MoveToChild(subIdx)) {
+                                signalName = sizeDb.GetName();
+                                byteSize = outputs[rootOutputIdx].GetInterfaceBytesize(sizeDb);
+                                uint32 expectedBytesize = *((uint32*) cdb.GetType(signalName.Buffer()).GetDataPointer());
+
+                                ok = (byteSize == expectedBytesize);
+
+                                sizeDb.MoveToAncestor(1u);
+                            }
+                        }
+
+                        sizeDb.MoveToAncestor(1u);
+                    }
+                    // numeric
+                    else {
+                        signalName = sizeDb.GetChildName(parIdx);
+                        byteSize = outputs[rootOutputIdx][parIdx]->byteSize;
+                        uint32 expectedBytesize = *((uint32*) cdb.GetType(signalName.Buffer()).GetDataPointer());
+
+                        ok = (byteSize == expectedBytesize);
+                    }
+
+                }
+            }
+        }
+    }
+
+    if (ok) {
+        ord->Purge();
+    }
+
+    return ok && status.ErrorsCleared();
+}
+
+
 bool SimulinkWrapperGAMTest::TestSetup_With3DSignals() {
     
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
@@ -6443,21 +6572,6 @@ bool SimulinkWrapperGAMTest::TestExecute_With3DSignals_NoInputs(bool transpose) 
                             if (!ok) {
                                 REPORT_ERROR_STATIC(ErrorManagement::Debug, "Signal %s: reference vs model, comparison failed.", outputName.Buffer());
                             }
-
-
-if (!ok) {
-    printf("--- %s comp failed\n", outputName.Buffer());
-    if (arrayDescription.GetTypeDescriptor() == UnsignedInteger32Bit) {
-        for (uint32 ii = 0u; ii < outputSize; ii++) {
-            printf("[%3u] %3u -> %3u | %3u\n", ii, ((uint32*)modelAddr)[ii], ((uint32*)GAMAddr)[ii], ((uint32*)arrayDescription.GetDataPointer())[ii] );
-        }
-    }
-    else {
-        for (uint32 ii = 0u; ii < outputSize/8u; ii++) {
-            printf("[%3u] %6.3f -> %6.3f | %6.3f\n", ii, ((float64*)modelAddr)[ii], ((float64*)GAMAddr)[ii], ((float64*)arrayDescription.GetDataPointer())[ii] );
-        }
-    }
-}
                         }
 
                         // Check GAM output: always row-major (if the model is column-major the GAM is expected to permute signals)
@@ -6506,21 +6620,6 @@ if (!ok) {
                             }
                         }
                     }
-
-if (!ok) {
-    printf("--- %s comp failed\n", outputName.Buffer());
-    if (arrayDescription.GetTypeDescriptor() == UnsignedInteger32Bit) {
-        for (uint32 ii = 0u; ii < outputSize; ii++) {
-            printf("[%3u] %3u -> %3u | %3u\n", ii, ((uint32*)modelAddr)[ii], ((uint32*)GAMAddr)[ii], ((uint32*)arrayDescription.GetDataPointer())[ii] );
-        }
-    }
-    else {
-        for (uint32 ii = 0u; ii < outputSize/8u; ii++) {
-            printf("[%3u] %6.3f -> %6.3f | %6.3f\n", ii, ((float64*)modelAddr)[ii], ((float64*)GAMAddr)[ii], ((float64*)arrayDescription.GetDataPointer())[ii] );
-        }
-    }
-}
-
                 }
             }
         }
