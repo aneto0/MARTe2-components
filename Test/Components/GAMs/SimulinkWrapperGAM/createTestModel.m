@@ -7,21 +7,22 @@ model_compiled = false;
 %% settings
 
 % default values
-modelComplexity      = 1;
-hasAllocFcn          = true;
-hasGetmmiFcn         = true;
-hasTunableParams     = false;
-hasStructParams      = false;
-hasStructArrayParams = false;
-hasInputs            = true;
-hasOutputs           = true;
-hasLoggingSignals    = false;
-hasStructSignals     = false;
-hasEnums             = false;
-hasSignalNames       = true;
-dataOrientation      = 'Column-major';   isRowMajor = 0;
-useType              = 0;
-debugMode            = false;
+modelComplexity       = 1;
+hasAllocFcn           = true;
+hasGetmmiFcn          = true;
+hasTunableParams      = false;
+hasStructParams       = false;
+hasStructArrayParams  = false;
+hasInputs             = true;
+hasOutputs            = true;
+hasLoggingSignals     = false;
+hasStructSignals      = false;
+hasStructArraySignals = false;
+hasEnums              = false;
+hasSignalNames        = true;
+dataOrientation       = 'Column-major';   isRowMajor = 0;
+useType               = 0;
+debugMode             = false;
 
 while ~isempty(varargin)
 
@@ -56,6 +57,9 @@ while ~isempty(varargin)
 
         case 'hasStructSignals'
             hasStructSignals = varargin{2};
+
+        case 'hasStructArraySignals'
+            hasStructArraySignals = varargin{2};
 
         case 'hasEnums'
             hasEnums = varargin{2};
@@ -93,12 +97,12 @@ if hasLoggingSignals && hasEnums
     hasLoggingSignals = false;
 end
 
-% warning: the model name is limited to 20 characters
-model_name = ['tstMdl' int2str(modelComplexity)  int2str(hasAllocFcn)     int2str(hasGetmmiFcn) ...
-                       int2str(hasTunableParams) int2str(hasStructParams) int2str(hasStructArrayParams) ...
-                       int2str(hasInputs)        int2str(hasOutputs)      int2str(hasStructSignals) ...
-                       int2str(isRowMajor)       int2str(hasEnums)        int2str(hasSignalNames) ...
-                       int2str(useType)          int2str(hasLoggingSignals) ...
+% warning: the test model (tmd) name is limited to 20 characters
+model_name = ['tmd' int2str(modelComplexity)  int2str(hasAllocFcn)       int2str(hasGetmmiFcn) ...
+                    int2str(hasTunableParams) int2str(hasStructParams)   int2str(hasStructArrayParams) ...
+                    int2str(hasInputs)        int2str(hasOutputs)        int2str(hasStructSignals)     int2str(hasStructArraySignals) ...
+                    int2str(isRowMajor)       int2str(hasEnums)          int2str(hasSignalNames) ...
+                    int2str(useType)          int2str(hasLoggingSignals) ...
              ];
 
 if isfile([model_name '.so'])
@@ -407,12 +411,12 @@ else
     end
 end
 
-if hasStructSignals == true
+% define buses
+if hasStructSignals || hasStructArraySignals
 
-    % custom type for the nonvirtual bus
     evalin('base', 'clear bus1Elems;');
     evalin('base', 'bus1Elems(1) = Simulink.BusElement;');
-    evalin('base', 'bus1Elems(1).Name = ''Signal1'';');
+    evalin('base', 'bus1Elems(1).Name = ''Out2_ScalarUint32'';');
     evalin('base', 'bus1Elems(1).Dimensions = 1;');
     evalin('base', 'bus1Elems(1).DimensionsMode = ''Fixed'';');
     evalin('base', 'bus1Elems(1).DataType = ''uint32'';');
@@ -420,7 +424,7 @@ if hasStructSignals == true
     evalin('base', 'bus1Elems(1).Complexity = ''real'';');
 
     evalin('base', 'bus1Elems(2) = Simulink.BusElement;');
-    evalin('base', 'bus1Elems(2).Name = ''Signal2'';');
+    evalin('base', 'bus1Elems(2).Name = ''Out1_ScalarDouble'';');
     evalin('base', 'bus1Elems(2).Dimensions = 1;');
     evalin('base', 'bus1Elems(2).DimensionsMode = ''Fixed'';');
     evalin('base', 'bus1Elems(2).DataType = ''double'';');
@@ -430,20 +434,15 @@ if hasStructSignals == true
     evalin('base', 'STRUCTSIGNAL1 = Simulink.Bus;');
     evalin('base', 'STRUCTSIGNAL1.Elements = bus1Elems;');
 
-    add_block('simulink/Signal Routing/Bus Creator', [model_name '/BusCreator1']);
-    set_param([model_name '/BusCreator1'],         'Inputs',         '2');
-    set_param([model_name '/BusCreator1'],         'NonVirtualBus',  'on');
-    set_param([model_name '/BusCreator1'],         'OutDataTypeStr', 'Bus: STRUCTSIGNAL1');
+    add_block('simulink/Signal Routing/Bus Creator', [model_name '/BusCreator1'], ...
+        'Inputs',         '2', ...
+        'NonVirtualBus',  'on', ...
+        'OutDataTypeStr', 'Bus: STRUCTSIGNAL1');
 
-    outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out20_NonVirtualBus'], ...
-        'SignalName',     'Out20_NonVirtualBus', ...
-        'IconDisplay',    'Signal name', ...
-        'OutDataTypeStr', 'Inherit: auto');
-
-    if(modelComplexity > 1)
+    if modelComplexity > 1
         evalin('base', 'clear bus3Elems;');
         evalin('base', 'bus21Elems(1) = Simulink.BusElement;');
-        evalin('base', 'bus21Elems(1).Name = ''Signal1'';');
+        evalin('base', 'bus21Elems(1).Name = ''Out3_VectorUint32'';');
         evalin('base', 'bus21Elems(1).Dimensions = [8 1];');
         evalin('base', 'bus21Elems(1).DimensionsMode = ''Fixed'';');
         evalin('base', 'bus21Elems(1).DataType = ''uint32'';');
@@ -451,7 +450,7 @@ if hasStructSignals == true
         evalin('base', 'bus21Elems(1).Complexity = ''real'';');
 
         evalin('base', 'bus21Elems(2) = Simulink.BusElement;');
-        evalin('base', 'bus21Elems(2).Name = ''Signal2'';');
+        evalin('base', 'bus21Elems(2).Name = ''Out4_VectorDouble'';');
         evalin('base', 'bus21Elems(2).Dimensions = [8 1];');
         evalin('base', 'bus21Elems(2).DimensionsMode = ''Fixed'';');
         evalin('base', 'bus21Elems(2).DataType = ''double'';');
@@ -461,21 +460,16 @@ if hasStructSignals == true
         evalin('base', 'STRUCTSIGNAL21 = Simulink.Bus;');
         evalin('base', 'STRUCTSIGNAL21.Elements = bus21Elems;');
 
-        add_block('simulink/Signal Routing/Bus Creator', [model_name '/BusCreator21']);
-        set_param([model_name '/BusCreator21'],         'Inputs',         '2');
-        set_param([model_name '/BusCreator21'],         'NonVirtualBus',  'on');
-        set_param([model_name '/BusCreator21'],         'OutDataTypeStr', 'Bus: STRUCTSIGNAL21');
-
-        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out21_NonVirtualBus'], ...
-            'SignalName',     'Out21_NonVirtualBus', ...
-            'IconDisplay',    'Signal name', ...
-            'OutDataTypeStr', 'Inherit: auto');
+        add_block('simulink/Signal Routing/Bus Creator', [model_name '/BusCreator21'], ...
+            'Inputs',         '2', ...
+            'NonVirtualBus',  'on', ...
+            'OutDataTypeStr', 'Bus: STRUCTSIGNAL21');
     end
 
-    if(modelComplexity > 2)
+    if modelComplexity > 2
         evalin('base', 'clear bus31Elems;');
         evalin('base', 'bus31Elems(1) = Simulink.BusElement;');
-        evalin('base', 'bus31Elems(1).Name = ''Signal1'';');
+        evalin('base', 'bus31Elems(1).Name = ''Out5_MatrixUint32'';');
         evalin('base', 'bus31Elems(1).Dimensions = [6 6];');
         evalin('base', 'bus31Elems(1).DimensionsMode = ''Fixed'';');
         evalin('base', 'bus31Elems(1).DataType = ''uint32'';');
@@ -483,7 +477,7 @@ if hasStructSignals == true
         evalin('base', 'bus31Elems(1).Complexity = ''real'';');
 
         evalin('base', 'bus31Elems(2) = Simulink.BusElement;');
-        evalin('base', 'bus31Elems(2).Name = ''Signal2'';');
+        evalin('base', 'bus31Elems(2).Name = ''Out6_MatrixDouble'';');
         evalin('base', 'bus31Elems(2).Dimensions = [6 6];');
         evalin('base', 'bus31Elems(2).DimensionsMode = ''Fixed'';');
         evalin('base', 'bus31Elems(2).DataType = ''double'';');
@@ -493,22 +487,16 @@ if hasStructSignals == true
         evalin('base', 'STRUCTSIGNAL31 = Simulink.Bus;');
         evalin('base', 'STRUCTSIGNAL31.Elements = bus31Elems;');
 
-        add_block('simulink/Signal Routing/Bus Creator', [model_name '/BusCreator31']);
-        set_param([model_name '/BusCreator31'],         'Inputs',         '2');
-        set_param([model_name '/BusCreator31'],         'NonVirtualBus',  'on');
-        set_param([model_name '/BusCreator31'],         'OutDataTypeStr', 'Bus: STRUCTSIGNAL31');
-
-        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out31_NonVirtualBus'], ...
-            'SignalName',     'Out31_NonVirtualBus', ...
-            'IconDisplay',    'Signal name', ...
-            'OutDataTypeStr', 'Inherit: auto');
-
+        add_block('simulink/Signal Routing/Bus Creator', [model_name '/BusCreator31'], ...
+            'Inputs',         '2', ...
+            'NonVirtualBus',  'on', ...
+            'OutDataTypeStr', 'Bus: STRUCTSIGNAL31');
     end
 
     if modelComplexity > 3
         evalin('base', 'clear bus41Elems;');
         evalin('base', 'bus41Elems(1) = Simulink.BusElement;');
-        evalin('base', 'bus41Elems(1).Name = ''Signal1'';');
+        evalin('base', 'bus41Elems(1).Name = ''Out7_3DMatrixUint32'';');
         evalin('base', 'bus41Elems(1).Dimensions = [3 4 5];');
         evalin('base', 'bus41Elems(1).DimensionsMode = ''Fixed'';');
         evalin('base', 'bus41Elems(1).DataType = ''uint32'';');
@@ -516,7 +504,7 @@ if hasStructSignals == true
         evalin('base', 'bus41Elems(1).Complexity = ''real'';');
 
         evalin('base', 'bus41Elems(2) = Simulink.BusElement;');
-        evalin('base', 'bus41Elems(2).Name = ''Signal2'';');
+        evalin('base', 'bus41Elems(2).Name = ''Out8_3DMatrixDouble'';');
         evalin('base', 'bus41Elems(2).Dimensions = [3 4 5];');
         evalin('base', 'bus41Elems(2).DimensionsMode = ''Fixed'';');
         evalin('base', 'bus41Elems(2).DataType = ''double'';');
@@ -526,20 +514,15 @@ if hasStructSignals == true
         evalin('base', 'STRUCTSIGNAL41 = Simulink.Bus;');
         evalin('base', 'STRUCTSIGNAL41.Elements = bus41Elems;');
 
-        add_block('simulink/Signal Routing/Bus Creator', [model_name '/BusCreator41']);
-            set_param([model_name '/BusCreator41'],         'Inputs',         '2');
-            set_param([model_name '/BusCreator41'],         'NonVirtualBus',  'on');
-            set_param([model_name '/BusCreator41'],         'OutDataTypeStr', 'Bus: STRUCTSIGNAL41');
-
-        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out41_NonVirtualBus'], ...
-            'SignalName',     'Out41_NonVirtualBus', ...
-            'IconDisplay',    'Signal name', ...
-            'OutDataTypeStr', 'Inherit: auto');
+        add_block('simulink/Signal Routing/Bus Creator', [model_name '/BusCreator41'], ...
+            'Inputs',         '2', ...
+            'NonVirtualBus',  'on', ...
+            'OutDataTypeStr', 'Bus: STRUCTSIGNAL41');
 
         % bus of buses
         evalin('base', 'clear bus2031Elems;');
         evalin('base', 'bus2031Elems(1) = Simulink.BusElement;');
-        evalin('base', 'bus2031Elems(1).Name = ''Signal1'';');
+        evalin('base', 'bus2031Elems(1).Name = ''Out21_Structured'';');
         evalin('base', 'bus2031Elems(1).Dimensions = 1;');
         evalin('base', 'bus2031Elems(1).DimensionsMode = ''Fixed'';');
         evalin('base', 'bus2031Elems(1).DataType = ''Bus: STRUCTSIGNAL21'';');
@@ -547,7 +530,7 @@ if hasStructSignals == true
         evalin('base', 'bus2031Elems(1).Complexity = ''real'';');
 
         evalin('base', 'bus2031Elems(2) = Simulink.BusElement;');
-        evalin('base', 'bus2031Elems(2).Name = ''Signal2'';');
+        evalin('base', 'bus2031Elems(2).Name = ''Out31_Structured'';');
         evalin('base', 'bus2031Elems(2).Dimensions = 1;');
         evalin('base', 'bus2031Elems(2).DimensionsMode = ''Fixed'';');
         evalin('base', 'bus2031Elems(2).DataType = ''Bus: STRUCTSIGNAL31'';');
@@ -557,11 +540,40 @@ if hasStructSignals == true
         evalin('base', 'STRUCTSIGNAL2031 = Simulink.Bus;');
         evalin('base', 'STRUCTSIGNAL2031.Elements = bus2031Elems;');
 
-        add_block('simulink/Signal Routing/Bus Creator', [model_name '/BusCreator2031']);
-            set_param([model_name '/BusCreator2031'],         'Inputs',         '2');
-            set_param([model_name '/BusCreator2031'],         'NonVirtualBus',  'on');
-            set_param([model_name '/BusCreator2031'],         'OutDataTypeStr', 'Bus: STRUCTSIGNAL2031');
+        add_block('simulink/Signal Routing/Bus Creator', [model_name '/BusCreator2031'], ...
+            'Inputs',         '2', ...
+            'NonVirtualBus',  'on', ...
+            'OutDataTypeStr', 'Bus: STRUCTSIGNAL2031');
+    end
+end
 
+if hasStructSignals
+    outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out20_NonVirtualBus'], ...
+        'SignalName',     'Out20_NonVirtualBus', ...
+        'IconDisplay',    'Signal name', ...
+        'OutDataTypeStr', 'Inherit: auto');
+
+    if (modelComplexity >= 2)
+        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out21_NonVirtualBus'], ...
+            'SignalName',     'Out21_NonVirtualBus', ...
+            'IconDisplay',    'Signal name', ...
+            'OutDataTypeStr', 'Inherit: auto');
+    end
+
+    if (modelComplexity >= 3)
+        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out31_NonVirtualBus'], ...
+            'SignalName',     'Out31_NonVirtualBus', ...
+            'IconDisplay',    'Signal name', ...
+            'OutDataTypeStr', 'Inherit: auto');
+    end
+
+    if (modelComplexity >= 4)
+        outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out41_NonVirtualBus'], ...
+            'SignalName',     'Out41_NonVirtualBus', ...
+            'IconDisplay',    'Signal name', ...
+            'OutDataTypeStr', 'Inherit: auto');
+
+        % bus of buses
         outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out2031_NonVirtualBus'], ...
             'SignalName',     'Out2031_NonVirtualBus', ...
             'IconDisplay',    'Signal name', ...
@@ -573,7 +585,42 @@ if hasStructSignals == true
 
         name_output_signal([model_name '/Out2031_NonVirtualBus'], 1, 'Out2031_NonVirtualBus');
     end
+end
 
+if hasStructArraySignals
+    outPorts(end + 1) = add_block('simulink/Sinks/Out1', [model_name '/Out200_StructArray'], ...
+        'SignalName',     'Out200_StructArray', ...
+        'IconDisplay',    'Signal name', ...
+        'OutDataTypeStr',  'Inherit: auto', ...
+        'PortDimensions',  '[1 3]');
+
+    add_block('simulink/Commonly Used Blocks/Vector Concatenate', [model_name '/Out200_Concatenate']);
+    
+    evalin('base', 'testStruct(1) = struct(''Out2_ScalarUint32'', uint32(100), ''Out1_ScalarDouble'', 200);');
+    evalin('base', 'testStruct(2) = struct(''Out2_ScalarUint32'', uint32(101), ''Out1_ScalarDouble'', 201);');
+
+    add_block('simulink/Sources/Constant', [model_name '/Out200_Const'], ...
+        'Value',          'testStruct', ...
+        'OutDataTypeStr', 'Bus: STRUCTSIGNAL1');
+
+    add_line(model_name, 'Out200_Concatenate/1', 'Out200_StructArray/1');
+    add_line(model_name, 'BusCreator1/1',        'Out200_Concatenate/1');
+    add_line(model_name, 'Out200_Const/1',       'Out200_Concatenate/2');
+
+    %     if modelComplexity > 4
+    %         outPorts(end + 1) = add_block('simulink/Sinks/Out1', [model_name '/Out200_StructArray'], ...
+    %             'SignalName',     'Out200_StructArray', ...
+    %             'IconDisplay',    'Signal name', ...
+    %             'OutDataTypeStr',  'Inherit: auto', ...
+    %             'PortDimensions',  '[1 2]');
+    % 
+    %         add_block('simulink/Signal Routing/Bus Creator', [model_name '/BusCreator200'], ...
+    %             'Inputs',         '2', ...
+    %             'NonVirtualBus',  'on', ...
+    %             'OutDataTypeStr', 'Bus: STRUCTSIGNAL1');
+    % 
+    %         add_line(model_name, 'BusCreator200/1', 'Out200_StructArray/1');
+    %     end
 end
 
 %% manage connections
