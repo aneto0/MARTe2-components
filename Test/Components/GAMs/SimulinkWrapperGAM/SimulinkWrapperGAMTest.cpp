@@ -3583,6 +3583,169 @@ bool SimulinkWrapperGAMTest::TestParameterActualisation_Float() {
     return ok && status;
 }
 
+bool SimulinkWrapperGAMTest::TestPrintAlgoInfo() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+
+    bool ok = true;
+
+    StreamString modelName, modelFolder, modelFullPath;
+
+    modelFolder = testEnvironment.modelFolder;
+    modelName   = testEnvironment.CreateTestModel("createTestModel();");
+
+    modelFullPath  = modelFolder;
+    modelFullPath += "/";
+    modelFullPath += modelName;
+    modelFullPath += ".so";
+
+    SimulinkWrapperGAMHelper gam;
+    ConfigurationDatabase    config;
+
+    ok &= config.Write("Library",                    modelFullPath);
+    ok &= config.Write("SymbolPrefix",               modelName);
+    ok &= config.Write("TunableParamExternalSource", "ExtSource");
+    ok &= config.Write("Verbosity",                  2);
+    ok &= config.Write("SkipUnlinkedTunableParams",  1);
+
+    ok &= config.CreateAbsolute("Parameters");
+    ok &= config.MoveAbsolute("Parameters");
+
+    float32 scalarParam       = 3.141592653589793;
+    int64   vectorParam[2]    = {10, -20};
+    uint32  matrixParam[2][2] = { {1, 2}, {3, 4} };
+
+    ok &= config.Write("ScalarParam", scalarParam);
+    ok &= config.Write("VectorParam", vectorParam);
+    ok &= config.Write("MatrixParam", matrixParam);
+    ok &= config.Write("StringParam", "hello");
+
+    ok &= config.MoveToAncestor(1u);
+
+    if (ok) {
+        ok = gam.Initialise(config);
+    }
+
+    if (ok) {
+        gam.PrintAlgoInfoTest();
+    }
+
+    if (ok) {
+        status = gam.GetStatus();
+    }
+
+    return ok;
+
+}
+
+bool SimulinkWrapperGAMTest::Test_StructuredSignals() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "    In1_Structured = { "
+        "        In1_ScalarDouble  = { "
+        "            DataSource = Drv1"
+        "            Type = float64"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "        In2_ScalarUint32  = { "
+        "            DataSource = Drv1"
+        "            Type = uint32"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "    }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble = {"
+        "        DataSource = DDB1"
+        "        Type = float64"
+        "        NumberOfElements = 1"
+        "        NumberOfDimensions = 0"
+        "    }"
+        "    Out2_ScalarUint32 = {"
+        "        DataSource = DDB1"
+        "        Type = uint32"
+        "        NumberOfElements = 1"
+        "        NumberOfDimensions = 0"
+        "    }"
+        "    Out20_NonVirtualBus = { "
+        "        Out2_ScalarUint32 = {"
+        "            DataSource = DDB1"
+        "            Type = uint32"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "        Out1_ScalarDouble  = {"
+        "            DataSource = DDB1"
+        "            Type = float64"
+        "            NumberOfElements = 1"
+        "            NumberOfDimensions = 0"
+        "        }"
+        "    }"
+        "}";
+
+    StreamString parameters = "";
+
+    // Test setup
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
+
+
+    return ok && status;
+}
+
+bool SimulinkWrapperGAMTest::TestSetup_WithStructuredLoggingSignals() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'hasLoggingSignals', true);";
+
+    StreamString skipUnlinkedParams = "1";
+
+    StreamString inputSignals = ""
+        "InputSignals = { "
+        "    In1_Structured = { "
+        "        In1_ScalarDouble  = { DataSource = Drv1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "        In2_ScalarUint32  = { DataSource = Drv1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    }"
+        "}";
+
+    StreamString outputSignals = ""
+        "OutputSignals = { "
+        "    Out1_ScalarDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out2_ScalarUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out20_NonVirtualBus = { "
+        "        Out2_ScalarUint32  = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "        Out1_ScalarDouble  = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    }"
+        "    Log20_NonVirtualBus = { "
+        "        Out2_ScalarUint32  = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "        Out1_ScalarDouble  = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    }"
+        "}";
+
+    StreamString parameters = "";
+
+    // Test setup
+    StreamString verbosity = " 2 ";
+
+    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
+
+
+    return ok && status;
+}
+
 bool SimulinkWrapperGAMTest::TestExecute() {
     
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
@@ -3599,8 +3762,8 @@ bool SimulinkWrapperGAMTest::TestExecute() {
         "    In4_VectorUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 } "
         "    In5_MatrixDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 36   NumberOfDimensions = 2 } "
         "    In6_MatrixUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 36   NumberOfDimensions = 2 } "
-        "    In7_3DMatrixDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 16   NumberOfDimensions = 2 } "
-        "    In8_3DMatrixUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 16   NumberOfDimensions = 2 } "
+        "    In7_3DMatrixDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 24   NumberOfDimensions = 3 } "
+        "    In8_3DMatrixUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 24   NumberOfDimensions = 3 } "
         "}";
 
     StreamString outputSignals = ""
@@ -3611,13 +3774,14 @@ bool SimulinkWrapperGAMTest::TestExecute() {
         "    Out4_VectorUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 } "
         "    Out5_MatrixDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 36   NumberOfDimensions = 2 } "
         "    Out6_MatrixUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 36   NumberOfDimensions = 2 } "
-        "    Out7_3DMatrixDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 12   NumberOfDimensions = 2 } "
-        "    Out8_3DMatrixUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 12   NumberOfDimensions = 2 } "
+        "    Out7_3DMatrixDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 24   NumberOfDimensions = 3 } "
+        "    Out8_3DMatrixUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 24   NumberOfDimensions = 3 } "
         "}";
 
     StreamString parameters = ""
         "vectorConstant = (uint32) { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }";
     
+    // 3D matrices must be input as a sequence of uint8 raw bytes since configuration syntax does not yet support more than 2D
     StreamString inputValues = ""
         "In1_ScalarDouble = (float64) 3.141592653 "
         "In2_ScalarUint32 = (uint32)  2 "
@@ -3635,14 +3799,8 @@ bool SimulinkWrapperGAMTest::TestExecute() {
         "                               { 10, 11, 11, 11, 11, 12},"
         "                               { 10, 11, 11, 11, 11, 12},"
         "                               { 10, 11, 11, 11, 11, 12} }"
-        "In7_3DMatrixDouble = (float64) { { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 } }"
-        "In8_3DMatrixUint32 = (uint32)  { { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 } }"
+        "In7_3DMatrixDouble = (uint8) {  0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,  28,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  51,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  34,  64,   0,   0,   0,   0,   0,   0,  46,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  20,  64,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  49,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,  32,  64,   0,   0,   0,   0,   0,   0,  44,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  16,  64,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  48,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  24,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  50,  64,   0,   0,   0,   0,   0,   0,  56,  64 } "
+        "In8_3DMatrixUint32 = (uint8) {  1,   0,   0,   0,   7,   0,   0,   0,   13,   0,   0,   0,   19,   0,   0,   0,   3,   0,   0,   0,   9,   0,   0,   0,   15,   0,   0,   0,   21,   0,   0,   0,   5,   0,   0,   0,   11,   0,   0,   0,   17,   0,   0,   0,   23,   0,   0,   0,   2,   0,   0,   0,   8,   0,   0,   0,   14,   0,   0,   0,   20,   0,   0,   0,   4,   0,   0,   0,   10,   0,   0,   0,   16,   0,   0,   0,   22,   0,   0,   0,   6,   0,   0,   0,   12,   0,   0,   0,   18,   0,   0,   0,   24,   0,   0,   0 } "
         ;
     
     // Model is column-major, so matrices are expected to be transposed when copied
@@ -3663,14 +3821,8 @@ bool SimulinkWrapperGAMTest::TestExecute() {
         "                               { 11, 11, 11, 11, 11, 11},"
         "                               { 11, 11, 11, 11, 11, 11},"
         "                               { 12, 12, 12, 12, 12, 12} }"
-        "In7_3DMatrixDouble = (float64) { { 20, 20, 20, 20 },"
-        "                                 { 21, 21, 21, 21 },"
-        "                                 { 22, 22, 22, 22 },"
-        "                                 { 23, 23, 23, 23 } }"
-        "In8_3DMatrixUint32 = (uint32)  { { 20, 20, 20, 20 },"
-        "                                 { 21, 21, 21, 21 },"
-        "                                 { 22, 22, 22, 22 },"
-        "                                 { 23, 23, 23, 23 } }"
+        "In7_3DMatrixDouble = (uint8) {  0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  16,  64,   0,   0,   0,   0,   0,   0,  20,  64,   0,   0,   0,   0,   0,   0,  24,  64,   0,   0,   0,   0,   0,   0,  28,  64,   0,   0,   0,   0,   0,   0,  32,  64,   0,   0,   0,   0,   0,   0,  34,  64,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  44,  64,   0,   0,   0,   0,   0,   0,  46,  64,   0,   0,   0,   0,   0,   0,  48,  64,   0,   0,   0,   0,   0,   0,  49,  64,   0,   0,   0,   0,   0,   0,  50,  64,   0,   0,   0,   0,   0,   0,  51,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0,   0,  56,  64 } "
+        "In8_3DMatrixUint32 = (uint8) {  1,   0,   0,   0,   2,   0,   0,   0,   3,   0,   0,   0,   4,   0,   0,   0,   5,   0,   0,   0,   6,   0,   0,   0,   7,   0,   0,   0,   8,   0,   0,   0,   9,   0,   0,   0,   10,   0,   0,   0,   11,   0,   0,   0,   12,   0,   0,   0,   13,   0,   0,   0,   14,   0,   0,   0,   15,   0,   0,   0,   16,   0,   0,   0,   17,   0,   0,   0,   18,   0,   0,   0,   19,   0,   0,   0,   20,   0,   0,   0,   21,   0,   0,   0,   22,   0,   0,   0,   23,   0,   0,   0,   24,   0,   0,   0 } "
         ;
         
     StreamString expectedOutputValues = ""
@@ -3690,14 +3842,8 @@ bool SimulinkWrapperGAMTest::TestExecute() {
         "                               { 10, 11, 11, 11, 11, 12},"
         "                               { 10, 11, 11, 11, 11, 12},"
         "                               { 10, 11, 11, 11, 11, 12} }"
-        "Out7_3DMatrixDouble = (float64) { { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 } }"
-        "Out8_3DMatrixUint32 = (uint32)  { { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 } }"
+        "Out7_3DMatrixDouble = (uint8) {  0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,  28,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  51,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  34,  64,   0,   0,   0,   0,   0,   0,  46,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  20,  64,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  49,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,  32,  64,   0,   0,   0,   0,   0,   0,  44,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  16,  64,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  48,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  24,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  50,  64,   0,   0,   0,   0,   0,   0,  56,  64 } "
+        "Out8_3DMatrixUint32 = (uint8) {  1,   0,   0,   0,   7,   0,   0,   0,   13,   0,   0,   0,   19,   0,   0,   0,   3,   0,   0,   0,   9,   0,   0,   0,   15,   0,   0,   0,   21,   0,   0,   0,   5,   0,   0,   0,   11,   0,   0,   0,   17,   0,   0,   0,   23,   0,   0,   0,   2,   0,   0,   0,   8,   0,   0,   0,   14,   0,   0,   0,   20,   0,   0,   0,   4,   0,   0,   0,   10,   0,   0,   0,   16,   0,   0,   0,   22,   0,   0,   0,   6,   0,   0,   0,   12,   0,   0,   0,   18,   0,   0,   0,   24,   0,   0,   0 } "
         ;
     
     // Setup GAM
@@ -3821,169 +3967,6 @@ bool SimulinkWrapperGAMTest::TestExecute() {
     return ok && status;
 }
 
-bool SimulinkWrapperGAMTest::TestPrintAlgoInfo() {
-    
-    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
-
-    bool ok = true;
-    
-    StreamString modelName, modelFolder, modelFullPath;
-    
-    modelFolder = testEnvironment.modelFolder;
-    modelName   = testEnvironment.CreateTestModel("createTestModel();");
-    
-    modelFullPath  = modelFolder;
-    modelFullPath += "/";
-    modelFullPath += modelName;
-    modelFullPath += ".so";
-
-    SimulinkWrapperGAMHelper gam;
-    ConfigurationDatabase    config;
-    
-    ok &= config.Write("Library",                    modelFullPath);
-    ok &= config.Write("SymbolPrefix",               modelName);
-    ok &= config.Write("TunableParamExternalSource", "ExtSource");
-    ok &= config.Write("Verbosity",                  2);
-    ok &= config.Write("SkipUnlinkedTunableParams",  1);
-    
-    ok &= config.CreateAbsolute("Parameters");
-    ok &= config.MoveAbsolute("Parameters");
-    
-    float32 scalarParam       = 3.141592653589793;
-    int64   vectorParam[2]    = {10, -20};
-    uint32  matrixParam[2][2] = { {1, 2}, {3, 4} };
-    
-    ok &= config.Write("ScalarParam", scalarParam);
-    ok &= config.Write("VectorParam", vectorParam);
-    ok &= config.Write("MatrixParam", matrixParam);
-    ok &= config.Write("StringParam", "hello");
-    
-    ok &= config.MoveToAncestor(1u);
-    
-    if (ok) {
-        ok = gam.Initialise(config);
-    }
-    
-    if (ok) {
-        gam.PrintAlgoInfoTest();
-    }
-
-    if (ok) {
-        status = gam.GetStatus();
-    }
-    
-    return ok;
-    
-}
-
-bool SimulinkWrapperGAMTest::Test_StructuredSignals() {
-
-    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
-
-    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true);";
-
-    StreamString skipUnlinkedParams = "1";
-
-    StreamString inputSignals = ""
-        "InputSignals = { "
-        "    In1_Structured = { "
-        "        In1_ScalarDouble  = { "
-        "            DataSource = Drv1"
-        "            Type = float64"
-        "            NumberOfElements = 1"
-        "            NumberOfDimensions = 0"
-        "        }"
-        "        In2_ScalarUint32  = { "
-        "            DataSource = Drv1"
-        "            Type = uint32"
-        "            NumberOfElements = 1"
-        "            NumberOfDimensions = 0"
-        "        }"
-        "    }"
-        "}";
-
-    StreamString outputSignals = ""
-        "OutputSignals = { "
-        "    Out1_ScalarDouble = {"
-        "        DataSource = DDB1"
-        "        Type = float64"
-        "        NumberOfElements = 1"
-        "        NumberOfDimensions = 0"
-        "    }"
-        "    Out2_ScalarUint32 = {"
-        "        DataSource = DDB1"
-        "        Type = uint32"
-        "        NumberOfElements = 1"
-        "        NumberOfDimensions = 0"
-        "    }"
-        "    Out20_NonVirtualBus = { "
-        "        Out2_ScalarUint32 = {"
-        "            DataSource = DDB1"
-        "            Type = uint32"
-        "            NumberOfElements = 1"
-        "            NumberOfDimensions = 0"
-        "        }"
-        "        Out1_ScalarDouble  = {"
-        "            DataSource = DDB1"
-        "            Type = float64"
-        "            NumberOfElements = 1"
-        "            NumberOfDimensions = 0"
-        "        }"
-        "    }"
-        "}";
-
-    StreamString parameters = "";
-
-    // Test setup
-    StreamString verbosity = " 2 ";
-
-    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
-
-
-    return ok && status;
-}
-
-bool SimulinkWrapperGAMTest::TestSetup_WithStructuredLoggingSignals() {
-
-    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
-
-    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'hasLoggingSignals', true);";
-
-    StreamString skipUnlinkedParams = "1";
-
-    StreamString inputSignals = ""
-        "InputSignals = { "
-        "    In1_Structured = { "
-        "        In1_ScalarDouble  = { DataSource = Drv1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
-        "        In2_ScalarUint32  = { DataSource = Drv1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
-        "    }"
-        "}";
-
-    StreamString outputSignals = ""
-        "OutputSignals = { "
-        "    Out1_ScalarDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
-        "    Out2_ScalarUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
-        "    Out20_NonVirtualBus = { "
-        "        Out2_ScalarUint32  = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
-        "        Out1_ScalarDouble  = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
-        "    }"
-        "    Log20_NonVirtualBus = { "
-        "        Out2_ScalarUint32  = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
-        "        Out1_ScalarDouble  = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
-        "    }"
-        "}";
-
-    StreamString parameters = "";
-
-    // Test setup
-    StreamString verbosity = " 2 ";
-
-    bool ok = TestSetupWithTemplate(scriptCall, verbosity, skipUnlinkedParams, inputSignals, outputSignals, parameters, status, NULL, false, false);
-
-
-    return ok && status;
-}
-
 bool SimulinkWrapperGAMTest::TestExecute_WithLoggingSignals() {
 
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
@@ -4000,8 +3983,8 @@ bool SimulinkWrapperGAMTest::TestExecute_WithLoggingSignals() {
         "    In4_VectorUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 }"
         "    In5_MatrixDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 36   NumberOfDimensions = 2 }"
         "    In6_MatrixUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 36   NumberOfDimensions = 2 }"
-        "    In7_3DMatrixDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 16   NumberOfDimensions = 2 }"
-        "    In8_3DMatrixUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 16   NumberOfDimensions = 2 }"
+        "    In7_3DMatrixDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 24   NumberOfDimensions = 3 }"
+        "    In8_3DMatrixUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 24   NumberOfDimensions = 3 }"
         "}";
 
     StreamString outputSignals = ""
@@ -4012,14 +3995,16 @@ bool SimulinkWrapperGAMTest::TestExecute_WithLoggingSignals() {
         "    Out4_VectorUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 }"
         "    Out5_MatrixDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 36   NumberOfDimensions = 2 }"
         "    Out6_MatrixUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 36   NumberOfDimensions = 2 }"
-        "    Out7_3DMatrixDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 12   NumberOfDimensions = 2 }"
-        "    Out8_3DMatrixUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 12   NumberOfDimensions = 2 }"
+        "    Out7_3DMatrixDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 24   NumberOfDimensions = 3 }"
+        "    Out8_3DMatrixUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 24   NumberOfDimensions = 3 }"
         "    Log1_ScalarDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
-        "    Log2_ScalarUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 10   NumberOfDimensions = 1 }"
+        "    Log2_ScalarUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
         "    Log3_VectorDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 8    NumberOfDimensions = 1 }"
         "    Log4_VectorUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 }"
         "    Log5_MatrixDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 36   NumberOfDimensions = 2 }"
         "    Log6_MatrixUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 36   NumberOfDimensions = 2 }"
+        "    Log7_3DMatrixDouble = { DataSource = DDB1    Type = float64    NumberOfElements = 24   NumberOfDimensions = 3 }"
+        "    Log8_3DMatrixUint32 = { DataSource = DDB1    Type = uint32     NumberOfElements = 24   NumberOfDimensions = 3 }"
         "}";
 
     StreamString parameters = ""
@@ -4042,15 +4027,9 @@ bool SimulinkWrapperGAMTest::TestExecute_WithLoggingSignals() {
         "                               { 10, 11, 11, 11, 11, 12},"
         "                               { 10, 11, 11, 11, 11, 12},"
         "                               { 10, 11, 11, 11, 11, 12} }"
-        "In7_3DMatrixDouble = (float64) { { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 } }"
-        "In8_3DMatrixUint32 = (uint32)  { { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 } }"
-        ;
+        "In7_3DMatrixDouble = (uint8) {  0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,  28,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  51,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  34,  64,   0,   0,   0,   0,   0,   0,  46,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  20,  64,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  49,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,  32,  64,   0,   0,   0,   0,   0,   0,  44,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  16,  64,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  48,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  24,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  50,  64,   0,   0,   0,   0,   0,   0,  56,  64 } "
+        "In8_3DMatrixUint32 = (uint8) {  1,   0,   0,   0,   7,   0,   0,   0,   13,   0,   0,   0,   19,   0,   0,   0,   3,   0,   0,   0,   9,   0,   0,   0,   15,   0,   0,   0,   21,   0,   0,   0,   5,   0,   0,   0,   11,   0,   0,   0,   17,   0,   0,   0,   23,   0,   0,   0,   2,   0,   0,   0,   8,   0,   0,   0,   14,   0,   0,   0,   20,   0,   0,   0,   4,   0,   0,   0,   10,   0,   0,   0,   16,   0,   0,   0,   22,   0,   0,   0,   6,   0,   0,   0,   12,   0,   0,   0,   18,   0,   0,   0,   24,   0,   0,   0 } "
+       ;
 
     // Model is column-major, so matrices are expected to be transposed when copied
     StreamString expectedInputValues = ""
@@ -4070,14 +4049,8 @@ bool SimulinkWrapperGAMTest::TestExecute_WithLoggingSignals() {
         "                               { 11, 11, 11, 11, 11, 11},"
         "                               { 11, 11, 11, 11, 11, 11},"
         "                               { 12, 12, 12, 12, 12, 12} }"
-        "In7_3DMatrixDouble = (float64) { { 20, 20, 20, 20 },"
-        "                                 { 21, 21, 21, 21 },"
-        "                                 { 22, 22, 22, 22 },"
-        "                                 { 23, 23, 23, 23 } }"
-        "In8_3DMatrixUint32 = (uint32)  { { 20, 20, 20, 20 },"
-        "                                 { 21, 21, 21, 21 },"
-        "                                 { 22, 22, 22, 22 },"
-        "                                 { 23, 23, 23, 23 } }"
+        "In7_3DMatrixDouble = (uint8) {  0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  16,  64,   0,   0,   0,   0,   0,   0,  20,  64,   0,   0,   0,   0,   0,   0,  24,  64,   0,   0,   0,   0,   0,   0,  28,  64,   0,   0,   0,   0,   0,   0,  32,  64,   0,   0,   0,   0,   0,   0,  34,  64,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  44,  64,   0,   0,   0,   0,   0,   0,  46,  64,   0,   0,   0,   0,   0,   0,  48,  64,   0,   0,   0,   0,   0,   0,  49,  64,   0,   0,   0,   0,   0,   0,  50,  64,   0,   0,   0,   0,   0,   0,  51,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0,   0,  56,  64 } "
+        "In8_3DMatrixUint32 = (uint8) {  1,   0,   0,   0,   2,   0,   0,   0,   3,   0,   0,   0,   4,   0,   0,   0,   5,   0,   0,   0,   6,   0,   0,   0,   7,   0,   0,   0,   8,   0,   0,   0,   9,   0,   0,   0,   10,   0,   0,   0,   11,   0,   0,   0,   12,   0,   0,   0,   13,   0,   0,   0,   14,   0,   0,   0,   15,   0,   0,   0,   16,   0,   0,   0,   17,   0,   0,   0,   18,   0,   0,   0,   19,   0,   0,   0,   20,   0,   0,   0,   21,   0,   0,   0,   22,   0,   0,   0,   23,   0,   0,   0,   24,   0,   0,   0 } "
         ;
 
     StreamString expectedOutputValues = ""
@@ -4097,19 +4070,13 @@ bool SimulinkWrapperGAMTest::TestExecute_WithLoggingSignals() {
         "                               { 10, 11, 11, 11, 11, 12},"
         "                               { 10, 11, 11, 11, 11, 12},"
         "                               { 10, 11, 11, 11, 11, 12} }"
-        "Out7_3DMatrixDouble = (float64) { { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 } }"
-        "Out8_3DMatrixUint32 = (uint32)  { { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 },"
-        "                                 { 20, 21, 22, 23 } }"
-        ;
+        "Out7_3DMatrixDouble = (uint8) {  0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,  28,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  51,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  34,  64,   0,   0,   0,   0,   0,   0,  46,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  20,  64,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  49,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,  32,  64,   0,   0,   0,   0,   0,   0,  44,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  16,  64,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  48,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  24,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  50,  64,   0,   0,   0,   0,   0,   0,  56,  64 } "
+        "Out8_3DMatrixUint32 = (uint8) {  1,   0,   0,   0,   7,   0,   0,   0,   13,   0,   0,   0,   19,   0,   0,   0,   3,   0,   0,   0,   9,   0,   0,   0,   15,   0,   0,   0,   21,   0,   0,   0,   5,   0,   0,   0,   11,   0,   0,   0,   17,   0,   0,   0,   23,   0,   0,   0,   2,   0,   0,   0,   8,   0,   0,   0,   14,   0,   0,   0,   20,   0,   0,   0,   4,   0,   0,   0,   10,   0,   0,   0,   16,   0,   0,   0,   22,   0,   0,   0,   6,   0,   0,   0,   12,   0,   0,   0,   18,   0,   0,   0,   24,   0,   0,   0 } "
+       ;
 
     StreamString expectedSignalValues = ""
         "Log1_ScalarDouble = (float64) 3.141592653 "
-        "Log2_ScalarUint32 = (uint32)  { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18 } "
+        "Log2_ScalarUint32 = (uint32)  2 "
         "Log3_VectorDouble = (float64) { 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0 } "
         "Log4_VectorUint32 = (uint32)  { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10 } "
         "Log5_MatrixDouble = (float64) { { 10, 11, 11, 11, 11, 12},"
@@ -4124,7 +4091,9 @@ bool SimulinkWrapperGAMTest::TestExecute_WithLoggingSignals() {
         "                               { 10, 11, 11, 11, 11, 12},"
         "                               { 10, 11, 11, 11, 11, 12},"
         "                               { 10, 11, 11, 11, 11, 12} }"
-        ;
+        "Log7_3DMatrixDouble = (uint8) {  0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,  28,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  51,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  34,  64,   0,   0,   0,   0,   0,   0,  46,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  20,  64,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  49,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,  32,  64,   0,   0,   0,   0,   0,   0,  44,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  16,  64,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  48,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  24,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  50,  64,   0,   0,   0,   0,   0,   0,  56,  64 } "
+        "Log8_3DMatrixUint32 = (uint8) {  1,   0,   0,   0,   7,   0,   0,   0,   13,   0,   0,   0,   19,   0,   0,   0,   3,   0,   0,   0,   9,   0,   0,   0,   15,   0,   0,   0,   21,   0,   0,   0,   5,   0,   0,   0,   11,   0,   0,   0,   17,   0,   0,   0,   23,   0,   0,   0,   2,   0,   0,   0,   8,   0,   0,   0,   14,   0,   0,   0,   20,   0,   0,   0,   4,   0,   0,   0,   10,   0,   0,   0,   16,   0,   0,   0,   22,   0,   0,   0,   6,   0,   0,   0,   12,   0,   0,   0,   18,   0,   0,   0,   24,   0,   0,   0 } "
+       ;
 
     // Setup GAM
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
@@ -4450,7 +4419,7 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructuredLoggingSignals() {
 
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
 
-    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'hasInputs', true, 'hasLoggingSignals', true);";
+    StreamString scriptCall = "createTestModel('modelComplexity', 4, 'hasStructSignals', true, 'hasLoggingSignals', true);";
 
     StreamString skipUnlinkedParams = "1";
 
@@ -5895,7 +5864,6 @@ bool SimulinkWrapperGAMTest::TestExecute_With3DSignals(bool transpose) {
         "}"
         ;
 
-    // To test 3D signals we must input the signals as a sequence of uint8 raw bytes
     StreamString inputValues = ""
         "In1_Structured.In1_ScalarDouble = (float64) 3.141592653 "
         "In1_Structured.In2_ScalarUint32 = (uint32)  2 "
@@ -5913,7 +5881,7 @@ bool SimulinkWrapperGAMTest::TestExecute_With3DSignals(bool transpose) {
         "                                               { 12, 11, 11, 11, 11, 12},"
         "                                               { 13, 11, 11, 11, 11, 12},"
         "                                               { 14, 11, 11, 11, 11, 12} }"
-        " /* 3D matrices must be input as raw data since configuration syntax does not yet support more than 2D */ "
+        " /* 3D matrices must be input as a sequence of uint8 raw byte since configuration syntax does not yet support more than 2D */ "
         "In4_Structured.In7_3DMatrixDouble = (uint8) { 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  62,  64,   0,   0,   0,   0,   0,   0,  68,  64,   0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  63,  64,   0,   0,   0,   0,   0, 128,  68,  64,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  64,  64,   0,   0,   0,   0,   0,   0,  69,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0, 128,  64,  64,   0,   0,   0,   0,   0, 128,  69,  64,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  62,  64,   0,   0,   0,   0,   0,   0,  68,  64,   0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  63,  64,   0,   0,   0,   0,   0, 128,  68,  64,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  64,  64,   0,   0,   0,   0,   0,   0,  69,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0, 128,  64,  64,   0,   0,   0,   0,   0, 128,  69,  64,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  62,  64,   0,   0,   0,   0,   0,   0,  68,  64,   0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  63,  64,   0,   0,   0,   0,   0, 128,  68,  64,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  64,  64,   0,   0,   0,   0,   0,   0,  69,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0, 128,  64,  64,   0,   0,   0,   0,   0, 128,  69,  64 } "
         "In4_Structured.In8_3DMatrixUint32 = (uint8) { 0,   0,   0,   0,   10,   0,   0,   0,   20,   0,   0,   0,   30,   0,   0,   0,   40,   0,   0,   0,   1,   0,   0,   0,   11,   0,   0,   0,   21,   0,   0,   0,   31,   0,   0,   0,   41,   0,   0,   0,   2,   0,   0,   0,   12,   0,   0,   0,   22,   0,   0,   0,   32,   0,   0,   0,   42,   0,   0,   0,   3,   0,   0,   0,   13,   0,   0,   0,   23,   0,   0,   0,   33,   0,   0,   0,   43,   0,   0,   0,   0,   0,   0,   0,   10,   0,   0,   0,   20,   0,   0,   0,   30,   0,   0,   0,   40,   0,   0,   0,   1,   0,   0,   0,   11,   0,   0,   0,   21,   0,   0,   0,   31,   0,   0,   0,   41,   0,   0,   0,   2,   0,   0,   0,   12,   0,   0,   0,   22,   0,   0,   0,   32,   0,   0,   0,   42,   0,   0,   0,   3,   0,   0,   0,   13,   0,   0,   0,   23,   0,   0,   0,   33,   0,   0,   0,   43,   0,   0,   0,   0,   0,   0,   0,   10,   0,   0,   0,   20,   0,   0,   0,   30,   0,   0,   0,   40,   0,   0,   0,   1,   0,   0,   0,   11,   0,   0,   0,   21,   0,   0,   0,   31,   0,   0,   0,   41,   0,   0,   0,   2,   0,   0,   0,   12,   0,   0,   0,   22,   0,   0,   0,   32,   0,   0,   0,   42,   0,   0,   0,   3,   0,   0,   0,   13,   0,   0,   0,   23,   0,   0,   0,   33,   0,   0,   0,   43,   0,   0,   0 } "
         ""
