@@ -4209,8 +4209,6 @@ bool SimulinkWrapperGAMTest::TestExecute() {
 
 bool SimulinkWrapperGAMTest::TestExecute_WithLoggingSignals() {
 
-    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
-
     StreamString scriptCall = " createTestModel('modelComplexity', 4, 'hasTunableParams', true, 'hasLoggingSignals', true);";
 
     StreamString configOptions = ""
@@ -4339,146 +4337,17 @@ bool SimulinkWrapperGAMTest::TestExecute_WithLoggingSignals() {
         "Log8_Matrix3DUint32 = (uint8) {  1,   0,   0,   0,   7,   0,   0,   0,   13,   0,   0,   0,   19,   0,   0,   0,   3,   0,   0,   0,   9,   0,   0,   0,   15,   0,   0,   0,   21,   0,   0,   0,   5,   0,   0,   0,   11,   0,   0,   0,   17,   0,   0,   0,   23,   0,   0,   0,   2,   0,   0,   0,   8,   0,   0,   0,   14,   0,   0,   0,   20,   0,   0,   0,   4,   0,   0,   0,   10,   0,   0,   0,   16,   0,   0,   0,   22,   0,   0,   0,   6,   0,   0,   0,   12,   0,   0,   0,   18,   0,   0,   0,   24,   0,   0,   0 } "
        ;
 
-    // Setup GAM
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
 
-    bool ok = TestSetupWithTemplate(scriptCall, configOptions, inputSignals, outputSignals, parameters, status, ord);
+    bool ok = (ord != NULL_PTR(ObjectRegistryDatabase*));
 
-    // Build a database with what shall be loaded as input
-    ConfigurationDatabase cdb;
     if (ok) {
-        inputValues.Seek(0u);
-        StandardParser parser(inputValues, cdb);
-        ok = parser.Parse();
+        ok = TestSetupWithTemplate(scriptCall, configOptions, inputSignals, outputSignals, parameters, status, ord);
     }
 
     if (ok) {
-        ReferenceT<SimulinkWrapperGAMHelper> gam = ord->Find("Test.Functions.GAM1");
-
-        ok = gam.IsValid();
-
-        // Copy inputValues to the GAM input signal memory
-        if (ok) {
-
-            for (uint32 signalIdx = 0u; (signalIdx < gam->GetNumberOfInputSignals()) && ok ; signalIdx++) {
-
-                StreamString signalName;
-                ok = gam->GetSignalName(InputSignals, signalIdx, signalName);
-
-                AnyType arrayDescription = cdb.GetType(signalName.Buffer());
-                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
-
-                //
-                uint32 memoryAllocationSize = 0u;
-                switch (arrayDescription.GetNumberOfDimensions()) {
-
-                    case 0u:
-                        memoryAllocationSize = arrayDescription.GetByteSize();
-                        break;
-
-                    case 1u:
-                        memoryAllocationSize = arrayDescription.GetByteSize() * arrayDescription.GetNumberOfElements(0u);
-                        break;
-
-                    case 2u:
-                        memoryAllocationSize = arrayDescription.GetByteSize() * arrayDescription.GetNumberOfElements(0u) * arrayDescription.GetNumberOfElements(1u);
-                        break;
-                }
-                if (ok) {
-                    ok = MemoryOperationsHelper::Copy(gam->GetInputSignalMemoryTest(signalIdx), arrayDescription.GetDataPointer(), memoryAllocationSize);
-                }
-            }
-
-            ok = gam->Execute();
-
-        }
-
-        // Check if signals were correctly copied in the model
-
-        ConfigurationDatabase inCdb;
-        if (ok) {
-            expectedInputValues.Seek(0u);
-            StandardParser parser(expectedInputValues, inCdb);
-            ok = parser.Parse();
-        }
-
-        ConfigurationDatabase outCdb;
-        if (ok) {
-            expectedOutputValues.Seek(0u);
-            StandardParser parser(expectedOutputValues, outCdb);
-            ok = parser.Parse();
-        }
-
-        ConfigurationDatabase sigCdb;
-        if (ok) {
-            expectedSignalValues.Seek(0u);
-            StandardParser parser(expectedSignalValues, sigCdb);
-            ok = parser.Parse();
-        }
-
-        // Compare input, outputs and logging signals with expected values
-        if (ok) {
-
-            SimulinkRootInterface* inputs = gam->GetInputs();
-
-            for (uint32 rootInputIdx = 0u; (rootInputIdx < gam->GetNumberOfInputSignals()) && ok; rootInputIdx++) {
-
-                StreamString inputName = inputs[rootInputIdx].fullPath;
-                uint32       inputSize = inputs[rootInputIdx].byteSize;
-                void*        inputAddr = inputs[rootInputIdx].destPtr;
-
-                AnyType arrayDescription = inCdb.GetType(inputName.Buffer());
-                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
-                if (ok) {
-                    ok = (MemoryOperationsHelper::Compare(inputAddr, arrayDescription.GetDataPointer(), inputSize) == 0u);
-                    if (!ok) {
-                        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Signal %s comparison failed.", inputName.Buffer());
-                    }
-                }
-            }
-
-            SimulinkRootInterface* outputs = gam->GetOutputs();
-
-            for (uint32 rootOutputIdx = 0u; (rootOutputIdx < (gam->GetNumberOfOutputSignals() - gam->GetNumberOfLoggingSignals())) && ok; rootOutputIdx++) {
-
-                StreamString outputName = outputs[rootOutputIdx].fullPath;
-                uint32       outputSize = outputs[rootOutputIdx].byteSize;
-                void*        outputAddr = outputs[rootOutputIdx].destPtr;
-
-                AnyType arrayDescription = outCdb.GetType(outputName.Buffer());
-                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
-
-                if (ok) {
-                    ok = (MemoryOperationsHelper::Compare(outputAddr, arrayDescription.GetDataPointer(), outputSize) == 0u);
-                    if (!ok) {
-                        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Signal %s comparison failed.", outputName.Buffer());
-                    }
-                }
-            }
-
-            SimulinkRootInterface* signals = gam->GetSignals();
-
-            for (uint32 loggingSignalIdx = 0u; (loggingSignalIdx < gam->GetNumberOfLoggingSignals()) && ok; loggingSignalIdx++) {
-
-                StreamString signalName = signals[loggingSignalIdx].fullPath;
-                uint32       signalSize = signals[loggingSignalIdx].byteSize;
-                void*        signalAddr = signals[loggingSignalIdx].destPtr;
-
-                AnyType arrayDescription = sigCdb.GetType(signalName.Buffer());
-                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
-
-                if (ok) {
-                    ok = (MemoryOperationsHelper::Compare(signalAddr, arrayDescription.GetDataPointer(), signalSize) == 0u);
-                    if (!ok) {
-                        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Signal %s comparison failed.", signalName.Buffer());
-                    }
-                }
-            }
-        }
-    }
-
-    if (ok) {
-        ord->Purge();
+        ok = TestExecuteGeneric(inputValues, expectedInputValues, "", expectedOutputValues, expectedSignalValues, status, ord);
     }
 
     return ok && status;
