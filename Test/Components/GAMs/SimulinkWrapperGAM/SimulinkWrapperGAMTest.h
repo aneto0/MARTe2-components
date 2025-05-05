@@ -108,17 +108,28 @@ public:
      *          up to the user to call objRegDatabase->Purge()).
      */
     bool TestSetupWithTemplate(MARTe::StreamString scriptCall,
-                               MARTe::StreamString verbosity,
-                                MARTe::StreamString skipUnlinkedParams,
-                                MARTe::StreamString inputSignals,
-                                MARTe::StreamString outputSignals,
-                                MARTe::StreamString parameters,
-                                MARTe::ErrorManagement::ErrorType& status,
-                                MARTe::ObjectRegistryDatabase* objRegDatabase, /* = NULL_PTR(ObjectRegistryDatabase*)*/
-                                bool         structuredSignalsAsByteArrays, /* = true */
-                                bool         enforceModelSignalCoverage /*= false */
+                               MARTe::StreamString inputSignals,
+                               MARTe::StreamString outputSignals,
+                               MARTe::StreamString parameters,
+                               MARTe::StreamString configOptions,
+                               MARTe::ErrorManagement::ErrorType& status,
+                               MARTe::ObjectRegistryDatabase* objRegDatabase /* = NULL_PTR(ObjectRegistryDatabase*)*/
                                 );
     
+    /**
+     * @brief General method to test GAM execute. The input strings shall be in MARTe2
+     *        configuration syntax and are parsed by a StandardParser. The values are
+     *        compared with that of the signals.
+     */
+    bool TestExecuteGeneric(MARTe::StreamString marteInputs,
+                            MARTe::StreamString modelExpectedInputs,
+                            MARTe::StreamString modelExpectedOutputs,
+                            MARTe::StreamString marteExpectedOutputs,
+                            MARTe::StreamString marteExpectedLoggingSignals,
+                            MARTe::ErrorManagement::ErrorType& status,
+                            MARTe::ObjectRegistryDatabase* objRegDatabase
+                            );
+
     /**
      * @brief Tests the Initialise() method if optional settings are missing.
      */
@@ -531,13 +542,10 @@ public:
         "            Class = SimulinkWrapperGAMHelper"
         "            Library = \"%s\""
         "            SymbolPrefix = \"%s\""
-        "            Verbosity = %s"
+        "               %s " // Configuration options
         "            TunableParamExternalSource = ExtSource"
-        "            NonVirtualBusMode = %s"
-        "            EnforceModelSignalCoverage = %s"
-        "            SkipInvalidTunableParams = %s"
-        "               %s" // InputSignals
-        "               %s" // OutputSignals
+        "               %s " // InputSignals
+        "               %s " // OutputSignals
         "            Parameters = {"
         "                one = (uint8) 1"
         "                %s"
@@ -575,7 +583,36 @@ public:
         "        Class = GAMScheduler"
         "        TimingDataSource = Timings"
         "    } "
-        "} ";
+        "} "
+        "+Types = { "
+        "    Class = ReferenceContainer "
+        "    +Scalar_Structured_t = { "
+        "        Class = IntrospectionStructure "
+        "        ScalarDouble = { NumberOfElements = {1}    Type = float64 } "
+        "        ScalarUint32 = { NumberOfElements = {1}    Type = uint32  } "
+        "    } "
+        "    +Vector_Structured_t = { "
+        "        Class = IntrospectionStructure "
+        "        VectorDouble = { NumberOfElements = {8}    Type = float64 } "
+        "        VectorUint32 = { NumberOfElements = {8}    Type = uint32  } "
+        "    } "
+        "    +Matrix_Structured_t = { "
+        "        Class = IntrospectionStructure "
+        "        MatrixDouble = { NumberOfElements = {6, 6} Type = float64 } "
+        "        MatrixUint32 = { NumberOfElements = {6, 6} Type = uint32  } "
+        "    } "
+        "    +Matrix3D_Structured_t = { "
+        "        Class = IntrospectionStructure "
+        "        Matrix3DDouble = { NumberOfElements = {3, 4, 5} Type = float64 } "
+        "        Matrix3DUint32 = { NumberOfElements = {3, 4, 5} Type = uint32  } "
+        "    } "
+        "    +VectorMatrix_Structured_t = { "
+        "        Class = IntrospectionStructure "
+        "        Vector_Structured = { NumberOfElements = {1}    Type = Vector_Structured_t } "
+        "        Matrix_Structured = { NumberOfElements = {1}    Type = Matrix_Structured_t } "
+        "    } "
+        "} "
+        ;
 
 };
 

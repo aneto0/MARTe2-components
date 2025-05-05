@@ -1171,8 +1171,6 @@ protected:
      */
     void PrintAlgoInfo() const;
 
-private:
-
     /**
      * @name    GAM settings
      * @brief   Setting retrieved from the configuration files.
@@ -1187,6 +1185,8 @@ private:
     bool         enforceModelSignalCoverage;        //!< When enabled, all the Simulink model I/O must be matched to a GAM I/O
     SimulinkNonVirtualBusMode nonVirtualBusMode;    //!< Copy mode of structured signals (element by element or raw whole copy)
     //@}
+
+private:
     
     /**
      * @brief Handle to the library hosting the model code.

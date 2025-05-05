@@ -1,8 +1,8 @@
-function [model_compiled, model_name] = createTestModel2(varargin)
+function [model_compiled, model_name] = createTestModel(varargin)
 
 evalin('base', 'clear matrixConstant vectorConstant structScalar structMixed');
-dimensions = ["Scalar", "Vector", "Matrix", "3DMatrix"];
-shapes = ["1", "[8 1]", "[6 6]", "[3 4 5]"];
+dimensions = ["Scalar", "Vector", "Matrix", "Matrix3D"];
+shapes = ["1", "[8 1]", "[6 6]", "[2 3 4]"];
 model_compiled = false;
 
 %% settings
@@ -313,12 +313,10 @@ for c = 1:modelComplexity
     shape = shapes(c);
 
     signal_indices = string([2*c - 1, 2*c]);
-    out_signal_prefixes = strcat("Out", signal_indices, "_");
-    out_signal_names = strcat(out_signal_prefixes, dim_name, ["Double", "Uint32"]);
-    in_signal_prefixes = strcat("In", signal_indices, "_");
-    in_signal_names = strcat(in_signal_prefixes, dim_name, ["Double", "Uint32"]);
-    log_signal_prefixes = strcat("Log", signal_indices, "_");
-    log_signal_names = strcat(log_signal_prefixes, dim_name, ["Double", "Uint32"]);
+    signal_dim_and_type = strcat(dim_name, ["Double", "Uint32"]);
+    in_signal_names  = strcat("In",  signal_indices, "_", signal_dim_and_type);
+    out_signal_names = strcat("Out", signal_indices, "_", signal_dim_and_type);
+    log_signal_names = strcat("Log", signal_indices, "_", signal_dim_and_type);
 
     bus_index = join(signal_indices, "");
     bus_prefix = strcat("Out", bus_index, "_");
@@ -393,7 +391,7 @@ for c = 1:modelComplexity
 
         evalin('base', strcat( ...
             'busElems(1) = Simulink.BusElement;', ...
-            'busElems(1).Name = "', out_signal_names(1), '";', ...
+            'busElems(1).Name = "', signal_dim_and_type(1), '";', ...
             'busElems(1).Dimensions = ', shape, ';', ...
             'busElems(1).DimensionsMode = "Fixed";', ...
             'busElems(1).DataType = "double";', ...
@@ -403,7 +401,7 @@ for c = 1:modelComplexity
 
         evalin('base', strcat( ...
             'busElems(2) = Simulink.BusElement;', ...
-            'busElems(2).Name = "', out_signal_names(2), '";', ...
+            'busElems(2).Name = "', signal_dim_and_type(2), '";', ...
             'busElems(2).Dimensions = ', shape, ';', ...
             'busElems(2).DimensionsMode = "Fixed";', ...
             'busElems(2).DataType = "uint32";', ...
@@ -416,7 +414,7 @@ for c = 1:modelComplexity
             char(bus_type_name) '.Elements = busElems;' ...
             ]);
 
-        logBlocks(end + 1) = add_block('simulink/Signal Routing/Bus Creator', strcat(model_name, "/", bus_creator_name), ...
+        add_block('simulink/Signal Routing/Bus Creator', strcat(model_name, "/", bus_creator_name), ...
             'Inputs',         '2', ...
             'NonVirtualBus',  'on', ...
             'OutDataTypeStr', strcat('Bus: ', bus_type_name));
@@ -427,7 +425,7 @@ for c = 1:modelComplexity
 
             evalin('base', strcat( ...
                 'busElems(1) = Simulink.BusElement;', ...
-                'busElems(1).Name = "Out34_Structured";', ...
+                'busElems(1).Name = "Vector_Structured";', ...
                 'busElems(1).Dimensions = 1;', ...
                 'busElems(1).DimensionsMode = "Fixed";', ...
                 'busElems(1).DataType = "Bus: STRUCTSIGNAL_T_34";', ...
@@ -437,7 +435,7 @@ for c = 1:modelComplexity
     
             evalin('base', strcat( ...
                 'busElems(2) = Simulink.BusElement;', ...
-                'busElems(2).Name = "Out56_Structured";', ...
+                'busElems(2).Name = "Matrix_Structured";', ...
                 'busElems(2).Dimensions = 1;', ...
                 'busElems(2).DimensionsMode = "Fixed";', ...
                 'busElems(2).DataType = "Bus: STRUCTSIGNAL_T_56";', ...
@@ -450,7 +448,7 @@ for c = 1:modelComplexity
                 'STRUCTSIGNAL_T_3456.Elements = busElems;' ...
                 ));
     
-            logBlocks(end + 1) = add_block('simulink/Signal Routing/Bus Creator', [model_name '/Out3456_BusCreator'], ...
+            add_block('simulink/Signal Routing/Bus Creator', [model_name '/Out3456_BusCreator'], ...
                 'Inputs',         '2', ...
                 'NonVirtualBus',  'on', ...
                 'OutDataTypeStr', 'Bus: STRUCTSIGNAL_T_3456');
@@ -458,7 +456,7 @@ for c = 1:modelComplexity
     end
 
     %% ADD BLOCKS
-    gain_block_names = strcat(out_signal_prefixes, "Gain");
+    gain_block_names = strcat("Gain", signal_indices, "_", signal_dim_and_type);
 
     add_block('simulink/Math Operations/Gain', strcat(model_name, "/", gain_block_names(1)), ...
         'Gain',           '1', ...
@@ -469,8 +467,8 @@ for c = 1:modelComplexity
 
     if hasEnums
         % gain block does not support enums
-        delete_block([model_name '/Out2_Gain']);
-        add_block('simulink/Signal Attributes/Signal Specification', [model_name '/Out2_Gain' ], ...
+        delete_block([model_name '/Gain2_ScalarUint32']);
+        add_block('simulink/Signal Attributes/Signal Specification', [model_name '/Gain2_ScalarUint32' ], ...
                 'OutDataTypeStr', 'Enum:TestEnum');
     end
 
@@ -493,18 +491,18 @@ for c = 1:modelComplexity
         if hasStructSignals
             % empty subsystem to create structured signals for logging
             subsystem_name = strcat("/Log", bus_index, "_NonVirtualBus");
-            add_block('simulink/Ports & Subsystems/Atomic Subsystem', strcat(model_name, subsystem_name));
+            logBlocks(end + 1) = add_block('simulink/Ports & Subsystems/Atomic Subsystem', strcat(model_name, subsystem_name));
 
             % bus of buses
             if c == 4
                 subsystem_name = strcat("/Log3456_NonVirtualBus");
-                add_block('simulink/Ports & Subsystems/Atomic Subsystem', strcat(model_name, subsystem_name));
+                logBlocks(end + 1) = add_block('simulink/Ports & Subsystems/Atomic Subsystem', strcat(model_name, subsystem_name));
             end
         end
 
         if hasStructArraySignals
             subsystem_name = strcat("/Log", structarray_index, "_StructArray");
-            add_block('simulink/Ports & Subsystems/Atomic Subsystem', strcat(model_name, subsystem_name));
+            logBlocks(end + 1) = add_block('simulink/Ports & Subsystems/Atomic Subsystem', strcat(model_name, subsystem_name));
         end
     end
 
@@ -539,9 +537,6 @@ for c = 1:modelComplexity
 
     %% ADD SIGNALS
     if hasStructSignals
-        add_line(model_name, strcat(gain_block_names(1), "/1"), strcat(bus_creator_name, "/1"));
-        add_line(model_name, strcat(gain_block_names(2), "/1"), strcat(bus_creator_name, "/2"));
-
         if c == 4
             add_line(model_name, 'Out34_BusCreator/1',   'Out3456_BusCreator/1');
             add_line(model_name, 'Out56_BusCreator/1',   'Out3456_BusCreator/2');
@@ -553,7 +548,7 @@ for c = 1:modelComplexity
         add_line(model_name, strcat(bus_creator_name,  "/1"), strcat(concat_block_name, "/2"));
     end
 
-    if ~hasLoggingSignals
+    if hasLoggingSignals == false
         add_line(model_name, strcat(in_signal_names(1), "/1"), strcat(gain_block_names(1), "/1"));
         add_line(model_name, strcat(in_signal_names(2), "/1"), strcat(gain_block_names(2), "/1"));
 
@@ -561,6 +556,8 @@ for c = 1:modelComplexity
         add_line(model_name, strcat(gain_block_names(2), "/1"), strcat(out_signal_names(2), "/1"));
 
         if hasStructSignals
+            add_line(model_name, strcat(gain_block_names(1), "/1"), strcat(bus_creator_name, "/1"));
+            add_line(model_name, strcat(gain_block_names(2), "/1"), strcat(bus_creator_name, "/2"));
             add_line(model_name, strcat(bus_creator_name,    "/1"), strcat(bus_name,         "/1"));
     
             % bus of buses
@@ -573,17 +570,19 @@ for c = 1:modelComplexity
             add_line(model_name, strcat(concat_block_name, "/1"), strcat(structarray_name,  "/1"));
         end
 
-    else
-        add_line(model_name, strcat(in_signal_names(1), "/1"), strcat(log_signal_names(1), "/1"));
-        add_line(model_name, strcat(in_signal_names(2), "/1"), strcat(log_signal_names(2), "/1"));
+    else % hasLoggingSignals == true
+        add_line(model_name, strcat(in_signal_names(1), "/1"), strcat(gain_block_names(1), "/1"));
+        add_line(model_name, strcat(in_signal_names(2), "/1"), strcat(gain_block_names(2), "/1"));
 
-         add_line(model_name, strcat(log_signal_names(1), "/1"), strcat(gain_block_names(1), "/1"));
-        add_line(model_name, strcat(log_signal_names(2), "/1"), strcat(gain_block_names(2), "/1"));
+        add_line(model_name, strcat(gain_block_names(1), "/1"), strcat(log_signal_names(1), "/1"));
+        add_line(model_name, strcat(gain_block_names(2), "/1"), strcat(log_signal_names(2), "/1"));
 
-        add_line(model_name, strcat(gain_block_names(1), "/1"), strcat(out_signal_names(1), "/1"));
-        add_line(model_name, strcat(gain_block_names(2), "/1"), strcat(out_signal_names(2), "/1"));
+        add_line(model_name, strcat(log_signal_names(1), "/1"), strcat(out_signal_names(1), "/1"));
+        add_line(model_name, strcat(log_signal_names(2), "/1"), strcat(out_signal_names(2), "/1"));
 
         if hasStructSignals
+            add_line(model_name, strcat(log_signal_names(1), "/1"), strcat(bus_creator_name, "/1"));
+            add_line(model_name, strcat(log_signal_names(2), "/1"), strcat(bus_creator_name, "/2"));
             add_line(model_name, strcat(bus_creator_name,    "/1"), strcat("Log", bus_index, "_NonVirtualBus/1"));
             add_line(model_name, strcat("Log", bus_index, "_NonVirtualBus/1"), strcat(bus_name,         "/1"));
     
@@ -601,9 +600,6 @@ for c = 1:modelComplexity
     end
 
 end
-
-% °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°° ongoing rework of the script °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
-% using for loops to reduce duplication
 
 %% set block properties
 
@@ -633,14 +629,14 @@ elseif hasStructParams == true && hasStructArrayParams == true && hasTunablePara
 end
 
 % math blocks
-set_param([model_name '/Out1_Gain'], ...
+set_param([model_name '/Gain1_ScalarDouble'], ...
     'Gain',           gain1Param, ...
     'OutDataTypeStr', 'double');
 
 if ~hasEnums
-    set_param([model_name '/Out2_Gain'], 'Gain',           gain2Param);
-    set_param([model_name '/Out2_Gain'], 'OutDataTypeStr',   'uint32');
-    set_param([model_name '/Out2_Gain'], 'ParamDataTypeStr', 'uint32');
+    set_param([model_name '/Gain2_ScalarUint32'], 'Gain',           gain2Param);
+    set_param([model_name '/Gain2_ScalarUint32'], 'OutDataTypeStr',   'uint32');
+    set_param([model_name '/Gain2_ScalarUint32'], 'ParamDataTypeStr', 'uint32');
 end
 
 % change types if requested
@@ -661,11 +657,11 @@ if useType == 1
         end
     end
     if modelComplexity >= 4
-        set_param([model_name '/In7_3DMatrixDouble'], 'OutDataTypeStr', 'uint32');
-        %set_param([model_name '/In8_3DMatrixUint32'], 'OutDataTypeStr', 'uint64'); % uint64 not yet supported by coder
+        set_param([model_name '/In7_Matrix3DDouble'], 'OutDataTypeStr', 'uint32');
+        %set_param([model_name '/In8_Matrix3DUint32'], 'OutDataTypeStr', 'uint64'); % uint64 not yet supported by coder
         if hasOutputs == true
-            set_param([model_name '/Out7_3DMatrixDouble'], 'OutDataTypeStr', 'uint32');
-            %set_param([model_name '/Out8_3DMatrixUint32'], 'OutDataTypeStr', 'uint64'); % uint64 not yet supported by coder
+            set_param([model_name '/Out7_Matrix3DDouble'], 'OutDataTypeStr', 'uint32');
+            %set_param([model_name '/Out8_Matrix3DUint32'], 'OutDataTypeStr', 'uint64'); % uint64 not yet supported by coder
         end
     end
 
@@ -688,11 +684,11 @@ if useType == 2
         end
     end
     if modelComplexity >= 4
-        set_param([model_name '/In7_3DMatrixDouble'], 'OutDataTypeStr', 'int32');
-        %set_param([model_name '/In8_3DMatrixUint32'], 'OutDataTypeStr', 'int64'); % int64 not yet supported by coder
+        set_param([model_name '/In7_Matrix3DDouble'], 'OutDataTypeStr', 'int32');
+        %set_param([model_name '/In8_Matrix3DUint32'], 'OutDataTypeStr', 'int64'); % int64 not yet supported by coder
         if hasOutputs == true
-            set_param([model_name '/Out7_3DMatrixDouble'], 'OutDataTypeStr', 'int32');
-            %set_param([model_name '/Out8_3DMatrixUint32'], 'OutDataTypeStr', 'int64'); % int64 not yet supported by coder
+            set_param([model_name '/Out7_Matrix3DDouble'], 'OutDataTypeStr', 'int32');
+            %set_param([model_name '/Out8_Matrix3DUint32'], 'OutDataTypeStr', 'int64'); % int64 not yet supported by coder
         end
     end
 
@@ -715,11 +711,11 @@ if useType == 4
         end
     end
     if modelComplexity >= 4
-        set_param([model_name '/In7_3DMatrixDouble'], 'OutDataTypeStr', 'int32');
-        set_param([model_name '/In8_3DMatrixUint32'], 'OutDataTypeStr', 'single');
+        set_param([model_name '/In7_Matrix3DDouble'], 'OutDataTypeStr', 'int32');
+        set_param([model_name '/In8_Matrix3DUint32'], 'OutDataTypeStr', 'single');
         if hasOutputs == true
-            set_param([model_name '/Out7_3DMatrixDouble'], 'OutDataTypeStr', 'int32');
-            set_param([model_name '/Out8_3DMatrixUint32'], 'OutDataTypeStr', 'single');
+            set_param([model_name '/Out7_Matrix3DDouble'], 'OutDataTypeStr', 'int32');
+            set_param([model_name '/Out8_Matrix3DUint32'], 'OutDataTypeStr', 'single');
         end
     end
 
@@ -748,7 +744,7 @@ if hasLoggingSignals
     for block = logBlocks
         signal_name = get_param(block, 'Name');
         p           = get_param(block, 'PortHandles');
-        l           = get_param(p.Outport(1), 'Line');
+        l           = get_param(p.Inport(1), 'Line');
         if hasSignalNames, set_param(l, 'Name', signal_name); end
     end
 end
@@ -764,7 +760,13 @@ if hasLoggingSignals
     setDataDefault(cm, "InternalData", "StorageClass", "MultiInstance");
 
     for block = logBlocks
-        p = get_param(block, 'PortHandles');
+%         p = get_param(block, 'PortHandles');
+%         l = p.Inport(1);
+        % for some reason the commented lines above result in a signal with suffix `:1` to be added to the 
+        % logging signals, and such signal then is not generated in the code. We use a workaround:
+        conn = get_param(block, 'PortConnectivity');
+        src_block = conn(1).SrcBlock;
+        p = get_param(src_block, 'PortHandles');
         l = p.Outport(1);
         addSignal(cm, l, "StorageClass", "Model default");
     end
@@ -860,12 +862,12 @@ function tempInPorts = helper_input_gen_WithInputs(model_name, modelComplexity, 
     end
 
     if modelComplexity >= 4
-        tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In7_3DMatrixDouble' ], ...
+        tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In7_Matrix3DDouble' ], ...
             'IconDisplay',    'Signal name', ...
             'OutdataTypeStr', 'double', ...
             'PortDimensions',  '[2 3 4]');
 
-        tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In8_3DMatrixUint32' ], ...
+        tempInPorts(end + 1) = add_block('simulink/Sources/In1', [model_name '/In8_Matrix3DUint32' ], ...
             'IconDisplay',    'Signal name', ...
             'OutdataTypeStr', 'uint32', ...
             'PortDimensions',  '[2 3 4]');
@@ -941,20 +943,20 @@ function tempInPorts = helper_input_gen_WithoutInputs(model_name, modelComplexit
     end
 
     if (modelComplexity >= 4)
-        tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In7_3DMatrixDouble'], ...
+        tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In7_Matrix3DDouble'], ...
             'OutDataTypeStr', 'double');
         if hasTunableParams == true
-            set_param([model_name '/In7_3DMatrixDouble'],  'Value',          'matrixConstant3d');
+            set_param([model_name '/In7_Matrix3DDouble'],  'Value',          'matrixConstant3d');
         else
-            set_param([model_name '/In7_3DMatrixDouble'], 'Value',          'reshape(1:24, [2 3 4])');
+            set_param([model_name '/In7_Matrix3DDouble'], 'Value',          'reshape(1:24, [2 3 4])');
         end
 
-        tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In8_3DMatrixUint32'], ...
+        tempInPorts(end + 1) = add_block('simulink/Sources/Constant', [model_name '/In8_Matrix3DUint32'], ...
             'OutDataTypeStr', 'uint32');
         if hasStructParams == true
-            set_param([model_name '/In8_3DMatrixUint32'], 'Value',          'structMixed.mat3d');
+            set_param([model_name '/In8_Matrix3DUint32'], 'Value',          'structMixed.mat3d');
         else
-            set_param([model_name '/In8_3DMatrixUint32'],  'Value',          'reshape(uint32(1:24), [2 3 4])');
+            set_param([model_name '/In8_Matrix3DUint32'],  'Value',          'reshape(uint32(1:24), [2 3 4])');
         end
     end
 
@@ -975,7 +977,7 @@ function tempInPorts = helper_input_gen_WithStructInputs(model_name, modelComple
               'OutDataTypeStr', 'uint32');
 
     add_block('simulink/Signal Routing/Bus Selector', [model_name '/InputSelector'], ...
-        'OutputSignals', 'Out1_ScalarDouble,Out2_ScalarUint32');
+        'OutputSignals', 'ScalarDouble,ScalarUint32');
 
     add_line(model_name, 'InputSelector/1', 'In1_ScalarDouble/1');
     add_line(model_name, 'InputSelector/2', 'In2_ScalarUint32/1');
@@ -996,7 +998,7 @@ function tempInPorts = helper_input_gen_WithStructInputs(model_name, modelComple
             'OutDataTypeStr', 'uint32');
 
         add_block('simulink/Signal Routing/Bus Selector', [model_name '/InputSelector2'], ...
-            'OutputSignals', 'Out3_VectorDouble,Out4_VectorUint32');
+            'OutputSignals', 'VectorDouble,VectorUint32');
 
         add_line(model_name, 'InputSelector2/1', 'In3_VectorDouble/1');
         add_line(model_name, 'InputSelector2/2', 'In4_VectorUint32/1');
@@ -1018,7 +1020,7 @@ function tempInPorts = helper_input_gen_WithStructInputs(model_name, modelComple
             'OutDataTypeStr', 'uint32');
 
         add_block('simulink/Signal Routing/Bus Selector', [model_name '/InputSelector3'], ...
-            'OutputSignals', 'Out5_MatrixDouble,Out6_MatrixUint32');
+            'OutputSignals', 'MatrixDouble,MatrixUint32');
 
         add_line(model_name, 'InputSelector3/1', 'In5_MatrixDouble/1');
         add_line(model_name, 'InputSelector3/2', 'In6_MatrixUint32/1');
@@ -1034,16 +1036,16 @@ function tempInPorts = helper_input_gen_WithStructInputs(model_name, modelComple
             'OutDataTypeStr', 'Bus: STRUCTSIGNAL_T_78', ...
             'BusOutputAsStruct',  'on');
 
-        add_block('simulink/Math Operations/Gain', [model_name '/In7_3DMatrixDouble'], ...
+        add_block('simulink/Math Operations/Gain', [model_name '/In7_Matrix3DDouble'], ...
             'OutDataTypeStr', 'double');
-        add_block('simulink/Math Operations/Gain', [model_name '/In8_3DMatrixUint32'], ...
+        add_block('simulink/Math Operations/Gain', [model_name '/In8_Matrix3DUint32'], ...
             'OutDataTypeStr', 'uint32');
 
         add_block('simulink/Signal Routing/Bus Selector', [model_name '/InputSelector4'], ...
-            'OutputSignals', 'Out7_3DMatrixDouble,Out8_3DMatrixUint32');
+            'OutputSignals', 'Matrix3DDouble,Matrix3DUint32');
 
-        add_line(model_name, 'InputSelector4/1', 'In7_3DMatrixDouble/1');
-        add_line(model_name, 'InputSelector4/2', 'In8_3DMatrixUint32/1');
+        add_line(model_name, 'InputSelector4/1', 'In7_Matrix3DDouble/1');
+        add_line(model_name, 'InputSelector4/2', 'In8_Matrix3DUint32/1');
 
         add_line(model_name, 'In4_Structured/1', 'InputSelector4/1');
 
