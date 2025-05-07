@@ -134,7 +134,7 @@ if hasTunableParams == true
         if modelComplexity >= 3
             evalin('base', 'matrixConstant2 = ones(6,6);');
             if modelComplexity >= 4
-                evalin('base', 'matrixConstant3d = ones(4,4,4);');
+                evalin('base', 'matrixConstant3d = ones(2,3,4);');
             end
         end
     end
@@ -154,7 +154,7 @@ if hasStructParams == true
         if modelComplexity >= 3
             evalin('base', 'structMixed.mat = uint32(ones(6, 6)*2);');
             if modelComplexity >= 4
-                evalin('base', 'structMixed.mat3d = uint32(ones(4, 4, 4)*2);');
+                evalin('base', 'structMixed.mat3d = uint32(ones(2, 3, 4)*2);');
             end
         end
     end

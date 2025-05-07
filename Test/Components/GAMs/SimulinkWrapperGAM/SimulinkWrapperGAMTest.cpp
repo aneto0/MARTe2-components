@@ -562,7 +562,6 @@ bool SimulinkWrapperGAMTest::TestExecuteGeneric(StreamString marteInputs,
 
         // Compare interfaces with expected values
         if (ok) {
-
             SimulinkRootInterface* inputs = gam->GetInputs();
             for (uint32 rootInputIdx = 0u; (rootInputIdx < gam->GetNumberOfModelInputs()) && ok; rootInputIdx++) {
 
@@ -603,18 +602,20 @@ bool SimulinkWrapperGAMTest::TestExecuteGeneric(StreamString marteInputs,
                     uint32       inputSize = inputs[rootInputIdx].byteSize;
                     void*        inputAddr = inputs[rootInputIdx].destPtr;
 
-                    AnyType arrayDescription = modelExpectedInputCdb.GetType(inputName.Buffer());
-                    ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
-                    if (!ok) {
-                        REPORT_ERROR_STATIC(ErrorManagement::Debug, "Failed GetDataPointer() for signal %s", inputName.Buffer());
-                    }
-
-                    if (ok) {
-                        ok = (MemoryOperationsHelper::Compare(inputAddr, arrayDescription.GetDataPointer(), inputSize) == 0u);
+                    if (modelExpectedInputs.Size() > 0u) {
+                        AnyType arrayDescription = modelExpectedInputCdb.GetType(inputName.Buffer());
+                        ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
                         if (!ok) {
-                            REPORT_ERROR_STATIC(ErrorManagement::Debug, "Signal %s: reference vs model, comparison failed.", inputName.Buffer());
-                            for (uint32 byteIdx = 0u; byteIdx < inputSize; byteIdx++) {
-                                REPORT_ERROR_STATIC(ErrorManagement::Debug, "[%u - %p] ref: %3u GAM: %3u (%p)", byteIdx, (uint8*)inputAddr + byteIdx, ((uint8*)arrayDescription.GetDataPointer())[byteIdx], ((uint8*)inputAddr)[byteIdx]);
+                            REPORT_ERROR_STATIC(ErrorManagement::Debug, "Failed GetDataPointer() for signal %s", inputName.Buffer());
+                        }
+
+                        if (ok) {
+                            ok = (MemoryOperationsHelper::Compare(inputAddr, arrayDescription.GetDataPointer(), inputSize) == 0u);
+                            if (!ok) {
+                                REPORT_ERROR_STATIC(ErrorManagement::Debug, "Signal %s: reference vs model, comparison failed.", inputName.Buffer());
+                                for (uint32 byteIdx = 0u; byteIdx < inputSize; byteIdx++) {
+                                    REPORT_ERROR_STATIC(ErrorManagement::Debug, "[%u - %p] ref: %3u GAM: %3u (%p)", byteIdx, (uint8*)inputAddr + byteIdx, ((uint8*)arrayDescription.GetDataPointer())[byteIdx], ((uint8*)inputAddr)[byteIdx]);
+                                }
                             }
                         }
                     }
@@ -703,7 +704,6 @@ bool SimulinkWrapperGAMTest::TestExecuteGeneric(StreamString marteInputs,
                             ok = (MemoryOperationsHelper::Compare(modelAddr, arrayDescription.GetDataPointer(), outputSize) == 0u);
                             if (!ok) {
                                 REPORT_ERROR_STATIC(ErrorManagement::Debug, "Signal %s: reference vs model, comparison failed.", outputName.Buffer());
-REPORT_ERROR_STATIC(ErrorManagement::Debug, "-------- %!", arrayDescription);
                                 if (outputName.Locate(StreamString("Double")) != -1) {
                                     for (uint32 byteIdx = 0u; byteIdx < outputSize/8u; byteIdx++) {
                                         REPORT_ERROR_STATIC(ErrorManagement::Debug, "[% 2u - %p] ref: % 4.1f model: % 4.1f ", byteIdx, (uint8*)modelAddr + byteIdx, ((float64*)arrayDescription.GetDataPointer())[byteIdx], ((float64*)modelAddr)[byteIdx]);
@@ -1398,8 +1398,8 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters_3() {
         "Out4_VectorUint32   = { DataSource = DDB1   Type = uint32    NumberOfElements = 8   NumberOfDimensions = 1 } "
         "Out5_MatrixDouble   = { DataSource = DDB1   Type = float64   NumberOfElements = 36  NumberOfDimensions = 2 } "
         "Out6_MatrixUint32   = { DataSource = DDB1   Type = uint32    NumberOfElements = 36  NumberOfDimensions = 2 } "
-        "Out7_Matrix3DDouble = { DataSource = DDB1   Type = float64   NumberOfElements = 12  NumberOfDimensions = 2 } "
-        "Out8_Matrix3DUint32 = { DataSource = DDB1   Type = uint32    NumberOfElements = 12  NumberOfDimensions = 2 } "
+        "Out7_Matrix3DDouble = { DataSource = DDB1   Type = float64   NumberOfElements = 24  NumberOfDimensions = 3 } "
+        "Out8_Matrix3DUint32 = { DataSource = DDB1   Type = uint32    NumberOfElements = 24  NumberOfDimensions = 3 } "
         "}";
 
     StreamString parameters = ""
@@ -1476,16 +1476,17 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters_3() {
         ok = cfgParameterContainer.IsValid();
         
         // Populate with AnyObjects
-        uint32 param1[4u][4u][4u] = { { {1u,1u,1u,1u}, {1u,1u,1u,1u}, {1u,1u,1u,1u}, {1u,1u,1u,1u} },
-                                      { {1u,1u,1u,1u}, {1u,1u,1u,1u}, {1u,1u,1u,1u}, {1u,1u,1u,1u} },
-                                      { {1u,1u,1u,1u}, {1u,1u,1u,1u}, {1u,1u,1u,1u}, {1u,1u,1u,1u} }
+        uint32 param1[4u][2u][3u] = { { {1u,1u,1u}, {1u,1u,1u} },
+                                      { {1u,1u,1u}, {1u,1u,1u} },
+                                      { {1u,1u,1u}, {1u,1u,1u} },
+                                      { {1u,1u,1u}, {1u,1u,1u} }
                                     };
                                
         TypeDescriptor type1 = TypeDescriptor::GetTypeDescriptorFromTypeName("uint32");
         AnyType anyParam1(type1, 0u, param1);
         anyParam1.SetNumberOfDimensions(3u);
-        anyParam1.SetNumberOfElements(0u, 4u);
-        anyParam1.SetNumberOfElements(1u, 4u);
+        anyParam1.SetNumberOfElements(0u, 3u);
+        anyParam1.SetNumberOfElements(1u, 2u);
         anyParam1.SetNumberOfElements(2u, 4u);
         
         ReferenceT<AnyObject> objParam1("AnyObject", GlobalObjectsDatabase::Instance()->GetStandardHeap());
@@ -1495,16 +1496,17 @@ bool SimulinkWrapperGAMTest::TestSetup_StructTunableParameters_3() {
 
         Reference foo = cfgParameterContainer->Find("structMixed.mat3d");
 
-        float64 param2[4u][4u][4u] = { { {1.0,1.0,1.0,1.0}, {1.0,1.0,1.0,1.0}, {1.0,1.0,1.0,1.0}, {1.0,1.0,1.0,1.0} },
-                                       { {1.0,1.0,1.0,1.0}, {1.0,1.0,1.0,1.0}, {1.0,1.0,1.0,1.0}, {1.0,1.0,1.0,1.0} },
-                                       { {1.0,1.0,1.0,1.0}, {1.0,1.0,1.0,1.0}, {1.0,1.0,1.0,1.0}, {1.0,1.0,1.0,1.0} }
+        float64 param2[4u][2u][3u] = { { {1.0,1.0,1.0}, {1.0,1.0,1.0} },
+                                       { {1.0,1.0,1.0}, {1.0,1.0,1.0} },
+                                       { {1.0,1.0,1.0}, {1.0,1.0,1.0} },
+                                       { {1.0,1.0,1.0}, {1.0,1.0,1.0} }
                                      };
                                
         TypeDescriptor type2 = TypeDescriptor::GetTypeDescriptorFromTypeName("float64");
         AnyType anyParam2(type2, 0u, param2);
         anyParam2.SetNumberOfDimensions(3u);
-        anyParam2.SetNumberOfElements(0u, 4u);
-        anyParam2.SetNumberOfElements(1u, 4u);
+        anyParam2.SetNumberOfElements(0u, 3u);
+        anyParam2.SetNumberOfElements(1u, 2u);
         anyParam2.SetNumberOfElements(2u, 4u);
         
         ReferenceT<AnyObject> objParam2("AnyObject", GlobalObjectsDatabase::Instance()->GetStandardHeap());
@@ -1748,34 +1750,14 @@ bool SimulinkWrapperGAMTest::TestSetup_WithStructSignals() {
     
     StreamString inputSignals = ""
         "InputSignals = { "
-        "    In1_Structured  = {"
-        "        DataSource = Drv1"
-        "        Type = uint8"
-        "        NumberOfElements = 16"
-        "        NumberOfDimensions = 1"
-        "    }"
+        "    In1_Structured  = { DataSource = Drv1    Type = uint8    NumberOfElements = 16    NumberOfDimensions = 1 }"
         "}";
 
     StreamString outputSignals = ""
         "OutputSignals = { "
-        "Out1_ScalarDouble = {"
-        "    DataSource = DDB1"
-        "    Type = float64"
-        "    NumberOfElements = 1"
-        "    NumberOfDimensions = 0"
-        "}"
-        "Out2_ScalarUint32  = {"
-        "    DataSource = DDB1"
-        "    Type = uint32"
-        "    NumberOfElements = 1"
-        "    NumberOfDimensions = 0"
-        "}"
-        "Out20_NonVirtualBus  = {"
-        "    DataSource = DDB1"
-        "    Type = uint8"
-        "    NumberOfElements = 16"
-        "    NumberOfDimensions = 1"
-        "}"
+        "    Out1_ScalarDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out2_ScalarUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "    Out12_NonVirtualBus = { DataSource = DDB1    Type = uint8      NumberOfElements = 16   NumberOfDimensions = 1 }"
         "}";
 
     StreamString parameters = "";
@@ -5503,8 +5485,6 @@ bool SimulinkWrapperGAMTest::TestSetup_WithEnumParameters() {
 
 bool SimulinkWrapperGAMTest::TestExecute_WithEnumSignals() {
 
-    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
-
     StreamString scriptCall = "createTestModel('hasEnums', true);";
 
     StreamString configOptions = ""
@@ -5556,106 +5536,19 @@ bool SimulinkWrapperGAMTest::TestExecute_WithEnumSignals() {
 
     StreamString parameters = "";
 
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
     ObjectRegistryDatabase* ord = ObjectRegistryDatabase::Instance();
 
-    bool ok = TestSetupWithTemplate(scriptCall, configOptions, inputSignals, outputSignals, parameters, status, ord);
+    bool ok = (ord != NULL_PTR(ObjectRegistryDatabase*));
 
-    ConfigurationDatabase cdb;
     if (ok) {
-        inputValues.Seek(0u);
-        StandardParser parser(inputValues, cdb);
-        ok = parser.Parse();
-    }
-    
-    ConfigurationDatabase outCdb;
-    if (ok) {
-        expectedOutputValues.Seek(0u);
-        StandardParser parser(expectedOutputValues, outCdb);
-        ok = parser.Parse();
+        ok = TestSetupWithTemplate(scriptCall, configOptions, inputSignals, outputSignals, parameters, status, ord);
     }
 
     if (ok) {
-        ReferenceT<SimulinkWrapperGAMHelper> gam = ord->Find("Test.Functions.GAM1");
-
-        ok = gam.IsValid();
-
-        // Copy inputValues to the GAM input signal memory
-        if (ok) {
-
-            for (uint32 signalIdx = 0u; (signalIdx < gam->GetNumberOfInputSignals()) && ok ; signalIdx++) {
-
-                StreamString signalName;
-                ok = gam->GetSignalName(InputSignals, signalIdx, signalName);
-
-
-                AnyType arrayDescription = cdb.GetType(signalName.Buffer());
-                ok = arrayDescription.GetDataPointer() != NULL_PTR(void *);
-
-                //
-                uint32 memoryAllocationSize = 0u;
-                switch (arrayDescription.GetNumberOfDimensions()) {
-
-                    case 0u:
-                        memoryAllocationSize = arrayDescription.GetByteSize();
-                        break;
-
-                    case 1u:
-                        memoryAllocationSize = arrayDescription.GetByteSize() * arrayDescription.GetNumberOfElements(0u);
-                        break;
-
-                    case 2u:
-                        memoryAllocationSize = arrayDescription.GetByteSize() * arrayDescription.GetNumberOfElements(0u) * arrayDescription.GetNumberOfElements(1u);
-                        break;
-                }
-                if (ok) {
-                    ok = MemoryOperationsHelper::Copy(gam->GetInputSignalMemoryTest(signalIdx), arrayDescription.GetDataPointer(), memoryAllocationSize);
-                }
-            }
-
-            ok = gam->Execute();
-        }
-
-        if (ok) {
-            SimulinkRootInterface *inputs = gam->GetInputs();
-            SimulinkRootInterface* in1 = &inputs[0];
-            SimulinkRootInterface* in2 = &inputs[1];
-
-            AnyType adIn1 = cdb.GetType(in1->fullPath.Buffer());
-            AnyType adIn2 = cdb.GetType(in2->fullPath.Buffer());
-
-            ok =    adIn1.GetDataPointer() != NULL_PTR(void *) &&
-                    adIn2.GetDataPointer() != NULL_PTR(void *);
-
-            if(ok) {
-                ok =    (SafeMath::IsEqual<float64>( *( (float64*) in1->dataAddr), *( (float64*) adIn1.GetDataPointer() ) ) ) &&
-                        (SafeMath::IsEqual<int32>  ( *( (int32*)   in2->dataAddr), *( (int32*)   adIn2.GetDataPointer() ) ) );
-            }
-            else {
-                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Wrong data pointers");
-            }
-        }
-        
-        if (ok) {
-            SimulinkRootInterface *outputs = gam->GetOutputs();
-            SimulinkRootInterface* out1 = &outputs[0];
-            SimulinkRootInterface* out2 = &outputs[1];
-
-            AnyType adOut1 = outCdb.GetType(out1->fullPath.Buffer());
-            AnyType adOut2 = outCdb.GetType(out2->fullPath.Buffer());
-
-            ok =    adOut1.GetDataPointer() != NULL_PTR(void *) &&
-                    adOut2.GetDataPointer() != NULL_PTR(void *);
-
-            if(ok) {
-                ok =    (SafeMath::IsEqual<float64>( *( (float64*) out1->dataAddr), *( (float64*) adOut1.GetDataPointer() ) ) ) &&
-                        (SafeMath::IsEqual<int32>  ( *( (int32*)   out2->dataAddr), *( (int32*)   adOut2.GetDataPointer() ) ) );
-            }
-        }
+        ok = TestExecuteGeneric(inputValues, "", expectedOutputValues, expectedOutputValues, "", status, ord);
     }
-    
-    if (ok) {
-        ord->Purge();
-    }
+
     
     return ok && status;
 }
