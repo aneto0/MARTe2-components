@@ -2422,7 +2422,7 @@ bool SimulinkWrapperGAMTest::TestSetup_Failed_ParamWrongNumberOfDimensions() {
     
     StreamString configOptions = ""
         "Verbosity = 2 "
-        "SkipInvalidTunableParams = 1 "
+        "SkipInvalidTunableParams = 0 "
         "EnforceModelSignalCoverage = 0 "
         "NonVirtualBusMode = ByteArray ";
     
@@ -2810,8 +2810,8 @@ bool SimulinkWrapperGAMTest::TestSetup_StructSignalBytesize() {
         "    Out4_VectorUint32     = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 }"
         "    Out5_MatrixDouble     = { DataSource = DDB1    Type = float64    NumberOfElements = 36   NumberOfDimensions = 2 }"
         "    Out6_MatrixUint32     = { DataSource = DDB1    Type = uint32     NumberOfElements = 36   NumberOfDimensions = 2 }"
-        "    Out7_Matrix3DDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 12   NumberOfDimensions = 3 }"
-        "    Out8_Matrix3DUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 12   NumberOfDimensions = 3 }"
+        "    Out7_Matrix3DDouble   = { DataSource = DDB1    Type = float64    NumberOfElements = 24   NumberOfDimensions = 3 }"
+        "    Out8_Matrix3DUint32   = { DataSource = DDB1    Type = uint32     NumberOfElements = 24   NumberOfDimensions = 3 }"
         "    Out12_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 16   NumberOfDimensions = 1 }"
         "    Out34_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 96   NumberOfDimensions = 1 }"
         "    Out56_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 432  NumberOfDimensions = 1 }"
@@ -2829,15 +2829,15 @@ bool SimulinkWrapperGAMTest::TestSetup_StructSignalBytesize() {
         "Out4_VectorUint32 = (uint32) 32      "
         "Out5_MatrixDouble = (uint32) 288     "
         "Out6_MatrixUint32 = (uint32) 144     "
-        "Out7_Matrix3DDouble = (uint32) 96    "
-        "Out8_Matrix3DUint32 = (uint32) 48    "
+        "Out7_Matrix3DDouble = (uint32) 192   "
+        "Out8_Matrix3DUint32 = (uint32) 96    "
         "Out12_NonVirtualBus = (uint32) 12    "
         "Out34_NonVirtualBus = (uint32) 96    "
         "Out56_NonVirtualBus = (uint32) 432   "
         "Out78_NonVirtualBus = (uint32) 288   "
         "Out3456_NonVirtualBus = (uint32) 528 "
-        "Out21_Structured = (uint32) 96       "
-        "Out31_Structured = (uint32) 432      "
+        "Vector_Structured = (uint32) 96       "
+        "Matrix_Structured = (uint32) 432      "
         ""
         ;
 
@@ -2859,7 +2859,7 @@ bool SimulinkWrapperGAMTest::TestSetup_StructSignalBytesize() {
         ok = gam.IsValid();
         if (ok) {
             SimulinkRootInterface* outputs = gam->GetOutputs();
-            for (uint32 rootOutputIdx = 0u; (rootOutputIdx < gam->GetNumberOfOutputSignals()) && ok; rootOutputIdx++) {
+            for (uint32 rootOutputIdx = 0u; (rootOutputIdx < gam->GetNumberOfModelOutputs()) && ok; rootOutputIdx++) {
                 ConfigurationDatabase sizeDb = outputs[rootOutputIdx].rootStructure;
                 uint32 currNumOfChildren = sizeDb.GetNumberOfChildren();
 
@@ -2875,14 +2875,17 @@ bool SimulinkWrapperGAMTest::TestSetup_StructSignalBytesize() {
                         uint32 expectedBytesize = *((uint32*) cdb.GetType(signalName.Buffer()).GetDataPointer());
 
                         ok = (byteSize == expectedBytesize);
-
                         for (uint32 subIdx = 0u; (subIdx < sizeDb.GetNumberOfChildren()) && ok; subIdx++) {
+
                             if (sizeDb.MoveToChild(subIdx)) {
                                 signalName = sizeDb.GetName();
                                 byteSize = outputs[rootOutputIdx].GetInterfaceBytesize(sizeDb);
-                                uint32 expectedBytesize = *((uint32*) cdb.GetType(signalName.Buffer()).GetDataPointer());
+                                uint32 expectedBytesize;
+                                ok = cdb.Read(signalName.Buffer(), expectedBytesize);
 
-                                ok = (byteSize == expectedBytesize);
+                                if (ok) {
+                                    ok = (byteSize == expectedBytesize);
+                                }
 
                                 sizeDb.MoveToAncestor(1u);
                             }
