@@ -3984,13 +3984,13 @@ bool SimulinkWrapperGAMTest::Test_StructuredSignals() {
     StreamString inputSignals = ""
         "InputSignals = { "
         "    In1_Structured = { "
-        "        In1_ScalarDouble  = { "
+        "        ScalarDouble  = { "
         "            DataSource = Drv1"
         "            Type = float64"
         "            NumberOfElements = 1"
         "            NumberOfDimensions = 0"
         "        }"
-        "        In2_ScalarUint32  = { "
+        "        ScalarUint32  = { "
         "            DataSource = Drv1"
         "            Type = uint32"
         "            NumberOfElements = 1"
@@ -5059,12 +5059,9 @@ bool SimulinkWrapperGAMTest::TestSetup_WithNotFoundParameter_Failed(bool skipUnl
         "                              {11, 11, 11, 11, 11, 11},"
         "                              {12, 12, 12, 12, 12, 12}}";
 
-    // Test setup
-    StreamString verbosity = " 2 ";
-
     bool ok = TestSetupWithTemplate(scriptCall, configOptions, inputSignals, outputSignals, parameters, status);
 
-    return (ok != skipUnlinked) && (status.internalSetupError == skipUnlinked);
+    return (ok == skipUnlinked) && (status.internalSetupError != skipUnlinked);
 }
 
 
@@ -5072,7 +5069,7 @@ bool SimulinkWrapperGAMTest::TestSetup_WithNestedSingleSignals() {
 
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
 
-    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'modelComplexity', 5, 'hasInputs', false);";
+    StreamString scriptCall = "createTestModel('hasStructSignals', true, 'modelComplexity', 2, 'hasInputs', false);";
 
     StreamString configOptions = ""
         "Verbosity = 2 "

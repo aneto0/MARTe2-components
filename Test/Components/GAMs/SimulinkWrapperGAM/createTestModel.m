@@ -645,6 +645,8 @@ if useType == 1
     if modelComplexity >= 3
         set_param([model_name '/In5_MatrixDouble'],   'OutDataTypeStr', 'uint8');
         set_param([model_name '/In6_MatrixUint32'],   'OutDataTypeStr', 'uint16');
+        set_param([model_name '/Gain5_MatrixDouble'], 'OutDataTypeStr', 'uint8');
+        set_param([model_name '/Gain6_MatrixUint32'], 'OutDataTypeStr', 'uint16');
         evalin('base', 'matrixConstant2 = uint8(ones(6,6));');
         evalin('base', 'structMixed.mat = uint16(ones(6, 6)*2);');
         if hasOutputs == true
@@ -657,7 +659,8 @@ if useType == 1
         end
     end
     if modelComplexity >= 4
-        set_param([model_name '/In7_Matrix3DDouble'], 'OutDataTypeStr', 'uint32');
+        set_param([model_name '/In7_Matrix3DDouble'],   'OutDataTypeStr', 'uint32');
+        set_param([model_name '/Gain7_Matrix3DDouble'], 'OutDataTypeStr', 'uint32');
         %set_param([model_name '/In8_Matrix3DUint32'], 'OutDataTypeStr', 'uint64'); % uint64 not yet supported by coder
         if hasOutputs == true
             set_param([model_name '/Out7_Matrix3DDouble'], 'OutDataTypeStr', 'uint32');
@@ -672,6 +675,8 @@ if useType == 2
     if modelComplexity >= 3
         set_param([model_name '/In5_MatrixDouble'],   'OutDataTypeStr', 'int8');
         set_param([model_name '/In6_MatrixUint32'],   'OutDataTypeStr', 'int16');
+        set_param([model_name '/Gain5_MatrixDouble'], 'OutDataTypeStr', 'int8');
+        set_param([model_name '/Gain6_MatrixUint32'], 'OutDataTypeStr', 'int16');
         evalin('base', 'matrixConstant2 = int8(ones(6,6));');
         evalin('base', 'structMixed.mat = int16(ones(6, 6)*2);');
         if hasOutputs == true
@@ -684,7 +689,8 @@ if useType == 2
         end
     end
     if modelComplexity >= 4
-        set_param([model_name '/In7_Matrix3DDouble'], 'OutDataTypeStr', 'int32');
+        set_param([model_name '/In7_Matrix3DDouble'],   'OutDataTypeStr', 'int32');
+        set_param([model_name '/Gain7_Matrix3DDouble'], 'OutDataTypeStr', 'int32');
         %set_param([model_name '/In8_Matrix3DUint32'], 'OutDataTypeStr', 'int64'); % int64 not yet supported by coder
         if hasOutputs == true
             set_param([model_name '/Out7_Matrix3DDouble'], 'OutDataTypeStr', 'int32');
@@ -699,6 +705,8 @@ if useType == 4
     if modelComplexity >= 3
         set_param([model_name '/In5_MatrixDouble'],   'OutDataTypeStr', 'int32');
         set_param([model_name '/In6_MatrixUint32'],   'OutDataTypeStr', 'single');
+        set_param([model_name '/Gain5_MatrixDouble'], 'OutDataTypeStr', 'int32');
+        set_param([model_name '/Gain6_MatrixUint32'], 'OutDataTypeStr', 'single');
         evalin('base', 'matrixConstant2 = int32(ones(6,6));');
         evalin('base', 'structMixed.mat = single(ones(6, 6)*2);');
         if hasOutputs == true
@@ -713,6 +721,8 @@ if useType == 4
     if modelComplexity >= 4
         set_param([model_name '/In7_Matrix3DDouble'], 'OutDataTypeStr', 'int32');
         set_param([model_name '/In8_Matrix3DUint32'], 'OutDataTypeStr', 'single');
+        set_param([model_name '/Gain7_MatrixDouble'], 'OutDataTypeStr', 'int32');
+        set_param([model_name '/Gain8_MatrixUint32'], 'OutDataTypeStr', 'single');
         if hasOutputs == true
             set_param([model_name '/Out7_Matrix3DDouble'], 'OutDataTypeStr', 'int32');
             set_param([model_name '/Out8_Matrix3DUint32'], 'OutDataTypeStr', 'single');

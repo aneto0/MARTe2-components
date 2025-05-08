@@ -402,12 +402,12 @@ TEST(SimulinkWrapperGAMGTest, TestExecute_With3DSignals_NoInputs_ColumnMajor) {
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithNotFoundParameterAndProcessUnlinked_Failed) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(true));
+    ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(false));
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithNotFoundParameterAndSkipInvalid) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(false));
+    ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(true));
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithNestedSingleSignals) {
