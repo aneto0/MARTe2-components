@@ -400,6 +400,11 @@ TEST(SimulinkWrapperGAMGTest, TestExecute_With3DSignals_NoInputs_ColumnMajor) {
     ASSERT_TRUE(test.TestExecute_With3DSignals_NoInputs(true));
 }
 
+TEST(SimulinkWrapperGAMGTest, TestExecute_WithStructArraySignals_NoInputs) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_WithStructArraySignals_NoInputs());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithNotFoundParameterAndProcessUnlinked_Failed) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(false));

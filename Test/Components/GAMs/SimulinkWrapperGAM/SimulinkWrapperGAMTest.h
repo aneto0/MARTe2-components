@@ -460,6 +460,11 @@ public:
     bool TestExecute_With3DSignals_NoInputs(bool transpose);
 
     /**
+     * @brief Test execution and coherence when working with struct array signals
+     */
+    bool TestExecute_WithStructArraySignals_NoInputs();
+
+    /**
      * @brief Test the behaviour when working in pure structured signal mode, while enforcing
      * MARTe2 - Simulink parameter coverage (1:1 mapping)
      */
@@ -610,6 +615,11 @@ public:
         "        Class = IntrospectionStructure "
         "        Vector_Structured = { NumberOfElements = {1}    Type = Vector_Structured_t } "
         "        Matrix_Structured = { NumberOfElements = {1}    Type = Matrix_Structured_t } "
+        "    } "
+        "    +VectorMatrix_StructuredArray_t = { "
+        "        Class = IntrospectionStructure "
+        "        Vector_Structured = { NumberOfElements = {2, 3}  Type = Vector_Structured_t } "
+        "        Matrix_Structured = { NumberOfElements = {2}     Type = Matrix_Structured_t } "
         "    } "
         "} "
         ;
