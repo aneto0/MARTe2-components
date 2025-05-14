@@ -3,6 +3,7 @@ function [model_compiled, model_name] = createTestModel(varargin)
 evalin('base', 'clear matrixConstant vectorConstant structScalar structMixed');
 dimensions = ["Scalar", "Vector", "Matrix", "Matrix3D"];
 shapes = ["1", "[8 1]", "[6 6]", "[2 3 4]"];
+structarray_shapes = ["[2 3 4]", "[2 3]", "[2]", "[1]"];
 model_compiled = false;
 
 %% settings
@@ -88,6 +89,8 @@ while ~isempty(varargin)
 end
 
 hasStructInputs = ((hasStructSignals == true) && (hasInputs == true));
+if hasStructArraySignals, hasStructSignals = true; end
+
 if verLessThan('matlab', '9.9')
     hasLoggingSignals = false;
     warning('This version does not support configuring logging signals programmatically. hasLoggingSignals set to false.');
@@ -332,20 +335,33 @@ for c = 1:modelComplexity
     constVarNames = ["1", "1", "vectorConstant2", "vectorConstant", "matrixConstant2", "matrixConstant", "matrixConstant3d", "reshape(uint32(1:24), [2 3 4])"];
     structVarNames = ["1", "1", "vectorConstant2", "uint32(structMixed.vec)", "matrixConstant2", "structMixed.mat", "matrixConstant3d", "structMixed.mat3d"];
     arrayVarNames = ["1", "1", "vectorConstant2", "uint32(structMixed.vec)", "double(structMixed.structParamMatrix(2,2).two)", "paramMatrix(1,2).two", "matrixConstant3d", "structMixed.mat3d"];
-    constInlineVals = ["1", "1", "7:-1:0", "ones(8,1)", "reshape([1:18 1:18], 6, 6)", "ones(6,6)", "reshape(1:24, [2 3 4])", "reshape(uint32(1:24), [2 3 4])"];
+    constInlineVals = ["1", "1", "(7:-1:0)'", "ones(8,1)", "reshape([1:18 1:18], 6, 6)", "ones(6,6)", "reshape(1:24, [2 3 4])", "reshape(uint32(1:24), [2 3 4])"];
     
-    if hasInputs && ~hasStructSignals
+    if hasInputs && ~hasStructSignals && ~hasStructArraySignals
         input_block_type = 'simulink/Sources/In1';
-    elseif hasInputs && hasStructSignals
-        input_block_type = 'simulink/Math Operations/Gain';
-    else
+    elseif ~hasInputs && ~hasStructSignals && ~hasStructArraySignals
         input_block_type = 'simulink/Sources/Constant';
+    else
+        input_block_type = 'simulink/Math Operations/Gain';
+    end
+
+    if hasInputs && hasStructSignals
+        structured_input_block_type = 'simulink/Sources/In1';
+    else
+        structured_input_block_type = 'simulink/Sources/Constant';
     end
 
     inPorts(end + 1) = add_block(input_block_type, strcat(model_name, "/", in_signal_names(1)), ...
             'OutDataTypeStr', 'double');
     inPorts(end + 1) = add_block(input_block_type, strcat(model_name, "/", in_signal_names(2)), ...
             'OutDataTypeStr', 'uint32');
+
+    if hasStructSignals
+        inPorts(end + 1) = add_block(structured_input_block_type, strcat(model_name, "/", in_bus_name));
+        bus_selector_name = strcat("InputSelector", bus_index, "_", "NonVirtualBus");
+        add_block('simulink/Signal Routing/Bus Selector', strcat(model_name, "/", bus_selector_name), ...
+            'OutputSignals', strcat(signal_dim_and_type(1), ",", signal_dim_and_type(2)));
+    end
 
     if hasInputs
         if ~hasStructSignals
@@ -361,20 +377,15 @@ for c = 1:modelComplexity
                 set_param([model_name '/In2_ScalarUint32'],  'OutDataTypeStr', 'Enum:TestEnum');
             end
         else % hasStructSignals
-            bus_selector_name = strcat("InputSelector", bus_index, "_", "NonVirtualBus");
-
-            inPorts(end + 1) = add_block('simulink/Sources/In1', strcat(model_name, "/", in_bus_name), ...
+            set_param(strcat(model_name, "/", in_bus_name), ...
                 'IconDisplay',    'Signal name', ...
                 'OutDataTypeStr', strcat("Bus: ", bus_type_name), ...
-                'BusOutputAsStruct',  'on');
+                'BusOutputAsStruct',  'on', ...
+                'PortDimensions', '1');
 
-            add_block('simulink/Signal Routing/Bus Selector', strcat(model_name, "/", bus_selector_name), ...
-                'OutputSignals', strcat(signal_dim_and_type(1), ",", signal_dim_and_type(2)));
-        
-            add_line(model_name, strcat(bus_selector_name, "/1"), strcat(in_signal_names(1), "/1"));
-            add_line(model_name, strcat(bus_selector_name, "/2"), strcat(in_signal_names(2), "/1"));
-        
-            add_line(model_name, strcat(in_bus_name, "/1"), strcat(bus_selector_name, "/1"));
+            if hasStructArraySignals
+                set_param(strcat(model_name, "/", in_bus_name), 'PortDimensions', structarray_shapes(c));
+            end
         end
 
     else % hasInputs == false
@@ -389,12 +400,17 @@ for c = 1:modelComplexity
         else
             default_values = constInlineVals;
         end
-
-        set_param(strcat(model_name, "/", in_signal_names(1)), ...
-            'Value',          default_values(2*c - 1));
-    
-        set_param(strcat(model_name, "/", in_signal_names(2)), ...
-            'Value',          default_values(2*c));
+        
+        if hasStructSignals
+            set_param(strcat(model_name, "/", in_bus_name), ...
+                'OutDataTypeStr', strcat("Bus: ", bus_type_name), ...
+                'Value',          strcat("struct('", signal_dim_and_type(1), "', ", default_values(2*c - 1), ", '", signal_dim_and_type(2), "', ", default_values(2*c), ")"));
+        else
+            set_param(strcat(model_name, "/", in_signal_names(1)), ...
+                'Value',          default_values(2*c - 1));
+            set_param(strcat(model_name, "/", in_signal_names(2)), ...
+                'Value',          default_values(2*c));
+        end
 
         if hasEnums
             set_param([model_name '/In2_ScalarUint32'], 'OutDataTypeStr', 'Enum:TestEnum');
@@ -544,6 +560,25 @@ for c = 1:modelComplexity
         set_param(strcat(model_name, "/", gain_block_names(1)), 'Gain', 'structMixed.one');
     end
 
+    if hasStructArraySignals
+        structarray_num_dims = numel(str2num(structarray_shapes(c)));
+        structarray_index_options = repmat({'Index vector (dialog)'}, 1, structarray_num_dims);
+        strutarray_index_params = repmat({'1'}, 1, structarray_num_dims);
+
+        structarray_selector_name = strcat("Selector", bus_index, "_NonVirtualBus");
+        add_block('simulink/Signal Routing/Selector', strcat(model_name, "/", structarray_selector_name), ...
+            'NumberOfDimensions', num2str(structarray_num_dims), ...
+            'InputPortWidth',     num2str(prod(str2num(structarray_shapes(c)))), ...
+            'IndexOptionArray',   structarray_index_options, ...
+            'IndexParamArray',    strutarray_index_params);
+        
+        structarray_assign_name = strcat("Assignment", bus_index, "_NonVirtualBus");
+        add_block('simulink/Math Operations/Assignment', strcat(model_name, "/", structarray_assign_name), ...
+            'NumberOfDimensions', num2str(structarray_num_dims), ...
+            'IndexOptionArray',   structarray_index_options, ...
+            'IndexParamArray',    strutarray_index_params);
+    end
+
     if hasLoggingSignals
         logBlocks(end + 1) = add_block('simulink/Math Operations/Gain', strcat(model_name, "/", log_signal_names(1)), ...
             'Gain',           '1', ...
@@ -571,13 +606,25 @@ for c = 1:modelComplexity
 
     %% ADD SIGNALS
     if hasStructSignals
+        add_line(model_name, strcat(bus_selector_name, "/1"), strcat(in_signal_names(1), "/1"));
+        add_line(model_name, strcat(bus_selector_name, "/2"), strcat(in_signal_names(2), "/1"));
+
+        if ~hasStructArraySignals
+            add_line(model_name, strcat(in_bus_name, "/1"), strcat(bus_selector_name,  "/1"));
+        else
+            add_line(model_name, strcat(in_bus_name, "/1"), strcat(structarray_selector_name,  "/1"));
+            add_line(model_name, strcat(structarray_selector_name,  "/1"), strcat(bus_selector_name,  "/1"));
+            add_line(model_name, strcat(in_bus_name, "/1"), strcat(structarray_assign_name,  "/1"));
+            add_line(model_name, strcat(bus_creator_name,        "/1"), strcat(structarray_assign_name, "/2"));
+        end
+
         if c == 4
             add_line(model_name, 'Out34_BusCreator/1',   'Out3456_BusCreator/1');
             add_line(model_name, 'Out56_BusCreator/1',   'Out3456_BusCreator/2');
         end
     end
 
-    if hasLoggingSignals == false
+    if ~hasLoggingSignals
         add_line(model_name, strcat(in_signal_names(1), "/1"), strcat(gain_block_names(1), "/1"));
         add_line(model_name, strcat(in_signal_names(2), "/1"), strcat(gain_block_names(2), "/1"));
 
@@ -587,15 +634,18 @@ for c = 1:modelComplexity
         if hasStructSignals
             add_line(model_name, strcat(gain_block_names(1), "/1"), strcat(bus_creator_name, "/1"));
             add_line(model_name, strcat(gain_block_names(2), "/1"), strcat(bus_creator_name, "/2"));
-            add_line(model_name, strcat(bus_creator_name,    "/1"), strcat(out_bus_name,         "/1"));
+            if hasStructArraySignals
+                add_line(model_name, strcat(structarray_assign_name, "/1"), strcat(out_bus_name,        "/1"));
+            else
+                add_line(model_name, strcat(bus_creator_name,    "/1"), strcat(out_bus_name,         "/1"));
+            end
     
-            % bus of buses
+            % bus of busesbus_creator_name, "/1"
             if c == 4
                 add_line(model_name, 'Out3456_BusCreator/1', 'Out3456_NonVirtualBus/1');
             end
         end
-
-    else % hasLoggingSignals == true
+    else % hasLoggingSignals
         add_line(model_name, strcat(in_signal_names(1), "/1"), strcat(gain_block_names(1), "/1"));
         add_line(model_name, strcat(in_signal_names(2), "/1"), strcat(gain_block_names(2), "/1"));
 
@@ -608,7 +658,11 @@ for c = 1:modelComplexity
         if hasStructSignals
             add_line(model_name, strcat(log_signal_names(1), "/1"), strcat(bus_creator_name, "/1"));
             add_line(model_name, strcat(log_signal_names(2), "/1"), strcat(bus_creator_name, "/2"));
-            add_line(model_name, strcat(bus_creator_name,    "/1"), strcat("Log", bus_index, "_NonVirtualBus/1"));
+            if hasStructArraySignals
+                add_line(model_name, strcat(structarray_assign_name, "/1"), strcat("Log", bus_index, "_NonVirtualBus/1"));
+            else
+                add_line(model_name, strcat(bus_creator_name,    "/1"), strcat("Log", bus_index, "_NonVirtualBus/1"));
+            end
             add_line(model_name, strcat("Log", bus_index, "_NonVirtualBus/1"), strcat(out_bus_name,         "/1"));
     
             % bus of buses
