@@ -1883,7 +1883,7 @@ void SimulinkWrapperGAM::PrintAlgoInfo() const {
     }
 }
 
-CLASS_REGISTER(SimulinkWrapperGAM, "2.0")
+CLASS_REGISTER(SimulinkWrapperGAM, "3.0")
 
 } /* namespace MARTe */
 

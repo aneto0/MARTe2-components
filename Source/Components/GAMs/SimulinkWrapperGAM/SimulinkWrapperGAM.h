@@ -1078,13 +1078,19 @@ namespace MARTe {
  * Once set for a model, the configuration settings can then be exported
  * from the Model Explorer and imported to other models.
  * 
+ * Release notes
+ * ==========================================================================
+ *
+ * Version |    Date    | Notes
+ * ------: | :--------: | :----
+ * 1.0     | 01/01/2018 | Initial release.
+ * 2.0     | 01/07/2020 | QA, rework, support for external parameter source, support for literal parameters.
+ * 3.0     | 15/05/2025 | Add structured arrays, logging of block signals and 3D matrices in `Structured` mode. Extensive rework of interface methods.
+ *
+ *
  * @todo Fix int64/uint64 issue: models with [u]int64 signals when compiled
  *       export such signals as [u]fix64, which is currently incompatible
  *       with the GAM.
- * 
- * @todo Develop a more efficient transposition algorithm for column-major
- *       matrix signals. 
- * 
  */
 class SimulinkWrapperGAM: public GAM, public MessageI {
 
