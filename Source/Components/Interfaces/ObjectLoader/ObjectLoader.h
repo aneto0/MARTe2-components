@@ -133,6 +133,15 @@ namespace MARTe {
  *          (see note above).
  *
  *
+ * Release notes
+ * ==========================================================================
+ *
+ * Version | Notes
+ * ------: | :----
+ * 1.0     | initial release
+ * 1.1     | tested and linted version
+ *
+ *
  */
 class ObjectLoader : public ReferenceContainer, public MessageI {
 
@@ -154,9 +163,11 @@ public:
      */
     virtual bool Initialise(StructuredDataI & data);
 
-private:
+protected:
 
     ErrorManagement::ErrorType status;
+
+private:
 
 };
 

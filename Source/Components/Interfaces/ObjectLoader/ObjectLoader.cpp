@@ -122,5 +122,5 @@ bool ObjectLoader::Initialise(StructuredDataI & data) {
 }
 
 
-CLASS_REGISTER(ObjectLoader, "1.0")
+CLASS_REGISTER(ObjectLoader, "1.1")
 } /* namespace MARTe */
