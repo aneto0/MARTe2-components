@@ -400,6 +400,16 @@ TEST(SimulinkWrapperGAMGTest, TestExecute_With3DSignals_NoInputs_ColumnMajor) {
     ASSERT_TRUE(test.TestExecute_With3DSignals_NoInputs(true));
 }
 
+TEST(SimulinkWrapperGAMGTest, TestExecute_WithStructArraySignals_RowMajor) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_WithStructArraySignals(false));
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_WithStructArraySignals_ColumnMajor) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_WithStructArraySignals(true));
+}
+
 TEST(SimulinkWrapperGAMGTest, TestExecute_WithStructArraySignals_NoInputs) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestExecute_WithStructArraySignals_NoInputs());

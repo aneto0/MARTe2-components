@@ -88,7 +88,6 @@ while ~isempty(varargin)
     varargin(1:2) = [];
 end
 
-hasStructInputs = ((hasStructSignals == true) && (hasInputs == true));
 if hasStructArraySignals, hasStructSignals = true; end
 
 if verLessThan('matlab', '9.9')
@@ -123,9 +122,9 @@ end
 
 %% define handle arrays
 
-inPorts = [];
+inPorts = []; %#ok<*AGROW> 
 outPorts = [];
-logBlocks = [];   % blocks whose output is to be logged
+logBlocks = []; % blocks whose output is to be logged 
 structArrayVarNames = [];
 
 %% define constants
@@ -302,9 +301,7 @@ set_param(model_name, 'GenerateSampleERTMain', 0);
 
 save_system(model_name);
 
-%% adding blocks
-
-% -- root system
+%% build the model
 
 set_param(model_name, 'TunableVars', 'paramMatrix, structMixed');
 set_param(model_name, 'TunableVarsStorageclass', 'Auto,Auto');
@@ -327,10 +324,6 @@ for c = 1:modelComplexity
     out_bus_name = strcat(out_bus_prefix, "NonVirtualBus");
     bus_type_name = strcat("STRUCTSIGNAL_T_", bus_index);
     bus_creator_name = strcat(out_bus_prefix, "BusCreator");
-
-    structarray_index = strcat(bus_index, "0");
-    structarray_prefix = strcat("Out", structarray_index, "_");
-    structarray_name = strcat(structarray_prefix, dim_name, "StructArray");
 
     %% DEFINE BUSES
     if hasStructSignals || hasStructArraySignals
@@ -413,7 +406,7 @@ for c = 1:modelComplexity
     % generate structarray constants
     if hasStructArraySignals
         struct_array = evalin('base', ['Simulink.Bus.createMATLABStruct("' char(bus_type_name) '")']);
-        structarray_shape = str2num(structarray_shapes(c));
+        structarray_shape = str2num(structarray_shapes(c)); %#ok<ST2NM> 
         structarray_num_elems = prod(structarray_shape);
         struct_array = repmat(struct_array, structarray_shape);
         for sa_idx = 1:structarray_num_elems
@@ -594,7 +587,7 @@ for c = 1:modelComplexity
     end
 
     if hasStructArraySignals
-        structarray_num_dims = max(nnz(str2num(structarray_shapes(c)) > 1), 1);
+        structarray_num_dims = max(nnz(str2num(structarray_shapes(c)) > 1), 1); %#ok<ST2NM> 
         structarray_index_options = repmat({'Index vector (dialog)'}, 1, structarray_num_dims);
         strutarray_index_params = repmat({'1'}, 1, structarray_num_dims);
 
@@ -603,7 +596,7 @@ for c = 1:modelComplexity
             'NumberOfDimensions', num2str(structarray_num_dims), ...
             'InputPortWidth',     num2str(prod(str2num(structarray_shapes(c)))), ...
             'IndexOptionArray',   structarray_index_options, ...
-            'IndexParamArray',    strutarray_index_params);
+            'IndexParamArray',    strutarray_index_params); %#ok<ST2NM> 
         
         structarray_assign_name = strcat("Assignment", bus_index, "_NonVirtualBus");
         add_block('simulink/Math Operations/Assignment', strcat(model_name, "/", structarray_assign_name), ...

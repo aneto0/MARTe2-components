@@ -462,6 +462,11 @@ public:
     /**
      * @brief Test execution and coherence when working with struct array signals
      */
+    bool TestExecute_WithStructArraySignals(bool transpose);
+
+    /**
+     * @brief Test execution and coherence when working with struct array signals
+     */
     bool TestExecute_WithStructArraySignals_NoInputs();
 
     /**
