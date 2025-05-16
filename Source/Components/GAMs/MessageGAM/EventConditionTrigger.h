@@ -151,7 +151,7 @@ public:
     /**
      * @brief Stores a pointer to the list of SignalMetadata elements.
      * @details This function has to be called by the component that use this trigger
-     * generator (i.e TriggerOnChangeGAM) to allow this object to know the metadata
+     * generator (i.e MessageGAM) to allow this object to know the metadata
      * associated to the variables that have to be checked.
      * @return true if all the signals required by the EventTrigger exist and have the expected types.
      */

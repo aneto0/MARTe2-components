@@ -65,7 +65,7 @@ namespace MARTe{
  * @details Follows an example of configuration:
  * <pre>
  *   +GAM1 = {
- *       Class = TriggerOnChangeGAM
+ *       Class = MessageGAM 
  *       TriggerOnChange = 1 //Defaults to 1 = true if not present. Allowed values 0 == false or disabled, != 0 == true or enabled (see above)
  *       +Events = {
  *           Class = ReferenceContainer

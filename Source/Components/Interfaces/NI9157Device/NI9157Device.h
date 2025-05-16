@@ -89,7 +89,7 @@ public:
     /**
      * @brief Constructor. NOOP.
      */
-    NI9157Device ();
+    NI9157Device();
 
     /**
      * @brief Destructor
@@ -101,7 +101,7 @@ public:
      * @brief Initialises the NI-9157 device using the parameters list in the class description.
      * @return true if the device is successfully initialised.
      */
-    virtual bool Initialise(StructuredDataI & data);
+    virtual bool Initialise(StructuredDataI &data);
 
     /**
      * @brief Opens the NI-9157 device.
@@ -127,25 +127,25 @@ public:
      * @brief Returns 1 if the NI-9157 device has been opened, 0 otherwise.
      * @return 1 if the NI-9157 device has been opened, 0 otherwise.
      */
-    uint8 IsOpened() const;
+    virtual uint8 IsOpened() const;
 
     /**
      * @brief Returns 1 if the NI-9157 device has been started, 0 otherwise.
      * @return 1 if the NI-9157 device has been started, 0 otherwise.
      */
-    uint8 IsRunning() const;
+    virtual uint8 IsRunning() const;
 
     /**
      * @brief Resets the FPGA program on the NI-9157 device.
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status Reset();
+    virtual NiFpga_Status Reset();
 
     /**
      * @brief Closes the FPGA program on the NI-9157 device.
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status Close();
+    virtual NiFpga_Status Close();
 
     /**
      * @brief Finds a bool variable and returns its descriptor
@@ -154,9 +154,9 @@ public:
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
      */
-    NiFpga_Status FindResource(const char8 * const varName,
-                            const bool type,
-                            uint32 &varDescriptor);
+    virtual NiFpga_Status FindResource(const char8 *const varName,
+                                       const bool type,
+                                       uint32 &varDescriptor);
 
     /**
      * @brief Finds a unsigned 8-bit variable and returns its descriptor
@@ -165,9 +165,9 @@ public:
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
      */
-    NiFpga_Status FindResource(const char8 * const varName,
-                            const uint8 type,
-                            uint32 &varDescriptor);
+    virtual NiFpga_Status FindResource(const char8 *const varName,
+                                       const uint8 type,
+                                       uint32 &varDescriptor);
 
     /**
      * @brief Finds a signed 8-bit variable and returns its descriptor
@@ -176,9 +176,9 @@ public:
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
      */
-    NiFpga_Status FindResource(const char8 * const varName,
-                            const int8 type,
-                            uint32 &varDescriptor);
+    virtual NiFpga_Status FindResource(const char8 *const varName,
+                                       const int8 type,
+                                       uint32 &varDescriptor);
 
     /**
      * @brief Finds a unsigned 16-bit variable and returns its descriptor
@@ -187,9 +187,9 @@ public:
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
      */
-    NiFpga_Status FindResource(const char8 * const varName,
-                            const uint16 type,
-                            uint32 &varDescriptor);
+    virtual NiFpga_Status FindResource(const char8 *const varName,
+                                       const uint16 type,
+                                       uint32 &varDescriptor);
 
     /**
      * @brief Finds a signed 16-bit variable and returns its descriptor
@@ -198,9 +198,9 @@ public:
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
      */
-    NiFpga_Status FindResource(const char8 * const varName,
-                            const int16 type,
-                            uint32 &varDescriptor);
+    virtual NiFpga_Status FindResource(const char8 *const varName,
+                                       const int16 type,
+                                       uint32 &varDescriptor);
 
     /**
      * @brief Finds a unsigned 32-bit variable and returns its descriptor
@@ -209,9 +209,9 @@ public:
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
      */
-    NiFpga_Status FindResource(const char8 * const varName,
-                            const uint32 type,
-                            uint32 &varDescriptor);
+    virtual NiFpga_Status FindResource(const char8 *const varName,
+                                       const uint32 type,
+                                       uint32 &varDescriptor);
 
     /**
      * @brief Finds a signed 32-bit variable and returns its descriptor
@@ -220,9 +220,9 @@ public:
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
      */
-    NiFpga_Status FindResource(const char8 * const varName,
-                            const int32 type,
-                            uint32 &varDescriptor);
+    virtual NiFpga_Status FindResource(const char8 *const varName,
+                                       const int32 type,
+                                       uint32 &varDescriptor);
 
     /**
      * @brief Finds a unsigned 64-bit variable and returns its descriptor
@@ -231,9 +231,9 @@ public:
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
      */
-    NiFpga_Status FindResource(const char8 * const varName,
-                            const uint64 type,
-                            uint32 &varDescriptor);
+    virtual NiFpga_Status FindResource(const char8 *const varName,
+                               const uint64 type,
+                               uint32 &varDescriptor);
 
     /**
      * @brief Finds a signed 64-bit variable and returns its descriptor
@@ -242,9 +242,9 @@ public:
      * @param[out] varDescriptor the returned variable descriptor.
      * @return 0 if the method succeeds, error code if it fails.
      */
-    NiFpga_Status FindResource(const char8 * const varName,
-                            const int64 type,
-                            uint32 &varDescriptor);
+    virtual NiFpga_Status FindResource(const char8 *const varName,
+                               const int64 type,
+                               uint32 &varDescriptor);
 
     /**
      * @brief Reads a boolean value from a given indicator or control.
@@ -252,8 +252,8 @@ public:
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiRead(const uint32 indicator,
-                            bool &value) const;
+    virtual NiFpga_Status NiRead(const uint32 indicator,
+                         bool &value);
 
     /**
      * @brief Reads a signed 8-bit integer value from a given indicator or control.
@@ -261,8 +261,8 @@ public:
      * @param[out] value outputs the value that was read
      * @return result of the call
      */
-    NiFpga_Status NiRead(const uint32 indicator,
-                            int8 &value) const;
+    virtual NiFpga_Status NiRead(const uint32 indicator,
+                         int8 &value);
 
     /**
      * @brief Reads an unsigned 8-bit integer value from a given indicator or control.
@@ -270,8 +270,8 @@ public:
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiRead(const uint32 indicator,
-                            uint8 &value) const;
+    virtual NiFpga_Status NiRead(const uint32 indicator,
+                         uint8 &value);
 
     /**
      * @brief Reads a signed 16-bit integer value from a given indicator or control.
@@ -279,8 +279,8 @@ public:
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiRead(const uint32 indicator,
-                            int16 &value) const;
+    virtual NiFpga_Status NiRead(const uint32 indicator,
+                         int16 &value);
 
     /**
      * @brief Reads an unsigned 16-bit integer value from a given indicator or control.
@@ -288,8 +288,8 @@ public:
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiRead(const uint32 indicator,
-                            uint16 &value) const;
+    virtual NiFpga_Status NiRead(const uint32 indicator,
+                         uint16 &value);
 
     /**
      * @brief Reads a signed 32-bit integer value from a given indicator or control.
@@ -297,8 +297,8 @@ public:
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiRead(const uint32 indicator,
-                            int32 &value) const;
+    virtual NiFpga_Status NiRead(const uint32 indicator,
+                         int32 &value);
 
     /**
      * @brief Reads an unsigned 32-bit integer value from a given indicator or control.
@@ -306,8 +306,8 @@ public:
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiRead(const uint32 indicator,
-                            uint32 &value) const;
+    virtual NiFpga_Status NiRead(const uint32 indicator,
+                         uint32 &value);
 
     /**
      * @brief Reads a signed 64-bit integer value from a given indicator or control.
@@ -315,8 +315,8 @@ public:
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiRead(const uint32 indicator,
-                            int64 &value) const;
+    virtual NiFpga_Status NiRead(const uint32 indicator,
+                         int64 &value);
 
     /**
      * @brief Reads an unsigned 64-bit integer value from a given indicator or control.
@@ -324,8 +324,8 @@ public:
      * @param[out] value outputs the value that was read
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiRead(const uint32 indicator,
-                            uint64 &value) const;
+    virtual NiFpga_Status NiRead(const uint32 indicator,
+                         uint64 &value);
 
     /**
      * @brief Writes a boolean value to a given control or indicator.
@@ -333,8 +333,8 @@ public:
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWrite(const uint32 control,
-                            const bool value) const;
+    virtual NiFpga_Status NiWrite(const uint32 control,
+                          const bool value);
 
     /**
      * @brief Writes a signed 8-bit integer value to a given control or indicator.
@@ -342,8 +342,8 @@ public:
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWrite(const uint32 control,
-                            const int8 value) const;
+    virtual NiFpga_Status NiWrite(const uint32 control,
+                          const int8 value);
 
     /**
      * @brief Writes an unsigned 8-bit integer value to a given control or indicator.
@@ -351,8 +351,8 @@ public:
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWrite(const uint32 control,
-                            const uint8 value) const;
+    virtual NiFpga_Status NiWrite(const uint32 control,
+                          const uint8 value);
 
     /**
      * @brief Writes a signed 16-bit integer value to a given control or indicator.
@@ -360,8 +360,8 @@ public:
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWrite(const uint32 control,
-                            const int16 value) const;
+    virtual NiFpga_Status NiWrite(const uint32 control,
+                          const int16 value);
 
     /**
      * @brief Writes an unsigned 16-bit integer value to a given control or indicator.
@@ -369,8 +369,8 @@ public:
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWrite(const uint32 control,
-                            const uint16 value) const;
+    virtual NiFpga_Status NiWrite(const uint32 control,
+                          const uint16 value);
 
     /**
      * @brief Writes a signed 32-bit integer value to a given control or indicator.
@@ -378,8 +378,8 @@ public:
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWrite(const uint32 control,
-                            const int32 value) const;
+    virtual NiFpga_Status NiWrite(const uint32 control,
+                          const int32 value);
 
     /**
      * @brief Writes an unsigned 32-bit integer value to a given control or indicator.
@@ -387,8 +387,8 @@ public:
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWrite(uint32 control,
-                            uint32 value) const;
+    virtual NiFpga_Status NiWrite(uint32 control,
+                          uint32 value);
 
     /**
      * @brief Writes a signed 64-bit integer value to a given control or indicator.
@@ -396,8 +396,8 @@ public:
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWrite(const uint32 control,
-                            const int64 value) const;
+    virtual NiFpga_Status NiWrite(const uint32 control,
+                          const int64 value);
 
     /**
      * @brief Writes an unsigned 64-bit integer value to a given control or indicator.
@@ -405,8 +405,8 @@ public:
      * @param[in] value value to write
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWrite(const uint32 control,
-                            const uint64 value) const;
+    virtual NiFpga_Status NiWrite(const uint32 control,
+                          const uint64 value);
 
     /**
      * @brief Specifies the depth of the host memory part of the DMA FIFO. This method is
@@ -419,23 +419,23 @@ public:
      *                    the requested number
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiConfigureFifo(const uint32 fifo,
-                            const uint32 requestedDepth,
-                            uint32 &actualDepth) const;
+    virtual NiFpga_Status NiConfigureFifo(const uint32 fifo,
+                                  const uint32 requestedDepth,
+                                  uint32 &actualDepth);
 
     /**
      * @brief Starts a FIFO. This method is optional.
      * @param[in] fifo FIFO to start
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiStartFifo(const uint32 fifo) const;
+    virtual NiFpga_Status NiStartFifo(const uint32 fifo);
 
     /**
      * @brief Stops a FIFO. This method is optional.
      * @param[in] fifo FIFO to stop
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiStopFifo(const uint32 fifo) const;
+    virtual NiFpga_Status NiStopFifo(const uint32 fifo);
 
     /**
      * @brief Reads from a target-to-host FIFO of booleans.
@@ -448,10 +448,10 @@ public:
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
     NiFpga_Status NiReadFifo(const uint32 fifo,
-                            bool * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &elementsRemaining) const;
+                             bool *const data,
+                             const uint32 numberOfElements,
+                             const uint32 timeout,
+                             uint32 &elementsRemaining);
 
     /**
      * @brief Reads from a target-to-host FIFO of signed 8-bit integers.
@@ -463,11 +463,11 @@ public:
      *                          remaining in the host memory part of the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiReadFifo(const uint32 fifo,
-                            int8 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &elementsRemaining) const;
+    virtual NiFpga_Status NiReadFifo(const uint32 fifo,
+                             int8 *const data,
+                             const uint32 numberOfElements,
+                             const uint32 timeout,
+                             uint32 &elementsRemaining);
 
     /**
      * @brief Reads from a target-to-host FIFO of unsigned 8-bit integers.
@@ -479,11 +479,11 @@ public:
      *                          remaining in the host memory part of the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiReadFifo(const uint32 fifo,
-                            uint8 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &elementsRemaining) const;
+    virtual NiFpga_Status NiReadFifo(const uint32 fifo,
+                             uint8 *const data,
+                             const uint32 numberOfElements,
+                             const uint32 timeout,
+                             uint32 &elementsRemaining);
 
     /**
      * @brief Reads from a target-to-host FIFO of signed 16-bit integers.
@@ -495,11 +495,11 @@ public:
      *                          remaining in the host memory part of the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiReadFifo(const uint32 fifo,
-                            int16 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &elementsRemaining) const;
+    virtual NiFpga_Status NiReadFifo(const uint32 fifo,
+                             int16 *const data,
+                             const uint32 numberOfElements,
+                             const uint32 timeout,
+                             uint32 &elementsRemaining);
 
     /**
      * @brief Reads from a target-to-host FIFO of unsigned 16-bit integers.
@@ -511,11 +511,11 @@ public:
      *                          remaining in the host memory part of the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiReadFifo(const uint32 fifo,
-                            uint16 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &elementsRemaining) const;
+    virtual NiFpga_Status NiReadFifo(const uint32 fifo,
+                             uint16 *const data,
+                             const uint32 numberOfElements,
+                             const uint32 timeout,
+                             uint32 &elementsRemaining);
 
     /**
      * @brief Reads from a target-to-host FIFO of signed 32-bit integers.
@@ -527,11 +527,11 @@ public:
      *                          remaining in the host memory part of the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiReadFifo(const uint32 fifo,
-                            int32 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &elementsRemaining) const;
+    virtual NiFpga_Status NiReadFifo(const uint32 fifo,
+                             int32 *const data,
+                             const uint32 numberOfElements,
+                             const uint32 timeout,
+                             uint32 &elementsRemaining);
 
     /**
      * @brief Reads from a target-to-host FIFO of unsigned 32-bit integers.
@@ -543,11 +543,11 @@ public:
      *                          remaining in the host memory part of the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiReadFifo(const uint32 fifo,
-                            uint32 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &elementsRemaining) const;
+    virtual NiFpga_Status NiReadFifo(const uint32 fifo,
+                             uint32 *const data,
+                             const uint32 numberOfElements,
+                             const uint32 timeout,
+                             uint32 &elementsRemaining);
 
     /**
      * @brief Reads from a target-to-host FIFO of signed 64-bit integers.
@@ -559,11 +559,11 @@ public:
      *                          remaining in the host memory part of the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiReadFifo(const uint32 fifo,
-                            int64 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &elementsRemaining) const;
+    virtual NiFpga_Status NiReadFifo(const uint32 fifo,
+                             int64 *const data,
+                             const uint32 numberOfElements,
+                             const uint32 timeout,
+                             uint32 &elementsRemaining);
 
     /**
      * @brief Reads from a target-to-host FIFO of unsigned 64-bit integers.
@@ -575,11 +575,11 @@ public:
      *                          remaining in the host memory part of the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiReadFifo(const uint32 fifo,
-                            uint64 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &elementsRemaining) const;
+    virtual NiFpga_Status NiReadFifo(const uint32 fifo,
+                             uint64 *const data,
+                             const uint32 numberOfElements,
+                             const uint32 timeout,
+                             uint32 &elementsRemaining);
 
     /**
      * @brief Writes to a host-to-target FIFO of Booleans.
@@ -592,11 +592,11 @@ public:
      *                               the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWriteFifo(const uint32 fifo,
-                            const bool * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &emptyElementsRemaining) const;
+    virtual NiFpga_Status NiWriteFifo(const uint32 fifo,
+                              const bool *const data,
+                              const uint32 numberOfElements,
+                              const uint32 timeout,
+                              uint32 &emptyElementsRemaining);
 
     /**
      * @brief Writes to a host-to-target FIFO of signed 8-bit integers.
@@ -609,11 +609,11 @@ public:
      *                               the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWriteFifo(const uint32 fifo,
-                            const int8 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &emptyElementsRemaining) const;
+    virtual NiFpga_Status NiWriteFifo(const uint32 fifo,
+                              const int8 *const data,
+                              const uint32 numberOfElements,
+                              const uint32 timeout,
+                              uint32 &emptyElementsRemaining);
 
     /**
      * @brief Writes to a host-to-target FIFO of unsigned 8-bit integers.
@@ -626,11 +626,11 @@ public:
      *                               the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWriteFifo(const uint32 fifo,
-                            const uint8 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &emptyElementsRemaining) const;
+    virtual NiFpga_Status NiWriteFifo(const uint32 fifo,
+                              const uint8 *const data,
+                              const uint32 numberOfElements,
+                              const uint32 timeout,
+                              uint32 &emptyElementsRemaining);
 
     /**
      * @brief Writes to a host-to-target FIFO of signed 16-bit integers.
@@ -643,11 +643,11 @@ public:
      *                               the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWriteFifo(const uint32 fifo,
-                            const int16 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &emptyElementsRemaining) const;
+    virtual NiFpga_Status NiWriteFifo(const uint32 fifo,
+                              const int16 *const data,
+                              const uint32 numberOfElements,
+                              const uint32 timeout,
+                              uint32 &emptyElementsRemaining);
 
     /**
      * @brief Writes to a host-to-target FIFO of unsigned 16-bit integers.
@@ -660,11 +660,11 @@ public:
      *                               the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWriteFifo(const uint32 fifo,
-                            const uint16 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &emptyElementsRemaining) const;
+    virtual NiFpga_Status NiWriteFifo(const uint32 fifo,
+                              const uint16 *const data,
+                              const uint32 numberOfElements,
+                              const uint32 timeout,
+                              uint32 &emptyElementsRemaining);
 
     /**
      * @brief Writes to a host-to-target FIFO of signed 32-bit integers.
@@ -677,11 +677,11 @@ public:
      *                               the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWriteFifo(const uint32 fifo,
-                            const int32 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &emptyElementsRemaining) const;
+    virtual NiFpga_Status NiWriteFifo(const uint32 fifo,
+                              const int32 *const data,
+                              const uint32 numberOfElements,
+                              const uint32 timeout,
+                              uint32 &emptyElementsRemaining);
 
     /**
      * @brief Writes to a host-to-target FIFO of unsigned 32-bit integers.
@@ -694,11 +694,11 @@ public:
      *                               the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWriteFifo(const uint32 fifo,
-                            const uint32 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &emptyElementsRemaining) const;
+    virtual NiFpga_Status NiWriteFifo(const uint32 fifo,
+                              const uint32 *const data,
+                              const uint32 numberOfElements,
+                              const uint32 timeout,
+                              uint32 &emptyElementsRemaining);
 
     /**
      * @brief Writes to a host-to-target FIFO of signed 64-bit integers.
@@ -711,11 +711,11 @@ public:
      *                               the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWriteFifo(const uint32 fifo,
-                            const int64 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &emptyElementsRemaining) const;
+    virtual NiFpga_Status NiWriteFifo(const uint32 fifo,
+                              const int64 *const data,
+                              const uint32 numberOfElements,
+                              const uint32 timeout,
+                              uint32 &emptyElementsRemaining);
 
     /**
      * @brief Writes to a host-to-target FIFO of unsigned 64-bit integers.
@@ -728,65 +728,65 @@ public:
      *                               the DMA FIFO
      * @return status=0 if succeeds, status=[error_code] if fails.
      */
-    NiFpga_Status NiWriteFifo(const uint32 fifo,
-                            const uint64 * const data,
-                            const uint32 numberOfElements,
-                            const uint32 timeout,
-                            uint32 &emptyElementsRemaining) const;
+    virtual NiFpga_Status NiWriteFifo(const uint32 fifo,
+                              const uint64 *const data,
+                              const uint32 numberOfElements,
+                              const uint32 timeout,
+                              uint32 &emptyElementsRemaining);
 
     /**
      * @brief Retrieves the Ni-9157 session.
      * @warning Using the device session outside this class could cause unexpected faults.
      * @return the NI-9157 device session.
      */
-    NiFpga_Session GetSession() const;
+    virtual NiFpga_Session GetSession() const;
 
     /**
      * @brief Starts the Compact-RIO.
-	 * @details Calls the NI9157Device::Open method if the device is not opened and then the
-	 * NI9157Device::Run method if the former call was successful.
+     * @details Calls the NI9157Device::Open method if the device is not opened and then the
+     * NI9157Device::Run method if the former call was successful.
      * @return No errors if the two calls were successful. Use the ErrorsCleared method to
-	 * check the returned value.
+     * check the returned value.
      */
     ErrorManagement::ErrorType CrioStart();
 
     /**
      * @brief Stops the Compact-RIO.
-	 * @details Calls the NI9157Device::Reset method if the device is running.
+     * @details Calls the NI9157Device::Reset method if the device is running.
      * @return No errors if the call was successful. Use the ErrorsCleared method to check
-	 * the returned value.
+     * the returned value.
      */
     ErrorManagement::ErrorType CrioStop();
 
     /**
      * @brief Writes a parameter to a Compact-RIO FPGA resource.
-	 * @details If the parameter type is recognized, the method calls the NI9157Device::FindResource
-	 * method and, if successful, calls the NI9157Device::NiFpga_Write<type>.
+     * @details If the parameter type is recognized, the method calls the NI9157Device::FindResource
+     * method and, if successful, calls the NI9157Device::NiFpga_Write<type>.
      * @param[in] varName the name of the FPGA resource to write at.
      * @param[in] value the value to write to the FPGA resource.
      * @param[in] type the type to be used ("bool", "uint8", "uint16", "uint32", "uint64", "int8",
-	 * "int16", "int32" or "int64").
+     * "int16", "int32" or "int64").
      * @return No errors if the call was successful. Use the ErrorsCleared method to check
-	 * the returned value.
+     * the returned value.
      */
     ErrorManagement::ErrorType WriteParam(StreamString varName,
-                            const uint64 value,
-                            StreamString type);
+                                          const uint64 value,
+                                          StreamString type);
 
     /**
      * @brief Reads a parameter from a cRIO FPGA resource.
-	 * @details If the parameter type is recognized, the method calls the NI9157Device::FindResource
-	 * method and, if successful, calls the NI9157Device::NiFpga_Read<type>.
+     * @details If the parameter type is recognized, the method calls the NI9157Device::FindResource
+     * method and, if successful, calls the NI9157Device::NiFpga_Read<type>.
      * @param[in] varName the name of the FPGA resource to read from.
      * @param[in] value the value read from the FPGA resource.
      * @param[in] type the type to be used ("bool", "uint8", "uint16", "uint32", "uint64", "int8",
-	 * "int16", "int32" or "int64").
+     * "int16", "int32" or "int64").
      * @return No errors if the call was successful. Use the ErrorsCleared method to check
-	 * the returned value.
+     * the returned value.
      */
     ErrorManagement::ErrorType ReadParam(StreamString varName,
-                            uint64 &value,
-                            StreamString type);
+                                         uint64 &value,
+                                         StreamString type);
 
 protected:
 
@@ -804,11 +804,6 @@ protected:
      * Specifies if the NI-9157 device has been opened.
      */
     uint8 isOpened;
-
-    /**
-     * Specifies if the NI-9157 device has been started.
-     */
-    uint8 run;
 
     /**
      * Specifies if the NI-9157 device has been started.

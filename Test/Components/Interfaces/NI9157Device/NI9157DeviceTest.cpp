@@ -110,7 +110,6 @@ bool NI9157DeviceTest::TestInitialise(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -125,6 +124,7 @@ bool NI9157DeviceTest::TestInitialise(uint32 model) {
         ret &= StringHelper::Compare(interface->GetNiRioGenFile(), pathAndFile.Buffer()) == 0;
         ret &= StringHelper::Compare(interface->GetNiRioGenSignature(), multiIOFirmware[nParams*model + 2]) == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -153,7 +153,6 @@ bool NI9157DeviceTest::TestInitialiseIsOpened(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -168,6 +167,7 @@ bool NI9157DeviceTest::TestInitialiseIsOpened(uint32 model) {
         ret &= StringHelper::Compare(interface->GetNiRioGenFile(), pathAndFile.Buffer()) == 0;
         ret &= StringHelper::Compare(interface->GetNiRioGenSignature(), multiIOFirmware[nParams*model + 2]) == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -197,7 +197,6 @@ bool NI9157DeviceTest::TestInitialiseRandomConfig(uint32 model) {
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
         god->Purge();
-        ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
     if (ret) {
@@ -211,6 +210,7 @@ bool NI9157DeviceTest::TestInitialiseRandomConfig(uint32 model) {
         ret &= StringHelper::Compare(interface->GetNiRioGenFile(), pathAndFile.Buffer()) == 0;
         ret &= StringHelper::Compare(interface->GetNiRioGenSignature(), multiIOFirmware[nParams*model + 2]) == 0;
     }
+    ret = god->Initialise(cdb);
 
     return ret;
 }
@@ -238,9 +238,9 @@ bool NI9157DeviceTest::TestInitialise_FalseNoDeviceName(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = !god->Initialise(cdb);
     }
+    god->Purge();
 
     return ret;
 }
@@ -266,9 +266,9 @@ bool NI9157DeviceTest::TestInitialise_FalseNoGenFile(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = !god->Initialise(cdb);
     }
+    god->Purge();
 
     return ret;
 }
@@ -298,9 +298,9 @@ bool NI9157DeviceTest::TestInitialise_FalseNoGenSignature(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = !god->Initialise(cdb);
     }
+    god->Purge();
 
     return ret;
 }
@@ -331,9 +331,9 @@ bool NI9157DeviceTest::TestInitialise_FalseNoType(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = !god->Initialise(cdb);
     }
+    god->Purge();
 
     return ret;
 }
@@ -364,9 +364,9 @@ bool NI9157DeviceTest::TestInitialise_FalseVariableNotFound(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = !god->Initialise(cdb);
     }
+    god->Purge();
 
     return ret;
 }
@@ -395,9 +395,9 @@ bool NI9157DeviceTest::TestInitialise_FalseOpenFakeDevice(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = !god->Initialise(cdb);
     }
+    god->Purge();
 
     return ret;
 }
@@ -428,7 +428,6 @@ bool NI9157DeviceTest::TestInitialise_OpenResetRun(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -440,6 +439,7 @@ bool NI9157DeviceTest::TestInitialise_OpenResetRun(uint32 model) {
             ret &= interface->Close() == 0;
         }
     }
+    god->Purge();
 
     return ret;
 }
@@ -470,7 +470,6 @@ bool NI9157DeviceTest::TestInitialise_NoOpenResetRun(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -482,11 +481,12 @@ bool NI9157DeviceTest::TestInitialise_NoOpenResetRun(uint32 model) {
             ret &= interface->Close() != 0;
         }
     }
+    god->Purge();
 
     return ret;
 }
 
-bool NI9157DeviceTest::TestInitialise_FalseNoConfig(uint32 model) {
+bool NI9157DeviceTest::TestInitialise_NoConfig(uint32 model) {
 
     HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     ConfigurationDatabase cdb;
@@ -512,9 +512,9 @@ bool NI9157DeviceTest::TestInitialise_FalseNoConfig(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
-        ret = !god->Initialise(cdb);
+        ret = god->Initialise(cdb);
     }
+    god->Purge();
 
     return ret;
 }
@@ -552,7 +552,6 @@ bool NI9157DeviceTest::TestInitialise_ResetPostSleepMs(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         startTime = HighResolutionTimer::Counter();
         ret = god->Initialise(cdb);
         stopTime = HighResolutionTimer::Counter();
@@ -571,6 +570,7 @@ bool NI9157DeviceTest::TestInitialise_ResetPostSleepMs(uint32 model) {
             ret &= interface->Close() == 0;
         }
     }
+    god->Purge();
 
     return ret;
 }
@@ -602,7 +602,6 @@ bool NI9157DeviceTest::TestInitialise_ClearTrue(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -614,6 +613,7 @@ bool NI9157DeviceTest::TestInitialise_ClearTrue(uint32 model) {
             ret &= interface->Close() == 0;
         }
     }
+    god->Purge();
 
     return ret;
 }
@@ -645,7 +645,6 @@ bool NI9157DeviceTest::TestInitialise_ClearFalse(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -657,6 +656,7 @@ bool NI9157DeviceTest::TestInitialise_ClearFalse(uint32 model) {
             ret &= interface->Close() == 0;
         }
     }
+    god->Purge();
 
     return ret;
 }
@@ -684,7 +684,6 @@ bool NI9157DeviceTest::TestOpen(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -695,6 +694,7 @@ bool NI9157DeviceTest::TestOpen(uint32 model) {
     if (ret) {
         ret = interface->Open() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -722,7 +722,6 @@ bool NI9157DeviceTest::TestOpen_FalseParams(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -733,6 +732,7 @@ bool NI9157DeviceTest::TestOpen_FalseParams(uint32 model) {
     if (ret) {
         ret = !interface->Open() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -804,7 +804,6 @@ bool NI9157DeviceTest::TestRun(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -820,6 +819,7 @@ bool NI9157DeviceTest::TestRun(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -847,7 +847,6 @@ bool NI9157DeviceTest::TestRun_FalseParams(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -863,6 +862,7 @@ bool NI9157DeviceTest::TestRun_FalseParams(uint32 model) {
         ret &= interface->Reset() != 0;
         ret &= interface->Close() != 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -890,7 +890,6 @@ bool NI9157DeviceTest::TestIsRunning(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -912,6 +911,7 @@ bool NI9157DeviceTest::TestIsRunning(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -939,7 +939,6 @@ bool NI9157DeviceTest::TestGetSession(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -961,6 +960,7 @@ bool NI9157DeviceTest::TestGetSession(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -988,7 +988,6 @@ bool NI9157DeviceTest::TestReset(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -1003,6 +1002,7 @@ bool NI9157DeviceTest::TestReset(uint32 model) {
         }
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -1030,7 +1030,6 @@ bool NI9157DeviceTest::TestClose(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -1047,6 +1046,7 @@ bool NI9157DeviceTest::TestClose(uint32 model) {
             ret = interface->Close() == 0;
         }
     }
+    god->Purge();
 
     return ret;
 }
@@ -1119,7 +1119,6 @@ bool NI9157DeviceTest::TestCrioStop(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -1145,6 +1144,7 @@ bool NI9157DeviceTest::TestCrioStop(uint32 model) {
         }
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -1255,7 +1255,6 @@ bool NI9157DeviceTest::TestNiWrite(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -1327,6 +1326,7 @@ bool NI9157DeviceTest::TestNiWrite(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -1354,7 +1354,6 @@ bool NI9157DeviceTest::TestNiRead(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -1462,6 +1461,8 @@ bool NI9157DeviceTest::TestNiRead(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
+
     return ret;
 }
 
@@ -1544,7 +1545,6 @@ bool NI9157DeviceTest::TestNiStartFifo(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -1571,6 +1571,7 @@ bool NI9157DeviceTest::TestNiStartFifo(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -1598,7 +1599,6 @@ bool NI9157DeviceTest::TestNiStopFifo(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -1628,6 +1628,7 @@ bool NI9157DeviceTest::TestNiStopFifo(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -1655,7 +1656,6 @@ bool NI9157DeviceTest::TestWriteParam(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -1775,6 +1775,8 @@ bool NI9157DeviceTest::TestWriteParam(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
+
     return ret;
 }
 
@@ -1801,7 +1803,6 @@ bool NI9157DeviceTest::TestReadParam(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2002,6 +2003,8 @@ bool NI9157DeviceTest::TestReadParam(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
+
     return ret;
 }
 
@@ -2028,7 +2031,6 @@ bool NI9157DeviceTest::TestNiWriteFifo_Bool(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2143,6 +2145,8 @@ bool NI9157DeviceTest::TestNiReadFifo_Bool(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
+
     return ret;
 }
 
@@ -2169,7 +2173,6 @@ bool NI9157DeviceTest::TestNiWriteFifo_U8(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2204,6 +2207,7 @@ bool NI9157DeviceTest::TestNiWriteFifo_U8(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -2231,7 +2235,6 @@ bool NI9157DeviceTest::TestNiReadFifo_U8(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2284,6 +2287,8 @@ bool NI9157DeviceTest::TestNiReadFifo_U8(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
+
 
     return ret;
 }
@@ -2311,7 +2316,6 @@ bool NI9157DeviceTest::TestNiWriteFifo_U16(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2346,6 +2350,7 @@ bool NI9157DeviceTest::TestNiWriteFifo_U16(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -2373,7 +2378,6 @@ bool NI9157DeviceTest::TestNiReadFifo_U16(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2426,6 +2430,7 @@ bool NI9157DeviceTest::TestNiReadFifo_U16(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -2453,7 +2458,6 @@ bool NI9157DeviceTest::TestNiWriteFifo_U32(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2488,6 +2492,7 @@ bool NI9157DeviceTest::TestNiWriteFifo_U32(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -2515,7 +2520,6 @@ bool NI9157DeviceTest::TestNiReadFifo_U32(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2568,6 +2572,7 @@ bool NI9157DeviceTest::TestNiReadFifo_U32(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -2595,7 +2600,6 @@ bool NI9157DeviceTest::TestNiWriteFifo_U64(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2630,6 +2634,7 @@ bool NI9157DeviceTest::TestNiWriteFifo_U64(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -2657,7 +2662,6 @@ bool NI9157DeviceTest::TestNiReadFifo_U64(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2710,6 +2714,8 @@ bool NI9157DeviceTest::TestNiReadFifo_U64(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
+
 
     return ret;
 }
@@ -2737,7 +2743,6 @@ bool NI9157DeviceTest::TestNiWriteFifo_I8(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2772,6 +2777,7 @@ bool NI9157DeviceTest::TestNiWriteFifo_I8(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -2799,7 +2805,6 @@ bool NI9157DeviceTest::TestNiReadFifo_I8(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2852,6 +2857,7 @@ bool NI9157DeviceTest::TestNiReadFifo_I8(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -2879,7 +2885,6 @@ bool NI9157DeviceTest::TestNiWriteFifo_I16(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2914,6 +2919,7 @@ bool NI9157DeviceTest::TestNiWriteFifo_I16(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -2941,7 +2947,6 @@ bool NI9157DeviceTest::TestNiReadFifo_I16(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -2994,6 +2999,8 @@ bool NI9157DeviceTest::TestNiReadFifo_I16(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
+
 
     return ret;
 }
@@ -3021,7 +3028,6 @@ bool NI9157DeviceTest::TestNiWriteFifo_I32(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -3056,6 +3062,7 @@ bool NI9157DeviceTest::TestNiWriteFifo_I32(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -3083,7 +3090,6 @@ bool NI9157DeviceTest::TestNiReadFifo_I32(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -3136,6 +3142,7 @@ bool NI9157DeviceTest::TestNiReadFifo_I32(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -3163,7 +3170,6 @@ bool NI9157DeviceTest::TestNiWriteFifo_I64(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -3198,6 +3204,7 @@ bool NI9157DeviceTest::TestNiWriteFifo_I64(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
 
     return ret;
 }
@@ -3225,7 +3232,6 @@ bool NI9157DeviceTest::TestNiReadFifo_I64(uint32 model) {
 
     ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
     if (ret) {
-        god->Purge();
         ret = god->Initialise(cdb);
     }
     ReferenceT<NI9157DeviceTestIF> interface;
@@ -3278,6 +3284,8 @@ bool NI9157DeviceTest::TestNiReadFifo_I64(uint32 model) {
         ret &= interface->Reset() == 0;
         ret &= interface->Close() == 0;
     }
+    god->Purge();
+
 
     return ret;
 }

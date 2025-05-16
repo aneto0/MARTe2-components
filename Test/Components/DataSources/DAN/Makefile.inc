@@ -65,7 +65,7 @@ CPPFLAGS += -DCCS_LT_60
 endif
 
 CCS_VER = $(shell codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g')
-CPPFLAGS += -DCCS_VER=$(CCS_VER)
+CPPFLAGS += -DCCS_VER=$(CCS_VER) -std=c++11
 
 endif
 
