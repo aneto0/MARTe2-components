@@ -489,6 +489,9 @@ bool OPCUAClientWrite::Write() {
             REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "WriteError - OPC UA Status Code (Part 4 - 7.34): %x", wResp.responseHeader.serviceResult);
             (void) UA_Client_run_iterate(opcuaClient, 100u);
         }
+        // ICINT-5849 - Memory leaks - Clear the response before going out of scope
+        UA_WriteResponse_deleteMembers(&wResp); // Deprecated in v1.3 .. became a wrapper around _clear
+        //UA_WriteResponse_clear(&wResp); // v1.3 API
     }
     return ok;
 }
