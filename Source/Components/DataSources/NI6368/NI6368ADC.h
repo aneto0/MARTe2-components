@@ -45,9 +45,9 @@ namespace MARTe {
 /**
  * Number of ADC channels
  */
-/*lint -esym(551, MARTe::NI6368ADC_MAX_CHANNELS) the symbol is used to define the size of several array below*/
+/*lint -esym(551, MARTe::NI6363ADC_MAX_CHANNELS) the symbol is used to define the size of several array below*/
 const uint32 NI6363ADC_MAX_CHANNELS = 32u;
-
+/*lint -esym(551, MARTe::NI6368ADC_MAX_CHANNELS) the symbol is used to define the size of several array below*/
 const uint32 NI6368ADC_MAX_CHANNELS = 16u;
 /**
  * Counter and timer
@@ -273,12 +273,14 @@ NI6368ADC    ();
      * @brief Lock the buffer in use
      * @param[in] idx: the buffer index to lock
      */
+    //lint -e{1511} Acknowledged that ReferenceContainer::Lock is hidden
     void Lock(const uint32 idx);
 
     /**
      * @brief Unlock the buffer in use
      * @param[in] idx: the buffer index to unlock
      */
+    //lint -e{1511} Acknowledged that ReferenceContainer::UnLock is hidden
     void UnLock(const uint32 idx);
 
     /**
@@ -329,7 +331,7 @@ private:
     /**
      * The last time value (for error checking)
      */
-    uint32 lastTimeValue;
+    uint64 lastTimeValue;
 
     /**
      * The EmbeddedThread where the Execute method waits for the ADC data to be available.
