@@ -71,6 +71,30 @@ bool ObjectLoaderTest::TestConstructor() {
 
 bool ObjectLoaderTest::TestInitialise() {
 
-    return true;
+    ObjectLoaderTestInterface loader;
+    ConfigurationDatabase     config;
+
+    StreamString configStream = ""
+        "Class = ObjectLoader                       "
+        "+CDBConnection2 = {                        "
+        "    Class = ConfigurationDatabaseConnection"
+        "    Parameters = {                         "
+        "        gain4 = (float64) 1                "
+        "        gainStruct4 = {                    "
+        "            gain_a = (uint32) 10           "
+        "            gain_b = (float32) {1, 2, 3, 4}"
+        "        }                                  "
+        "    }                                      "
+        "}                                          "
+        ""
+        ;
+
+    StandardParser parser(configStream, config);
+    bool ok = parser.Parse();
+
+    if (ok) {
+        ok = loader.Initialise(config);
+    }
+    return ok;
 }
 
