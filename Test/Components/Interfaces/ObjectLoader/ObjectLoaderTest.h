@@ -85,6 +85,28 @@ public:
      */
     bool TestInitialise();
 
+    /**
+     * @brief Test that parameters are copied from this object's root to the cdb of all the
+     *        subnodes.
+     */
+    bool TestInitialise_ParametersCopy();
+
+private:
+
+    /**
+     * @brief Template to test the Initialise() method.
+     * @param[in]  configStreamIn The configuration stream to test the Initialise method.
+     * @param[out] statusOut      The returned status of the interface after initialisation.
+     * @param[out] cdbOut         The returned configuration database after initalisation.
+     */
+    bool TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut, ConfigurationDatabase& cdbOut);
+
+    /**
+     * @brief Same, but does not return the configuration database.
+     */
+    bool TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut);
+
+
 };
 
 /*---------------------------------------------------------------------------*/

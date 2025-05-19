@@ -62,6 +62,30 @@ ObjectLoaderTest::~ObjectLoaderTest() {
     ObjectRegistryDatabase::Instance()->Purge();
 }
 
+bool ObjectLoaderTest::TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut) {
+
+    ConfigurationDatabase config;
+    bool ok = TestInitialiseWithConfiguration(configStreamIn, statusOut, config);
+
+    return ok;
+}
+
+bool ObjectLoaderTest::TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut, ConfigurationDatabase& cdbOut) {
+
+    ObjectLoaderTestInterface loader;
+
+    configStreamIn.Seek(0u);
+    StandardParser parser(configStreamIn, cdbOut);
+    bool ok = parser.Parse();
+
+    if (ok) {
+        ok = loader.Initialise(cdbOut);
+        statusOut = loader.GetStatus();
+    }
+
+    return ok;
+}
+
 bool ObjectLoaderTest::TestConstructor() {
 
     ObjectLoaderTestInterface loader;
@@ -71,30 +95,67 @@ bool ObjectLoaderTest::TestConstructor() {
 
 bool ObjectLoaderTest::TestInitialise() {
 
-    ObjectLoaderTestInterface loader;
-    ConfigurationDatabase     config;
-
     StreamString configStream = ""
-        "Class = ObjectLoader                       "
-        "+CDBConnection2 = {                        "
-        "    Class = ConfigurationDatabaseConnection"
-        "    Parameters = {                         "
-        "        gain4 = (float64) 1                "
-        "        gainStruct4 = {                    "
-        "            gain_a = (uint32) 10           "
-        "            gain_b = (float32) {1, 2, 3, 4}"
-        "        }                                  "
-        "    }                                      "
-        "}                                          "
+        "Class = ObjectLoader                        \n"
+        "+CDBConnection2 = {                         \n"
+        "    Class = ConfigurationDatabaseConnection \n"
+        "    Parameters = {                          \n"
+        "        gain4 = (float64) 1                 \n"
+        "        gainStruct4 = {                     \n"
+        "            gain_a = (uint32) 10            \n"
+        "            gain_b = (float32) {1, 2, 3, 4} \n"
+        "        }                                   \n"
+        "    }                                       \n"
+        "}                                           \n"
         ""
         ;
 
-    StandardParser parser(configStream, config);
-    bool ok = parser.Parse();
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.ErrorsCleared() && ok);
+}
+
+bool ObjectLoaderTest::TestInitialise_ParametersCopy() {
+
+    ConfigurationDatabase cdb;
+
+    StreamString configStream = ""
+        "Class = ObjectLoader           \n"
+        "Param1 = Hello                 \n"
+        "Param2 = World                 \n"
+        "+SubNode1 = {                  \n"
+        "    Class = ReferenceContainer \n"
+        "}                              \n"
+        "+DoNotCopyThis = {             \n"
+        "    Class = ReferenceContainer \n"
+        "    Param3 = Error             \n"
+        "}                              \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, cdb);
 
     if (ok) {
-        ok = loader.Initialise(config);
+        ok &= cdb.MoveRelative("+SubNode1");
+
+        StreamString temp;
+        ok &= cdb.Read("Param1", temp);
+        ok &= (temp == "Hello");
+
+        temp = "";
+        ok &= cdb.Read("Param2", temp);
+        ok &= (temp == "World");
+
+        // these should not be copied
+        ok &= !cdb.Read("+DoNotCopyThis", temp);
+
+        temp = "";
+        ok &= cdb.Read("Class", temp);
+        ok &= (temp != "ObjectLoader");
     }
-    return ok;
+
+    return (status.ErrorsCleared() && ok);
 }
 

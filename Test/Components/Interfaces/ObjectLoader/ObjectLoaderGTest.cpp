@@ -49,3 +49,8 @@ TEST(ObjectLoaderGTest,TestInitialise) {
     ASSERT_TRUE(test.TestInitialise());
 }
 
+TEST(ObjectLoaderGTest,TestInitialise_ParametersCopy) {
+    ObjectLoaderTest test;
+    ASSERT_TRUE(test.TestInitialise_ParametersCopy());
+}
+
