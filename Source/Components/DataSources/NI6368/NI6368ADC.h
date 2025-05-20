@@ -551,12 +551,24 @@ private:
      */
     uint32 executionMode;
 
+    /**
+     * See the CountSamples configuration parameter.
+     */
     bool countSamples;
 
+    /**
+     * See the ResetOnBufferChange configuration parameter.
+     */
     bool resetOnBufferChange;
 
+    /**
+     * See the ResetOnBufferChange configuration parameter.
+     */
     bool changeBuffer;
 
+    /**
+     * Value of the last counter.
+     */
     uint64 lastCounter;
 
     /**
@@ -564,14 +576,29 @@ private:
      */
     float64 singleADCFrequency;
 
+    /**
+     * Set to 1 when the board is multiplexed
+     */
     uint8 multiplexed;
 
+    /**
+     * True if the sampling frequency was set explicitely.
+     */
     bool samplingFrequencySet;
-
+    
+    /**
+     * The maximum number of channels - which depends on 6368 vs 6363
+     */
     uint32 maxNumberOfChannels;
 
+    /**
+     * True if the Calibrate parameter is set to 1 in the configuration file
+     */
     bool calibrate;
 
+    /**
+     * The size of a sample.
+     */
     uint32 sampleSize;
 };
 }

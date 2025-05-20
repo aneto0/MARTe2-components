@@ -1375,8 +1375,8 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI &data) {
             //lint -e{850} i variable is not modified.
             for (i = 0u; (i < maxNumberOfChannels) && (ok); i++) {
                 if (adcEnabled[i]) {
-                    //lint -e{641} conversion from xseries_input_range_t to int is safe
-                    ok = (get_ai_scaling_coefficient(channelsFileDescriptors[i], reinterpret_cast<xseries_ai_scaling_coef_t *>(&(ai_coefs[i])), inputRange[i]) == 0);
+                    //lint -e{641,930} conversion from xseries_input_range_t to int is safe
+                    ok = (get_ai_scaling_coefficient(channelsFileDescriptors[i], reinterpret_cast<xseries_ai_scaling_coef_t *>(&(ai_coefs[i])), static_cast<uint32>(inputRange[i])) == 0);
                     if (!ok) {
                         REPORT_ERROR(ErrorManagement::FatalError, "Failed to get AI coefficient of channel %d", i);
                     }
@@ -1436,10 +1436,12 @@ ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFr
             Lock(currentBufferIdxCache);
             if (calibrate) {
                 if (dmaCalibBuffer != NULL_PTR(float32*)) {
-                    (void) MemoryOperationsHelper::Copy(&channelsMemory[currentBufferIdx][dmaChannel][currentBufferOffset * sampleSize], &dmaCalibBuffer[s], sampleSize);
+                    uint32 offset = currentBufferOffset * sampleSize;
+                    (void) MemoryOperationsHelper::Copy(&channelsMemory[currentBufferIdx][dmaChannel][offset], &dmaCalibBuffer[s], sampleSize);
                 }
             }
             else {
+                //lint -e{679} safe truncation of currentBufferOffset * sampleSize
                 (void) MemoryOperationsHelper::Copy(&channelsMemory[currentBufferIdx][dmaChannel][currentBufferOffset * sampleSize], &dmaReadBuffer[s], sampleSize);
             }
 
@@ -1455,7 +1457,7 @@ ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFr
                     counterValue[currentBufferIdx] = (counter - lastCounter);
                 }
                 else {
-                    counterValue[currentBufferIdx] = (countSamples) ? (counter) : (counter / numberOfSamples);
+                    counterValue[currentBufferIdx] = (countSamples) ? static_cast<uint64>(counter) : (static_cast<uint64>(counter) / static_cast<uint64>(numberOfSamples));
                 }
 
                 float64 counterSamples = static_cast<float64>(counter);
@@ -1530,7 +1532,7 @@ ErrorManagement::ErrorType NI6368ADC::Execute(ExecutionInfo &info) {
                     }
 
                     if (calibrate && (dmaCalibBuffer != NULL_PTR(float32*))) {
-                        //lint -e{712} no real loss of precision in nSamplesInDMA (type uint32_t)
+                        //lint -e{712,747,9119,9132} no real loss of precision in nSamplesInDMA (type uint32_t). Noted that array is passed as pointer
                         ai_scale(dmaReadBuffer, dmaCalibBuffer, nSamplesInDMA, ai_coefs);
                     }
 

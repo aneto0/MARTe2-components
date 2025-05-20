@@ -168,13 +168,13 @@ RealTimeThreadAsyncBridge    ();
      * @see DataSourceI::GetCurrentStateBuffer
      * @brief if BlockingMode==2, locks the global mutex
      */
-    uint32 GetCurrentStateBuffer();
+    virtual uint32 GetCurrentStateBuffer();
 
     /**
      * @see DataSourceI::BrokerCopyTerminated
      * @brief if BlockingMode==2, unlocks the global mutex
      */
-    bool BrokerCopyTerminated();
+    virtual bool BrokerCopyTerminated();
 
     /**
      * @see DataSourceI::GetBrokerName
