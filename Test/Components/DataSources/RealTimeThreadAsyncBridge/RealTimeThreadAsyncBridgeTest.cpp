@@ -124,9 +124,9 @@ EventSem *RealTimeThreadAsyncBridgeTestDS::GetEventWrite() {
 void RealTimeThreadAsyncBridgeTestDS::PrepareInputOffsets() {
     if (!done) {
         flagRead = 3u;
-        printf("Reader Waiting\n");
+        //printf("Reader Waiting\n");
         goSemRead.ResetWait(TTInfiniteWait);
-        printf("Reader Unblocked\n");
+        //printf("Reader Unblocked\n");
         flagRead = 0u;
     }
 
@@ -135,9 +135,9 @@ void RealTimeThreadAsyncBridgeTestDS::PrepareInputOffsets() {
 void RealTimeThreadAsyncBridgeTestDS::PrepareOutputOffsets() {
     if (!done) {
         flagWrite = 3u;
-        printf("Writer Waiting\n");
+        //printf("Writer Waiting\n");
         goSemWrite.ResetWait(TTInfiniteWait);
-        printf("Writer Unblocked\n");
+        //printf("Writer Unblocked\n");
         flagWrite = 0u;
     }
 }
@@ -1593,9 +1593,9 @@ bool RealTimeThreadAsyncBridgeTest::TestGetOutputOffset_Ranges() {
             int32 x1 = broker->GetOffset(2);
 
             ret = ((2 * cnt) % (nBuffers)) * 10 * sizeof(uint32) == (uint32) x;
-            printf("[0]. %d %d %d\n", (int) ret, (int) (cnt % (nBuffers * 10 * sizeof(uint32))), (int) x);
+            //printf("[0]. %d %d %d\n", (int) ret, (int) (cnt % (nBuffers * 10 * sizeof(uint32))), (int) x);
             ret &= ((2 * cnt + 1) % (nBuffers)) * 10 * sizeof(uint32) == (uint32) x1;
-            printf("[1]. %d %d %d\n", (int) ret, (int) (cnt % (nBuffers * 10 * sizeof(uint32))), (int) x1);
+            //printf("[1]. %d %d %d\n", (int) ret, (int) (cnt % (nBuffers * 10 * sizeof(uint32))), (int) x1);
         }
 
         dataSource->Done();
