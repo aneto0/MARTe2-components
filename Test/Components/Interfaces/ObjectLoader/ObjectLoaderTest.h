@@ -45,6 +45,7 @@
 #include "MemoryMapInputBroker.h"
 #include "MemoryMapOutputBroker.h"
 #include "MemoryOperationsHelper.h"
+#include "ObjectConnectionI.h"
 #include "ObjectLoader.h"
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
@@ -91,6 +92,26 @@ public:
      */
     bool TestInitialise_ParametersCopy();
 
+    /**
+     * @brief Test that the parameters are serialised with their correct values.
+     */
+    bool TestInitialise_ObjectValues();
+
+    /**
+     * @brief Test that the parameters are serialised with their correct values.
+     */
+    bool TestInitialise_Failed_InvalidType();
+
+    /**
+     * @brief Test that the parameters are serialised with their correct values.
+     */
+    bool TestInitialise_Failed_CannotSerialise();
+
+    /**
+     * @brief Test that the parameters are serialised with their correct values.
+     */
+    bool TestInitialise_Failed_CannotInsert();
+
 private:
 
     /**
@@ -99,7 +120,7 @@ private:
      * @param[out] statusOut      The returned status of the interface after initialisation.
      * @param[out] cdbOut         The returned configuration database after initalisation.
      */
-    bool TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut, ConfigurationDatabase& cdbOut);
+    bool TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut, ConfigurationDatabase& cdbOut, ObjectLoader& loader);
 
     /**
      * @brief Same, but does not return the configuration database.

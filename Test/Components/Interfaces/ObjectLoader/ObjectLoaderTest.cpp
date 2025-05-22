@@ -35,21 +35,48 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-class ObjectLoaderTestInterface: public ObjectLoader {
-public:
-    CLASS_REGISTER_DECLARATION();
-
-    ObjectLoaderTestInterface() : MARTe::ObjectLoader() {}
-
-    ~ObjectLoaderTestInterface() {}
-
-    MARTe::ErrorManagement::ErrorType GetStatus() {
-        return this->status;
-    }
-
-};
-
-CLASS_REGISTER(ObjectLoaderTestInterface, "1.0")
+// static bool TestIntegratedInApplication(const MARTe::char8 * const config,
+//                                         MARTe::ObjectRegistryDatabase* objRegDatabase,
+//                                         MARTe::ErrorManagement::ErrorType& status,
+//                                         bool destroy = true) {
+//
+//     using namespace MARTe;
+//
+//     ConfigurationDatabase cdb;
+//     StreamString configStream = config;
+//     configStream.Seek(0);
+//     StandardParser parser(configStream, cdb);
+//
+//     bool ok = parser.Parse();
+//     cdb.MoveToRoot();
+//
+//     objRegDatabase = ObjectRegistryDatabase::Instance();
+//
+//     if (ok) {
+//         //objRegDatabase->Purge();
+//         ok = objRegDatabase->Initialise(cdb);
+//     }
+//
+// //     ReferenceT<RealTimeApplication> application;
+// //     if (ok) {
+// //         application = objRegDatabase->Find("Test");
+// //         ok = application.IsValid();
+// //     }
+// //
+// //     if (ok) {
+// //         ok = application->ConfigureApplication();
+// //         ReferenceT<SimulinkWrapperGAMHelper> gam = objRegDatabase->Find("Test.Functions.GAM1");
+// //         if (gam.IsValid()) {
+// //             status = gam->GetStatus();
+// //         }
+// //     }
+//
+//     if (destroy) {
+//         objRegDatabase->Purge();
+//     }
+//     return ok;
+//
+// }
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -65,14 +92,13 @@ ObjectLoaderTest::~ObjectLoaderTest() {
 bool ObjectLoaderTest::TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut) {
 
     ConfigurationDatabase config;
-    bool ok = TestInitialiseWithConfiguration(configStreamIn, statusOut, config);
+    ObjectLoader loader;
+    bool ok = TestInitialiseWithConfiguration(configStreamIn, statusOut, config, loader);
 
     return ok;
 }
 
-bool ObjectLoaderTest::TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut, ConfigurationDatabase& cdbOut) {
-
-    ObjectLoaderTestInterface loader;
+bool ObjectLoaderTest::TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut, ConfigurationDatabase& cdbOut, ObjectLoader& loader) {
 
     configStreamIn.Seek(0u);
     StandardParser parser(configStreamIn, cdbOut);
@@ -88,7 +114,7 @@ bool ObjectLoaderTest::TestInitialiseWithConfiguration(StreamString configStream
 
 bool ObjectLoaderTest::TestConstructor() {
 
-    ObjectLoaderTestInterface loader;
+    ObjectLoader loader;
 
     return loader.GetStatus().ErrorsCleared();
 }
@@ -119,6 +145,7 @@ bool ObjectLoaderTest::TestInitialise() {
 bool ObjectLoaderTest::TestInitialise_ParametersCopy() {
 
     ConfigurationDatabase cdb;
+    ObjectLoader loader;
 
     StreamString configStream = ""
         "Class = ObjectLoader           \n"
@@ -135,7 +162,7 @@ bool ObjectLoaderTest::TestInitialise_ParametersCopy() {
         ;
 
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
-    bool ok = TestInitialiseWithConfiguration(configStream, status, cdb);
+    bool ok = TestInitialiseWithConfiguration(configStream, status, cdb, loader);
 
     if (ok) {
         ok &= cdb.MoveRelative("+SubNode1");
@@ -157,5 +184,256 @@ bool ObjectLoaderTest::TestInitialise_ParametersCopy() {
     }
 
     return (status.ErrorsCleared() && ok);
+}
+
+bool ObjectLoaderTest::TestInitialise_ObjectValues() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    ObjectRegistryDatabase *ord = NULL_PTR(ObjectRegistryDatabase*);
+
+    StreamString config = ""
+        "+LD1 = {                                                            \n"
+        "    Class = ObjectLoader                               \n"
+        "    +CDBConnection = {                                              \n"
+        "        Class = ConfigurationDatabaseConnection                     \n"
+        "        Parameters = {                                              \n"
+        "            scalarDouble = (float64) 1                              \n"
+        "            struct1 = {                                             \n"
+        "                scalarUint32 = (uint32)  10                         \n"
+        "                vectorSingle = (float32) { 1, 2, 3, 4 }             \n"
+        "                matrixDouble = (float64) { { 1, 2, 3 }, {4, 5, 6} } \n"
+        "            }                                                       \n"
+        "        }                                                           \n"
+        "    }                                                               \n"
+        "}                                                                   \n"
+        ""
+        ;
+
+
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<ObjectLoader> loader;
+    ReferenceT<ObjectConnectionI> connection;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        loader = ord->Find("LD1");
+        ok = loader.IsValid();
+        if (ok) {
+            connection = ord->Find("LD1.CDBConnection");
+            ok = connection.IsValid();
+        }
+    }
+    if (ok) {
+        status = loader->GetStatus();
+        if (status.ErrorsCleared()) {
+            status = connection->GetStatus();
+        }
+        ok = status.ErrorsCleared();
+    }
+
+    if (ok) {
+        float64 scalarDouble = 1.;
+        uint32  scalarUint32 = 10;
+        float32 vectorSingle[4] = {1., 2., 3., 4.};
+        float64 matrixDouble[2][3] = { { 1, 2, 3 }, {4, 5, 6} };
+
+        ReferenceT<AnyObject> anyScalarDouble = ord->Find("LD1.scalarDouble");
+        ReferenceT<AnyObject> anyScalarUint32 = ord->Find("LD1.struct1.scalarUint32");
+        ReferenceT<AnyObject> anyVectorSingle = ord->Find("LD1.struct1.vectorSingle");
+        ReferenceT<AnyObject> anyMatrixDouble = ord->Find("LD1.struct1.matrixDouble");
+
+        ok &= (anyScalarDouble.IsValid()) &&
+            (MemoryOperationsHelper::Compare(&scalarDouble, anyScalarDouble->GetType().GetDataPointer(), anyScalarDouble->GetType().GetByteSize()) == 0u);
+        ok &= (anyScalarUint32.IsValid()) &&
+            (MemoryOperationsHelper::Compare(&scalarUint32, anyScalarUint32->GetType().GetDataPointer(), anyScalarUint32->GetType().GetByteSize()) == 0u);
+        ok &= (anyVectorSingle.IsValid()) &&
+            (MemoryOperationsHelper::Compare(&vectorSingle, anyVectorSingle->GetType().GetDataPointer(), anyVectorSingle->GetType().GetByteSize()) == 0u);
+        ok &= (anyMatrixDouble.IsValid()) &&
+            (MemoryOperationsHelper::Compare(&matrixDouble, anyMatrixDouble->GetType().GetDataPointer(), anyMatrixDouble->GetType().GetByteSize()) == 0u);
+
+    }
+
+    return (status.ErrorsCleared() && ok);
+}
+
+bool ObjectLoaderTest::TestInitialise_Failed_InvalidType() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    ObjectRegistryDatabase *ord = NULL_PTR(ObjectRegistryDatabase*);
+
+    StreamString config = ""
+        "+LD1 = {                                         \n"
+        "    Class = ObjectLoader                         \n"
+        "    +CDBConnection = {                           \n"
+        "        Class = ConfigurationDatabaseConnection  \n"
+        "        Parameters = {                           \n"
+        "            scalarDouble = (float64) 1           \n"
+        "        }                                        \n"
+        "    }                                            \n"
+        "}                                                \n"
+        ""
+        ;
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<ObjectLoader> loader;
+    ReferenceT<ObjectConnectionI> connection;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        loader = ord->Find("LD1");
+        ok = loader.IsValid();
+        if (ok) {
+            connection = ord->Find("LD1.CDBConnection");
+            ok = connection.IsValid();
+        }
+    }
+    if (ok) {
+        status = loader->GetStatus();
+        if (status.ErrorsCleared()) {
+            status = connection->GetStatus();
+        }
+        ok = status.ErrorsCleared();
+    }
+
+    // invalidate the object
+    if (ok) {
+        AnyType* invalidAnyType = new AnyType();
+        invalidAnyType->SetTypeDescriptor(InvalidType);
+        ok = connection->Set(0u, invalidAnyType);
+        if (ok) {
+            status = loader->UpdateObjects();
+        }
+    }
+
+    return (status.exception && ok);
+}
+
+bool ObjectLoaderTest::TestInitialise_Failed_CannotSerialise() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    ObjectRegistryDatabase *ord = NULL_PTR(ObjectRegistryDatabase*);
+
+    StreamString config = ""
+        "+LD1 = {                                         \n"
+        "    Class = ObjectLoader                         \n"
+        "    +CDBConnection = {                           \n"
+        "        Class = ConfigurationDatabaseConnection  \n"
+        "        Parameters = {                           \n"
+        "            scalarDouble = (float64) 1           \n"
+        "        }                                        \n"
+        "    }                                            \n"
+        "}                                                \n"
+        ""
+        ;
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<ObjectLoader> loader;
+    ReferenceT<ObjectConnectionI> connection;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        loader = ord->Find("LD1");
+        ok = loader.IsValid();
+        if (ok) {
+            connection = ord->Find("LD1.CDBConnection");
+            ok = connection.IsValid();
+        }
+    }
+    if (ok) {
+        status = loader->GetStatus();
+        if (status.ErrorsCleared()) {
+            status = connection->GetStatus();
+        }
+        ok = status.ErrorsCleared();
+    }
+
+    // invalidate the object
+    if (ok) {
+        AnyType* invalidAnyType = new AnyType();
+        invalidAnyType->SetDataPointer(NULL_PTR(void*));
+        ok = connection->Set(0u, invalidAnyType);
+        if (ok) {
+            status = loader->UpdateObjects();
+        }
+    }
+
+    return (status.internalSetupError && ok);
+}
+
+
+bool ObjectLoaderTest::TestInitialise_Failed_CannotInsert() {
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    ObjectRegistryDatabase *ord = NULL_PTR(ObjectRegistryDatabase*);
+
+    StreamString config = ""
+        "+LD1 = {                                         \n"
+        "    Class = ObjectLoader                         \n"
+        "    +CDBConnection = {                           \n"
+        "        Class = ConfigurationDatabaseConnection  \n"
+        "        Parameters = {                           \n"
+        "            scalarDouble = (float64) 1           \n"
+        "        }                                        \n"
+        "    }                                            \n"
+        "}                                                \n"
+        ""
+        ;
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<ObjectLoader> loader;
+    ReferenceT<ObjectConnectionI> connection;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        loader = ord->Find("LD1");
+        ok = loader.IsValid();
+        if (ok) {
+            connection = ord->Find("LD1.CDBConnection");
+            ok = connection.IsValid();
+        }
+    }
+    if (ok) {
+        status = loader->GetStatus();
+        if (status.ErrorsCleared()) {
+            status = connection->GetStatus();
+        }
+        ok = status.ErrorsCleared();
+    }
+
+    // invalidate the object
+    if (ok) {
+        AnyType* invalidAnyType = new AnyType();
+        ok = connection->Add(invalidAnyType);
+        if (ok) {
+            status = loader->UpdateObjects();
+        }
+    }
+
+    return (status.illegalOperation && ok);
 }
 

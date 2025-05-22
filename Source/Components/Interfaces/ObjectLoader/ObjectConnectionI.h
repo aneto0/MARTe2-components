@@ -77,6 +77,11 @@ public:
      */
     StreamString GetParameterName(uint32 parameterIndex);
 
+    /**
+     * @brief Return the ErrorType status of this interface.
+     */
+    ErrorManagement::ErrorType GetStatus();
+
 protected:
 
     ErrorManagement::ErrorType TransposeAndCopy(void *const destination, const void *const source, const TypeDescriptor typeDesc,

@@ -60,6 +60,10 @@ ObjectConnectionI::~ObjectConnectionI() {
     }
 }
 
+ErrorManagement::ErrorType ObjectConnectionI::GetStatus() {
+    return status;
+}
+
 bool ObjectConnectionI::Initialise(StructuredDataI & data) {
     bool ok = ReferenceContainer::Initialise(data);
     return ok;

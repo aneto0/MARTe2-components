@@ -54,3 +54,23 @@ TEST(ObjectLoaderGTest,TestInitialise_ParametersCopy) {
     ASSERT_TRUE(test.TestInitialise_ParametersCopy());
 }
 
+TEST(ObjectLoaderGTest,TestInitialise_ObjectValues) {
+    ObjectLoaderTest test;
+    ASSERT_TRUE(test.TestInitialise_ObjectValues());
+}
+
+TEST(ObjectLoaderGTest,TestInitialise_Failed_InvalidType) {
+    ObjectLoaderTest test;
+    ASSERT_TRUE(test.TestInitialise_Failed_InvalidType());
+}
+
+TEST(ObjectLoaderGTest,TestInitialise_Failed_CannotSerialise) {
+    ObjectLoaderTest test;
+    ASSERT_TRUE(test.TestInitialise_Failed_CannotSerialise());
+}
+
+TEST(ObjectLoaderGTest,TestInitialise_Failed_CannotInsert) {
+    ObjectLoaderTest test;
+    ASSERT_TRUE(test.TestInitialise_Failed_CannotInsert());
+}
+

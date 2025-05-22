@@ -163,6 +163,13 @@ public:
      */
     virtual bool Initialise(StructuredDataI & data);
 
+    /**
+     * @brief Return the ErrorType status of this interface.
+     */
+    ErrorManagement::ErrorType GetStatus();
+
+    ErrorManagement::ErrorType UpdateObjects();
+
 protected:
 
     ErrorManagement::ErrorType status;
