@@ -85,43 +85,57 @@ bool ObjectLoader::Initialise(StructuredDataI & data) {
     }
 
     if (status.ErrorsCleared()) {
-        status = UpdateObjects();
+        status = UpdateObjects(false);
+        if (!status.ErrorsCleared()) {
+            REPORT_ERROR(status, "[%s] - failed UpdateObjects()", GetName());
+        }
     }
 
     return status.ErrorsCleared();
 }
 
-ErrorManagement::ErrorType ObjectLoader::UpdateObjects() {
+
+ErrorManagement::ErrorType ObjectLoader::UpdateObjects(bool overwriteParams /* = true */) {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
-
     for (uint32 connectionIdx = 0u; (connectionIdx < Size()) && ret; connectionIdx++) {
 
         ReferenceT<ObjectConnectionI> connection = Get(connectionIdx);
         if (connection.IsValid()) {
             for (uint32 paramIdx = 0u; (paramIdx < connection->GetSize()) && ret; paramIdx++) {
+
                 AnyType* anyTypeParam = connection->operator[](paramIdx);
+                StreamString paramName = (connection->GetParameterName(paramIdx)).Buffer();
 
                 ret.exception = (anyTypeParam->GetTypeDescriptor() == InvalidType);
                 if (ret.exception) {
-                    REPORT_ERROR(status, "[%s] - invalid type", GetName());
+                    REPORT_ERROR(ret, "[%s] - parameter %s: invalid type", GetName(), paramName.Buffer());
                 }
 
                 if (ret.ErrorsCleared()) {
 
-                    ReferenceT<AnyObject> paramObject("AnyObject", GlobalObjectsDatabase::Instance()->GetStandardHeap());
+                    ReferenceT<AnyObject> paramObject = Find(paramName.Buffer());
+                    if ( (paramObject.IsValid()) && overwriteParams ) {
+                        // parameter is already there, cleanup for updating
+                        paramObject->CleanUp();
+                        Delete(paramObject);
+                    } else {
+                        // create new parameter
+                        paramObject = ReferenceT<AnyObject>("AnyObject", GlobalObjectsDatabase::Instance()->GetStandardHeap());
+                    }
+
                     if (paramObject.IsValid()) {
                         ret.internalSetupError = !(paramObject->Serialise(*anyTypeParam));
-                    }
-                    if (ret.internalSetupError) {
-                        REPORT_ERROR(status, "[%s] - failed Serialise()", GetName());
+                        if (ret.internalSetupError) {
+                            REPORT_ERROR(ret, "[%s] - parameter %s: failed Serialise()", GetName(), paramName.Buffer());
+                        }
                     }
 
                     if (ret.ErrorsCleared()) {
                         paramObject->SetName((connection->GetParameterName(paramIdx)).Buffer());
-                        ret.illegalOperation = !Insert((connection->GetParameterName(paramIdx)).Buffer(), paramObject);
+                        ret.illegalOperation = !Insert(paramName.Buffer(), paramObject);
                         if (ret.illegalOperation) {
-                            REPORT_ERROR(status, "[%s] - failed Insert()", GetName());
+                            REPORT_ERROR(ret, "[%s] - parameter %s: failed Insert()", GetName(), paramName.Buffer());
                         }
                     }
                 }

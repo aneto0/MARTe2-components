@@ -95,22 +95,23 @@ public:
     /**
      * @brief Test that the parameters are serialised with their correct values.
      */
-    bool TestInitialise_ObjectValues();
+    bool TestUpdateObjects_ParametersValue();
 
     /**
      * @brief Test that the parameters are serialised with their correct values.
      */
-    bool TestInitialise_Failed_InvalidType();
+    bool TestUpdateObjects_Failed_InvalidType();
 
     /**
      * @brief Test that the parameters are serialised with their correct values.
      */
-    bool TestInitialise_Failed_CannotSerialise();
+    bool TestUpdateObjects_Failed_CannotSerialise();
 
     /**
      * @brief Test that the parameters are serialised with their correct values.
      */
-    bool TestInitialise_Failed_CannotInsert();
+    bool TestUpdateObjects_Failed_ParametersWithSameName();
+    bool TestUpdateObjects();
 
 private:
 

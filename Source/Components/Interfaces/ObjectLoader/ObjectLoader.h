@@ -66,6 +66,9 @@ namespace MARTe {
  * configuration database of the contained Connections unless a parameter
  * of the same name already exists in the Connection.
  *
+ * The parameters can be updated by calling `UpdateObjects()`. All previous
+ * parameters are overwritten.
+ *
  * @warning The MDSObjectConnection library is compiled only if the
  *          `MDSPLUS_DIR` environmental variable is defined and is
  *          is pointing to a valid MDSplus installation directory.
@@ -168,7 +171,7 @@ public:
      */
     ErrorManagement::ErrorType GetStatus();
 
-    ErrorManagement::ErrorType UpdateObjects();
+    ErrorManagement::ErrorType UpdateObjects(bool overwriteParams = true);
 
 protected:
 
