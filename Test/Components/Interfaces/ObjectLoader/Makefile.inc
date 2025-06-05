@@ -24,7 +24,11 @@
 #
 #############################################################
 
-OBJSX +=  ObjectLoaderTest.x
+OBJSX +=  ObjectLoaderTest.x\
+	ConfigurationDatabaseConnectionTest.x
+
+OBJSX += ObjectLoaderGTest.x\
+	ConfigurationDatabaseConnectionGTest.x
 
 PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..

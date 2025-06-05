@@ -74,7 +74,6 @@ bool ObjectLoader::Initialise(StructuredDataI & data) {
                 }
             }
 
-            //additionalNodes.Copy(data);
             data.MoveToAncestor(1u);
         }
     }
