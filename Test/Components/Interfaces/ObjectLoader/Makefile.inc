@@ -25,9 +25,11 @@
 #############################################################
 
 OBJSX +=  ObjectLoaderTest.x\
+	ObjectConnectionITest.x\
 	ConfigurationDatabaseConnectionTest.x
 
 OBJSX += ObjectLoaderGTest.x\
+	ObjectConnectionIGTest.x\
 	ConfigurationDatabaseConnectionGTest.x
 
 PACKAGE=Components/Interfaces
