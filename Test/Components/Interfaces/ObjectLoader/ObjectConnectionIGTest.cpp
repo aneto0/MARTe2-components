@@ -49,3 +49,58 @@ TEST(ObjectConnectionIGTest,TestInitialise) {
     ASSERT_TRUE(test.TestInitialise());
 }
 
+TEST(ObjectConnectionIGTest,TestTransposeAndCopy_Uint8) {
+    ObjectConnectionITest test;
+    ASSERT_TRUE(test.TestTransposeAndCopy<uint8>(MARTe::UnsignedInteger8Bit));
+}
+
+TEST(ObjectConnectionIGTest,TestTransposeAndCopy_Uint16) {
+    ObjectConnectionITest test;
+    ASSERT_TRUE(test.TestTransposeAndCopy<uint16>(MARTe::UnsignedInteger16Bit));
+}
+
+TEST(ObjectConnectionIGTest,TestTransposeAndCopy_Uint32) {
+    ObjectConnectionITest test;
+    ASSERT_TRUE(test.TestTransposeAndCopy<uint32>(MARTe::UnsignedInteger32Bit));
+}
+
+TEST(ObjectConnectionIGTest,TestTransposeAndCopy_Uint64) {
+    ObjectConnectionITest test;
+    ASSERT_TRUE(test.TestTransposeAndCopy<uint64>(MARTe::UnsignedInteger64Bit));
+}
+
+TEST(ObjectConnectionIGTest,TestTransposeAndCopy_Int8) {
+    ObjectConnectionITest test;
+    ASSERT_TRUE(test.TestTransposeAndCopy<int8>(MARTe::SignedInteger8Bit));
+}
+
+TEST(ObjectConnectionIGTest,TestTransposeAndCopy_Int16) {
+    ObjectConnectionITest test;
+    ASSERT_TRUE(test.TestTransposeAndCopy<int16>(MARTe::SignedInteger16Bit));
+}
+
+TEST(ObjectConnectionIGTest,TestTransposeAndCopy_Int32) {
+    ObjectConnectionITest test;
+    ASSERT_TRUE(test.TestTransposeAndCopy<int32>(MARTe::SignedInteger32Bit));
+}
+
+TEST(ObjectConnectionIGTest,TestTransposeAndCopy_Int64) {
+    ObjectConnectionITest test;
+    ASSERT_TRUE(test.TestTransposeAndCopy<int64>(MARTe::SignedInteger64Bit));
+}
+
+TEST(ObjectConnectionIGTest,TestTransposeAndCopy_Float32) {
+    ObjectConnectionITest test;
+    ASSERT_TRUE(test.TestTransposeAndCopy<float32>(MARTe::Float32Bit));
+}
+
+TEST(ObjectConnectionIGTest,TestTransposeAndCopy_Float64) {
+    ObjectConnectionITest test;
+    ASSERT_TRUE(test.TestTransposeAndCopy<float64>(MARTe::Float64Bit));
+}
+
+TEST(ObjectConnectionIGTest,TestTransposeAndCopy_Failed_InvalidType) {
+    ObjectConnectionITest test;
+    ASSERT_TRUE(test.TestTransposeAndCopy_Failed_InvalidType());
+}
+

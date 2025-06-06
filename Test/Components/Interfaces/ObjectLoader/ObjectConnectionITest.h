@@ -60,6 +60,20 @@
 
 using namespace MARTe;
 
+class TestObjectConnectionI : public MARTe::ObjectConnectionI {
+public:
+    CLASS_REGISTER_DECLARATION()
+
+    TestObjectConnectionI();
+
+    ~TestObjectConnectionI();
+
+    ErrorManagement::ErrorType TestTransposeAndCopy(void *const destination, const void *const source, const TypeDescriptor typeDesc,
+        const uint32 numberOfRows, const uint32 numberOfColumns, const uint32 numberOfPages);
+
+};
+
+
 /**
  * @brief Test all the ObjectConnectionITest methods
  */
@@ -86,6 +100,17 @@ public:
      */
     bool TestInitialise();
 
+    /**
+     * @brief Tests the ObjectConnectionITest::Initialise method
+     */
+    template<typename T>
+    bool TestTransposeAndCopy(const TypeDescriptor typeDesc);
+
+    /**
+     * @brief Tests the ObjectConnectionITest::Initialise method
+     */
+    bool TestTransposeAndCopy_Failed_InvalidType();
+
 
 
 private:
@@ -109,6 +134,46 @@ private:
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+
+template<typename T>
+bool ObjectConnectionITest::TestTransposeAndCopy(const TypeDescriptor typeDesc) {
+
+    TestObjectConnectionI obConnection;
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = false;
+
+    T rowMajorArray[2][3] = { {1, 2, 3}, {4, 5, 6} };
+    T colMajorArray[3][2] = { {1, 4}, {2, 5}, {3, 6} };
+    T outputArray[3][2]   = { {0, 0}, {0, 0}, {0, 0} };
+
+    status = obConnection.TestTransposeAndCopy(outputArray, rowMajorArray, typeDesc, 2, 3, 1);
+    ok = (MemoryOperationsHelper::Compare(&outputArray[0][0], &colMajorArray[0][0], 6u*sizeof(T)) == 0u);
+
+    if (status && ok) {
+        // input array
+        T rowMajor3DArray[2][3][4] = {
+            { { 1,  2,  3,  4}, { 5,  6,  7,  8}, { 9, 10, 11, 12} },
+            { {13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24} }
+        };
+
+        // expected array
+        T colMajor3DArray[4][3][2] = {
+            { { 1, 13}, { 5, 17}, { 9, 21} }, { { 2, 14}, { 6, 18}, {10, 22} },
+            { { 3, 15}, { 7, 19}, {11, 23} }, { { 4, 16}, { 8, 20}, {12, 24} }
+        };
+
+        // output array
+        T output3DArray[4][3][2] = {
+            { {0, 0}, {0, 0}, {0, 0} }, { {0, 0}, {0, 0}, {0, 0} },
+            { {0, 0}, {0, 0}, {0, 0} }, { {0, 0}, {0, 0}, {0, 0} }
+        };
+
+        status = obConnection.TestTransposeAndCopy(output3DArray, rowMajor3DArray, typeDesc, 2, 3, 4);
+        ok = (MemoryOperationsHelper::Compare(&output3DArray[0][0][0], &colMajor3DArray[0][0][0], 24u*sizeof(T)) == 0u);
+    }
+
+    return ( status.ErrorsCleared() && ok);
+}
 
 #endif /* OBJECTCONNECTIONITEST_H_ */
 

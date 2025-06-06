@@ -143,8 +143,8 @@ void ObjectConnectionI::TransposeAndCopyT(void *const destination, const void *c
         for (uint32 rowIdx = 0u; rowIdx < numberOfRows; rowIdx++) {
             for (uint32 colIdx = 0u; colIdx < numberOfColumns; colIdx++) {
                 for (uint32 pagIdx = 0u; pagIdx < numberOfPages; pagIdx++) {
-                    *((T *)destination + rowIdx + numberOfRows  * colIdx + numberOfColumns * numberOfRows  * pagIdx)
-                    = *((T *)source    + pagIdx + numberOfPages * colIdx + numberOfColumns * numberOfPages * rowIdx);
+                        *((T *)destination + rowIdx + numberOfRows  * colIdx + numberOfColumns * numberOfRows  * pagIdx)
+                        = *((T *)source    + pagIdx + numberOfPages * colIdx + numberOfColumns * numberOfPages * rowIdx);
                 }
             }
         }
@@ -153,8 +153,8 @@ void ObjectConnectionI::TransposeAndCopyT(void *const destination, const void *c
         // 2D matrix
         for (uint32 rowIdx = 0u; rowIdx < numberOfRows; rowIdx++) {
             for (uint32 colIdx = 0u; colIdx < numberOfColumns; colIdx++) {
-                *( (T*) destination + rowIdx + numberOfRows    * colIdx )
-                = *( (T*) source    + colIdx + numberOfColumns * rowIdx);
+                    *( (T*) destination + rowIdx + numberOfRows    * colIdx )
+                    = *( (T*) source    + colIdx + numberOfColumns * rowIdx);
             }
         }
     }

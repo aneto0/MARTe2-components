@@ -35,37 +35,17 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-// class TestObjectConnection : public MARTe::ObjectConnectionI {
-// public:
-//     CLASS_REGISTER_DECLARATION()
-//
-//     TestObjectConnection() : MARTe::ObjectConnectionI() {
-//
-//     }
-//
-//     ~TestObjectConnection() {
-//         while (GetSize() > 0u) {
-//             AnyType* toDelete;
-//             if(Extract(0U, toDelete)) {
-//                 delete toDelete;
-//             }
-//         }
-//
-//         while (paramNames.GetSize() > 0u) {
-//             StreamString* toDelete;
-//             if(paramNames.Extract(0U, toDelete)) {
-//                 delete toDelete;
-//             }
-//         }
-//     }
-//
-//     MARTe::StaticList<StreamString*>* GetParameterList() {
-//         return &paramNames;
-//     }
-//
-// };
-//
-// CLASS_REGISTER(TestObjectConnection, "1.0");
+TestObjectConnectionI::TestObjectConnectionI() {}
+
+TestObjectConnectionI::~TestObjectConnectionI() {}
+
+ErrorManagement::ErrorType TestObjectConnectionI::TestTransposeAndCopy(void *const destination, const void *const source, const TypeDescriptor typeDesc,
+    const uint32 numberOfRows, const uint32 numberOfColumns, const uint32 numberOfPages) {
+
+    return TransposeAndCopy(destination, source, typeDesc, numberOfRows, numberOfColumns, numberOfPages);
+}
+
+CLASS_REGISTER(TestObjectConnectionI, "1.0");
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -119,5 +99,24 @@ bool ObjectConnectionITest::TestInitialise() {
     bool ok = TestInitialiseWithConfiguration(configStream, status);
 
     return (status.ErrorsCleared() && ok);
+}
+
+bool ObjectConnectionITest::TestTransposeAndCopy_Failed_InvalidType() {
+
+    TestObjectConnectionI obConnection;
+    obConnection.SetName("OBC1");
+    ErrorManagement::ErrorType status = ErrorManagement::NoError;
+    bool ok = true;
+
+    uint32 rowMajorArray[2][3] = { {1, 2, 3}, {4, 5, 6} };
+    uint32 colMajorArray[3][2] = { {1, 4}, {2, 5}, {3, 6} };
+    uint32 outputArray[3][2]   = { {0, 0}, {0, 0}, {0, 0} };
+
+    TypeDescriptor typeDesc = InvalidType;
+
+    status = obConnection.TestTransposeAndCopy(outputArray, rowMajorArray, typeDesc, 2, 3, 1);
+    ok = (MemoryOperationsHelper::Compare(&outputArray[0][0], &colMajorArray[0][0], 6u*sizeof(uint32)) == 0u);
+
+    return (status.exception && !ok);
 }
 
