@@ -42,18 +42,21 @@
 
 namespace MARTe {
 
+//lint -e{534} Ignoring return value. In the constructor there is no return value.
 ApplicationKiller::ApplicationKiller() :
         ReferenceContainer(),
         MessageI() {
     filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
+    //lint -e{534} Ignoring return value. In the constructor there is no return value.
     MessageI::InstallMessageFilter(filter);
 }
 
 ApplicationKiller::~ApplicationKiller() {
 }
 
-ErrorManagement::ErrorType ApplicationKiller::Kill() {
+//lint -e{1762} Member function can be constant. Cannot be constant according to the compiler.
+ErrorManagement::ErrorType ApplicationKiller::Kill(){
     //if (kill(0, SIGUSR1) == 0) { //0 --> terminate all process in the current PGID. Therefore it kills the script because this process belongs to the PGID of the script as well
     if (kill(getpid(), SIGUSR1) == 0) {
         REPORT_ERROR(ErrorManagement::Information, "Signal successfully send");
