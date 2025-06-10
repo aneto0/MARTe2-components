@@ -50,7 +50,6 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 
 INCLUDES += -I../../../../Source/Components/Interfaces/ApplicationKiller
 
-#LIBRARIES_STATIC+=../../../../Build/x86-linux/Components/Interfaces/ApplicationKiller/ApplicationKiller.a
 
 all: $(OBJS) \
                 $(BUILD_DIR)/ApplicationKillerTest$(LIBEXT)
