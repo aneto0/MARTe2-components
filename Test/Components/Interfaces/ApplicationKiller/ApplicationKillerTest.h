@@ -31,7 +31,7 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
-
+#include "CompilerTypes.h"
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -44,7 +44,18 @@ public:
     ApplicationKillerTest();
     virtual ~ApplicationKillerTest();
 
+    /**
+     * @brief Test the call of Kill directly without the MARTe environment
+     */
     bool Test_KillOnSucceed();
+
+    /**
+     * @brief Test the call of Kill with MARTe environment (through message)
+     */
+    bool Test_KillOnSucceedMARTe();
+
+private:
+
 };
 
 }

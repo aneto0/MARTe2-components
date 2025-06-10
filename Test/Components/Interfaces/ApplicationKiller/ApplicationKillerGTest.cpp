@@ -42,6 +42,10 @@ TEST(ApplicationKillerGTest,Test_KillOnSucceed) {
     ApplicationKillerTest test;
     ASSERT_TRUE(test.Test_KillOnSucceed());
 }
+TEST(ApplicationKillerGTest,Test_KillOnSucceedMARTe) {
+    ApplicationKillerTest test;
+    ASSERT_TRUE(test.Test_KillOnSucceedMARTe());
+}
 }
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
