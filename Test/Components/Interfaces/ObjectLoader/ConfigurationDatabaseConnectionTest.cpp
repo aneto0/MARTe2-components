@@ -82,6 +82,7 @@ bool ConfigurationDatabaseConnectionTest::TestInitialiseWithConfiguration(Stream
 
     ConfigurationDatabase config;
     ConfigurationDatabaseConnection loader;
+    loader.SetName("CDBL1");
     bool ok = TestInitialiseWithConfiguration(configStreamIn, statusOut, config, loader);
 
     return ok;

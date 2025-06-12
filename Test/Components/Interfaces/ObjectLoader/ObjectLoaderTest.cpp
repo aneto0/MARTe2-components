@@ -82,6 +82,7 @@ bool ObjectLoaderTest::TestInitialiseWithConfiguration(StreamString configStream
 
     ConfigurationDatabase config;
     ObjectLoader loader;
+    loader.SetName("OBL1");
     bool ok = TestInitialiseWithConfiguration(configStreamIn, statusOut, config, loader);
 
     return ok;

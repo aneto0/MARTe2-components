@@ -32,6 +32,12 @@ OBJSX += ObjectLoaderGTest.x\
 	ObjectConnectionIGTest.x\
 	ConfigurationDatabaseConnectionGTest.x
 
+ifdef MDSPLUS_DIR
+OBJSX += MDSObjectConnectionTest.x\
+	MDSObjectConnectionGTest.x
+endif
+
+
 PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
@@ -55,6 +61,14 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
 
 INCLUDES += -I../../../../Source/Components/Interfaces/ObjectLoader
+
+ifdef MDSPLUS_DIR
+INCLUDES += -I$(MDSPLUS_DIR)/include
+
+#TODO Temporary to fix problem in mdsplus include
+CPPFLAGS += -Wno-error=sign-compare
+LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
+endif
 
 all: $(OBJS) \
                 $(BUILD_DIR)/ObjectLoaderTest$(LIBEXT)

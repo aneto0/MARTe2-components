@@ -120,7 +120,7 @@ enum MDSClientType {
  *    - *Server*: Only required if ClientType = "Thin". It is a string which defines the IP address
  *          of the remote MDSplus server, and its access port. Instead of IP address, domains can be used,
  *          as well as "localhost" if the server is in the same machine. If ClientType = "Distributed",
- *          a environment variable must be set in your machine, with the form: "treename_path=<IP>:<PORT>::<PATH>".
+ *          an environment variable must be set in your machine, with the form: "treename_path=<IP>:<PORT>::<PATH>".
  *    - *Tree*: name of the tree to connect to.
  *    - *Shot*: Number of the shot of the MDS tree. It is optional if it was defined in MDSObjLoader.
  *          If set here, it overwrites the value in MDSObjLoader for this connection only.

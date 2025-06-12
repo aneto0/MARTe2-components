@@ -62,6 +62,7 @@ bool ObjectConnectionITest::TestInitialiseWithConfiguration(StreamString configS
 
     ConfigurationDatabase config;
     ObjectConnectionI loader;
+    loader.SetName("OBC1");
     bool ok = TestInitialiseWithConfiguration(configStreamIn, statusOut, config, loader);
 
     return ok;
