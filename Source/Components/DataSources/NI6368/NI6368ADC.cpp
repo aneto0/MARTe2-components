@@ -24,8 +24,13 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include "NI6368ADC.h"
+#ifdef LINT
+/*lint -e1923 macro needs to be defined to detect CSS version*/
+#define CCS_VER 0
+/*lint +e1923*/
+#endif
 
+#include "NI6368ADC.h"
 #include <fcntl.h>
 
 /*---------------------------------------------------------------------------*/
@@ -1386,6 +1391,9 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI &data) {
     }
     //lint -e{40,119}  XSERIES_... is defined in the xseries.h
     if (ok) {
+#if CCS_VER < 60
+        dma = xseries_dma_init(boardId, 0);
+#else
         if (multiplexed > 0u) {
             dma = xseries_dma_init(boardId, 0, XSERIES_PXIE6363);
         }
@@ -1396,6 +1404,7 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI &data) {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the dma for device %s", fullDeviceName);
         }
+#endif
     }
     if (ok) {
         //lint -e{613} dma cannot be null as otherwise ok would be false
