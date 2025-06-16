@@ -49,3 +49,8 @@ TEST(MDSObjectConnectionGTest,TestInitialise) {
     ASSERT_TRUE(test.TestInitialise());
 }
 
+TEST(MDSObjectConnectionGTest,TestInitialise_DictAsStruct) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_DictAsStruct());
+}
+

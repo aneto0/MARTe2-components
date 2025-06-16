@@ -62,20 +62,65 @@ public:
 
     void DeleteTestEnvironment();
 
-    bool AddNodeValues(TypeDescriptor typeIn);
+    bool AddNodes(MDSplus::Tree* const testTree, const StreamString nodePrefix);
+
+    /**
+     * @brief Add nodes to testTree.
+     * @details If testDict is specified, then nodes are inserted in testDict
+     *          and then testDict is added to testTree.
+     */
+    bool AddNodeValues(TypeDescriptor typeIn, const StreamString nodePrefix, MDSplus::Dictionary* const testDict /* = NULL_PTR(MDSplus::Dictionary) */);
 
     MDSplus::Tree* testTree;
 
     StreamString treeName;
 };
 
-bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn) {
+bool MDSObjectConnectionTestEnvironment::AddNodes(MDSplus::Tree* const testTree, const StreamString nodePrefix) {
+
+    Vector<StreamString> nodeTypeNames;
+    nodeTypeNames.SetSize(10u);
+
+    nodeTypeNames[0u] = "UINT8";
+    nodeTypeNames[1u] = "UINT16";
+    nodeTypeNames[2u] = "UINT32";
+    nodeTypeNames[3u] = "UINT64";
+    nodeTypeNames[4u] = "INT8";
+    nodeTypeNames[5u] = "INT16";
+    nodeTypeNames[6u] = "INT32";
+    nodeTypeNames[7u] = "INT64";
+    nodeTypeNames[8u] = "FLOAT32";
+    nodeTypeNames[9u] = "FLOAT64";
 
     bool ok = false;
-    StreamString scalarNodeName   = "SCAL";
-    StreamString vectorNodeName   = "VEC";
-    StreamString matrixNodeName   = "MAT";
-    StreamString matrix3DNodeName = "MAT3D";
+
+    try {
+        for (uint32 vecIdx = 0u; vecIdx < nodeTypeNames.GetNumberOfElements(); vecIdx++) {
+            StreamString nodeName = nodePrefix;
+            nodeName += nodeTypeNames[vecIdx];
+            testTree->addNode(nodeName.Buffer(), "NUMERIC");
+        }
+        testTree->write();
+        ok = true;
+    } catch (const MDSplus::MdsException &exc) {
+        ok = false;
+        REPORT_ERROR_STATIC(ErrorManagement::Exception, "Failed adding nodes. MDSplus exception: %s", exc.what());
+    }
+
+    return ok;
+}
+
+bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, const StreamString nodePrefix, MDSplus::Dictionary* const testDict = NULL_PTR(MDSplus::Dictionary*)) {
+
+    bool ok = false;
+    StreamString scalarNodeName   = nodePrefix;
+    StreamString vectorNodeName   = nodePrefix;
+    StreamString matrixNodeName   = nodePrefix;
+    StreamString matrix3DNodeName = nodePrefix;
+    scalarNodeName   += "SCAL";
+    vectorNodeName   += "VEC";
+    matrixNodeName   += "MAT";
+    matrix3DNodeName += "MAT3D";
     StreamString typeSuffix = "";
     MDSplus::Data* scalarData   = NULL_PTR(MDSplus::Data*);
     MDSplus::Data* vectorData   = NULL_PTR(MDSplus::Data*);
@@ -190,29 +235,38 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn) {
         }
         ok = true;
     } catch (const MDSplus::MdsException &exc) {
-        REPORT_ERROR_STATIC(ErrorManagement::Exception, "Failed ::Data.");
-        REPORT_ERROR_STATIC(ErrorManagement::Exception, "MDSplus exception: %s", exc.what());
+        REPORT_ERROR_STATIC(ErrorManagement::Exception, "Failed ::Data. MDSplus exception: %s", exc.what());
         ok = false;
     }
 
     if (ok) {
+        scalarNodeName   += typeSuffix;
+        vectorNodeName   += typeSuffix;
+        matrixNodeName   += typeSuffix;
+        matrix3DNodeName += typeSuffix;
         try {
-            scalarNodeName += typeSuffix;
-            vectorNodeName   += typeSuffix;
-            matrixNodeName   += typeSuffix;
-            matrix3DNodeName += typeSuffix;
-            MDSplus::TreeNode* scalarNode   = testTree->getNode(scalarNodeName.Buffer());
-            MDSplus::TreeNode* vectorNode   = testTree->getNode(vectorNodeName.Buffer());
-            MDSplus::TreeNode* matrixNode   = testTree->getNode(matrixNodeName.Buffer());
-            MDSplus::TreeNode* matrix3DNode = testTree->getNode(matrix3DNodeName.Buffer());
-            scalarNode->putData(scalarData);
-            vectorNode->putData(vectorData);
-            matrixNode->putData(matrixData);
-            matrix3DNode->putData(matrix3DData);
-            ok = true;
+            if (testDict == NULL_PTR(MDSplus::Dictionary*)) {
+                MDSplus::TreeNode* scalarNode   = testTree->getNode(scalarNodeName.Buffer());
+                MDSplus::TreeNode* vectorNode   = testTree->getNode(vectorNodeName.Buffer());
+                MDSplus::TreeNode* matrixNode   = testTree->getNode(matrixNodeName.Buffer());
+                MDSplus::TreeNode* matrix3DNode = testTree->getNode(matrix3DNodeName.Buffer());
+                scalarNode->putData(scalarData);
+                vectorNode->putData(vectorData);
+                matrixNode->putData(matrixData);
+                matrix3DNode->putData(matrix3DData);
+                ok = true;
+            } else {
+                MDSplus::String* scalarNodeString   = new MDSplus::String(scalarNodeName.Buffer());
+                MDSplus::String* vectorNodeString   = new MDSplus::String(vectorNodeName.Buffer());
+                MDSplus::String* matrixNodeString   = new MDSplus::String(matrixNodeName.Buffer());
+                MDSplus::String* matrix3DNodeString = new MDSplus::String(matrix3DNodeName.Buffer());
+                testDict->setItem(scalarNodeString,   scalarData);
+                testDict->setItem(vectorNodeString,   vectorData);
+                testDict->setItem(matrixNodeString,   matrixData);
+                testDict->setItem(matrix3DNodeString, matrix3DData);
+            }
         } catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR_STATIC(ErrorManagement::Exception, "Failed putData.");
-            REPORT_ERROR_STATIC(ErrorManagement::Exception, "MDSplus exception: %s", exc.what());
+            REPORT_ERROR_STATIC(ErrorManagement::Exception, "Failed putData. MDSplus exception: %s", exc.what());
             ok = false;
         }
     }
@@ -238,79 +292,104 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
         testTree->write();
         ok = true;
     } catch (const MDSplus::MdsException &exc) {
-        REPORT_ERROR_STATIC(ErrorManagement::Exception, "Failed creating tree.");
-        REPORT_ERROR_STATIC(ErrorManagement::Exception, "MDSplus exception: %s", exc.what());
+        REPORT_ERROR_STATIC(ErrorManagement::Exception, "Failed creating tree. MDSplus exception: %s", exc.what());
         ok = false;
     }
 
     if (ok) {
         try {
-            testTree->addNode("SCALUINT8",    "NUMERIC");
-            testTree->addNode("SCALUINT16",   "NUMERIC");
-            testTree->addNode("SCALUINT32",   "NUMERIC");
-            testTree->addNode("SCALUINT64",   "NUMERIC");
-            testTree->addNode("SCALINT8",     "NUMERIC");
-            testTree->addNode("SCALINT16",    "NUMERIC");
-            testTree->addNode("SCALINT32",    "NUMERIC");
-            testTree->addNode("SCALINT64",    "NUMERIC");
-            testTree->addNode("SCALFLOAT32",  "NUMERIC");
-            testTree->addNode("SCALFLOAT64",  "NUMERIC");
-
-            testTree->addNode("VECUINT8",     "NUMERIC");
-            testTree->addNode("VECUINT16",    "NUMERIC");
-            testTree->addNode("VECUINT32",    "NUMERIC");
-            testTree->addNode("VECUINT64",    "NUMERIC");
-            testTree->addNode("VECINT8",      "NUMERIC");
-            testTree->addNode("VECINT16",     "NUMERIC");
-            testTree->addNode("VECINT32",     "NUMERIC");
-            testTree->addNode("VECINT64",     "NUMERIC");
-            testTree->addNode("VECFLOAT32",   "NUMERIC");
-            testTree->addNode("VECFLOAT64",   "NUMERIC");
-
-            testTree->addNode("MATUINT8",     "NUMERIC");
-            testTree->addNode("MATUINT16",    "NUMERIC");
-            testTree->addNode("MATUINT32",    "NUMERIC");
-            testTree->addNode("MATUINT64",    "NUMERIC");
-            testTree->addNode("MATINT8",      "NUMERIC");
-            testTree->addNode("MATINT16",     "NUMERIC");
-            testTree->addNode("MATINT32",     "NUMERIC");
-            testTree->addNode("MATINT64",     "NUMERIC");
-            testTree->addNode("MATFLOAT32",   "NUMERIC");
-            testTree->addNode("MATFLOAT64",   "NUMERIC");
-
-            testTree->addNode("MAT3DUINT8",   "NUMERIC");
-            testTree->addNode("MAT3DUINT16",  "NUMERIC");
-            testTree->addNode("MAT3DUINT32",  "NUMERIC");
-            testTree->addNode("MAT3DUINT64",  "NUMERIC");
-            testTree->addNode("MAT3DINT8",    "NUMERIC");
-            testTree->addNode("MAT3DINT16",   "NUMERIC");
-            testTree->addNode("MAT3DINT32",   "NUMERIC");
-            testTree->addNode("MAT3DINT64",   "NUMERIC");
-            testTree->addNode("MAT3DFLOAT32", "NUMERIC");
-            testTree->addNode("MAT3DFLOAT64", "NUMERIC");
-
-            testTree->write();
-            ok = true;
+            testTree->addNode("STRUCT", "STRUCTURE");
+            testTree->addNode("STRUCT.SUBSTRUCT", "STRUCTURE");
+            testTree->addNode("DICT", "ANY");
         } catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_STATIC(ErrorManagement::Exception, "Failed creating structure node. MDSplus exception: %s", exc.what());
             ok = false;
-            REPORT_ERROR_STATIC(ErrorManagement::Exception, "Failed adding nodes.");
-            REPORT_ERROR_STATIC(ErrorManagement::Exception, "MDSplus exception: %s", exc.what());
+        }
+        if (ok) {
+            ok &= AddNodes(testTree, "SCAL");
+            ok &= AddNodes(testTree, "VEC");
+            ok &= AddNodes(testTree, "MAT");
+            ok &= AddNodes(testTree, "MAT3D");
+            ok &= AddNodes(testTree, "STRUCT.SCAL");
+            ok &= AddNodes(testTree, "STRUCT.VEC");
+            ok &= AddNodes(testTree, "STRUCT.MAT");
+            ok &= AddNodes(testTree, "STRUCT.MAT3D");
+            ok &= AddNodes(testTree, "STRUCT.SUBSTRUCT.SCAL");
+            ok &= AddNodes(testTree, "STRUCT.SUBSTRUCT.VEC");
+            ok &= AddNodes(testTree, "STRUCT.SUBSTRUCT.MAT");
+            ok &= AddNodes(testTree, "STRUCT.SUBSTRUCT.MAT3D");
         }
     }
 
     if (ok) {
-        ok &= AddNodeValues(UnsignedInteger8Bit);
-        ok &= AddNodeValues(UnsignedInteger16Bit);
-        ok &= AddNodeValues(UnsignedInteger32Bit);
-        ok &= AddNodeValues(UnsignedInteger64Bit);
-        ok &= AddNodeValues(SignedInteger8Bit);
-        ok &= AddNodeValues(SignedInteger16Bit);
-        ok &= AddNodeValues(SignedInteger32Bit);
-        ok &= AddNodeValues(SignedInteger64Bit);
-        ok &= AddNodeValues(Float32Bit);
-        ok &= AddNodeValues(Float64Bit);
+        ok &= AddNodeValues(UnsignedInteger8Bit , "");
+        ok &= AddNodeValues(UnsignedInteger16Bit, "");
+        ok &= AddNodeValues(UnsignedInteger32Bit, "");
+        ok &= AddNodeValues(UnsignedInteger64Bit, "");
+        ok &= AddNodeValues(SignedInteger8Bit   , "");
+        ok &= AddNodeValues(SignedInteger16Bit  , "");
+        ok &= AddNodeValues(SignedInteger32Bit  , "");
+        ok &= AddNodeValues(SignedInteger64Bit  , "");
+        ok &= AddNodeValues(Float32Bit          , "");
+        ok &= AddNodeValues(Float64Bit          , "");
+        ok &= AddNodeValues(UnsignedInteger8Bit , "STRUCT.");
+        ok &= AddNodeValues(UnsignedInteger16Bit, "STRUCT.");
+        ok &= AddNodeValues(UnsignedInteger32Bit, "STRUCT.");
+        ok &= AddNodeValues(UnsignedInteger64Bit, "STRUCT.");
+        ok &= AddNodeValues(SignedInteger8Bit   , "STRUCT.");
+        ok &= AddNodeValues(SignedInteger16Bit  , "STRUCT.");
+        ok &= AddNodeValues(SignedInteger32Bit  , "STRUCT.");
+        ok &= AddNodeValues(SignedInteger64Bit  , "STRUCT.");
+        ok &= AddNodeValues(Float32Bit          , "STRUCT.");
+        ok &= AddNodeValues(Float64Bit          , "STRUCT.");
+        ok &= AddNodeValues(UnsignedInteger8Bit , "STRUCT.SUBSTRUCT.");
+        ok &= AddNodeValues(UnsignedInteger16Bit, "STRUCT.SUBSTRUCT.");
+        ok &= AddNodeValues(UnsignedInteger32Bit, "STRUCT.SUBSTRUCT.");
+        ok &= AddNodeValues(UnsignedInteger64Bit, "STRUCT.SUBSTRUCT.");
+        ok &= AddNodeValues(SignedInteger8Bit   , "STRUCT.SUBSTRUCT.");
+        ok &= AddNodeValues(SignedInteger16Bit  , "STRUCT.SUBSTRUCT.");
+        ok &= AddNodeValues(SignedInteger32Bit  , "STRUCT.SUBSTRUCT.");
+        ok &= AddNodeValues(SignedInteger64Bit  , "STRUCT.SUBSTRUCT.");
+        ok &= AddNodeValues(Float32Bit          , "STRUCT.SUBSTRUCT.");
+        ok &= AddNodeValues(Float64Bit          , "STRUCT.SUBSTRUCT.");
         if (!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::Debug, "Failed AddNodeValues");
+        }
+    }
+
+    if (ok) {
+        try {
+            MDSplus::Dictionary* dict = new MDSplus::Dictionary();
+            ok &= AddNodeValues(UnsignedInteger8Bit , "", dict);
+            ok &= AddNodeValues(UnsignedInteger16Bit, "", dict);
+            ok &= AddNodeValues(UnsignedInteger32Bit, "", dict);
+            ok &= AddNodeValues(UnsignedInteger64Bit, "", dict);
+            ok &= AddNodeValues(SignedInteger8Bit   , "", dict);
+            ok &= AddNodeValues(SignedInteger16Bit  , "", dict);
+            ok &= AddNodeValues(SignedInteger32Bit  , "", dict);
+            ok &= AddNodeValues(SignedInteger64Bit  , "", dict);
+            ok &= AddNodeValues(Float32Bit          , "", dict);
+            ok &= AddNodeValues(Float64Bit          , "", dict);
+
+            MDSplus::String* subDictName = new MDSplus::String("SUBDICT");
+            MDSplus::Dictionary* subDict     = new MDSplus::Dictionary();
+            ok &= AddNodeValues(UnsignedInteger8Bit , "", subDict);
+            ok &= AddNodeValues(UnsignedInteger16Bit, "", subDict);
+            ok &= AddNodeValues(UnsignedInteger32Bit, "", subDict);
+            ok &= AddNodeValues(UnsignedInteger64Bit, "", subDict);
+            ok &= AddNodeValues(SignedInteger8Bit   , "", subDict);
+            ok &= AddNodeValues(SignedInteger16Bit  , "", subDict);
+            ok &= AddNodeValues(SignedInteger32Bit  , "", subDict);
+            ok &= AddNodeValues(SignedInteger64Bit  , "", subDict);
+            ok &= AddNodeValues(Float32Bit          , "", subDict);
+            ok &= AddNodeValues(Float64Bit          , "", subDict);
+            dict->setItem(subDictName, subDict);
+
+            MDSplus::TreeNode* dictNode = testTree->getNode("DICT");
+            dictNode->putData(dict);
+        } catch (const MDSplus::MdsException &exc) {
+            REPORT_ERROR_STATIC(ErrorManagement::Exception, "Failed creating dictionary node. MDSplus exception: %s", exc.what());
+            ok = false;
         }
     }
 
@@ -411,13 +490,41 @@ bool MDSObjectConnectionTest::TestConstructor() {
 bool MDSObjectConnectionTest::TestInitialise() {
 
     StreamString configStream = ""
-        "Class  = MDSObjectConnection         \n"
-        "Tree   = mdsoc_ttree                 \n"
-        "Server = localhost:8002              \n"
-        "Shot   = -1                          \n"
-        "Parameters = {                       \n"
-        "    par1 = { Path = \"SCALUINT32\" } \n"
-        "}                                    \n"
+        "Class  = MDSObjectConnection                 \n"
+        "Tree   = mdsoc_ttree                         \n"
+        "Server = localhost:8002                      \n"
+        "Shot   = -1                                  \n"
+        "Parameters = {                               \n"
+        "    ScalUint8   = { Path = \"SCALUINT8\"   } \n"
+        "    ScalUint16  = { Path = \"SCALUINT16\"  } \n"
+        "    ScalUint32  = { Path = \"SCALUINT32\"  } \n"
+        "    ScalUint64  = { Path = \"SCALUINT64\"  } \n"
+        "    ScalInt8    = { Path = \"SCALINT8\"    } \n"
+        "    ScalInt16   = { Path = \"SCALINT16\"   } \n"
+        "    ScalInt32   = { Path = \"SCALINT32\"   } \n"
+        "    ScalInt64   = { Path = \"SCALINT64\"   } \n"
+        "    ScalFloat32 = { Path = \"SCALFLOAT32\" } \n"
+        "    ScalFloat64 = { Path = \"SCALFLOAT64\" } \n"
+        "}                                          \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.ErrorsCleared() && ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_DictAsStruct() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection            \n"
+        "Tree   = mdsoc_ttree                    \n"
+        "Server = localhost:8002                 \n"
+        "Shot   = -1                             \n"
+        "Parameters = {                          \n"
+        "    ScalParameter = { Path = \"DICT\" } \n"
+        "}                                       \n"
         ""
         ;
 

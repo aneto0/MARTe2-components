@@ -100,6 +100,8 @@ public:
      */
     bool TestInitialise();
 
+    bool TestInitialise_DictAsStruct();
+
 private:
 
     /**
