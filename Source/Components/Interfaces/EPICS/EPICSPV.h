@@ -380,6 +380,11 @@ private:
     uint64 changedPvVal;
 
     /**
+     * The EPICS PV Message mask containing a PV Value.
+     */
+    uint64 changedMsg;
+
+    /**
      * The number of times HandlePVEvent was called.
      */
     uint8 handlePVEventNthTime;

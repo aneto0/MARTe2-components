@@ -43,9 +43,10 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-EPICSPV::EPICSPV() : 
-        ReferenceContainer(), MessageI() {
-    context = NULL_PTR(struct ca_client_context *);
+EPICSPV::EPICSPV() :
+        ReferenceContainer(),
+        MessageI() {
+    context = NULL_PTR(struct ca_client_context*);
     timeout = 5.0F;
     pvName = "";
     pvChid = NULL_PTR(chid);
@@ -55,12 +56,13 @@ EPICSPV::EPICSPV() :
     nOfFunctionMaps = 0u;
     numberOfElements = 1u;
 
-    functionMap[0u] = NULL_PTR(StreamString *);
-    functionMap[1u] = NULL_PTR(StreamString *);
-    pvMemory = NULL_PTR(void *);
+    functionMap[0u] = NULL_PTR(StreamString*);
+    functionMap[1u] = NULL_PTR(StreamString*);
+    pvMemory = NULL_PTR(void*);
     memorySize = 0u;
     typeSize = 0u;
-    changedPvVal = 0u;
+    changedPvVal = 0ull;
+    changedMsg = 0ull;
     handlePVEventNthTime = 0u;
 
     ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
@@ -73,20 +75,20 @@ EPICSPV::EPICSPV() :
 
 /*lint -e{1551} -e{1540} -e{1740} functionMap memory is freed in the destructor. The context, pvChid and pvMemory variables are managed (and thus freed) by the EPICS framework.*/
 EPICSPV::~EPICSPV() {
-    if (functionMap[0u] != NULL_PTR(StreamString *)) {
+    if (functionMap[0u] != NULL_PTR(StreamString*)) {
         delete[] functionMap[0u];
     }
-    if (functionMap[1u] != NULL_PTR(StreamString *)) {
+    if (functionMap[1u] != NULL_PTR(StreamString*)) {
         delete[] functionMap[1u];
     }
-    if (pvMemory != NULL_PTR(void *)) {
+    if (pvMemory != NULL_PTR(void*)) {
         if (pvAnyType.GetTypeDescriptor().type == SString) {
             if (numberOfElements > 1u) {
-                StreamString *str = static_cast<StreamString *>(pvMemory);
+                StreamString *str = static_cast<StreamString*>(pvMemory);
                 delete[] str;
             }
             else {
-                StreamString *str = static_cast<StreamString *>(pvMemory);
+                StreamString *str = static_cast<StreamString*>(pvMemory);
                 delete str;
             }
         }
@@ -97,7 +99,7 @@ EPICSPV::~EPICSPV() {
 
 }
 
-bool EPICSPV::Initialise(StructuredDataI & data) {
+bool EPICSPV::Initialise(StructuredDataI &data) {
     bool ok = ReferenceContainer::Initialise(data);
     if (ok) {
         ok = data.Read("PVName", pvName);
@@ -151,12 +153,12 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
                 if (pvType == DBR_STRING) {
                     if (numberOfElements > 1u) {
                         StreamString *str = new StreamString[numberOfElements];
-                        pvMemory = static_cast<void *>(&str[0u]);
+                        pvMemory = static_cast<void*>(&str[0u]);
                         //lint -e{429} str is freed in the destructor
                     }
                     else {
                         StreamString *str = new StreamString();
-                        pvMemory = static_cast<void *>(str);
+                        pvMemory = static_cast<void*>(str);
                     }
                 }
                 else {
@@ -255,7 +257,8 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
             if (data.Read("Function", function)) {
                 ok = (!eventMode.function.operator bool());
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "With PVValue=Function the Function to be called is the PV value. Remove this parameter. At most specify a FunctionMap");
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "With PVValue=Function the Function to be called is the PV value. Remove this parameter. At most specify a FunctionMap");
                 }
             }
         }
@@ -286,9 +289,9 @@ bool EPICSPV::Initialise(StructuredDataI & data) {
     return ok;
 }
 
-ErrorManagement::ErrorType EPICSPV::CAPut(StructuredDataI & data) {
+ErrorManagement::ErrorType EPICSPV::CAPut(StructuredDataI &data) {
     if (pvAnyType.GetTypeDescriptor().type == SString) {
-        StreamString *str = static_cast<StreamString *>(pvAnyType.GetDataPointer());
+        StreamString *str = static_cast<StreamString*>(pvAnyType.GetDataPointer());
         if (numberOfElements > 1u) {
             uint32 n;
             for (n = 0u; n < numberOfElements; n++) {
@@ -309,7 +312,7 @@ ErrorManagement::ErrorType EPICSPV::CAPut(StructuredDataI & data) {
 
 /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
 ErrorManagement::ErrorType EPICSPV::CAPutRaw() {
-    ErrorManagement::ErrorType err = (context != NULL_PTR(struct ca_client_context *));
+    ErrorManagement::ErrorType err = (context != NULL_PTR(struct ca_client_context*));
     if (err.ErrorsCleared()) {
         int32 caRet = ca_attach_context(context);
         err = !(caRet == ECA_NORMAL);
@@ -317,16 +320,16 @@ ErrorManagement::ErrorType EPICSPV::CAPutRaw() {
             err = !(caRet == ECA_ISATTACHED);
         }
         if (!err.ErrorsCleared()) {
-            REPORT_ERROR(ErrorManagement::FatalError, "Failed to ca_attach_context, error: %s", ca_message(caRet)); 
+            REPORT_ERROR(ErrorManagement::FatalError, "Failed to ca_attach_context, error: %s", ca_message(caRet));
         }
     }
     if (err.ErrorsCleared()) {
         //Arrays of strings are encoded with space separated tokens!
-        char8 *strArrayTemp = NULL_PTR(char8 *);
+        char8 *strArrayTemp = NULL_PTR(char8*);
         void *mem = pvMemory;
         //StreamString has to be treated differently
         if (pvAnyType.GetTypeDescriptor().type == SString) {
-            StreamString *str = static_cast<StreamString *>(pvAnyType.GetDataPointer());
+            StreamString *str = static_cast<StreamString*>(pvAnyType.GetDataPointer());
             if (numberOfElements > 1u) {
                 uint32 idx = static_cast<uint32>(MAX_STRING_SIZE) * numberOfElements;
                 strArrayTemp = new char8[idx];
@@ -343,10 +346,10 @@ ErrorManagement::ErrorType EPICSPV::CAPutRaw() {
                     ok = MemoryOperationsHelper::Copy(dest, str[n].Buffer(), copySize);
                 }
                 err = !ok;
-                mem = static_cast<void *>(&strArrayTemp[0u]);
+                mem = static_cast<void*>(&strArrayTemp[0u]);
             }
             else {
-                mem = const_cast<void *>(static_cast<const void *>(str->Buffer()));
+                mem = const_cast<void*>(static_cast<const void*>(str->Buffer()));
             }
         }
         /*lint -e{9130} -e{835} -e{845} -e{747} Several false positives. lint is getting confused here for some reason.*/
@@ -360,7 +363,7 @@ ErrorManagement::ErrorType EPICSPV::CAPutRaw() {
             err = ErrorManagement::FatalError;
             REPORT_ERROR(err, "ca_pend_io failed for PV: %s . Error: %s", pvName.Buffer(), ca_message(caRet));
         }
-        if (strArrayTemp != NULL_PTR(char8 *)) {
+        if (strArrayTemp != NULL_PTR(char8*)) {
             delete[] strArrayTemp;
         }
         ca_detach_context();
@@ -368,15 +371,15 @@ ErrorManagement::ErrorType EPICSPV::CAPutRaw() {
     return err;
 }
 
-void EPICSPV::HandlePVEvent(struct event_handler_args const & args) {
-    const void * const dbr = args.dbr;
-    if (dbr != NULL_PTR(const void *)) {
-        if (pvMemory != NULL_PTR(char8 *)) {
+void EPICSPV::HandlePVEvent(struct event_handler_args const &args) {
+    const void *const dbr = args.dbr;
+    if (dbr != NULL_PTR(const void*)) {
+        if (pvMemory != NULL_PTR(char8*)) {
             if (pvAnyType.GetTypeDescriptor().type == SString) {
-                StreamString *str = static_cast<StreamString *>(pvAnyType.GetDataPointer());
+                StreamString *str = static_cast<StreamString*>(pvAnyType.GetDataPointer());
                 if (numberOfElements > 1u) {
                     //Arrays of strings are encoded as a single buffer of length 40 chars x numberOfDimensions
-                    const char8 * tempStr = reinterpret_cast<const char8 *>(dbr);
+                    const char8 *tempStr = reinterpret_cast<const char8*>(dbr);
                     uint32 n;
                     for (n = 0u; n < static_cast<uint32>(args.count); n++) {
                         uint32 idx = static_cast<uint32>(MAX_STRING_SIZE) * n;
@@ -384,7 +387,7 @@ void EPICSPV::HandlePVEvent(struct event_handler_args const & args) {
                     }
                 }
                 else {
-                    *str = reinterpret_cast<const char8 *>(dbr);
+                    *str = reinterpret_cast<const char8*>(dbr);
                 }
             }
             else {
@@ -494,18 +497,20 @@ void EPICSPV::TriggerEventMessage() {
         else {
             uint32 numberOfMessages = Size();
             for (uint32 i = 0u; (i < numberOfMessages) && ok; i++) {
-                ReferenceT < Message > message = Get(i);
+                ReferenceT<Message> message = Get(i);
                 if (message.IsValid()) {
-                    ReferenceT < ConfigurationDatabase > parameters = message->Get(0u);
+                    ReferenceT<ConfigurationDatabase> parameters = message->Get(0u);
                     if (parameters.IsValid()) {
                         uint32 numberOfParameters = parameters->GetNumberOfChildren();
                         for (uint32 j = 0u; (j < numberOfParameters) && ok; j++) {
                             StreamString childName = parameters->GetChildName(j);
                             if (handlePVEventNthTime >= 2u) {
-                                if (((1ull << j) & changedPvVal) != 0u) {
-                                    ok = parameters->Delete(childName.Buffer());
-                                    if (ok) {
-                                        ok = parameters->Write(childName.Buffer(), pvAnyType);
+                                if (((1ull << i) & changedMsg) != 0u) {
+                                    if (((1ull << j) & changedPvVal) != 0u) {
+                                        ok = parameters->Delete(childName.Buffer());
+                                        if (ok) {
+                                            ok = parameters->Write(childName.Buffer(), pvAnyType);
+                                        }
                                     }
                                 }
                             }
@@ -525,7 +530,9 @@ void EPICSPV::TriggerEventMessage() {
                                                 ok = parameters->Write(childName.Buffer(), pvAnyType);
                                             }
                                             if (ok) {
-                                                changedPvVal |= (1ull << j);
+                                                changedPvVal >>= 1u;
+                                                changedPvVal |= (1ull << (numberOfParameters-1u));
+                                                changedMsg |= (1ull << i);
                                             }
                                         }
                                     }
@@ -541,7 +548,7 @@ void EPICSPV::TriggerEventMessage() {
                 if (MessageI::SendMessage(message, this) != ErrorManagement::NoError) {
                     REPORT_ERROR(ErrorManagement::FatalError, "Could not send message to %s with value %s", messageDestination.Buffer(), val.Buffer());
                 }
-                else{
+                else {
                     REPORT_ERROR(ErrorManagement::Information, "Sent message to %s with value %s", messageDestination.Buffer(), val.Buffer());
                 }
             }
@@ -554,16 +561,16 @@ void EPICSPV::TriggerEventMessage() {
 }
 
 /*lint -e{1762} function cannot be made const as it is registered as an RPC*/
-ErrorManagement::ErrorType EPICSPV::CAGet(StructuredDataI & data) {
+ErrorManagement::ErrorType EPICSPV::CAGet(StructuredDataI &data) {
     ErrorManagement::ErrorType err = data.Write("param1", pvAnyType);
     return err;
 }
 
-void EPICSPV::SetContext(struct ca_client_context * const contextIn) {
+void EPICSPV::SetContext(struct ca_client_context *const contextIn) {
     context = contextIn;
 }
 
-const struct ca_client_context * EPICSPV::GetContext() const {
+const struct ca_client_context* EPICSPV::GetContext() const {
     return context;
 }
 
