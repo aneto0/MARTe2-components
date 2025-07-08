@@ -1542,7 +1542,11 @@ ErrorManagement::ErrorType NI6368ADC::Execute(ExecutionInfo &info) {
 
                     if (calibrate && (dmaCalibBuffer != NULL_PTR(float32*))) {
                         //lint -e{712,747,9119,9132} no real loss of precision in nSamplesInDMA (type uint32_t). Noted that array is passed as pointer
+#if CCS_VER > 72
+                        xseries_ai_scale(dmaReadBuffer, dmaCalibBuffer, nSamplesInDMA, ai_coefs);
+#else
                         ai_scale(dmaReadBuffer, dmaCalibBuffer, nSamplesInDMA, ai_coefs);
+#endif
                     }
 
                     err = CopyFromDMA(nSamplesInDMA);
