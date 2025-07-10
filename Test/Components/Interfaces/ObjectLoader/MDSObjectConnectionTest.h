@@ -100,7 +100,9 @@ public:
      */
     bool TestInitialise();
 
-    bool TestInitialise_DictAsStruct();
+    bool TestInitialise_DictAsStruct_RowMajor();
+
+    ConfigurationDatabase referenceCdb;
 
 private:
 
@@ -117,6 +119,10 @@ private:
      */
     bool TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut);
 
+    /**
+    * @brief Reference values of the parameters.
+    */
+    MARTe::StreamString standardParameters;
 
 };
 
