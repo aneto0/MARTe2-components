@@ -367,18 +367,6 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
 
     if (ret) {
 
-        // shape
-        anyTypeParam->SetNumberOfDimensions(MDSNumOfDims);
-
-        for (uint16 dimIdx = 0u; dimIdx < MDSNumOfDims; dimIdx++) {
-            if (dimIdx <= 2u && orientation == "RowMajor") {
-                anyTypeParam->SetNumberOfElements(dimIdx, MDSDimArray[MDSNumOfDims - dimIdx - 1u]);
-            }
-            else {
-                anyTypeParam->SetNumberOfElements(dimIdx, MDSDimArray[dimIdx]);
-            }
-        }
-
         // type
         castMdsType = static_cast<uint8>(MDSDataType);
 
@@ -421,6 +409,21 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
         else {
             ret.unsupportedFeature = true;
             REPORT_ERROR(ret, "[%s] - Parameter %s: unsupported MDSplus type", GetName(), nodeName.Buffer());
+        }
+    }
+
+
+    // shape
+    if (ret) {
+        anyTypeParam->SetNumberOfDimensions(MDSNumOfDims);
+
+        for (uint16 dimIdx = 0u; dimIdx < MDSNumOfDims; dimIdx++) {
+            if (dimIdx <= 2u && orientation == "RowMajor") {
+                anyTypeParam->SetNumberOfElements(dimIdx, MDSDimArray[MDSNumOfDims - dimIdx - 1u]);
+            }
+            else {
+                anyTypeParam->SetNumberOfElements(dimIdx, MDSDimArray[dimIdx]);
+            }
         }
     }
 
