@@ -130,14 +130,14 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
 
     int32 vectorDims      = 4;
     int32 matrixDims[2]   = {3, 4};
-    int32 matrix3DDims[3] = {2, 3, 4};
+    int32 matrix3DDims[3] = {3, 4, 2};
 
     try {
         if (typeIn == UnsignedInteger8Bit) {
             uint8 scalarValue = 1;
             uint8 vectorValue[4] = {1, 2, 3, 4};
             uint8 matrixValue[3][4] = { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} };
-            uint8 matrix3DValue[2][3][4] = { { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} }, { {13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24} } };
+            uint8 matrix3DValue[3][4][2] = { { { 1, 13}, { 2, 14}, { 3, 15}, { 4, 16} }, { { 5, 17}, { 6, 18}, { 7, 19}, { 8, 20} }, { { 9, 21}, {10, 22}, {11, 23}, {12, 24} } };
             scalarData   = new MDSplus::Uint8(scalarValue);
             vectorData   = new MDSplus::Uint8Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Uint8Array(&matrixValue[0][0], 2, &matrixDims[0]);
@@ -147,7 +147,7 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             uint16 scalarValue = 1;
             uint16 vectorValue[4] = {1, 2, 3, 4};
             uint16 matrixValue[3][4] = { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} };
-            uint16 matrix3DValue[2][3][4] = { { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} }, { {13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24} } };
+            uint16 matrix3DValue[3][4][2] = { { { 1, 13}, { 2, 14}, { 3, 15}, { 4, 16} }, { { 5, 17}, { 6, 18}, { 7, 19}, { 8, 20} }, { { 9, 21}, {10, 22}, {11, 23}, {12, 24} } };
             scalarData   = new MDSplus::Uint16(scalarValue);
             vectorData   = new MDSplus::Uint16Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Uint16Array(&matrixValue[0][0], 2, &matrixDims[0]);
@@ -157,7 +157,7 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             uint32 scalarValue = 1;
             uint32 vectorValue[4] = {1, 2, 3, 4};
             uint32 matrixValue[3][4] = { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} };
-            uint32 matrix3DValue[2][3][4] = { { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} }, { {13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24} } };
+            uint32 matrix3DValue[3][4][2] = { { { 1, 13}, { 2, 14}, { 3, 15}, { 4, 16} }, { { 5, 17}, { 6, 18}, { 7, 19}, { 8, 20} }, { { 9, 21}, {10, 22}, {11, 23}, {12, 24} } };
             scalarData   = new MDSplus::Uint32(scalarValue);
             vectorData   = new MDSplus::Uint32Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Uint32Array(&matrixValue[0][0], 2, &matrixDims[0]);
@@ -167,7 +167,7 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             uint64 scalarValue = 1;
             uint64 vectorValue[4] = {1, 2, 3, 4};
             uint64 matrixValue[3][4] = { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} };
-            uint64 matrix3DValue[2][3][4] = { { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} }, { {13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24} } };
+            uint64 matrix3DValue[3][4][2] = { { { 1, 13}, { 2, 14}, { 3, 15}, { 4, 16} }, { { 5, 17}, { 6, 18}, { 7, 19}, { 8, 20} }, { { 9, 21}, {10, 22}, {11, 23}, {12, 24} } };
             scalarData   = new MDSplus::Uint64(scalarValue);
             vectorData   = new MDSplus::Uint64Array((uint64_t*)&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Uint64Array((uint64_t*)&matrixValue[0][0], 2, &matrixDims[0]);
@@ -177,7 +177,7 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             int8 scalarValue = 1;
             int8 vectorValue[4] = {1, -2, 3, -4};
             int8 matrixValue[3][4] = { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} };
-            int8 matrix3DValue[2][3][4] = { { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} }, { {13, -14, 15, -16}, {17, -18, 19, -20}, {21, -22, 23, -24} } };
+            int8 matrix3DValue[3][4][2] = { { { 1, 13}, { -2, -14}, { 3, 15}, { -4, -16} }, { { 5, 17}, { -6, -18}, { 7, 19}, { -8, -20} }, { { 9, 21}, {-10, -22}, {11, 23}, {-12, -24} } };
             scalarData   = new MDSplus::Int8(scalarValue);
             vectorData   = new MDSplus::Int8Array((char*)&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Int8Array((char*)&matrixValue[0][0], 2, &matrixDims[0]);
@@ -187,7 +187,7 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             int16 scalarValue = 1;
             int16 vectorValue[4] = {1, -2, 3, -4};
             int16 matrixValue[3][4] = { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} };
-            int16 matrix3DValue[2][3][4] = { { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} }, { {13, -14, 15, -16}, {17, -18, 19, -20}, {21, -22, 23, -24} } };
+            int16 matrix3DValue[3][4][2] = { { { 1, 13}, { -2, -14}, { 3, 15}, { -4, -16} }, { { 5, 17}, { -6, -18}, { 7, 19}, { -8, -20} }, { { 9, 21}, {-10, -22}, {11, 23}, {-12, -24} } };
             scalarData   = new MDSplus::Int16(scalarValue);
             vectorData   = new MDSplus::Int16Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Int16Array(&matrixValue[0][0], 2, &matrixDims[0]);
@@ -197,7 +197,7 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             int32 scalarValue = 1;
             int32 vectorValue[4] = {1, -2, 3, -4};
             int32 matrixValue[3][4] = { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} };
-            int32 matrix3DValue[2][3][4] = { { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} }, { {13, -14, 15, -16}, {17, -18, 19, -20}, {21, -22, 23, -24} } };
+            int32 matrix3DValue[3][4][2] = { { { 1, 13}, { -2, -14}, { 3, 15}, { -4, -16} }, { { 5, 17}, { -6, -18}, { 7, 19}, { -8, -20} }, { { 9, 21}, {-10, -22}, {11, 23}, {-12, -24} } };
             scalarData   = new MDSplus::Int32(scalarValue);
             vectorData   = new MDSplus::Int32Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Int32Array(&matrixValue[0][0], 2, &matrixDims[0]);
@@ -207,7 +207,7 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             int64 scalarValue = 1;
             int64 vectorValue[4] = {1, -2, 3, -4};
             int64 matrixValue[3][4] = { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} };
-            int64 matrix3DValue[2][3][4] = { { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} }, { {13, -14, 15, -16}, {17, -18, 19, -20}, {21, -22, 23, -24} } };
+            int64 matrix3DValue[3][4][2] = { { { 1, 13}, { -2, -14}, { 3, 15}, { -4, -16} }, { { 5, 17}, { -6, -18}, { 7, 19}, { -8, -20} }, { { 9, 21}, {-10, -22}, {11, 23}, {-12, -24} } };
             scalarData   = new MDSplus::Int64(scalarValue);
             vectorData   = new MDSplus::Int64Array((int64_t*)&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Int64Array((int64_t*)&matrixValue[0][0], 2, &matrixDims[0]);
@@ -217,7 +217,7 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             float32 scalarValue = 1.1;
             float32 vectorValue[4] = {1.1, 2.2, 3.3, 4.4};
             float32 matrixValue[3][4] = { {1.1, 2.2, 3.3, 4.4}, {5.5, 6.6, 7.7, 8.8}, {9.9, 10.1, 11.11, 12.12} };
-            float32 matrix3DValue[2][3][4] = { { {1.1, 2.2, 3.3, 4.4}, {5.5, 6.6, 7.7, 8.8}, {9.9, 10.1, 11.11, 12.12} }, { {13.13, 14.14, 15.15, 16.16}, {17.17, 18.18, 19.19, 20.20}, {21.21, 22.22, 23.23, 24.24} } };
+            float32 matrix3DValue[3][4][2] = { { { 1.1, 13.13}, { 2.2, 14.14}, { 3.3, 15.15}, { 4.4, 16.16} }, { { 5.5, 17.17}, { 6.6, 18.18}, { 7.7, 19.19}, { 8.8, 20.20} }, { { 9.9, 21.21}, {10.10, 22.22}, {11.11, 23.23}, {12.12, 24.24} } };
             scalarData   = new MDSplus::Float32(scalarValue);
             vectorData   = new MDSplus::Float32Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Float32Array(&matrixValue[0][0], 2, &matrixDims[0]);
@@ -227,7 +227,7 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             float64 scalarValue = 1.1;
             float64 vectorValue[4] = {1.1, 2.2, 3.3, 4.4};
             float64 matrixValue[3][4] = { {1.1, 2.2, 3.3, 4.4}, {5.5, 6.6, 7.7, 8.8}, {9.9, 10.10, 11.11, 12.12} };
-            float64 matrix3DValue[2][3][4] = { { {1.1, 2.2, 3.3, 4.4}, {5.5, 6.6, 7.7, 8.8}, {9.9, 10.1, 11.11, 12.12} }, { {13.13, 14.14, 15.15, 16.16}, {17.17, 18.18, 19.19, 20.20}, {21.21, 22.22, 23.23, 24.24} } };
+            float64 matrix3DValue[3][4][2] = { { { 1.1, 13.13}, { 2.2, 14.14}, { 3.3, 15.15}, { 4.4, 16.16} }, { { 5.5, 17.17}, { 6.6, 18.18}, { 7.7, 19.19}, { 8.8, 20.20} }, { { 9.9, 21.21}, {10.10, 22.22}, {11.11, 23.23}, {12.12, 24.24} } };
             scalarData   = new MDSplus::Float64(scalarValue);
             vectorData   = new MDSplus::Float64Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Float64Array(&matrixValue[0][0], 2, &matrixDims[0]);
@@ -456,58 +456,106 @@ MDSObjectConnectionTest::MDSObjectConnectionTest() {
         "     VECUINT8 = (uint8) {1, 2, 3, 4}"
         "     MATUINT8 = (uint8) { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} }"
 //        "   MAT3DUINT8 = (uint8) { { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} }, { {13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24} } }"
-        "   MAT3DUINT8 = (uint8) { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 }"
+        "   MAT3DUINT8 = (uint8) { 1, 13, 2, 14, 3, 15, 4, 16, 5, 17, 6, 18, 7, 19, 8, 20, 9, 21, 10, 22, 11, 23, 12, 24 }"
         "   SCALUINT16 = (uint16) 1"
         "    VECUINT16 = (uint16) {1, 2, 3, 4}"
         "    MATUINT16 = (uint16) { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} }"
 //        "  MAT3DUINT16 = (uint16) { { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} }, { {13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24} } }"
-        "  MAT3DUINT16 = (uint8)  { 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0, 10, 0, 11, 0, 12, 0, 13, 0, 14, 0, 15, 0, 16, 0, 17, 0, 18, 0, 19, 0, 20, 0, 21, 0, 22, 0, 23, 0, 24, 0 } "
+        "  MAT3DUINT16 = (uint8)  { 1, 0, 13, 0, 2, 0, 14, 0, 3, 0, 15, 0, 4, 0, 16, 0, 5, 0, 17, 0, 6, 0, 18, 0, 7, 0, 19, 0, 8, 0, 20, 0, 9, 0, 21, 0, 10, 0, 22, 0, 11, 0, 23, 0, 12, 0, 24, 0 } "
         "   SCALUINT32 = (uint32) 1"
         "    VECUINT32 = (uint32) {1, 2, 3, 4}"
 //        "  MAT3DUINT32 = (uint32) { { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} }, { {13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24} } }"
         "    MATUINT32 = (uint32) { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} }"
-        "  MAT3DUINT32 = (uint8) { 1,   0,   0,   0,   2,   0,   0,   0,   3,   0,   0,   0,   4,   0,   0,   0,   5,   0,   0,   0,   6,   0,   0,   0,   7,   0,   0,   0,   8,   0,   0,   0,   9,   0,   0,   0,   10,   0,   0,   0,   11,   0,   0,   0,   12,   0,   0,   0,   13,   0,   0,   0,   14,   0,   0,   0,   15,   0,   0,   0,   16,   0,   0,   0,   17,   0,   0,   0,   18,   0,   0,   0,   19,   0,   0,   0,   20,   0,   0,   0,   21,   0,   0,   0,   22,   0,   0,   0,   23,   0,   0,   0,   24,   0,   0,   0 }"
+        "  MAT3DUINT32 = (uint8) { 1, 0, 0, 0, 13, 0, 0, 0, 2, 0, 0, 0, 14, 0, 0, 0, 3, 0, 0, 0, 15, 0, 0, 0, 4, 0, 0, 0, 16, 0, 0, 0, 5, 0, 0, 0, 17, 0, 0, 0, 6, 0, 0, 0, 18, 0, 0, 0, 7, 0, 0, 0, 19, 0, 0, 0, 8, 0, 0, 0, 20, 0, 0, 0, 9, 0, 0, 0, 21, 0, 0, 0, 10, 0, 0, 0, 22, 0, 0, 0, 11, 0, 0, 0, 23, 0, 0, 0, 12, 0, 0, 0, 24, 0, 0, 0 }"
         "   SCALUINT64 = (uint64) 1"
         "    VECUINT64 = (uint64) {1, 2, 3, 4}"
         "    MATUINT64 = (uint64) { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} }"
 //        "  MAT3DUINT64 = (uint64) { { {1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12} }, { {13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24} } }"
-        "  MAT3DUINT64 = (uint8) { 1,   0,   0,   0,   0,   0,   0,   0,   2,   0,   0,   0,   0,   0,   0,   0,   3,   0,   0,   0,   0,   0,   0,   0,   4,   0,   0,   0,   0,   0,   0,   0,   5,   0,   0,   0,   0,   0,   0,   0,   6,   0,   0,   0,   0,   0,   0,   0,   7,   0,   0,   0,   0,   0,   0,   0,   8,   0,   0,   0,   0,   0,   0,   0,   9,   0,   0,   0,   0,   0,   0,   0,   10,   0,   0,   0,   0,   0,   0,   0,   11,   0,   0,   0,   0,   0,   0,   0,   12,   0,   0,   0,   0,   0,   0,   0,   13,   0,   0,   0,   0,   0,   0,   0,   14,   0,   0,   0,   0,   0,   0,   0,   15,   0,   0,   0,   0,   0,   0,   0,   16,   0,   0,   0,   0,   0,   0,   0,   17,   0,   0,   0,   0,   0,   0,   0,   18,   0,   0,   0,   0,   0,   0,   0,   19,   0,   0,   0,   0,   0,   0,   0,   20,   0,   0,   0,   0,   0,   0,   0,   21,   0,   0,   0,   0,   0,   0,   0,   22,   0,   0,   0,   0,   0,   0,   0,   23,   0,   0,   0,   0,   0,   0,   0,   24,   0,   0,   0,   0,   0,   0,   0 }"
+        "  MAT3DUINT64 = (uint8) { 1, 0, 0, 0, 0, 0, 0, 0, 13, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 19, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 0 }"
         "     SCALINT8 = (int8) 1"
         "      VECINT8 = (int8) {1, -2, 3, -4}"
         "      MATINT8 = (int8) { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} }"
 //        "    MAT3DINT8 = (int8) { { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} }, { {13, -14, 15, -16}, {17, -18, 19, -20}, {21, -22, 23, -24} } }"
-        "    MAT3DINT8 = (uint8) { 1,   254,   3,   252,   5,   250,   7,   248,   9,   246,   11,   244,   13,   242,   15,   240,   17,   238,   19,   236,   21,   234,   23,   232 }"
+        "    MAT3DINT8 = (uint8) { 1, 13, 254, 242, 3, 15, 252, 240, 5, 17, 250, 238, 7, 19, 248, 236, 9, 21, 246, 234, 11, 23, 244, 232 }"
         "    SCALINT16 = (int16) 1"
         "     VECINT16 = (int16) {1, -2, 3, -4}"
         "     MATINT16 = (int16) { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} }"
 //        "   MAT3DINT16 = (int16) { { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} }, { {13, -14, 15, -16}, {17, -18, 19, -20}, {21, -22, 23, -24} } }"
-        "   MAT3DINT16 = (uint8) { 1,   0,   254,   255,     3,    0,   252,   255,    5,   0,   250,   255,   7,   0,   248,   255,   9,   0,   246,   255,   11,   0,  244,   255,    13,   0,   242,   255,   15,   0, 240,   255, 17,   0,   238,   255,   19,   0, 236,   255, 21,   0,   234,   255,   23,   0, 232,   255 }"
+        "   MAT3DINT16 = (uint8) { 1, 0, 13, 0, 254, 255, 242, 255, 3, 0, 15, 0, 252, 255, 240, 255, 5, 0, 17, 0, 250, 255, 238, 255, 7, 0, 19, 0, 248, 255, 236, 255, 9, 0, 21, 0, 246, 255, 234, 255, 11, 0, 23, 0, 244, 255, 232, 255 }"
         "    SCALINT32 = (int32) 1"
         "     VECINT32 = (int32) {1, -2, 3, -4}"
         "     MATINT32 = (int32) { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} }"
 //        "   MAT3DINT32 = (int32) { { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} }, { {13, -14, 15, -16}, {17, -18, 19, -20}, {21, -22, 23, -24} } }"
-        "   MAT3DINT32 = (uint8) { 1,   0,   0,   0,  254,   255,   255,   255,    3,    0,    0,    0,   252,   255,   255,   255,    5,   0,   0,   0,  250,   255,   255,   255,   7,   0,   0,   0,   248,   255,  255,  255,   9,   0,   0,   0,   246,   255,   255,   255,   11,   0,   0,   0, 244,   255,   255,   255,    13,   0,   0,   0,   242,   255,   255,   255,   15,   0,   0,   0, 240,   255,   255,   255,   17,   0,   0,   0,  238,   255,   255,   255,   19,   0,   0,   0, 236,   255,   255,   255, 21,   0,   0,    0,   234,   255,   255,   255,   23,   0,   0,   0, 232,   255,   255,   255 }"
+        "   MAT3DINT32 = (uint8) { 1, 0, 0, 0, 13, 0, 0, 0, 254, 255, 255, 255, 242, 255, 255, 255, 3, 0, 0, 0, 15, 0, 0, 0, 252, 255, 255, 255, 240, 255, 255, 255, 5, 0, 0, 0, 17, 0, 0, 0, 250, 255, 255, 255, 238, 255, 255, 255, 7, 0, 0, 0, 19, 0, 0, 0, 248, 255, 255, 255, 236, 255, 255, 255, 9, 0, 0, 0, 21, 0, 0, 0, 246, 255, 255, 255, 234, 255, 255, 255, 11, 0, 0, 0, 23, 0, 0, 0, 244, 255, 255, 255, 232, 255, 255, 255 }"
         "    SCALINT64 = (int64) 1"
         "     VECINT64 = (int64) {1, -2, 3, -4}"
         "     MATINT64 = (int64) { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} }"
 //        "   MAT3DINT64 = (int64) { { {1, -2, 3, -4}, {5, -6, 7, -8}, {9, -10, 11, -12} }, { {13, -14, 15, -16}, {17, -18, 19, -20}, {21, -22, 23, -24} } }"
-        "   MAT3DINT64 = (uint8) { 1,   0,   0,   0,   0,   0,   0,   0,   254, 255, 255, 255, 255, 255, 255, 255,   3,   0,   0,   0,   0,   0,   0,   0,   252, 255, 255, 255, 255, 255, 255, 255,   5,   0,   0,   0,   0,   0,   0,   0,   250, 255, 255, 255, 255, 255, 255, 255,   7,   0,   0,   0,   0,   0,   0,   0,   248, 255, 255, 255, 255, 255, 255, 255,   9,   0,   0,   0,   0,   0,   0,   0,   246, 255, 255, 255, 255, 255, 255, 255,   11,   0,   0,   0,   0,   0,   0,   0,   244, 255, 255, 255, 255, 255, 255, 255,   13,   0,   0,   0,   0,   0,   0,   0,   242, 255, 255, 255, 255, 255, 255, 255,   15,   0,   0,   0,   0,   0,   0,   0,   240, 255, 255, 255, 255, 255, 255, 255,   17,   0,   0,   0,   0,   0,   0,   0,   238, 255, 255, 255, 255, 255, 255, 255,   19,   0,   0,   0,   0,   0,   0,   0,   236, 255, 255, 255, 255, 255, 255, 255,   21,   0,   0,   0,   0,   0,   0,   0,   234, 255, 255, 255, 255, 255, 255, 255,   23,   0,   0,   0,   0,   0,   0,   0,   232, 255, 255, 255, 255, 255, 255, 255 }"
+        "   MAT3DINT64 = (uint8) { 1, 0, 0, 0, 0, 0, 0, 0, 13, 0, 0, 0, 0, 0, 0, 0, 254, 255, 255, 255, 255, 255, 255, 255, 242, 255, 255, 255, 255, 255, 255, 255, 3, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 252, 255, 255, 255, 255, 255, 255, 255, 240, 255, 255, 255, 255, 255, 255, 255, 5, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 250, 255, 255, 255, 255, 255, 255, 255, 238, 255, 255, 255, 255, 255, 255, 255, 7, 0, 0, 0, 0, 0, 0, 0, 19, 0, 0, 0, 0, 0, 0, 0, 248, 255, 255, 255, 255, 255, 255, 255, 236, 255, 255, 255, 255, 255, 255, 255, 9, 0, 0, 0, 0, 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 246, 255, 255, 255, 255, 255, 255, 255, 234, 255, 255, 255, 255, 255, 255, 255, 11, 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 244, 255, 255, 255, 255, 255, 255, 255, 232, 255, 255, 255, 255, 255, 255, 255 }"
         "  SCALFLOAT32 = (float32) 1.1"
         "   VECFLOAT32 = (float32) {1.1, 2.2, 3.3, 4.4}"
         "   MATFLOAT32 = (float32) { {1.1, 2.2, 3.3, 4.4}, {5.5, 6.6, 7.7, 8.8}, {9.9, 10.1, 11.11, 12.12} }"
-        " MAT3DFLOAT32 = (uint8) { 205, 204, 140, 63, 205, 204, 12, 64, 51, 51, 83, 64, 205, 204, 140, 64, 0, 0, 176, 64, 51, 51, 211, 64, 102, 102, 246, 64, 205, 204, 12, 65, 102, 102, 30, 65, 154, 153, 33, 65, 143, 194, 49, 65, 133, 235, 65, 65, 123, 20, 82, 65, 113, 61, 98, 65, 102, 102, 114, 65, 174, 71, 129, 65, 41, 92, 137, 65, 164, 112, 145, 65, 31, 133, 153, 65, 154, 153, 161, 65, 20, 174, 169, 65, 143, 194, 177, 65, 10, 215, 185, 65, 133, 235, 193, 65 }"
+        " MAT3DFLOAT32 = (uint8) { 205, 204, 140, 63, 123, 20, 82, 65, 205, 204, 12, 64, 113, 61, 98, 65, 51, 51, 83, 64, 102, 102, 114, 65, 205, 204, 140, 64, 174, 71, 129, 65, 0, 0, 176, 64, 41, 92, 137, 65, 51, 51, 211, 64, 164, 112, 145, 65, 102, 102, 246, 64, 31, 133, 153, 65, 205, 204, 12, 65, 154, 153, 161, 65, 102, 102, 30, 65, 20, 174, 169, 65, 154, 153, 33, 65, 143, 194, 177, 65, 143, 194, 49, 65, 10, 215, 185, 65, 133, 235, 65, 65, 133, 235, 193, 65 }"
 //        "   MAT3DFLOAT32 = (float32) { { {1.1, 2.2, 3.3, 4.4}, {5.5, 6.6, 7.7, 8.8}, {9.9, 10.1, 11.11, 12.12} }, { {13.13, 14.14, 15.15, 16.16}, {17.17, 18.18, 19.19, 20.20}, {21.21, 22.22, 23.23, 24.24} } }"
         "  SCALFLOAT64 = (float64) 1.1"
         "   VECFLOAT64 = (float64) {1.1, 2.2, 3.3, 4.4}"
         "   MATFLOAT64 = (float64) { {1.1, 2.2, 3.3, 4.4}, {5.5, 6.6, 7.7, 8.8}, {9.9, 10.1, 11.11, 12.12} }"
-        " MAT3DFLOAT64 = (uint8) { 154, 153, 153, 153, 153, 153, 241, 63, 154, 153, 153, 153, 153, 153, 1, 64, 102, 102, 102, 102, 102, 102, 10, 64, 154, 153, 153, 153, 153, 153, 17, 64, 0, 0, 0, 0, 0, 0, 22, 64, 102, 102, 102, 102, 102, 102, 26, 64, 205, 204, 204, 204, 204, 204, 30, 64, 154, 153, 153, 153, 153, 153, 33, 64, 205, 204, 204, 204, 204, 204, 35, 64, 51, 51, 51, 51, 51, 51, 36, 64, 184, 30, 133, 235, 81, 56, 38, 64, 61, 10, 215, 163, 112, 61, 40, 64, 195, 245, 40, 92, 143, 66, 42, 64, 72, 225, 122, 20, 174, 71, 44, 64, 205, 204, 204, 204, 204, 76, 46, 64, 41, 92, 143, 194, 245, 40, 48, 64, 236, 81, 184, 30, 133, 43, 49, 64, 174, 71, 225, 122, 20, 46, 50, 64, 113, 61, 10, 215, 163, 48, 51, 64, 51, 51, 51, 51, 51, 51, 52, 64, 246, 40, 92, 143, 194, 53, 53, 64, 184, 30, 133, 235, 81, 56, 54, 64, 123, 20, 174, 71, 225, 58, 55, 64, 61, 10, 215, 163, 112, 61, 56, 64 }"
+        " MAT3DFLOAT64 = (uint8) { 154, 153, 153, 153, 153, 153, 241, 63, 195, 245, 40, 92, 143, 66, 42, 64, 154, 153, 153, 153, 153, 153, 1, 64, 72, 225, 122, 20, 174, 71, 44, 64, 102, 102, 102, 102, 102, 102, 10, 64, 205, 204, 204, 204, 204, 76, 46, 64, 154, 153, 153, 153, 153, 153, 17, 64, 41, 92, 143, 194, 245, 40, 48, 64, 0, 0, 0, 0, 0, 0, 22, 64, 236, 81, 184, 30, 133, 43, 49, 64, 102, 102, 102, 102, 102, 102, 26, 64, 174, 71, 225, 122, 20, 46, 50, 64, 205, 204, 204, 204, 204, 204, 30, 64, 113, 61, 10, 215, 163, 48, 51, 64, 154, 153, 153, 153, 153, 153, 33, 64, 51, 51, 51, 51, 51, 51, 52, 64, 205, 204, 204, 204, 204, 204, 35, 64, 246, 40, 92, 143, 194, 53, 53, 64, 51, 51, 51, 51, 51, 51, 36, 64, 184, 30, 133, 235, 81, 56, 54, 64, 184, 30, 133, 235, 81, 56, 38, 64, 123, 20, 174, 71, 225, 58, 55, 64, 61, 10, 215, 163, 112, 61, 40, 64, 61, 10, 215, 163, 112, 61, 56, 64 }"
 //        "   MAT3DFLOAT64 = (float64) { { {1.1, 2.2, 3.3, 4.4}, {5.5, 6.6, 7.7, 8.8}, {9.9, 10.1, 11.11, 12.12} }, { {13.13, 14.14, 15.15, 16.16}, {17.17, 18.18, 19.19, 20.20}, {21.21, 22.22, 23.23, 24.24} } }"
         ""
         ;
 
     standardParameters.Seek(0u);
-    StandardParser parser(standardParameters, referenceCdb);
-    bool ok = parser.Parse();
+    StandardParser parser1(standardParameters, referenceCdbRowMajor);
+    parser1.Parse();
+
+    standardParameters = ""
+        "    SCALUINT8 = (uint8) 1"
+        "     VECUINT8 = (uint8) {1, 2, 3, 4}"
+        "     MATUINT8 = (uint8) { { 1, 5, 9 }, { 2, 6, 10 }, { 3, 7, 11 }, { 4, 8, 12 } }"
+        "   MAT3DUINT8 = (uint8) { 1,  5,  9,  2,  6, 10,  3,  7, 11,  4,  8, 12,  13, 17, 21, 14, 18, 22, 15, 19, 23, 16, 20, 24 }"
+        "   SCALUINT16 = (uint16) 1"
+        "    VECUINT16 = (uint16) {1, 2, 3, 4}"
+        "    MATUINT16 = (uint16) { { 1, 5, 9 }, { 2, 6, 10 }, { 3, 7, 11 }, { 4, 8, 12 } }"
+        "  MAT3DUINT16 = (uint8)  { 1, 0, 5, 0, 9, 0, 2, 0, 6, 0, 10, 0, 3, 0, 7, 0, 11, 0, 4, 0, 8, 0, 12, 0, 13, 0, 17, 0, 21, 0, 14, 0, 18, 0, 22, 0, 15, 0, 19, 0, 23, 0, 16, 0, 20, 0, 24, 0 } "
+        "   SCALUINT32 = (uint32) 1"
+        "    VECUINT32 = (uint32) {1, 2, 3, 4}"
+        "    MATUINT32 = (uint32) { { 1, 5, 9 }, { 2, 6, 10 }, { 3, 7, 11 }, { 4, 8, 12 } }"
+        "  MAT3DUINT32 = (uint8) { 1, 0, 0, 0, 5, 0, 0, 0, 9, 0, 0, 0, 2, 0, 0, 0, 6, 0, 0, 0, 10, 0, 0, 0, 3, 0, 0, 0, 7, 0, 0, 0, 11, 0, 0, 0, 4, 0, 0, 0, 8, 0, 0, 0, 12, 0, 0, 0 }"
+        "   SCALUINT64 = (uint64) 1"
+        "    VECUINT64 = (uint64) {1, 2, 3, 4}"
+        "    MATUINT64 = (uint64) { { 1, 5, 9 }, { 2, 6, 10 }, { 3, 7, 11 }, { 4, 8, 12 } }"
+        "  MAT3DUINT64 = (uint8) { 1, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0 }"
+        "     SCALINT8 = (int8) 1"
+        "      VECINT8 = (int8) {1, -2, 3, -4}"
+        "      MATINT8 = (int8) { { 1, 5, 9 }, { -2, -6, -10 }, { 3, 7, 11 }, { -4, -8, -12 } }"
+        "    MAT3DINT8 = (uint8) { 1, 5, 9, 254, 250, 246, 3, 7, 11, 252, 248, 244, 13, 17, 21, 242, 238, 234, 15, 19, 23, 240, 236, 232 }"
+        "    SCALINT16 = (int16) 1"
+        "     VECINT16 = (int16) {1, -2, 3, -4}"
+        "     MATINT16 = (int16) { { 1, 5, 9 }, { -2, -6, -10 }, { 3, 7, 11 }, { -4, -8, -12 } }"
+        "   MAT3DINT16 = (uint8) { 1, 0, 5, 0, 9, 0, 254, 255, 250, 255, 246, 255, 3, 0, 7, 0, 11, 0, 252, 255, 248, 255, 244, 255, 13, 0, 17, 0, 21, 0, 242, 255, 238, 255, 234, 255, 15, 0, 19, 0, 23, 0, 240, 255, 236, 255, 232, 255 }"
+        "    SCALINT32 = (int32) 1"
+        "     VECINT32 = (int32) {1, -2, 3, -4}"
+        "     MATINT32 = (int32) { { 1, 5, 9 }, { -2, -6, -10 }, { 3, 7, 11 }, { -4, -8, -12 } }"
+        "   MAT3DINT32 = (uint8) { 1, 0, 0, 0, 5, 0, 0, 0, 9, 0, 0, 0, 254, 255, 255, 255, 250, 255, 255, 255, 246, 255, 255, 255, 3, 0, 0, 0, 7, 0, 0, 0, 11, 0, 0, 0, 252, 255, 255, 255, 248, 255, 255, 255, 244, 255, 255, 255, 13, 0, 0, 0, 17, 0, 0, 0, 21, 0, 0, 0, 242, 255, 255, 255, 238, 255, 255, 255, 234, 255, 255, 255, 15, 0, 0, 0, 19, 0, 0, 0, 23, 0, 0, 0, 240, 255, 255, 255, 236, 255, 255, 255, 232, 255, 255, 255 }"
+        "    SCALINT64 = (int64) 1"
+        "     VECINT64 = (int64) {1, -2, 3, -4}"
+        "     MATINT64 = (int64) { { 1, 5, 9 }, { -2, -6, -10 }, { 3, 7, 11 }, { -4, -8, -12 } }"
+        "   MAT3DINT64 = (uint8) { 1, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 254, 255, 255, 255, 255, 255, 255, 255, 250, 255, 255, 255, 255, 255, 255, 255, 246, 255, 255, 255, 255, 255, 255, 255, 3, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 252, 255, 255, 255, 255, 255, 255, 255, 248, 255, 255, 255, 255, 255, 255, 255, 244, 255, 255, 255, 255, 255, 255, 255, 13, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 242, 255, 255, 255, 255, 255, 255, 255, 238, 255, 255, 255, 255, 255, 255, 255, 234, 255, 255, 255, 255, 255, 255, 255, 15, 0, 0, 0, 0, 0, 0, 0, 19, 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 240, 255, 255, 255, 255, 255, 255, 255, 236, 255, 255, 255, 255, 255, 255, 255, 232, 255, 255, 255, 255, 255, 255, 255 }"
+        "  SCALFLOAT32 = (float32) 1.1"
+        "   VECFLOAT32 = (float32) {1.1, 2.2, 3.3, 4.4}"
+        "   MATFLOAT32 = (float32) { { 1.1, 5.5, 9.9 }, { 2.2, 6.6, 10.10 }, { 3.3, 7.7, 11.11 }, { 4.4, 8.8, 12.12 } }"
+        " MAT3DFLOAT32 = (uint8) { 205, 204, 140, 63, 0, 0, 176, 64, 102, 102, 30, 65, 205, 204, 12, 64, 51, 51, 211, 64, 154, 153, 33, 65, 51, 51, 83, 64, 102, 102, 246, 64, 143, 194, 49, 65, 205, 204, 140, 64, 205, 204, 12, 65, 133, 235, 65, 65 }"
+        "  SCALFLOAT64 = (float64) 1.1"
+        "   VECFLOAT64 = (float64) {1.1, 2.2, 3.3, 4.4}"
+        "   MATFLOAT64 = (float64)  { { 1.1, 5.5, 9.9 }, { 2.2, 6.6, 10.10 }, { 3.3, 7.7, 11.11 }, { 4.4, 8.8, 12.12 } }"
+        " MAT3DFLOAT64 = (uint8) { 154, 153, 153, 153, 153, 153, 241, 63, 0, 0, 0, 0, 0, 0, 22, 64, 205, 204, 204, 204, 204, 204, 35, 64, 154, 153, 153, 153, 153, 153, 1, 64, 102, 102, 102, 102, 102, 102, 26, 64, 51, 51, 51, 51, 51, 51, 36, 64, 102, 102, 102, 102, 102, 102, 10, 64, 205, 204, 204, 204, 204, 204, 30, 64, 184, 30, 133, 235, 81, 56, 38, 64, 154, 153, 153, 153, 153, 153, 17, 64, 154, 153, 153, 153, 153, 153, 33, 64, 61, 10, 215, 163, 112, 61, 40, 64, 195, 245, 40, 92, 143, 66, 42, 64, 236, 81, 184, 30, 133, 43, 49, 64, 246, 40, 92, 143, 194, 53, 53, 64, 72, 225, 122, 20, 174, 71, 44, 64, 174, 71, 225, 122, 20, 46, 50, 64, 184, 30, 133, 235, 81, 56, 54, 64, 205, 204, 204, 204, 204, 76, 46, 64, 113, 61, 10, 215, 163, 48, 51, 64, 123, 20, 174, 71, 225, 58, 55, 64, 41, 92, 143, 194, 245, 40, 48, 64, 51, 51, 51, 51, 51, 51, 52, 64, 61, 10, 215, 163, 112, 61, 56, 64 }"
+        ""
+        ;
+
+    standardParameters.Seek(0u);
+    StandardParser parser2(standardParameters, referenceCdbColMajor);
+    parser2.Parse();
 }
 
 MDSObjectConnectionTest::~MDSObjectConnectionTest() {
@@ -573,6 +621,159 @@ bool MDSObjectConnectionTest::TestInitialise() {
     return (status.ErrorsCleared() && ok);
 }
 
+bool MDSObjectConnectionTest::TestInitialise_RowMajor() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                                                \n"
+        "Tree   = mdsoc_ttree                                                        \n"
+        "Server = localhost:8002                                                     \n"
+        "Shot   = -1                                                                 \n"
+        "Parameters = {                                                              \n"
+        "    SCALUINT8    = { Path = \"SCALUINT8\"     DataOrientation = RowMajor }  \n"
+        "    SCALUINT16   = { Path = \"SCALUINT16\"    DataOrientation = RowMajor }  \n"
+        "    SCALUINT32   = { Path = \"SCALUINT32\"    DataOrientation = RowMajor }  \n"
+        "    SCALUINT64   = { Path = \"SCALUINT64\"    DataOrientation = RowMajor }  \n"
+        "    SCALINT8     = { Path = \"SCALINT8\"      DataOrientation = RowMajor }  \n"
+        "    SCALINT16    = { Path = \"SCALINT16\"     DataOrientation = RowMajor }  \n"
+        "    SCALINT32    = { Path = \"SCALINT32\"     DataOrientation = RowMajor }  \n"
+        "    SCALINT64    = { Path = \"SCALINT64\"     DataOrientation = RowMajor }  \n"
+        "    SCALFLOAT32  = { Path = \"SCALFLOAT32\"   DataOrientation = RowMajor }  \n"
+        "    SCALFLOAT64  = { Path = \"SCALFLOAT64\"   DataOrientation = RowMajor }  \n"
+        "    VECUINT8     = { Path = \"VECUINT8\"      DataOrientation = RowMajor }  \n"
+        "    VECUINT16    = { Path = \"VECUINT16\"     DataOrientation = RowMajor }  \n"
+        "    VECUINT32    = { Path = \"VECUINT32\"     DataOrientation = RowMajor }  \n"
+        "    VECUINT64    = { Path = \"VECUINT64\"     DataOrientation = RowMajor }  \n"
+        "    VECINT8      = { Path = \"VECINT8\"       DataOrientation = RowMajor }  \n"
+        "    VECINT16     = { Path = \"VECINT16\"      DataOrientation = RowMajor }  \n"
+        "    VECINT32     = { Path = \"VECINT32\"      DataOrientation = RowMajor }  \n"
+        "    VECINT64     = { Path = \"VECINT64\"      DataOrientation = RowMajor }  \n"
+        "    VECFLOAT32   = { Path = \"VECFLOAT32\"    DataOrientation = RowMajor }  \n"
+        "    VECFLOAT64   = { Path = \"VECFLOAT64\"    DataOrientation = RowMajor }  \n"
+        "    MATUINT8     = { Path = \"MATUINT8\"      DataOrientation = RowMajor }  \n"
+        "    MATUINT16    = { Path = \"MATUINT16\"     DataOrientation = RowMajor }  \n"
+        "    MATUINT32    = { Path = \"MATUINT32\"     DataOrientation = RowMajor }  \n"
+        "    MATUINT64    = { Path = \"MATUINT64\"     DataOrientation = RowMajor }  \n"
+        "    MATINT8      = { Path = \"MATINT8\"       DataOrientation = RowMajor }  \n"
+        "    MATINT16     = { Path = \"MATINT16\"      DataOrientation = RowMajor }  \n"
+        "    MATINT32     = { Path = \"MATINT32\"      DataOrientation = RowMajor }  \n"
+        "    MATINT64     = { Path = \"MATINT64\"      DataOrientation = RowMajor }  \n"
+        "    MATFLOAT32   = { Path = \"MATFLOAT32\"    DataOrientation = RowMajor }  \n"
+        "    MATFLOAT64   = { Path = \"MATFLOAT64\"    DataOrientation = RowMajor }  \n"
+        "    MAT3DUINT8   = { Path = \"MAT3DUINT8\"    DataOrientation = RowMajor }  \n"
+        "    MAT3DUINT16  = { Path = \"MAT3DUINT16\"   DataOrientation = RowMajor }  \n"
+        "    MAT3DUINT32  = { Path = \"MAT3DUINT32\"   DataOrientation = RowMajor }  \n"
+        "    MAT3DUINT64  = { Path = \"MAT3DUINT64\"   DataOrientation = RowMajor }  \n"
+        "    MAT3DINT8    = { Path = \"MAT3DINT8\"     DataOrientation = RowMajor }  \n"
+        "    MAT3DINT16   = { Path = \"MAT3DINT16\"    DataOrientation = RowMajor }  \n"
+        "    MAT3DINT32   = { Path = \"MAT3DINT32\"    DataOrientation = RowMajor }  \n"
+        "    MAT3DINT64   = { Path = \"MAT3DINT64\"    DataOrientation = RowMajor }  \n"
+        "    MAT3DFLOAT32 = { Path = \"MAT3DFLOAT32\"  DataOrientation = RowMajor }  \n"
+        "    MAT3DFLOAT64 = { Path = \"MAT3DFLOAT64\"  DataOrientation = RowMajor }  \n"
+        "}                                                                           \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    for (uint32 refParIdx = 0u; refParIdx < referenceCdbRowMajor.GetNumberOfChildren() && ok; refParIdx++) {
+        StreamString refParName = referenceCdbRowMajor.GetChildName(refParIdx);
+        for (uint32 loadParIdx = 0u; loadParIdx < loader.GetSize() && ok; loadParIdx++) {
+            StreamString loadParName = loader.GetParameterName(loadParIdx);
+            if (loadParName.Locate(refParName) >= 0) {
+                AnyType refPar = referenceCdbRowMajor.GetType(refParName.Buffer());
+                AnyType* loadPar = loader[loadParIdx];
+                ok = (MemoryOperationsHelper::Compare(refPar.GetDataPointer(), loadPar->GetDataPointer(), refPar.GetDataSize()) == 0u );
+            }
+            if (!ok) {
+                REPORT_ERROR_STATIC(ErrorManagement::Debug, "[%u] %s not equal to %s", refParIdx, refParName.Buffer(), loadParName.Buffer());
+            }
+        }
+    }
+
+    return (status.ErrorsCleared() && ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_ColMajor() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                                                \n"
+        "Tree   = mdsoc_ttree                                                        \n"
+        "Server = localhost:8002                                                     \n"
+        "Shot   = -1                                                                 \n"
+        "Parameters = {                                                              \n"
+        "    SCALUINT8    = { Path = \"SCALUINT8\"     DataOrientation = ColumnMajor }  \n"
+        "    SCALUINT16   = { Path = \"SCALUINT16\"    DataOrientation = ColumnMajor }  \n"
+        "    SCALUINT32   = { Path = \"SCALUINT32\"    DataOrientation = ColumnMajor }  \n"
+        "    SCALUINT64   = { Path = \"SCALUINT64\"    DataOrientation = ColumnMajor }  \n"
+        "    SCALINT8     = { Path = \"SCALINT8\"      DataOrientation = ColumnMajor }  \n"
+        "    SCALINT16    = { Path = \"SCALINT16\"     DataOrientation = ColumnMajor }  \n"
+        "    SCALINT32    = { Path = \"SCALINT32\"     DataOrientation = ColumnMajor }  \n"
+        "    SCALINT64    = { Path = \"SCALINT64\"     DataOrientation = ColumnMajor }  \n"
+        "    SCALFLOAT32  = { Path = \"SCALFLOAT32\"   DataOrientation = ColumnMajor }  \n"
+        "    SCALFLOAT64  = { Path = \"SCALFLOAT64\"   DataOrientation = ColumnMajor }  \n"
+        "    VECUINT8     = { Path = \"VECUINT8\"      DataOrientation = ColumnMajor }  \n"
+        "    VECUINT16    = { Path = \"VECUINT16\"     DataOrientation = ColumnMajor }  \n"
+        "    VECUINT32    = { Path = \"VECUINT32\"     DataOrientation = ColumnMajor }  \n"
+        "    VECUINT64    = { Path = \"VECUINT64\"     DataOrientation = ColumnMajor }  \n"
+        "    VECINT8      = { Path = \"VECINT8\"       DataOrientation = ColumnMajor }  \n"
+        "    VECINT16     = { Path = \"VECINT16\"      DataOrientation = ColumnMajor }  \n"
+        "    VECINT32     = { Path = \"VECINT32\"      DataOrientation = ColumnMajor }  \n"
+        "    VECINT64     = { Path = \"VECINT64\"      DataOrientation = ColumnMajor }  \n"
+        "    VECFLOAT32   = { Path = \"VECFLOAT32\"    DataOrientation = ColumnMajor }  \n"
+        "    VECFLOAT64   = { Path = \"VECFLOAT64\"    DataOrientation = ColumnMajor }  \n"
+        "    MATUINT8     = { Path = \"MATUINT8\"      DataOrientation = ColumnMajor }  \n"
+        "    MATUINT16    = { Path = \"MATUINT16\"     DataOrientation = ColumnMajor }  \n"
+        "    MATUINT32    = { Path = \"MATUINT32\"     DataOrientation = ColumnMajor }  \n"
+        "    MATUINT64    = { Path = \"MATUINT64\"     DataOrientation = ColumnMajor }  \n"
+        "    MATINT8      = { Path = \"MATINT8\"       DataOrientation = ColumnMajor }  \n"
+        "    MATINT16     = { Path = \"MATINT16\"      DataOrientation = ColumnMajor }  \n"
+        "    MATINT32     = { Path = \"MATINT32\"      DataOrientation = ColumnMajor }  \n"
+        "    MATINT64     = { Path = \"MATINT64\"      DataOrientation = ColumnMajor }  \n"
+        "    MATFLOAT32   = { Path = \"MATFLOAT32\"    DataOrientation = ColumnMajor }  \n"
+        "    MATFLOAT64   = { Path = \"MATFLOAT64\"    DataOrientation = ColumnMajor }  \n"
+        "    MAT3DUINT8   = { Path = \"MAT3DUINT8\"    DataOrientation = ColumnMajor }  \n"
+        "    MAT3DUINT16  = { Path = \"MAT3DUINT16\"   DataOrientation = ColumnMajor }  \n"
+        "    MAT3DUINT32  = { Path = \"MAT3DUINT32\"   DataOrientation = ColumnMajor }  \n"
+        "    MAT3DUINT64  = { Path = \"MAT3DUINT64\"   DataOrientation = ColumnMajor }  \n"
+        "    MAT3DINT8    = { Path = \"MAT3DINT8\"     DataOrientation = ColumnMajor }  \n"
+        "    MAT3DINT16   = { Path = \"MAT3DINT16\"    DataOrientation = ColumnMajor }  \n"
+        "    MAT3DINT32   = { Path = \"MAT3DINT32\"    DataOrientation = ColumnMajor }  \n"
+        "    MAT3DINT64   = { Path = \"MAT3DINT64\"    DataOrientation = ColumnMajor }  \n"
+        "    MAT3DFLOAT32 = { Path = \"MAT3DFLOAT32\"  DataOrientation = ColumnMajor }  \n"
+        "    MAT3DFLOAT64 = { Path = \"MAT3DFLOAT64\"  DataOrientation = ColumnMajor }  \n"
+        "}                                                                           \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    for (uint32 refParIdx = 0u; refParIdx < referenceCdbColMajor.GetNumberOfChildren() && ok; refParIdx++) {
+        StreamString refParName = referenceCdbColMajor.GetChildName(refParIdx);
+        for (uint32 loadParIdx = 0u; loadParIdx < loader.GetSize() && ok; loadParIdx++) {
+            StreamString loadParName = loader.GetParameterName(loadParIdx);
+            if (loadParName.Locate(refParName) >= 0) {
+                AnyType refPar = referenceCdbColMajor.GetType(refParName.Buffer());
+                AnyType* loadPar = loader[loadParIdx];
+                ok = (MemoryOperationsHelper::Compare(refPar.GetDataPointer(), loadPar->GetDataPointer(), refPar.GetDataSize()) == 0u );
+            }
+            if (!ok) {
+                REPORT_ERROR_STATIC(ErrorManagement::Debug, "[%u] %s not equal to %s", refParIdx, refParName.Buffer(), loadParName.Buffer());
+            }
+        }
+    }
+
+    return (status.ErrorsCleared() && ok);
+}
+
+
 bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_RowMajor() {
 
     StreamString configStream = ""
@@ -592,22 +793,51 @@ bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_RowMajor() {
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
     bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
 
-    for (uint32 refParIdx = 0u; refParIdx < referenceCdb.GetNumberOfChildren() && ok; refParIdx++) {
-        StreamString refParName = referenceCdb.GetChildName(refParIdx);
+    for (uint32 refParIdx = 0u; refParIdx < referenceCdbRowMajor.GetNumberOfChildren() && ok; refParIdx++) {
+        StreamString refParName = referenceCdbRowMajor.GetChildName(refParIdx);
         for (uint32 loadParIdx = 0u; loadParIdx < loader.GetSize() && ok; loadParIdx++) {
             StreamString loadParName = loader.GetParameterName(loadParIdx);
             if (loadParName.Locate(refParName) >= 0) {
-                AnyType refPar = referenceCdb.GetType(refParName.Buffer());
+                AnyType refPar = referenceCdbRowMajor.GetType(refParName.Buffer());
                 AnyType* loadPar = loader[loadParIdx];
                 ok = (MemoryOperationsHelper::Compare(refPar.GetDataPointer(), loadPar->GetDataPointer(), refPar.GetDataSize()) == 0u );
-//                REPORT_ERROR_STATIC(ErrorManagement::Debug, "[%u] %s[b%u] %! vs %s[b%u] %!", refParIdx, refParName.Buffer(), refPar.GetByteSize(), refPar, loadParName.Buffer(), loadPar->GetByteSize(), *loadPar);
-//                REPORT_ERROR_STATIC(ErrorManagement::Debug, "types: %s - %s", TypeDescriptor::GetTypeNameFromTypeDescriptor(refPar.GetTypeDescriptor()), TypeDescriptor::GetTypeNameFromTypeDescriptor(refPar.GetTypeDescriptor()));
-if (!ok) {
-printf("-------------------- %s\n", refParName.Buffer());
-for (uint32 i = 0u; i<refPar.GetDataSize(); i++) REPORT_ERROR_STATIC(ErrorManagement::Debug, "%u --- %u", *((uint8*)refPar.GetDataPointer()+i), *((uint8*)(loadPar->GetDataPointer())+i) );
-printf("---\n");
-for (uint32 i = 0u; i<refPar.GetDataSize(); i++) printf("%u, ", *((uint8*)(loadPar->GetDataPointer())+i) );
+            }
+            if (!ok) {
+                REPORT_ERROR_STATIC(ErrorManagement::Debug, "[%u] %s not equal to %s", refParIdx, refParName.Buffer(), loadParName.Buffer());
+            }
+        }
+    }
+
+    return (status.ErrorsCleared() && ok);
 }
+
+bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_ColMajor() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection              \n"
+        "Tree   = mdsoc_ttree                      \n"
+        "Server = localhost:8002                   \n"
+        "Shot   = -1                               \n"
+        "Parameters = {                            \n"
+        "    StructParameter = { Path = \"DICT\" DataOrientation = ColumnMajor } \n"
+        "}                                         \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    for (uint32 refParIdx = 0u; refParIdx < referenceCdbColMajor.GetNumberOfChildren() && ok; refParIdx++) {
+        StreamString refParName = referenceCdbColMajor.GetChildName(refParIdx);
+        for (uint32 loadParIdx = 0u; loadParIdx < loader.GetSize() && ok; loadParIdx++) {
+            StreamString loadParName = loader.GetParameterName(loadParIdx);
+            if (loadParName.Locate(refParName) >= 0) {
+                AnyType refPar = referenceCdbColMajor.GetType(refParName.Buffer());
+                AnyType* loadPar = loader[loadParIdx];
+                ok = (MemoryOperationsHelper::Compare(refPar.GetDataPointer(), loadPar->GetDataPointer(), refPar.GetDataSize()) == 0u );
             }
             if (!ok) {
                 REPORT_ERROR_STATIC(ErrorManagement::Debug, "[%u] %s not equal to %s", refParIdx, refParName.Buffer(), loadParName.Buffer());

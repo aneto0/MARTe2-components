@@ -100,9 +100,14 @@ public:
      */
     bool TestInitialise();
 
-    bool TestInitialise_DictAsStruct_RowMajor();
+    bool TestInitialise_RowMajor();
+    bool TestInitialise_ColMajor();
 
-    ConfigurationDatabase referenceCdb;
+    bool TestInitialise_DictAsStruct_RowMajor();
+    bool TestInitialise_DictAsStruct_ColMajor();
+
+    ConfigurationDatabase referenceCdbRowMajor;
+    ConfigurationDatabase referenceCdbColMajor;
 
 private:
 

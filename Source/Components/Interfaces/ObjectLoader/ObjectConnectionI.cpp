@@ -139,12 +139,15 @@ void ObjectConnectionI::TransposeAndCopyT(void *const destination, const void *c
                                           const uint32 numberOfRows, const uint32 numberOfColumns, const uint32 numberOfPages) {
 
     if (numberOfPages > 1u) {
+
         // 3D matrix
         for (uint32 rowIdx = 0u; rowIdx < numberOfRows; rowIdx++) {
             for (uint32 colIdx = 0u; colIdx < numberOfColumns; colIdx++) {
                 for (uint32 pagIdx = 0u; pagIdx < numberOfPages; pagIdx++) {
-                        *((T *)destination + rowIdx + numberOfRows  * colIdx + numberOfColumns * numberOfRows  * pagIdx)
-                        = *((T *)source    + pagIdx + numberOfPages * colIdx + numberOfColumns * numberOfPages * rowIdx);
+                    uint32 destLinearIdx = rowIdx + numberOfRows  * colIdx + numberOfRows  * numberOfColumns * pagIdx;
+                    uint32 sourceLinearIdx = + pagIdx + numberOfPages * colIdx + numberOfPages * numberOfColumns * rowIdx;
+                    *((T*)destination + destLinearIdx) =
+                    *((T*)source      + sourceLinearIdx);
                 }
             }
         }

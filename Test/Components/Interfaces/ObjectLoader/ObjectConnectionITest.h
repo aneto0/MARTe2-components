@@ -151,24 +151,29 @@ bool ObjectConnectionITest::TestTransposeAndCopy(const TypeDescriptor typeDesc) 
 
     if (status && ok) {
         // input array
-        T rowMajor3DArray[2][3][4] = {
-            { { 1,  2,  3,  4}, { 5,  6,  7,  8}, { 9, 10, 11, 12} },
-            { {13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24} }
+//         T rowMajor3DArray[2][3][4] = {
+//             { { 1,  2,  3,  4}, { 5,  6,  7,  8}, { 9, 10, 11, 12} },
+//             { {13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24} }
+//         };
+        T rowMajor3DArray[3][4][2] = {
+            { { 1, 13}, { 2, 14}, { 3, 15}, { 4, 16} },
+            { { 5, 17}, { 6, 18}, { 7, 19}, { 8, 20} },
+            { { 9, 21}, {10, 22}, {11, 23}, {12, 24} }
         };
 
         // expected array
-        T colMajor3DArray[4][3][2] = {
-            { { 1, 13}, { 5, 17}, { 9, 21} }, { { 2, 14}, { 6, 18}, {10, 22} },
-            { { 3, 15}, { 7, 19}, {11, 23} }, { { 4, 16}, { 8, 20}, {12, 24} }
+        T colMajor3DArray[2][4][3] = {
+            { { 1,  5,  9}, { 2,  6, 10}, { 3,  7, 11}, { 4,  8, 12} },
+            { {13, 17, 21}, {14, 18, 22}, {15, 19, 23}, {16, 20, 24} }
         };
 
         // output array
-        T output3DArray[4][3][2] = {
-            { {0, 0}, {0, 0}, {0, 0} }, { {0, 0}, {0, 0}, {0, 0} },
-            { {0, 0}, {0, 0}, {0, 0} }, { {0, 0}, {0, 0}, {0, 0} }
+        T output3DArray[2][4][3] = {
+            { {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0} },
+            { {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0} }
         };
 
-        status = obConnection.TestTransposeAndCopy(output3DArray, rowMajor3DArray, typeDesc, 2, 3, 4);
+        status = obConnection.TestTransposeAndCopy(output3DArray, rowMajor3DArray, typeDesc, 3, 4, 2);
         ok = (MemoryOperationsHelper::Compare(&output3DArray[0][0][0], &colMajor3DArray[0][0][0], 24u*sizeof(T)) == 0u);
     }
 
