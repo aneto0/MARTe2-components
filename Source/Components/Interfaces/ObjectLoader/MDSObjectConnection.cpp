@@ -263,7 +263,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
         else if (targetDim != 0u && startIdx != 0u && stopIdx != 0u) {
 
             ret.parametersError = true;
-            REPORT_ERROR(ret, "[%s] - Parameter %s: both Dim and StartIdx/StopIdx used, unsupported.", GetName(), nodeName.Buffer());
+            REPORT_ERROR(ret, "[%s] - Parameter %s: both TargetDim and StartIdx/StopIdx used, unsupported.", GetName(), nodeName.Buffer());
         }
         // Path is ok as it is
         else {

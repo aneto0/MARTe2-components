@@ -64,10 +64,12 @@ namespace MARTe {
  *     +CDBConnection2 = {
  *         Class = ConfigurationDatabaseConnection
  *         Parameters = {
- *             gain4 = (float64) 1
- *             gainStruct4 = {
- *                 gain_a = (uint32) 10
- *                 gain_b = (float32) {1, 2, 3, 4}
+ *             scalarParam   = (float64) 1
+ *             vectorParam   = (int16)   {1, 2, 3}
+ *             matrixParam   = (uint32)  { {1, 2, 3, 4}, {5, 6, 7, 8} }  // 2x3 matrix
+ *             structParam = {
+ *                 structScalar = (uint32) 10
+ *                 structVector = (float32) {1, 2, 3, 4}
  *             }
  *         }
  *     }
