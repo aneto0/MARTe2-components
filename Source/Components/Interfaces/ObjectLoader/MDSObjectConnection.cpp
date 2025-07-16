@@ -65,21 +65,20 @@ bool MDSObjectConnection::Initialise(StructuredDataI & data) {
         }
     }
     if (status) {
-        status.parametersError = !data.Read("Server", serverName);
-        if (status.parametersError) {
-            REPORT_ERROR(status, "[%s] - 'Server' parameter not found", GetName());
-        }
-    }
-    if (status) {
         status.parametersError = !data.Read("Shot", shotNumber);
         if (status.parametersError) {
             REPORT_ERROR(status, "[%s] - 'Shot' parameter not found", GetName());
         }
     }
     if (status) {
+        // ClientType declared
         if (data.Read("ClientType", clientTypeName)) {
             if (clientTypeName == "Thin") {
                 clientType = ThinClient;
+                status.parametersError = !data.Read("Server", serverName);
+                if (status.parametersError) {
+                    REPORT_ERROR(status, "[%s] - 'Server' parameter not found. 'Server' parameter is required if 'ClientType = Thin'.", GetName());
+                }
             }
             else if (clientTypeName = "Distributed") {
                 clientType = DistributedClient;
@@ -89,9 +88,16 @@ bool MDSObjectConnection::Initialise(StructuredDataI & data) {
                 REPORT_ERROR(status, "[%s] - 'ClientType' parameter can only be `Thin` or `Distributed`", GetName());
             }
         }
+        // ClientType not declared
         else {
-            clientType = ThinClient;
-            REPORT_ERROR(ErrorManagement::Warning, "[%s] - 'ClientType' not set. By default it is set to Thin", GetName());
+            if (data.Read("Server", serverName)) {
+                clientType = ThinClient;
+                REPORT_ERROR(ErrorManagement::Warning, "[%s] - 'ClientType' not set. By default it is set to 'Thin'", GetName());
+            }
+            else {
+                clientType = DistributedClient;
+                REPORT_ERROR(ErrorManagement::Warning, "[%s] - 'ClientType' not set. By default it is set to 'Distributed'", GetName());
+            }
         }
     }
 
@@ -197,7 +203,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
 
     ret.parametersError = !nodeParams.Read("Path", MDSPath);
     if (ret.parametersError) {
-        REPORT_ERROR(ret, "[%s] - Parameter %s: no 'Path' node defined.", GetName(), nodeName.Buffer());
+        REPORT_ERROR(ret, "[%s] - Parameter %s: no 'Path' defined.", GetName(), nodeName.Buffer());
     }
 
     if (ret) {
@@ -207,7 +213,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
         if (nodeParams.Read("DataOrientation", orientation)) {
             if ( (orientation != "RowMajor") && (orientation != "ColumnMajor") ) {
                 ret.parametersError = true;
-                REPORT_ERROR(ret, "[%s] - Parameter %s: invalid DataOrientation (can only be `RowMajor` or `ColumnMajor`)", GetName(), nodeName.Buffer());
+                REPORT_ERROR(ret, "[%s] - Parameter %s: invalid 'DataOrientation' (can only be 'RowMajor' or 'ColumnMajor')", GetName(), nodeName.Buffer());
             }
         }
         else {

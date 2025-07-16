@@ -82,7 +82,7 @@ enum MDSClientType {
  *
  *     +MDSConnection1 = {
  *         Class = MDSObjectConnection              // Compulsory
- *         ClientType = ( "Thin" | "Distributed" )  // Optional. Default: "Thin"
+ *         ClientType = ( "Thin" | "Distributed" )  // Optional. Default: "Thin" if "Server" is declared, "Distributed" otherwise
  *         Server = "localhost:8000"                // Compulsory if ClientType = "Thin"
  *         Tree = "tree_name"                       // Compulsory (unless already defined in ObjectLoader)
  *         Shot = "-1"                              // Compulsory (unless already defined in ObjectLoader)
@@ -140,10 +140,11 @@ enum MDSClientType {
  *               `ObjectLoader` container, but defining it in the
  *               `MDSObjectConnection` will overwrite the one in the
  *               `ObjectContainer`.
- *     - *ClientType*: Optional. Its valid values are "Thin" or "Distributed".
- *               If not set, "Thin" is used by default. Please refer to the
- *               MDSplus documentation for the distinction between thin client
- *               and distributed client.
+ *     - *ClientType*: Optional. Its valid values are `Thin` or `Distributed`.
+ *               If not set, `Thin` is used by default if the `Server` parameter
+ *               is declared, and `Distributed` is used otherwise. Please refer
+ *               to the MDSplus documentation for the distinction between thin
+ *               client and distributed client.
  *     - *Server*: Only required if `ClientType = "Thin"`. It is a string which
  *               defines the IP address of the remote MDSplus server, and its
  *               access port. Instead of IP address, domains can be used, as

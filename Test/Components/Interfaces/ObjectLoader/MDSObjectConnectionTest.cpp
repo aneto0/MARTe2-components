@@ -587,7 +587,6 @@ bool MDSObjectConnectionTest::TestInitialise() {
     StreamString configStream = ""
         "Class  = MDSObjectConnection                 \n"
         "Tree   = mdsoc_ttree                         \n"
-        "Server = localhost:8002                      \n"
         "Shot   = -1                                  \n"
         "Parameters = {                               \n"
         "    ScalUint8   = { Path = \"SCALUINT8\"   } \n"
