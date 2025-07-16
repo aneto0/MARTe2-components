@@ -534,5 +534,5 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
     return ret;
 }
 
-CLASS_REGISTER(MDSObjectConnection, "1.0")
+CLASS_REGISTER(MDSObjectConnection, "1.1")
 } /* namespace MARTe */

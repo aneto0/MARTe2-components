@@ -50,6 +50,16 @@ namespace MARTe {
  * (Allocation is still up to the derived class)
  *
  * @note ObjectConnectionI deallocates itself in the destructor.
+ *
+ * Release notes
+ * ==========================================================================
+ *
+ * Version |    Date    | Notes
+ * ------: | :--------: | :----
+ * 1.0     | 16/09/2024 | initial release
+ * 1.1     | 31/07/2025 | tested and linted version
+ *
+ *
  */
 
 class ObjectConnectionI : public StaticList<AnyType*>, public ReferenceContainer, public MessageI {
