@@ -99,6 +99,12 @@ public:
      * @brief Tests the MDSObjectConnectionTest::Initialise method
      */
     bool TestInitialise();
+    bool TestInitialise_ThinClient();
+    bool TestInitialise_DistributedClient();
+    bool TestInitialise_TargetDim();
+
+    bool TestInitialise_NestedParameters();
+    bool TestInitialise_NestedParameters_WithDash();
 
     bool TestInitialise_RowMajor();
     bool TestInitialise_ColMajor();
@@ -106,8 +112,17 @@ public:
     bool TestInitialise_DictAsStruct_RowMajor();
     bool TestInitialise_DictAsStruct_ColMajor();
 
+    bool TestInitialise_NoTree_Failed();
+    bool TestInitialise_NoShot_Failed();
+    bool TestInitialise_ThinClient_NoServer_Failed();
+    bool TestInitialise_WrongClient_Failed();
+    bool TestInitialise_NoParameters_Failed();
+    bool TestInitialise_NoPath_Failed();
+    bool TestInitialise_WrongOrientation_Failed();
+
     ConfigurationDatabase referenceCdbRowMajor;
     ConfigurationDatabase referenceCdbColMajor;
+    ConfigurationDatabase referenceCdbAdditional;
 
 private:
 
@@ -123,6 +138,8 @@ private:
      * @brief Same, but does not return the configuration database.
      */
     bool TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut);
+
+    bool TestParameterLoading(MDSObjectConnection& loader, ConfigurationDatabase& referenceCdb);
 
     /**
     * @brief Reference values of the parameters.

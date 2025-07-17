@@ -75,16 +75,16 @@ bool MDSObjectConnection::Initialise(StructuredDataI & data) {
         if (data.Read("ClientType", clientTypeName)) {
             if (clientTypeName == "Thin") {
                 clientType = ThinClient;
-                status.parametersError = !data.Read("Server", serverName);
-                if (status.parametersError) {
+                status.internalSetupError = !data.Read("Server", serverName);
+                if (status.internalSetupError) {
                     REPORT_ERROR(status, "[%s] - 'Server' parameter not found. 'Server' parameter is required if 'ClientType = Thin'.", GetName());
                 }
             }
-            else if (clientTypeName = "Distributed") {
+            else if (clientTypeName == "Distributed") {
                 clientType = DistributedClient;
             }
             else {
-                status.parametersError = true;
+                status.unsupportedFeature = true;
                 REPORT_ERROR(status, "[%s] - 'ClientType' parameter can only be `Thin` or `Distributed`", GetName());
             }
         }
@@ -212,7 +212,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
         if (nodeParams.Read("TargetDim", targetDim)) {}
         if (nodeParams.Read("DataOrientation", orientation)) {
             if ( (orientation != "RowMajor") && (orientation != "ColumnMajor") ) {
-                ret.parametersError = true;
+                ret.unsupportedFeature = true;
                 REPORT_ERROR(ret, "[%s] - Parameter %s: invalid 'DataOrientation' (can only be 'RowMajor' or 'ColumnMajor')", GetName(), nodeName.Buffer());
             }
         }
@@ -228,25 +228,19 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
         // Modify path if Dim option is specified
         if (targetDim != 0u && startIdx == 0u && stopIdx == 0u) {
 
-            // Add indices to the path in the form "[startIdx:stopIdx]"
-            StreamString nodeWithIndices;
-            StreamString indices;
-
-            indices.Printf("[0:%u]", targetDim);
-            nodeWithIndices = MDSPath;
-            nodeWithIndices += indices;
-
-            // Now use TDI syntax to append zeroes if indices exceed array dimension
             StreamString tdiExpr = ""
-                                    "_swgTargetDim = %u;"                // store targetDim in MDSplus
-                                    "_swgVec       = %s;"                // store the current vector with indices
-                                    "_swgVecSize   = shape(_swgVec, 0);" // calculate actual vector dimensions
-                                    "if(_swgTargetDim > _swgVecSize)"    // if vector size is less than required...
-                                    "    for(_i = 0; _i < _swgTargetDim - _swgVecSize; _i++)"
-                                    "        _swgVec = [_swgVec, 0];" // ... fill up with zeroes
-                                    "_swgVec";                        // return the updated vector as result of this expression
+                                   "_swgTargetDim = %u;"
+                                   "_swgVec       = %s;"
+                                   "_swgVecSize   = SHAPE(_swgVec, 0);"
+                                   "if(_swgTargetDim > _swgVecSize)"
+                                   "    _swgPad = ZERO(_swgTargetDim - _swgVecSize, _swgVec[0]),"
+                                   "    _swgVec = [_swgVec, _swgPad];"
+                                   "else"
+                                   "    _swgVec = _swgVec[0:%u];"
+                                   "_swgVec";
 
-            expandedMDSPath.Printf(tdiExpr.Buffer(), targetDim, nodeWithIndices.Buffer());
+
+            expandedMDSPath.Printf(tdiExpr.Buffer(), targetDim, MDSPath.Buffer(), targetDim - 1u);
         }
         // Modify path if StartIdx and StopIdx options are specified
         else if (targetDim == 0u && (startIdx != 0u || stopIdx != 0u)) {
@@ -268,7 +262,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
         // Error
         else if (targetDim != 0u && startIdx != 0u && stopIdx != 0u) {
 
-            ret.parametersError = true;
+            ret.unsupportedFeature = true;
             REPORT_ERROR(ret, "[%s] - Parameter %s: both TargetDim and StartIdx/StopIdx used, unsupported.", GetName(), nodeName.Buffer());
         }
         // Path is ok as it is

@@ -49,6 +49,31 @@ TEST(MDSObjectConnectionGTest,TestInitialise) {
     ASSERT_TRUE(test.TestInitialise());
 }
 
+TEST(MDSObjectConnectionGTest,TestInitialise_ThinClient) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_ThinClient());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_DistributedClient) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_DistributedClient());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_TargetDim) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_TargetDim());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_NestedParameters) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_NestedParameters());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_NestedParameters_WithDash) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_NestedParameters_WithDash());
+}
+
 TEST(MDSObjectConnectionGTest,TestInitialise_RowMajor) {
     MDSObjectConnectionTest test;
     ASSERT_TRUE(test.TestInitialise_RowMajor());
@@ -67,5 +92,40 @@ TEST(MDSObjectConnectionGTest,TestInitialise_DictAsStruct_RowMajor) {
 TEST(MDSObjectConnectionGTest,TestInitialise_DictAsStruct_ColMajor) {
     MDSObjectConnectionTest test;
     ASSERT_TRUE(test.TestInitialise_DictAsStruct_ColMajor());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_NoTree_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_NoTree_Failed());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_NoShot_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_NoShot_Failed());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_ThinClient_NoServer_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_ThinClient_NoServer_Failed());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_WrongClient_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_WrongClient_Failed());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_NoParameters_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_NoParameters_Failed());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_NoPath_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_NoPath_Failed());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_WrongOrientation_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_WrongOrientation_Failed());
 }
 

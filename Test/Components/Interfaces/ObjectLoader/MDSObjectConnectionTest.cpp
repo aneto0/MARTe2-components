@@ -35,18 +35,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-// TestMDSObjectConnection::TestMDSObjectConnection() {}
-//
-// TestMDSObjectConnection::~TestMDSObjectConnection() {}
-//
-// ErrorManagement::ErrorType TestMDSObjectConnection::TestTransposeAndCopy(void *const destination, const void *const source, const TypeDescriptor typeDesc,
-//     const uint32 numberOfRows, const uint32 numberOfColumns, const uint32 numberOfPages) {
-//
-//     return TransposeAndCopy(destination, source, typeDesc, numberOfRows, numberOfColumns, numberOfPages);
-// }
-//
-// CLASS_REGISTER(TestMDSObjectConnection, "1.0");
-
 
 class MDSObjectConnectionTestEnvironment {
 public:
@@ -488,6 +476,7 @@ MDSObjectConnectionTest::MDSObjectConnectionTest() {
         "   VECFLOAT32 = (float32) {1.1, 2.2, 3.3, 4.4}"
         "   MATFLOAT32 = (float32) { {1.1, 2.2, 3.3, 4.4}, {5.5, 6.6, 7.7, 8.8}, {9.9, 10.1, 11.11, 12.12} }"
         " MAT3DFLOAT32 = (uint8) { 205, 204, 140, 63, 123, 20, 82, 65, 205, 204, 12, 64, 113, 61, 98, 65, 51, 51, 83, 64, 102, 102, 114, 65, 205, 204, 140, 64, 174, 71, 129, 65, 0, 0, 176, 64, 41, 92, 137, 65, 51, 51, 211, 64, 164, 112, 145, 65, 102, 102, 246, 64, 31, 133, 153, 65, 205, 204, 12, 65, 154, 153, 161, 65, 102, 102, 30, 65, 20, 174, 169, 65, 154, 153, 33, 65, 143, 194, 177, 65, 143, 194, 49, 65, 10, 215, 185, 65, 133, 235, 65, 65, 133, 235, 193, 65 }"
+        "  SCALFLOAT64 = (float64) 1.1 "
         "   VECFLOAT64 = (float64) {1.1, 2.2, 3.3, 4.4}"
         "   MATFLOAT64 = (float64) { {1.1, 2.2, 3.3, 4.4}, {5.5, 6.6, 7.7, 8.8}, {9.9, 10.1, 11.11, 12.12} }"
         " MAT3DFLOAT64 = (uint8) { 154, 153, 153, 153, 153, 153, 241, 63, 195, 245, 40, 92, 143, 66, 42, 64, 154, 153, 153, 153, 153, 153, 1, 64, 72, 225, 122, 20, 174, 71, 44, 64, 102, 102, 102, 102, 102, 102, 10, 64, 205, 204, 204, 204, 204, 76, 46, 64, 154, 153, 153, 153, 153, 153, 17, 64, 41, 92, 143, 194, 245, 40, 48, 64, 0, 0, 0, 0, 0, 0, 22, 64, 236, 81, 184, 30, 133, 43, 49, 64, 102, 102, 102, 102, 102, 102, 26, 64, 174, 71, 225, 122, 20, 46, 50, 64, 205, 204, 204, 204, 204, 204, 30, 64, 113, 61, 10, 215, 163, 48, 51, 64, 154, 153, 153, 153, 153, 153, 33, 64, 51, 51, 51, 51, 51, 51, 52, 64, 205, 204, 204, 204, 204, 204, 35, 64, 246, 40, 92, 143, 194, 53, 53, 64, 51, 51, 51, 51, 51, 51, 36, 64, 184, 30, 133, 235, 81, 56, 54, 64, 184, 30, 133, 235, 81, 56, 38, 64, 123, 20, 174, 71, 225, 58, 55, 64, 61, 10, 215, 163, 112, 61, 40, 64, 61, 10, 215, 163, 112, 61, 56, 64 }"
@@ -545,6 +534,35 @@ MDSObjectConnectionTest::MDSObjectConnectionTest() {
     standardParameters.Seek(0u);
     StandardParser parser2(standardParameters, referenceCdbColMajor);
     parser2.Parse();
+
+    // additional parameters to test extra features
+    standardParameters = ""
+        " VECUINT8_PAD    = (uint8)   {1, 2, 3, 4, 0, 0} "
+        " VECUINT8_TRIM   = (uint8)   {1, 2} "
+        " VECUINT16_PAD   = (uint16)  {1, 2, 3, 4, 0, 0} "
+        " VECUINT16_TRIM  = (uint16)  {1, 2} "
+        " VECUINT32_PAD   = (uint32)  {1, 2, 3, 4, 0, 0} "
+        " VECUINT32_TRIM  = (uint32)  {1, 2} "
+        " VECUINT64_PAD   = (uint64)  {1, 2, 3, 4, 0, 0} "
+        " VECUINT64_TRIM  = (uint64)  {1, 2} "
+        " VECINT8_PAD     = (int8)    {1, -2, 3, -4, 0, 0} "
+        " VECINT8_TRIM    = (int8)    {1, -2} "
+        " VECINT16_PAD    = (int16)   {1, -2, 3, -4, 0, 0} "
+        " VECINT16_TRIM   = (int16)   {1, -2} "
+        " VECINT32_PAD    = (int32)   {1, -2, 3, -4, 0, 0} "
+        " VECINT32_TRIM   = (int32)   {1, -2} "
+        " VECINT64_PAD    = (int64)   {1, -2, 3, -4, 0, 0} "
+        " VECINT64_TRIM   = (int64)   {1, -2} "
+        " VECFLOAT32_PAD  = (float32) {1.1, 2.2, 3.3, 4.4, 0, 0} "
+        " VECFLOAT32_TRIM = (float32) {1.1, 2.2} "
+        " VECFLOAT64_PAD  = (float64) {1.1, 2.2, 3.3, 4.4, 0, 0} "
+        " VECFLOAT64_TRIM = (float64) {1.1, 2.2} "
+        ""
+        ;
+
+    standardParameters.Seek(0u);
+    StandardParser parser3(standardParameters, referenceCdbAdditional);
+    parser3.Parse();
 }
 
 MDSObjectConnectionTest::~MDSObjectConnectionTest() {
@@ -570,6 +588,43 @@ bool MDSObjectConnectionTest::TestInitialiseWithConfiguration(StreamString confi
     if (ok) {
         ok = loader.Initialise(cdbOut);
         statusOut = loader.GetStatus();
+    }
+
+    return ok;
+}
+
+bool MDSObjectConnectionTest::TestParameterLoading(MDSObjectConnection& loader, ConfigurationDatabase& referenceCdb) {
+
+    bool ok = true;
+
+    Vector<bool> hasBeenChecked = Vector<bool>(loader.GetSize());
+    for (uint32 i = 0u; i < hasBeenChecked.GetNumberOfElements(); i++) {
+        hasBeenChecked[i] = false;
+    }
+
+    for (uint32 refParIdx = 0u; refParIdx < referenceCdb.GetNumberOfChildren() && ok; refParIdx++) {
+        StreamString refParName = referenceCdb.GetChildName(refParIdx);
+        for (uint32 loadParIdx = 0u; loadParIdx < loader.GetSize() && ok; loadParIdx++) {
+            StreamString loadParName = loader.GetParameterName(loadParIdx);
+            if (loadParName.Locate(refParName) >= 0) {
+                AnyType refPar = referenceCdb.GetType(refParName.Buffer());
+                AnyType* loadPar = loader[loadParIdx];
+                ok = (MemoryOperationsHelper::Compare(refPar.GetDataPointer(), loadPar->GetDataPointer(), refPar.GetDataSize()) == 0u );
+                if (ok) {
+                    hasBeenChecked[loadParIdx] = true;
+                } else {
+                    REPORT_ERROR_STATIC(ErrorManagement::Debug, "[%u] %s not equal to %s", refParIdx, refParName.Buffer(), loadParName.Buffer());
+                }
+            }
+        }
+    }
+
+    // verify that all parameters have been checked
+    for (uint32 i = 0u; i < hasBeenChecked.GetNumberOfElements() && ok; i++) {
+        ok &= (hasBeenChecked[i] == true);
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::Debug, "Parameter %s not checked.", loader.GetParameterName(i).Buffer());
+        }
     }
 
     return ok;
@@ -608,6 +663,162 @@ bool MDSObjectConnectionTest::TestInitialise() {
 
     return (status.ErrorsCleared() && ok);
 }
+
+bool MDSObjectConnectionTest::TestInitialise_ThinClient() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                 \n"
+        "ClientType = Thin                            \n"
+        "Server = localhost:8002                      \n"
+        "Tree   = mdsoc_ttree                         \n"
+        "Shot   = -1                                  \n"
+        "Parameters = {                               \n"
+        "    SCALUINT8   = { Path = \"SCALUINT8\"   } \n"
+        "}                                            \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbRowMajor);
+    }
+
+    return (status.ErrorsCleared() && ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_DistributedClient() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                 \n"
+        "ClientType = Distributed                     \n"
+        "Tree   = mdsoc_ttree                         \n"
+        "Shot   = -1                                  \n"
+        "Parameters = {                               \n"
+        "    SCALUINT8   = { Path = \"SCALUINT8\"   } \n"
+        "}                                            \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbRowMajor);
+    }
+
+    return (status.ErrorsCleared() && ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_TargetDim() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                                     \n"
+        "ClientType = Distributed                                         \n"
+        "Tree   = mdsoc_ttree                                             \n"
+        "Shot   = -1                                                      \n"
+        "Parameters = {                                                   \n"
+        "    VECUINT8_PAD    = { Path = \"VECUINT8\"    TargetDim = 6  }  \n"
+        "    VECUINT8_TRIM   = { Path = \"VECUINT8\"    TargetDim = 2  }  \n"
+        "    VECUINT16_PAD   = { Path = \"VECUINT16\"   TargetDim = 6  }  \n"
+        "    VECUINT16_TRIM  = { Path = \"VECUINT16\"   TargetDim = 2  }  \n"
+        "    VECUINT32_PAD   = { Path = \"VECUINT32\"   TargetDim = 6  }  \n"
+        "    VECUINT32_TRIM  = { Path = \"VECUINT32\"   TargetDim = 2  }  \n"
+        "    VECUINT64_PAD   = { Path = \"VECUINT64\"   TargetDim = 6  }  \n"
+        "    VECUINT64_TRIM  = { Path = \"VECUINT64\"   TargetDim = 2  }  \n"
+        "    VECINT8_PAD     = { Path = \"VECINT8\"     TargetDim = 6  }  \n"
+        "    VECINT8_TRIM    = { Path = \"VECINT8\"     TargetDim = 2  }  \n"
+        "    VECINT16_PAD    = { Path = \"VECINT16\"    TargetDim = 6  }  \n"
+        "    VECINT16_TRIM   = { Path = \"VECINT16\"    TargetDim = 2  }  \n"
+        "    VECINT32_PAD    = { Path = \"VECINT32\"    TargetDim = 6  }  \n"
+        "    VECINT32_TRIM   = { Path = \"VECINT32\"    TargetDim = 2  }  \n"
+        "    VECINT64_PAD    = { Path = \"VECINT64\"    TargetDim = 6  }  \n"
+        "    VECINT64_TRIM   = { Path = \"VECINT64\"    TargetDim = 2  }  \n"
+        "    VECFLOAT32_PAD  = { Path = \"VECFLOAT32\"  TargetDim = 6  }  \n"
+        "    VECFLOAT32_TRIM = { Path = \"VECFLOAT32\"  TargetDim = 2  }  \n"
+        "    VECFLOAT64_PAD  = { Path = \"VECFLOAT64\"  TargetDim = 6  }  \n"
+        "    VECFLOAT64_TRIM = { Path = \"VECFLOAT64\"  TargetDim = 2  }  \n"
+        "}                                                                \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbAdditional);
+    }
+
+    return (status.ErrorsCleared() && ok);
+}
+
+
+bool MDSObjectConnectionTest::TestInitialise_NestedParameters() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                   \n"
+        "ClientType = Distributed                       \n"
+        "Tree   = mdsoc_ttree                           \n"
+        "Shot   = -1                                    \n"
+        "Parameters = {                                 \n"
+        "    myStruct = {                               \n"
+        "        SCALUINT8  = { Path = \"SCALUINT8\" }  \n"
+        "        SCALUINT16 = { Path = \"SCALUINT16\" } \n"
+        "    }                                          \n"
+        "}                                              \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbRowMajor);
+    }
+
+    return (status.ErrorsCleared() && ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_NestedParameters_WithDash() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                        \n"
+        "ClientType = Distributed                            \n"
+        "Tree   = mdsoc_ttree                                \n"
+        "Shot   = -1                                         \n"
+        "Parameters = {                                      \n"
+        "    myStruct-SCALUINT8  = { Path = \"SCALUINT8\"  } \n"
+        "    myStruct-SCALUINT16 = { Path = \"SCALUINT16\" } \n"
+        "}                                                   \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbRowMajor);
+    }
+
+    return (status.ErrorsCleared() && ok);
+}
+
 
 bool MDSObjectConnectionTest::TestInitialise_RowMajor() {
 
@@ -667,19 +878,8 @@ bool MDSObjectConnectionTest::TestInitialise_RowMajor() {
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
     bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
 
-    for (uint32 refParIdx = 0u; refParIdx < referenceCdbRowMajor.GetNumberOfChildren() && ok; refParIdx++) {
-        StreamString refParName = referenceCdbRowMajor.GetChildName(refParIdx);
-        for (uint32 loadParIdx = 0u; loadParIdx < loader.GetSize() && ok; loadParIdx++) {
-            StreamString loadParName = loader.GetParameterName(loadParIdx);
-            if (loadParName.Locate(refParName) >= 0) {
-                AnyType refPar = referenceCdbRowMajor.GetType(refParName.Buffer());
-                AnyType* loadPar = loader[loadParIdx];
-                ok = (MemoryOperationsHelper::Compare(refPar.GetDataPointer(), loadPar->GetDataPointer(), refPar.GetDataSize()) == 0u );
-            }
-            if (!ok) {
-                REPORT_ERROR_STATIC(ErrorManagement::Debug, "[%u] %s not equal to %s", refParIdx, refParName.Buffer(), loadParName.Buffer());
-            }
-        }
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbRowMajor);
     }
 
     return (status.ErrorsCleared() && ok);
@@ -743,19 +943,8 @@ bool MDSObjectConnectionTest::TestInitialise_ColMajor() {
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
     bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
 
-    for (uint32 refParIdx = 0u; refParIdx < referenceCdbColMajor.GetNumberOfChildren() && ok; refParIdx++) {
-        StreamString refParName = referenceCdbColMajor.GetChildName(refParIdx);
-        for (uint32 loadParIdx = 0u; loadParIdx < loader.GetSize() && ok; loadParIdx++) {
-            StreamString loadParName = loader.GetParameterName(loadParIdx);
-            if (loadParName.Locate(refParName) >= 0) {
-                AnyType refPar = referenceCdbColMajor.GetType(refParName.Buffer());
-                AnyType* loadPar = loader[loadParIdx];
-                ok = (MemoryOperationsHelper::Compare(refPar.GetDataPointer(), loadPar->GetDataPointer(), refPar.GetDataSize()) == 0u );
-            }
-            if (!ok) {
-                REPORT_ERROR_STATIC(ErrorManagement::Debug, "[%u] %s not equal to %s", refParIdx, refParName.Buffer(), loadParName.Buffer());
-            }
-        }
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbColMajor);
     }
 
     return (status.ErrorsCleared() && ok);
@@ -781,19 +970,8 @@ bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_RowMajor() {
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
     bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
 
-    for (uint32 refParIdx = 0u; refParIdx < referenceCdbRowMajor.GetNumberOfChildren() && ok; refParIdx++) {
-        StreamString refParName = referenceCdbRowMajor.GetChildName(refParIdx);
-        for (uint32 loadParIdx = 0u; loadParIdx < loader.GetSize() && ok; loadParIdx++) {
-            StreamString loadParName = loader.GetParameterName(loadParIdx);
-            if (loadParName.Locate(refParName) >= 0) {
-                AnyType refPar = referenceCdbRowMajor.GetType(refParName.Buffer());
-                AnyType* loadPar = loader[loadParIdx];
-                ok = (MemoryOperationsHelper::Compare(refPar.GetDataPointer(), loadPar->GetDataPointer(), refPar.GetDataSize()) == 0u );
-            }
-            if (!ok) {
-                REPORT_ERROR_STATIC(ErrorManagement::Debug, "[%u] %s not equal to %s", refParIdx, refParName.Buffer(), loadParName.Buffer());
-            }
-        }
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbRowMajor);
     }
 
     return (status.ErrorsCleared() && ok);
@@ -818,21 +996,139 @@ bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_ColMajor() {
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
     bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
 
-    for (uint32 refParIdx = 0u; refParIdx < referenceCdbColMajor.GetNumberOfChildren() && ok; refParIdx++) {
-        StreamString refParName = referenceCdbColMajor.GetChildName(refParIdx);
-        for (uint32 loadParIdx = 0u; loadParIdx < loader.GetSize() && ok; loadParIdx++) {
-            StreamString loadParName = loader.GetParameterName(loadParIdx);
-            if (loadParName.Locate(refParName) >= 0) {
-                AnyType refPar = referenceCdbColMajor.GetType(refParName.Buffer());
-                AnyType* loadPar = loader[loadParIdx];
-                ok = (MemoryOperationsHelper::Compare(refPar.GetDataPointer(), loadPar->GetDataPointer(), refPar.GetDataSize()) == 0u );
-            }
-            if (!ok) {
-                REPORT_ERROR_STATIC(ErrorManagement::Debug, "[%u] %s not equal to %s", refParIdx, refParName.Buffer(), loadParName.Buffer());
-            }
-        }
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbColMajor);
     }
 
     return (status.ErrorsCleared() && ok);
 }
 
+bool MDSObjectConnectionTest::TestInitialise_NoTree_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                 \n"
+        "Shot   = -1                                  \n"
+        "Parameters = {                               \n"
+        "    ScalUint8   = { Path = \"SCALUINT8\"   } \n"
+        "}                                            \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.parametersError && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_NoShot_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                 \n"
+        "Tree   = mdsoc_ttree                         \n"
+        "Parameters = {                               \n"
+        "    ScalUint8   = { Path = \"SCALUINT8\"   } \n"
+        "}                                            \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.parametersError && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_ThinClient_NoServer_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                 \n"
+        "ClientType = Thin                            \n"
+        "Tree   = mdsoc_ttree                         \n"
+        "Shot   = -1                                  \n"
+        "Parameters = {                               \n"
+        "    ScalUint8   = { Path = \"SCALUINT8\"   } \n"
+        "}                                            \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.internalSetupError && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_WrongClient_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                 \n"
+        "ClientType = Thick                           \n"
+        "Server = localhost:8002                      \n"
+        "Tree   = mdsoc_ttree                         \n"
+        "Shot   = -1                                  \n"
+        "Parameters = {                               \n"
+        "    ScalUint8   = { Path = \"SCALUINT8\"   } \n"
+        "}                                            \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.unsupportedFeature && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_NoParameters_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                 \n"
+        "ClientType = Thin                            \n"
+        "Server = localhost:8002                      \n"
+        "Tree   = mdsoc_ttree                         \n"
+        "Shot   = -1                                  \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.parametersError && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_NoPath_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                 \n"
+        "ClientType = Thin                            \n"
+        "Server = localhost:8002                      \n"
+        "Tree   = mdsoc_ttree                         \n"
+        "Shot   = -1                                  \n"
+        "Parameters = {                               \n"
+        "    SCALUINT8   = { NotAPath = \"BYE!\"   }  \n"
+        "}                                            \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.parametersError && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_WrongOrientation_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                                           \n"
+        "ClientType = Thin                                                      \n"
+        "Server = localhost:8002                                                \n"
+        "Tree   = mdsoc_ttree                                                   \n"
+        "Shot   = -1                                                            \n"
+        "Parameters = {                                                         \n"
+        "    SCALUINT8   = { Path = \"SCALUINT8\" DataOrientation = PageMajor } \n"
+        "}                                                                      \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.unsupportedFeature && !ok);
+}
