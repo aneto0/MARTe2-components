@@ -51,21 +51,21 @@ public:
 
     void DeleteTestEnvironment();
 
-    bool AddNodes(MDSplus::Tree* const testTree, const StreamString nodePrefix);
+    bool AddNodes(MDSplus::Tree* const testTree, const StreamString nodePrefix, const uint32 numOfNodesToAdd /* = 1u */);
 
     /**
      * @brief Add nodes to testTree.
      * @details If testDict is specified, then nodes are inserted in testDict
      *          and then testDict is added to testTree.
      */
-    bool AddNodeValues(TypeDescriptor typeIn, const StreamString nodePrefix, MDSplus::Dictionary* const testDict /* = NULL_PTR(MDSplus::Dictionary) */);
+    bool AddNodeValues(TypeDescriptor typeIn, StreamString nodePrefix, MDSplus::Dictionary* const testDict /* = NULL_PTR(MDSplus::Dictionary) */);
 
     MDSplus::Tree* testTree;
 
     StreamString treeName;
 };
 
-bool MDSObjectConnectionTestEnvironment::AddNodes(MDSplus::Tree* const testTree, const StreamString nodePrefix) {
+bool MDSObjectConnectionTestEnvironment::AddNodes(MDSplus::Tree* const testTree, const StreamString nodePrefix, const uint32 numOfNodesToAdd = 1u) {
 
     Vector<StreamString> nodeTypeNames;
     nodeTypeNames.SetSize(10u);
@@ -87,7 +87,15 @@ bool MDSObjectConnectionTestEnvironment::AddNodes(MDSplus::Tree* const testTree,
         for (uint32 vecIdx = 0u; vecIdx < nodeTypeNames.GetNumberOfElements(); vecIdx++) {
             StreamString nodeName = nodePrefix;
             nodeName += nodeTypeNames[vecIdx];
-            testTree->addNode(nodeName.Buffer(), "NUMERIC");
+            if (numOfNodesToAdd == 1u) {
+                testTree->addNode(nodeName.Buffer(), "NUMERIC");
+            } else {
+                for (uint32 nodeIdx = 1u; nodeIdx <= numOfNodesToAdd; nodeIdx++) {
+                    StreamString nthName = nodeName;
+                    nthName.Printf("_%u", nodeIdx);
+                    testTree->addNode(nthName.Buffer(), "NUMERIC");
+                }
+            }
         }
         testTree->write();
         ok = true;
@@ -99,22 +107,25 @@ bool MDSObjectConnectionTestEnvironment::AddNodes(MDSplus::Tree* const testTree,
     return ok;
 }
 
-bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, const StreamString nodePrefix, MDSplus::Dictionary* const testDict = NULL_PTR(MDSplus::Dictionary*)) {
+bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, StreamString nodePrefix, MDSplus::Dictionary* const testDict = NULL_PTR(MDSplus::Dictionary*)) {
 
     bool ok = false;
     StreamString scalarNodeName   = nodePrefix;
     StreamString vectorNodeName   = nodePrefix;
     StreamString matrixNodeName   = nodePrefix;
     StreamString matrix3DNodeName = nodePrefix;
+    StreamString scalarSequenceNodeName = nodePrefix;
     scalarNodeName   += "SCAL";
     vectorNodeName   += "VEC";
     matrixNodeName   += "MAT";
     matrix3DNodeName += "MAT3D";
+    scalarSequenceNodeName += "NS_";
     StreamString typeSuffix = "";
     MDSplus::Data* scalarData   = NULL_PTR(MDSplus::Data*);
     MDSplus::Data* vectorData   = NULL_PTR(MDSplus::Data*);
     MDSplus::Data* matrixData   = NULL_PTR(MDSplus::Data*);
     MDSplus::Data* matrix3DData = NULL_PTR(MDSplus::Data*);
+    Vector<MDSplus::Data*> scalarSequence = Vector<MDSplus::Data*>(4u);
 
     int32 vectorDims      = 4;
     int32 matrixDims[2]   = {3, 4};
@@ -130,6 +141,9 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             vectorData   = new MDSplus::Uint8Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Uint8Array(&matrixValue[0][0], 2, &matrixDims[0]);
             matrix3DData = new MDSplus::Uint8Array(&matrix3DValue[0][0][0], 3, &matrix3DDims[0]);
+            for (uint32 i = 0u; i < scalarSequence.GetNumberOfElements(); i++) {
+                scalarSequence[i] = new MDSplus::Uint8(i + 1);
+            }
             typeSuffix = "UINT8";
         } else if (typeIn == UnsignedInteger16Bit) {
             uint16 scalarValue = 1;
@@ -140,6 +154,9 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             vectorData   = new MDSplus::Uint16Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Uint16Array(&matrixValue[0][0], 2, &matrixDims[0]);
             matrix3DData = new MDSplus::Uint16Array(&matrix3DValue[0][0][0], 3, &matrix3DDims[0]);
+            for (uint32 i = 0u; i < scalarSequence.GetNumberOfElements(); i++) {
+                scalarSequence[i] = new MDSplus::Uint16(i + 1);
+            }
             typeSuffix = "UINT16";
         } else if (typeIn == UnsignedInteger32Bit) {
             uint32 scalarValue = 1;
@@ -150,6 +167,9 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             vectorData   = new MDSplus::Uint32Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Uint32Array(&matrixValue[0][0], 2, &matrixDims[0]);
             matrix3DData = new MDSplus::Uint32Array(&matrix3DValue[0][0][0], 3, &matrix3DDims[0]);
+            for (uint32 i = 0u; i < scalarSequence.GetNumberOfElements(); i++) {
+                scalarSequence[i] = new MDSplus::Uint32(i + 1);
+            }
             typeSuffix = "UINT32";
         } else if (typeIn == UnsignedInteger64Bit) {
             uint64 scalarValue = 1;
@@ -160,6 +180,9 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             vectorData   = new MDSplus::Uint64Array((uint64_t*)&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Uint64Array((uint64_t*)&matrixValue[0][0], 2, &matrixDims[0]);
             matrix3DData = new MDSplus::Uint64Array((uint64_t*)&matrix3DValue[0][0][0], 3, &matrix3DDims[0]);
+            for (uint32 i = 0u; i < scalarSequence.GetNumberOfElements(); i++) {
+                scalarSequence[i] = new MDSplus::Uint64(i + 1);
+            }
             typeSuffix = "UINT64";
         } else if (typeIn == SignedInteger8Bit) {
             int8 scalarValue = 1;
@@ -170,6 +193,9 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             vectorData   = new MDSplus::Int8Array((char*)&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Int8Array((char*)&matrixValue[0][0], 2, &matrixDims[0]);
             matrix3DData = new MDSplus::Int8Array((char*)&matrix3DValue[0][0][0], 3, &matrix3DDims[0]);
+            for (uint32 i = 0u; i < scalarSequence.GetNumberOfElements(); i++) {
+                scalarSequence[i] = new MDSplus::Int8(i + 1);
+            }
             typeSuffix = "INT8";
         } else if (typeIn == SignedInteger16Bit) {
             int16 scalarValue = 1;
@@ -180,6 +206,9 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             vectorData   = new MDSplus::Int16Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Int16Array(&matrixValue[0][0], 2, &matrixDims[0]);
             matrix3DData = new MDSplus::Int16Array(&matrix3DValue[0][0][0], 3, &matrix3DDims[0]);
+            for (uint32 i = 0u; i < scalarSequence.GetNumberOfElements(); i++) {
+                scalarSequence[i] = new MDSplus::Int16(i + 1);
+            }
             typeSuffix = "INT16";
         } else if (typeIn == SignedInteger32Bit) {
             int32 scalarValue = 1;
@@ -190,6 +219,9 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             vectorData   = new MDSplus::Int32Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Int32Array(&matrixValue[0][0], 2, &matrixDims[0]);
             matrix3DData = new MDSplus::Int32Array(&matrix3DValue[0][0][0], 3, &matrix3DDims[0]);
+            for (uint32 i = 0u; i < scalarSequence.GetNumberOfElements(); i++) {
+                scalarSequence[i] = new MDSplus::Int32(i + 1);
+            }
             typeSuffix = "INT32";
         } else if (typeIn == SignedInteger64Bit) {
             int64 scalarValue = 1;
@@ -200,6 +232,9 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             vectorData   = new MDSplus::Int64Array((int64_t*)&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Int64Array((int64_t*)&matrixValue[0][0], 2, &matrixDims[0]);
             matrix3DData = new MDSplus::Int64Array((int64_t*)&matrix3DValue[0][0][0], 3, &matrix3DDims[0]);
+            for (uint32 i = 0u; i < scalarSequence.GetNumberOfElements(); i++) {
+                scalarSequence[i] = new MDSplus::Int64(i + 1);
+            }
             typeSuffix = "INT64";
         } else if (typeIn == Float32Bit) {
             float32 scalarValue = 1.1;
@@ -210,6 +245,9 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             vectorData   = new MDSplus::Float32Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Float32Array(&matrixValue[0][0], 2, &matrixDims[0]);
             matrix3DData = new MDSplus::Float32Array(&matrix3DValue[0][0][0], 3, &matrix3DDims[0]);
+            for (uint32 i = 0u; i < scalarSequence.GetNumberOfElements(); i++) {
+                scalarSequence[i] = new MDSplus::Float32(i + 1);
+            }
             typeSuffix = "FLOAT32";
         } else if (typeIn == Float64Bit) {
             float64 scalarValue = 1.1;
@@ -220,6 +258,9 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
             vectorData   = new MDSplus::Float64Array(&vectorValue[0], vectorDims);
             matrixData   = new MDSplus::Float64Array(&matrixValue[0][0], 2, &matrixDims[0]);
             matrix3DData = new MDSplus::Float64Array(&matrix3DValue[0][0][0], 3, &matrix3DDims[0]);
+            for (uint32 i = 0u; i < scalarSequence.GetNumberOfElements(); i++) {
+                scalarSequence[i] = new MDSplus::Float64(i + 1);
+            }
             typeSuffix = "FLOAT64";
         }
         ok = true;
@@ -233,6 +274,7 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
         vectorNodeName   += typeSuffix;
         matrixNodeName   += typeSuffix;
         matrix3DNodeName += typeSuffix;
+        scalarSequenceNodeName += typeSuffix;
         try {
             if (testDict == NULL_PTR(MDSplus::Dictionary*)) {
                 MDSplus::TreeNode* scalarNode   = testTree->getNode(scalarNodeName.Buffer());
@@ -243,6 +285,12 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
                 vectorNode->putData(vectorData);
                 matrixNode->putData(matrixData);
                 matrix3DNode->putData(matrix3DData);
+                for (uint32 i = 1u; i <= scalarSequence.GetNumberOfElements(); i++) {
+                    StreamString nthName = scalarSequenceNodeName;
+                    nthName.Printf("_%u", i);
+                    MDSplus::TreeNode* sequenceNode = testTree->getNode(nthName.Buffer());
+                    sequenceNode->putData(scalarSequence[i - 1u]);
+                }
                 ok = true;
             } else {
                 MDSplus::String* scalarNodeString   = new MDSplus::String(scalarNodeName.Buffer());
@@ -253,13 +301,18 @@ bool MDSObjectConnectionTestEnvironment::AddNodeValues(TypeDescriptor typeIn, co
                 testDict->setItem(vectorNodeString,   vectorData);
                 testDict->setItem(matrixNodeString,   matrixData);
                 testDict->setItem(matrix3DNodeString, matrix3DData);
+                for (uint32 i = 1u; i <= scalarSequence.GetNumberOfElements(); i++) {
+                    StreamString nthName = scalarSequenceNodeName;
+                    nthName.Printf("_%u", i);
+                    MDSplus::String* scalarSequenceNodeString = new MDSplus::String(nthName.Buffer());
+                    testDict->setItem(scalarSequenceNodeString, scalarSequence[i - 1u]);
+                }
             }
         } catch (const MDSplus::MdsException &exc) {
             REPORT_ERROR_STATIC(ErrorManagement::Exception, "Failed putData. MDSplus exception: %s", exc.what());
             ok = false;
         }
     }
-
     return ok;
 }
 
@@ -298,14 +351,20 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
             ok &= AddNodes(testTree, "VEC");
             ok &= AddNodes(testTree, "MAT");
             ok &= AddNodes(testTree, "MAT3D");
+            ok &= AddNodes(testTree, "NS_", 4u);
             ok &= AddNodes(testTree, "STRUCT.SCAL");
             ok &= AddNodes(testTree, "STRUCT.VEC");
             ok &= AddNodes(testTree, "STRUCT.MAT");
             ok &= AddNodes(testTree, "STRUCT.MAT3D");
+            ok &= AddNodes(testTree, "STRUCT.NS_", 4u);
             ok &= AddNodes(testTree, "STRUCT.SUBSTRUCT.SCAL");
             ok &= AddNodes(testTree, "STRUCT.SUBSTRUCT.VEC");
             ok &= AddNodes(testTree, "STRUCT.SUBSTRUCT.MAT");
             ok &= AddNodes(testTree, "STRUCT.SUBSTRUCT.MAT3D");
+            ok &= AddNodes(testTree, "STRUCT.SUBSTRUCT.NS_", 4u);
+            if (!ok) {
+                REPORT_ERROR_STATIC(ErrorManagement::Debug, "Failed AddNodes");
+            }
         }
     }
 
@@ -340,9 +399,9 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
         ok &= AddNodeValues(SignedInteger64Bit  , "STRUCT.SUBSTRUCT.");
         ok &= AddNodeValues(Float32Bit          , "STRUCT.SUBSTRUCT.");
         ok &= AddNodeValues(Float64Bit          , "STRUCT.SUBSTRUCT.");
-        if (!ok) {
+       if (!ok) {
             REPORT_ERROR_STATIC(ErrorManagement::Debug, "Failed AddNodeValues");
-        }
+       }
     }
 
     if (ok) {
@@ -481,6 +540,16 @@ MDSObjectConnectionTest::MDSObjectConnectionTest() {
         "   MATFLOAT64 = (float64) { {1.1, 2.2, 3.3, 4.4}, {5.5, 6.6, 7.7, 8.8}, {9.9, 10.1, 11.11, 12.12} }"
         " MAT3DFLOAT64 = (uint8) { 154, 153, 153, 153, 153, 153, 241, 63, 195, 245, 40, 92, 143, 66, 42, 64, 154, 153, 153, 153, 153, 153, 1, 64, 72, 225, 122, 20, 174, 71, 44, 64, 102, 102, 102, 102, 102, 102, 10, 64, 205, 204, 204, 204, 204, 76, 46, 64, 154, 153, 153, 153, 153, 153, 17, 64, 41, 92, 143, 194, 245, 40, 48, 64, 0, 0, 0, 0, 0, 0, 22, 64, 236, 81, 184, 30, 133, 43, 49, 64, 102, 102, 102, 102, 102, 102, 26, 64, 174, 71, 225, 122, 20, 46, 50, 64, 205, 204, 204, 204, 204, 204, 30, 64, 113, 61, 10, 215, 163, 48, 51, 64, 154, 153, 153, 153, 153, 153, 33, 64, 51, 51, 51, 51, 51, 51, 52, 64, 205, 204, 204, 204, 204, 204, 35, 64, 246, 40, 92, 143, 194, 53, 53, 64, 51, 51, 51, 51, 51, 51, 36, 64, 184, 30, 133, 235, 81, 56, 54, 64, 184, 30, 133, 235, 81, 56, 38, 64, 123, 20, 174, 71, 225, 58, 55, 64, 61, 10, 215, 163, 112, 61, 40, 64, 61, 10, 215, 163, 112, 61, 56, 64 }"
         ""
+        " NS_UINT8_1   = (uint8)   1   NS_UINT8_2   = (uint8)   2   NS_UINT8_3   = (uint8)   3   NS_UINT8_4   = (uint8)   4 "
+        " NS_UINT16_1  = (uint16)  1   NS_UINT16_2  = (uint16)  2   NS_UINT16_3  = (uint16)  3   NS_UINT16_4  = (uint16)  4 "
+        " NS_UINT32_1  = (uint32)  1   NS_UINT32_2  = (uint32)  2   NS_UINT32_3  = (uint32)  3   NS_UINT32_4  = (uint32)  4 "
+        " NS_UINT64_1  = (uint64)  1   NS_UINT64_2  = (uint64)  2   NS_UINT64_3  = (uint64)  3   NS_UINT64_4  = (uint64)  4 "
+        " NS_INT8_1    = (int8)    1   NS_INT8_2    = (int8)    2   NS_INT8_3    = (int8)    3   NS_INT8_4    = (int8)    4 "
+        " NS_INT16_1   = (int16)   1   NS_INT16_2   = (int16)   2   NS_INT16_3   = (int16)   3   NS_INT16_4   = (int16)   4 "
+        " NS_INT32_1   = (int32)   1   NS_INT32_2   = (int32)   2   NS_INT32_3   = (int32)   3   NS_INT32_4   = (int32)   4 "
+        " NS_INT64_1   = (int64)   1   NS_INT64_2   = (int64)   2   NS_INT64_3   = (int64)   3   NS_INT64_4   = (int64)   4 "
+        " NS_FLOAT32_1 = (float32) 1   NS_FLOAT32_2 = (float32) 2   NS_FLOAT32_3 = (float32) 3   NS_FLOAT32_4 = (float32) 4 "
+        " NS_FLOAT64_1 = (float64) 1   NS_FLOAT64_2 = (float64) 2   NS_FLOAT64_3 = (float64) 3   NS_FLOAT64_4 = (float64) 4 "
         ;
 
     standardParameters.Seek(0u);
@@ -529,6 +598,16 @@ MDSObjectConnectionTest::MDSObjectConnectionTest() {
         "   MATFLOAT64 = (float64)  { { 1.1, 5.5, 9.9 }, { 2.2, 6.6, 10.10 }, { 3.3, 7.7, 11.11 }, { 4.4, 8.8, 12.12 } }"
         " MAT3DFLOAT64 = (uint8) { 154, 153, 153, 153, 153, 153, 241, 63, 0, 0, 0, 0, 0, 0, 22, 64, 205, 204, 204, 204, 204, 204, 35, 64, 154, 153, 153, 153, 153, 153, 1, 64, 102, 102, 102, 102, 102, 102, 26, 64, 51, 51, 51, 51, 51, 51, 36, 64, 102, 102, 102, 102, 102, 102, 10, 64, 205, 204, 204, 204, 204, 204, 30, 64, 184, 30, 133, 235, 81, 56, 38, 64, 154, 153, 153, 153, 153, 153, 17, 64, 154, 153, 153, 153, 153, 153, 33, 64, 61, 10, 215, 163, 112, 61, 40, 64, 195, 245, 40, 92, 143, 66, 42, 64, 236, 81, 184, 30, 133, 43, 49, 64, 246, 40, 92, 143, 194, 53, 53, 64, 72, 225, 122, 20, 174, 71, 44, 64, 174, 71, 225, 122, 20, 46, 50, 64, 184, 30, 133, 235, 81, 56, 54, 64, 205, 204, 204, 204, 204, 76, 46, 64, 113, 61, 10, 215, 163, 48, 51, 64, 123, 20, 174, 71, 225, 58, 55, 64, 41, 92, 143, 194, 245, 40, 48, 64, 51, 51, 51, 51, 51, 51, 52, 64, 61, 10, 215, 163, 112, 61, 56, 64 }"
         ""
+        " NS_UINT8_1   = (uint8)   1   NS_UINT8_2   = (uint8)   2   NS_UINT8_3   = (uint8)   3   NS_UINT8_4   = (uint8)   4 "
+        " NS_UINT16_1  = (uint16)  1   NS_UINT16_2  = (uint16)  2   NS_UINT16_3  = (uint16)  3   NS_UINT16_4  = (uint16)  4 "
+        " NS_UINT32_1  = (uint32)  1   NS_UINT32_2  = (uint32)  2   NS_UINT32_3  = (uint32)  3   NS_UINT32_4  = (uint32)  4 "
+        " NS_UINT64_1  = (uint64)  1   NS_UINT64_2  = (uint64)  2   NS_UINT64_3  = (uint64)  3   NS_UINT64_4  = (uint64)  4 "
+        " NS_INT8_1    = (int8)    1   NS_INT8_2    = (int8)    2   NS_INT8_3    = (int8)    3   NS_INT8_4    = (int8)    4 "
+        " NS_INT16_1   = (int16)   1   NS_INT16_2   = (int16)   2   NS_INT16_3   = (int16)   3   NS_INT16_4   = (int16)   4 "
+        " NS_INT32_1   = (int32)   1   NS_INT32_2   = (int32)   2   NS_INT32_3   = (int32)   3   NS_INT32_4   = (int32)   4 "
+        " NS_INT64_1   = (int64)   1   NS_INT64_2   = (int64)   2   NS_INT64_3   = (int64)   3   NS_INT64_4   = (int64)   4 "
+        " NS_FLOAT32_1 = (float32) 1   NS_FLOAT32_2 = (float32) 2   NS_FLOAT32_3 = (float32) 3   NS_FLOAT32_4 = (float32) 4 "
+        " NS_FLOAT64_1 = (float64) 1   NS_FLOAT64_2 = (float64) 2   NS_FLOAT64_3 = (float64) 3   NS_FLOAT64_4 = (float64) 4 "
         ;
 
     standardParameters.Seek(0u);
@@ -557,6 +636,16 @@ MDSObjectConnectionTest::MDSObjectConnectionTest() {
         " VECFLOAT32_TRIM = (float32) {1.1, 2.2} "
         " VECFLOAT64_PAD  = (float64) {1.1, 2.2, 3.3, 4.4, 0, 0} "
         " VECFLOAT64_TRIM = (float64) {1.1, 2.2} "
+        " NS_UINT8_SEQ    = (uint8)   { 1, 2, 3, 4 } "
+        " NS_UINT16_SEQ   = (uint16)  { 1, 2, 3, 4 } "
+        " NS_UINT32_SEQ   = (uint32)  { 1, 2, 3, 4 } "
+        " NS_UINT64_SEQ   = (uint64)  { 1, 2, 3, 4 } "
+        " NS_INT8_SEQ     = (int8)    { 1, 2, 3, 4 } "
+        " NS_INT16_SEQ    = (int16)   { 1, 2, 3, 4 } "
+        " NS_INT32_SEQ    = (int32)   { 1, 2, 3, 4 } "
+        " NS_INT64_SEQ    = (int64)   { 1, 2, 3, 4 } "
+        " NS_FLOAT32_SEQ  = (float32) { 1, 2, 3, 4 } "
+        " NS_FLOAT64_SEQ  = (float64) { 1, 2, 3, 4 } "
         ""
         ;
 
@@ -762,6 +851,64 @@ bool MDSObjectConnectionTest::TestInitialise_TargetDim() {
     return (status.ErrorsCleared() && ok);
 }
 
+bool MDSObjectConnectionTest::TestInitialise_StartIdxStopIdx() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                                                    \n"
+        "ClientType = Distributed                                                        \n"
+        "Tree   = mdsoc_ttree                                                            \n"
+        "Shot   = -1                                                                     \n"
+        "Parameters = {                                                                  \n"
+        "    NS_UINT8_SEQ    = { Path = \"NS_UINT8_%u\"    StartIdx = 1   StopIdx = 4 }  \n"
+        "    NS_UINT16_SEQ   = { Path = \"NS_UINT16_%u\"   StartIdx = 1   StopIdx = 4 }  \n"
+        "    NS_UINT32_SEQ   = { Path = \"NS_UINT32_%u\"   StartIdx = 1   StopIdx = 4 }  \n"
+        "    NS_UINT64_SEQ   = { Path = \"NS_UINT64_%u\"   StartIdx = 1   StopIdx = 4 }  \n"
+        "    NS_INT8_SEQ     = { Path = \"NS_INT8_%u\"     StartIdx = 1   StopIdx = 4 }  \n"
+        "    NS_INT16_SEQ    = { Path = \"NS_INT16_%u\"    StartIdx = 1   StopIdx = 4 }  \n"
+        "    NS_INT32_SEQ    = { Path = \"NS_INT32_%u\"    StartIdx = 1   StopIdx = 4 }  \n"
+        "    NS_INT64_SEQ    = { Path = \"NS_INT64_%u\"    StartIdx = 1   StopIdx = 4 }  \n"
+        "    NS_FLOAT32_SEQ  = { Path = \"NS_FLOAT32_%u\"  StartIdx = 1   StopIdx = 4 }  \n"
+        "    NS_FLOAT64_SEQ  = { Path = \"NS_FLOAT64_%u\"  StartIdx = 1   StopIdx = 4 }  \n"
+        "}                                                                               \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbAdditional);
+    }
+
+    return (status.ErrorsCleared() && ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_UnlinkedParameter() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                 \n"
+        "ClientType = Distributed                     \n"
+        "Tree   = mdsoc_ttree                         \n"
+        "Shot   = -1                                  \n"
+        "Parameters = {                               \n"
+        "    SCALUINT8   = { Path = \"SCALUINT8\"   } \n"
+        "    SCALUINT16  = { Path = \"\"   }          \n"
+        "    SCALUINT32  = { Path = \"SCALUINT32\"  } \n"
+        "}                                            \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    return (status.ErrorsCleared() && ok);
+}
 
 bool MDSObjectConnectionTest::TestInitialise_NestedParameters() {
 
@@ -1113,6 +1260,26 @@ bool MDSObjectConnectionTest::TestInitialise_NoPath_Failed() {
     return (status.parametersError && !ok);
 }
 
+bool MDSObjectConnectionTest::TestInitialise_TargetDimAndStartIdx_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection                                           \n"
+        "ClientType = Thin                                                      \n"
+        "Server = localhost:8002                                                \n"
+        "Tree   = mdsoc_ttree                                                   \n"
+        "Shot   = -1                                                            \n"
+        "Parameters = {                                                         \n"
+        "    SCALUINT8   = { Path = \"NS_UINT8_%u\" TargetDim = 5 StartIdx = 1 StopIdx = 4 } \n"
+        "}                                                                      \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.unsupportedFeature && !ok);
+}
+
 bool MDSObjectConnectionTest::TestInitialise_WrongOrientation_Failed() {
 
     StreamString configStream = ""
@@ -1131,4 +1298,22 @@ bool MDSObjectConnectionTest::TestInitialise_WrongOrientation_Failed() {
     bool ok = TestInitialiseWithConfiguration(configStream, status);
 
     return (status.unsupportedFeature && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_WrongPath_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection              \n"
+        "Tree   = mdsoc_ttree                      \n"
+        "Shot   = -1                               \n"
+        "Parameters = {                            \n"
+        "    SCALUINT8   = { Path = \"NOTAPATH\" } \n"
+        "}                                         \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.exception && !ok);
 }

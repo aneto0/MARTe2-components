@@ -181,8 +181,8 @@ enum MDSClientType {
  * ----------------------------------------------------------------------------
  *
  * Matrices can be loaded in the source tree using the MDSplus APIs for that
- * environment (e.g. `putData()` or `mdsput()`). However, matrices shall be
- * declared in the environment beforehand. Use the following syntaxes to set
+ * environment (e.g. `putData()` or `mdsput()`). However, how matrices are declared
+ * in the environment is not trivial. Use the following syntaxes to set
  * row-major or column-major matrices in the source tree:
  *
  * ### 2D matrices ###

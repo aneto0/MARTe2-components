@@ -64,6 +64,16 @@ TEST(MDSObjectConnectionGTest,TestInitialise_TargetDim) {
     ASSERT_TRUE(test.TestInitialise_TargetDim());
 }
 
+TEST(MDSObjectConnectionGTest,TestInitialise_StartIdxStopIdx) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_StartIdxStopIdx());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_UnlinkedParameter) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_UnlinkedParameter());
+}
+
 TEST(MDSObjectConnectionGTest,TestInitialise_NestedParameters) {
     MDSObjectConnectionTest test;
     ASSERT_TRUE(test.TestInitialise_NestedParameters());
@@ -127,5 +137,15 @@ TEST(MDSObjectConnectionGTest,TestInitialise_NoPath_Failed) {
 TEST(MDSObjectConnectionGTest,TestInitialise_WrongOrientation_Failed) {
     MDSObjectConnectionTest test;
     ASSERT_TRUE(test.TestInitialise_WrongOrientation_Failed());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_TargetDimAndStartIdx_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_TargetDimAndStartIdx_Failed());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_WrongPath_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_WrongPath_Failed());
 }
 

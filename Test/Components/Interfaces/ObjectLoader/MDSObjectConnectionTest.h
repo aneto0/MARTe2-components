@@ -102,6 +102,8 @@ public:
     bool TestInitialise_ThinClient();
     bool TestInitialise_DistributedClient();
     bool TestInitialise_TargetDim();
+    bool TestInitialise_StartIdxStopIdx();
+    bool TestInitialise_UnlinkedParameter();
 
     bool TestInitialise_NestedParameters();
     bool TestInitialise_NestedParameters_WithDash();
@@ -119,6 +121,8 @@ public:
     bool TestInitialise_NoParameters_Failed();
     bool TestInitialise_NoPath_Failed();
     bool TestInitialise_WrongOrientation_Failed();
+    bool TestInitialise_TargetDimAndStartIdx_Failed();
+    bool TestInitialise_WrongPath_Failed();
 
     ConfigurationDatabase referenceCdbRowMajor;
     ConfigurationDatabase referenceCdbColMajor;
