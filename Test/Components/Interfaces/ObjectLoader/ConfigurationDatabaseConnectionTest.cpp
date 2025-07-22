@@ -135,6 +135,7 @@ bool ConfigurationDatabaseConnectionTest::TestInitialise_ParametersValues() {
         "Class = ConfigurationDatabaseConnection \n"
         "Parameters = {                          \n"
         "    gain4 = (float64) 1                 \n"
+        "    string2 = \"Hello World!\"          \n"
         "    gainStruct4 = {                     \n"
         "        gain_a = (uint32) 10            \n"
         "        gain_b = (float32) {1, 2, 3, 4} \n"
@@ -151,13 +152,16 @@ bool ConfigurationDatabaseConnectionTest::TestInitialise_ParametersValues() {
     float64 gain4_ref = 1;
     uint32  gain_a_ref = 10;
     float32 gain_b_ref[4] = {1, 2, 3, 4};
+    char8   string2_ref[] = "Hello World!\0";
     ok &= (MemoryOperationsHelper::Compare(cdConnection[0u]->GetDataPointer(), &gain4_ref, cdConnection[0u]->GetDataSize()) == 0u);
-    ok &= (MemoryOperationsHelper::Compare(cdConnection[1u]->GetDataPointer(), &gain_a_ref, cdConnection[1u]->GetDataSize()) == 0u);
-    ok &= (MemoryOperationsHelper::Compare(cdConnection[2u]->GetDataPointer(), &gain_b_ref, cdConnection[2u]->GetDataSize()) == 0u);
+    ok &= (MemoryOperationsHelper::Compare(cdConnection[1u]->GetDataPointer(), &string2_ref, cdConnection[3u]->GetDataSize()) == 0u);
+    ok &= (MemoryOperationsHelper::Compare(cdConnection[2u]->GetDataPointer(), &gain_a_ref, cdConnection[1u]->GetDataSize()) == 0u);
+    ok &= (MemoryOperationsHelper::Compare(cdConnection[3u]->GetDataPointer(), &gain_b_ref, cdConnection[2u]->GetDataSize()) == 0u);
 
     ok &= cdConnection.GetParameterName(0u) == StreamString("gain4");
-    ok &= cdConnection.GetParameterName(1u) == StreamString("gainStruct4.gain_a");
-    ok &= cdConnection.GetParameterName(2u) == StreamString("gainStruct4.gain_b");
+    ok &= cdConnection.GetParameterName(1u) == StreamString("string2");
+    ok &= cdConnection.GetParameterName(2u) == StreamString("gainStruct4.gain_a");
+    ok &= cdConnection.GetParameterName(3u) == StreamString("gainStruct4.gain_b");
 
     return (status.ErrorsCleared() && ok);
 }
