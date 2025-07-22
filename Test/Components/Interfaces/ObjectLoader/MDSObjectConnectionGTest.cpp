@@ -159,3 +159,8 @@ TEST(MDSObjectConnectionGTest,TestInitialise_WrongPath_Failed) {
     ASSERT_TRUE(test.TestInitialise_WrongPath_Failed());
 }
 
+TEST(MDSObjectConnectionGTest,TestInitialise_InvalidListItems_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_InvalidListItems_Failed());
+}
+

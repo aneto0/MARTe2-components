@@ -343,6 +343,7 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
             testTree->addNode("STRUCT.SUBSTRUCT", "STRUCTURE");
             testTree->addNode("DICT", "ANY");
             testTree->addNode("STRUCTARRAY", "ANY");
+            testTree->addNode("INVALIDLIST", "ANY");
         } catch (const MDSplus::MdsException &exc) {
             /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed creating structure node. MDSplus exception: %s", exc.what());
             ok = false;
@@ -444,6 +445,16 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
 
             MDSplus::TreeNode* structArrayNode = testTree->getNode("STRUCTARRAY");
             structArrayNode->putData(structArray);
+
+            // invalid list
+            MDSplus::List* invalidStructArray = new MDSplus::List();
+            MDSplus::Uint8* scalarUint = new MDSplus::Uint8(10);
+            MDSplus::Float32* scalarFloat = new MDSplus::Float32(3.14);
+            invalidStructArray->append(scalarUint);
+            invalidStructArray->append(scalarFloat);
+
+            MDSplus::TreeNode* invalidStructNode = testTree->getNode("INVALIDLIST");
+            invalidStructNode->putData(invalidStructArray);
         } catch (const MDSplus::MdsException &exc) {
             /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed creating dictionary node. MDSplus exception: %s", exc.what());
             ok = false;
@@ -1382,4 +1393,22 @@ bool MDSObjectConnectionTest::TestInitialise_WrongPath_Failed() {
     bool ok = TestInitialiseWithConfiguration(configStream, status);
 
     return (status.exception && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_InvalidListItems_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection              \n"
+        "Tree   = mdsoc_ttree                      \n"
+        "Shot   = -1                               \n"
+        "Parameters = {                            \n"
+        "    StructParameter   = { Path = \"INVALIDLIST\" } \n"
+        "}                                         \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.unsupportedFeature && !ok);
 }
