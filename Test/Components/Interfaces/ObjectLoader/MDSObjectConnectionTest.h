@@ -114,6 +114,9 @@ public:
     bool TestInitialise_DictAsStruct_RowMajor();
     bool TestInitialise_DictAsStruct_ColMajor();
 
+    bool TestInitialise_StructArray_RowMajor();
+    bool TestInitialise_StructArray_ColMajor();
+
     bool TestInitialise_NoTree_Failed();
     bool TestInitialise_NoShot_Failed();
     bool TestInitialise_ThinClient_NoServer_Failed();

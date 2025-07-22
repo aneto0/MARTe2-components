@@ -342,8 +342,9 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
             testTree->addNode("STRUCT", "STRUCTURE");
             testTree->addNode("STRUCT.SUBSTRUCT", "STRUCTURE");
             testTree->addNode("DICT", "ANY");
+            testTree->addNode("STRUCTARRAY", "ANY");
         } catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR_STATIC(ErrorManagement::Exception, "Failed creating structure node. MDSplus exception: %s", exc.what());
+            /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed creating structure node. MDSplus exception: %s", exc.what());
             ok = false;
         }
         if (ok) {
@@ -363,7 +364,7 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
             ok &= AddNodes(testTree, "STRUCT.SUBSTRUCT.MAT3D");
             ok &= AddNodes(testTree, "STRUCT.SUBSTRUCT.NS_", 4u);
             if (!ok) {
-                REPORT_ERROR_STATIC(ErrorManagement::Debug, "Failed AddNodes");
+                /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed AddNodes");
             }
         }
     }
@@ -400,12 +401,13 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
         ok &= AddNodeValues(Float32Bit          , "STRUCT.SUBSTRUCT.");
         ok &= AddNodeValues(Float64Bit          , "STRUCT.SUBSTRUCT.");
        if (!ok) {
-            REPORT_ERROR_STATIC(ErrorManagement::Debug, "Failed AddNodeValues");
+            /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed AddNodeValues");
        }
     }
 
     if (ok) {
         try {
+            // struct
             MDSplus::Dictionary* dict = new MDSplus::Dictionary();
             ok &= AddNodeValues(UnsignedInteger8Bit , "", dict);
             ok &= AddNodeValues(UnsignedInteger16Bit, "", dict);
@@ -434,13 +436,25 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
 
             MDSplus::TreeNode* dictNode = testTree->getNode("DICT");
             dictNode->putData(dict);
+
+            // struct array
+            MDSplus::List* structArray = new MDSplus::List();
+            structArray->append(dict);
+            structArray->append(dict);
+
+            MDSplus::TreeNode* structArrayNode = testTree->getNode("STRUCTARRAY");
+            structArrayNode->putData(structArray);
         } catch (const MDSplus::MdsException &exc) {
-            REPORT_ERROR_STATIC(ErrorManagement::Exception, "Failed creating dictionary node. MDSplus exception: %s", exc.what());
+            /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed creating dictionary node. MDSplus exception: %s", exc.what());
             ok = false;
         }
     }
 
-    printf("--started test environment in %s\n", getenv(treeEnv.Buffer()));
+    if (ok) {
+        printf("--started test environment in %s\n", getenv(treeEnv.Buffer()));
+    } else {
+        printf("--- failed to start test environment\n");
+    }
 }
 
 void MDSObjectConnectionTestEnvironment::DeleteTestEnvironment() {
@@ -1133,6 +1147,58 @@ bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_ColMajor() {
         "Shot   = -1                               \n"
         "Parameters = {                            \n"
         "    StructParameter = { Path = \"DICT\" DataOrientation = ColumnMajor } \n"
+        "}                                         \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbColMajor);
+    }
+
+    return (status.ErrorsCleared() && ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_StructArray_RowMajor() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection              \n"
+        "ClientType = Thin                         \n"
+        "Server = localhost:8002                   \n"
+        "Tree   = mdsoc_ttree                      \n"
+        "Shot   = -1                               \n"
+        "Parameters = {                            \n"
+        "    StructParameter = { Path = \"STRUCTARRAY\" DataOrientation = RowMajor } \n"
+        "}                                         \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbRowMajor);
+    }
+
+    return (status.ErrorsCleared() && ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_StructArray_ColMajor() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection              \n"
+        "Tree   = mdsoc_ttree                      \n"
+        "Shot   = -1                               \n"
+        "Parameters = {                            \n"
+        "    StructParameter = { Path = \"STRUCTARRAY\" DataOrientation = ColumnMajor } \n"
         "}                                         \n"
         ""
         ;

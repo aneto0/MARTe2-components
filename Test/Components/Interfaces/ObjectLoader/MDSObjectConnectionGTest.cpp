@@ -104,6 +104,16 @@ TEST(MDSObjectConnectionGTest,TestInitialise_DictAsStruct_ColMajor) {
     ASSERT_TRUE(test.TestInitialise_DictAsStruct_ColMajor());
 }
 
+TEST(MDSObjectConnectionGTest,TestInitialise_StructArray_RowMajor) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_StructArray_RowMajor());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_StructArray_ColMajor) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_StructArray_ColMajor());
+}
+
 TEST(MDSObjectConnectionGTest,TestInitialise_NoTree_Failed) {
     MDSObjectConnectionTest test;
     ASSERT_TRUE(test.TestInitialise_NoTree_Failed());
