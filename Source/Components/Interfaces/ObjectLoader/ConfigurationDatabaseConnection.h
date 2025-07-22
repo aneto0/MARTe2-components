@@ -118,6 +118,13 @@ public:
      */
     virtual bool Initialise(StructuredDataI & data);
 
+    /**
+     * @brief
+     */
+    virtual ErrorManagement::ErrorType UpdateParameters();
+
+    virtual ErrorManagement::ErrorType Clean();
+
 private:
 
     /**

@@ -45,18 +45,9 @@ ObjectConnectionI::ObjectConnectionI() :
 }
 
 ObjectConnectionI::~ObjectConnectionI() {
-    while (GetSize() > 0u) {
-        AnyType* toDelete;
-        if(Extract(0U, toDelete)) {
-            delete toDelete;
-        }
-    }
-
-    while (paramNames.GetSize() > 0u) {
-        StreamString* toDelete;
-        if(paramNames.Extract(0U, toDelete)) {
-            delete toDelete;
-        }
+    ErrorManagement::ErrorType ret = Clean();
+    if (!ret) {
+        REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());
     }
 }
 
@@ -67,6 +58,35 @@ ErrorManagement::ErrorType ObjectConnectionI::GetStatus() {
 bool ObjectConnectionI::Initialise(StructuredDataI & data) {
     bool ok = ReferenceContainer::Initialise(data);
     return ok;
+}
+
+ErrorManagement::ErrorType ObjectConnectionI::UpdateParameters() {
+    return status;
+}
+
+ErrorManagement::ErrorType ObjectConnectionI::Clean() {
+
+    ErrorManagement::ErrorType ret = ErrorManagement::NoError;
+
+    while ( (GetSize() > 0u) && ret) {
+        AnyType* toDelete;
+        if(Extract(0U, toDelete)) {
+            delete toDelete;
+        } else {
+            ret.notCompleted = true;
+        }
+    }
+
+    while ( (paramNames.GetSize() > 0u) && ret) {
+        StreamString* toDelete;
+        if(paramNames.Extract(0U, toDelete)) {
+            delete toDelete;
+        } else {
+            ret.notCompleted = true;
+        }
+    }
+
+    return ret;
 }
 
 StreamString ObjectConnectionI::GetParameterName(uint32 parameterIndex) {

@@ -45,6 +45,22 @@ ConfigurationDatabaseConnection::ConfigurationDatabaseConnection() :
 }
 
 ConfigurationDatabaseConnection::~ConfigurationDatabaseConnection() {
+    ErrorManagement::ErrorType ret = Clean();
+    if (!ret) {
+        REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());
+    }
+}
+
+ErrorManagement::ErrorType ConfigurationDatabaseConnection::UpdateParameters() {
+    //ErrorManagement::ErrorType status = ObjectConnectionI::UpdateParameters();
+    return ErrorManagement::NoError;
+}
+
+ErrorManagement::ErrorType ConfigurationDatabaseConnection::Clean() {
+
+    ErrorManagement::ErrorType ret = ObjectConnectionI::Clean();
+
+    return ret;
 }
 
 bool ConfigurationDatabaseConnection::Initialise(StructuredDataI & data) {

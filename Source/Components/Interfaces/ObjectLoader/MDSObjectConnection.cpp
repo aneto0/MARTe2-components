@@ -46,12 +46,30 @@ MDSObjectConnection::MDSObjectConnection() :
 
 MDSObjectConnection::~MDSObjectConnection() {
 
-    while (deallocationList.GetSize() > 0u) {
+    ErrorManagement::ErrorType ret = Clean();
+    if (!ret) {
+        REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());
+    }
+}
+
+ErrorManagement::ErrorType MDSObjectConnection::UpdateParameters() {
+    //status = ObjectConnectionI::UpdateParameters();
+    return ErrorManagement::NoError;
+}
+
+ErrorManagement::ErrorType MDSObjectConnection::Clean() {
+
+    ErrorManagement::ErrorType ret = ObjectConnectionI::Clean();
+
+    while ( (deallocationList.GetSize() > 0u) && ret ) {
         void* toDelete;
-        deallocationList.Extract(0u, toDelete);
-        HeapManager::Free(toDelete);
+        ret.notCompleted = !deallocationList.Extract(0u, toDelete);
+        if (ret) {
+            ret.notCompleted = !HeapManager::Free(toDelete);
+        }
     }
 
+    return ret;
 }
 
 bool MDSObjectConnection::Initialise(StructuredDataI & data) {
@@ -108,10 +126,11 @@ bool MDSObjectConnection::Initialise(StructuredDataI & data) {
             REPORT_ERROR(status, "[%s] - 'Parameters' node not found", GetName());
         }
 
-        // traverse and flatten the `Parameters` node (iteratively to avoid recursion)
         if (status) {
 
             status.exception = !data.Copy(parametersCdb);
+
+            // traverse and flatten the `Parameters` node (iteratively to avoid recursion)
             StaticList<StreamString*> nodeStack;
 
             // add root node to the stack

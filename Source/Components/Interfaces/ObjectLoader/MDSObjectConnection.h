@@ -243,6 +243,16 @@ public:
      */
     virtual bool Initialise(StructuredDataI & data);
 
+    /**
+     * @brief
+     */
+    virtual ErrorManagement::ErrorType UpdateParameters();
+
+    /**
+     * @brief Remove all parameters, deallocate memory.
+     */
+    virtual ErrorManagement::ErrorType Clean();
+
 private:
 
     ErrorManagement::ErrorType ConnectParameter(StreamString nodeName, ConfigurationDatabase nodeParams);

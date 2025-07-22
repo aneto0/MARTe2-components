@@ -83,6 +83,17 @@ public:
     virtual bool Initialise(StructuredDataI & data);
 
     /**
+     * @brief
+     * @warning This method shall be implemented in all subclasses
+     */
+    virtual ErrorManagement::ErrorType UpdateParameters();
+
+    /**
+     * @brief Remove all parameters, deallocate memory.
+     */
+    virtual ErrorManagement::ErrorType Clean();
+
+    /**
      * @brief Returns the name of the parameter in the n-th position of the list
      */
     StreamString GetParameterName(uint32 parameterIndex);
