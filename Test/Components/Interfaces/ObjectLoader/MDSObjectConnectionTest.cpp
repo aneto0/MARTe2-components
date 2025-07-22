@@ -344,6 +344,7 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
             testTree->addNode("DICT", "ANY");
             testTree->addNode("STRUCTARRAY", "ANY");
             testTree->addNode("INVALIDLIST", "ANY");
+            testTree->addNode("MAT4DUINT32", "NUMERIC");
         } catch (const MDSplus::MdsException &exc) {
             /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed creating structure node. MDSplus exception: %s", exc.what());
             ok = false;
@@ -401,6 +402,13 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
         ok &= AddNodeValues(SignedInteger64Bit  , "STRUCT.SUBSTRUCT.");
         ok &= AddNodeValues(Float32Bit          , "STRUCT.SUBSTRUCT.");
         ok &= AddNodeValues(Float64Bit          , "STRUCT.SUBSTRUCT.");
+
+        // invalid numeric node
+        uint32 matrix4DValue[2][2][2][2] = { { { {1, 2}, {1, 2} }, { {1, 2}, {1, 2} } }, { { {1, 2}, {1, 2} }, { {1, 2}, {1, 2} } } };
+        int32  matrix4DDims[4] = {2, 2, 2, 2};
+        MDSplus::Uint32Array* matrix4DData = new MDSplus::Uint32Array(&matrix4DValue[0][0][0][0], 4, &matrix4DDims[0]);
+        MDSplus::TreeNode* invalid4DNode = testTree->getNode("MAT4DUINT32");
+        invalid4DNode->putData(matrix4DData);
        if (!ok) {
             /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed AddNodeValues");
        }
@@ -456,7 +464,7 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
             MDSplus::TreeNode* invalidStructNode = testTree->getNode("INVALIDLIST");
             invalidStructNode->putData(invalidStructArray);
         } catch (const MDSplus::MdsException &exc) {
-            /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed creating dictionary node. MDSplus exception: %s", exc.what());
+            /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed creating structured node. MDSplus exception: %s", exc.what());
             ok = false;
         }
     }
@@ -1403,6 +1411,24 @@ bool MDSObjectConnectionTest::TestInitialise_InvalidListItems_Failed() {
         "Shot   = -1                               \n"
         "Parameters = {                            \n"
         "    StructParameter   = { Path = \"INVALIDLIST\" } \n"
+        "}                                         \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.unsupportedFeature && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_Invalid4DMatrix_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection              \n"
+        "Tree   = mdsoc_ttree                      \n"
+        "Shot   = -1                               \n"
+        "Parameters = {                            \n"
+        "    StructParameter   = { Path = \"MAT4DUINT32\" } \n"
         "}                                         \n"
         ""
         ;

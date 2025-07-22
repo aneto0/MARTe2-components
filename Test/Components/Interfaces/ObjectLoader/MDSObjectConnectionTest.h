@@ -127,6 +127,7 @@ public:
     bool TestInitialise_TargetDimAndStartIdx_Failed();
     bool TestInitialise_WrongPath_Failed();
     bool TestInitialise_InvalidListItems_Failed();
+    bool TestInitialise_Invalid4DMatrix_Failed();
 
     ConfigurationDatabase referenceCdbRowMajor;
     ConfigurationDatabase referenceCdbColMajor;

@@ -164,3 +164,8 @@ TEST(MDSObjectConnectionGTest,TestInitialise_InvalidListItems_Failed) {
     ASSERT_TRUE(test.TestInitialise_InvalidListItems_Failed());
 }
 
+TEST(MDSObjectConnectionGTest,TestInitialise_Invalid4DMatrix_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_Invalid4DMatrix_Failed());
+}
+
