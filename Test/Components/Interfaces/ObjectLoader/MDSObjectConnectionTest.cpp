@@ -345,6 +345,7 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
             testTree->addNode("STRUCTARRAY", "ANY");
             testTree->addNode("INVALIDLIST", "ANY");
             testTree->addNode("MAT4DUINT32", "NUMERIC");
+            testTree->addNode("SCALCOMP32", "NUMERIC");
         } catch (const MDSplus::MdsException &exc) {
             /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed creating structure node. MDSplus exception: %s", exc.what());
             ok = false;
@@ -409,6 +410,11 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
         MDSplus::Uint32Array* matrix4DData = new MDSplus::Uint32Array(&matrix4DValue[0][0][0][0], 4, &matrix4DDims[0]);
         MDSplus::TreeNode* invalid4DNode = testTree->getNode("MAT4DUINT32");
         invalid4DNode->putData(matrix4DData);
+
+        // invalid node type
+        MDSplus::Complex32* invalidScalar = new MDSplus::Complex32(1, -1);
+        MDSplus::TreeNode* invalidScalarNode = testTree->getNode("SCALCOMP32");
+        invalidScalarNode->putData(invalidScalar);
        if (!ok) {
             /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed AddNodeValues");
        }
@@ -1429,6 +1435,24 @@ bool MDSObjectConnectionTest::TestInitialise_Invalid4DMatrix_Failed() {
         "Shot   = -1                               \n"
         "Parameters = {                            \n"
         "    StructParameter   = { Path = \"MAT4DUINT32\" } \n"
+        "}                                         \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.unsupportedFeature && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_UnsupportedDataType_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection              \n"
+        "Tree   = mdsoc_ttree                      \n"
+        "Shot   = -1                               \n"
+        "Parameters = {                            \n"
+        "    StructParameter   = { Path = \"SCALCOMP32\" } \n"
         "}                                         \n"
         ""
         ;

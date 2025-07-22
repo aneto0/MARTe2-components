@@ -169,3 +169,8 @@ TEST(MDSObjectConnectionGTest,TestInitialise_Invalid4DMatrix_Failed) {
     ASSERT_TRUE(test.TestInitialise_Invalid4DMatrix_Failed());
 }
 
+TEST(MDSObjectConnectionGTest,TestInitialise_UnsupportedDataType_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_UnsupportedDataType_Failed());
+}
+
