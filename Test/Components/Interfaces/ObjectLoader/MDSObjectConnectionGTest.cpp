@@ -94,6 +94,11 @@ TEST(MDSObjectConnectionGTest,TestInitialise_ColMajor) {
     ASSERT_TRUE(test.TestInitialise_ColMajor());
 }
 
+TEST(MDSObjectConnectionGTest,TestInitialise_String) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_String());
+}
+
 TEST(MDSObjectConnectionGTest,TestInitialise_DictAsStruct_RowMajor) {
     MDSObjectConnectionTest test;
     ASSERT_TRUE(test.TestInitialise_DictAsStruct_RowMajor());
@@ -172,5 +177,10 @@ TEST(MDSObjectConnectionGTest,TestInitialise_Invalid4DMatrix_Failed) {
 TEST(MDSObjectConnectionGTest,TestInitialise_UnsupportedDataType_Failed) {
     MDSObjectConnectionTest test;
     ASSERT_TRUE(test.TestInitialise_UnsupportedDataType_Failed());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_StringColMajor_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_StringColMajor_Failed());
 }
 

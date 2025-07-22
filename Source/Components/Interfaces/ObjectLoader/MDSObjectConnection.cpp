@@ -305,8 +305,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
             }
             catch (MDSplus::MdsException &ex) {
                 ret.exception = true;
-                REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting node %s", GetName(), nodeName.Buffer(), MDSPath.Buffer());
-                REPORT_ERROR(ret, "[%s] - MDSplus error: %s", GetName(), ex.what());
+                REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting node %s. MDSplus error: \n%s", GetName(), nodeName.Buffer(), MDSPath.Buffer(), ex.what());
             }
         }
     }
@@ -351,8 +350,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
     }
     catch (MDSplus::MdsException &ex) {
         ret.exception = true;
-        REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting the associated node", GetName(), nodeName.Buffer());
-        REPORT_ERROR(ret, "[%s] - MDSplus error: %s", GetName(), ex.what());
+        REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting the associated node. MDSplus error: \n%s", GetName(), nodeName.Buffer(), ex.what());
     }
 
     if (ret) {
@@ -410,6 +408,13 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
             ret.unsupportedFeature = true;
             REPORT_ERROR(ret, "[%s] - Parameter %s: unsupported MDSplus type", GetName(), nodeName.Buffer());
         }
+
+        if (castMdsType == DTYPE_T) {
+            ret.illegalOperation = !(orientation == "RowMajor");
+            if (ret.illegalOperation) {
+                REPORT_ERROR(ret, "[%s] - Parameter %s: is a String, ColumnMajor orientation not supported. Set `DataOrientation = RowMajor`.", GetName(), nodeName.Buffer());
+            }
+        }
     }
 
 
@@ -448,8 +453,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
                 }
                 catch (MDSplus::MdsException &ex) {
                     ret.exception = true;
-                    REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting Dictionary item %d", GetName(), nodeName.Buffer(), itemIdx/2u);
-                    REPORT_ERROR(ret, "[%s] - MDSplus error: %s", GetName(), ex.what());
+                    REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting Dictionary item %d. MDSplus error: \n%s", GetName(), nodeName.Buffer(), itemIdx/2u, ex.what());
                 }
 
                 if (ret) {
@@ -480,8 +484,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
                 }
                 catch (MDSplus::MdsException &ex) {
                     ret.exception = true;
-                    REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting List item %d", GetName(), nodeName.Buffer(), itemIdx);
-                    REPORT_ERROR(ret, "[%s] - MDSplus error: %s", GetName(), ex.what());
+                    REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting List item %d. MDSplus error: \n%s", GetName(), nodeName.Buffer(), itemIdx, ex.what());
                 }
 
                 if (ret) {

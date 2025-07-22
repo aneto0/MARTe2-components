@@ -111,6 +111,8 @@ public:
     bool TestInitialise_RowMajor();
     bool TestInitialise_ColMajor();
 
+    bool TestInitialise_String();
+
     bool TestInitialise_DictAsStruct_RowMajor();
     bool TestInitialise_DictAsStruct_ColMajor();
 
@@ -129,6 +131,7 @@ public:
     bool TestInitialise_InvalidListItems_Failed();
     bool TestInitialise_Invalid4DMatrix_Failed();
     bool TestInitialise_UnsupportedDataType_Failed();
+    bool TestInitialise_StringColMajor_Failed();
 
     ConfigurationDatabase referenceCdbRowMajor;
     ConfigurationDatabase referenceCdbColMajor;

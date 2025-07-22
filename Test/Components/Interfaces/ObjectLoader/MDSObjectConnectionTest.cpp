@@ -339,10 +339,13 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
 
     if (ok) {
         try {
+            testTree->addNode("STRING", "TEXT");
             testTree->addNode("STRUCT", "STRUCTURE");
             testTree->addNode("STRUCT.SUBSTRUCT", "STRUCTURE");
             testTree->addNode("DICT", "ANY");
             testTree->addNode("STRUCTARRAY", "ANY");
+
+            // invalid nodes
             testTree->addNode("INVALIDLIST", "ANY");
             testTree->addNode("MAT4DUINT32", "NUMERIC");
             testTree->addNode("SCALCOMP32", "NUMERIC");
@@ -403,6 +406,10 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
         ok &= AddNodeValues(SignedInteger64Bit  , "STRUCT.SUBSTRUCT.");
         ok &= AddNodeValues(Float32Bit          , "STRUCT.SUBSTRUCT.");
         ok &= AddNodeValues(Float64Bit          , "STRUCT.SUBSTRUCT.");
+
+        MDSplus::String* stringData = new MDSplus::String("Hello World!");
+        MDSplus::TreeNode* stringNode = testTree->getNode("STRING");
+        stringNode->putData(stringData);
 
         // invalid numeric node
         uint32 matrix4DValue[2][2][2][2] = { { { {1, 2}, {1, 2} }, { {1, 2}, {1, 2} } }, { { {1, 2}, {1, 2} }, { {1, 2}, {1, 2} } } };
@@ -578,6 +585,7 @@ MDSObjectConnectionTest::MDSObjectConnectionTest() {
         "   VECFLOAT64 = (float64) {1.1, 2.2, 3.3, 4.4}"
         "   MATFLOAT64 = (float64) { {1.1, 2.2, 3.3, 4.4}, {5.5, 6.6, 7.7, 8.8}, {9.9, 10.1, 11.11, 12.12} }"
         " MAT3DFLOAT64 = (uint8) { 154, 153, 153, 153, 153, 153, 241, 63, 195, 245, 40, 92, 143, 66, 42, 64, 154, 153, 153, 153, 153, 153, 1, 64, 72, 225, 122, 20, 174, 71, 44, 64, 102, 102, 102, 102, 102, 102, 10, 64, 205, 204, 204, 204, 204, 76, 46, 64, 154, 153, 153, 153, 153, 153, 17, 64, 41, 92, 143, 194, 245, 40, 48, 64, 0, 0, 0, 0, 0, 0, 22, 64, 236, 81, 184, 30, 133, 43, 49, 64, 102, 102, 102, 102, 102, 102, 26, 64, 174, 71, 225, 122, 20, 46, 50, 64, 205, 204, 204, 204, 204, 204, 30, 64, 113, 61, 10, 215, 163, 48, 51, 64, 154, 153, 153, 153, 153, 153, 33, 64, 51, 51, 51, 51, 51, 51, 52, 64, 205, 204, 204, 204, 204, 204, 35, 64, 246, 40, 92, 143, 194, 53, 53, 64, 51, 51, 51, 51, 51, 51, 36, 64, 184, 30, 133, 235, 81, 56, 54, 64, 184, 30, 133, 235, 81, 56, 38, 64, 123, 20, 174, 71, 225, 58, 55, 64, 61, 10, 215, 163, 112, 61, 40, 64, 61, 10, 215, 163, 112, 61, 56, 64 }"
+        "       STRING = \"Hello World!\" "
         ""
         " NS_UINT8_1   = (uint8)   1   NS_UINT8_2   = (uint8)   2   NS_UINT8_3   = (uint8)   3   NS_UINT8_4   = (uint8)   4 "
         " NS_UINT16_1  = (uint16)  1   NS_UINT16_2  = (uint16)  2   NS_UINT16_3  = (uint16)  3   NS_UINT16_4  = (uint16)  4 "
@@ -1137,6 +1145,32 @@ bool MDSObjectConnectionTest::TestInitialise_ColMajor() {
 }
 
 
+bool MDSObjectConnectionTest::TestInitialise_String() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection              \n"
+        "Tree   = mdsoc_ttree                      \n"
+        "Server = localhost:8002                   \n"
+        "Shot   = -1                               \n"
+        "Parameters = {                            \n"
+        "    STRING = { Path = \"STRING\" DataOrientation = RowMajor } \n"
+        "}                                         \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbRowMajor);
+    }
+
+    return (status.ErrorsCleared() && ok);
+}
+
 bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_RowMajor() {
 
     StreamString configStream = ""
@@ -1416,7 +1450,7 @@ bool MDSObjectConnectionTest::TestInitialise_InvalidListItems_Failed() {
         "Tree   = mdsoc_ttree                      \n"
         "Shot   = -1                               \n"
         "Parameters = {                            \n"
-        "    StructParameter   = { Path = \"INVALIDLIST\" } \n"
+        "    INVALIDLIST   = { Path = \"INVALIDLIST\" } \n"
         "}                                         \n"
         ""
         ;
@@ -1434,7 +1468,7 @@ bool MDSObjectConnectionTest::TestInitialise_Invalid4DMatrix_Failed() {
         "Tree   = mdsoc_ttree                      \n"
         "Shot   = -1                               \n"
         "Parameters = {                            \n"
-        "    StructParameter   = { Path = \"MAT4DUINT32\" } \n"
+        "    MAT4DUINT32   = { Path = \"MAT4DUINT32\" } \n"
         "}                                         \n"
         ""
         ;
@@ -1452,7 +1486,7 @@ bool MDSObjectConnectionTest::TestInitialise_UnsupportedDataType_Failed() {
         "Tree   = mdsoc_ttree                      \n"
         "Shot   = -1                               \n"
         "Parameters = {                            \n"
-        "    StructParameter   = { Path = \"SCALCOMP32\" } \n"
+        "    SCALCOMP32   = { Path = \"SCALCOMP32\" } \n"
         "}                                         \n"
         ""
         ;
@@ -1461,4 +1495,22 @@ bool MDSObjectConnectionTest::TestInitialise_UnsupportedDataType_Failed() {
     bool ok = TestInitialiseWithConfiguration(configStream, status);
 
     return (status.unsupportedFeature && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_StringColMajor_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection              \n"
+        "Tree   = mdsoc_ttree                      \n"
+        "Shot   = -1                               \n"
+        "Parameters = {                            \n"
+        "    STRING   = { Path = \"STRING\"   DataOrientation = ColumnMajor } \n"
+        "}                                         \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.illegalOperation && !ok);
 }
