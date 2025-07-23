@@ -84,9 +84,9 @@ bool ObjectLoader::Initialise(StructuredDataI & data) {
     }
 
     if (status.ErrorsCleared()) {
-        status = UpdateObjects(false);
+        status = SerialiseObjects(false);
         if (!status.ErrorsCleared()) {
-            REPORT_ERROR(status, "[%s] - failed UpdateObjects()", GetName());
+            REPORT_ERROR(status, "[%s] - failed SerialiseObjects()", GetName());
         }
     }
 
@@ -94,7 +94,7 @@ bool ObjectLoader::Initialise(StructuredDataI & data) {
 }
 
 
-ErrorManagement::ErrorType ObjectLoader::UpdateObjects(bool overwriteParams /* = true */) {
+ErrorManagement::ErrorType ObjectLoader::SerialiseObjects(bool overwriteParams /* = true */) {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
     for (uint32 connectionIdx = 0u; (connectionIdx < Size()) && ret; connectionIdx++) {
@@ -145,6 +145,29 @@ ErrorManagement::ErrorType ObjectLoader::UpdateObjects(bool overwriteParams /* =
     return ret;
 }
 
+ErrorManagement::ErrorType ObjectLoader::UpdateParameters() {
+
+    ErrorManagement::ErrorType ret = ErrorManagement::NoError;
+    for (uint32 connectionIdx = 0u; (connectionIdx < Size()) && ret; connectionIdx++) {
+
+        ReferenceT<ObjectConnectionI> connection = Get(connectionIdx);
+        if (connection.IsValid()) {
+            ret = connection->UpdateParameters();
+            if (!ret) {
+                REPORT_ERROR(ret, "[%s] - Failed to UpdateParameters in connection `%s`.", GetName(), connection->GetName());
+            }
+        }
+    }
+
+    if (ret) {
+        ret = SerialiseObjects(true);
+        if (!ret) {
+            REPORT_ERROR(ret, "[%s] - Failed to SerialiseObjects.", GetName());
+        }
+    }
+
+    return ret;
+}
 
 CLASS_REGISTER(ObjectLoader, "1.1")
 } /* namespace MARTe */

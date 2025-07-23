@@ -54,27 +54,27 @@ TEST(ObjectLoaderGTest,TestInitialise_ParametersCopy) {
     ASSERT_TRUE(test.TestInitialise_ParametersCopy());
 }
 
-TEST(ObjectLoaderGTest,TestUpdateObjects_ParametersValue) {
+TEST(ObjectLoaderGTest,TestSerialiseObjects_ParametersValue) {
     ObjectLoaderTest test;
-    ASSERT_TRUE(test.TestUpdateObjects_ParametersValue());
+    ASSERT_TRUE(test.TestSerialiseObjects_ParametersValue());
 }
 
-TEST(ObjectLoaderGTest,TestUpdateObjects_Failed_InvalidType) {
+TEST(ObjectLoaderGTest,TestSerialiseObjects_Failed_InvalidType) {
     ObjectLoaderTest test;
-    ASSERT_TRUE(test.TestUpdateObjects_Failed_InvalidType());
+    ASSERT_TRUE(test.TestSerialiseObjects_Failed_InvalidType());
 }
 
-TEST(ObjectLoaderGTest,TestUpdateObjects_Failed_CannotSerialise) {
+TEST(ObjectLoaderGTest,TestSerialiseObjects_Failed_CannotSerialise) {
     ObjectLoaderTest test;
-    ASSERT_TRUE(test.TestUpdateObjects_Failed_CannotSerialise());
+    ASSERT_TRUE(test.TestSerialiseObjects_Failed_CannotSerialise());
 }
 
-TEST(ObjectLoaderGTest,TestUpdateObjects_Failed_ParametersWithSameName) {
+TEST(ObjectLoaderGTest,TestSerialiseObjects_Failed_ParametersWithSameName) {
     ObjectLoaderTest test;
-    ASSERT_TRUE(test.TestUpdateObjects_Failed_ParametersWithSameName());
+    ASSERT_TRUE(test.TestSerialiseObjects_Failed_ParametersWithSameName());
 }
-TEST(ObjectLoaderGTest,TestUpdateObjects) {
+TEST(ObjectLoaderGTest,TestSerialiseObjects) {
     ObjectLoaderTest test;
-    ASSERT_TRUE(test.TestUpdateObjects());
+    ASSERT_TRUE(test.TestSerialiseObjects());
 }
 

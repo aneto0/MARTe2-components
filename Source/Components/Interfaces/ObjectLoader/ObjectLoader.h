@@ -170,13 +170,17 @@ public:
      */
     ErrorManagement::ErrorType GetStatus();
 
-    ErrorManagement::ErrorType UpdateObjects(bool overwriteParams = true);
+    ErrorManagement::ErrorType UpdateParameters();
+
+    ErrorManagement::ErrorType SerialiseObjects(bool overwriteParams = true);
 
 protected:
+
 
     ErrorManagement::ErrorType status;
 
 private:
+
 
 };
 

@@ -176,7 +176,7 @@ bool ObjectLoaderTest::TestInitialise_ParametersCopy() {
     return (status.ErrorsCleared() && ok);
 }
 
-bool ObjectLoaderTest::TestUpdateObjects_ParametersValue() {
+bool ObjectLoaderTest::TestSerialiseObjects_ParametersValue() {
 
     ErrorManagement::ErrorType status = ErrorManagement::FatalError;
     ObjectRegistryDatabase *ord = NULL_PTR(ObjectRegistryDatabase*);
@@ -229,7 +229,7 @@ bool ObjectLoaderTest::TestUpdateObjects_ParametersValue() {
             connection->GetParameterList()->Add(new StreamString("struct1.matrixDouble"));
 
             ok = loader->Insert("Connection1", connection);
-            ok = loader->UpdateObjects();
+            ok = loader->SerialiseObjects();
             status = loader->GetStatus();
         }
     }
@@ -254,7 +254,7 @@ bool ObjectLoaderTest::TestUpdateObjects_ParametersValue() {
     return (status.ErrorsCleared() && ok);
 }
 
-bool ObjectLoaderTest::TestUpdateObjects_Failed_InvalidType() {
+bool ObjectLoaderTest::TestSerialiseObjects_Failed_InvalidType() {
 
     ErrorManagement::ErrorType status = ErrorManagement::NoError;
     ObjectRegistryDatabase *ord = NULL_PTR(ObjectRegistryDatabase*);
@@ -295,7 +295,7 @@ bool ObjectLoaderTest::TestUpdateObjects_Failed_InvalidType() {
 
             ok = loader->Insert("Connection1", connection);
             if (ok) {
-                status = loader->UpdateObjects();
+                status = loader->SerialiseObjects();
             }
         }
     }
@@ -303,7 +303,7 @@ bool ObjectLoaderTest::TestUpdateObjects_Failed_InvalidType() {
     return (status.exception && ok);
 }
 
-bool ObjectLoaderTest::TestUpdateObjects_Failed_CannotSerialise() {
+bool ObjectLoaderTest::TestSerialiseObjects_Failed_CannotSerialise() {
 
     ErrorManagement::ErrorType status = ErrorManagement::NoError;
     ObjectRegistryDatabase *ord = NULL_PTR(ObjectRegistryDatabase*);
@@ -344,7 +344,7 @@ bool ObjectLoaderTest::TestUpdateObjects_Failed_CannotSerialise() {
 
             ok = loader->Insert("Connection1", connection);
             if (ok) {
-                status = loader->UpdateObjects();
+                status = loader->SerialiseObjects();
             }
         }
     }
@@ -354,7 +354,7 @@ bool ObjectLoaderTest::TestUpdateObjects_Failed_CannotSerialise() {
 }
 
 
-bool ObjectLoaderTest::TestUpdateObjects_Failed_ParametersWithSameName() {
+bool ObjectLoaderTest::TestSerialiseObjects_Failed_ParametersWithSameName() {
 
     ErrorManagement::ErrorType status = ErrorManagement::NoError;
     ObjectRegistryDatabase *ord = NULL_PTR(ObjectRegistryDatabase*);
@@ -397,7 +397,7 @@ bool ObjectLoaderTest::TestUpdateObjects_Failed_ParametersWithSameName() {
 
             ok = loader->Insert("Connection1", connection);
             if (ok) {
-                status = loader->UpdateObjects(false);
+                status = loader->SerialiseObjects(false);
             }
         }
     }
@@ -407,7 +407,7 @@ bool ObjectLoaderTest::TestUpdateObjects_Failed_ParametersWithSameName() {
 }
 
 
-bool ObjectLoaderTest::TestUpdateObjects() {
+bool ObjectLoaderTest::TestSerialiseObjects() {
 
     ErrorManagement::ErrorType status = ErrorManagement::NoError;
     ObjectRegistryDatabase *ord = NULL_PTR(ObjectRegistryDatabase*);
@@ -447,12 +447,12 @@ bool ObjectLoaderTest::TestUpdateObjects() {
 
             ok = loader->Insert("Connection1", connection);
             if (ok) {
-                status = loader->UpdateObjects();
+                status = loader->SerialiseObjects();
             }
 
             if (status && ok) {
                 *( (float64*) scalarDouble->GetDataPointer()) = 2.;
-                status = loader->UpdateObjects();
+                status = loader->SerialiseObjects();
             }
         }
     }
