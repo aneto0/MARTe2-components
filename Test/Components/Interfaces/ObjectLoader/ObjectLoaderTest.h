@@ -113,6 +113,8 @@ public:
     bool TestSerialiseObjects_Failed_ParametersWithSameName();
     bool TestSerialiseObjects();
 
+    bool TestUpdateParameters();
+
 private:
 
     /**

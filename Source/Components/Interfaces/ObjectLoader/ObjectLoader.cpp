@@ -174,6 +174,10 @@ ErrorManagement::ErrorType ObjectLoader::UpdateParameters() {
         }
     }
 
+    if (ret) {
+        REPORT_ERROR(ErrorManagement::Information, "[%s] - Parameters correctly updated.", GetName());
+    }
+
     return ret;
 }
 

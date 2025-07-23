@@ -73,8 +73,14 @@ TEST(ObjectLoaderGTest,TestSerialiseObjects_Failed_ParametersWithSameName) {
     ObjectLoaderTest test;
     ASSERT_TRUE(test.TestSerialiseObjects_Failed_ParametersWithSameName());
 }
+
 TEST(ObjectLoaderGTest,TestSerialiseObjects) {
     ObjectLoaderTest test;
     ASSERT_TRUE(test.TestSerialiseObjects());
+}
+
+TEST(ObjectLoaderGTest,TestUpdateParameters) {
+    ObjectLoaderTest test;
+    ASSERT_TRUE(test.TestUpdateParameters());
 }
 
