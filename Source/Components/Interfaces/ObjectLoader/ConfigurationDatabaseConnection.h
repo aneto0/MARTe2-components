@@ -95,7 +95,7 @@ namespace MARTe {
  * Version |    Date    | Notes
  * ------: | :--------: | :----
  * 1.0     | 16/09/2024 | initial release
- * 1.1     | 31/07/2025 | tested and linted version
+ * 2.0     | 31/07/2025 | tested and linted version
  *
  */
 class ConfigurationDatabaseConnection : public ObjectConnectionI {

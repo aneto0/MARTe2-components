@@ -49,9 +49,8 @@ namespace MARTe {
  * @brief   Loader class that loads parameters from various sources and makes
  *          them available as AnyObject.
  * @details This class is a ReferenceContainer of MARTe::ObjectConnectionI.
- *          For each parameter
- *          declared in the connections, this class inserts in itself
- *          an AnyObject that holds the value of the parameter as
+ *          For each parameter declared in the connections, this class `Insert()`s
+ *          in itself an AnyObject that holds the value of the parameter as
  *          retrieved from the connections.
  *          The parameter is saved as an AnyObject for compatibility with
  *          the rest of the framework: by knowing the name of the instance
@@ -64,12 +63,9 @@ namespace MARTe {
  *
  * The ObjectLoader shares its configuration parameters with the contained
  * Connections, that is, all parameters declared inside the ObjectLoader
- * (except for the `Class` parameter) shall be also copied in the
+ * (except for the `Class` parameter) shall also be copied in the
  * configuration database of the contained Connections unless a parameter
  * of the same name already exists in the Connection.
- *
- * The parameters can be updated by calling `UpdateObjects()`. All previous
- * parameters are overwritten.
  *
  * @warning The MDSObjectConnection library is compiled only if the
  *          `MDSPLUS_DIR` environmental variable is defined and is
@@ -137,6 +133,17 @@ namespace MARTe {
  * @warning Do not use `-` character for node names except for denoting structures
  *          (see note above).
  *
+ * Updating the parameters
+ * ==========================================================================
+ *
+ * The parameters can be updated by calling `UpdateParameters()`. Note that
+ * this will change the value of the parameters provided that the value of
+ * the parameters have changed in the connection.
+ *
+ * The `UpdateParameters()` method will in turn call all the
+ * `ObjectConnectionI::UpdateParameters()` of the contained connections, thus
+ * triggering the update of the parameters in those objects. Then, the method
+ * will reload all parameters as new AnyObjects.
  *
  * Release notes
  * ==========================================================================
@@ -144,7 +151,7 @@ namespace MARTe {
  * Version |    Date    | Notes
  * ------: | :--------: | :----
  * 1.0     | 16/09/2024 | initial release
- * 1.1     | 31/07/2025 | tested and linted version
+ * 2.0     | 31/07/2025 | tested and linted version
  *
  */
 class ObjectLoader : public ReferenceContainer, public MessageI {

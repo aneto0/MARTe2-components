@@ -67,6 +67,10 @@ enum MDSClientType {
  * `MARTe::ObjectLoader` class that makes the parameters available
  * to any component of the RealTimeApplication.
  *
+ * @warning The MDSObjectConnection interface is compiled only if the
+ *          `MDSPLUS_DIR` environmental variable is defined and is
+ *          is pointing to a valid MDSplus installation directory.
+ *
  * The configuration syntax is (names and signal quantity are only given
  * as an example):
  *
@@ -220,7 +224,7 @@ enum MDSClientType {
  * Version |    Date    | Notes
  * ------: | :--------: | :----
  * 1.0     | 16/09/2024 | initial release
- * 1.1     | 31/07/2025 | tested and linted version
+ * 2.0     | 31/07/2025 | tested and linted version
  *
  */
 class MDSObjectConnection : public ObjectConnectionI {
