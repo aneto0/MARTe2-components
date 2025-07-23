@@ -32,11 +32,13 @@
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
+#include "CLASSMETHODREGISTER.h"
 #include "ConfigurationDatabase.h"
 #include "AdvancedErrorManagement.h"
 #include "MessageI.h"
 #include "ObjectConnectionI.h"
 #include "ReferenceContainer.h"
+#include "RegisteredMethodsMessageFilter.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -181,6 +183,7 @@ protected:
 
 private:
 
+    ReferenceT<RegisteredMethodsMessageFilter> messageFilter;
 
 };
 

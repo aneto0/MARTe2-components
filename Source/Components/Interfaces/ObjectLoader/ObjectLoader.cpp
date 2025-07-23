@@ -42,6 +42,14 @@ namespace MARTe {
 
 ObjectLoader::ObjectLoader() :
         ReferenceContainer(), MessageI() {
+
+    messageFilter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    messageFilter->SetDestination(this);
+    ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(messageFilter);
+    if (!ret.ErrorsCleared()) {
+        REPORT_ERROR(ErrorManagement::FatalError, "[%s] - Failed to install message filter.", GetName());
+    }
+
 }
 
 ObjectLoader::~ObjectLoader() {
@@ -169,5 +177,8 @@ ErrorManagement::ErrorType ObjectLoader::UpdateParameters() {
     return ret;
 }
 
+
 CLASS_REGISTER(ObjectLoader, "1.1")
+CLASS_METHOD_REGISTER(ObjectLoader, UpdateParameters)
+
 } /* namespace MARTe */
