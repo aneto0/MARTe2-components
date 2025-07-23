@@ -52,8 +52,67 @@ ConfigurationDatabaseConnection::~ConfigurationDatabaseConnection() {
 }
 
 ErrorManagement::ErrorType ConfigurationDatabaseConnection::UpdateParameters() {
-    //ErrorManagement::ErrorType status = ObjectConnectionI::UpdateParameters();
-    return ErrorManagement::NoError;
+
+    ErrorManagement::ErrorType ret = Clean();
+
+    // traverse and flatten the `Parameters` node (iteratively to avoid recursion)
+    StaticList<StreamString*> nodeStack;
+
+    // add root node to the stack
+    StreamString* currentNodePtr = new StreamString("");
+    ret.exception = !nodeStack.Add(currentNodePtr);
+
+    while ((nodeStack.GetSize() > 0u) && ret) {
+
+        StreamString stackNodePath = "";
+        StreamString separator = "";
+
+        // pop element from the stack
+        stackNodePath = *(nodeStack[nodeStack.GetSize() - 1u]);
+        delete nodeStack[nodeStack.GetSize() - 1u];
+        ret.exception = !nodeStack.Remove(nodeStack.GetSize() - 1u);
+
+        if ((stackNodePath.Size() > 0u) && ret) { // not on the root node
+            ret.illegalOperation = !parametersCdb.MoveAbsolute(stackNodePath.Buffer());
+            separator = ".";
+            if (ret.illegalOperation) {
+                REPORT_ERROR(status, "[%s] - failed MoveAbsolute()", GetName());
+            }
+        }
+
+        for (uint32 elemIdx = 0u; (elemIdx < parametersCdb.GetNumberOfChildren()) && ret; elemIdx++) {
+
+            StreamString currentNodePath = stackNodePath;
+                currentNodePath += separator;
+                currentNodePath += parametersCdb.GetChildName(elemIdx);
+
+            // has subnodes: add this node's subelements to the stack
+            if (parametersCdb.MoveToChild(elemIdx)) {
+                if(parametersCdb.MoveToAncestor(1u)) {}
+
+                currentNodePtr = new StreamString(currentNodePath);
+                ret.exception = !nodeStack.Add(currentNodePtr);
+            }
+            // is leaf: add this node to this connection
+            else {
+                    // substitute any dash `-` with dots `.` for retrocompatibility
+                while (currentNodePath.Locate("-") != -1) {
+                    int32 dashIdx = currentNodePath.Locate("-");
+                    (currentNodePath.BufferReference())[dashIdx] = '.';
+                }
+
+                AnyType* anyTypeParam = new AnyType(parametersCdb.GetType(parametersCdb.GetChildName(elemIdx)));
+                Add(anyTypeParam);
+                paramNames.Add(new StreamString(currentNodePath));
+            }
+        }
+
+        if ((stackNodePath.Size() > 0u) && ret) { // not on the root node
+            ret.illegalOperation = !parametersCdb.MoveToAncestor(1u);
+        }
+    }
+
+    return ret;
 }
 
 ErrorManagement::ErrorType ConfigurationDatabaseConnection::Clean() {
@@ -65,82 +124,29 @@ ErrorManagement::ErrorType ConfigurationDatabaseConnection::Clean() {
 
 bool ConfigurationDatabaseConnection::Initialise(StructuredDataI & data) {
 
-    bool ok = ObjectConnectionI::Initialise(data);
+    status.initialisationError = !ObjectConnectionI::Initialise(data);
 
-    if (ok) {
+    if (status) {
 
-        ok = data.MoveRelative("Parameters");
-        if (!ok) {
-            status.parametersError = true;
+        status.parametersError = !data.MoveRelative("Parameters");
+        if (status.parametersError) {
             REPORT_ERROR(status, "[%s] - 'Parameters' node not found", GetName());
         }
 
-        // traverse and flatten the `Parameters` node (iteratively to avoid recursion)
-        if (ok) {
-
-            ok = data.Copy(parametersCdb);
-            StaticList<StreamString*> nodeStack;
-
-            // add root node to the stack
-            StreamString* currentNodePtr = new StreamString("");
-            ok &= nodeStack.Add(currentNodePtr);
-
-            while ((nodeStack.GetSize() > 0u) && ok) {
-
-                StreamString stackNodePath = "";
-                StreamString separator = "";
-
-                // pop element from the stack
-                stackNodePath = *(nodeStack[nodeStack.GetSize() - 1u]);
-                delete nodeStack[nodeStack.GetSize() - 1u];
-                ok = nodeStack.Remove(nodeStack.GetSize() - 1u);
-
-                if ((stackNodePath.Size() > 0u) && ok) { // not on the root node
-                    ok = parametersCdb.MoveAbsolute(stackNodePath.Buffer());
-                    separator = ".";
-                    if (!ok) {
-                        status.illegalOperation = true;
-                        REPORT_ERROR(status, "[%s] - failed MoveAbsolute()", GetName());
-                    }
-                }
-
-                for (uint32 elemIdx = 0u; (elemIdx < parametersCdb.GetNumberOfChildren()) && ok; elemIdx++) {
-
-                    StreamString currentNodePath = stackNodePath;
-                        currentNodePath += separator;
-                        currentNodePath += parametersCdb.GetChildName(elemIdx);
-
-                    // has subnodes: add this node's subelements to the stack
-                    if (parametersCdb.MoveToChild(elemIdx)) {
-                        if(parametersCdb.MoveToAncestor(1u)) {}
-
-                        currentNodePtr = new StreamString(currentNodePath);
-                        ok = nodeStack.Add(currentNodePtr);
-                    }
-                    // is leaf: add this node to this connection
-                    else {
-                            // substitute any dash `-` with dots `.` for retrocompatibility
-                        while (currentNodePath.Locate("-") != -1) {
-                            int32 dashIdx = currentNodePath.Locate("-");
-                            (currentNodePath.BufferReference())[dashIdx] = '.';
-                        }
-
-                        AnyType* anyTypeParam = new AnyType(parametersCdb.GetType(parametersCdb.GetChildName(elemIdx)));
-                        Add(anyTypeParam);
-                        paramNames.Add(new StreamString(currentNodePath));
-                    }
-                }
-
-                if ((stackNodePath.Size() > 0u) && ok) { // not on the root node
-                    ok = parametersCdb.MoveToAncestor(1u);
-                }
-            }
-
+        if (status) {
+            status.exception = !data.Copy(parametersCdb);
             if (data.MoveToAncestor(1u)) {}
+        }
+
+        if (status) {
+            status = UpdateParameters();
+            if (!status) {
+                REPORT_ERROR(status, "[%s] - Failed 'UpdateParameters' in Initialise.", GetName());
+            }
         }
     }
 
-    return ok;
+    return status;
 }
 
 
