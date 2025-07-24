@@ -75,7 +75,7 @@ using namespace MARTe;
 
 
 /**
- * @brief Test all the MDSObjectConnectionTest methods
+ * @brief Test all the MDSObjectConnection methods
  */
 class MDSObjectConnectionTest {
 public:
@@ -96,42 +96,46 @@ public:
     bool TestConstructor();
 
     /**
-     * @brief Tests the MDSObjectConnectionTest::Initialise method
+     * @name Test methods
      */
-    bool TestInitialise();
-    bool TestInitialise_ThinClient();
-    bool TestInitialise_DistributedClient();
-    bool TestInitialise_TargetDim();
-    bool TestInitialise_StartIdxStopIdx();
-    bool TestInitialise_UnlinkedParameter();
+    //@{
 
-    bool TestInitialise_NestedParameters();
-    bool TestInitialise_NestedParameters_WithDash();
+    bool TestInitialise();                     //!< @brief Tests the MDSObjectConnectionTest::Initialise method
+    bool TestInitialise_ThinClient();          //!< @brief Tests the Initialise method with the Thin client
+    bool TestInitialise_DistributedClient();   //!< @brief Tests the Initialise method with the Distributed client
+    bool TestInitialise_TargetDim();           //!< @brief Tests the usage of the parameter TargetDim
+    bool TestInitialise_StartIdxStopIdx();     //!< @brief Tests the usage of the parameters StartIdx and StopIdx
+    bool TestInitialise_UnlinkedParameter();   //!< @brief Tests an unlinked parameter
 
-    bool TestInitialise_RowMajor();
-    bool TestInitialise_ColMajor();
+    bool TestInitialise_NestedParameters();              //!< @brief Tests the correct loading of nested parameters
+    bool TestInitialise_NestedParameters_WithDash();     //!< @brief Tests the correct loading of nested parameters declared with a dash
 
-    bool TestInitialise_String();
+    bool TestInitialise_RowMajor();                      //!< @brief Tests the correct loading of row-major parameters
+    bool TestInitialise_ColMajor();                      //!< @brief Tests the correct loading of column-major parameters
 
-    bool TestInitialise_DictAsStruct_RowMajor();
-    bool TestInitialise_DictAsStruct_ColMajor();
+    bool TestInitialise_String();                        //!< @brief Tests the loading of a string parameter
 
-    bool TestInitialise_StructArray_RowMajor();
-    bool TestInitialise_StructArray_ColMajor();
+    bool TestInitialise_DictAsStruct_RowMajor();         //!< @brief Tests the loading of a structured parameter in row-major format
+    bool TestInitialise_DictAsStruct_ColMajor();         //!< @brief Tests the loading of a structured parameter in column-major format
 
-    bool TestInitialise_NoTree_Failed();
-    bool TestInitialise_NoShot_Failed();
-    bool TestInitialise_ThinClient_NoServer_Failed();
-    bool TestInitialise_WrongClient_Failed();
-    bool TestInitialise_NoParameters_Failed();
-    bool TestInitialise_NoPath_Failed();
-    bool TestInitialise_WrongOrientation_Failed();
-    bool TestInitialise_TargetDimAndStartIdx_Failed();
-    bool TestInitialise_WrongPath_Failed();
-    bool TestInitialise_InvalidListItems_Failed();
-    bool TestInitialise_Invalid4DMatrix_Failed();
-    bool TestInitialise_UnsupportedDataType_Failed();
-    bool TestInitialise_StringColMajor_Failed();
+    bool TestInitialise_StructArray_RowMajor();          //!< @brief Tests the loading of a struct array parameter in row-major format
+    bool TestInitialise_StructArray_ColMajor();          //!< @brief Tests the loading of a struct array parameter in column-major format
+
+    bool TestInitialise_NoTree_Failed();                 //!< @brief Tests the correct erroring when no Tree is specified
+    bool TestInitialise_NoShot_Failed();                 //!< @brief Tests the correct erroring when no Shot is specified
+    bool TestInitialise_ThinClient_NoServer_Failed();    //!< @brief Tests the correct erroring when Thin client is specified but no Server is declared
+    bool TestInitialise_WrongClient_Failed();            //!< @brief Tests the correct erroring when a wrong client type is declared
+    bool TestInitialise_NoParameters_Failed();           //!< @brief Tests the correct erroring when no Parameters node is declared
+    bool TestInitialise_NoPath_Failed();                 //!< @brief Tests the correct erroring when no Path is specified
+    bool TestInitialise_WrongOrientation_Failed();       //!< @brief Tests the correct erroring when a wrong orientation type is declared
+    bool TestInitialise_TargetDimAndStartIdx_Failed();   //!< @brief Tests the correct erroring when both TargetDim and StartIdx are specified
+    bool TestInitialise_WrongPath_Failed();              //!< @brief Tests the correct erroring when an invalid node path is declared
+    bool TestInitialise_InvalidListItems_Failed();       //!< @brief Tests the correct erroring when a MDSplus::List contains invalid items
+    bool TestInitialise_Invalid4DMatrix_Failed();        //!< @brief Tests the correct erroring when a matrix with dimensions > 3 is declared
+    bool TestInitialise_UnsupportedDataType_Failed();    //!< @brief Tests the correct erroring when an unsupported data type is specified
+    bool TestInitialise_StringColMajor_Failed();         //!< @brief Tests the correct erroring a string parameter is declared column-major
+
+    //@}
 
     ConfigurationDatabase referenceCdbRowMajor;
     ConfigurationDatabase referenceCdbColMajor;

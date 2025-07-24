@@ -158,6 +158,8 @@ enum MDSClientType {
  *               `treename_path=<IP>:<PORT>::<PATH>`.
  * - **Node parameters**:
  *     - *Path*: MDSplus path to the node. The format is `"\\TREENAME::TOP:PATH.TO:NODE"`.
+ *               The supported nodes are described in the section
+ *               [Supported node types](#supported-types).
  *     - *DataOrientation*: Only relevant for 2D or 3D matrices. It specifies
  *               the data orientation of the source parameter in the MDSplus tree.
  *               Note that the parameter should always be loaded as row-major
@@ -179,6 +181,28 @@ enum MDSClientType {
  *               values in an array in the form: `[\DATA001, \DATA002, \DATA003, ...]`,
  *               where the number is specified in the `Path` parameter using the
  *               flag \%u (e.g. \\DATA00\%u).
+ *
+ * Supported node types                                      {#supported-types}
+ * ----------------------------------------------------------------------------
+ *
+ * This interface is able to load MDSplus nodes of the following type:
+ *   1. `NUMERIC` scalars, vectors and matrices up to 3D. Instructions on how
+ *      to configure a numeric matrix are available in the
+ *      [Setting matrices in the source tree](#setting-matrices) section
+ *   2. `TEXT` (string) nodes. Note that string parameters are supported,
+ *      however they must be declared `RowMajor` in the configuration of
+ *      this interface
+ *   3. `STRUCTURE` is a node containing more nodes. This node is loaded as
+ *      structured data in MARTe2, similarly to an `ANY` node
+ *      containing a `MDSplus::Dictionary`
+ *   4. `ANY` is used to declare structured data. Although this node type could
+ *      potentially contain also numeric or text data, it is usually used to
+ *      contain ADT data such as dictionaries or lists. See the section
+ *      [Setting structured data in the source tree](#setting-structures) for
+ *      further details. This interface is able to load an `ANY` node containing:
+ *       - `MDSplus::Dictionary`: this is mapped to a structured data in MARTe2
+ *       - `MDSplus::List` of `MDSplus::Dictionary`s: this is mapped as an
+ *         array of structures in MARTe2
  *
  *
  * Setting matrices in the source tree                      {#setting-matrices}
@@ -217,9 +241,49 @@ enum MDSClientType {
  *   - in *MDSplus/TDI* as `_Mrm = [ [ [1,  5,  9],  [2,  6, 10],  [3,  7, 11],  [4,  8, 12] ], [ [13, 17, 21], [14, 18, 22], [15, 19, 23], [16, 20, 24] ] ]`
  *   - in *ML* as `M_rm(:,:,1) = [ 1 2 3 4; 5 6 7 8; 9 10 11 12 ]; M_rm(:,:,2) = [ 13 14 15 16; 17 18 19 20; 21 22 23 24 ];`
  *
+ * Setting structured data in the source tree             {#setting-structures}
+ * ----------------------------------------------------------------------------
+ *
+ * Structured data can be declared in the source tree using a `STRUCTURE` node
+ * or an `ANY` node containing an `MDSplus::Dictionary`.
+ * Structured arrays, on the other hand, can only be declared using an `ANY`
+ * node containing an `MDSplus::List` of `MDSplus::Dictionary`s.
+ *
+ * ### Structures using a `STRUCTURE` node ###
+ *
+ * To declare structures this way use the `Tree.addNode("MYSTR", "STRUCTURE")`
+ * API and then add subnodes using `Tree.addNode("MYSTR.SUBNODE", "NUMERIC")`.
+ * `STRUCTURE` nodes can be nested.
+ *
+ * ### Structures using `MDSplus::Dictionary` ###
+ *
+ * To declare structures this way use the `Tree.addNode("MYSTR", "ANY")`
+ * API. Then istantiate a `MDSplus::Dictionary` and put it into the node,
+ * for example:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.m}
+ * % create the node
+ * t = MDSplus.Tree("test", -1, "EDIT");
+ * t.addNode("MYSTR", "ANY");
+ *
+ * % create dictionary
+ * myDict = MDSplus.Dictionary();
+ * myDict.setItem(MDSplus.String("par1"), MDSplus.Uint32(1));
+ * myDict.setItem(MDSplus.String("par2"), MDSplus.Float64Array([1 2 3]));
+ *
+ * % put dictionary in the node
+ * n = t.getNode("MYSTR");
+ * n.putData(myDict);
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * The same thing can be done by using the equivalent APIs for C++, Python etc.
+ *
+ * ### Arrays of structures using `MDSplus::List` ###
+ *
+ * TODO
  *
  * Release notes
- * ==========================================================================
+ * ============================================================================
  *
  * Version |    Date    | Notes
  * ------: | :--------: | :----

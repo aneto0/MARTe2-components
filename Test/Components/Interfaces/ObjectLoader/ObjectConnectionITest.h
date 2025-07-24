@@ -75,7 +75,7 @@ public:
 
 
 /**
- * @brief Test all the ObjectConnectionITest methods
+ * @brief Test all the ObjectConnectionI methods
  */
 class ObjectConnectionITest {
 public:
@@ -96,22 +96,14 @@ public:
     bool TestConstructor();
 
     /**
-     * @brief Tests the ObjectConnectionITest::Initialise method
+     * @name Test methods
      */
-    bool TestInitialise();
+    //@{
 
-    /**
-     * @brief Tests the ObjectConnectionITest::Initialise method
-     */
+    bool TestInitialise();                                     //!< @brief Tests the ObjectConnectionITest::Initialise method
     template<typename T>
-    bool TestTransposeAndCopy(const TypeDescriptor typeDesc);
-
-    /**
-     * @brief Tests the ObjectConnectionITest::Initialise method
-     */
-    bool TestTransposeAndCopy_Failed_InvalidType();
-
-
+    bool TestTransposeAndCopy(const TypeDescriptor typeDesc);  //!< @brief Tests the ObjectConnectionITest::Initialise method
+    bool TestTransposeAndCopy_Failed_InvalidType();            //!< @brief Tests the ObjectConnectionITest::Initialise method
 
 private:
 
@@ -120,11 +112,14 @@ private:
      * @param[in]  configStreamIn The configuration stream to test the Initialise method.
      * @param[out] statusOut      The returned status of the interface after initialisation.
      * @param[out] cdbOut         The returned configuration database after initalisation.
+     * @param[out] loader         The returned ObjectConnectionI after initialisation.
      */
     bool TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut, ConfigurationDatabase& cdbOut, ObjectConnectionI& loader);
 
     /**
-     * @brief Same, but does not return the configuration database.
+     * @brief Template to test the Initialise() method.
+     * @param[in]  configStreamIn The configuration stream to test the Initialise method.
+     * @param[out] statusOut      The returned status of the interface after initialisation.
      */
     bool TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut);
 

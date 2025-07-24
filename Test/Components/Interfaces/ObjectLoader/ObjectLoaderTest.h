@@ -61,7 +61,7 @@
 using namespace MARTe;
 
 /**
- * @brief Test all the MemoryGateTest methods
+ * @brief Test all the ObjectLoader methods
  */
 class ObjectLoaderTest {
 public:
@@ -77,43 +77,21 @@ public:
     virtual ~ObjectLoaderTest();
 
     /**
-     * @brief Tests the constructor
+     * @name Test methods
      */
-    bool TestConstructor();
+    //@{
 
-    /**
-     * @brief Tests the MemoryGateTest::Initialise method
-     */
-    bool TestInitialise();
+    bool TestConstructor();                                    //!< @brief Tests the constructor
+    bool TestInitialise();                                     //!< @brief Tests the MemoryGateTest::Initialise method
+    bool TestInitialise_ParametersCopy();                      //!< @brief Test that parameters are copied from this object's root to the cdb of all the subnodes
+    bool TestSerialiseObjects_ParametersValue();               //!< @brief Test that the parameters are serialised with their correct values.
+    bool TestSerialiseObjects_Failed_InvalidType();            //!< @brief Test that the parameters are serialised with their correct values.
+    bool TestSerialiseObjects_Failed_CannotSerialise();        //!< @brief Test that the parameters are serialised with their correct values.
+    bool TestSerialiseObjects_Failed_ParametersWithSameName(); //!< @brief Test that the parameters are serialised with their correct values.
+    bool TestSerialiseObjects();                               //!< @brief Test that the SerialiseObject method returns
+    bool TestUpdateParameters();                               //!< @brief Test the correct update of parameters upon receiving a `UpdateParameters` message.
 
-    /**
-     * @brief Test that parameters are copied from this object's root to the cdb of all the
-     *        subnodes.
-     */
-    bool TestInitialise_ParametersCopy();
-
-    /**
-     * @brief Test that the parameters are serialised with their correct values.
-     */
-    bool TestSerialiseObjects_ParametersValue();
-
-    /**
-     * @brief Test that the parameters are serialised with their correct values.
-     */
-    bool TestSerialiseObjects_Failed_InvalidType();
-
-    /**
-     * @brief Test that the parameters are serialised with their correct values.
-     */
-    bool TestSerialiseObjects_Failed_CannotSerialise();
-
-    /**
-     * @brief Test that the parameters are serialised with their correct values.
-     */
-    bool TestSerialiseObjects_Failed_ParametersWithSameName();
-    bool TestSerialiseObjects();
-
-    bool TestUpdateParameters();
+    //@}
 
 private:
 
@@ -122,11 +100,14 @@ private:
      * @param[in]  configStreamIn The configuration stream to test the Initialise method.
      * @param[out] statusOut      The returned status of the interface after initialisation.
      * @param[out] cdbOut         The returned configuration database after initalisation.
+     * @param[out] loader         The returned ObjectLoader after initialisation.
      */
     bool TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut, ConfigurationDatabase& cdbOut, ObjectLoader& loader);
 
     /**
-     * @brief Same, but does not return the configuration database.
+     * @brief Template to test the Initialise() method.
+     * @param[in]  configStreamIn The configuration stream to test the Initialise method.
+     * @param[out] statusOut      The returned status of the interface after initialisation.
      */
     bool TestInitialiseWithConfiguration(StreamString configStreamIn, ErrorManagement::ErrorType& statusOut);
 
