@@ -278,9 +278,79 @@ enum MDSClientType {
  *
  * The same thing can be done by using the equivalent APIs for C++, Python etc.
  *
+ * In MATLAB(r), one could use the `mdsFromMatlab` function available as
+ * part of the MDSplus APIs to convert a structure into MDSplus data:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.m}
+ * % create the node
+ * t = MDSplus.Tree("test", -1, "EDIT");
+ * t.addNode("MYSTR", "ANY");
+ *
+ * % create structure
+ * myStruct.par1 = uint32(1);
+ * myStruct.par = [1 2 3];
+ * myDict = mdsFromMatlab(myStruct);
+ *
+ * % put dictionary in the node
+ * n = t.getNode("MYSTR");
+ * n.putData(myDict);
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
  * ### Arrays of structures using `MDSplus::List` ###
  *
- * TODO
+ * To declare an array of structure and put it into an MDSplus node use the
+ * `Tree.addNode("MYARRSTR", "ANY")` API. Then instantiate a `MDSplus::List`
+ * and `append()` `MDSplus::Dictionary`s as list items, for example:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.m}
+ * % create the node
+ * t = MDSplus.Tree("test", -1, "EDIT");
+ * t.addNode("MYARRSTR", "ANY");
+ *
+ * % create dictionary
+ * myDict1 = MDSplus.Dictionary();
+ * myDict1.setItem(MDSplus.String("par1"), MDSplus.Uint32(1));
+ * myDict1.setItem(MDSplus.String("par2"), MDSplus.Float64Array([1 2 3]));
+ * myDict2 = MDSplus.Dictionary();
+ * myDict2.setItem(MDSplus.String("par1"), MDSplus.Uint32(2));
+ * myDict2.setItem(MDSplus.String("par2"), MDSplus.Float64Array([4 5 6]));
+ *
+ * % create list
+ * myList = MDSplus.List();
+ * myList.append(myDict1);
+ * myList.append(myDict2);
+ *
+ * % put dictionary in the node
+ * n = t.getNode("MYARRSTR");
+ * n.putData(myList);
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * The same thing can be done by using the equivalent APIs for C++, Python etc.
+ *
+ * @warning The Dictionary key-value pairs must have the same name and the
+ *          same type across the List items.
+ *
+ * In MATLAB(r), one could use the `mdsFromMatlab` function available as
+ * part of the MDSplus APIs to convert a structure into MDSplus data:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.m}
+ * % create the node
+ * t = MDSplus.Tree("test", -1, "EDIT");
+ * t.addNode("MYARRSTR", "ANY");
+ *
+ * % create array of structure
+ * myStr(1).par1 = uint32(1);
+ * myStr(1).par2 = [1 2 3];
+ * myStr(2).par1 = uint32(2);
+ * myStr(2).par2 = [4 5 6];
+ * myList = mdsFromMatlab(myStr);
+ *
+ * % put dictionary in the node
+ * n = t.getNode("MYARRSTR");
+ * n.putData(myList);
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ *
  *
  * Release notes
  * ============================================================================
@@ -288,7 +358,7 @@ enum MDSClientType {
  * Version |    Date    | Notes
  * ------: | :--------: | :----
  * 1.0     | 16/09/2024 | initial release
- * 2.0     | 31/07/2025 | tested and linted version
+ * 2.0     | 31/07/2025 | add support for structure arrays; test and linting
  *
  */
 class MDSObjectConnection : public ObjectConnectionI {
