@@ -114,15 +114,18 @@ public:
     virtual ~ConfigurationDatabaseConnection();
 
     /**
-     * @brief
+     * @brief Initialise
      */
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * @brief
+     * @brief All the stored `AnyType`s are deleted and reloaded from source.
      */
     virtual ErrorManagement::ErrorType UpdateParameters();
 
+    /**
+     * @brief Remove all parameters, deallocate memory.
+     */
     virtual ErrorManagement::ErrorType Clean();
 
 private:
