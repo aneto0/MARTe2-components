@@ -44,6 +44,9 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
+/**
+ * @brief Enumeration of the client types supported by this interface (Thin or Distributed).
+ */
 enum MDSClientType {
     ThinClient,
     DistributedClient,
@@ -377,12 +380,12 @@ public:
     virtual ~MDSObjectConnection();
 
     /**
-     * @brief
+     * @brief Initialise
      */
     virtual bool Initialise(StructuredDataI & data);
 
     /**
-     * @brief
+     * @brief All the stored `AnyType`s are deleted and reloaded from source.
      */
     virtual ErrorManagement::ErrorType UpdateParameters();
 
@@ -393,8 +396,14 @@ public:
 
 private:
 
+    /**
+     * @brief Search the parameter source and retrieve the parameter data and dimensions.
+     */
     ErrorManagement::ErrorType ConnectParameter(StreamString nodeName, ConfigurationDatabase nodeParams);
 
+    /**
+     * @brief Add the parameter as an `AnyType` to the superclass `StaticList`.
+     */
     ErrorManagement::ErrorType AddAnyType(StreamString nodeName, StreamString orientation, MDSplus::Data* const nodeData);
 
     /**
@@ -402,14 +411,14 @@ private:
      */
     ConfigurationDatabase parametersCdb;
 
-    StaticList<void*> deallocationList;       //<! Row-major copies of the parameters to be deallocated.
+    StaticList<void*> deallocationList;         //!< A list of pointers to the row-major copies of the parameters (these copies shall be deallocated).
 
-    StreamString treeName;
-    StreamString serverName;
-    int32        shotNumber;
-    StreamString clientTypeName;
+    StreamString treeName;                      //!< The name of the tree which is the source of the parameters.
+    StreamString serverName;                    //!< The name of the server where the tree is hosted.
+    int32        shotNumber;                    //!< The pulse number from which to retrieve the parameters.
+    StreamString clientTypeName;                //!< The name of the clien type (Thin or Distributed).
 
-    MDSClientType clientType;
+    MDSClientType clientType;                   //!< Enumeration of the client types (Thin or Distributed).
 };
 
 } /* namespace MARTe */
