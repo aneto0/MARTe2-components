@@ -54,9 +54,8 @@ namespace MARTe {
  *          retrieved from the connections.
  *          The parameter is saved as an AnyObject for compatibility with
  *          the rest of the framework: by knowing the name of the instance
- *          of a ObjectLoader class, a Find("instanceName.paramName")
- *          will be enough to retrieve the parameter from any other
- *          object of the framework.
+ *          of a ObjectLoader class, a `Find("instanceName.paramName")`
+ *          will retrieve the parameter from any other object of the framework.
  *
  * This object shall contain only objects inheriting from MARTe::ObjectConnectionI
  * (e.g. ConfigurationDatabaseConnection, MDSObjectConnection).
@@ -137,8 +136,9 @@ namespace MARTe {
  * ==========================================================================
  *
  * The parameters can be updated by calling `UpdateParameters()`. Note that
- * this will change the value of the parameters provided that the value of
- * the parameters have changed in the connection.
+ * this will change the value of the parameters provided that the values of
+ * the parameters change in the connections. This method is registered as a
+ * RPC and can be called using the MARTe2 `MessageI` mechanism.
  *
  * The `UpdateParameters()` method will in turn call all the
  * `ObjectConnectionI::UpdateParameters()` of the contained connections, thus
@@ -151,7 +151,7 @@ namespace MARTe {
  * Version |    Date    | Notes
  * ------: | :--------: | :----
  * 1.0     | 16/09/2024 | initial release
- * 2.0     | 31/07/2025 | tested and linted version
+ * 2.0     | 31/07/2025 | add `UpdateParameters` RPC; tests and linting
  *
  */
 class ObjectLoader : public ReferenceContainer, public MessageI {
@@ -170,7 +170,7 @@ public:
     virtual ~ObjectLoader();
 
     /**
-     * @brief
+     * @brief Initialise
      */
     virtual bool Initialise(StructuredDataI & data);
 
@@ -179,17 +179,43 @@ public:
      */
     ErrorManagement::ErrorType GetStatus();
 
+    /**
+     * @brief Update the parameter values.
+     * @details This method:
+     *   1. calls the `UpdateParameters()` methods of all the contained
+     *      `Object`s that inherit from `ObjectConnectionI`.
+     *   2. calls `SerialiseObjects()` to re-serialise all the
+     *      `AnyType`s from the connections.
+     *
+     * This method can be called via the MARTe `MessageI` interface using
+     * a message with the following syntax:
+     *
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * Destination = Path.To.This.GAM
+     * Function    = UpdateParameters
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     *
+     */
     ErrorManagement::ErrorType UpdateParameters();
 
+    /**
+     * @brief Serialise into `AnyObject`s all the `AnyTypes` in the contained connections.
+     */
     ErrorManagement::ErrorType SerialiseObjects(bool overwriteParams = true);
 
 protected:
 
-
+    /**
+     * @brief The error status of this Interface.
+     */
     ErrorManagement::ErrorType status;
 
 private:
 
+
+    /**
+     * @brief Message filter to receive messages.
+     */
     ReferenceT<RegisteredMethodsMessageFilter> messageFilter;
 
 };

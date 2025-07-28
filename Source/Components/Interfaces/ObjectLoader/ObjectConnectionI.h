@@ -49,17 +49,18 @@ namespace MARTe {
  * in `ObjectLoader`, and provides the common elements and methods for
  * that purpose.
  *
- * This class provides a TransposeAndCopy method to be used if the loading
- * of a parameter requires orientation change from row-major to column-major.
- * (Allocation is still up to the derived class)
+ * The derived classes can shall load numeric parameters (scalars, vectors
+ * and matrices up to 3D) as `AnyType` list items of this `StaticList`.
+ * Use the superclass method `Add()` to add `AnyType`.
+ * For each loaded parameter, the derived classes shall also add the parameter
+ * name to the `paramNames` array provided by this class.
  *
  * @note ObjectConnectionI deallocates its list items in the destructor, so
  *       deallocation in the derived class is not necessary.
  *
- * The derived classes can shall load numeric parameters (scalars, vectors
- * and matrices up to 3D) as `AnyType` list items of this `StaticList`.
- * For each loaded parameter, the derived classes shall also add the parameter
- * name to the `paramNames` array provided by this class.
+ * This class provides a `TransposeAndCopy()` method to be used if the loading
+ * of a parameter requires orientation change from row-major to column-major.
+ * (Allocation is still up to the derived class)
  *
  * Derived classes shall load structured data element by element, in a flattened
  * fashion, with the naming convention of MARTe2 structured data, e.g.:
