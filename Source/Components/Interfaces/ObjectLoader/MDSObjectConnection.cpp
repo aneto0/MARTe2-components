@@ -42,14 +42,130 @@ namespace MARTe {
 
 MDSObjectConnection::MDSObjectConnection() :
         ObjectConnectionI() {
+    mdsTree = NULL_PTR(MDSplus::Tree*);
+    mdsConnection = NULL_PTR(MDSplus::Connection*);
 }
 
 MDSObjectConnection::~MDSObjectConnection() {
+
+    if (mdsTree != NULL_PTR(MDSplus::Tree*)) {
+        delete mdsTree;
+    }
+    if (mdsConnection != NULL_PTR(MDSplus::Connection*)) {
+        mdsConnection->closeAllTrees();
+        delete mdsConnection;
+    }
 
     ErrorManagement::ErrorType ret = Clean();
     if (!ret) {
         REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());
     }
+}
+
+ErrorManagement::ErrorType MDSObjectConnection::Clean() {
+
+    ErrorManagement::ErrorType ret = ObjectConnectionI::Clean();
+
+    while ( (deallocationList.GetSize() > 0u) && ret ) {
+        void* toDelete;
+        ret.notCompleted = !deallocationList.Extract(0u, toDelete);
+        if (ret) {
+            ret.notCompleted = !HeapManager::Free(toDelete);
+        }
+    }
+
+    return ret;
+}
+
+bool MDSObjectConnection::Initialise(StructuredDataI & data) {
+
+    status.initialisationError = !ObjectConnectionI::Initialise(data);
+
+    if (status) {
+        status.parametersError = !data.Read("Tree", treeName);
+        if (status.parametersError) {
+            REPORT_ERROR(status, "[%s] - 'Tree' parameter not found", GetName());
+        }
+    }
+    if (status) {
+        status.parametersError = !data.Read("Shot", shotNumber);
+        if (status.parametersError) {
+            REPORT_ERROR(status, "[%s] - 'Shot' parameter not found", GetName());
+        }
+    }
+    if (status) {
+        // ClientType declared
+        if (data.Read("ClientType", clientTypeName)) {
+            if (clientTypeName == "Thin") {
+                clientType = ThinClient;
+                status.internalSetupError = !data.Read("Server", serverName);
+                if (status.internalSetupError) {
+                    REPORT_ERROR(status, "[%s] - 'Server' parameter not found. 'Server' parameter is required if 'ClientType = Thin'.", GetName());
+                }
+            }
+            else if (clientTypeName == "Distributed") {
+                clientType = DistributedClient;
+            }
+            else {
+                status.unsupportedFeature = true;
+                REPORT_ERROR(status, "[%s] - 'ClientType' parameter can only be `Thin` or `Distributed`", GetName());
+            }
+        }
+        // ClientType not declared
+        else {
+            if (data.Read("Server", serverName)) {
+                clientType = ThinClient;
+                REPORT_ERROR(ErrorManagement::Warning, "[%s] - 'ClientType' not set. By default it is set to 'Thin'", GetName());
+            }
+            else {
+                clientType = DistributedClient;
+                REPORT_ERROR(ErrorManagement::Warning, "[%s] - 'ClientType' not set. By default it is set to 'Distributed'", GetName());
+            }
+        }
+    }
+
+    // open MDSplus tree
+    if (status) {
+        try {
+            if (clientType == DistributedClient) {
+                mdsTree = new MDSplus::Tree(treeName.Buffer(), shotNumber, "NORMAL");
+            } else if (clientType == ThinClient) {
+                mdsConnection = new MDSplus::Connection(serverName.BufferReference());
+                mdsConnection->openTree(treeName.BufferReference(), shotNumber);
+            }
+            else {
+                status.exception = true;
+                REPORT_ERROR(status, "[%s] - Invalid client type.", GetName());
+            }
+        }
+        catch (MDSplus::MdsException &ex) {
+            status.exception = true;
+            REPORT_ERROR(status, "[%s] - MDSplus error opening tree %s. MDSplus error: \n%s", GetName(), treeName.Buffer(), ex.what());
+        }
+    }
+
+    if (status) {
+
+        status.parametersError = !data.MoveRelative("Parameters");
+        if (status.parametersError) {
+            REPORT_ERROR(status, "[%s] - 'Parameters' node not found", GetName());
+        }
+
+        if (status) {
+            status.exception = !data.Copy(parametersCdb);
+            if (data.MoveToAncestor(1u)) {}
+        }
+
+        if (status) {
+            status = UpdateParameters();
+            if (!status) {
+                REPORT_ERROR(status, "[%s] - Failed 'UpdateParameters' in Initialise.", GetName());
+            }
+        }
+    }
+
+
+    return status.ErrorsCleared();
 }
 
 ErrorManagement::ErrorType MDSObjectConnection::UpdateParameters() {
@@ -131,230 +247,228 @@ ErrorManagement::ErrorType MDSObjectConnection::UpdateParameters() {
     return ret;
 }
 
-ErrorManagement::ErrorType MDSObjectConnection::Clean() {
-
-    ErrorManagement::ErrorType ret = ObjectConnectionI::Clean();
-
-    while ( (deallocationList.GetSize() > 0u) && ret ) {
-        void* toDelete;
-        ret.notCompleted = !deallocationList.Extract(0u, toDelete);
-        if (ret) {
-            ret.notCompleted = !HeapManager::Free(toDelete);
-        }
-    }
-
-    return ret;
-}
-
-bool MDSObjectConnection::Initialise(StructuredDataI & data) {
-
-    status.initialisationError = !ObjectConnectionI::Initialise(data);
-
-    if (status) {
-        status.parametersError = !data.Read("Tree", treeName);
-        if (status.parametersError) {
-            REPORT_ERROR(status, "[%s] - 'Tree' parameter not found", GetName());
-        }
-    }
-    if (status) {
-        status.parametersError = !data.Read("Shot", shotNumber);
-        if (status.parametersError) {
-            REPORT_ERROR(status, "[%s] - 'Shot' parameter not found", GetName());
-        }
-    }
-    if (status) {
-        // ClientType declared
-        if (data.Read("ClientType", clientTypeName)) {
-            if (clientTypeName == "Thin") {
-                clientType = ThinClient;
-                status.internalSetupError = !data.Read("Server", serverName);
-                if (status.internalSetupError) {
-                    REPORT_ERROR(status, "[%s] - 'Server' parameter not found. 'Server' parameter is required if 'ClientType = Thin'.", GetName());
-                }
-            }
-            else if (clientTypeName == "Distributed") {
-                clientType = DistributedClient;
-            }
-            else {
-                status.unsupportedFeature = true;
-                REPORT_ERROR(status, "[%s] - 'ClientType' parameter can only be `Thin` or `Distributed`", GetName());
-            }
-        }
-        // ClientType not declared
-        else {
-            if (data.Read("Server", serverName)) {
-                clientType = ThinClient;
-                REPORT_ERROR(ErrorManagement::Warning, "[%s] - 'ClientType' not set. By default it is set to 'Thin'", GetName());
-            }
-            else {
-                clientType = DistributedClient;
-                REPORT_ERROR(ErrorManagement::Warning, "[%s] - 'ClientType' not set. By default it is set to 'Distributed'", GetName());
-            }
-        }
-    }
-
-    if (status) {
-
-        status.parametersError = !data.MoveRelative("Parameters");
-        if (status.parametersError) {
-            REPORT_ERROR(status, "[%s] - 'Parameters' node not found", GetName());
-        }
-
-        if (status) {
-            status.exception = !data.Copy(parametersCdb);
-            if (data.MoveToAncestor(1u)) {}
-        }
-
-        if (status) {
-            status = UpdateParameters();
-            if (!status) {
-                REPORT_ERROR(status, "[%s] - Failed 'UpdateParameters' in Initialise.", GetName());
-            }
-        }
-    }
-
-
-    return status.ErrorsCleared();
-}
-
 
 ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString nodeName, ConfigurationDatabase nodeParams) {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
 
     StreamString MDSPath;
+    StreamString expandedMDSPath;
     uint32 startIdx  = 0u;
     uint32 stopIdx   = 0u;
     uint32 targetDim = 0u;
     StreamString orientation = "";
-
-    ret.parametersError = !nodeParams.Read("Path", MDSPath);
-    if (ret.parametersError) {
-        REPORT_ERROR(ret, "[%s] - Parameter %s: no 'Path' defined.", GetName(), nodeName.Buffer());
-    }
-
-    if (ret) {
-        if (nodeParams.Read("StartIdx",  startIdx)) {}
-        if (nodeParams.Read("StopIdx",    stopIdx)) {}
-        if (nodeParams.Read("TargetDim", targetDim)) {}
-        if (nodeParams.Read("DataOrientation", orientation)) {
-            if ( (orientation != "RowMajor") && (orientation != "ColumnMajor") ) {
-                ret.unsupportedFeature = true;
-                REPORT_ERROR(ret, "[%s] - Parameter %s: invalid 'DataOrientation' (can only be 'RowMajor' or 'ColumnMajor')", GetName(), nodeName.Buffer());
-            }
-        }
-        else {
-            orientation = "ColumnMajor"; // default
-        }
-    }
-
-    StreamString expandedMDSPath;
     bool unlinked = false;
 
     if (ret) {
-        // Modify path if Dim option is specified
-        if (targetDim != 0u && startIdx == 0u && stopIdx == 0u) {
-
-            StreamString tdiExpr = ""
-                                   "_swgTargetDim = %u;"
-                                   "_swgVec       = %s;"
-                                   "_swgVecSize   = SHAPE(_swgVec, 0);"
-                                   "if(_swgTargetDim > _swgVecSize)"
-                                   "    _swgPad = ZERO(_swgTargetDim - _swgVecSize, _swgVec[0]),"
-                                   "    _swgVec = [_swgVec, _swgPad];"
-                                   "else"
-                                   "    _swgVec = _swgVec[0:%u];"
-                                   "_swgVec";
-
-
-            expandedMDSPath.Printf(tdiExpr.Buffer(), targetDim, MDSPath.Buffer(), targetDim - 1u);
-        }
-        // Modify path if StartIdx and StopIdx options are specified
-        else if (targetDim == 0u && (startIdx != 0u || stopIdx != 0u)) {
-
-            // Concatenate scalar values in an array in the form "[\DATA001, \DATA002, \DATA003, ...]"
-            expandedMDSPath = "[";
-            for (uint32 currIdx = startIdx; currIdx <= stopIdx; currIdx++)
-            {
-                StreamString currNode;
-                currNode.Printf(MDSPath.Buffer(), currIdx);
-                expandedMDSPath += currNode;
-                if (currIdx != stopIdx)
-                {
-                    expandedMDSPath += ", ";
-                }
-            }
-            expandedMDSPath += "]";
-        }
-        // Error
-        else if (targetDim != 0u && startIdx != 0u && stopIdx != 0u) {
-
-            ret.unsupportedFeature = true;
-            REPORT_ERROR(ret, "[%s] - Parameter %s: both TargetDim and StartIdx/StopIdx used, unsupported.", GetName(), nodeName.Buffer());
-        }
-        // Path is ok as it is
-        else {
-            expandedMDSPath = MDSPath;
+        ret.parametersError = !nodeParams.Read("Path", MDSPath);
+        if (ret.parametersError) {
+            REPORT_ERROR(ret, "[%s] - Parameter %s: no 'Path' defined.", GetName(), nodeName.Buffer());
         }
     }
 
-    MDSplus::Data* nodeData = NULL;
-
+    // skip parameter if Path is empty
     if (ret) {
-        // If the path is empty, this parameter shall be skipped (unlinked parameter).
         unlinked = (MDSPath.Size() == 0u);
-
         if (unlinked) {
             REPORT_ERROR(ErrorManagement::Warning, "[%s] - Parameter %s: unlinked, no value stored.", GetName(), nodeName.Buffer());
-        }
-        else {
-            try {
-
-                if (clientType == DistributedClient) {
-                    MDSplus::Tree* tree;
-                    tree = new MDSplus::Tree(treeName.Buffer(), shotNumber, "NORMAL");
-                    nodeData = tree->tdiExecute(expandedMDSPath.Buffer());
-
-                    delete tree;
-                }
-                else if (clientType == ThinClient) {
-                    MDSplus::Connection* mdsConnection;
-                    mdsConnection = new MDSplus::Connection(serverName.BufferReference());
-                    mdsConnection->openTree(treeName.BufferReference(), shotNumber);
-                    nodeData = mdsConnection->get(expandedMDSPath.Buffer());
-
-                    delete mdsConnection;
-                }
-                else {
-                    ret.exception = true;
-                    REPORT_ERROR(ret, "[%s] - Invalid client type.", GetName());
-                }
-            }
-            catch (MDSplus::MdsException &ex) {
-                ret.exception = true;
-                REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting node %s. MDSplus error: \n%s", GetName(), nodeName.Buffer(), MDSPath.Buffer(), ex.what());
-            }
-        }
-    }
-
-    if (ret) {
-        if (unlinked) {
             AnyType* anyTypeParam = new AnyType(0u);
             anyTypeParam->SetStaticDeclared(false);   // unlinked
             Add(anyTypeParam);
             paramNames.Add(new StreamString(nodeName));
         }
-        else {
-            ret = AddAnyType(nodeName, orientation, nodeData);
-            if (ret) {
-                REPORT_ERROR(ret, "[%s] - Parameter %s: correctly linked", GetName(), nodeName.Buffer());
+    }
+
+    if (!unlinked) {
+        if (ret) {
+            if (nodeParams.Read("StartIdx",  startIdx)) {}
+            if (nodeParams.Read("StopIdx",    stopIdx)) {}
+            if (nodeParams.Read("TargetDim", targetDim)) {}
+            if (nodeParams.Read("DataOrientation", orientation)) {
+                if ( (orientation != "RowMajor") && (orientation != "ColumnMajor") ) {
+                    ret.unsupportedFeature = true;
+                    REPORT_ERROR(ret, "[%s] - Parameter %s: invalid 'DataOrientation' (can only be 'RowMajor' or 'ColumnMajor')", GetName(), nodeName.Buffer());
+                }
             }
             else {
-                ret.internalSetupError = true;
-                REPORT_ERROR(ret, "[%s] - Parameter %s: failed loading from MDSplus", GetName(), nodeName.Buffer());
+                orientation = "ColumnMajor"; // default
             }
         }
-    }
+
+        // evaluate node usage
+        usage_t nodeUsage = TreeUSAGE_MAXIMUM;
+        if (ret) {
+
+            // create a valid temporary path for nodes with %u in the path
+            StreamString tempMDSPath = "";
+            if ((startIdx != 0u) && (stopIdx != 0u)) {
+                tempMDSPath.Printf(MDSPath.Buffer(), startIdx);
+            } else {
+                tempMDSPath = MDSPath;
+            }
+
+            try {
+                if (clientType == DistributedClient) {
+                    MDSplus::TreeNode* node = mdsTree->getNode(tempMDSPath.Buffer());
+                    StreamString nodeUsageString = node->getUsage();
+
+                    if (nodeUsageString == "ANY") {
+                        nodeUsage = TreeUSAGE_ANY;
+                    } else if (nodeUsageString == "STRUCTURE") {
+                        nodeUsage = TreeUSAGE_STRUCTURE;
+                    } else if (nodeUsageString == "NUMERIC") {
+                        nodeUsage = TreeUSAGE_NUMERIC;
+                    } else if (nodeUsageString == "TEXT") {
+                        nodeUsage = TreeUSAGE_TEXT;
+                    } else {
+                        nodeUsage = TreeUSAGE_MAXIMUM;
+                    }
+                }
+                else /*if (clientType == ThinClient)*/ {
+                    StreamString usageExpr = "";
+                    usageExpr.Printf("GETNCI('%s', 'USAGE')", tempMDSPath.Buffer());
+                    MDSplus::Data* nodeUsageData = mdsConnection->get(usageExpr.Buffer());
+                    nodeUsage = static_cast<usage_t>(nodeUsageData->getShort());
+                }
+
+                ret.unsupportedFeature = !((nodeUsage == TreeUSAGE_ANY) || (nodeUsage == TreeUSAGE_STRUCTURE) || (nodeUsage == TreeUSAGE_NUMERIC) || (nodeUsage == TreeUSAGE_TEXT));
+                if (ret.unsupportedFeature) {
+                    REPORT_ERROR(ret, "[%s] - Parameter %s: unsupported node usage.", GetName(), nodeName.Buffer());
+                }
+            }
+            catch (MDSplus::MdsException &ex) {
+                ret.exception = true;
+                REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting USAGE for node %s. MDSplus error: \n%s", GetName(), nodeName.Buffer(), MDSPath.Buffer(), ex.what());
+            }
+        }
+
+        // modify path
+        if (ret) {
+            // Modify path if TargetDim option is specified
+            if (targetDim != 0u && startIdx == 0u && stopIdx == 0u) {
+
+                StreamString tdiExpr = ""
+                    " _swgTargetDim = %u;                                          "
+                    " _swgVec       = %s;                                          "
+                    " _swgVecSize   = SHAPE(_swgVec, 0);                           "
+                    " if(_swgTargetDim > _swgVecSize)                              "
+                    "     _swgPad = ZERO(_swgTargetDim - _swgVecSize, _swgVec[0]), "
+                    "     _swgVec = [_swgVec, _swgPad];                            "
+                    " else                                                         "
+                    "     _swgVec = _swgVec[0:%u];                                 "
+                    " _swgVec                                                      ";
+
+                expandedMDSPath.Printf(tdiExpr.Buffer(), targetDim, MDSPath.Buffer(), targetDim - 1u);
+            }
+            // Modify path if StartIdx and StopIdx options are specified
+            else if (targetDim == 0u && (startIdx != 0u || stopIdx != 0u)) {
+
+                // Concatenate scalar values in an array in the form "[\DATA001, \DATA002, \DATA003, ...]"
+                expandedMDSPath = "[";
+                for (uint32 currIdx = startIdx; currIdx <= stopIdx; currIdx++)
+                {
+                    StreamString currNode;
+                    currNode.Printf(MDSPath.Buffer(), currIdx);
+                    expandedMDSPath += currNode;
+                    if (currIdx != stopIdx)
+                    {
+                        expandedMDSPath += ", ";
+                    }
+                }
+                expandedMDSPath += "]";
+            }
+            // Error
+            else if (targetDim != 0u && startIdx != 0u && stopIdx != 0u) {
+
+                ret.unsupportedFeature = true;
+                REPORT_ERROR(ret, "[%s] - Parameter %s: both TargetDim and StartIdx/StopIdx used, unsupported.", GetName(), nodeName.Buffer());
+            }
+            // Path is ok as it is
+            else {
+                expandedMDSPath = MDSPath;
+            }
+        }
+
+        // get the actual data
+        if (ret) {
+            // ordinay node, read node Data
+            if (nodeUsage != TreeUSAGE_STRUCTURE) {
+                MDSplus::Data* nodeData = NULL;
+                try {
+                    if (clientType == DistributedClient) {
+                        nodeData = mdsTree->tdiExecute(expandedMDSPath.Buffer());
+                    }
+                    else /*if (clientType == ThinClient)*/ {
+                        nodeData = mdsConnection->get(expandedMDSPath.Buffer());
+                    }
+                }
+                catch (MDSplus::MdsException &ex) {
+                    ret.exception = true;
+                    REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting data for node %s. MDSplus error: \n%s", GetName(), nodeName.Buffer(), MDSPath.Buffer(), ex.what());
+                }
+
+                if (ret) {
+                    ret = AddAnyType(nodeName, orientation, nodeData);
+                    if (!ret) {
+                        REPORT_ERROR(ret, "[%s] - Parameter %s: failed loading from MDSplus", GetName(), nodeName.Buffer());
+                    }
+                }
+            }
+            // structured node, traverse all subtree
+            else /*if (nodeUsage == TreeUSAGE_STRUCTURE)*/ {
+                try {
+                    if (clientType == DistributedClient) {
+
+                        MDSplus::TreeNode* structNode = mdsTree->getNode(expandedMDSPath.Buffer());
+                        StaticStack<MDSplus::TreeNode*> nodeStack;
+                        ret.exception = !nodeStack.Push(structNode);
+
+                        // member paths are now obtained relatively to structNode
+                        MDSplus::TreeNode* defaultNode = mdsTree->getDefault();
+                        mdsTree->setDefault(structNode);
+
+                        while ((nodeStack.GetSize() > 0u) && ret) {
+                            MDSplus::TreeNode* currentNode;
+                            ret.exception = !nodeStack.Pop(currentNode);
+
+                            // subnodes: add to the stack
+                            int32 numChildren = 0;
+                            MDSplus::TreeNode** childrenArray = currentNode->getChildren(&numChildren);
+                            for (uint32 elemIdx = 0u; (elemIdx < static_cast<uint32>(numChildren)) && ret; elemIdx++) {
+                                ret.exception = !nodeStack.Push(childrenArray[elemIdx]);
+                            }
+
+                            // leaves: add parameters to this connection
+                            int32 numMembers = 0;
+                            MDSplus::TreeNode** membersArray = currentNode->getMembers(&numMembers);
+                            for (uint32 elemIdx = 0u; (elemIdx < static_cast<uint32>(numMembers)) && ret; elemIdx++) {
+                                StreamString minPath = membersArray[elemIdx]->getMinPath();
+                                while (minPath.Locate(":") != -1) {
+                                    int32 dashIdx = minPath.Locate(":");
+                                    (minPath.BufferReference())[dashIdx] = '.';
+                                }
+                                StreamString relativePath = "";
+                                relativePath.Printf("%s%s%s", nodeName.Buffer(), (minPath[0u] == '.') ? "" : ".", minPath.Buffer());
+
+                                REPORT_ERROR(ret, "adding %s...", relativePath.Buffer());
+                                ret = AddAnyType(relativePath, orientation, membersArray[elemIdx]->getData());
+                            }
+                        }
+
+                        mdsTree->setDefault(defaultNode);
+                    }
+                    else /*if (clientType == ThinClient)*/ {
+                        //
+                    }
+                }
+                catch (MDSplus::MdsException &ex) {
+                    ret.exception = true;
+                    REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting structure from node %s. MDSplus error: \n%s", GetName(), nodeName.Buffer(), MDSPath.Buffer(), ex.what());
+                }
+            }
+        }
+
+    } // if (!unlinked) - end
 
     return ret;
 }
@@ -551,8 +665,11 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
             if (ret) {
                 anyTypeParam->SetStaticDeclared(true);   // linked
 
-                Add(anyTypeParam);
-                paramNames.Add(new StreamString(nodeName));
+                ret.fatalError = !Add(anyTypeParam);
+                ret.exception  = !paramNames.Add(new StreamString(nodeName));
+                if (ret) {
+                    REPORT_ERROR(ret, "[%s] - Parameter %s: correctly linked", GetName(), nodeName.Buffer());
+                }
             }
         }
     }

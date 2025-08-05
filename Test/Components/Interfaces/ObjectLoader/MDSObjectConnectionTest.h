@@ -115,8 +115,10 @@ public:
 
     bool TestInitialise_String();                        //!< @brief Tests the loading of a string parameter
 
-    bool TestInitialise_DictAsStruct_RowMajor();         //!< @brief Tests the loading of a structured parameter in row-major format
-    bool TestInitialise_DictAsStruct_ColMajor();         //!< @brief Tests the loading of a structured parameter in column-major format
+    bool TestInitialise_Struct_RowMajor();               //!< @brief Tests the loading of a structured parameter from a structured node in row-major format.
+
+    bool TestInitialise_DictAsStruct_RowMajor();         //!< @brief Tests the loading of a structured parameter from a Dictionary node in row-major format
+    bool TestInitialise_DictAsStruct_ColMajor();         //!< @brief Tests the loading of a structured parameter from a Dictionary node in column-major format
 
     bool TestInitialise_StructArray_RowMajor();          //!< @brief Tests the loading of a struct array parameter in row-major format
     bool TestInitialise_StructArray_ColMajor();          //!< @brief Tests the loading of a struct array parameter in column-major format

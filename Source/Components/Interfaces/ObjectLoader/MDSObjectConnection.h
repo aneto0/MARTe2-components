@@ -35,9 +35,11 @@
 #include "ConfigurationDatabase.h"
 #include "ObjectConnectionI.h"
 #include "ReferenceContainer.h"
+#include "StaticStack.h"
 
 #include "mdsdescrip.h"
 #include "mdsobjects.h"
+#include "usagedef.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -419,6 +421,9 @@ private:
     StreamString clientTypeName;                //!< The name of the clien type (Thin or Distributed).
 
     MDSClientType clientType;                   //!< Enumeration of the client types (Thin or Distributed).
+
+    MDSplus::Tree* mdsTree;                     //!< Pointer to the parameter source MDSplus tree (used if ClientType == DistributedClient).
+    MDSplus::Connection* mdsConnection;         //!< Pointer to the connection to the parameter source MDSplus tree (used if ClientType == ThinClient).
 };
 
 } /* namespace MARTe */

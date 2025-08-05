@@ -471,8 +471,10 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
             MDSplus::List* invalidStructArray = new MDSplus::List();
             MDSplus::Uint8* scalarUint = new MDSplus::Uint8(10);
             MDSplus::Float32* scalarFloat = new MDSplus::Float32(3.14);
+            MDSplus::String* stringData = new MDSplus::String("Hello World!");
             invalidStructArray->append(scalarUint);
             invalidStructArray->append(scalarFloat);
+            invalidStructArray->append(stringData);
 
             MDSplus::TreeNode* invalidStructNode = testTree->getNode("INVALIDLIST");
             invalidStructNode->putData(invalidStructArray);
@@ -1154,6 +1156,31 @@ bool MDSObjectConnectionTest::TestInitialise_String() {
         "Shot   = -1                               \n"
         "Parameters = {                            \n"
         "    STRING = { Path = \"STRING\" DataOrientation = RowMajor } \n"
+        "}                                         \n"
+        ""
+        ;
+
+    ConfigurationDatabase config;
+    MDSObjectConnection loader;
+    loader.SetName("MDSOC");
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status, config, loader);
+
+    if (ok) {
+        ok = TestParameterLoading(loader, referenceCdbRowMajor);
+    }
+
+    return (status.ErrorsCleared() && ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_Struct_RowMajor() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection              \n"
+        "Tree   = mdsoc_ttree                      \n"
+        "Shot   = -1                               \n"
+        "Parameters = {                            \n"
+        "    StructParameter = { Path = \"STRUCT\" DataOrientation = RowMajor } \n"
         "}                                         \n"
         ""
         ;

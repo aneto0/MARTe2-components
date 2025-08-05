@@ -99,6 +99,11 @@ TEST(MDSObjectConnectionGTest,TestInitialise_String) {
     ASSERT_TRUE(test.TestInitialise_String());
 }
 
+TEST(MDSObjectConnectionGTest,TestInitialise_Struct_RowMajor) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_Struct_RowMajor());
+}
+
 TEST(MDSObjectConnectionGTest,TestInitialise_DictAsStruct_RowMajor) {
     MDSObjectConnectionTest test;
     ASSERT_TRUE(test.TestInitialise_DictAsStruct_RowMajor());
