@@ -1147,7 +1147,7 @@ bool MDSObjectConnectionTest::TestInitialise_ColMajor() {
 }
 
 
-bool MDSObjectConnectionTest::TestInitialise_String() {
+bool MDSObjectConnectionTest::TestInitialise_String(StreamString clientType = "Distributed") {
 
     StreamString configStream = ""
         "Class  = MDSObjectConnection              \n"
@@ -1159,6 +1159,9 @@ bool MDSObjectConnectionTest::TestInitialise_String() {
         "}                                         \n"
         ""
         ;
+
+    configStream += "ClientType = ";
+    configStream += clientType;
 
     ConfigurationDatabase config;
     MDSObjectConnection loader;
@@ -1173,17 +1176,21 @@ bool MDSObjectConnectionTest::TestInitialise_String() {
     return (status.ErrorsCleared() && ok);
 }
 
-bool MDSObjectConnectionTest::TestInitialise_Struct_RowMajor() {
+bool MDSObjectConnectionTest::TestInitialise_Struct_RowMajor(StreamString clientType = "Distributed") {
 
     StreamString configStream = ""
         "Class  = MDSObjectConnection              \n"
         "Tree   = mdsoc_ttree                      \n"
+        "Server = localhost:8002                   \n"
         "Shot   = -1                               \n"
         "Parameters = {                            \n"
         "    StructParameter = { Path = \"STRUCT\" DataOrientation = RowMajor } \n"
         "}                                         \n"
         ""
         ;
+
+    configStream += "ClientType = ";
+    configStream += clientType;
 
     ConfigurationDatabase config;
     MDSObjectConnection loader;

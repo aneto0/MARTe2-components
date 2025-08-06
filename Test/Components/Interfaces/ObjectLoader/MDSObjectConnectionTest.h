@@ -113,9 +113,9 @@ public:
     bool TestInitialise_RowMajor();                      //!< @brief Tests the correct loading of row-major parameters
     bool TestInitialise_ColMajor();                      //!< @brief Tests the correct loading of column-major parameters
 
-    bool TestInitialise_String();                        //!< @brief Tests the loading of a string parameter
+    bool TestInitialise_String(StreamString clientType); //!< @brief Tests the loading of a string parameter
 
-    bool TestInitialise_Struct_RowMajor();               //!< @brief Tests the loading of a structured parameter from a structured node in row-major format.
+    bool TestInitialise_Struct_RowMajor(StreamString clientType);               //!< @brief Tests the loading of a structured parameter from a structured node in row-major format.
 
     bool TestInitialise_DictAsStruct_RowMajor();         //!< @brief Tests the loading of a structured parameter from a Dictionary node in row-major format
     bool TestInitialise_DictAsStruct_ColMajor();         //!< @brief Tests the loading of a structured parameter from a Dictionary node in column-major format

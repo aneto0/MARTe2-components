@@ -94,14 +94,24 @@ TEST(MDSObjectConnectionGTest,TestInitialise_ColMajor) {
     ASSERT_TRUE(test.TestInitialise_ColMajor());
 }
 
-TEST(MDSObjectConnectionGTest,TestInitialise_String) {
+TEST(MDSObjectConnectionGTest,TestInitialise_String_ThinClient) {
     MDSObjectConnectionTest test;
-    ASSERT_TRUE(test.TestInitialise_String());
+    ASSERT_TRUE(test.TestInitialise_String("Thin"));
 }
 
-TEST(MDSObjectConnectionGTest,TestInitialise_Struct_RowMajor) {
+TEST(MDSObjectConnectionGTest,TestInitialise_String_DistributedClient) {
     MDSObjectConnectionTest test;
-    ASSERT_TRUE(test.TestInitialise_Struct_RowMajor());
+    ASSERT_TRUE(test.TestInitialise_String("Distributed"));
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_Struct_RowMajor_ThinClient) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_Struct_RowMajor("Thin"));
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_Struct_RowMajor_DistributedClient) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_Struct_RowMajor("Distributed"));
 }
 
 TEST(MDSObjectConnectionGTest,TestInitialise_DictAsStruct_RowMajor) {

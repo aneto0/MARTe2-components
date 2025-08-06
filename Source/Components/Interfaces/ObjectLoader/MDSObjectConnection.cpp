@@ -423,7 +423,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                         StaticStack<MDSplus::TreeNode*> nodeStack;
                         ret.exception = !nodeStack.Push(structNode);
 
-                        // member paths are now obtained relatively to structNode
+                        // obtain member paths relatively to structNode
                         MDSplus::TreeNode* defaultNode = mdsTree->getDefault();
                         mdsTree->setDefault(structNode);
 
@@ -434,14 +434,14 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                             // subnodes: add to the stack
                             int32 numChildren = 0;
                             MDSplus::TreeNode** childrenArray = currentNode->getChildren(&numChildren);
-                            for (uint32 elemIdx = 0u; (elemIdx < static_cast<uint32>(numChildren)) && ret; elemIdx++) {
+                            for (int32 elemIdx = 0u; (elemIdx < numChildren) && ret; elemIdx++) {
                                 ret.exception = !nodeStack.Push(childrenArray[elemIdx]);
                             }
 
                             // leaves: add parameters to this connection
                             int32 numMembers = 0;
                             MDSplus::TreeNode** membersArray = currentNode->getMembers(&numMembers);
-                            for (uint32 elemIdx = 0u; (elemIdx < static_cast<uint32>(numMembers)) && ret; elemIdx++) {
+                            for (int32 elemIdx = 0u; (elemIdx < numMembers) && ret; elemIdx++) {
                                 StreamString minPath = membersArray[elemIdx]->getMinPath();
                                 while (minPath.Locate(":") != -1) {
                                     int32 dashIdx = minPath.Locate(":");
@@ -450,7 +450,6 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                                 StreamString relativePath = "";
                                 relativePath.Printf("%s%s%s", nodeName.Buffer(), (minPath[0u] == '.') ? "" : ".", minPath.Buffer());
 
-                                REPORT_ERROR(ret, "adding %s...", relativePath.Buffer());
                                 ret = AddAnyType(relativePath, orientation, membersArray[elemIdx]->getData());
                             }
                         }
@@ -458,7 +457,56 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                         mdsTree->setDefault(defaultNode);
                     }
                     else /*if (clientType == ThinClient)*/ {
-                        //
+
+                        StreamString tdiCall = "";
+                        tdiCall.Printf("GETNCI(%s, 'PATH')", expandedMDSPath.Buffer());
+                        MDSplus::Data* structNodePath = mdsConnection->get(tdiCall.Buffer());
+                        StaticStack<MDSplus::Data*> nodeStack;
+                        ret.exception = !nodeStack.Push(structNodePath);
+
+                        // obtain member paths relatively to structNode
+                        mdsConnection->setDefault(structNodePath->getString());
+
+                        while ((nodeStack.GetSize() > 0u) && ret) {
+                            MDSplus::Data* currentNodePath;
+                            ret.exception = !nodeStack.Pop(currentNodePath);
+
+                            // subnodes: add to the stack
+                            tdiCall = "";
+                            tdiCall.Printf("GETNCI(%s, 'NUMBER_OF_CHILDREN')", currentNodePath->getString());
+                            int32 numChildren = (mdsConnection->get(tdiCall.Buffer()))->getInt();
+                            for (int32 elemIdx = 0u; (elemIdx < numChildren) && ret; elemIdx++) {
+                                tdiCall = "";
+                                tdiCall.Printf("GETNCI(GETNCI(%s, 'CHILDREN_NIDS'), 'MINPATH')[%i]", currentNodePath->getString(), elemIdx);
+                                MDSplus::Data* childrenArrayElem = mdsConnection->get(tdiCall.Buffer());
+                                ret.exception = !nodeStack.Push(childrenArrayElem);
+                            }
+
+                            // leaves: add parameters to this connection
+                            tdiCall = "";
+                            tdiCall.Printf("GETNCI(%s, 'NUMBER_OF_MEMBERS')", currentNodePath->getString());
+                            int32 numMembers = (mdsConnection->get(tdiCall.Buffer()))->getInt();
+                            for (int32 elemIdx = 0u; (elemIdx < numMembers) && ret; elemIdx++) {
+                                tdiCall = "";
+                                tdiCall.Printf("GETNCI(GETNCI(%s, 'MEMBER_NIDS'),'MINPATH')[%i]", currentNodePath->getString(), elemIdx);
+                                MDSplus::Data* memberPath = mdsConnection->get(tdiCall.Buffer());
+
+                                StreamString minPath = memberPath->getString();
+                                while (minPath.Locate(":") != -1) {
+                                    int32 dashIdx = minPath.Locate(":");
+                                    (minPath.BufferReference())[dashIdx] = '.';
+                                }
+                                StreamString relativePath = "";
+                                relativePath.Printf("%s%s%s", nodeName.Buffer(), (minPath[0u] == '.') ? "" : ".", minPath.Buffer());
+
+                                ret = AddAnyType(relativePath, orientation, mdsConnection->get(minPath.Buffer()));
+                            }
+
+                        }
+
+                        StreamString topNode = "\\TOP";
+                        mdsConnection->setDefault(topNode.BufferReference());
+
                     }
                 }
                 catch (MDSplus::MdsException &ex) {
