@@ -110,18 +110,18 @@ public:
     bool TestInitialise_NestedParameters();              //!< @brief Tests the correct loading of nested parameters
     bool TestInitialise_NestedParameters_WithDash();     //!< @brief Tests the correct loading of nested parameters declared with a dash
 
-    bool TestInitialise_RowMajor();                      //!< @brief Tests the correct loading of row-major parameters
-    bool TestInitialise_ColMajor();                      //!< @brief Tests the correct loading of column-major parameters
+    bool TestInitialise_RowMajor(StreamString clientType);                      //!< @brief Tests the correct loading of row-major parameters
+    bool TestInitialise_ColMajor(StreamString clientType);                      //!< @brief Tests the correct loading of column-major parameters
 
     bool TestInitialise_String(StreamString clientType); //!< @brief Tests the loading of a string parameter
 
     bool TestInitialise_Struct_RowMajor(StreamString clientType);               //!< @brief Tests the loading of a structured parameter from a structured node in row-major format.
 
-    bool TestInitialise_DictAsStruct_RowMajor();         //!< @brief Tests the loading of a structured parameter from a Dictionary node in row-major format
-    bool TestInitialise_DictAsStruct_ColMajor();         //!< @brief Tests the loading of a structured parameter from a Dictionary node in column-major format
+    bool TestInitialise_DictAsStruct_RowMajor(StreamString clientType);         //!< @brief Tests the loading of a structured parameter from a Dictionary node in row-major format
+    bool TestInitialise_DictAsStruct_ColMajor(StreamString clientType);         //!< @brief Tests the loading of a structured parameter from a Dictionary node in column-major format
 
-    bool TestInitialise_StructArray_RowMajor();          //!< @brief Tests the loading of a struct array parameter in row-major format
-    bool TestInitialise_StructArray_ColMajor();          //!< @brief Tests the loading of a struct array parameter in column-major format
+    bool TestInitialise_StructArray_RowMajor(StreamString clientType);          //!< @brief Tests the loading of a struct array parameter in row-major format
+    bool TestInitialise_StructArray_ColMajor(StreamString clientType);          //!< @brief Tests the loading of a struct array parameter in column-major format
 
     bool TestInitialise_NoTree_Failed();                 //!< @brief Tests the correct erroring when no Tree is specified
     bool TestInitialise_NoShot_Failed();                 //!< @brief Tests the correct erroring when no Shot is specified

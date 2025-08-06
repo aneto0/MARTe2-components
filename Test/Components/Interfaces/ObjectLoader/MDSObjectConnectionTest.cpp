@@ -1020,7 +1020,7 @@ bool MDSObjectConnectionTest::TestInitialise_NestedParameters_WithDash() {
 }
 
 
-bool MDSObjectConnectionTest::TestInitialise_RowMajor() {
+bool MDSObjectConnectionTest::TestInitialise_RowMajor(StreamString clientType = "Distributed") {
 
     StreamString configStream = ""
         "Class  = MDSObjectConnection                                                \n"
@@ -1072,6 +1072,9 @@ bool MDSObjectConnectionTest::TestInitialise_RowMajor() {
         ""
         ;
 
+    configStream += "ClientType = ";
+    configStream += clientType;
+
     ConfigurationDatabase config;
     MDSObjectConnection loader;
     loader.SetName("MDSOC");
@@ -1085,7 +1088,7 @@ bool MDSObjectConnectionTest::TestInitialise_RowMajor() {
     return (status.ErrorsCleared() && ok);
 }
 
-bool MDSObjectConnectionTest::TestInitialise_ColMajor() {
+bool MDSObjectConnectionTest::TestInitialise_ColMajor(StreamString clientType = "Distributed") {
 
     StreamString configStream = ""
         "Class  = MDSObjectConnection                                                \n"
@@ -1136,6 +1139,9 @@ bool MDSObjectConnectionTest::TestInitialise_ColMajor() {
         "}                                                                           \n"
         ""
         ;
+
+    configStream += "ClientType = ";
+    configStream += clientType;
 
     ConfigurationDatabase config;
     MDSObjectConnection loader;
@@ -1209,7 +1215,7 @@ bool MDSObjectConnectionTest::TestInitialise_Struct_RowMajor(StreamString client
     return (status.ErrorsCleared() && ok);
 }
 
-bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_RowMajor() {
+bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_RowMajor(StreamString clientType = "Distributed") {
 
     StreamString configStream = ""
         "Class  = MDSObjectConnection              \n"
@@ -1221,6 +1227,9 @@ bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_RowMajor() {
         "}                                         \n"
         ""
         ;
+
+    configStream += "ClientType = ";
+    configStream += clientType;
 
     ConfigurationDatabase config;
     MDSObjectConnection loader;
@@ -1235,7 +1244,7 @@ bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_RowMajor() {
     return (status.ErrorsCleared() && ok);
 }
 
-bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_ColMajor() {
+bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_ColMajor(StreamString clientType = "Distributed") {
 
     StreamString configStream = ""
         "Class  = MDSObjectConnection              \n"
@@ -1247,6 +1256,9 @@ bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_ColMajor() {
         "}                                         \n"
         ""
         ;
+
+    configStream += "ClientType = ";
+    configStream += clientType;
 
     ConfigurationDatabase config;
     MDSObjectConnection loader;
@@ -1261,7 +1273,7 @@ bool MDSObjectConnectionTest::TestInitialise_DictAsStruct_ColMajor() {
     return (status.ErrorsCleared() && ok);
 }
 
-bool MDSObjectConnectionTest::TestInitialise_StructArray_RowMajor() {
+bool MDSObjectConnectionTest::TestInitialise_StructArray_RowMajor(StreamString clientType = "Distributed") {
 
     StreamString configStream = ""
         "Class  = MDSObjectConnection              \n"
@@ -1274,6 +1286,9 @@ bool MDSObjectConnectionTest::TestInitialise_StructArray_RowMajor() {
         "}                                         \n"
         ""
         ;
+
+    configStream += "ClientType = ";
+    configStream += clientType;
 
     ConfigurationDatabase config;
     MDSObjectConnection loader;
@@ -1288,17 +1303,21 @@ bool MDSObjectConnectionTest::TestInitialise_StructArray_RowMajor() {
     return (status.ErrorsCleared() && ok);
 }
 
-bool MDSObjectConnectionTest::TestInitialise_StructArray_ColMajor() {
+bool MDSObjectConnectionTest::TestInitialise_StructArray_ColMajor(StreamString clientType = "Distributed") {
 
     StreamString configStream = ""
         "Class  = MDSObjectConnection              \n"
         "Tree   = mdsoc_ttree                      \n"
         "Shot   = -1                               \n"
+        "Server = localhost:8002                   \n"
         "Parameters = {                            \n"
         "    StructParameter = { Path = \"STRUCTARRAY\" DataOrientation = ColumnMajor } \n"
         "}                                         \n"
         ""
         ;
+
+    configStream += "ClientType = ";
+    configStream += clientType;
 
     ConfigurationDatabase config;
     MDSObjectConnection loader;
