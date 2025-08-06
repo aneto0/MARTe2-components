@@ -175,7 +175,7 @@ SampleChecker.cpp
 Sigblock.cpp
 SigblockDoubleBuffer.cpp
 Signal.h
-SimulinkClasses.cpp
+SimulinkInterfaces.cpp
 SimulinkWrapperGAM.cpp
 SDNPublisher.cpp
 SDNSubscriber.cpp
