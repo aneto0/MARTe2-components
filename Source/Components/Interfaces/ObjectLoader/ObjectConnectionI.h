@@ -129,7 +129,7 @@ public:
     /**
      * @brief Remove all parameters, deallocate memory.
      */
-    virtual ErrorManagement::ErrorType Clean();
+    virtual ErrorManagement::ErrorType CleanUp();
 
     /**
      * @brief Returns the name of the parameter in the n-th position of the list

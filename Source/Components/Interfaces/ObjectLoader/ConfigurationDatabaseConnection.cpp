@@ -45,7 +45,7 @@ ConfigurationDatabaseConnection::ConfigurationDatabaseConnection() :
 }
 
 ConfigurationDatabaseConnection::~ConfigurationDatabaseConnection() {
-    ErrorManagement::ErrorType ret = Clean();
+    ErrorManagement::ErrorType ret = CleanUp();
     if (!ret) {
         REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());
     }
@@ -53,7 +53,7 @@ ConfigurationDatabaseConnection::~ConfigurationDatabaseConnection() {
 
 ErrorManagement::ErrorType ConfigurationDatabaseConnection::UpdateParameters() {
 
-    ErrorManagement::ErrorType ret = Clean();
+    ErrorManagement::ErrorType ret = CleanUp();
 
     // traverse and flatten the `Parameters` node (iteratively to avoid recursion)
     StaticList<StreamString*> nodeStack;
@@ -115,9 +115,9 @@ ErrorManagement::ErrorType ConfigurationDatabaseConnection::UpdateParameters() {
     return ret;
 }
 
-ErrorManagement::ErrorType ConfigurationDatabaseConnection::Clean() {
+ErrorManagement::ErrorType ConfigurationDatabaseConnection::CleanUp() {
 
-    ErrorManagement::ErrorType ret = ObjectConnectionI::Clean();
+    ErrorManagement::ErrorType ret = ObjectConnectionI::CleanUp();
 
     return ret;
 }

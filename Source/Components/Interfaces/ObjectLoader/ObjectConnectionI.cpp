@@ -45,7 +45,7 @@ ObjectConnectionI::ObjectConnectionI() :
 }
 
 ObjectConnectionI::~ObjectConnectionI() {
-    ErrorManagement::ErrorType ret = Clean();
+    ErrorManagement::ErrorType ret = CleanUp();
     if (!ret) {
         REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());
     }
@@ -64,7 +64,7 @@ ErrorManagement::ErrorType ObjectConnectionI::UpdateParameters() {
     return status;
 }
 
-ErrorManagement::ErrorType ObjectConnectionI::Clean() {
+ErrorManagement::ErrorType ObjectConnectionI::CleanUp() {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
 

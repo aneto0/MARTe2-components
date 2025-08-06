@@ -58,15 +58,15 @@ MDSObjectConnection::~MDSObjectConnection() {
         delete mdsConnection;
     }
 
-    ErrorManagement::ErrorType ret = Clean();
+    ErrorManagement::ErrorType ret = CleanUp();
     if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());
     }
 }
 
-ErrorManagement::ErrorType MDSObjectConnection::Clean() {
+ErrorManagement::ErrorType MDSObjectConnection::CleanUp() {
 
-    ErrorManagement::ErrorType ret = ObjectConnectionI::Clean();
+    ErrorManagement::ErrorType ret = ObjectConnectionI::CleanUp();
 
     bool noErrors = ret.ErrorsCleared();
     while ( (deallocationList.GetSize() > 0u) && noErrors ) {
@@ -174,7 +174,7 @@ bool MDSObjectConnection::Initialise(StructuredDataI & data) {
 
 ErrorManagement::ErrorType MDSObjectConnection::UpdateParameters() {
 
-    ErrorManagement::ErrorType ret = Clean();
+    ErrorManagement::ErrorType ret = CleanUp();
 
     // traverse and flatten the `Parameters` node (iteratively to avoid recursion)
     StaticList<StreamString*> nodeStack;
@@ -557,6 +557,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
         }
     }
 
+    //lint -e{593} Justification: anyTypeParam is freed in the destructor.
     AnyType* anyTypeParam = new AnyType();
     uint8 castMdsType = 0u;
 
@@ -636,7 +637,8 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
 
             MDSplus::Apd* apdData = static_cast<MDSplus::Apd*>(nodeData);
 
-            for (uint32 itemIdx = 0u; (itemIdx < apdData->getDimension()) && (ret); itemIdx = itemIdx + 2u) {
+            bool noErrors = ret.ErrorsCleared();
+            for (uint32 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx = itemIdx + 2u) {
                 MDSplus::Data* itemNameField;
                 MDSplus::Data* itemDataField;
                 StreamString itemName = "";
@@ -656,13 +658,16 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
                 if (ret) {
                     ret = AddAnyType(itemName, orientation, itemDataField);
                 }
+                noErrors = ret.ErrorsCleared();
             }
         }
+        //lint -e{970} Justification: usage_t is a native MDSplus type and cannot be changed
         else if (castMdsType == DTYPE_LIST) {
 
             MDSplus::Apd* apdData = static_cast<MDSplus::Apd*>(nodeData);
 
-            for (uint32 itemIdx = 0u; (itemIdx < apdData->getDimension()) && (ret); itemIdx++) {
+            bool noErrors = ret.ErrorsCleared();
+            for (uint64 itemIdx = 0; (itemIdx < apdData->getDimension()) && noErrors; itemIdx++) {
                 MDSplus::Data* itemData;
                 StreamString itemName = "";
 
@@ -677,23 +682,24 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
                     itemData = apdData->getDescAt(itemIdx);
                     itemData->getInfo(&itemDataClass, &itemDataType, &itemDataByteSize, &itemNumOfDims, &itemDimArray, &itemDataPtr);
                     itemName = nodeName;
-                    itemName.Printf("[%d]", itemIdx);
+                    if (itemName.Printf("[%u]", itemIdx)) {}
                 }
                 catch (MDSplus::MdsException &ex) {
                     ret.exception = true;
                     REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting List item %d. MDSplus error: \n%s", GetName(), nodeName.Buffer(), itemIdx, ex.what());
                 }
 
-                if (ret) {
-                    ret.unsupportedFeature = ((uint8) itemDataType != DTYPE_DICTIONARY) && ((uint8) itemDataType != DTYPE_LIST);
+                if (ret.ErrorsCleared()) {
+                    ret.unsupportedFeature = (static_cast<uint8>(itemDataType) != DTYPE_DICTIONARY) && (static_cast<uint8>(itemDataType) != DTYPE_LIST);
                     if (ret.unsupportedFeature) {
                         REPORT_ERROR(ret, "[%s] - Parameter %s: not a Dictionary or List. List elements shall be all MDSplus::Dictionary or all MDSplus::List", GetName(), itemName.Buffer(), itemIdx);
                     }
                 }
 
-                if (ret) {
+                if (ret.ErrorsCleared()) {
                     ret = AddAnyType(itemName, orientation, itemData);
                 }
+                noErrors = ret.ErrorsCleared();
             }
 
         }
@@ -702,28 +708,28 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
                 anyTypeParam->SetDataPointer(MDSDataPtr);
             }
             else { // ColumnMajor
-                // when source is col-major, a local row-major copy is Malloc'd and the anyTypeParam is associated to that copy
+                // when source is col-major, a local row-major copy is Malloc'd and the anyTypeParam is associated to that copy (will be Free'd in the destructor)
                 void* localBuffer = HeapManager::Malloc(anyTypeParam->GetDataSize());
                 ret.exception = (localBuffer == NULL_PTR(void*));
-                if (ret) {
+                if (ret.ErrorsCleared()) {
 
                     ret.exception = !TransposeAndCopy(localBuffer, MDSDataPtr, anyTypeParam->GetTypeDescriptor(),
                                                     anyTypeParam->GetNumberOfElements(0u),
                                                     anyTypeParam->GetNumberOfElements(1u),
-                                                    anyTypeParam->GetNumberOfDimensions() > 1u ? anyTypeParam->GetNumberOfElements(2u) : 1u);
+                                                    (anyTypeParam->GetNumberOfDimensions() > 1u) ? anyTypeParam->GetNumberOfElements(2u) : 1u);
 
-                    anyTypeParam->SetDataPointer(localBuffer);
-
-                    // local row-major copy will be Freed in the destructor
-                    deallocationList.Add(localBuffer);
+                    if (ret.ErrorsCleared()) {
+                        anyTypeParam->SetDataPointer(localBuffer);
+                        ret.exception = !deallocationList.Add(localBuffer);
+                    }
                 }
             }
-            if (ret) {
+            if (ret.ErrorsCleared()) {
                 anyTypeParam->SetStaticDeclared(true);   // linked
 
                 ret.fatalError = !Add(anyTypeParam);
                 ret.exception  = !paramNames.Add(new StreamString(nodeName));
-                if (ret) {
+                if (ret.ErrorsCleared()) {
                     REPORT_ERROR(ret, "[%s] - Parameter %s: correctly linked", GetName(), nodeName.Buffer());
                 }
             }
