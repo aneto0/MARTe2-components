@@ -44,6 +44,8 @@ MDSObjectConnection::MDSObjectConnection() :
         ObjectConnectionI() {
     mdsTree = NULL_PTR(MDSplus::Tree*);
     mdsConnection = NULL_PTR(MDSplus::Connection*);
+    shotNumber = 0;
+    clientType = InvalidClient;
 }
 
 MDSObjectConnection::~MDSObjectConnection() {
@@ -57,7 +59,7 @@ MDSObjectConnection::~MDSObjectConnection() {
     }
 
     ErrorManagement::ErrorType ret = Clean();
-    if (!ret) {
+    if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());
     }
 }
@@ -66,12 +68,14 @@ ErrorManagement::ErrorType MDSObjectConnection::Clean() {
 
     ErrorManagement::ErrorType ret = ObjectConnectionI::Clean();
 
-    while ( (deallocationList.GetSize() > 0u) && ret ) {
+    bool noErrors = ret.ErrorsCleared();
+    while ( (deallocationList.GetSize() > 0u) && noErrors ) {
         void* toDelete;
         ret.notCompleted = !deallocationList.Extract(0u, toDelete);
-        if (ret) {
+        if (ret.ErrorsCleared()) {
             ret.notCompleted = !HeapManager::Free(toDelete);
         }
+        noErrors = ret.ErrorsCleared();
     }
 
     return ret;
@@ -81,19 +85,19 @@ bool MDSObjectConnection::Initialise(StructuredDataI & data) {
 
     status.initialisationError = !ObjectConnectionI::Initialise(data);
 
-    if (status) {
+    if (status.ErrorsCleared()) {
         status.parametersError = !data.Read("Tree", treeName);
         if (status.parametersError) {
             REPORT_ERROR(status, "[%s] - 'Tree' parameter not found", GetName());
         }
     }
-    if (status) {
+    if (status.ErrorsCleared()) {
         status.parametersError = !data.Read("Shot", shotNumber);
         if (status.parametersError) {
             REPORT_ERROR(status, "[%s] - 'Shot' parameter not found", GetName());
         }
     }
-    if (status) {
+    if (status.ErrorsCleared()) {
         // ClientType declared
         if (data.Read("ClientType", clientTypeName)) {
             if (clientTypeName == "Thin") {
@@ -125,7 +129,7 @@ bool MDSObjectConnection::Initialise(StructuredDataI & data) {
     }
 
     // open MDSplus tree
-    if (status) {
+    if (status.ErrorsCleared()) {
         try {
             if (clientType == DistributedClient) {
                 mdsTree = new MDSplus::Tree(treeName.Buffer(), shotNumber, "NORMAL");
@@ -144,19 +148,19 @@ bool MDSObjectConnection::Initialise(StructuredDataI & data) {
         }
     }
 
-    if (status) {
+    if (status.ErrorsCleared()) {
 
         status.parametersError = !data.MoveRelative("Parameters");
         if (status.parametersError) {
             REPORT_ERROR(status, "[%s] - 'Parameters' node not found", GetName());
         }
 
-        if (status) {
+        if (status.ErrorsCleared()) {
             status.exception = !data.Copy(parametersCdb);
             if (data.MoveToAncestor(1u)) {}
         }
 
-        if (status) {
+        if (status.ErrorsCleared()) {
             status = UpdateParameters();
             if (!status) {
                 REPORT_ERROR(status, "[%s] - Failed 'UpdateParameters' in Initialise.", GetName());
@@ -179,7 +183,8 @@ ErrorManagement::ErrorType MDSObjectConnection::UpdateParameters() {
     StreamString* currentNodePtr = new StreamString("");
     ret.exception = !nodeStack.Add(currentNodePtr);
 
-    while ((nodeStack.GetSize() > 0u) && ret) {
+    bool noErrors = ret.ErrorsCleared();
+    while ((nodeStack.GetSize() > 0u) && noErrors) {
 
         StreamString stackNodePath = "";
         StreamString separator = "";
@@ -189,7 +194,8 @@ ErrorManagement::ErrorType MDSObjectConnection::UpdateParameters() {
         delete nodeStack[nodeStack.GetSize() - 1u];
         ret.exception = !nodeStack.Remove(nodeStack.GetSize() - 1u);
 
-        if ((stackNodePath.Size() > 0u) && ret) { // not on the root node
+        noErrors = ret.ErrorsCleared();
+        if ((stackNodePath.Size() > 0u) && noErrors) { // not on the root node
             ret.illegalOperation = !parametersCdb.MoveAbsolute(stackNodePath.Buffer());
             separator = ".";
             if (ret.illegalOperation) {
@@ -197,7 +203,8 @@ ErrorManagement::ErrorType MDSObjectConnection::UpdateParameters() {
             }
         }
 
-        for (uint32 elemIdx = 0u; (elemIdx < parametersCdb.GetNumberOfChildren()) && ret; elemIdx++) {
+        noErrors = ret.ErrorsCleared();
+        for (uint32 elemIdx = 0u; (elemIdx < parametersCdb.GetNumberOfChildren()) && noErrors; elemIdx++) {
 
             StreamString currentNodePath = stackNodePath;
                 currentNodePath += separator;
@@ -229,7 +236,7 @@ ErrorManagement::ErrorType MDSObjectConnection::UpdateParameters() {
 
                     ConfigurationDatabase nodeParameters;
                     ret.illegalOperation = !parametersCdb.Copy(nodeParameters);
-                    if (ret) {
+                    if (ret.ErrorsCleared()) {
                         ret = ConnectParameter(currentNodePath, nodeParameters);
                     }
                 }
@@ -238,11 +245,12 @@ ErrorManagement::ErrorType MDSObjectConnection::UpdateParameters() {
             }
         }
 
-        if ((stackNodePath.Size() > 0u) && ret) { // not on the root node
+        noErrors = ret.ErrorsCleared();
+        if ((stackNodePath.Size() > 0u) && noErrors) { // not on the root node
             ret.illegalOperation = !parametersCdb.MoveToAncestor(1u);
         }
+        noErrors = ret.ErrorsCleared();
     }
-
 
     return ret;
 }
