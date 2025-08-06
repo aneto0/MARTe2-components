@@ -136,6 +136,9 @@ public:
     bool TestInitialise_Invalid4DMatrix_Failed();        //!< @brief Tests the correct erroring when a matrix with dimensions > 3 is declared
     bool TestInitialise_UnsupportedDataType_Failed();    //!< @brief Tests the correct erroring when an unsupported data type is specified
     bool TestInitialise_StringColMajor_Failed();         //!< @brief Tests the correct erroring a string parameter is declared column-major
+    bool TestInitialise_InvalidNodeUsage_Failed();
+    bool TestInitialise_NoDataNode_Failed();
+    bool TestInitialise_InvalidStructureSubnode_Failed();
 
     //@}
 

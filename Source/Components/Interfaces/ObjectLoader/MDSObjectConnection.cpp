@@ -403,7 +403,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                     }
                 }
                 catch (MDSplus::MdsException &ex) {
-                    ret.exception = true;
+                    ret.communicationError = true;
                     REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting data for node %s. MDSplus error: \n%s", GetName(), nodeName.Buffer(), MDSPath.Buffer(), ex.what());
                 }
 
@@ -510,7 +510,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                     }
                 }
                 catch (MDSplus::MdsException &ex) {
-                    ret.exception = true;
+                    ret.communicationError = true;
                     REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting structure from node %s. MDSplus error: \n%s", GetName(), nodeName.Buffer(), MDSPath.Buffer(), ex.what());
                 }
             }

@@ -349,8 +349,12 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
             testTree->addNode("INVALIDLIST", "ANY");
             testTree->addNode("MAT4DUINT32", "NUMERIC");
             testTree->addNode("SCALCOMP32", "NUMERIC");
+            testTree->addNode("INV_USAGE", "ACTION");
+            testTree->addNode("NODATA", "NUMERIC");
+            testTree->addNode("INV_STRUCT", "STRUCTURE");
+            testTree->addNode("INV_STRUCT.INV_USAGE", "ACTION");
         } catch (const MDSplus::MdsException &exc) {
-            /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed creating structure node. MDSplus exception: %s", exc.what());
+            REPORT_ERROR_STATIC(ErrorManagement::Debug, "Failed creating structure node. MDSplus exception: %s", exc.what());
             ok = false;
         }
         if (ok) {
@@ -370,7 +374,7 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
             ok &= AddNodes(testTree, "STRUCT.SUBSTRUCT.MAT3D");
             ok &= AddNodes(testTree, "STRUCT.SUBSTRUCT.NS_", 4u);
             if (!ok) {
-                /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed AddNodes");
+                REPORT_ERROR_STATIC(ErrorManagement::Debug,"Failed AddNodes");
             }
         }
     }
@@ -423,7 +427,7 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
         MDSplus::TreeNode* invalidScalarNode = testTree->getNode("SCALCOMP32");
         invalidScalarNode->putData(invalidScalar);
        if (!ok) {
-            /*REPORT_ERROR_STATIC(ErrorManagement::Debug,*/ printf("Failed AddNodeValues");
+            REPORT_ERROR_STATIC(ErrorManagement::Debug, "Failed AddNodeValues");
        }
     }
 
@@ -1547,4 +1551,58 @@ bool MDSObjectConnectionTest::TestInitialise_StringColMajor_Failed() {
     bool ok = TestInitialiseWithConfiguration(configStream, status);
 
     return (status.illegalOperation && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_InvalidNodeUsage_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection              \n"
+        "Tree   = mdsoc_ttree                      \n"
+        "Shot   = -1                               \n"
+        "Parameters = {                            \n"
+        "    STRING   = { Path = \"INV_USAGE\" }   \n"
+        "}                                         \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.unsupportedFeature && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_NoDataNode_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection              \n"
+        "Tree   = mdsoc_ttree                      \n"
+        "Shot   = -1                               \n"
+        "Parameters = {                            \n"
+        "    STRING   = { Path = \"NODATA\" }      \n"
+        "}                                         \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.communicationError && !ok);
+}
+
+bool MDSObjectConnectionTest::TestInitialise_InvalidStructureSubnode_Failed() {
+
+    StreamString configStream = ""
+        "Class  = MDSObjectConnection              \n"
+        "Tree   = mdsoc_ttree                      \n"
+        "Shot   = -1                               \n"
+        "Parameters = {                            \n"
+        "    STRING   = { Path = \"INV_STRUCT\" }  \n"
+        "}                                         \n"
+        ""
+        ;
+
+    ErrorManagement::ErrorType status = ErrorManagement::FatalError;
+    bool ok = TestInitialiseWithConfiguration(configStream, status);
+
+    return (status.communicationError && !ok);
 }

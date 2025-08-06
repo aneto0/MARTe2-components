@@ -199,3 +199,18 @@ TEST(MDSObjectConnectionGTest,TestInitialise_StringColMajor_Failed) {
     ASSERT_TRUE(test.TestInitialise_StringColMajor_Failed());
 }
 
+TEST(MDSObjectConnectionGTest,TestInitialise_InvalidNodeUsage_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_InvalidNodeUsage_Failed());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_NoDataNode_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_NoDataNode_Failed());
+}
+
+TEST(MDSObjectConnectionGTest,TestInitialise_InvalidStructureSubnode_Failed) {
+    MDSObjectConnectionTest test;
+    ASSERT_TRUE(test.TestInitialise_InvalidStructureSubnode_Failed());
+}
+
