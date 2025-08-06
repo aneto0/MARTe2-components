@@ -762,6 +762,7 @@ bool MDSObjectConnectionTest::TestParameterLoading(MDSObjectConnection& loader, 
     }
 
     // verify that all parameters have been checked
+    ok = (hasBeenChecked.GetNumberOfElements() > 0u);
     for (uint32 i = 0u; i < hasBeenChecked.GetNumberOfElements() && ok; i++) {
         ok &= (hasBeenChecked[i] == true);
         if (!ok) {
