@@ -481,11 +481,11 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
 
                             // subnodes: add to the stack
                             tdiCall = "";
-                            tdiCall.Printf("GETNCI(%s, 'NUMBER_OF_CHILDREN')", currentNodePath->getString());
+                            ret.exception = tdiCall.Printf("GETNCI(%s, 'NUMBER_OF_CHILDREN')", currentNodePath->getString());
                             int32 numChildren = (mdsConnection->get(tdiCall.Buffer()))->getInt();
                             for (int32 elemIdx = 0u; (elemIdx < numChildren) && ret; elemIdx++) {
                                 tdiCall = "";
-                                tdiCall.Printf("GETNCI(GETNCI(%s, 'CHILDREN_NIDS'), 'MINPATH')[%i]", currentNodePath->getString(), elemIdx);
+                                ret.exception = tdiCall.Printf("GETNCI(GETNCI(%s, 'CHILDREN_NIDS'), 'MINPATH')[%i]", currentNodePath->getString(), elemIdx);
                                 MDSplus::Data* childrenArrayElem = mdsConnection->get(tdiCall.Buffer());
                                 ret.exception = !nodeStack.Push(childrenArrayElem);
                             }
@@ -494,9 +494,9 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                             tdiCall = "";
                             tdiCall.Printf("GETNCI(%s, 'NUMBER_OF_MEMBERS')", currentNodePath->getString());
                             int32 numMembers = (mdsConnection->get(tdiCall.Buffer()))->getInt();
-                            for (int32 elemIdx = 0u; (elemIdx < numMembers) && ret; elemIdx++) {
+                            for (int32 elemIdx = 0u; ret.ErrorsCleared() && (elemIdx < numMembers); elemIdx++) {
                                 tdiCall = "";
-                                tdiCall.Printf("GETNCI(GETNCI(%s, 'MEMBER_NIDS'),'MINPATH')[%i]", currentNodePath->getString(), elemIdx);
+                                ret.exception = tdiCall.Printf("GETNCI(GETNCI(%s, 'MEMBER_NIDS'),'MINPATH')[%i]", currentNodePath->getString(), elemIdx);
                                 MDSplus::Data* memberPath = mdsConnection->get(tdiCall.Buffer());
 
                                 StreamString minPath = memberPath->getString();
@@ -534,10 +534,10 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
 
     // Introspection information from MDSplus will be stored here
-    uint16  MDSDataType = 0u;
-    uint16  MDSNumOfDims = 0u;
+    int16  MDSDataType = 0u;
+    uint8  MDSNumOfDims = 0u;
+    void*  MDSDataPtr = NULL_PTR(void*);
     Vector<uint32> MDSDimArray = Vector<uint32>(0u);
-    void*   MDSDataPtr = NULL_PTR(void*);
 
     try {
         char8  tempMDSDataClass;
@@ -547,7 +547,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
         int32* tempMDSDimArray;
         nodeData->getInfo(&tempMDSDataClass, &tempMDSDataType, &tempMDSDataByteSize, &tempMDSNumOfDims, &tempMDSDimArray, &MDSDataPtr);
 
-        MDSDataType     = static_cast<uint16>(tempMDSDataType);
+        MDSDataType     = static_cast<int16>(tempMDSDataType);
         MDSNumOfDims    = static_cast<uint16>(tempMDSNumOfDims);
         MDSDimArray.SetSize(MDSNumOfDims);
         for (uint32 elemIdx = 0u; elemIdx < MDSNumOfDims; elemIdx++) {
@@ -559,7 +559,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
         REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting the associated node. MDSplus error: \n%s", GetName(), nodeName.Buffer(), ex.what());
     }
 
-    if (ret) {
+    if (ret.ErrorsCleared()) {
         ret.unsupportedFeature = (MDSNumOfDims > 3u);
         if (bool(ret.unsupportedFeature)) {
             REPORT_ERROR(ret, "[%s] - Parameter %s: NumberOfDimensions > 3. Not supported.", GetName(), nodeName.Buffer());
@@ -596,16 +596,16 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
         else if (MDSDataType == DTYPE_Q) {
             anyTypeParam->SetTypeDescriptor(SignedInteger64Bit);
         }
-        else if (MDSDataType == DTYPE_F || MDSDataType == DTYPE_FS) {
+        else if ( (MDSDataType == DTYPE_F) || (MDSDataType == DTYPE_FS) ) {
             anyTypeParam->SetTypeDescriptor(Float32Bit);
         }
-        else if (MDSDataType == DTYPE_D || MDSDataType == DTYPE_FT) {
+        else if ( (MDSDataType == DTYPE_D) || (MDSDataType == DTYPE_FT) ) {
             anyTypeParam->SetTypeDescriptor(Float64Bit);
         }
         else if (MDSDataType == DTYPE_T) {
             anyTypeParam->SetTypeDescriptor(Character8Bit);
         }
-        else if (MDSDataType == DTYPE_DICTIONARY || MDSDataType == DTYPE_LIST) { // struct or array of sruct
+        else if ( (MDSDataType == DTYPE_DICTIONARY) || (MDSDataType == DTYPE_LIST) ) { // struct or array of sruct
             anyTypeParam->SetTypeDescriptor(StructuredDataInterfaceType);
         }
         else {
@@ -622,21 +622,21 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
     }
 
     // shape
-    if (ret) {
+    if (ret.ErrorsCleared()) {
         anyTypeParam->SetNumberOfDimensions(MDSNumOfDims);
 
         for (uint16 dimIdx = 0u; dimIdx < MDSNumOfDims; dimIdx++) {
-            if (dimIdx <= 2u && orientation == "RowMajor") {
-                anyTypeParam->SetNumberOfElements(dimIdx, static_cast<uint32>(MDSDimArray[MDSNumOfDims - dimIdx - 1u]));
+            if ( (dimIdx <= 2u) && (orientation == "RowMajor") ) {
+                anyTypeParam->SetNumberOfElements(dimIdx, MDSDimArray[(MDSNumOfDims - dimIdx) - 1u]);
             }
             else {
-                anyTypeParam->SetNumberOfElements(dimIdx, static_cast<uint32>(MDSDimArray[dimIdx]));
+                anyTypeParam->SetNumberOfElements(dimIdx, MDSDimArray[dimIdx]);
             }
         }
     }
 
     // data pointer
-    if (ret) {
+    if (ret.ErrorsCleared()) {
 
         if (MDSDataType == DTYPE_DICTIONARY) { //lint !e970 Justification: native MDSplus type and cannot be changed
 
