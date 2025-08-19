@@ -639,7 +639,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
 
         for (uint8 dimIdx = 0u; dimIdx < MDSNumOfDims; dimIdx++) {
             if ( (orientation == "RowMajor") && (dimIdx <= 2u) ) {
-                anyTypeParam->SetNumberOfElements(dimIdx, MDSDimArray[(static_cast<uint32>(MDSNumOfDims) - static_cast<uint32>(dimIdx)) - static_cast<uint32>(1u)]);
+                anyTypeParam->SetNumberOfElements(dimIdx, MDSDimArray[(MDSNumOfDims - static_cast<uint32>(dimIdx)) - static_cast<uint32>(1u)]);
             }
             else {
                 anyTypeParam->SetNumberOfElements(dimIdx, MDSDimArray[dimIdx]);
