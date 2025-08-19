@@ -341,7 +341,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                     StreamString usageExpr = "";
                     ret.exception = usageExpr.Printf("GETNCI('%s', 'USAGE')", tempMDSPath.Buffer());
                     MDSplus::Data* nodeUsageData = mdsConnection->get(usageExpr.Buffer());
-                    nodeUsage = static_cast<usage_t>(nodeUsageData->getShort());
+                    nodeUsage = static_cast<usage_t>(nodeUsageData->getIntUnsigned());
                 }
 
                 ret.unsupportedFeature = !((nodeUsage == TreeUSAGE_ANY) || (nodeUsage == TreeUSAGE_STRUCTURE) || (nodeUsage == TreeUSAGE_NUMERIC) || (nodeUsage == TreeUSAGE_TEXT));
