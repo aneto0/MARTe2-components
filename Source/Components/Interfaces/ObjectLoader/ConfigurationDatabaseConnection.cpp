@@ -59,7 +59,7 @@ ErrorManagement::ErrorType ConfigurationDatabaseConnection::UpdateParameters() {
     StaticList<StreamString*> nodeStack;
 
     // add root node to the stack
-    StreamString* currentNodePtr = new StreamString("");
+    StreamString* currentNodePtr = new StreamString(""); //lint !e429 Justification: memory associated to currentNodePtr is freed in the destructor
     ret.exception = !nodeStack.Add(currentNodePtr);
 
     while ((nodeStack.GetSize() > 0u) && ret) {
@@ -101,13 +101,13 @@ ErrorManagement::ErrorType ConfigurationDatabaseConnection::UpdateParameters() {
                     (currentNodePath.BufferReference())[dashIdx] = '.';
                 }
 
-                AnyType* anyTypeParam = new AnyType(parametersCdb.GetType(parametersCdb.GetChildName(elemIdx)));
+                AnyType* anyTypeParam = new AnyType(parametersCdb.GetType(parametersCdb.GetChildName(elemIdx))); //lint !e429 Justification: memory associated to anyTypeParam is freed in the destructor
                 Add(anyTypeParam);
                 paramNames.Add(new StreamString(currentNodePath));
             }
         }
 
-        if ((stackNodePath.Size() > 0u) && ret) { // not on the root node
+        if ( ret.ErrorsCleared() && (stackNodePath.Size() > 0u)) { // not on the root node
             ret.illegalOperation = !parametersCdb.MoveToAncestor(1u);
         }
     }
@@ -126,19 +126,19 @@ bool ConfigurationDatabaseConnection::Initialise(StructuredDataI & data) {
 
     status.initialisationError = !ObjectConnectionI::Initialise(data);
 
-    if (status) {
+    if (status.ErrorsCleared()) {
 
         status.parametersError = !data.MoveRelative("Parameters");
-        if (status.parametersError) {
+        if (bool(status.parametersError)) {
             REPORT_ERROR(status, "[%s] - 'Parameters' node not found", GetName());
         }
 
-        if (status) {
+        if (status.ErrorsCleared()) {
             status.exception = !data.Copy(parametersCdb);
             if (data.MoveToAncestor(1u)) {}
         }
 
-        if (status) {
+        if (status.ErrorsCleared()) {
             status = UpdateParameters();
             if (!status) {
                 REPORT_ERROR(status, "[%s] - Failed 'UpdateParameters' in Initialise.", GetName());
