@@ -545,7 +545,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
 
     // Introspection information from MDSplus will be stored here
     dtype_t MDSDataType = DTYPE_MISSING;
-    uint8   MDSNumOfDims = 0u;
+    uint32   MDSNumOfDims = 0u;
     void*   MDSDataPtr = NULL_PTR(void*);
     Vector<uint32> MDSDimArray = Vector<uint32>(0u);
 
@@ -559,7 +559,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
             nodeData->getInfo(&tempMDSDataClass, &tempMDSDataType, &tempMDSDataByteSize, &tempMDSNumOfDims, &tempMDSDimArray, &MDSDataPtr);
 
             MDSDataType     = static_cast<dtype_t>(tempMDSDataType);
-            MDSNumOfDims    = static_cast<uint8>(tempMDSNumOfDims);
+            MDSNumOfDims    = static_cast<uint32>(tempMDSNumOfDims);
             MDSDimArray.SetSize(MDSNumOfDims);
             for (uint32 elemIdx = 0u; elemIdx < MDSNumOfDims; elemIdx++) {
                 MDSDimArray[elemIdx] = static_cast<uint16>(tempMDSDimArray[elemIdx]);
@@ -637,7 +637,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
     if (ret.ErrorsCleared()) {
         anyTypeParam->SetNumberOfDimensions(MDSNumOfDims);
 
-        for (uint16 dimIdx = 0u; dimIdx < MDSNumOfDims; dimIdx++) {
+        for (uint32 dimIdx = 0u; dimIdx < MDSNumOfDims; dimIdx++) {
             if ( (orientation == "RowMajor") && (dimIdx <= 2u) ) {
                 anyTypeParam->SetNumberOfElements(dimIdx, MDSDimArray[(MDSNumOfDims - dimIdx) - 1u]);
             }
