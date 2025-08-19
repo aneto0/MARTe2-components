@@ -402,7 +402,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
         }
 
         // get the actual data
-        if (ret.ErrorsCleared()) {
+        if ( (ret.ErrorsCleared()) && (mdsConnection != NULL) && (mdsTree != NULL) ) {
             // ordinay node, read node Data
             if (nodeUsage != TreeUSAGE_STRUCTURE) {
                 MDSplus::Data* nodeData = NULL_PTR(MDSplus::Data*);
@@ -447,7 +447,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                             // subnodes: add to the stack
                             int32 numChildren = 0;
                             MDSplus::TreeNode** childrenArray = currentNode->getChildren(&numChildren);
-                            for (int32 elemIdx = 0; (elemIdx < numChildren) && ret; elemIdx++) {
+                            for (int32 elemIdx = 0; ret.ErrorsCleared() && (elemIdx < numChildren); elemIdx++) {
                                 ret.exception = !nodeStack.Push(childrenArray[elemIdx]);
                             }
 
@@ -686,11 +686,11 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
             MDSplus::Apd* apdData = dynamic_cast<MDSplus::Apd*>(nodeData);
 
             bool noErrors = ret.ErrorsCleared();
-            for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx++) { /*lint --e{850} Justification: itemIdx is not modified within the loop*/
+            for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx++) { //lint !e850 Justification: itemIdx is not modified within the loop*/
                 MDSplus::Data* itemData;
                 StreamString itemName = "";
 
-                int16 itemDataType = 0;
+                dtype_t itemDataType = DTYPE_MISSING;
 
                 try {
                     char8 tempItemDataClass;
@@ -701,7 +701,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
                     void  *tempItemDataPtr;
                     itemData = apdData->getDescAt(itemIdx);
                     itemData->getInfo(&tempItemDataClass, &tempItemDataType, &tempItemDataByteSize, &tempItemNumOfDims, &tempItemDimArray, &tempItemDataPtr);
-                    itemDataType = static_cast<int16>(tempItemDataType);
+                    itemDataType = static_cast<dtype_t>(tempItemDataType);
 
                     itemName = nodeName;
                     if (itemName.Printf("[%u]", itemIdx)) {}
