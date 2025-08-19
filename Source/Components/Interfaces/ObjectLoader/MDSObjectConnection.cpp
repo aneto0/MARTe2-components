@@ -655,14 +655,14 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
         if ( (MDSDataType == DTYPE_DICTIONARY) && (apdData != NULL) ) { //lint !e970 Justification: native MDSplus type, cannot be changed
 
             bool noErrors = ret.ErrorsCleared();
-            for (uint32 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx = itemIdx + 2u) {
+            for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx = itemIdx + 2u) {
                 MDSplus::Data* itemNameField;
                 MDSplus::Data* itemDataField;
                 StreamString itemName = "";
 
                 try {
-                    itemNameField = apdData->getDescAt(static_cast<int32>(itemIdx));
-                    itemDataField = apdData->getDescAt(static_cast<int32>(itemIdx + 1u));
+                    itemNameField = apdData->getDescAt(itemIdx);
+                    itemDataField = apdData->getDescAt(itemIdx + 1u);
                     itemName = nodeName;
                     itemName += ".";
                     itemName += itemNameField->getString();
@@ -682,7 +682,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
 
             bool noErrors = ret.ErrorsCleared();
             /*lint -e{850} Justification: itemIdx is not modified within the loop*/
-            for (uint32 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx++) {
+            for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx++) {
                 MDSplus::Data* itemData;
                 StreamString itemName = "";
 
@@ -695,7 +695,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
                     int16 tempItemDataByteSize;
                     int32 *tempItemDimArray;
                     void  *tempItemDataPtr;
-                    itemData = apdData->getDescAt(static_cast<int32>(itemIdx));
+                    itemData = apdData->getDescAt(itemIdx);
                     itemData->getInfo(&tempItemDataClass, &tempItemDataType, &tempItemDataByteSize, &tempItemNumOfDims, &tempItemDimArray, &tempItemDataPtr);
                     itemDataType = static_cast<dtype_t>(tempItemDataType);
 
