@@ -651,11 +651,11 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
     }
 
     // data pointer
-    if (ret.ErrorsCleared()) {
+    if ( ret.ErrorsCleared() ) {
 
-        if (MDSDataType == DTYPE_DICTIONARY) { //lint !e970 Justification: native MDSplus type, cannot be changed
+        MDSplus::Apd* apdData = dynamic_cast<MDSplus::Apd*>(nodeData);
 
-            MDSplus::Apd* apdData = dynamic_cast<MDSplus::Apd*>(nodeData);
+        if (MDSDataType == DTYPE_DICTIONARY && (apdData != NULL) ) { //lint !e970 Justification: native MDSplus type, cannot be changed
 
             bool noErrors = ret.ErrorsCleared();
             for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx = itemIdx + 2u) {
@@ -681,9 +681,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
                 noErrors = ret.ErrorsCleared();
             }
         }
-        else if (MDSDataType == DTYPE_LIST) { //lint !e970 Justification: native MDSplus type, cannot be changed
-
-            MDSplus::Apd* apdData = dynamic_cast<MDSplus::Apd*>(nodeData);
+        else if (MDSDataType == DTYPE_LIST && (apdData != NULL) ) { //lint !e970 Justification: native MDSplus type, cannot be changed
 
             bool noErrors = ret.ErrorsCleared();
             for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx++) { //lint !e850 Justification: itemIdx is not modified within the loop*/
