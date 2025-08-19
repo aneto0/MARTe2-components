@@ -542,29 +542,36 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
 
     // Introspection information from MDSplus will be stored here
-    int16  MDSDataType = 0;
-    uint8  MDSNumOfDims = 0u;
-    void*  MDSDataPtr = NULL_PTR(void*);
+    dtype_t MDSDataType = DTYPE_MISSING;
+    uint8   MDSNumOfDims = 0u;
+    void*   MDSDataPtr = NULL_PTR(void*);
     Vector<uint32> MDSDimArray = Vector<uint32>(0u);
 
-    try {
-        char8  tempMDSDataClass;
-        char8  tempMDSDataType;
-        char8  tempMDSNumOfDims;
-        int16  tempMDSDataByteSize;
-        int32* tempMDSDimArray;
-        nodeData->getInfo(&tempMDSDataClass, &tempMDSDataType, &tempMDSDataByteSize, &tempMDSNumOfDims, &tempMDSDimArray, &MDSDataPtr);
-
-        MDSDataType     = static_cast<int16>(tempMDSDataType);
-        MDSNumOfDims    = static_cast<uint8>(tempMDSNumOfDims);
-        MDSDimArray.SetSize(MDSNumOfDims);
-        for (uint32 elemIdx = 0u; elemIdx < MDSNumOfDims; elemIdx++) {
-            MDSDimArray[elemIdx] = static_cast<uint16>(tempMDSDimArray[elemIdx]);
-        }
+    if (nodeData == NULL) {
+        ret.communicationError = true;
+        REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus returned a null pointer.", GetName(), nodeName.Buffer());
     }
-    catch (const MDSplus::MdsException &ex) {
-        ret.exception = true;
-        REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting the associated node. MDSplus error: \n%s", GetName(), nodeName.Buffer(), ex.what());
+
+    if (ret.ErrorsCleared()) {
+        try {
+            char8  tempMDSDataClass;
+            char8  tempMDSDataType;
+            char8  tempMDSNumOfDims;
+            int16  tempMDSDataByteSize;
+            int32* tempMDSDimArray;
+            nodeData->getInfo(&tempMDSDataClass, &tempMDSDataType, &tempMDSDataByteSize, &tempMDSNumOfDims, &tempMDSDimArray, &MDSDataPtr);
+
+            MDSDataType     = static_cast<dtype_t>(tempMDSDataType);
+            MDSNumOfDims    = static_cast<uint8>(tempMDSNumOfDims);
+            MDSDimArray.SetSize(MDSNumOfDims);
+            for (uint32 elemIdx = 0u; elemIdx < MDSNumOfDims; elemIdx++) {
+                MDSDimArray[elemIdx] = static_cast<uint16>(tempMDSDimArray[elemIdx]);
+            }
+        }
+        catch (const MDSplus::MdsException &ex) {
+            ret.exception = true;
+            REPORT_ERROR(ret, "[%s] - Parameter %s: MDSplus error getting the associated node. MDSplus error: \n%s", GetName(), nodeName.Buffer(), ex.what());
+        }
     }
 
     if (ret.ErrorsCleared()) {
@@ -574,7 +581,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
         }
     }
 
-    /*lint -e{593} Justification: anyTypeParam is freed in the destructor.*/
+    /*lint --e{593} Justification: anyTypeParam is freed in the destructor.*/
     AnyType* anyTypeParam = new AnyType();
 
     if (ret.ErrorsCleared()) {
@@ -634,7 +641,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
         anyTypeParam->SetNumberOfDimensions(MDSNumOfDims);
 
         for (uint16 dimIdx = 0u; dimIdx < MDSNumOfDims; dimIdx++) {
-            if ( (dimIdx <= 2u) && (orientation == "RowMajor") ) {
+            if ( (orientation == "RowMajor") && (dimIdx <= 2u) ) {
                 anyTypeParam->SetNumberOfElements(dimIdx, MDSDimArray[(MDSNumOfDims - dimIdx) - 1u]);
             }
             else {
@@ -646,10 +653,9 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
     // data pointer
     if (ret.ErrorsCleared()) {
 
-        if (MDSDataType == DTYPE_DICTIONARY) { //lint !e970 Justification: native MDSplus type and cannot be changed
+        if (MDSDataType == DTYPE_DICTIONARY) { //lint !e970 Justification: native MDSplus type, cannot be changed
 
             MDSplus::Apd* apdData = dynamic_cast<MDSplus::Apd*>(nodeData);
-            ret.exception = (apdData == NULL);
 
             bool noErrors = ret.ErrorsCleared();
             for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx = itemIdx + 2u) {
@@ -675,26 +681,28 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
                 noErrors = ret.ErrorsCleared();
             }
         }
-        else if (MDSDataType == DTYPE_LIST) { //lint !e970 Justification: native MDSplus type and cannot be changed
+        else if (MDSDataType == DTYPE_LIST) { //lint !e970 Justification: native MDSplus type, cannot be changed
 
             MDSplus::Apd* apdData = dynamic_cast<MDSplus::Apd*>(nodeData);
-            ret.exception = (apdData == NULL);
 
             bool noErrors = ret.ErrorsCleared();
-            for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx++) { //lint --e{850} Justification: itemIdx is not modified within the loop
+            for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx++) { /*lint --e{850} Justification: itemIdx is not modified within the loop*/
                 MDSplus::Data* itemData;
                 StreamString itemName = "";
 
-                char8 itemDataClass;
-                char8 itemDataType;
-                char8 itemNumOfDims;
-                int16 itemDataByteSize;
-                int32 *itemDimArray;
-                void  *itemDataPtr;
+                int16 itemDataType = 0;
 
                 try {
+                    char8 tempItemDataClass;
+                    char8 tempItemDataType;
+                    char8 tempItemNumOfDims;
+                    int16 tempItemDataByteSize;
+                    int32 *tempItemDimArray;
+                    void  *tempItemDataPtr;
                     itemData = apdData->getDescAt(itemIdx);
-                    itemData->getInfo(&itemDataClass, &itemDataType, &itemDataByteSize, &itemNumOfDims, &itemDimArray, &itemDataPtr);
+                    itemData->getInfo(&tempItemDataClass, &tempItemDataType, &tempItemDataByteSize, &tempItemNumOfDims, &tempItemDimArray, &tempItemDataPtr);
+                    itemDataType = static_cast<int16>(tempItemDataType);
+
                     itemName = nodeName;
                     if (itemName.Printf("[%u]", itemIdx)) {}
                 }
@@ -704,7 +712,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
                 }
 
                 if (ret.ErrorsCleared()) {
-                    ret.unsupportedFeature = (static_cast<int16>(itemDataType) != DTYPE_DICTIONARY) && (static_cast<int16>(itemDataType) != DTYPE_LIST);
+                    ret.unsupportedFeature = (itemDataType != DTYPE_DICTIONARY) && (itemDataType != DTYPE_LIST);
                     if (bool(ret.unsupportedFeature)) {
                         REPORT_ERROR(ret, "[%s] - Parameter %s: not a Dictionary or List. List elements shall be all MDSplus::Dictionary or all MDSplus::List", GetName(), itemName.Buffer(), itemIdx);
                     }
@@ -751,7 +759,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
     }
 
     if (!ret) {
-        delete anyTypeParam; //lint !e970 Justification: all parameters are freed in the destructor
+        delete anyTypeParam;
     }
 
     return ret;
