@@ -256,7 +256,7 @@ ErrorManagement::ErrorType MDSObjectConnection::UpdateParameters() {
     return ret;
 }
 
-
+//lint -e{429} Justification: memory associated to anyTypeParam is freed in the destructor
 ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString nodeName, ConfigurationDatabase nodeParams) {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
@@ -281,7 +281,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
         unlinked = (MDSPath.Size() == 0u);
         if (unlinked) {
             REPORT_ERROR(ErrorManagement::Warning, "[%s] - Parameter %s: unlinked, no value stored.", GetName(), nodeName.Buffer());
-            AnyType* anyTypeParam = new AnyType(0u);  //lint !e429 Justification: amemory associated to nyTypeParam is freed in the destructor
+            AnyType* anyTypeParam = new AnyType(0u);
             anyTypeParam->SetStaticDeclared(false);   // unlinked
             ret.exception = Add(anyTypeParam);
             if (ret.ErrorsCleared()) {
@@ -378,7 +378,8 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
 
                 // Concatenate scalar values in an array in the form "[\DATA001, \DATA002, \DATA003, ...]"
                 expandedMDSPath = "[";
-                for (uint32 currIdx = startIdx; ret.ErrorsCleared() && (currIdx <= stopIdx); currIdx++) { //lint !e850 Justification: itemIdx is not modified within the loop*/
+                /*lint -e{850} Justification: currIdx is not modified within the loop*/
+                for (uint32 currIdx = startIdx; ret.ErrorsCleared() && (currIdx <= stopIdx); currIdx++) {
                     StreamString currNode;
                     ret.exception = currNode.Printf(MDSPath.Buffer(), currIdx);
                     expandedMDSPath += currNode;
@@ -489,7 +490,8 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                             tdiCall = "";
                             ret.exception = tdiCall.Printf("GETNCI(%s, 'NUMBER_OF_CHILDREN')", currentNodePath->getString());
                             int32 numChildren = (mdsConnection->get(tdiCall.Buffer()))->getInt();
-                            for (int32 elemIdx = 0; ret.ErrorsCleared() && (elemIdx < numChildren); elemIdx++) { //lint !e850 Justification: itemIdx is not modified within the loop*/
+                            /*lint -e{850} Justification: itemIdx is not modified within the loop*/
+                            for (int32 elemIdx = 0; ret.ErrorsCleared() && (elemIdx < numChildren); elemIdx++) {
                                 tdiCall = "";
                                 ret.exception = tdiCall.Printf("GETNCI(GETNCI(%s, 'CHILDREN_NIDS'), 'MINPATH')[%i]", currentNodePath->getString(), elemIdx);
                                 MDSplus::Data* childrenArrayElem = mdsConnection->get(tdiCall.Buffer());
@@ -500,7 +502,8 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                             tdiCall = "";
                             ret.exception = tdiCall.Printf("GETNCI(%s, 'NUMBER_OF_MEMBERS')", currentNodePath->getString());
                             int32 numMembers = (mdsConnection->get(tdiCall.Buffer()))->getInt();
-                            for (int32 elemIdx = 0; ret.ErrorsCleared() && (elemIdx < numMembers); elemIdx++) { //lint !e850 Justification: itemIdx is not modified within the loop
+                            /*lint -e{850} Justification: itemIdx is not modified within the loop*/
+                            for (int32 elemIdx = 0; ret.ErrorsCleared() && (elemIdx < numMembers); elemIdx++) {
                                 tdiCall = "";
                                 ret.exception = tdiCall.Printf("GETNCI(GETNCI(%s, 'MEMBER_NIDS'),'MINPATH')[%i]", currentNodePath->getString(), elemIdx);
                                 MDSplus::Data* memberPath = mdsConnection->get(tdiCall.Buffer());
@@ -652,7 +655,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
         if ( (MDSDataType == DTYPE_DICTIONARY) && (apdData != NULL) ) { //lint !e970 Justification: native MDSplus type, cannot be changed
 
             bool noErrors = ret.ErrorsCleared();
-            for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx = itemIdx + 2u) {
+            for (uint32 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx = itemIdx + 2u) {
                 MDSplus::Data* itemNameField;
                 MDSplus::Data* itemDataField;
                 StreamString itemName = "";
@@ -678,7 +681,8 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
         else if ( (MDSDataType == DTYPE_LIST) && (apdData != NULL) ) { //lint !e970 Justification: native MDSplus type, cannot be changed
 
             bool noErrors = ret.ErrorsCleared();
-            for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx++) { //lint !e850 Justification: itemIdx is not modified within the loop*/
+            /*lint -e{850} Justification: itemIdx is not modified within the loop*/
+            for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx++) {
                 MDSplus::Data* itemData;
                 StreamString itemName = "";
 

@@ -51,6 +51,7 @@ ConfigurationDatabaseConnection::~ConfigurationDatabaseConnection() {
     }
 }
 
+/*lint -e{423, 429} Justification: the while loop condition ensures that all the allocated objects are freed */
 ErrorManagement::ErrorType ConfigurationDatabaseConnection::UpdateParameters() {
 
     ErrorManagement::ErrorType ret = CleanUp();
@@ -59,10 +60,11 @@ ErrorManagement::ErrorType ConfigurationDatabaseConnection::UpdateParameters() {
     StaticList<StreamString*> nodeStack;
 
     // add root node to the stack
-    StreamString* currentNodePtr = new StreamString(""); //lint !e429 Justification: memory associated to currentNodePtr is freed in the destructor
+    StreamString* currentNodePtr = new StreamString("");
     ret.exception = !nodeStack.Add(currentNodePtr);
 
-    while ((nodeStack.GetSize() > 0u) && ret) {
+    bool noErrors = ret.ErrorsCleared();
+    while ((nodeStack.GetSize() > 0u) && noErrors) {
 
         StreamString stackNodePath = "";
         StreamString separator = "";
@@ -72,15 +74,17 @@ ErrorManagement::ErrorType ConfigurationDatabaseConnection::UpdateParameters() {
         delete nodeStack[nodeStack.GetSize() - 1u];
         ret.exception = !nodeStack.Remove(nodeStack.GetSize() - 1u);
 
-        if ((stackNodePath.Size() > 0u) && ret) { // not on the root node
+        noErrors = ret.ErrorsCleared();
+        if ((stackNodePath.Size() > 0u) && noErrors) { // not on the root node
             ret.illegalOperation = !parametersCdb.MoveAbsolute(stackNodePath.Buffer());
             separator = ".";
-            if (ret.illegalOperation) {
+            if (bool(ret.illegalOperation)) {
                 REPORT_ERROR(status, "[%s] - failed MoveAbsolute()", GetName());
             }
         }
 
-        for (uint32 elemIdx = 0u; (elemIdx < parametersCdb.GetNumberOfChildren()) && ret; elemIdx++) {
+        noErrors = ret.ErrorsCleared();
+        for (uint32 elemIdx = 0u; (elemIdx < parametersCdb.GetNumberOfChildren()) && noErrors; elemIdx++) {
 
             StreamString currentNodePath = stackNodePath;
                 currentNodePath += separator;
@@ -101,13 +105,16 @@ ErrorManagement::ErrorType ConfigurationDatabaseConnection::UpdateParameters() {
                     (currentNodePath.BufferReference())[dashIdx] = '.';
                 }
 
-                AnyType* anyTypeParam = new AnyType(parametersCdb.GetType(parametersCdb.GetChildName(elemIdx))); //lint !e429 Justification: memory associated to anyTypeParam is freed in the destructor
-                Add(anyTypeParam);
-                paramNames.Add(new StreamString(currentNodePath));
+                AnyType* anyTypeParam = new AnyType(parametersCdb.GetType(parametersCdb.GetChildName(elemIdx)));
+                ret.exception = !Add(anyTypeParam);
+                if (ret.ErrorsCleared()) {
+                    ret.exception = !paramNames.Add(new StreamString(currentNodePath));
+                }
             }
         }
 
-        if ( ret.ErrorsCleared() && (stackNodePath.Size() > 0u)) { // not on the root node
+        noErrors = ret.ErrorsCleared();
+        if ( (stackNodePath.Size() > 0u) && noErrors) { // not on the root node
             ret.illegalOperation = !parametersCdb.MoveToAncestor(1u);
         }
     }
