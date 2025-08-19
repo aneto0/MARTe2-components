@@ -87,13 +87,13 @@ bool MDSObjectConnection::Initialise(StructuredDataI & data) {
 
     if (status.ErrorsCleared()) {
         status.parametersError = !data.Read("Tree", treeName);
-        if (status.parametersError) {
+        if (bool(status.parametersError)) {
             REPORT_ERROR(status, "[%s] - 'Tree' parameter not found", GetName());
         }
     }
     if (status.ErrorsCleared()) {
         status.parametersError = !data.Read("Shot", shotNumber);
-        if (status.parametersError) {
+        if (bool(status.parametersError)) {
             REPORT_ERROR(status, "[%s] - 'Shot' parameter not found", GetName());
         }
     }
@@ -103,7 +103,7 @@ bool MDSObjectConnection::Initialise(StructuredDataI & data) {
             if (clientTypeName == "Thin") {
                 clientType = ThinClient;
                 status.internalSetupError = !data.Read("Server", serverName);
-                if (status.internalSetupError) {
+                if (bool(status.internalSetupError)) {
                     REPORT_ERROR(status, "[%s] - 'Server' parameter not found. 'Server' parameter is required if 'ClientType = Thin'.", GetName());
                 }
             }
@@ -142,7 +142,7 @@ bool MDSObjectConnection::Initialise(StructuredDataI & data) {
                 REPORT_ERROR(status, "[%s] - Invalid client type.", GetName());
             }
         }
-        catch (MDSplus::MdsException &ex) {
+        catch (const MDSplus::MdsException &ex) {
             status.exception = true;
             REPORT_ERROR(status, "[%s] - MDSplus error opening tree %s. MDSplus error: \n%s", GetName(), treeName.Buffer(), ex.what());
         }
@@ -151,7 +151,7 @@ bool MDSObjectConnection::Initialise(StructuredDataI & data) {
     if (status.ErrorsCleared()) {
 
         status.parametersError = !data.MoveRelative("Parameters");
-        if (status.parametersError) {
+        if (bool(status.parametersError)) {
             REPORT_ERROR(status, "[%s] - 'Parameters' node not found", GetName());
         }
 
@@ -172,6 +172,7 @@ bool MDSObjectConnection::Initialise(StructuredDataI & data) {
     return status.ErrorsCleared();
 }
 
+/*lint -e{423, 429} Justification: the while loop condition ensures that all the allocated objects are freed */
 ErrorManagement::ErrorType MDSObjectConnection::UpdateParameters() {
 
     ErrorManagement::ErrorType ret = CleanUp();
@@ -268,7 +269,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
     StreamString orientation = "";
     bool unlinked = false;
 
-    if (ret) {
+    if (ret.ErrorsCleared()) {
         ret.parametersError = !nodeParams.Read("Path", MDSPath);
         if (bool(ret.parametersError)) {
             REPORT_ERROR(ret, "[%s] - Parameter %s: no 'Path' defined.", GetName(), nodeName.Buffer());
@@ -276,14 +277,16 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
     }
 
     // skip parameter if Path is empty
-    if (ret) {
+    if (ret.ErrorsCleared()) {
         unlinked = (MDSPath.Size() == 0u);
         if (unlinked) {
             REPORT_ERROR(ErrorManagement::Warning, "[%s] - Parameter %s: unlinked, no value stored.", GetName(), nodeName.Buffer());
             AnyType* anyTypeParam = new AnyType(0u);
             anyTypeParam->SetStaticDeclared(false);   // unlinked
-            Add(anyTypeParam);
-            paramNames.Add(new StreamString(nodeName));
+            ret.exception = Add(anyTypeParam);
+            if (ret.ErrorsCleared()) {
+                ret.exception = paramNames.Add(new StreamString(nodeName));
+            }
         }
     }
 
@@ -646,6 +649,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
         if (MDSDataType == DTYPE_DICTIONARY) { //lint !e970 Justification: native MDSplus type and cannot be changed
 
             MDSplus::Apd* apdData = dynamic_cast<MDSplus::Apd*>(nodeData);
+            ret.exception = (apdData == NULL);
 
             bool noErrors = ret.ErrorsCleared();
             for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx = itemIdx + 2u) {
@@ -674,9 +678,10 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
         else if (MDSDataType == DTYPE_LIST) { //lint !e970 Justification: native MDSplus type and cannot be changed
 
             MDSplus::Apd* apdData = dynamic_cast<MDSplus::Apd*>(nodeData);
+            ret.exception = (apdData == NULL);
 
             bool noErrors = ret.ErrorsCleared();
-            for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx++) {
+            for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx++) { //lint --e{850} Justification: itemIdx is not modified within the loop
                 MDSplus::Data* itemData;
                 StreamString itemName = "";
 
@@ -699,7 +704,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
                 }
 
                 if (ret.ErrorsCleared()) {
-                    ret.unsupportedFeature = (static_cast<int8>(itemDataType) != DTYPE_DICTIONARY) && (static_cast<int8>(itemDataType) != DTYPE_LIST);
+                    ret.unsupportedFeature = (static_cast<int16>(itemDataType) != DTYPE_DICTIONARY) && (static_cast<int16>(itemDataType) != DTYPE_LIST);
                     if (bool(ret.unsupportedFeature)) {
                         REPORT_ERROR(ret, "[%s] - Parameter %s: not a Dictionary or List. List elements shall be all MDSplus::Dictionary or all MDSplus::List", GetName(), itemName.Buffer(), itemIdx);
                     }
@@ -746,7 +751,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
     }
 
     if (!ret) {
-        delete anyTypeParam;
+        delete anyTypeParam; //lint !e970 Justification: all parameters are freed in the destructor
     }
 
     return ret;
