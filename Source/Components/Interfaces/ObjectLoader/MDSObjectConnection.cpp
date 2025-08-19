@@ -662,7 +662,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
 
                 try {
                     itemNameField = apdData->getDescAt(itemIdx);
-                    itemDataField = apdData->getDescAt(static_cast<uint64>(itemIdx + 1u));
+                    itemDataField = apdData->getDescAt(itemIdx + 1llu);
                     itemName = nodeName;
                     itemName += ".";
                     itemName += itemNameField->getString();
