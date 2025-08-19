@@ -126,7 +126,7 @@ public:
     /**
      * @brief Remove all parameters, deallocate memory.
      */
-    virtual ErrorManagement::ErrorType CleanUp();
+    ErrorManagement::ErrorType CleanUp();
 
 private:
 

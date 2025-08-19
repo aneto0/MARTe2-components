@@ -58,7 +58,7 @@ MDSObjectConnection::~MDSObjectConnection() {
         delete mdsConnection;
     }
 
-    ErrorManagement::ErrorType ret = CleanUp();
+    ErrorManagement::ErrorType ret = MDSObjectConnection::CleanUp();
     if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());
     }

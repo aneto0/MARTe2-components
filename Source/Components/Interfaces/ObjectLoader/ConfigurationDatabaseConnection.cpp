@@ -45,7 +45,7 @@ ConfigurationDatabaseConnection::ConfigurationDatabaseConnection() :
 }
 
 ConfigurationDatabaseConnection::~ConfigurationDatabaseConnection() {
-    ErrorManagement::ErrorType ret = CleanUp();
+    ErrorManagement::ErrorType ret = ConfigurationDatabaseConnection::CleanUp();
     if (!ret) {
         REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());
     }
