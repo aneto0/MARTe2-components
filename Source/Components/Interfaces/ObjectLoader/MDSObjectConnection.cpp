@@ -655,14 +655,14 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
         if ( (MDSDataType == DTYPE_DICTIONARY) && (apdData != NULL) ) { //lint !e970 Justification: native MDSplus type, cannot be changed
 
             bool noErrors = ret.ErrorsCleared();
-            for (uint64 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx = itemIdx + 2u) {
+            for (uint32 itemIdx = 0u; (itemIdx < apdData->getDimension()) && noErrors; itemIdx = itemIdx + 2u) {
                 MDSplus::Data* itemNameField;
                 MDSplus::Data* itemDataField;
                 StreamString itemName = "";
 
                 try {
                     itemNameField = apdData->getDescAt(itemIdx);
-                    itemDataField = apdData->getDescAt(itemIdx + 1LLU);
+                    itemDataField = apdData->getDescAt(itemIdx + static_cast<uint32>(1u));
                     itemName = nodeName;
                     itemName += ".";
                     itemName += itemNameField->getString();
