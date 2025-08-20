@@ -87,7 +87,6 @@ bool SimulinkInterface::Actualise(const AnyType& sourceParameter) {
     TypeDescriptor extType = sourceParameter.GetTypeDescriptor();
 
     ok = (extType == slkType);
-
     if (!ok) {
         REPORT_ERROR_STATIC(ErrorManagement::ParametersError,
             "Parameter %s data type not matching (parameter source: %s, model: %s)",

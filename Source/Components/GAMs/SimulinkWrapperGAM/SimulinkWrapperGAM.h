@@ -1249,7 +1249,7 @@ private:
      * @param[in]  numOfInterfaces  number of root interfaces to be retrieved
      * @param[in]  mode             interface type (InputPort, OutputPort, Parameter, Signal, Element)
      */
-    ErrorManagement::ErrorType ScanInterfaces(SimulinkRootInterface* interfaceArray, const void* const interfaceStruct, const uint32 numOfInterfaces, const InterfaceType mode);
+    ErrorManagement::ErrorType ScanInterfaces(SimulinkRootInterface* const interfaceArray, const void* const interfaceStruct, const uint32 numOfInterfaces, const InterfaceType mode);
 
     /**
      * @brief Scan the single interfaces of a certain type

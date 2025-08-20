@@ -117,7 +117,7 @@ public:
     void* dataAddr;                      //!< pointer to the starting address of the memory allocated by the model to hold this interface
     void* MARTeAddress;                  //!< pointer to the corresponding MARTe memory
     uint32 byteSize;                     //!< Size in bytes required to hold this data.
-    uint16 dataTypeSize;                 //!< Size of the type of this data.
+    uint32 dataTypeSize;                 //!< Size of the type of this data.
     //@}
 
     void* destPtr;                       //<! Pointer to where the buffer of this interface should be copied to

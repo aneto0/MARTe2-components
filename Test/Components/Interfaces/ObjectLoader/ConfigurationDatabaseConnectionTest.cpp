@@ -35,38 +35,6 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
-// class TestObjectConnection : public MARTe::ObjectConnectionI {
-// public:
-//     CLASS_REGISTER_DECLARATION()
-//
-//     TestObjectConnection() : MARTe::ObjectConnectionI() {
-//
-//     }
-//
-//     ~TestObjectConnection() {
-//         while (GetSize() > 0u) {
-//             AnyType* toDelete;
-//             if(Extract(0U, toDelete)) {
-//                 delete toDelete;
-//             }
-//         }
-//
-//         while (paramNames.GetSize() > 0u) {
-//             StreamString* toDelete;
-//             if(paramNames.Extract(0U, toDelete)) {
-//                 delete toDelete;
-//             }
-//         }
-//     }
-//
-//     MARTe::StaticList<StreamString*>* GetParameterList() {
-//         return &paramNames;
-//     }
-//
-// };
-//
-// CLASS_REGISTER(TestObjectConnection, "1.0");
-
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

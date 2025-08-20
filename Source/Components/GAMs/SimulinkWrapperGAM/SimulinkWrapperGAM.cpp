@@ -1374,7 +1374,7 @@ bool SimulinkWrapperGAM::Execute() {
 }
 
 
-
+/*lint -e(429, MARTe::currentInterface) Justification: currentInterface is freed in the destructor */
 ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterface& interfaceArray, const void* const interfaceStruct, const uint32 sigIdx, const InterfaceType mode, void* const parentAddr /* = NULL*/, const StreamString parentName /* = "" */) {
 
     ErrorManagement::ErrorType ret;
@@ -1391,7 +1391,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
     const char8* className = NULL_PTR(char8*);
     StreamString MARTeTypeName = "";
     uint8 SLIdType = 0u;
-    uint8 enumSLId = 0u;
+    uint8 enumSLId = 127u; // Invalid datatype
     uint8 dimNum = 0u;
     uint32 dataTypeSize = 0u;
     uint32 byteSize = 0u;
@@ -1460,8 +1460,6 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
         orientation  = rtwCAPI_GetOrientation   (dimMap, dimIdx);
 #ifdef ENUM_FEATURE
         enumSLId     = rtwCAPI_GetDataEnumStorageType(dataTypeMap, typeIdx); // Add enum support only if available (from version 2019a onwards)
-#else
-        enumSLId    = 127u; // Invalid datatype
 #endif
 
 
@@ -1560,8 +1558,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
             }
 
             // struct info are written in the associated ConfigurationDatabase
-            (interfaceArray.rootStructure).Write("__Dimensions__", dimensions);
-            (interfaceArray.rootStructure).MoveToAncestor(1u);
+            if ( (interfaceArray.rootStructure).Write("__Dimensions__", dimensions) ) {}
+            if ( (interfaceArray.rootStructure).MoveToAncestor(1u) ) {}
         }
         else {
             // numeric: add interface to the list
@@ -1584,22 +1582,23 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
             currentInterface->byteSize      = byteSize;
             currentInterface->dataAddr      = dataAddr;
 
-            interfaceArray.Add(currentInterface);
+            ret.exception = !(interfaceArray.Add(currentInterface));
 
             interfaceArray.transpose = (transpose || interfaceArray.transpose);
 
-            (interfaceArray.rootStructure).Write(interfaceName.Buffer(), interfaceArray.GetSize() - 1u); // store the index of the signal in the associated list
+            if ( (interfaceArray.rootStructure).Write(interfaceName.Buffer(), interfaceArray.GetSize() - 1u) ) {} // store the index of the signal in the associated list
         }
     }
 
     return ret;
 }
 
-ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterfaces(SimulinkRootInterface* interfaceArray, const void* const interfaceStruct, const uint32 numOfInterfaces, const InterfaceType mode) {
+/*lint -esym(429,MARTe::interfaceArray) Justification: interfaceArray is freed in the destructor */
+ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterfaces(SimulinkRootInterface* const interfaceArray, const void* const interfaceStruct, const uint32 numOfInterfaces, const InterfaceType mode) {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
 
-    for (uint32 portIdx = 0u; (portIdx < numOfInterfaces) && ret; portIdx++) {
+    for (uint32 portIdx = 0u; ret.ErrorsCleared() && (portIdx < numOfInterfaces); portIdx++) {
         ret = ScanInterface(interfaceArray[portIdx], interfaceStruct, portIdx, mode);
     }
 
@@ -1624,8 +1623,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
     uint32          GAMNumberOfElements   = 0u;
     uint32          GAMNumberOfDimensions = 0u;
     TypeDescriptor  GAMSignalType;
-    SignalDirection direction;
-    Vector<bool>*   isMapped = NULL_PTR(Vector<bool>*);
+    SignalDirection direction = None;
+    Vector<bool>*   isMapped = NULL;
 
     SimulinkRootInterface* signalList = NULL_PTR(SimulinkRootInterface*);
 
@@ -1696,7 +1695,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
                 }
             }
 
-            if (found) {
+            if (found && (isMapped != NULL)) {
                 (*isMapped)[signalIdx] = true;
             }
         }
@@ -1707,7 +1706,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
             if( (!signalList[portIdx].isStructured) || (nonVirtualBusMode == StructuredBusMode) ) {
 
                 ret.exception = !GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
-                if ( ret.ErrorsCleared() && (GAMNumberOfDimensions != (signalList[portIdx][signalInPortIdx]->numDimensions)) ) {
+                bool noErrors = ret.ErrorsCleared();
+                if ( (GAMNumberOfDimensions != (signalList[portIdx][signalInPortIdx]->numDimensions)) && noErrors ) {
                     ret.internalSetupError = true;
                     REPORT_ERROR(ret, "[%s] - %s signal `%s`: number of dimensions mismatch (GAM: %d, model: %u)",
                         GetName(), directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfDimensions, signalList[portIdx][signalInPortIdx]->numDimensions);
@@ -1715,7 +1715,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
 
                 if (ret.ErrorsCleared()) {
                     ret.exception = !GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
-                    if ( ret.ErrorsCleared() && (GAMNumberOfElements != (signalList[portIdx][signalInPortIdx]->numElements)) )
+                    noErrors = ret.ErrorsCleared();
+                    if ( (GAMNumberOfElements != (signalList[portIdx][signalInPortIdx]->numElements)) && noErrors )
                     {
                         ret.internalSetupError = true;
                         REPORT_ERROR(ret, "[%s] - %s signal `%s`: number of elements mismatch (GAM: %d, model: %u)",
@@ -1793,7 +1794,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
         }
 
         // Ok, here we can map memory inputs
-        if (ret && found) {
+        if ( ret.ErrorsCleared() && found && (signalList != NULL) ) {
 
             if((signalList[portIdx].isStructured) && (nonVirtualBusMode == StructuredBusMode)) {
 
