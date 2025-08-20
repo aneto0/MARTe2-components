@@ -48,17 +48,21 @@ MDSObjectConnection::MDSObjectConnection() :
     clientType = InvalidClient;
 }
 
+/*lint -e{1551} Justification: no exceptions thrown */
 MDSObjectConnection::~MDSObjectConnection() {
 
     if (mdsTree != NULL_PTR(MDSplus::Tree*)) {
         delete mdsTree;
     }
     if (mdsConnection != NULL_PTR(MDSplus::Connection*)) {
-        mdsConnection->closeAllTrees();
+        try {
+            mdsConnection->closeAllTrees();
+        } catch (const MDSplus::MdsException &ex) {
+            REPORT_ERROR(ErrorManagement::Exception, "[%s] - MDSplus error closing tree %s. MDSplus error: \n%s", GetName(), treeName.Buffer(), ex.what());
+        }
         delete mdsConnection;
     }
 
-    /*lint -e{1551} Justification: CleanUp() does not throw exceptions */
     ErrorManagement::ErrorType ret = MDSObjectConnection::CleanUp();
     if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());

@@ -65,6 +65,7 @@ ErrorManagement::ErrorType ObjectConnectionI::UpdateParameters() {
     return status;
 }
 
+/*lint -e{1551} Justification: no exceptions thrown */
 ErrorManagement::ErrorType ObjectConnectionI::CleanUp() {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
