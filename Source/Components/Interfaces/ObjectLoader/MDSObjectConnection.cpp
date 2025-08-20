@@ -48,7 +48,7 @@ MDSObjectConnection::MDSObjectConnection() :
     clientType = InvalidClient;
 }
 
-/*lint -e{1551} Justification: no exceptions thrown */
+/*lint -e{1551, 1559} Justification: no exceptions thrown */
 MDSObjectConnection::~MDSObjectConnection() {
 
     if (mdsTree != NULL_PTR(MDSplus::Tree*)) {
