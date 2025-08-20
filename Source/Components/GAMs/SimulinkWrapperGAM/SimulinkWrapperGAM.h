@@ -1282,7 +1282,7 @@ private:
      * @param[in] checkSize the size in bytes
      * @returns   `true` if a C type has the same size of checkSize.
      */
-    bool CheckrtwCAPITypeAgainstSize(StreamString cTypeName, const uint16 checkSize) const;
+    bool CheckrtwCAPITypeAgainstSize(StreamString cTypeName, const uint32 checkSize) const;
 
     /**
      * @brief Set to `true` if one of the parameters is an array of structures (currently unsupported).

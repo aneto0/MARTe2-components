@@ -1374,7 +1374,7 @@ bool SimulinkWrapperGAM::Execute() {
 }
 
 
-/*lint -e(429, MARTe::currentInterface) Justification: currentInterface is freed in the destructor */
+/*lint -e{429} Justification: currentInterface is freed in the destructor */
 ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterface& interfaceArray, const void* const interfaceStruct, const uint32 sigIdx, const InterfaceType mode, void* const parentAddr /* = NULL*/, const StreamString parentName /* = "" */) {
 
     ErrorManagement::ErrorType ret;
@@ -1383,7 +1383,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
     StreamString fullPath   = "";
 
     uint16       typeIdx = 0u;
-    uint16       dimIdx  = 0u;
+    uint16  dimensionIdx = 0u;
     uint32       addrIdx = 0u;
     uint32   dimArrayIdx = 0u;
 
@@ -1408,7 +1408,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
 
         interfaceName = rtwCAPI_GetSignalName        (signalStruct, sigIdx);
         typeIdx       = rtwCAPI_GetSignalDataTypeIdx (signalStruct, sigIdx);
-        dimIdx        = rtwCAPI_GetSignalDimensionIdx(signalStruct, sigIdx);
+        dimensionIdx  = rtwCAPI_GetSignalDimensionIdx(signalStruct, sigIdx);
         addrIdx       = rtwCAPI_GetSignalAddrIdx     (signalStruct, sigIdx);
         dataAddr      = rtwCAPI_GetDataAddress       (dataAddrMap, addrIdx);
 
@@ -1419,7 +1419,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
 
         interfaceName = rtwCAPI_GetModelParameterName        (paramStruct, sigIdx);
         typeIdx       = rtwCAPI_GetModelParameterDataTypeIdx (paramStruct, sigIdx);
-        dimIdx        = rtwCAPI_GetModelParameterDimensionIdx(paramStruct, sigIdx);
+        dimensionIdx  = rtwCAPI_GetModelParameterDimensionIdx(paramStruct, sigIdx);
         addrIdx       = rtwCAPI_GetModelParameterAddrIdx     (paramStruct, sigIdx);
         dataAddr      = rtwCAPI_GetDataAddress               (dataAddrMap, addrIdx);
 
@@ -1430,7 +1430,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
 
         interfaceName = rtwCAPI_GetElementName(elementStruct, sigIdx);
         typeIdx       = rtwCAPI_GetElementDataTypeIdx (elementStruct, sigIdx);
-        dimIdx        = rtwCAPI_GetElementDimensionIdx(elementStruct, sigIdx);
+        dimensionIdx  = rtwCAPI_GetElementDimensionIdx(elementStruct, sigIdx);
         dataAddr      = static_cast<uint8*>(parentAddr) + rtwCAPI_GetElementOffset(elementStruct, sigIdx);
 
         fullPath += parentName;
@@ -1455,9 +1455,9 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
         className    = rtwCAPI_GetDataTypeMWName(dataTypeMap, typeIdx);
         SLIdType     = rtwCAPI_GetDataTypeSLId  (dataTypeMap, typeIdx);
         dataTypeSize = rtwCAPI_GetDataTypeSize  (dataTypeMap, typeIdx);
-        dimNum       = rtwCAPI_GetNumDims       (dimMap, dimIdx);
-        dimArrayIdx  = rtwCAPI_GetDimArrayIndex (dimMap, dimIdx);
-        orientation  = rtwCAPI_GetOrientation   (dimMap, dimIdx);
+        dimNum       = rtwCAPI_GetNumDims       (dimMap, dimensionIdx);
+        dimArrayIdx  = rtwCAPI_GetDimArrayIndex (dimMap, dimensionIdx);
+        orientation  = rtwCAPI_GetOrientation   (dimMap, dimensionIdx);
 #ifdef ENUM_FEATURE
         enumSLId     = rtwCAPI_GetDataEnumStorageType(dataTypeMap, typeIdx); // Add enum support only if available (from version 2019a onwards)
 #endif
@@ -1528,7 +1528,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
             (interfaceArray.rootStructure).MoveRelative(interfaceName.Buffer());
 
             // cycle over the array of structure (if numElements > 1)
-            for (uint32 elemIdx = 0u; (elemIdx < numElements) && ret; elemIdx++) {
+            for (uint32 elemIdx = 0u; (elemIdx < numElements) && ret; elemIdx++) { //lint --e{850} Justification: elemIdx is not modified within this loop
 
                 // append struct array indices to the name (MARTe2 flattened signal syntax)
                 StreamString parentStructName = fullPath;
@@ -1544,17 +1544,19 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
                     // generic n-D
                     Vector<uint32> subscripts = LinearIndexToSubscripts(elemIdx, dimensions);
                     for (uint32 dimIdx = 0u; dimIdx < numDimensions; dimIdx++) {
-                        parentStructName.Printf("[%d]", subscripts[dimIdx]);
+                        if ( parentStructName.Printf("[%d]", subscripts[dimIdx]) ) {}
                     }
                 }
 
                 // recursively add struct fields
-                for (uint32 fieldIdx = 0u; (fieldIdx < dataTypeNumElements) && ret; fieldIdx++) {
+                for (uint32 fieldIdx = 0u; ret.ErrorsCleared() && (fieldIdx < dataTypeNumElements); fieldIdx++) {
                     ret = ScanInterface(interfaceArray, interfaceStruct, elemOffsetIdx + fieldIdx, Element, dataAddr, parentStructName);
                 }
 
                 // pointer to the next element of the struct array
-                dataAddr = static_cast<uint8*>(dataAddr) + dataTypeSize;
+                if (dataAddr != NULL) {
+                    dataAddr = static_cast<uint8*>(dataAddr) + dataTypeSize; //lint !e9016 Justification: pointer arithmetic is required by the Simulink C-APIs
+                }
             }
 
             // struct info are written in the associated ConfigurationDatabase
@@ -1593,7 +1595,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
     return ret;
 }
 
-/*lint -esym(429,MARTe::interfaceArray) Justification: interfaceArray is freed in the destructor */
+/*lint -e{429} Justification: interfaceArray is freed in the destructor */
 ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterfaces(SimulinkRootInterface* const interfaceArray, const void* const interfaceStruct, const uint32 numOfInterfaces, const InterfaceType mode) {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
@@ -1624,7 +1626,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
     uint32          GAMNumberOfDimensions = 0u;
     TypeDescriptor  GAMSignalType;
     SignalDirection direction = None;
-    Vector<bool>*   isMapped = NULL;
+    Vector<bool>*   isMapped = static_cast< Vector<bool>* >(0);
 
     SimulinkRootInterface* signalList = NULL_PTR(SimulinkRootInterface*);
 
@@ -1851,7 +1853,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
     return ret;
 }
 
-bool SimulinkWrapperGAM::CheckrtwCAPITypeAgainstSize(StreamString cTypeName, const uint16 checkSize) const
+bool SimulinkWrapperGAM::CheckrtwCAPITypeAgainstSize(StreamString cTypeName, const uint32 checkSize) const
 {
     return ( GetTypeSizeFromCTypeName(cTypeName.Buffer()) == checkSize );
 }

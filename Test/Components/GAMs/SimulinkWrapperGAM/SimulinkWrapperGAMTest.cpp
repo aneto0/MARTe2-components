@@ -259,9 +259,9 @@ public:
         SetupTestEnvironment(matlabPtr);
     }
 
+
     ~SimulinkGAMGTestEnvironment() {
-//         TODO debug: uncomment this line
-//         DeleteTestModel();
+        DeleteTestModel();
     }
     
     /**
@@ -386,7 +386,7 @@ void SimulinkGAMGTestEnvironment::DeleteTestModel() {
         if (toDelete.Exists()) {
 
             //Comment to avoid recompilation
-            ok = toDelete.Delete();
+            // ok = toDelete.Delete(); TODO debug, uncomment
         }
         
         if (!ok) {
