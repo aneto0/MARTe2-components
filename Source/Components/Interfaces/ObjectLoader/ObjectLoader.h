@@ -177,7 +177,7 @@ public:
     /**
      * @brief Return the ErrorType status of this interface.
      */
-    ErrorManagement::ErrorType GetStatus();
+    ErrorManagement::ErrorType GetStatus() const;
 
     /**
      * @brief Update the parameter values.
@@ -201,7 +201,7 @@ public:
     /**
      * @brief Serialise into `AnyObject`s all the `AnyTypes` in the contained connections.
      */
-    ErrorManagement::ErrorType SerialiseObjects(bool overwriteParams = true);
+    ErrorManagement::ErrorType SerialiseObjects(const bool overwriteParams = true);
 
 protected:
 

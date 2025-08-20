@@ -55,7 +55,7 @@ ObjectLoader::ObjectLoader() :
 ObjectLoader::~ObjectLoader() {
 }
 
-ErrorManagement::ErrorType ObjectLoader::GetStatus() {
+ErrorManagement::ErrorType ObjectLoader::GetStatus() const {
     return status;
 }
 
@@ -65,8 +65,8 @@ bool ObjectLoader::Initialise(StructuredDataI & data) {
     ConfigurationDatabase additionalNodes;
     for (uint32 nodeIdx = 0u; nodeIdx < data.GetNumberOfChildren(); nodeIdx++) {
         StreamString nodeName = data.GetChildName(nodeIdx);
-        if (nodeName[0u] != '+' && nodeName != "Class") {
-            additionalNodes.Write(nodeName.Buffer(), data.GetType(nodeName.Buffer()));
+        if ( (nodeName[0u] != '+') && (nodeName != "Class") ) {
+            if (additionalNodes.Write(nodeName.Buffer(), data.GetType(nodeName.Buffer()))) {}
         }
     }
     // paste additional parameters to subnodes
@@ -78,16 +78,16 @@ bool ObjectLoader::Initialise(StructuredDataI & data) {
                 StreamString temp;
                 // copy parameter only if it`s not already there
                 if (!data.Read(currentParam.Buffer(), temp)) {
-                    data.Write(currentParam.Buffer(), additionalNodes.GetType(currentParam.Buffer()));
+                    if (data.Write(currentParam.Buffer(), additionalNodes.GetType(currentParam.Buffer()))) {}
                 }
             }
 
-            data.MoveToAncestor(1u);
+            if (data.MoveToAncestor(1u)) {}
         }
     }
 
     status.initialisationError = !ReferenceContainer::Initialise(data);
-    if (status.initialisationError) {
+    if (bool(status.initialisationError)) {
         REPORT_ERROR(status, "[%s] - Failed Initialise().", GetName());
     }
 
@@ -102,20 +102,21 @@ bool ObjectLoader::Initialise(StructuredDataI & data) {
 }
 
 
-ErrorManagement::ErrorType ObjectLoader::SerialiseObjects(bool overwriteParams /* = true */) {
+ErrorManagement::ErrorType ObjectLoader::SerialiseObjects(const bool overwriteParams /* = true */) {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
-    for (uint32 connectionIdx = 0u; (connectionIdx < Size()) && ret; connectionIdx++) {
+    bool noErrors = ret.ErrorsCleared();
+    for (uint32 connectionIdx = 0u; (connectionIdx < Size()) && noErrors; connectionIdx++) {
 
         ReferenceT<ObjectConnectionI> connection = Get(connectionIdx);
         if (connection.IsValid()) {
-            for (uint32 paramIdx = 0u; (paramIdx < connection->GetSize()) && ret; paramIdx++) {
+            for (uint32 paramIdx = 0u; (paramIdx < connection->GetSize()) && noErrors; paramIdx++) {
 
                 AnyType* anyTypeParam = connection->operator[](paramIdx);
-                StreamString paramName = (connection->GetParameterName(paramIdx)).Buffer();
+                StreamString paramName = (connection->GetParameterName(paramIdx));
 
                 ret.exception = (anyTypeParam->GetTypeDescriptor() == InvalidType);
-                if (ret.exception) {
+                if (bool(ret.exception)) {
                     REPORT_ERROR(ret, "[%s] - parameter %s: invalid type", GetName(), paramName.Buffer());
                 }
 
@@ -125,7 +126,7 @@ ErrorManagement::ErrorType ObjectLoader::SerialiseObjects(bool overwriteParams /
                     if ( (paramObject.IsValid()) && overwriteParams ) {
                         // parameter is already there, cleanup for updating
                         paramObject->CleanUp();
-                        Delete(paramObject);
+                        ret.exception = !Delete(paramObject);
                     } else {
                         // create new parameter
                         paramObject = ReferenceT<AnyObject>("AnyObject", GlobalObjectsDatabase::Instance()->GetStandardHeap());
@@ -133,19 +134,21 @@ ErrorManagement::ErrorType ObjectLoader::SerialiseObjects(bool overwriteParams /
 
                     if (paramObject.IsValid()) {
                         ret.internalSetupError = !(paramObject->Serialise(*anyTypeParam));
-                        if (ret.internalSetupError) {
+                        if (bool(ret.internalSetupError)) {
                             REPORT_ERROR(ret, "[%s] - parameter %s: failed Serialise()", GetName(), paramName.Buffer());
                         }
                     }
 
                     if (ret.ErrorsCleared()) {
-                        paramObject->SetName((connection->GetParameterName(paramIdx)).Buffer());
+                        StreamString tmpName = connection->GetParameterName(paramIdx);
+                        paramObject->SetName(tmpName.Buffer());
                         ret.illegalOperation = !Insert(paramName.Buffer(), paramObject);
-                        if (ret.illegalOperation) {
+                        if (bool(ret.illegalOperation)) {
                             REPORT_ERROR(ret, "[%s] - parameter %s: failed Insert()", GetName(), paramName.Buffer());
                         }
                     }
                 }
+                noErrors = ret.ErrorsCleared();
             }
         }
     }
@@ -156,25 +159,27 @@ ErrorManagement::ErrorType ObjectLoader::SerialiseObjects(bool overwriteParams /
 ErrorManagement::ErrorType ObjectLoader::UpdateParameters() {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
-    for (uint32 connectionIdx = 0u; (connectionIdx < Size()) && ret; connectionIdx++) {
+    bool noErrors = ret.ErrorsCleared();
+    for (uint32 connectionIdx = 0u; (connectionIdx < Size()) && noErrors; connectionIdx++) {
 
         ReferenceT<ObjectConnectionI> connection = Get(connectionIdx);
         if (connection.IsValid()) {
             ret = connection->UpdateParameters();
-            if (!ret) {
+            if (!ret.ErrorsCleared()) {
                 REPORT_ERROR(ret, "[%s] - Failed to UpdateParameters in connection `%s`.", GetName(), connection->GetName());
             }
         }
+        noErrors = ret.ErrorsCleared();
     }
 
-    if (ret) {
+    if (ret.ErrorsCleared()) {
         ret = SerialiseObjects(true);
-        if (!ret) {
+        if (!ret.ErrorsCleared()) {
             REPORT_ERROR(ret, "[%s] - Failed to SerialiseObjects.", GetName());
         }
     }
 
-    if (ret) {
+    if (ret.ErrorsCleared()) {
         REPORT_ERROR(ErrorManagement::Information, "[%s] - Parameters correctly updated.", GetName());
     }
 
