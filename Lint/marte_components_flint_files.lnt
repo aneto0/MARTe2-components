@@ -166,7 +166,7 @@ NI9157DeviceOperatorT.cpp
 NI9157DeviceOperatorTI.cpp
 NI9157MemoryOperationsHelper.cpp
 NI9157MxiDataSource.cpp
-ObjectConnection.cpp
+ObjectConnectionI.cpp
 ObjectLoader.cpp
 Platform.cpp
 PIDGAM.cpp

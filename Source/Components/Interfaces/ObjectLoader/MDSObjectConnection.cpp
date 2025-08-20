@@ -346,7 +346,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                     StreamString usageExpr = "";
                     ret.exception = usageExpr.Printf("GETNCI('%s', 'USAGE')", tempMDSPath.Buffer());
                     MDSplus::Data* nodeUsageData = mdsConnection->get(usageExpr.Buffer());
-                    nodeUsage = static_cast<usage_t>(nodeUsageData->getIntUnsigned());
+                    nodeUsage = static_cast<usage_t>(nodeUsageData->getByte()); //lint !e930 Justification: the enum source has the same range of the enum destination. Conversion is safe.
                 }
 
                 ret.unsupportedFeature = !((nodeUsage == TreeUSAGE_ANY) || (nodeUsage == TreeUSAGE_STRUCTURE) || (nodeUsage == TreeUSAGE_NUMERIC) || (nodeUsage == TreeUSAGE_TEXT));
@@ -563,7 +563,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
             int32* tempMDSDimArray;
             nodeData->getInfo(&tempMDSDataClass, &tempMDSDataType, &tempMDSDataByteSize, &tempMDSNumOfDims, &tempMDSDimArray, &MDSDataPtr);
 
-            MDSDataType     = static_cast<dtype_t>(tempMDSDataType);
+            MDSDataType     = static_cast<dtype_t>(tempMDSDataType); //lint !e930 Justification: the enum source has the same range of the enum destination. Conversion is safe.
             MDSNumOfDims    = static_cast<uint8>(tempMDSNumOfDims);
             MDSDimArray.SetSize(MDSNumOfDims);
             for (uint32 elemIdx = 0u; elemIdx < MDSNumOfDims; elemIdx++) {
@@ -702,7 +702,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
                     void  *tempItemDataPtr;
                     itemData = apdData->getDescAt(itemIdx);
                     itemData->getInfo(&tempItemDataClass, &tempItemDataType, &tempItemDataByteSize, &tempItemNumOfDims, &tempItemDimArray, &tempItemDataPtr);
-                    itemDataType = static_cast<dtype_t>(tempItemDataType);
+                    itemDataType = static_cast<dtype_t>(tempItemDataType);  //lint !e930 Justification: the enum source has the same range of the enum destination. Conversion is safe.
 
                     itemName = nodeName;
                     if (itemName.Printf("[%u]", itemIdx)) {}

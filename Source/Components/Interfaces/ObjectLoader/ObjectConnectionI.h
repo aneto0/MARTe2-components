@@ -98,7 +98,7 @@ namespace MARTe {
  *
  */
 
-//lint -e{1509, 1790} Justification: Cannot change the virtuality of the StaticList destructor
+//lint -e{1509,1790} Justification: Cannot change the virtuality of the StaticList destructor
 class ObjectConnectionI : public StaticList<AnyType*>, public ReferenceContainer, public MessageI {
 
 public:
