@@ -260,7 +260,8 @@ public:
     }
 
     ~SimulinkGAMGTestEnvironment() {
-        DeleteTestModel();
+//         TODO debug: uncomment this line
+//         DeleteTestModel();
     }
     
     /**

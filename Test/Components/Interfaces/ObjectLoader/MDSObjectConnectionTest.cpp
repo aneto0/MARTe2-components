@@ -43,8 +43,7 @@ public:
     }
 
     ~MDSObjectConnectionTestEnvironment() {
-        // TODO debug: uncomment this line
-        //DeleteTestEnvironment();
+        DeleteTestEnvironment();
     }
 
     void SetupTestEnvironment();
@@ -487,16 +486,9 @@ void MDSObjectConnectionTestEnvironment::SetupTestEnvironment() {
             ok = false;
         }
     }
-
-    if (ok) {
-        printf("--started test environment in %s\n", getenv(treeEnv.Buffer()));
-    } else {
-        printf("--- failed to start test environment\n");
-    }
 }
 
 void MDSObjectConnectionTestEnvironment::DeleteTestEnvironment() {
-    printf("--deleting test environment\n");
 
     bool ok = false;
 

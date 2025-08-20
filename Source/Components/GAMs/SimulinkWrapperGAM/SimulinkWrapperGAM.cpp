@@ -1608,13 +1608,13 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterfaces(SimulinkRootInterf
 
 ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType interfaceType) {
 
+
+
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
     bool found = false;
 
     uint32 portIdx  = 0u;
     uint32 signalInPortIdx = 0u;
-    uint32 startIdx = 0u;
-    uint32 endIdx   = 0u;
     uint32 GAMNumberOfSignals = 0u;
     uint32 modelNumberOfInterfaces = 0u;
 
@@ -1625,7 +1625,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
     uint32          GAMNumberOfDimensions = 0u;
     TypeDescriptor  GAMSignalType;
     SignalDirection direction;
-    Vector<bool>*   isMapped;
+    Vector<bool>*   isMapped = NULL_PTR(Vector<bool>*);
 
     SimulinkRootInterface* signalList = NULL_PTR(SimulinkRootInterface*);
 
@@ -1668,7 +1668,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
         ret.exception = !GetSignalName(direction, signalIdx, GAMSignalName);
 
         // search the GAM signal among the model ports, either 1:1 or port (byte array) based
-        if (ret) {
+        if (ret.ErrorsCleared() && (signalList != NULL)) {
             portIdx = 0u;
             while((!found) && (portIdx < modelNumberOfInterfaces)) {
 
@@ -1701,21 +1701,21 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
             }
         }
 
-        if (ret && found) {
+        if (ret && found && (signalList != NULL) ) {
 
             // Array signal or structured signal in StructuredBusMode. In this case we check datatype, number of dimensions and number of elements.
-            if(!signalList[portIdx].isStructured || (nonVirtualBusMode == StructuredBusMode)) {
+            if( (!signalList[portIdx].isStructured) || (nonVirtualBusMode == StructuredBusMode) ) {
 
                 ret.exception = !GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
-                if ( (GAMNumberOfDimensions != (signalList[portIdx][signalInPortIdx]->numDimensions)) && ret ) {
+                if ( ret.ErrorsCleared() && (GAMNumberOfDimensions != (signalList[portIdx][signalInPortIdx]->numDimensions)) ) {
                     ret.internalSetupError = true;
                     REPORT_ERROR(ret, "[%s] - %s signal `%s`: number of dimensions mismatch (GAM: %d, model: %u)",
                         GetName(), directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfDimensions, signalList[portIdx][signalInPortIdx]->numDimensions);
                 }
 
-                if (ret) {
+                if (ret.ErrorsCleared()) {
                     ret.exception = !GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
-                    if ( (GAMNumberOfElements != (signalList[portIdx][signalInPortIdx]->numElements)) && ret )
+                    if ( ret.ErrorsCleared() && (GAMNumberOfElements != (signalList[portIdx][signalInPortIdx]->numElements)) )
                     {
                         ret.internalSetupError = true;
                         REPORT_ERROR(ret, "[%s] - %s signal `%s`: number of elements mismatch (GAM: %d, model: %u)",
@@ -1723,7 +1723,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
                     }
                 }
 
-                if (ret) {
+                if (ret.ErrorsCleared()) {
                     GAMSignalType = GetSignalType(direction, signalIdx);
                     StreamString inputSignalTypeStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(GAMSignalType);
                     if ( signalList[portIdx][signalInPortIdx]->MARTeTypeName != inputSignalTypeStr )
@@ -1734,7 +1734,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
                     }
                 }
 
-                if (ret) {
+                if (ret.ErrorsCleared()) {
                     StreamString actualCTypeName = GetCTypeNameFromMARTeTypeName((signalList[portIdx][signalInPortIdx]->MARTeTypeName).Buffer());
                     if(!CheckrtwCAPITypeAgainstSize(actualCTypeName.Buffer(), signalList[portIdx][signalInPortIdx]->dataTypeSize))
                     {
@@ -1747,10 +1747,9 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
                     }
                 }
 
-                if (ret) {
+                if (ret.ErrorsCleared()) {
                     // Matrix signals in column major orientation requires additional workload.
-                    if (GAMNumberOfDimensions > 1u)
-                    {
+                    if (GAMNumberOfDimensions > 1u) {
                         if (signalList[portIdx][signalInPortIdx]->transpose) {
 
                             if (verbosityLevel > 0u) {
@@ -1765,28 +1764,25 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
             // Structured signal in byte array mode
             else {
                 ret.exception = !GetSignalNumberOfElements(direction, signalIdx, GAMNumberOfElements);
-                if ( (GAMNumberOfElements != (signalList[portIdx].byteSize)) && ret )
-                {
+                if ( ret.ErrorsCleared() && (GAMNumberOfElements != (signalList[portIdx].byteSize)) ) {
                     ret.internalSetupError = true;
                     REPORT_ERROR(ret, "[%s] - %s signal `%s`: size mismatch (GAM: %d, model %d)",
                         GetName(), directionName.Buffer(), GAMSignalName.Buffer(), GAMNumberOfElements, signalList[portIdx].byteSize);
                 }
 
-                if (ret) {
+                if (ret.ErrorsCleared()) {
                     ret.exception = !GetSignalNumberOfDimensions(direction, signalIdx, GAMNumberOfDimensions);
-                    if ( (GAMNumberOfDimensions != 1u) && ret )
-                    {
+                    if ( ret.ErrorsCleared() && (GAMNumberOfDimensions != 1u) ) {
                         ret.internalSetupError = true;
                         REPORT_ERROR(ret, "[%s] - %s signal `%s`: dimension mismatch (structured signals in byte array mode must have NumberOfDimensions = 1)",
                             GetName(), directionName.Buffer(), GAMSignalName.Buffer());
                     }
                 }
 
-                if (ret) {
+                if (ret.ErrorsCleared()) {
                     GAMSignalType = GetSignalType(direction, signalIdx);
                     StreamString inputSignalTypeStr = TypeDescriptor::GetTypeNameFromTypeDescriptor(GAMSignalType);
-                    if ( GAMSignalType != UnsignedInteger8Bit )
-                    {
+                    if ( GAMSignalType != UnsignedInteger8Bit ) {
                         ret.internalSetupError = true;
                         REPORT_ERROR(ret, "[%s] - %s signal `%s`: type mismatch (declared %s, structured signals in byte array mode must be declared as uint8)",
                             GetName(), directionName.Buffer(), GAMSignalName.Buffer(), inputSignalTypeStr.Buffer());
@@ -1801,7 +1797,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
 
             if((signalList[portIdx].isStructured) && (nonVirtualBusMode == StructuredBusMode)) {
 
-                if (interfaceType == InputPort || interfaceType == Parameter) {
+                if ( (interfaceType == InputPort) || (interfaceType == Parameter) ) {
 
                     signalList[portIdx][signalInPortIdx]->MARTeAddress = GetInputSignalMemory(signalIdx);
                     signalList[portIdx][signalInPortIdx]->sourcePtr    = signalList[portIdx][signalInPortIdx]->MARTeAddress;
@@ -1813,7 +1809,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
                         signalList[portIdx].destPtr      = signalList[portIdx].dataAddr;
                     }
                 }
-                else if (interfaceType == OutputPort || interfaceType == Signal) {
+                else if ( (interfaceType == OutputPort) || (interfaceType == Signal) ) {
 
                     signalList[portIdx][signalInPortIdx]->MARTeAddress = GetOutputSignalMemory(signalIdx);
                     signalList[portIdx][signalInPortIdx]->sourcePtr    = signalList[portIdx][signalInPortIdx]->dataAddr;
@@ -1830,14 +1826,14 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::MapPorts(const InterfaceType inte
                 }
             }
             else {
-                if (interfaceType == InputPort || interfaceType == Parameter) {
+                if ( (interfaceType == InputPort) || (interfaceType == Parameter) ) {
 
                     signalList[portIdx].MARTeAddress = GetInputSignalMemory(signalIdx);
 
                     signalList[portIdx].sourcePtr = signalList[portIdx].MARTeAddress;
                     signalList[portIdx].destPtr   = signalList[portIdx].dataAddr;
                 }
-                else if (interfaceType == OutputPort || interfaceType == Signal) {
+                else if ( (interfaceType == OutputPort) || (interfaceType == Signal) ) {
 
                     signalList[portIdx].MARTeAddress = GetOutputSignalMemory(signalIdx);
 
