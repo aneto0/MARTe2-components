@@ -41,18 +41,18 @@
 namespace MARTe {
 
 ObjectConnectionI::ObjectConnectionI() :
-        ReferenceContainer(), MessageI() {
+        StaticList<AnyType*>(), ReferenceContainer(), MessageI() {
 }
 
+/*lint -e{1551} Justification: no exceptions thrown */
 ObjectConnectionI::~ObjectConnectionI() {
-    /*lint -e{1551} Justification: CleanUp() does not throw exceptions */
     ErrorManagement::ErrorType ret = ObjectConnectionI::CleanUp();
     if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());
     }
 }
 
-ErrorManagement::ErrorType ObjectConnectionI::GetStatus() {
+ErrorManagement::ErrorType ObjectConnectionI::GetStatus() const {
     return status;
 }
 
@@ -65,33 +65,35 @@ ErrorManagement::ErrorType ObjectConnectionI::UpdateParameters() {
     return status;
 }
 
-/*lint -e{1551} Justification: no exceptions thrown */
 ErrorManagement::ErrorType ObjectConnectionI::CleanUp() {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
+    bool noErrors = ret.ErrorsCleared();
 
-    while ( (GetSize() > 0u) && ret) {
+    while ( (GetSize() > 0u) && noErrors) {
         AnyType* toDelete;
         if(Extract(0U, toDelete)) {
             delete toDelete;
         } else {
             ret.notCompleted = true;
         }
+        noErrors = ret.ErrorsCleared();
     }
 
-    while ( (paramNames.GetSize() > 0u) && ret) {
+    while ( (paramNames.GetSize() > 0u) && noErrors) {
         StreamString* toDelete;
         if(paramNames.Extract(0U, toDelete)) {
             delete toDelete;
         } else {
             ret.notCompleted = true;
         }
+        noErrors = ret.ErrorsCleared();
     }
 
     return ret;
 }
 
-StreamString ObjectConnectionI::GetParameterName(uint32 parameterIndex) {
+StreamString ObjectConnectionI::GetParameterName(const uint32 parameterIndex) {
 
     StreamString paramOut = "";
 
@@ -102,7 +104,7 @@ StreamString ObjectConnectionI::GetParameterName(uint32 parameterIndex) {
     return paramOut;
 }
 
-ErrorManagement::ErrorType ObjectConnectionI::TransposeAndCopy(void *const destination, const void *const source, const TypeDescriptor typeDesc,
+ErrorManagement::ErrorType ObjectConnectionI::TransposeAndCopy(void *const destination, const void *const source, const TypeDescriptor& typeDesc,
                                                                const uint32 numberOfRows, const uint32 numberOfColumns, const uint32 numberOfPages) {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;

@@ -65,7 +65,7 @@ bool ObjectLoader::Initialise(StructuredDataI & data) {
     ConfigurationDatabase additionalNodes;
     for (uint32 nodeIdx = 0u; nodeIdx < data.GetNumberOfChildren(); nodeIdx++) {
         StreamString nodeName = data.GetChildName(nodeIdx);
-        if ( (nodeName[0u] != '+') && (nodeName != "Class") ) {
+        if ( (nodeName != "Class") && (nodeName[0u] != '+') ) {
             if (additionalNodes.Write(nodeName.Buffer(), data.GetType(nodeName.Buffer()))) {}
         }
     }

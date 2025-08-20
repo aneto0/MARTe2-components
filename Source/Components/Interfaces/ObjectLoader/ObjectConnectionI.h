@@ -98,7 +98,7 @@ namespace MARTe {
  *
  */
 
-//lint -e{1509,1790} Justification: Cannot change the virtuality of the StaticList destructor
+//lint -e{1790} Justification: Cannot change the virtuality of the StaticList destructor
 class ObjectConnectionI : public StaticList<AnyType*>, public ReferenceContainer, public MessageI {
 
 public:
@@ -112,7 +112,7 @@ public:
     /**
      * @brief Destructor.
      */
-    virtual ~ObjectConnectionI();
+    virtual ~ObjectConnectionI(); //lint !e1509 Justification: Cannot change the virtuality of the StaticList destructor
 
     /**
      * @brief Initialise method.
@@ -137,12 +137,12 @@ public:
      * @param[in] parameterIndex the index of the parameter whose name has to be returned
      * @returns the n-th parameter name
      */
-    StreamString GetParameterName(uint32 parameterIndex);
+    StreamString GetParameterName(const uint32 parameterIndex);
 
     /**
      * @brief Return the ErrorType status of this interface.
      */
-    ErrorManagement::ErrorType GetStatus();
+    ErrorManagement::ErrorType GetStatus() const;
 
 protected:
 
@@ -158,7 +158,7 @@ protected:
      * @param[in] numberOfColumns the number of columns of the source data
      * @param[in] numberOfPages   the number of pages of the source data
      */
-    ErrorManagement::ErrorType TransposeAndCopy(void *const destination, const void *const source, const TypeDescriptor typeDesc,
+    ErrorManagement::ErrorType TransposeAndCopy(void *const destination, const void *const source, const TypeDescriptor& typeDesc,
                                                 const uint32 numberOfRows, const uint32 numberOfColumns, const uint32 numberOfPages);
 
     /**
