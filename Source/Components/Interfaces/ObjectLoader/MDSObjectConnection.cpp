@@ -58,6 +58,7 @@ MDSObjectConnection::~MDSObjectConnection() {
         delete mdsConnection;
     }
 
+    /*lint -e{1551} Justification: CleanUp() does not throw exceptions */
     ErrorManagement::ErrorType ret = MDSObjectConnection::CleanUp();
     if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());

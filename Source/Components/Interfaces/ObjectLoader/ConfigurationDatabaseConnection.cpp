@@ -45,8 +45,9 @@ ConfigurationDatabaseConnection::ConfigurationDatabaseConnection() :
 }
 
 ConfigurationDatabaseConnection::~ConfigurationDatabaseConnection() {
+    /*lint -e{1551} Justification: CleanUp() does not throw exceptions */
     ErrorManagement::ErrorType ret = ConfigurationDatabaseConnection::CleanUp();
-    if (!ret) {
+    if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());
     }
 }

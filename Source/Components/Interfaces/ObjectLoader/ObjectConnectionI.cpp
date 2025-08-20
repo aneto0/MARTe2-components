@@ -45,8 +45,9 @@ ObjectConnectionI::ObjectConnectionI() :
 }
 
 ObjectConnectionI::~ObjectConnectionI() {
-    ErrorManagement::ErrorType ret = CleanUp();
-    if (!ret) {
+    /*lint -e{1551} Justification: CleanUp() does not throw exceptions */
+    ErrorManagement::ErrorType ret = ObjectConnectionI::CleanUp();
+    if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ret, "[%s] - Failed freeing memory in destructor.", GetName());
     }
 }
