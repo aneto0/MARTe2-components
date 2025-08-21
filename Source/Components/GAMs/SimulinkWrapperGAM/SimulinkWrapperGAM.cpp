@@ -1142,7 +1142,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
 
         StreamString disconnectedSignalName = "";
 
-        for(uint32 portIdx = 0u; (portIdx < modelNumOfInputs) && ret; portIdx++) {
+        for(uint32 portIdx = 0u; ret.ErrorsCleared() && (inputs != NULL) && (portIdx < modelNumOfInputs); portIdx++) {
             if (inputs[portIdx].isStructured) {
                 for(uint32 elemIdx = 0u; (elemIdx < inputs[portIdx].GetSize()) && ret; elemIdx++) {
                     if(inputs[portIdx][elemIdx]->destPtr == NULL) {
@@ -1159,7 +1159,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
             }
         }
 
-        for(uint32 portIdx = 0u; (portIdx < modelNumOfOutputs) && ret; portIdx++) {
+        for(uint32 portIdx = 0u; ret.ErrorsCleared() && (outputs != NULL) && (portIdx < modelNumOfOutputs); portIdx++) {
             if (outputs[portIdx].isStructured) {
                 for(uint32 elemIdx = 0u; (elemIdx < outputs[portIdx].GetSize()) && ret; elemIdx++) {
                     if(outputs[portIdx][elemIdx]->destPtr == NULL) {
@@ -1191,7 +1191,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
     // The external parameter source must be a ReferenceContainer
     // populated by references to AnyObject.
 
-    if (ret) {
+    if (ret.ErrorsCleared()) {
         if (tunableParamExternalSource.Size() > 0u) {
             Reference mdsPar = ObjectRegistryDatabase::Instance()->Find(tunableParamExternalSource.Buffer());
             if (!mdsPar.IsValid()) {
@@ -1217,9 +1217,9 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
     
     StreamString parameterSourceName;
 
-    for(uint32 paramIdx = 0u; (paramIdx < modelNumOfParameters) && ret; paramIdx++) {
+    for(uint32 paramIdx = 0u; ret.ErrorsCleared() && (paramIdx < modelNumOfParameters) && (params != NULL); paramIdx++) {
 
-        for (uint32 subParamIdx = 0u; (subParamIdx < params[paramIdx].GetSize()) && ret; subParamIdx++) {
+        for (uint32 subParamIdx = 0u; ret.ErrorsCleared() && (subParamIdx < params[paramIdx].GetSize()); subParamIdx++) {
         
             isLoaded     = false;
             isActualised = false;
@@ -1354,7 +1354,7 @@ bool SimulinkWrapperGAM::Execute() {
     bool ok = (states != NULL) && (inputs != NULL) && (outputs != NULL) && (signals != NULL);
 
     // Inputs update
-    for (portIdx = 0u; (portIdx < modelNumOfInputs) && ok; portIdx++) {
+    for (portIdx = 0u; (portIdx < modelNumOfInputs) && (inputs != NULL) && ok; portIdx++) {
         ok = inputs[portIdx].CopyData(nonVirtualBusMode);
     }
 
@@ -1364,11 +1364,11 @@ bool SimulinkWrapperGAM::Execute() {
     }
 
     // Outputs update
-    for (portIdx = 0u; (portIdx < modelNumOfOutputs) && ok; portIdx++) {
+    for (portIdx = 0u; (portIdx < modelNumOfOutputs) && (outputs != NULL) && ok; portIdx++) {
         ok = outputs[portIdx].CopyData(nonVirtualBusMode);
     }
     
-    for (portIdx = 0u; (portIdx < modelNumOfSignals) && ok; portIdx++) {
+    for (portIdx = 0u; (portIdx < modelNumOfSignals) && (signals != NULL) && ok; portIdx++) {
         ok = signals[portIdx].CopyData(nonVirtualBusMode);
     }
 
@@ -1406,7 +1406,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
     bool isStructured = false;
     void* dataAddr = NULL_PTR(void*);
 
-    if (ret.ErrorsCleared()) {
+    if (ret.ErrorsCleared() && (dataAddrMap != NULL)) {
         if ( (mode == InputPort) || (mode == OutputPort) || (mode == Signal) ) {
             const rtwCAPI_Signals* signalStruct = static_cast<const rtwCAPI_Signals*>(interfaceStruct);
 
