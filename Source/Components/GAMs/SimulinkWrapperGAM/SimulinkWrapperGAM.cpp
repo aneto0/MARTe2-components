@@ -824,6 +824,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
                 REPORT_ERROR(ret, "[%s] - Failed ScanInterfaces for logging signals", GetName());
             }
         }
+
+        ret.exception = (inputs == NULL) || (outputs == NULL) || (signals == NULL) || (params == NULL);
     }
 
 
@@ -1349,7 +1351,7 @@ bool SimulinkWrapperGAM::Execute() {
 
     uint32 portIdx;
 
-    bool ok = (states != NULL);
+    bool ok = (states != NULL) && (inputs != NULL) && (outputs != NULL) && (signals != NULL);
 
     // Inputs update
     for (portIdx = 0u; (portIdx < modelNumOfInputs) && ok; portIdx++) {
@@ -1378,7 +1380,7 @@ bool SimulinkWrapperGAM::Execute() {
 ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterface& interfaceArray, const void* const interfaceStruct, const uint32 sigIdx, const InterfaceType mode, void* const parentAddr /* = NULL*/, const StreamString parentName /* = "" */) {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
-    ret.exception = (dataTypeMap == NULL) || (dimArray == NULL) || (dimMap == NULL);
+    ret.exception = (dataTypeMap == NULL) || (dimArray == NULL) || (dimMap == NULL) || (dataAddrMap == NULL);
 
     StreamString interfaceName = "";
     StreamString fullPath   = "";
@@ -1405,7 +1407,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
     void* dataAddr = NULL_PTR(void*);
 
     if (ret.ErrorsCleared()) {
-        if (mode == InputPort || mode == OutputPort || mode == Signal ) {
+        if ( (mode == InputPort) || (mode == OutputPort) || (mode == Signal) ) {
             const rtwCAPI_Signals* signalStruct = static_cast<const rtwCAPI_Signals*>(interfaceStruct);
 
             interfaceName = rtwCAPI_GetSignalName        (signalStruct, sigIdx);
