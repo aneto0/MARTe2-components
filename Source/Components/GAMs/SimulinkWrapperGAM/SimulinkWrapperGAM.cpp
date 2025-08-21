@@ -1377,7 +1377,8 @@ bool SimulinkWrapperGAM::Execute() {
 /*lint -e{429} Justification: currentInterface is freed in the destructor */
 ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterface& interfaceArray, const void* const interfaceStruct, const uint32 sigIdx, const InterfaceType mode, void* const parentAddr /* = NULL*/, const StreamString parentName /* = "" */) {
 
-    ErrorManagement::ErrorType ret;
+    ErrorManagement::ErrorType ret = ErrorManagement::NoError;
+    ret.exception = (dataTypeMap == NULL) || (dimArray == NULL) || (dimMap == NULL);
 
     StreamString interfaceName = "";
     StreamString fullPath   = "";
@@ -1403,54 +1404,59 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
     bool isStructured = false;
     void* dataAddr = NULL_PTR(void*);
 
-    if (mode == InputPort || mode == OutputPort || mode == Signal ) {
-        const rtwCAPI_Signals* signalStruct = static_cast<const rtwCAPI_Signals*>(interfaceStruct);
+    if (ret.ErrorsCleared()) {
+        if (mode == InputPort || mode == OutputPort || mode == Signal ) {
+            const rtwCAPI_Signals* signalStruct = static_cast<const rtwCAPI_Signals*>(interfaceStruct);
 
-        interfaceName = rtwCAPI_GetSignalName        (signalStruct, sigIdx);
-        typeIdx       = rtwCAPI_GetSignalDataTypeIdx (signalStruct, sigIdx);
-        dimensionIdx  = rtwCAPI_GetSignalDimensionIdx(signalStruct, sigIdx);
-        addrIdx       = rtwCAPI_GetSignalAddrIdx     (signalStruct, sigIdx);
-        dataAddr      = rtwCAPI_GetDataAddress       (dataAddrMap, addrIdx);
+            interfaceName = rtwCAPI_GetSignalName        (signalStruct, sigIdx);
+            typeIdx       = rtwCAPI_GetSignalDataTypeIdx (signalStruct, sigIdx);
+            dimensionIdx  = rtwCAPI_GetSignalDimensionIdx(signalStruct, sigIdx);
+            addrIdx       = rtwCAPI_GetSignalAddrIdx     (signalStruct, sigIdx);
+            dataAddr      = rtwCAPI_GetDataAddress       (dataAddrMap, addrIdx);
 
-        fullPath = interfaceName;
-    }
-    else if (mode == Parameter) {
-        const rtwCAPI_ModelParameters* paramStruct = static_cast<const rtwCAPI_ModelParameters*>(interfaceStruct);
+            fullPath = interfaceName;
+        }
+        else if (mode == Parameter) {
+            const rtwCAPI_ModelParameters* paramStruct = static_cast<const rtwCAPI_ModelParameters*>(interfaceStruct);
 
-        interfaceName = rtwCAPI_GetModelParameterName        (paramStruct, sigIdx);
-        typeIdx       = rtwCAPI_GetModelParameterDataTypeIdx (paramStruct, sigIdx);
-        dimensionIdx  = rtwCAPI_GetModelParameterDimensionIdx(paramStruct, sigIdx);
-        addrIdx       = rtwCAPI_GetModelParameterAddrIdx     (paramStruct, sigIdx);
-        dataAddr      = rtwCAPI_GetDataAddress               (dataAddrMap, addrIdx);
+            interfaceName = rtwCAPI_GetModelParameterName        (paramStruct, sigIdx);
+            typeIdx       = rtwCAPI_GetModelParameterDataTypeIdx (paramStruct, sigIdx);
+            dimensionIdx  = rtwCAPI_GetModelParameterDimensionIdx(paramStruct, sigIdx);
+            addrIdx       = rtwCAPI_GetModelParameterAddrIdx     (paramStruct, sigIdx);
+            dataAddr      = rtwCAPI_GetDataAddress               (dataAddrMap, addrIdx);
 
-        fullPath = interfaceName;
-    }
-    else if ( mode == Element ) {
-        const rtwCAPI_ElementMap* elementStruct = elementMap;
+            fullPath = interfaceName;
+        }
+        else if (mode == Element) {
+            const rtwCAPI_ElementMap* elementStruct = elementMap;
+            ret.exception = (elementStruct == NULL) || (parentAddr == NULL);
 
-        interfaceName = rtwCAPI_GetElementName(elementStruct, sigIdx);
-        typeIdx       = rtwCAPI_GetElementDataTypeIdx (elementStruct, sigIdx);
-        dimensionIdx  = rtwCAPI_GetElementDimensionIdx(elementStruct, sigIdx);
-        dataAddr      = static_cast<uint8*>(parentAddr) + rtwCAPI_GetElementOffset(elementStruct, sigIdx);
+            if (!ret.exception) {
+                interfaceName = rtwCAPI_GetElementName(elementStruct, sigIdx);
+                typeIdx       = rtwCAPI_GetElementDataTypeIdx (elementStruct, sigIdx);
+                dimensionIdx  = rtwCAPI_GetElementDimensionIdx(elementStruct, sigIdx);
+                dataAddr      = static_cast<uint8*>(parentAddr) + rtwCAPI_GetElementOffset(elementStruct, sigIdx); //lint !e9016 Justification: pointer arithmetic is required by the Simulink C-APIs
 
-        fullPath += parentName;
-        fullPath += ".";
-        fullPath += interfaceName;
-    }
-    else {
-        ret.unsupportedFeature = true;
-        REPORT_ERROR(ret, "[%s] - Invalid mode", GetName());
-    }
-
-    if (ret) {
-        ret.illegalOperation = (interfaceName == "");
-        if (!ret) {
-            REPORT_ERROR(ret, "[%s] - In %s: Interface name is an empty string. Not allowed since interface mapping is name-based.",
-                         GetName(), fullPath.Size() == 0u ? "root" : fullPath.Buffer());
+                fullPath += parentName;
+                fullPath += ".";
+                fullPath += interfaceName;
+            }
+        }
+        else {
+            ret.unsupportedFeature = true;
+            REPORT_ERROR(ret, "[%s] - Invalid mode", GetName());
         }
     }
 
-    if (ret) {
+    if (ret.ErrorsCleared()) {
+        ret.illegalOperation = (interfaceName == "");
+        if (!ret) {
+            REPORT_ERROR(ret, "[%s] - In %s: Interface name is an empty string. Not allowed since interface mapping is name-based.",
+                         GetName(), (fullPath.Size() == 0u) ? "root" : fullPath.Buffer());
+        }
+    }
+
+    if (ret.ErrorsCleared()) {
         CTypeName    = rtwCAPI_GetDataTypeCName (dataTypeMap, typeIdx);
         className    = rtwCAPI_GetDataTypeMWName(dataTypeMap, typeIdx);
         SLIdType     = rtwCAPI_GetDataTypeSLId  (dataTypeMap, typeIdx);
@@ -1494,7 +1500,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
             }
         }
 
-        transpose = (orientation == rtwCAPI_MATRIX_COL_MAJOR || orientation == rtwCAPI_MATRIX_COL_MAJOR_ND);
+        transpose = (orientation == rtwCAPI_MATRIX_COL_MAJOR) || (orientation == rtwCAPI_MATRIX_COL_MAJOR_ND);
 
         byteSize = dataTypeSize*numElements;
 
@@ -1524,18 +1530,18 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
             uint16 dataTypeNumElements   = rtwCAPI_GetDataTypeNumElements (dataTypeMap, typeIdx);
             uint16 elemOffsetIdx = rtwCAPI_GetDataTypeElemMapIndex(dataTypeMap, typeIdx);
 
-            (interfaceArray.rootStructure).CreateRelative(interfaceName.Buffer());
-            (interfaceArray.rootStructure).MoveRelative(interfaceName.Buffer());
+            ret.exception = !( (interfaceArray.rootStructure).CreateRelative(interfaceName.Buffer()) );
 
             // cycle over the array of structure (if numElements > 1)
-            for (uint32 elemIdx = 0u; (elemIdx < numElements) && ret; elemIdx++) { //lint --e{850} Justification: elemIdx is not modified within this loop
+            //lint -e{850} Justification: elemIdx is not modified within this loop
+            for (uint32 elemIdx = 0u; ret.ErrorsCleared() && (elemIdx < numElements); elemIdx++) {
 
                 // append struct array indices to the name (MARTe2 flattened signal syntax)
                 StreamString parentStructName = fullPath;
                 if (numDimensions == 0u) {
                     // not a struct array, name is ok as it is
                 }
-                if ( numDimensions == 1u || (numDimensions != 0u && mode != Element && mode != Parameter) ) {
+                if ( (numDimensions == 1u) || ((numDimensions != 0u) && (mode != Element) && (mode != Parameter)) ) {
                     // struct vector OR generic root-level struct array signal
                     // (the latter must be treated as vector since GAM signal shapes cannot be specified)
                     parentStructName.Printf("[%d]", elemIdx);
@@ -1560,8 +1566,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
             }
 
             // struct info are written in the associated ConfigurationDatabase
-            if ( (interfaceArray.rootStructure).Write("__Dimensions__", dimensions) ) {}
-            if ( (interfaceArray.rootStructure).MoveToAncestor(1u) ) {}
+            ret.exception = !( (interfaceArray.rootStructure).Write("__Dimensions__", dimensions) ) || ret.exception;
+            ret.exception = !( (interfaceArray.rootStructure).MoveToAncestor(1u)                  ) || ret.exception;
         }
         else {
             // numeric: add interface to the list
