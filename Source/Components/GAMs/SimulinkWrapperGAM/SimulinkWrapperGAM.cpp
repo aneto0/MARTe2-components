@@ -888,7 +888,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
     }
 
 
-    if (ret.ErrorsCleared() && (verbosityLevel > 0u)) {
+    if (ret.ErrorsCleared() && (verbosityLevel > 0u) && (inputs != NULL) && (outputs != NULL) && (signals != NULL) && (params != NULL)) {
 
         StreamString fillerWhiteSpaces    = "";
         StreamString fillerEqualSign      = "";
@@ -908,15 +908,15 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
         StreamString horizontalLine = "";
         StreamString sectionTitle = "";
 
-        header.Printf( "%s| type    | dims | elems | shape               | model address      | bytesize", fillerWhiteSpaces.Buffer());
+        ret.exception = !header.Printf( "%s| type    | dims | elems | shape               | model address      | bytesize", fillerWhiteSpaces.Buffer());
         horizontalLine = "+---------+------+-------+---------------------+--------------------+------------------";
 
         REPORT_ERROR(ErrorManagement::Information, "========================================= [%s] - MODEL INTERFACES =========================%s", GetName(), fillerEqualSign.Buffer());
         REPORT_ERROR(ErrorManagement::Information, "%s", header.Buffer());
 
         // print root inputs
-        if (modelNumOfInputs > 0u) {
-            sectionTitle.Printf("--- ROOT INPUTS (%d) ----", modelNumOfInputs);
+        if (ret.ErrorsCleared() && (modelNumOfInputs > 0u)) {
+            ret.exception = !sectionTitle.Printf("--- ROOT INPUTS (%d) ----", modelNumOfInputs);
             while (sectionTitle.Size() < maxNameLength) {
                 sectionTitle += "-";
             }
@@ -928,8 +928,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
         }
 
         // print root outputs
-        if (modelNumOfOutputs > 0u) {
-            sectionTitle.Printf("--- ROOT OUTPUTS (%d) ---", modelNumOfOutputs);
+        if (ret.ErrorsCleared() && (modelNumOfOutputs > 0u)) {
+            ret.exception = !sectionTitle.Printf("--- ROOT OUTPUTS (%d) ---", modelNumOfOutputs);
             while (sectionTitle.Size() < maxNameLength) {
                 sectionTitle += "-";
             }
@@ -941,8 +941,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
         }
 
         // print logging signals
-        if (modelNumOfSignals > 0u) {
-            sectionTitle.Printf("--- LOGGING SIGNALS (%d) ", modelNumOfSignals);
+        if (ret.ErrorsCleared() && (modelNumOfSignals > 0u)) {
+            ret.exception = !sectionTitle.Printf("--- LOGGING SIGNALS (%d) ", modelNumOfSignals);
             while (sectionTitle.Size() < maxNameLength) {
                 sectionTitle += "-";
             }
@@ -954,8 +954,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
         }
 
         // print parameters
-        if (modelNumOfParameters > 0u) {
-            sectionTitle.Printf("--- ROOT PARAMETERS (%d) ", modelNumOfParameters);
+        if (ret.ErrorsCleared() && (modelNumOfParameters > 0u)) {
+            ret.exception = !sectionTitle.Printf("--- ROOT PARAMETERS (%d) ", modelNumOfParameters);
             while (sectionTitle.Size() < maxNameLength) {
                 sectionTitle += "-";
             }
@@ -975,8 +975,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
             REPORT_ERROR(ErrorManagement::Information, "==================================== [%s] - FLATTENED MODEL INTERFACES ====================%s", GetName(), fillerEqualSign.Buffer());
 
             // printf flattened inputs
-            if (modelNumOfInputs > 0u) {
-                sectionTitle.Printf("--- FLATTENED INPUTS (%d) ----", numOfFlattenedInputs);
+            if (ret.ErrorsCleared() && (modelNumOfInputs > 0u)) {
+                ret.exception = !sectionTitle.Printf("--- FLATTENED INPUTS (%d) ----", numOfFlattenedInputs);
                 while (sectionTitle.Size() < (87u + fillerEqualSign.Size() + fillerEqualSignSmall.Size())) {
                     sectionTitle += "-";
                 }
@@ -995,8 +995,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
             }
 
             // print flattened outputs
-            if (modelNumOfOutputs > 0u) {
-                sectionTitle.Printf("--- FLATTENED OUTPUTS (%d) ---", numOfFlattenedOutputs);
+            if (ret.ErrorsCleared() && (modelNumOfOutputs > 0u)) {
+                ret.exception = !sectionTitle.Printf("--- FLATTENED OUTPUTS (%d) ---", numOfFlattenedOutputs);
                 while (sectionTitle.Size() < (87u + fillerEqualSign.Size() + fillerEqualSignSmall.Size())) {
                     sectionTitle += "-";
                 }
@@ -1015,8 +1015,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
             }
 
             // print flattened logging signals
-            if (modelNumOfSignals > 0u) {
-                sectionTitle.Printf("--- FLATTENED SIGNALS (%d) ---", numOfFlattenedSignals);
+            if (ret.ErrorsCleared() && (modelNumOfSignals > 0u)) {
+                ret.exception = !sectionTitle.Printf("--- FLATTENED SIGNALS (%d) ---", numOfFlattenedSignals);
                 while (sectionTitle.Size() < (87u + fillerEqualSign.Size() + fillerEqualSignSmall.Size())) {
                     sectionTitle += "-";
                 }
@@ -1035,8 +1035,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
             }
 
             // print flattened parameters
-            if (modelNumOfParameters > 0u) {
-                sectionTitle.Printf("--- FLATTENED PARAMETERS (%d) ", numOfFlattenedParams);
+            if (ret.ErrorsCleared() && (modelNumOfParameters > 0u)) {
+                ret.exception = !sectionTitle.Printf("--- FLATTENED PARAMETERS (%d) ", numOfFlattenedParams);
                 while (sectionTitle.Size() < (87u + fillerEqualSign.Size() + fillerEqualSignSmall.Size())) {
                     sectionTitle += "-";
                 }
