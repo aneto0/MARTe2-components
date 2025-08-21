@@ -1431,7 +1431,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
             const rtwCAPI_ElementMap* elementStruct = elementMap;
             ret.exception = (elementStruct == NULL) || (parentAddr == NULL);
 
-            if (!ret.exception) {
+            if ( (!ret.exception) && (elementStruct != NULL) && (parentAddr != NULL) ) {
                 interfaceName = rtwCAPI_GetElementName(elementStruct, sigIdx);
                 typeIdx       = rtwCAPI_GetElementDataTypeIdx (elementStruct, sigIdx);
                 dimensionIdx  = rtwCAPI_GetElementDimensionIdx(elementStruct, sigIdx);
@@ -1456,7 +1456,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
         }
     }
 
-    if (ret.ErrorsCleared()) {
+    if ( ret.ErrorsCleared() && (dataTypeMap != NULL) && (dimMap != NULL) ) {
         CTypeName    = rtwCAPI_GetDataTypeCName (dataTypeMap, typeIdx);
         className    = rtwCAPI_GetDataTypeMWName(dataTypeMap, typeIdx);
         SLIdType     = rtwCAPI_GetDataTypeSLId  (dataTypeMap, typeIdx);
@@ -1487,7 +1487,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
         // Calculate dimensions
         dimensions.SetSize(dimNum);
 
-        for (uint32 dimIdx = 0u; dimIdx < dimNum; dimIdx++) {
+        for (uint32 dimIdx = 0u; (dimIdx < dimNum) && (dimArray != NULL); dimIdx++) {
             /*lint -e{679} uint32 used as index of uint32[] is ok */
             dimensions[dimIdx] = dimArray[dimArrayIdx + dimIdx];
             numElements *= dimensions[dimIdx];
@@ -1544,7 +1544,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
                 if ( (numDimensions == 1u) || ((numDimensions != 0u) && (mode != Element) && (mode != Parameter)) ) {
                     // struct vector OR generic root-level struct array signal
                     // (the latter must be treated as vector since GAM signal shapes cannot be specified)
-                    parentStructName.Printf("[%d]", elemIdx);
+                    ret.exception = !parentStructName.Printf("[%d]", elemIdx);
                 }
                 else {
                     // generic n-D
@@ -1566,8 +1566,12 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
             }
 
             // struct info are written in the associated ConfigurationDatabase
-            ret.exception = !( (interfaceArray.rootStructure).Write("__Dimensions__", dimensions) ) || ret.exception;
-            ret.exception = !( (interfaceArray.rootStructure).MoveToAncestor(1u)                  ) || ret.exception;
+            if (ret.ErrorsCleared()) {
+                ret.exception = !( (interfaceArray.rootStructure).Write("__Dimensions__", dimensions) );
+                if (!ret.exception) {
+                    ret.exception = !( (interfaceArray.rootStructure).MoveToAncestor(1u) );
+                }
+            }
         }
         else {
             // numeric: add interface to the list
