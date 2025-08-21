@@ -760,7 +760,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
         }
     }
     
-    if (ret.ErrorsCleared()) {
+    if (ret.ErrorsCleared() && (mmi != NULL)) {
 
         modelNumOfInputs     = rtwCAPI_GetNumRootInputs(mmi);
         modelNumOfOutputs    = rtwCAPI_GetNumRootOutputs(mmi);
@@ -779,18 +779,18 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
 
     // Populating C API data structure pointers of the class from mmi
     if (ret.ErrorsCleared()) {
-        rootInputs  = rtwCAPI_GetRootInputs(mmi);       ret.exception = ( (rootInputs  == NULL) && ret.exception );
-        rootOutputs = rtwCAPI_GetRootOutputs(mmi);      ret.exception = ( (rootOutputs == NULL) && ret.exception );
-        modelParams = rtwCAPI_GetModelParameters(mmi);  ret.exception = ( (modelParams == NULL) && ret.exception );
-        logSignals  = rtwCAPI_GetSignals(mmi);          ret.exception = ( (logSignals  == NULL) && ret.exception );
+        rootInputs  = rtwCAPI_GetRootInputs(mmi);       ret.exception = ( ret.exception && (rootInputs  == NULL) );
+        rootOutputs = rtwCAPI_GetRootOutputs(mmi);      ret.exception = ( ret.exception && (rootOutputs == NULL) );
+        modelParams = rtwCAPI_GetModelParameters(mmi);  ret.exception = ( ret.exception && (modelParams == NULL) );
+        logSignals  = rtwCAPI_GetSignals(mmi);          ret.exception = ( ret.exception && (logSignals  == NULL) );
 
-        dataTypeMap = rtwCAPI_GetDataTypeMap(mmi);      ret.exception = ( (dataTypeMap == NULL) && ret.exception );
-        elementMap  = rtwCAPI_GetElementMap(mmi);       ret.exception = ( (elementMap  == NULL) && ret.exception );
-        dimMap      = rtwCAPI_GetDimensionMap(mmi);     ret.exception = ( (dimMap      == NULL) && ret.exception );
-        dimArray    = rtwCAPI_GetDimensionArray(mmi);   ret.exception = ( (dimArray    == NULL) && ret.exception );
-        dataAddrMap = rtwCAPI_GetDataAddressMap(mmi);   ret.exception = ( (dataAddrMap == NULL) && ret.exception );
+        dataTypeMap = rtwCAPI_GetDataTypeMap(mmi);      ret.exception = ( ret.exception && (dataTypeMap == NULL) );
+        elementMap  = rtwCAPI_GetElementMap(mmi);       ret.exception = ( ret.exception && (elementMap  == NULL) );
+        dimMap      = rtwCAPI_GetDimensionMap(mmi);     ret.exception = ( ret.exception && (dimMap      == NULL) );
+        dimArray    = rtwCAPI_GetDimensionArray(mmi);   ret.exception = ( ret.exception && (dimArray    == NULL) );
+        dataAddrMap = rtwCAPI_GetDataAddressMap(mmi);   ret.exception = ( ret.exception && (dataAddrMap == NULL) );
 
-        if (ret.exception) {
+        if (bool(ret.exception)) {
             REPORT_ERROR(ret, "[%s] - Pointer to one of the model maps is NULL.", GetName());
         }
     }
@@ -806,19 +806,19 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
         if (!ret) {
             REPORT_ERROR(ret, "[%s] - Failed ScanInterfaces for input signals", GetName());
         }
-        if (ret) {
+        if (ret.ErrorsCleared()) {
             ret = ScanInterfaces(outputs, rootOutputs, modelNumOfOutputs,    OutputPort);
             if (!ret) {
                 REPORT_ERROR(ret, "[%s] - Failed ScanInterfaces for output signals", GetName());
             }
         }
-        if (ret) {
+        if (ret.ErrorsCleared()) {
             ret = ScanInterfaces(params,  modelParams, modelNumOfParameters, Parameter);
             if (!ret) {
                 REPORT_ERROR(ret, "[%s] - Failed ScanInterfaces for parameters", GetName());
             }
         }
-        if (ret) {
+        if (ret.ErrorsCleared()) {
             ret = ScanInterfaces(signals,  logSignals, modelNumOfSignals, Signal);
             if (!ret) {
                 REPORT_ERROR(ret, "[%s] - Failed ScanInterfaces for logging signals", GetName());
@@ -843,7 +843,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
     uint32 numOfFlattenedParams  = 0u;
     uint32 numOfFlattenedSignals = 0u;
 
-    if (ret) {
+    if (ret.ErrorsCleared() && (inputs != NULL) && (outputs != NULL) && (signals != NULL) && (params != NULL) ) {
         for(uint32 paramIdx = 0u; paramIdx < modelNumOfParameters; paramIdx++) {
             for (uint32 elemIdx = 0u; elemIdx < params[paramIdx].GetSize(); elemIdx++) {
                 currentName     = params[paramIdx][elemIdx]->fullPath;
@@ -899,7 +899,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
             fillerWhiteSpaces += " ";
             fillerEqualSign   += "=";
         }
-        while (fillerEqualSignSmall.Size() < StreamString(GetName()).Size()) {
+        uint32 nameSize = StreamString(GetName()).Size();
+        while (fillerEqualSignSmall.Size() < nameSize) {
             fillerEqualSignSmall += "=";
             fillerMinusSignSmall += "-";
         }
