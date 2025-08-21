@@ -146,7 +146,6 @@ static const SizeMap sizeLookUpTable[] = {
     
 };
 
-
 static inline const char8* GetMARTeTypeNameFromCTypeName(const char8* const cTypeNameIn) {
 
     uint32 lookupIdx = 0u;
@@ -165,67 +164,36 @@ static inline const char8* GetMARTeTypeNameFromCTypeName(const char8* const cTyp
 
 
 static inline const char8* GetCTypeNameFromMARTeTypeName(const char8* const MARTeTypeNameIn) {
-    
+
     uint32 lookupIdx = 0u;
-    
+
     while (typeLookUpTable[lookupIdx].MARTeTypeName != NULL) {
         if ( StringHelper::Compare(typeLookUpTable[lookupIdx].MARTeTypeName, MARTeTypeNameIn) == 0 ) {
             break;
         }
         lookupIdx++;
     }
-    
+
     const char8* CTypeNameOut = typeLookUpTable[lookupIdx].cTypeName;
-    
+
     return CTypeNameOut;
 }
 
 
 static inline uint16 GetTypeSizeFromCTypeName(const char8* const cTypeNameIn) {
-    
+
     uint32 lookupIdx   = 0u;
-    
+
     while (sizeLookUpTable[lookupIdx].cTypeName != NULL) {
         if ( StringHelper::Compare(sizeLookUpTable[lookupIdx].cTypeName, cTypeNameIn) == 0 ) {
             break;
         }
         lookupIdx++;
     }
-    
+
     uint16 typeSizeOut = sizeLookUpTable[lookupIdx].size;
-    
+
     return typeSizeOut;
-}
-
-static inline Vector<uint32> LinearIndexToSubscripts(const uint32 linearIdxIn, const Vector<uint32> shapeIn) {
-
-    uint32 linearIdx = linearIdxIn;
-    Vector<uint32> shape = shapeIn;
-
-    uint32 numOfDims = shape.GetNumberOfElements();
-    Vector<uint32> subscripts(numOfDims);
-
-//     if (orientation == rtwCAPI_MATRIX_ROW_MAJOR || orientation == rtwCAPI_MATRIX_ROW_MAJOR_ND) {
-
-        // struct arrays seem to be always in row-major orientation
-        for (uint32 idx = numOfDims - 1u; idx < numOfDims; --idx) {
-            uint32 iSub = linearIdx % shape[idx];
-            linearIdx -= iSub;
-            linearIdx /= shape[idx];
-            subscripts[idx] = iSub;
-        }
-
-//     }
-//     else {
-//         for (uint32 idx = 0u; idx < numOfDims; idx++) {
-//             uint32 iSub = linearIdx % shape[idx];
-//             linearIdx -= iSub;
-//             linearIdx /= shape[idx];
-//             subscripts[idx] = iSub;
-//         }
-//     }
-
-    return subscripts;
 }
 
 /*lint -e{40} -e{9129} -e{30} -e{142} lint is confused with the enum types*/
@@ -300,6 +268,7 @@ SimulinkWrapperGAM::SimulinkWrapperGAM()
     verbosityLevel       = 0u;
     modelNumOfInputs     = 0u;
     modelNumOfOutputs    = 0u;
+    modelNumOfSignals    = 0u;
     modelNumOfParameters = 0u;
 
     skipInvalidTunableParams = true;
@@ -318,6 +287,7 @@ SimulinkWrapperGAM::SimulinkWrapperGAM()
     status = ErrorManagement::NoError;
 }
 
+/*lint -e{1551, 1559} Justification: no exceptions thrown */
 SimulinkWrapperGAM::~SimulinkWrapperGAM() {
 
     if (libraryHandle != NULL) {
@@ -610,16 +580,17 @@ bool SimulinkWrapperGAM::Initialise(StructuredDataI &data) {
         bool hasParametersNode = data.MoveRelative("Parameters");
 
         // traverse the `Parameters` node iteratively to avoid recursion
+        /*lint -e{423, 429} Justification: the while loop condition ensures that all the allocated objects are freed */
         if (hasParametersNode && ok) {
 
             ConfigurationDatabase parametersCdb;
-            ok = data.Copy(parametersCdb);
+            if (data.Copy(parametersCdb)) {}
 
             StaticList<StreamString*> nodeStack;
 
             // add root node to the stack
             StreamString* currentNodePtr = new StreamString("");
-            ok &= nodeStack.Add(currentNodePtr);
+            if (nodeStack.Add(currentNodePtr)) {}
 
             while ((nodeStack.GetSize() > 0u) && ok) {
 
@@ -742,7 +713,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
     }
     
     ret.exception = (states == NULL);
-    if (ret.exception) {
+    if (bool(ret.exception)) {
         REPORT_ERROR(ret, "[%s] - Simulink model allocation function returned a NULL data pointer", GetName());
     }
 
@@ -755,7 +726,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
         }
 
         ret.exception = (mmi == NULL);
-        if (ret.exception) {
+        if (bool(ret.exception)) {
             REPORT_ERROR(ret, "[%s] - GetMmiPtr function returned a NULL data pointer", GetName());
         }
     }
@@ -778,7 +749,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
     ///-------------------------------------------------------------------------
 
     // Populating C API data structure pointers of the class from mmi
-    if (ret.ErrorsCleared()) {
+    if (ret.ErrorsCleared() && (mmi != NULL)) {
         rootInputs  = rtwCAPI_GetRootInputs(mmi);       ret.exception = ( ret.exception && (rootInputs  == NULL) );
         rootOutputs = rtwCAPI_GetRootOutputs(mmi);      ret.exception = ( ret.exception && (rootOutputs == NULL) );
         modelParams = rtwCAPI_GetModelParameters(mmi);  ret.exception = ( ret.exception && (modelParams == NULL) );
@@ -796,6 +767,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
     }
 
     // populate inputs/outputs/params lists
+    /*lint -e{613} Justification: no null pointers here*/
     if (ret.ErrorsCleared()) {
         inputs  = new SimulinkRootInterface[modelNumOfInputs];
         outputs = new SimulinkRootInterface[modelNumOfOutputs];
@@ -899,8 +871,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
             fillerWhiteSpaces += " ";
             fillerEqualSign   += "=";
         }
-        uint32 nameSize = StreamString(GetName()).Size();
-        while (fillerEqualSignSmall.Size() < nameSize) {
+        StreamString currentName = GetName();
+        while (fillerEqualSignSmall.Size() < currentName.Size()) {
             fillerEqualSignSmall += "=";
             fillerMinusSignSmall += "-";
         }

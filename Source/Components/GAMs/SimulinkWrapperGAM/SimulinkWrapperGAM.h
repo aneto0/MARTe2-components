@@ -1312,12 +1312,41 @@ private:
 
 };
 
-
-
-} /* namespace MARTe */
-
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
+
+static inline Vector<uint32> LinearIndexToSubscripts(const uint32 linearIdxIn, const Vector<uint32> shapeIn) {
+
+    uint32 linearIdx = linearIdxIn;
+    Vector<uint32> shape = shapeIn;
+
+    uint32 numOfDims = shape.GetNumberOfElements();
+    Vector<uint32> subscripts(numOfDims);
+
+// commented since this function is used with struct arrays only and
+// struct arrays seem to be always in row-major orientation
+
+//     if (orientation == rtwCAPI_MATRIX_ROW_MAJOR || orientation == rtwCAPI_MATRIX_ROW_MAJOR_ND) {
+    for (uint32 idx = numOfDims - 1u; idx < numOfDims; --idx) {
+        uint32 iSub = linearIdx % shape[idx];
+        linearIdx -= iSub;
+        linearIdx /= shape[idx];
+        subscripts[idx] = iSub;
+    }
+//     }
+//     else {
+//         for (uint32 idx = 0u; idx < numOfDims; idx++) {
+//             uint32 iSub = linearIdx % shape[idx];
+//             linearIdx -= iSub;
+//             linearIdx /= shape[idx];
+//             subscripts[idx] = iSub;
+//         }
+//     }
+
+    return subscripts;
+}
+
+} /* namespace MARTe */
 
 #endif /* SIMULINKWRAPPERGAM_H_ */
