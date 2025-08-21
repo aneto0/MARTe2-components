@@ -204,6 +204,58 @@ if hasStructArrayParams == true
         evalin('base', 'structMixed.structParamMatrix(2,3).one = 300;');
         evalin('base', 'structMixed.structParamMatrix(2,3).two = uint32(400*ones(3,4));');
     end
+
+    if modelComplexity >= 3
+        evalin('base', 'param3DMatrix(1,1,1).one = 1;');
+        evalin('base', 'param3DMatrix(1,1,1).two = uint32(2*ones(3,4));');
+        evalin('base', 'param3DMatrix(1,2,1).one = 10;');
+        evalin('base', 'param3DMatrix(1,2,1).two = uint32(20*ones(3,4));');
+        evalin('base', 'param3DMatrix(1,3,1).one = 100;');
+        evalin('base', 'param3DMatrix(1,3,1).two = uint32(200*ones(3,4));');
+        evalin('base', 'param3DMatrix(2,1,1).one = 3;');
+        evalin('base', 'param3DMatrix(2,1,1).two = uint32(4*ones(3,4));');
+        evalin('base', 'param3DMatrix(2,2,1).one = 30;');
+        evalin('base', 'param3DMatrix(2,2,1).two = uint32(40*ones(3,4));');
+        evalin('base', 'param3DMatrix(2,3,1).one = 300;');
+        evalin('base', 'param3DMatrix(2,3,1).two = uint32(400*ones(3,4));');
+        evalin('base', 'param3DMatrix(1,1,2).one = 5;');
+        evalin('base', 'param3DMatrix(1,1,2).two = uint32(6*ones(3,4));');
+        evalin('base', 'param3DMatrix(1,2,2).one = 50;');
+        evalin('base', 'param3DMatrix(1,2,2).two = uint32(60*ones(3,4));');
+        evalin('base', 'param3DMatrix(1,3,2).one = 500;');
+        evalin('base', 'param3DMatrix(1,3,2).two = uint32(600*ones(3,4));');
+        evalin('base', 'param3DMatrix(2,1,2).one = 7;');
+        evalin('base', 'param3DMatrix(2,1,2).two = uint32(8*ones(3,4));');
+        evalin('base', 'param3DMatrix(2,2,2).one = 70;');
+        evalin('base', 'param3DMatrix(2,2,2).two = uint32(80*ones(3,4));');
+        evalin('base', 'param3DMatrix(2,3,2).one = 700;');
+        evalin('base', 'param3DMatrix(2,3,2).two = uint32(800*ones(3,4));');
+
+        evalin('base', 'structMixed.structParam3DMatrix(1,1,1).one = 1;');
+        evalin('base', 'structMixed.structParam3DMatrix(1,1,1).two = uint32(2*ones(3,4));');
+        evalin('base', 'structMixed.structParam3DMatrix(1,2,1).one = 10;');
+        evalin('base', 'structMixed.structParam3DMatrix(1,2,1).two = uint32(20*ones(3,4));');
+        evalin('base', 'structMixed.structParam3DMatrix(1,3,1).one = 100;');
+        evalin('base', 'structMixed.structParam3DMatrix(1,3,1).two = uint32(200*ones(3,4));');
+        evalin('base', 'structMixed.structParam3DMatrix(2,1,1).one = 3;');
+        evalin('base', 'structMixed.structParam3DMatrix(2,1,1).two = uint32(4*ones(3,4));');
+        evalin('base', 'structMixed.structParam3DMatrix(2,2,1).one = 30;');
+        evalin('base', 'structMixed.structParam3DMatrix(2,2,1).two = uint32(40*ones(3,4));');
+        evalin('base', 'structMixed.structParam3DMatrix(2,3,1).one = 300;');
+        evalin('base', 'structMixed.structParam3DMatrix(2,3,1).two = uint32(400*ones(3,4));');
+        evalin('base', 'structMixed.structParam3DMatrix(1,1,2).one = 5;');
+        evalin('base', 'structMixed.structParam3DMatrix(1,1,2).two = uint32(6*ones(3,4));');
+        evalin('base', 'structMixed.structParam3DMatrix(1,2,2).one = 50;');
+        evalin('base', 'structMixed.structParam3DMatrix(1,2,2).two = uint32(60*ones(3,4));');
+        evalin('base', 'structMixed.structParam3DMatrix(1,3,2).one = 500;');
+        evalin('base', 'structMixed.structParam3DMatrix(1,3,2).two = uint32(600*ones(3,4));');
+        evalin('base', 'structMixed.structParam3DMatrix(2,1,2).one = 7;');
+        evalin('base', 'structMixed.structParam3DMatrix(2,1,2).two = uint32(8*ones(3,4));');
+        evalin('base', 'structMixed.structParam3DMatrix(2,2,2).one = 70;');
+        evalin('base', 'structMixed.structParam3DMatrix(2,2,2).two = uint32(80*ones(3,4));');
+        evalin('base', 'structMixed.structParam3DMatrix(2,3,2).one = 700;');
+        evalin('base', 'structMixed.structParam3DMatrix(2,3,2).two = uint32(800*ones(3,4));');
+    end
 end
 
 if hasEnums
@@ -361,7 +413,7 @@ for c = 1:modelComplexity
             'InheritFromInputs', 'off');
 
         % bus of buses
-        if c == 4
+        if c == 3
             if hasStructArraySignals
                 bus_elem_dims = [structarray_shapes(2), structarray_shapes(3)];
             else
@@ -543,7 +595,7 @@ for c = 1:modelComplexity
                 'OutDataTypeStr', 'Inherit: auto');
 
             % bus of Buses
-            if c == 4
+            if c == 3
                 outPorts(end + 1) = add_block('simulink/Sinks/Out1',  [model_name '/Out3456_NonVirtualBus'], ...
                     'SignalName',     'Out3456_NonVirtualBus', ...
                     'IconDisplay',    'Signal name', ...
@@ -559,7 +611,7 @@ for c = 1:modelComplexity
             add_block('simulink/Sinks/Terminator',  strcat(model_name, "/", out_bus_name));
 
             % bus of Buses
-            if c == 4
+            if c == 3
                 add_block('simulink/Sinks/Terminator',  [model_name '/Out3456_NonVirtualBus']);
             end
         end
@@ -623,7 +675,7 @@ for c = 1:modelComplexity
             logBlocks(end + 1) = add_block('simulink/Ports & Subsystems/Atomic Subsystem', strcat(model_name, subsystem_name));
 
             % bus of buses
-            if c == 4
+            if c == 3
                 subsystem_name = strcat("/Log3456_NonVirtualBus");
                 logBlocks(end + 1) = add_block('simulink/Ports & Subsystems/Atomic Subsystem', strcat(model_name, subsystem_name));
             end
@@ -644,7 +696,8 @@ for c = 1:modelComplexity
             add_line(model_name, strcat(bus_creator_name,        "/1"), strcat(structarray_assign_name, "/2"));
         end
 
-        if c == 4
+        % bus of buses
+        if c == 3
             if hasStructArraySignals
                 add_line(model_name, 'Assignment34_NonVirtualBus/1',   'Out3456_BusCreator/1');
                 add_line(model_name, 'Assignment56_NonVirtualBus/1',   'Out3456_BusCreator/2');
@@ -671,8 +724,8 @@ for c = 1:modelComplexity
                 add_line(model_name, strcat(bus_creator_name,    "/1"), strcat(out_bus_name,         "/1"));
             end
     
-            % bus of busesbus_creator_name, "/1"
-            if c == 4
+            % bus of buses bus_creator_name, "/1"
+            if c == 3
                 add_line(model_name, 'Out3456_BusCreator/1', 'Out3456_NonVirtualBus/1');
             end
         end
@@ -697,7 +750,7 @@ for c = 1:modelComplexity
             add_line(model_name, strcat("Log", bus_index, "_NonVirtualBus/1"), strcat(out_bus_name,         "/1"));
     
             % bus of buses
-            if c == 4
+            if c == 3
                 add_line(model_name, 'Out3456_BusCreator/1', 'Log3456_NonVirtualBus/1');
                 add_line(model_name, 'Log3456_NonVirtualBus/1', 'Out3456_NonVirtualBus/1');
             end
