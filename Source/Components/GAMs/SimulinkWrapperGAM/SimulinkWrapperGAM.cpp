@@ -1074,14 +1074,14 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
             // Check number of declared main ports
 
             ret.illegalOperation = (numberOfGAMInputSignals != modelNumOfInputs);
-            if (ret.illegalOperation) {
+            if (bool(ret.illegalOperation)) {
                 REPORT_ERROR(ret, "[%s] - Number of input signals mismatch (GAM: %u, model %u)",
                     GetName(), numberOfGAMInputSignals,  modelNumOfInputs);
             }
 
             if (ret.ErrorsCleared()) {
                 ret.illegalOperation = ( (numberOfGAMOutputSignals < modelNumOfOutputs) || (numberOfGAMOutputSignals > (modelNumOfOutputs + modelNumOfSignals)) );
-                if (ret.illegalOperation) {
+                if (bool(ret.illegalOperation)) {
                     REPORT_ERROR(ret, "[%s] - Number of output signals mismatch (GAM: %u, model %u)",
                         GetName(), numberOfGAMOutputSignals,  modelNumOfOutputs + modelNumOfSignals);
                 }
@@ -1112,8 +1112,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
     }
 
     // Check that every GAM signal is mapped to a model port or signal
-    if (ret) {
-        for (uint32 inputIdx = 0u; ret && (inputIdx < GetNumberOfInputSignals()); inputIdx++) {
+    if (ret.ErrorsCleared()) {
+        for (uint32 inputIdx = 0u; ret && (inputIdx < numberOfInputSignals); inputIdx++) {
             if (!isInputMapped[inputIdx]) {
                 StreamString signalName = "";
                 ret.internalSetupError = true;
@@ -1122,7 +1122,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
                     GetName(), signalName.Buffer());
             }
         }
-        for (uint32 outputIdx = 0u; ret && (outputIdx < GetNumberOfOutputSignals()); outputIdx++) {
+        for (uint32 outputIdx = 0u; ret.ErrorsCleared() && (outputIdx < numberOfOutputSignals); outputIdx++) {
             if (!isOutputMapped[outputIdx]) {
                 StreamString signalName = "";
                 ret.internalSetupError = true;
@@ -1144,7 +1144,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
 
         for(uint32 portIdx = 0u; ret.ErrorsCleared() && (inputs != NULL) && (portIdx < modelNumOfInputs); portIdx++) {
             if (inputs[portIdx].isStructured) {
-                for(uint32 elemIdx = 0u; (elemIdx < inputs[portIdx].GetSize()) && ret; elemIdx++) {
+                uint32 portSize = inputs[portIdx].GetSize();
+                for(uint32 elemIdx = 0u; ret.ErrorsCleared() && (elemIdx < portSize); elemIdx++) {
                     if(inputs[portIdx][elemIdx]->destPtr == NULL) {
                         ret.internalSetupError = true;
                         disconnectedSignalName = inputs[portIdx][elemIdx]->fullPath;
@@ -1161,7 +1162,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
 
         for(uint32 portIdx = 0u; ret.ErrorsCleared() && (outputs != NULL) && (portIdx < modelNumOfOutputs); portIdx++) {
             if (outputs[portIdx].isStructured) {
-                for(uint32 elemIdx = 0u; (elemIdx < outputs[portIdx].GetSize()) && ret; elemIdx++) {
+                uint32 portSize = outputs[portIdx].GetSize();
+                for(uint32 elemIdx = 0u; ret.ErrorsCleared() && (elemIdx < portSize); elemIdx++) {
                     if(outputs[portIdx][elemIdx]->destPtr == NULL) {
                         ret.internalSetupError = true;
                         disconnectedSignalName = outputs[portIdx][elemIdx]->fullPath;
@@ -1219,7 +1221,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
 
     for(uint32 paramIdx = 0u; ret.ErrorsCleared() && (paramIdx < modelNumOfParameters) && (params != NULL); paramIdx++) {
 
-        for (uint32 subParamIdx = 0u; ret.ErrorsCleared() && (subParamIdx < params[paramIdx].GetSize()); subParamIdx++) {
+        uint32 parameterSize = params[paramIdx].GetSize();
+        for (uint32 subParamIdx = 0u; ret.ErrorsCleared() && (subParamIdx < parameterSize); subParamIdx++) {
         
             isLoaded     = false;
             isActualised = false;
