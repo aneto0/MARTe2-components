@@ -120,15 +120,16 @@ bool RealTimeThreadSynchBroker::AllocateMemory(char8 * const dataSourceMemoryIn,
                 }
                 StreamString functionSignalAlias;
                 if (ok) {
-                    ok = dataSource->GetFunctionSignalAlias(InputSignals, functionIdx, s, functionSignalAlias);
+                    ok = dataSource->GetFunctionSignalAlias(InputSignals, functionIdx, s, functionSignalAlias);// s is the signal index in the function identified by functionIdx
                 }
                 uint32 signalIdx = 0u;
                 if (ok) {
-                    ok = dataSource->GetSignalIndex(signalIdx, functionSignalAlias.Buffer());
+                    ok = dataSource->GetSignalIndex(signalIdx, functionSignalAlias.Buffer());// signalIdx is the datasource index of functionSignalAlias.Buffer() in t
                 }
                 if (ok) {
                     uint32 signalSizeRead;
-                    ok = dataSource->GetSignalByteSize(s, signalSizeRead);
+//                    ok = dataSource->GetSignalByteSize(s, signalSizeRead);
+                    ok = dataSource->GetSignalByteSize(signalIdx, signalSizeRead);
                     signalSize[signalIdx] = signalSizeRead;
                 }
                 //The memory has to be reordered so that each signal can store the numberOfSamples required.

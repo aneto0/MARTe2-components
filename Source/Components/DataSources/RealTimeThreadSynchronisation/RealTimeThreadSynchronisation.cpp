@@ -200,13 +200,15 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::ParametersError, "One and exactly one function shall write into this DataSourceI and more than one was found");
                 }
+                uint32 nOfSignals = GetNumberOfSignals();
                 if (ok) {
                     producerFound = isProducer;
-                    if (numberOfFunctionSignals != GetNumberOfSignals()) {
+                    if (numberOfFunctionSignals != nOfSignals) {
                         REPORT_ERROR_STATIC(ErrorManagement::Warning, "The GAM which writes to this RealTimeThreadSynchronisation does not produce all the signals.");
                     }
 
-                    memoryOffsets = new uint32[numberOfFunctionSignals];
+//                    memoryOffsets = new uint32[numberOfFunctionSignals];
+                    memoryOffsets = new uint32[nOfSignals]; // This assumes that numberOfFunctionSignals < nOfSignals (Datasource number of signals). If this is not true think about implications or add a condition which check it.
                     //Check that the number of samples is exactly one.
 
                     uint32 numberOfSamplesRead;
@@ -223,7 +225,7 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
                 }
 
                 if (ok) {
-                    uint32 nOfSignals = GetNumberOfSignals();
+
                     uint32 s;
                     if (memoryOffsets != NULL_PTR(uint32 *)) {
                         for (s = 0u; (s < nOfSignals) && (ok); s++) {
