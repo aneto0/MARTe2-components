@@ -146,9 +146,25 @@ public:
     bool TestSynchronise();
 
     /**
-     * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI when the first signal is not consumed
+     * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI when the first signal is not consumed by one Thread (the rest of the Threads consume all signals)
      */
     bool TestSynchronise_2();
+
+    /**
+     * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI when the first signal is not consumed by one Thread (the rest of the Threads consume all signals)
+     */
+    bool TestSynchronise_2_signalOrderChanged();
+
+    /**
+     * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI when the first signal is not consumed at all
+     */
+    bool TestSynchronise_3();
+
+    /**
+     * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI with orphan signal
+     * @details Orphans signals are currently allowed, but maybe meaningless in real configuration. If orphan signals are not allowed this tests should be modified.
+     */
+    bool TestSynchronise_orphan();
 
     /**
      * @brief Tests that GetNumberOfStatefulMemoryBuffers returns 2

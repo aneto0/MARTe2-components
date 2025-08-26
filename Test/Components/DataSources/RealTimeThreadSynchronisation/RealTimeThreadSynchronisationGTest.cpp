@@ -144,6 +144,21 @@ TEST(RealTimeThreadSynchronisationGTest,TestSynchronise_2) {
     ASSERT_TRUE(test.TestSynchronise_2());
 }
 
+TEST(RealTimeThreadSynchronisationGTest,TestSynchronise_2_signalOrderChanged) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSynchronise_2_signalOrderChanged());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSynchronise_3) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSynchronise_3());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSynchronise_orphan) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSynchronise_orphan());
+}
+
 TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase_WaitForNext) {
     RealTimeThreadSynchronisationTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_WaitForNext());

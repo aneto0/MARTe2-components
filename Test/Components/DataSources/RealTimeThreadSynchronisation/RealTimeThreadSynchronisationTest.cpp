@@ -1520,7 +1520,8 @@ static const MARTe::char8 * const config8 = ""
         "}";
 
 
-//First signal is not consumed configuration (this should be ok)
+//GAM1Thread2,  signal SignalUInt16 is not consumed configuration (this should be ok)
+//GAM1Thread3,  signal SignalUInt32 is not consumed configuration (this should be ok)
 static const MARTe::char8 * const config9 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
@@ -1579,6 +1580,439 @@ static const MARTe::char8 * const config9 = ""
         "                    Samples = 2"
         "                    NumberOfDimensions = 1"
         "                    NumberOfElements = 3"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 2"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 5"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 2"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM1Thread4 = {"
+        "            Class = RealTimeThreadSynchronisationGAMTestHelper"
+        "            InputSignals = {"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 4"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 3"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 4"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 4"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 5"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 4"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +RealTimeThreadSynchronisationTest = {"
+        "            Class = RealTimeThreadSynchronisation"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1Thread1}"
+        "                }"
+        "                +Thread2 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1Thread2}"
+        "                }"
+        "                +Thread3 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1Thread3}"
+        "                }"
+        "                +Thread4 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1Thread4}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = RealTimeThreadSynchronisationSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//GAM1Thread2,  signal SignalUInt16 is not consumed configuration (this should be ok)
+//GAM1Thread3,  signal SignalUInt32 is not consumed configuration (this should be ok)
+//Signal order changed
+static const MARTe::char8 * const config9_1 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1Thread1 = {"
+        "            Class = RealTimeThreadSynchronisationGAMTestHelper"
+        "            OutputSignals = {"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 3"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 5"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM1Thread2 = {"
+        "            Class = RealTimeThreadSynchronisationGAMTestHelper"
+        "            InputSignals = {"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 5"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM1Thread3 = {"
+        "            Class = RealTimeThreadSynchronisationGAMTestHelper"
+        "            InputSignals = {"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 2"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 3"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 2"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 2"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 5"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM1Thread4 = {"
+        "            Class = RealTimeThreadSynchronisationGAMTestHelper"
+        "            InputSignals = {"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 4"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 3"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 4"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 4"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 4"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 5"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +RealTimeThreadSynchronisationTest = {"
+        "            Class = RealTimeThreadSynchronisation"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1Thread1}"
+        "                }"
+        "                +Thread2 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1Thread2}"
+        "                }"
+        "                +Thread3 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1Thread3}"
+        "                }"
+        "                +Thread4 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1Thread4}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = RealTimeThreadSynchronisationSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//signal SignalUInt16 is not consumed at all
+static const MARTe::char8 * const config10 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1Thread1 = {"
+        "            Class = RealTimeThreadSynchronisationGAMTestHelper"
+        "            OutputSignals = {"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 3"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 5"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM1Thread2 = {"
+        "            Class = RealTimeThreadSynchronisationGAMTestHelper"
+        "            InputSignals = {"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 5"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM1Thread3 = {"
+        "            Class = RealTimeThreadSynchronisationGAMTestHelper"
+        "            InputSignals = {"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 2"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 2"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 5"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 2"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM1Thread4 = {"
+        "            Class = RealTimeThreadSynchronisationGAMTestHelper"
+        "            InputSignals = {"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 4"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 4"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 5"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 4"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "        +RealTimeThreadSynchronisationTest = {"
+        "            Class = RealTimeThreadSynchronisation"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1Thread1}"
+        "                }"
+        "                +Thread2 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1Thread2}"
+        "                }"
+        "                +Thread3 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1Thread3}"
+        "                }"
+        "                +Thread4 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAM1Thread4}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = RealTimeThreadSynchronisationSchedulerTestHelper"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Orphan signal
+static const MARTe::char8 * const config11 = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAM1Thread1 = {"
+        "            Class = RealTimeThreadSynchronisationGAMTestHelper"
+        "            OutputSignals = {"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 5"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM1Thread2 = {"
+        "            Class = RealTimeThreadSynchronisationGAMTestHelper"
+        "            InputSignals = {"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 3"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                }"
+        "                SignalUInt64 = {"
+        "                    Type = uint64"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 5"
+        "                }"
+        "                SignalInt32 = {"
+        "                    Type = int32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                }"
+        "            }"
+        "        }"
+        "        +GAM1Thread3 = {"
+        "            Class = RealTimeThreadSynchronisationGAMTestHelper"
+        "            InputSignals = {"
+        "                SignalUInt16 = {"
+        "                    Type = uint16"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 2"
+        "                    NumberOfDimensions = 1"
+        "                    NumberOfElements = 3"
+        "                }"
+        "                SignalUInt32 = {"
+        "                    Type = uint32"
+        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    Samples = 2"
         "                }"
         "                SignalUInt64 = {"
         "                    Type = uint64"
@@ -2042,6 +2476,399 @@ bool RealTimeThreadSynchronisationTest::TestSynchronise_2() {
             for (s = 0; (s < gam1Thread4->int32SignalSamples) && (ok); s++) {
                 for (e = 0u; (e < gam1Thread4->int32SignalElements) && (ok); e++) {
                     ok = (gam1Thread4->int32Signal[s * gam1Thread4->int32SignalElements + e] == static_cast<int32>(j + s - (gam1Thread4->int32SignalSamples - 1) + e));
+                }
+            }
+        }
+    }
+
+    godb->Purge();
+    return ok;
+}
+
+bool RealTimeThreadSynchronisationTest::TestSynchronise_2_signalOrderChanged() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config9_1, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread1;
+    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread2;
+    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread3;
+    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread4;
+    ReferenceT<RealTimeThreadSynchronisationSchedulerTestHelper> scheduler;
+    ReferenceT<RealTimeApplication> application;
+
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        gam1Thread1 = godb->Find("Test.Functions.GAM1Thread1");
+        ok = gam1Thread1.IsValid();
+    }
+    if (ok) {
+        gam1Thread2 = godb->Find("Test.Functions.GAM1Thread2");
+        ok = gam1Thread2.IsValid();
+    }
+    if (ok) {
+        gam1Thread3 = godb->Find("Test.Functions.GAM1Thread3");
+        ok = gam1Thread3.IsValid();
+    }
+    if (ok) {
+        gam1Thread4 = godb->Find("Test.Functions.GAM1Thread4");
+        ok = gam1Thread4.IsValid();
+    }
+    if (ok) {
+        scheduler = godb->Find("Test.Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    if (ok) {
+        ok = application->StartNextStateExecution();
+    }
+
+    const uint32 numberOfExecutions = 12u;
+    uint32 j;
+    for (j = 0u; (j < numberOfExecutions) && (ok); j++) {
+        uint32 e;
+        for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
+            gam1Thread1->uint16Signal[e] = (j + e);
+        }
+        for (e = 0u; (e < gam1Thread1->uint32SignalElements); e++) {
+            gam1Thread1->uint32Signal[e] = (j + e);
+        }
+        for (e = 0u; (e < gam1Thread1->uint64SignalElements); e++) {
+            gam1Thread1->uint64Signal[e] = (j + e);
+        }
+        for (e = 0u; (e < gam1Thread1->int32SignalElements); e++) {
+            gam1Thread1->int32Signal[e] = (j + e);
+        }
+        scheduler->ExecuteThreadCycle(0);
+        scheduler->ExecuteThreadCycle(1);
+
+//Thread 2 should always have the same values of thread 1
+        for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
+            //ok = (gam1Thread1->uint16Signal[e] == gam1Thread2->uint16Signal[e]);
+        }
+        for (e = 0u; (e < gam1Thread1->uint32SignalElements) && (ok); e++) {
+            ok = (gam1Thread1->uint32Signal[e] == gam1Thread2->uint32Signal[e]);
+        }
+        for (e = 0u; (e < gam1Thread1->uint64SignalElements) && (ok); e++) {
+            ok = (gam1Thread1->uint64Signal[e] == gam1Thread2->uint64Signal[e]);
+        }
+        for (e = 0u; (e < gam1Thread1->int32SignalElements) && (ok); e++) {
+            ok = (gam1Thread1->int32Signal[e] == gam1Thread2->int32Signal[e]);
+        }
+//Thread 3 should store 2 samples of each signal
+        if (((j + 1) % 2) == 0) {
+            scheduler->ExecuteThreadCycle(2);
+            uint32 s;
+            for (s = 0; (s < gam1Thread3->uint16SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->uint16SignalElements) && (ok); e++) {
+                    ok = (gam1Thread3->uint16Signal[s * gam1Thread3->uint16SignalElements + e] == (j + s - (gam1Thread3->uint16SignalSamples - 1) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread3->uint32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->uint32SignalElements) && (ok); e++) {
+                    //ok = (gam1Thread3->uint32Signal[s * gam1Thread3->uint32SignalElements + e] == (j + s - (gam1Thread3->uint32SignalSamples - 1) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread3->uint64SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->uint64SignalElements) && (ok); e++) {
+                    ok = (gam1Thread3->uint64Signal[s * gam1Thread3->uint64SignalElements + e] == (j + s - (gam1Thread3->uint64SignalSamples - 1) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread3->int32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->int32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread3->int32Signal[s * gam1Thread3->int32SignalElements + e] == static_cast<int32>(j + s - (gam1Thread3->int32SignalSamples - 1) + e));
+                }
+            }
+        }
+//Thread 4 should store 4 samples of each signal
+        if (((j + 1) % 4) == 0) {
+            scheduler->ExecuteThreadCycle(3);
+            uint32 s;
+            for (s = 0; (s < gam1Thread4->uint16SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->uint16SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->uint16Signal[s * gam1Thread4->uint16SignalElements + e] == (j + s - (gam1Thread4->uint16SignalSamples - 1) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread4->uint32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->uint32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->uint32Signal[s * gam1Thread4->uint32SignalElements + e] == (j + s - (gam1Thread4->uint32SignalSamples - 1) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread4->uint64SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->uint64SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->uint64Signal[s * gam1Thread4->uint64SignalElements + e] == (j + s - (gam1Thread4->uint64SignalSamples - 1) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread4->int32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->int32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->int32Signal[s * gam1Thread4->int32SignalElements + e] == static_cast<int32>(j + s - (gam1Thread4->int32SignalSamples - 1) + e));
+                }
+            }
+        }
+    }
+
+    godb->Purge();
+    return ok;
+}
+
+bool RealTimeThreadSynchronisationTest::TestSynchronise_3() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config10, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread1;
+    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread2;
+    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread3;
+    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread4;
+    ReferenceT<RealTimeThreadSynchronisationSchedulerTestHelper> scheduler;
+    ReferenceT<RealTimeApplication> application;
+
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        gam1Thread1 = godb->Find("Test.Functions.GAM1Thread1");
+        ok = gam1Thread1.IsValid();
+    }
+    if (ok) {
+        gam1Thread2 = godb->Find("Test.Functions.GAM1Thread2");
+        ok = gam1Thread2.IsValid();
+    }
+    if (ok) {
+        gam1Thread3 = godb->Find("Test.Functions.GAM1Thread3");
+        ok = gam1Thread3.IsValid();
+    }
+    if (ok) {
+        gam1Thread4 = godb->Find("Test.Functions.GAM1Thread4");
+        ok = gam1Thread4.IsValid();
+    }
+    if (ok) {
+        scheduler = godb->Find("Test.Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    if (ok) {
+        ok = application->StartNextStateExecution();
+    }
+
+    const uint32 numberOfExecutions = 12u;
+    uint32 j;
+    for (j = 0u; (j < numberOfExecutions) && (ok); j++) {
+        uint32 e;
+        for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
+            gam1Thread1->uint16Signal[e] = ((j+1) + e);
+        }
+        for (e = 0u; (e < gam1Thread1->uint32SignalElements); e++) {
+            gam1Thread1->uint32Signal[e] = ((j+1)* gam1Thread1->uint16SignalElements + e);
+        }
+        for (e = 0u; (e < gam1Thread1->uint64SignalElements); e++) {
+            gam1Thread1->uint64Signal[e] = ((j+1)*(gam1Thread1->uint16SignalElements+gam1Thread1->uint32SignalElements) + e);
+        }
+        for (e = 0u; (e < gam1Thread1->int32SignalElements); e++) {
+            gam1Thread1->int32Signal[e] = ((j+1)*(gam1Thread1->uint16SignalElements+gam1Thread1->uint32SignalElements+gam1Thread1->uint64SignalElements) + e);
+        }
+        scheduler->ExecuteThreadCycle(0);
+        scheduler->ExecuteThreadCycle(1);
+
+//Thread 2 should always have the same values of thread 1
+        for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
+            //ok = (gam1Thread1->uint16Signal[e] == gam1Thread2->uint16Signal[e]);
+        }
+        for (e = 0u; (e < gam1Thread1->uint32SignalElements) && (ok); e++) {
+            ok = (gam1Thread1->uint32Signal[e] == gam1Thread2->uint32Signal[e]);
+        }
+        for (e = 0u; (e < gam1Thread1->uint64SignalElements) && (ok); e++) {
+            ok = (gam1Thread1->uint64Signal[e] == gam1Thread2->uint64Signal[e]);
+        }
+        for (e = 0u; (e < gam1Thread1->int32SignalElements) && (ok); e++) {
+            ok = (gam1Thread1->int32Signal[e] == gam1Thread2->int32Signal[e]);
+        }
+//Thread 3 should store 2 samples of each signal
+        if (((j + 1) % 2) == 0) {
+            scheduler->ExecuteThreadCycle(2);
+            uint32 s;
+            for (s = 0; (s < gam1Thread3->uint16SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->uint16SignalElements) && (ok); e++) {
+                    //ok = (gam1Thread3->uint16Signal[s * gam1Thread3->uint16SignalElements + e] == (j + s - (gam1Thread3->uint16SignalSamples - 1) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread3->uint32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->uint32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread3->uint32Signal[s * gam1Thread3->uint32SignalElements + e] == ((j + 1 + s - (gam1Thread3->uint32SignalSamples - 1)) * gam1Thread1->uint16SignalElements + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread3->uint64SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->uint64SignalElements) && (ok); e++) {
+                    ok = (gam1Thread3->uint64Signal[s * gam1Thread3->uint64SignalElements + e] == ((j + 1 + s - (gam1Thread3->uint64SignalSamples - 1)) * (gam1Thread1->uint16SignalElements+gam1Thread1->uint32SignalElements) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread3->int32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->int32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread3->int32Signal[s * gam1Thread3->int32SignalElements + e] == static_cast<int32>(((j + 1 + s - (gam1Thread3->int32SignalSamples - 1)) * (gam1Thread1->uint16SignalElements+gam1Thread1->uint32SignalElements+gam1Thread1->uint64SignalElements) + e)));
+                }
+            }
+        }
+//Thread 4 should store 4 samples of each signal
+        if (((j + 1) % 4) == 0) {
+            scheduler->ExecuteThreadCycle(3);
+            uint32 s;
+            for (s = 0; (s < gam1Thread4->uint16SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->uint16SignalElements) && (ok); e++) {
+                    //ok = (gam1Thread4->uint16Signal[s * gam1Thread4->uint16SignalElements + e] == (j + s - (gam1Thread4->uint16SignalSamples - 1) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread4->uint32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->uint32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->uint32Signal[s * gam1Thread4->uint32SignalElements + e] == ((j + 1 + s - (gam1Thread4->uint32SignalSamples - 1)) * gam1Thread1->uint16SignalElements + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread4->uint64SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->uint64SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->uint64Signal[s * gam1Thread4->uint64SignalElements + e] == ((j + 1 + s - (gam1Thread4->uint64SignalSamples - 1)) * (gam1Thread1->uint16SignalElements+gam1Thread1->uint32SignalElements) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread4->int32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->int32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->int32Signal[s * gam1Thread4->int32SignalElements + e] == static_cast<int32>(((j + 1 + s - (gam1Thread4->int32SignalSamples - 1)) * (gam1Thread1->uint16SignalElements+gam1Thread1->uint32SignalElements+gam1Thread1->uint64SignalElements) + e)));
+                }
+            }
+        }
+    }
+
+    godb->Purge();
+    return ok;
+}
+
+bool RealTimeThreadSynchronisationTest::TestSynchronise_orphan() {
+    using namespace MARTe;
+    bool ok = TestIntegratedInApplication(config11, false);
+    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
+
+    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread1;
+    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread2;
+    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread3;
+    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread4;
+    ReferenceT<RealTimeThreadSynchronisationSchedulerTestHelper> scheduler;
+    ReferenceT<RealTimeApplication> application;
+
+    if (ok) {
+        application = godb->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        gam1Thread1 = godb->Find("Test.Functions.GAM1Thread1");
+        ok = gam1Thread1.IsValid();
+    }
+    if (ok) {
+        gam1Thread2 = godb->Find("Test.Functions.GAM1Thread2");
+        ok = gam1Thread2.IsValid();
+    }
+    if (ok) {
+        gam1Thread3 = godb->Find("Test.Functions.GAM1Thread3");
+        ok = gam1Thread3.IsValid();
+    }
+    if (ok) {
+        gam1Thread4 = godb->Find("Test.Functions.GAM1Thread4");
+        ok = gam1Thread4.IsValid();
+    }
+    if (ok) {
+        scheduler = godb->Find("Test.Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        ok = application->PrepareNextState("State1");
+    }
+    if (ok) {
+        ok = application->StartNextStateExecution();
+    }
+
+    const uint32 numberOfExecutions = 12u;
+    uint32 j;
+    for (j = 0u; (j < numberOfExecutions) && (ok); j++) {
+        uint32 e;
+        for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
+            gam1Thread1->uint16Signal[e] = ((j+1) + e);
+        }
+        for (e = 0u; (e < gam1Thread1->uint32SignalElements); e++) {
+            gam1Thread1->uint32Signal[e] = ((j+1)* gam1Thread1->uint16SignalElements + e);
+        }
+        for (e = 0u; (e < gam1Thread1->uint64SignalElements); e++) {
+            gam1Thread1->uint64Signal[e] = ((j+1)*(gam1Thread1->uint16SignalElements+gam1Thread1->uint32SignalElements) + e);
+        }
+        for (e = 0u; (e < gam1Thread1->int32SignalElements); e++) {
+            gam1Thread1->int32Signal[e] = ((j+1)*(gam1Thread1->uint16SignalElements+gam1Thread1->uint32SignalElements+gam1Thread1->uint64SignalElements) + e);
+        }
+        scheduler->ExecuteThreadCycle(0);
+        scheduler->ExecuteThreadCycle(1);
+
+//Thread 2 should always have the same values of thread 1
+        for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
+            ok = (gam1Thread1->uint16Signal[e] == gam1Thread2->uint16Signal[e]);
+        }
+        for (e = 0u; (e < gam1Thread1->uint32SignalElements) && (ok); e++) {
+            ok = (gam1Thread1->uint32Signal[e] == gam1Thread2->uint32Signal[e]);
+        }
+        for (e = 0u; (e < gam1Thread1->uint64SignalElements) && (ok); e++) {
+            ok = (gam1Thread1->uint64Signal[e] == gam1Thread2->uint64Signal[e]);
+        }
+        for (e = 0u; (e < gam1Thread1->int32SignalElements) && (ok); e++) {
+            ok = (gam1Thread1->int32Signal[e] == gam1Thread2->int32Signal[e]);
+        }
+//Thread 3 should store 2 samples of each signal
+        if (((j + 1) % 2) == 0) {
+            scheduler->ExecuteThreadCycle(2);
+            uint32 s;
+            for (s = 0; (s < gam1Thread3->uint16SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->uint16SignalElements) && (ok); e++) {
+                    //ok = (gam1Thread3->uint16Signal[s * gam1Thread3->uint16SignalElements + e] == (j + s - (gam1Thread3->uint16SignalSamples - 1) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread3->uint32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->uint32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread3->uint32Signal[s * gam1Thread3->uint32SignalElements + e] == ((j + 1 + s - (gam1Thread3->uint32SignalSamples - 1)) * gam1Thread1->uint16SignalElements + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread3->uint64SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->uint64SignalElements) && (ok); e++) {
+                    ok = (gam1Thread3->uint64Signal[s * gam1Thread3->uint64SignalElements + e] == ((j + 1 + s - (gam1Thread3->uint64SignalSamples - 1)) * (gam1Thread1->uint16SignalElements+gam1Thread1->uint32SignalElements) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread3->int32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread3->int32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread3->int32Signal[s * gam1Thread3->int32SignalElements + e] == static_cast<int32>(((j + 1 + s - (gam1Thread3->int32SignalSamples - 1)) * (gam1Thread1->uint16SignalElements+gam1Thread1->uint32SignalElements+gam1Thread1->uint64SignalElements) + e)));
+                }
+            }
+        }
+//Thread 4 should store 4 samples of each signal
+        if (((j + 1) % 4) == 0) {
+            scheduler->ExecuteThreadCycle(3);
+            uint32 s;
+            for (s = 0; (s < gam1Thread4->uint16SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->uint16SignalElements) && (ok); e++) {
+                    //ok = (gam1Thread4->uint16Signal[s * gam1Thread4->uint16SignalElements + e] == (j + s - (gam1Thread4->uint16SignalSamples - 1) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread4->uint32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->uint32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->uint32Signal[s * gam1Thread4->uint32SignalElements + e] == ((j + 1 + s - (gam1Thread4->uint32SignalSamples - 1)) * gam1Thread1->uint16SignalElements + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread4->uint64SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->uint64SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->uint64Signal[s * gam1Thread4->uint64SignalElements + e] == ((j + 1 + s - (gam1Thread4->uint64SignalSamples - 1)) * (gam1Thread1->uint16SignalElements+gam1Thread1->uint32SignalElements) + e));
+                }
+            }
+            for (s = 0; (s < gam1Thread4->int32SignalSamples) && (ok); s++) {
+                for (e = 0u; (e < gam1Thread4->int32SignalElements) && (ok); e++) {
+                    ok = (gam1Thread4->int32Signal[s * gam1Thread4->int32SignalElements + e] == static_cast<int32>(((j + 1 + s - (gam1Thread4->int32SignalSamples - 1)) * (gam1Thread1->uint16SignalElements+gam1Thread1->uint32SignalElements+gam1Thread1->uint64SignalElements) + e)));
                 }
             }
         }
