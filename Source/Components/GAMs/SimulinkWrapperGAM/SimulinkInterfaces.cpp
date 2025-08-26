@@ -475,7 +475,7 @@ void SimulinkRootInterface::Print(uint64 paddingLength /*= 50u*/, StreamString p
             // calculate the substructure bytesize
             uint32 structBytesize = GetInterfaceBytesize(rootStructure);
 
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "%s| struct  | % 4d | % 5d | % 4!%s | %p | %d total", printName.Buffer(),
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "%s| struct  | % 4d | % 5d | % 4!%s | %p | %d [s]", printName.Buffer(),
                                 MARTeNumOfDims, numOfElements, dimensions, sizeFiller.Buffer(), structAddr, structBytesize);
 
             StreamString passedSpacer = parentSpacer;
@@ -494,16 +494,22 @@ void SimulinkRootInterface::Print(uint64 paddingLength /*= 50u*/, StreamString p
 
             StreamString interfaceName = rootStructure.GetChildName(parIdx);
 
-            if (interfaceName != "__Dimensions__") {
+            // format the numeric name
+            printName += interfaceName;
+            while (printName.Size() < ( paddingLength + (parentSpacer.Size() + spacer.Size())/2u )) {
+                printName += " ";
+            }
+
+            if (interfaceName == "__Dimensions__") {
+                // nothing to do
+            } else if (interfaceName == "_padding_") {
+                uint32 paddingSize = 0u;
+                rootStructure.Read(interfaceName.Buffer(), paddingSize);
+                REPORT_ERROR_STATIC(ErrorManagement::Information, "%s| void    | -    | -     | -                   | -                  | %d [p]", printName.Buffer(), paddingSize);
+            } else {
                 uint32 interfaceIdx = 0u;
                 rootStructure.Read(interfaceName.Buffer(), interfaceIdx);
                 SimulinkInterface* currentInterface = this->operator[](interfaceIdx);
-
-                // format the numeric name
-                printName += interfaceName;
-                while (printName.Size() < ( paddingLength + (parentSpacer.Size() + spacer.Size())/2u )) {
-                    printName += " ";
-                }
 
                 StreamString sizeFiller = "";
                 if ((currentInterface->dimensions).GetNumberOfElements() < 3u) {
@@ -535,10 +541,15 @@ uint32 SimulinkRootInterface::GetInterfaceBytesize(ConfigurationDatabase structu
         // leaf
         else {
             StreamString leafName = structureIn.GetChildName(parIdx);
-            if (leafName != "__Dimensions__") {
-                StreamString interfaceName = structureIn.GetChildName(parIdx);
+            if (leafName == "__Dimensions__") {
+                // nothing to do
+            } else if (leafName == "_padding_") {
+                uint32 paddingSize = 0u;
+                structureIn.Read(leafName.Buffer(), paddingSize);
+                structureBytesize += paddingSize;
+            } else {
                 uint32 interfaceIdx = 0u;
-                structureIn.Read(interfaceName.Buffer(), interfaceIdx);
+                structureIn.Read(leafName.Buffer(), interfaceIdx);
 
                 SimulinkInterface* currentInterface = this->operator[](interfaceIdx);
                 structureBytesize += currentInterface->byteSize;
