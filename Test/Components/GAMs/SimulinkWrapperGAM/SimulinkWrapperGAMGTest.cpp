@@ -462,6 +462,11 @@ TEST(SimulinkWrapperGAMGTest, TestExecute_WithEnumSignals) {
 }
 #endif
 
+TEST(SimulinkWrapperGAMGTest, TestLinearIndexToSubscripts) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestLinearIndexToSubscripts());
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/

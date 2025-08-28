@@ -2387,6 +2387,7 @@ bool SimulinkWrapperGAMTest::TestSetup_StructSignalBytesize() {
         "    Out34_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 96   NumberOfDimensions = 1 }"
         "    Out56_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 432  NumberOfDimensions = 1 }"
         "    Out78_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 288  NumberOfDimensions = 1 }"
+        "    Out1234_NonVirtualBus = { DataSource = DDB1    Type = uint8      NumberOfElements = 112  NumberOfDimensions = 1 }"
         "    Out3456_NonVirtualBus = { DataSource = DDB1    Type = uint8      NumberOfElements = 528  NumberOfDimensions = 1 }"
         "}"
         ;
@@ -2406,9 +2407,11 @@ bool SimulinkWrapperGAMTest::TestSetup_StructSignalBytesize() {
         "Out34_NonVirtualBus = (uint32) 96    "
         "Out56_NonVirtualBus = (uint32) 432   "
         "Out78_NonVirtualBus = (uint32) 288   "
+        "Out1234_NonVirtualBus = (uint32) 112 "
         "Out3456_NonVirtualBus = (uint32) 528 "
-        "Vector_Structured = (uint32) 96       "
-        "Matrix_Structured = (uint32) 432      "
+        "Scalar_Structured = (uint32) 16      "
+        "Vector_Structured = (uint32) 96      "
+        "Matrix_Structured = (uint32) 432     "
         ""
         ;
 
@@ -2426,7 +2429,6 @@ bool SimulinkWrapperGAMTest::TestSetup_StructSignalBytesize() {
     // Check bytesizes
     if (ok) {
         ReferenceT<SimulinkWrapperGAMHelper> gam = ord->Find("Test.Functions.GAM1");
-
         ok = gam.IsValid();
         if (ok) {
             SimulinkRootInterface* outputs = gam->GetOutputs();
@@ -2444,24 +2446,19 @@ bool SimulinkWrapperGAMTest::TestSetup_StructSignalBytesize() {
                         signalName = sizeDb.GetName();
                         byteSize = outputs[rootOutputIdx].GetInterfaceBytesize(sizeDb);
                         uint32 expectedBytesize = *((uint32*) cdb.GetType(signalName.Buffer()).GetDataPointer());
-
                         ok = (byteSize == expectedBytesize);
                         for (uint32 subIdx = 0u; (subIdx < sizeDb.GetNumberOfChildren()) && ok; subIdx++) {
-
                             if (sizeDb.MoveToChild(subIdx)) {
                                 signalName = sizeDb.GetName();
                                 byteSize = outputs[rootOutputIdx].GetInterfaceBytesize(sizeDb);
                                 uint32 expectedBytesize;
                                 ok = cdb.Read(signalName.Buffer(), expectedBytesize);
-
                                 if (ok) {
                                     ok = (byteSize == expectedBytesize);
                                 }
-
                                 sizeDb.MoveToAncestor(1u);
                             }
                         }
-
                         sizeDb.MoveToAncestor(1u);
                     }
                     // numeric
@@ -2469,7 +2466,6 @@ bool SimulinkWrapperGAMTest::TestSetup_StructSignalBytesize() {
                         signalName = sizeDb.GetChildName(parIdx);
                         byteSize = outputs[rootOutputIdx][parIdx]->byteSize;
                         uint32 expectedBytesize = *((uint32*) cdb.GetType(signalName.Buffer()).GetDataPointer());
-
                         ok = (byteSize == expectedBytesize);
                     }
 
@@ -2520,6 +2516,7 @@ bool SimulinkWrapperGAMTest::TestSetup_With3DSignals() {
         "    Out34_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 96   NumberOfDimensions = 1 }"
         "    Out56_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 432  NumberOfDimensions = 1 }"
         "    Out78_NonVirtualBus   = { DataSource = DDB1    Type = uint8      NumberOfElements = 288  NumberOfDimensions = 1 }"
+        "    Out1234_NonVirtualBus = { DataSource = DDB1    Type = uint8      NumberOfElements = 112  NumberOfDimensions = 1 }"
         "    Out3456_NonVirtualBus = { DataSource = DDB1    Type = uint8      NumberOfElements = 528  NumberOfDimensions = 1 }"
         "}"
         ;
@@ -3797,6 +3794,16 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructuredLoggingSignals() {
         "        Matrix3DUint32  = { DataSource = DDB1    Type = uint32     NumberOfElements = 24   NumberOfDimensions = 3 }"
         "        Matrix3DDouble  = { DataSource = DDB1    Type = float64    NumberOfElements = 24   NumberOfDimensions = 3 }"
         "    }"
+        "    Out1234_NonVirtualBus = { "
+        "        Scalar_Structured = { "
+        "            ScalarUint32  = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "            ScalarDouble  = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "        } "
+        "        Vector_Structured = { "
+        "            VectorUint32  = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "            VectorDouble  = { DataSource = DDB1    Type = float64    NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "        } "
+        "    }"
         "    Out3456_NonVirtualBus = { "
         "        Vector_Structured = { "
         "            VectorUint32  = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 }"
@@ -3822,6 +3829,16 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructuredLoggingSignals() {
         "    Log78_NonVirtualBus = { "
         "        Matrix3DUint32  = { DataSource = DDB1    Type = uint32     NumberOfElements = 24   NumberOfDimensions = 3 }"
         "        Matrix3DDouble  = { DataSource = DDB1    Type = float64    NumberOfElements = 24   NumberOfDimensions = 3 }"
+        "    }"
+        "    Log1234_NonVirtualBus = { "
+        "        Scalar_Structured = { "
+        "            ScalarUint32  = { DataSource = DDB1    Type = uint32     NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "            ScalarDouble  = { DataSource = DDB1    Type = float64    NumberOfElements = 1    NumberOfDimensions = 0 }"
+        "        } "
+        "        Vector_Structured = { "
+        "            VectorUint32  = { DataSource = DDB1    Type = uint32     NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "            VectorDouble  = { DataSource = DDB1    Type = float64    NumberOfElements = 8    NumberOfDimensions = 1 }"
+        "        } "
         "    }"
         "    Log3456_NonVirtualBus = { "
         "        Vector_Structured = { "
@@ -3908,6 +3925,10 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructuredLoggingSignals() {
         "                                                                   { 10, 11, 11, 11, 11, 12},"
         "                                                                   { 10, 11, 11, 11, 11, 12},"
         "                                                                   { 10, 11, 11, 11, 11, 12} } "
+        "Log1234_NonVirtualBus.Scalar_Structured.ScalarDouble = (float64) 3.141592653          "
+        "Log1234_NonVirtualBus.Scalar_Structured.ScalarUint32 = (uint32)  2                    "
+        "Log1234_NonVirtualBus.Vector_Structured.VectorDouble = (float64) { 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0 } "
+        "Log1234_NonVirtualBus.Vector_Structured.VectorUint32 = (uint32)  { 0, 1, 2, 3, 4, 5, 6, 7 } "
         ;
 
     StreamString parameters = "";
@@ -4616,6 +4637,7 @@ bool SimulinkWrapperGAMTest::TestExecute_With3DSignals(bool transpose) {
         "    Out34_NonVirtualBus   = { DataSource = DDB1    Type = Vector_Structured_t       NumberOfElements = 1    NumberOfDimensions = 0 } "
         "    Out56_NonVirtualBus   = { DataSource = DDB1    Type = Matrix_Structured_t       NumberOfElements = 1    NumberOfDimensions = 0 } "
         "    Out78_NonVirtualBus   = { DataSource = DDB1    Type = Matrix3D_Structured_t     NumberOfElements = 1    NumberOfDimensions = 0 } "
+        "    Out1234_NonVirtualBus = { DataSource = DDB1    Type = ScalarVector_Structured_t NumberOfElements = 1    NumberOfDimensions = 0 } "
         "    Out3456_NonVirtualBus = { DataSource = DDB1    Type = VectorMatrix_Structured_t NumberOfElements = 1    NumberOfDimensions = 0 } "
         "}"
         ;
@@ -4704,6 +4726,10 @@ bool SimulinkWrapperGAMTest::TestExecute_With3DSignals(bool transpose) {
         " /* 3D matrices must be input as raw data since configuration syntax does not yet support more than 2D */ "
         "Out78_NonVirtualBus.Matrix3DUint32 = (uint8) { 1,   0,   0,   0,   7,   0,   0,   0,   13,   0,   0,   0,   19,   0,   0,   0,   3,   0,   0,   0,   9,   0,   0,   0,   15,   0,   0,   0,   21,   0,   0,   0,   5,   0,   0,   0,   11,   0,   0,   0,   17,   0,   0,   0,   23,   0,   0,   0,   2,   0,   0,   0,   8,   0,   0,   0,   14,   0,   0,   0,   20,   0,   0,   0,   4,   0,   0,   0,   10,   0,   0,   0,   16,   0,   0,   0,   22,   0,   0,   0,   6,   0,   0,   0,   12,   0,   0,   0,   18,   0,   0,   0,   24,   0,   0,   0 } "
         "Out78_NonVirtualBus.Matrix3DDouble = (uint8) { 0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,  28,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  51,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  34,  64,   0,   0,   0,   0,   0,   0,  46,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  20,  64,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  49,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,  32,  64,   0,   0,   0,   0,   0,   0,  44,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  16,  64,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  48,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  24,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  50,  64,   0,   0,   0,   0,   0,   0,  56,  64 } "
+        "Out1234_NonVirtualBus.Scalar_Structured.ScalarDouble = (float64) 3.141592653          "
+        "Out1234_NonVirtualBus.Scalar_Structured.ScalarUint32 = (uint32)  2                    "
+        "Out1234_NonVirtualBus.Vector_Structured.VectorDouble = (float64) { 2.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0} "
+        "Out1234_NonVirtualBus.Vector_Structured.VectorUint32 = (uint32)  { 12, 1, 2, 3, 4, 5, 6, 7 } "
         "Out3456_NonVirtualBus.Vector_Structured.VectorUint32 = (uint32)  { 12, 1, 2, 3, 4, 5, 6, 7 } "
         "Out3456_NonVirtualBus.Vector_Structured.VectorDouble = (float64) { 2.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0 } "
         "Out3456_NonVirtualBus.Matrix_Structured.MatrixUint32 = (uint32)  { {  9, 11, 11, 11, 11, 12},"
@@ -4759,6 +4785,10 @@ bool SimulinkWrapperGAMTest::TestExecute_With3DSignals(bool transpose) {
         " /* 3D matrices must be input as raw data since configuration syntax does not yet support more than 2D */ "
         "Out78_NonVirtualBus.Matrix3DUint32 = (uint8) { 1,   0,   0,   0,   2,   0,   0,   0,   3,   0,   0,   0,   4,   0,   0,   0,   5,   0,   0,   0,   6,   0,   0,   0,   7,   0,   0,   0,   8,   0,   0,   0,   9,   0,   0,   0,   10,   0,   0,   0,   11,   0,   0,   0,   12,   0,   0,   0,   13,   0,   0,   0,   14,   0,   0,   0,   15,   0,   0,   0,   16,   0,   0,   0,   17,   0,   0,   0,   18,   0,   0,   0,   19,   0,   0,   0,   20,   0,   0,   0,   21,   0,   0,   0,   22,   0,   0,   0,   23,   0,   0,   0,   24,   0,   0,   0 } "
         "Out78_NonVirtualBus.Matrix3DDouble = (uint8) { 0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  16,  64,   0,   0,   0,   0,   0,   0,  20,  64,   0,   0,   0,   0,   0,   0,  24,  64,   0,   0,   0,   0,   0,   0,  28,  64,   0,   0,   0,   0,   0,   0,  32,  64,   0,   0,   0,   0,   0,   0,  34,  64,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  44,  64,   0,   0,   0,   0,   0,   0,  46,  64,   0,   0,   0,   0,   0,   0,  48,  64,   0,   0,   0,   0,   0,   0,  49,  64,   0,   0,   0,   0,   0,   0,  50,  64,   0,   0,   0,   0,   0,   0,  51,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0,   0,  56,  64 } "
+        "Out1234_NonVirtualBus.Scalar_Structured.ScalarDouble = (float64) 3.141592653          "
+        "Out1234_NonVirtualBus.Scalar_Structured.ScalarUint32 = (uint32)  2                    "
+        "Out1234_NonVirtualBus.Vector_Structured.VectorDouble = (float64) { 2.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0} "
+        "Out1234_NonVirtualBus.Vector_Structured.VectorUint32 = (uint32)  { 12, 1, 2, 3, 4, 5, 6, 7 } "
         "Out3456_NonVirtualBus.Vector_Structured.VectorUint32 = (uint32)  { 12, 1, 2, 3, 4, 5, 6, 7 } "
         "Out3456_NonVirtualBus.Vector_Structured.VectorDouble = (float64) { 2.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0 } "
         "Out3456_NonVirtualBus.Matrix_Structured.MatrixUint32 = (uint32)  { {  9, 10, 11, 12, 13, 14},"
@@ -4833,6 +4863,7 @@ bool SimulinkWrapperGAMTest::TestExecute_With3DSignals_NoInputs(bool transpose) 
         "    Out34_NonVirtualBus   = { DataSource = DDB1    Type = Vector_Structured_t       NumberOfElements = 1    NumberOfDimensions = 0 } "
         "    Out56_NonVirtualBus   = { DataSource = DDB1    Type = Matrix_Structured_t       NumberOfElements = 1    NumberOfDimensions = 0 } "
         "    Out78_NonVirtualBus   = { DataSource = DDB1    Type = Matrix3D_Structured_t     NumberOfElements = 1    NumberOfDimensions = 0 } "
+        "    Out1234_NonVirtualBus = { DataSource = DDB1    Type = ScalarVector_Structured_t NumberOfElements = 1    NumberOfDimensions = 0 } "
         "    Out3456_NonVirtualBus = { DataSource = DDB1    Type = VectorMatrix_Structured_t NumberOfElements = 1    NumberOfDimensions = 0 } "
         "}"
         ;
@@ -4875,6 +4906,10 @@ bool SimulinkWrapperGAMTest::TestExecute_With3DSignals_NoInputs(bool transpose) 
         " /* 3D matrices must be input as raw data since configuration syntax does not yet support more than 2D */ "
         "Out78_NonVirtualBus.Matrix3DUint32 = (uint8) { 1,   0,   0,   0,   7,   0,   0,   0,   13,   0,   0,   0,   19,   0,   0,   0,   3,   0,   0,   0,   9,   0,   0,   0,   15,   0,   0,   0,   21,   0,   0,   0,   5,   0,   0,   0,   11,   0,   0,   0,   17,   0,   0,   0,   23,   0,   0,   0,   2,   0,   0,   0,   8,   0,   0,   0,   14,   0,   0,   0,   20,   0,   0,   0,   4,   0,   0,   0,   10,   0,   0,   0,   16,   0,   0,   0,   22,   0,   0,   0,   6,   0,   0,   0,   12,   0,   0,   0,   18,   0,   0,   0,   24,   0,   0,   0 } "
         "Out78_NonVirtualBus.Matrix3DDouble = (uint8) { 0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,  28,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  51,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  34,  64,   0,   0,   0,   0,   0,   0,  46,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  20,  64,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  49,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,  32,  64,   0,   0,   0,   0,   0,   0,  44,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  16,  64,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  48,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  24,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  50,  64,   0,   0,   0,   0,   0,   0,  56,  64 } "
+        "Out1234_NonVirtualBus.Scalar_Structured.ScalarDouble = (float64) 1.000000000          "
+        "Out1234_NonVirtualBus.Scalar_Structured.ScalarUint32 = (uint32)  1                    "
+        "Out1234_NonVirtualBus.Vector_Structured.VectorDouble = (float64) { 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0 } "
+        "Out1234_NonVirtualBus.Vector_Structured.VectorUint32 = (uint32)  { 1, 1, 1, 1, 1, 1, 1, 1 } "
         "Out3456_NonVirtualBus.Vector_Structured.VectorUint32 = (uint32)  { 1, 1, 1, 1, 1, 1, 1, 1 } "
         "Out3456_NonVirtualBus.Vector_Structured.VectorDouble = (float64) { 7, 6, 5, 4, 3, 2, 1, 0 } "
         "Out3456_NonVirtualBus.Matrix_Structured.MatrixUint32 = (uint32)  { { 1, 1, 1, 1, 1, 1 },"
@@ -4930,6 +4965,10 @@ bool SimulinkWrapperGAMTest::TestExecute_With3DSignals_NoInputs(bool transpose) 
         " /* 3D matrices must be input as raw data since configuration syntax does not yet support more than 2D */ "
         "Out78_NonVirtualBus.Matrix3DUint32 = (uint8) { 1,   0,   0,   0,   2,   0,   0,   0,   3,   0,   0,   0,   4,   0,   0,   0,   5,   0,   0,   0,   6,   0,   0,   0,   7,   0,   0,   0,   8,   0,   0,   0,   9,   0,   0,   0,   10,   0,   0,   0,   11,   0,   0,   0,   12,   0,   0,   0,   13,   0,   0,   0,   14,   0,   0,   0,   15,   0,   0,   0,   16,   0,   0,   0,   17,   0,   0,   0,   18,   0,   0,   0,   19,   0,   0,   0,   20,   0,   0,   0,   21,   0,   0,   0,   22,   0,   0,   0,   23,   0,   0,   0,   24,   0,   0,   0 } "
         "Out78_NonVirtualBus.Matrix3DDouble = (uint8) { 0,   0,   0,   0,   0,   0, 240,  63,   0,   0,   0,   0,   0,   0,   0,  64,   0,   0,   0,   0,   0,   0,   8,  64,   0,   0,   0,   0,   0,   0,  16,  64,   0,   0,   0,   0,   0,   0,  20,  64,   0,   0,   0,   0,   0,   0,  24,  64,   0,   0,   0,   0,   0,   0,  28,  64,   0,   0,   0,   0,   0,   0,  32,  64,   0,   0,   0,   0,   0,   0,  34,  64,   0,   0,   0,   0,   0,   0,  36,  64,   0,   0,   0,   0,   0,   0,  38,  64,   0,   0,   0,   0,   0,   0,  40,  64,   0,   0,   0,   0,   0,   0,  42,  64,   0,   0,   0,   0,   0,   0,  44,  64,   0,   0,   0,   0,   0,   0,  46,  64,   0,   0,   0,   0,   0,   0,  48,  64,   0,   0,   0,   0,   0,   0,  49,  64,   0,   0,   0,   0,   0,   0,  50,  64,   0,   0,   0,   0,   0,   0,  51,  64,   0,   0,   0,   0,   0,   0,  52,  64,   0,   0,   0,   0,   0,   0,  53,  64,   0,   0,   0,   0,   0,   0,  54,  64,   0,   0,   0,   0,   0,   0,  55,  64,   0,   0,   0,   0,   0,   0,  56,  64 } "
+        "Out1234_NonVirtualBus.Scalar_Structured.ScalarDouble = (float64) 1.000000000          "
+        "Out1234_NonVirtualBus.Scalar_Structured.ScalarUint32 = (uint32)  1                    "
+        "Out1234_NonVirtualBus.Vector_Structured.VectorDouble = (float64) { 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0 } "
+        "Out1234_NonVirtualBus.Vector_Structured.VectorUint32 = (uint32)  { 1, 1, 1, 1, 1, 1, 1, 1 } "
         "Out3456_NonVirtualBus.Vector_Structured.VectorUint32 = (uint32)  { 1, 1, 1, 1, 1, 1, 1, 1 } "
         "Out3456_NonVirtualBus.Vector_Structured.VectorDouble = (float64) { 7, 6, 5, 4, 3, 2, 1, 0 } "
         "Out3456_NonVirtualBus.Matrix_Structured.MatrixUint32 = (uint32)  { { 1, 1, 1, 1, 1, 1 },"
@@ -4995,10 +5034,11 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructArraySignals_NoInputs() {
         "    Out6_MatrixUint32     = { DataSource = DDB1    Type = uint32                    NumberOfElements = 36   NumberOfDimensions = 2 } "
         "    Out7_Matrix3DDouble   = { DataSource = DDB1    Type = float64                   NumberOfElements = 24   NumberOfDimensions = 3 } "
         "    Out8_Matrix3DUint32   = { DataSource = DDB1    Type = uint32                    NumberOfElements = 24   NumberOfDimensions = 3 } "
-        "    Out12_NonVirtualBus   = { DataSource = DDB1    Type = Scalar_Structured_t       NumberOfElements = 24   NumberOfDimensions = 0 } "
-        "    Out34_NonVirtualBus   = { DataSource = DDB1    Type = Vector_Structured_t       NumberOfElements = 6    NumberOfDimensions = 0 } "
-        "    Out56_NonVirtualBus   = { DataSource = DDB1    Type = Matrix_Structured_t       NumberOfElements = 2    NumberOfDimensions = 0 } "
+        "    Out12_NonVirtualBus   = { DataSource = DDB1    Type = Scalar_Structured_t       NumberOfElements = 24   NumberOfDimensions = 1 } "
+        "    Out34_NonVirtualBus   = { DataSource = DDB1    Type = Vector_Structured_t       NumberOfElements = 6    NumberOfDimensions = 1 } "
+        "    Out56_NonVirtualBus   = { DataSource = DDB1    Type = Matrix_Structured_t       NumberOfElements = 2    NumberOfDimensions = 1 } "
         "    Out78_NonVirtualBus   = { DataSource = DDB1    Type = Matrix3D_Structured_t     NumberOfElements = 1    NumberOfDimensions = 0 } "
+        "    Out1234_NonVirtualBus = { DataSource = DDB1    Type = ScalarVector_StructuredArray_t NumberOfElements = 1    NumberOfDimensions = 0 } "
         "    Out3456_NonVirtualBus = { DataSource = DDB1    Type = VectorMatrix_StructuredArray_t NumberOfElements = 1    NumberOfDimensions = 0 } "
         "}"
         ;
@@ -5144,6 +5184,66 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructArraySignals_NoInputs() {
         "                                                                          { 4, 10, 16, 22, 28, 34 },"
         "                                                                          { 5, 11, 17, 23, 29, 35 },"
         "                                                                          { 6, 12, 18, 24, 30, 36 } } "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][1].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][1].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][2].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][2].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][3].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][3].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][1].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][1].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][2].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][2].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][3].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][3].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][1].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][1].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][2].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][2].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][3].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][3].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][1].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][1].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][2].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][2].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][3].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][3].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][1].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][1].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][2].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][2].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][3].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][3].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][1].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][1].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][2].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][2].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][3].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][3].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Vector_Structured[0][0].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][0].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][1].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][1].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][2].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][2].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][0].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][0].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][1].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][1].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][2].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][2].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
         ""
         ;
 
@@ -5288,6 +5388,66 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructArraySignals_NoInputs() {
         "                                                                          { 19, 20, 21, 22, 23, 24 },"
         "                                                                          { 25, 26, 27, 28, 29, 30 },"
         "                                                                          { 31, 32, 33, 34, 35, 36 } } "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][1].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][1].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][2].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][2].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][3].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][3].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][1].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][1].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][2].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][2].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][3].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][3].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][1].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][1].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][2].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][2].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][3].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][3].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][1].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][1].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][2].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][2].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][3].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][3].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][1].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][1].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][2].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][2].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][3].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][3].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][1].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][1].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][2].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][2].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][3].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][3].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Vector_Structured[0][0].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][0].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][1].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][1].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][2].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][2].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][0].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][0].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][1].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][1].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][2].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][2].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
         ""
         ;
 
@@ -5348,7 +5508,8 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructArraySignals(bool transpose) 
         "    Out34_NonVirtualBus   = { DataSource = DDB1    Type = Vector_Structured_t       NumberOfElements = 6    NumberOfDimensions = 0 } "
         "    Out56_NonVirtualBus   = { DataSource = DDB1    Type = Matrix_Structured_t       NumberOfElements = 2    NumberOfDimensions = 0 } "
         "    Out78_NonVirtualBus   = { DataSource = DDB1    Type = Matrix3D_Structured_t     NumberOfElements = 1    NumberOfDimensions = 0 } "
-        "    Out3456_NonVirtualBus = { DataSource = DDB1    Type = VectorMatrix_StructuredArray_t NumberOfElements = 1    NumberOfDimensions = 0 } "
+        "    Out1234_NonVirtualBus = { DataSource = DDB1    Type = ScalarVector_StructuredArray_t NumberOfElements = 1   NumberOfDimensions = 0 } "
+        "    Out3456_NonVirtualBus = { DataSource = DDB1    Type = VectorMatrix_StructuredArray_t NumberOfElements = 1   NumberOfDimensions = 0 } "
         "}"
         ;
 
@@ -5745,6 +5906,66 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructArraySignals(bool transpose) 
         "                                                                          { 4, 10, 16, 22, 28, 34 },"
         "                                                                          { 5, 11, 17, 23, 29, 35 },"
         "                                                                          { 6, 12, 18, 24, 30, 36 } } "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][1].ScalarDouble = (float64) 2          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][1].ScalarUint32 = (uint32)  2          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][2].ScalarDouble = (float64) 3          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][2].ScalarUint32 = (uint32)  3          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][3].ScalarDouble = (float64) 4          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][3].ScalarUint32 = (uint32)  4          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][0].ScalarDouble = (float64) 5          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][0].ScalarUint32 = (uint32)  5          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][1].ScalarDouble = (float64) 6          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][1].ScalarUint32 = (uint32)  6          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][2].ScalarDouble = (float64) 7          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][2].ScalarUint32 = (uint32)  7          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][3].ScalarDouble = (float64) 8          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][3].ScalarUint32 = (uint32)  8          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][0].ScalarDouble = (float64) 9          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][0].ScalarUint32 = (uint32)  9          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][1].ScalarDouble = (float64) 10         "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][1].ScalarUint32 = (uint32)  10         "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][2].ScalarDouble = (float64) 11         "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][2].ScalarUint32 = (uint32)  11         "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][3].ScalarDouble = (float64) 12         "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][3].ScalarUint32 = (uint32)  12         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][0].ScalarDouble = (float64) 13         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][0].ScalarUint32 = (uint32)  13         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][1].ScalarDouble = (float64) 14         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][1].ScalarUint32 = (uint32)  14         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][2].ScalarDouble = (float64) 15         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][2].ScalarUint32 = (uint32)  15         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][3].ScalarDouble = (float64) 16         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][3].ScalarUint32 = (uint32)  16         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][0].ScalarDouble = (float64) 17         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][0].ScalarUint32 = (uint32)  17         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][1].ScalarDouble = (float64) 18         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][1].ScalarUint32 = (uint32)  18         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][2].ScalarDouble = (float64) 19         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][2].ScalarUint32 = (uint32)  19         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][3].ScalarDouble = (float64) 20         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][3].ScalarUint32 = (uint32)  20         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][0].ScalarDouble = (float64) 21         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][0].ScalarUint32 = (uint32)  21         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][1].ScalarDouble = (float64) 22         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][1].ScalarUint32 = (uint32)  22         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][2].ScalarDouble = (float64) 23         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][2].ScalarUint32 = (uint32)  23         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][3].ScalarDouble = (float64) 24         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][3].ScalarUint32 = (uint32)  24         "
+        "Out1234_NonVirtualBus.Vector_Structured[0][0].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][0].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][1].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][1].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][2].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][2].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][0].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][0].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][1].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][1].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][2].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][2].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
         ""
         ;
 
@@ -5889,6 +6110,66 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructArraySignals(bool transpose) 
         "                                                                          { 19, 20, 21, 22, 23, 24 },"
         "                                                                          { 25, 26, 27, 28, 29, 30 },"
         "                                                                          { 31, 32, 33, 34, 35, 36 } } "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][0].ScalarDouble = (float64) 1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][0].ScalarUint32 = (uint32)  1          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][1].ScalarDouble = (float64) 2          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][1].ScalarUint32 = (uint32)  2          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][2].ScalarDouble = (float64) 3          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][2].ScalarUint32 = (uint32)  3          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][3].ScalarDouble = (float64) 4          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][0][3].ScalarUint32 = (uint32)  4          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][0].ScalarDouble = (float64) 5          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][0].ScalarUint32 = (uint32)  5          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][1].ScalarDouble = (float64) 6          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][1].ScalarUint32 = (uint32)  6          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][2].ScalarDouble = (float64) 7          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][2].ScalarUint32 = (uint32)  7          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][3].ScalarDouble = (float64) 8          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][1][3].ScalarUint32 = (uint32)  8          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][0].ScalarDouble = (float64) 9          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][0].ScalarUint32 = (uint32)  9          "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][1].ScalarDouble = (float64) 10         "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][1].ScalarUint32 = (uint32)  10         "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][2].ScalarDouble = (float64) 11         "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][2].ScalarUint32 = (uint32)  11         "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][3].ScalarDouble = (float64) 12         "
+        "Out1234_NonVirtualBus.Scalar_Structured[0][2][3].ScalarUint32 = (uint32)  12         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][0].ScalarDouble = (float64) 13         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][0].ScalarUint32 = (uint32)  13         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][1].ScalarDouble = (float64) 14         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][1].ScalarUint32 = (uint32)  14         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][2].ScalarDouble = (float64) 15         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][2].ScalarUint32 = (uint32)  15         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][3].ScalarDouble = (float64) 16         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][0][3].ScalarUint32 = (uint32)  16         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][0].ScalarDouble = (float64) 17         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][0].ScalarUint32 = (uint32)  17         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][1].ScalarDouble = (float64) 18         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][1].ScalarUint32 = (uint32)  18         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][2].ScalarDouble = (float64) 19         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][2].ScalarUint32 = (uint32)  19         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][3].ScalarDouble = (float64) 20         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][1][3].ScalarUint32 = (uint32)  20         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][0].ScalarDouble = (float64) 21         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][0].ScalarUint32 = (uint32)  21         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][1].ScalarDouble = (float64) 22         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][1].ScalarUint32 = (uint32)  22         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][2].ScalarDouble = (float64) 23         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][2].ScalarUint32 = (uint32)  23         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][3].ScalarDouble = (float64) 24         "
+        "Out1234_NonVirtualBus.Scalar_Structured[1][2][3].ScalarUint32 = (uint32)  24         "
+        "Out1234_NonVirtualBus.Vector_Structured[0][0].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][0].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][1].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][1].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][2].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[0][2].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][0].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][0].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][1].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][1].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][2].VectorDouble    = (float64) { 1, 2, 3, 4, 5, 6, 7, 8 } "
+        "Out1234_NonVirtualBus.Vector_Structured[1][2].VectorUint32    = (uint32)  { 1, 2, 3, 4, 5, 6, 7, 8 } "
         ""
         ;
 
@@ -5912,4 +6193,75 @@ bool SimulinkWrapperGAMTest::TestExecute_WithStructArraySignals(bool transpose) 
     }
 
     return ok && status;
+}
+
+bool SimulinkWrapperGAMTest::TestLinearIndexToSubscripts() {
+
+    bool ok = true;
+
+    Vector<uint32> shape;
+    shape.SetSize(2u);
+    shape[0u] = 4;
+    shape[1u] = 3;
+
+    uint32 ref[12u][2u] = {
+        { 0, 0 },
+        { 0, 1 },
+        { 0, 2 },
+        { 1, 0 },
+        { 1, 1 },
+        { 1, 2 },
+        { 2, 0 },
+        { 2, 1 },
+        { 2, 2 },
+        { 3, 0 },
+        { 3, 1 },
+        { 3, 2 } };
+
+    for (uint32 linearIdx = 0u; ok && (linearIdx < (shape[0u]*shape[1u])); linearIdx++) {
+        Vector<uint32> subscripts = LinearIndexToSubscripts(linearIdx, shape);
+        ok = (MemoryOperationsHelper::Compare( ((uint32*)subscripts.GetDataPointer() ), &ref[linearIdx][0u], 2*sizeof(uint32) ) == 0);
+    }
+
+    if (ok) {
+        shape.SetSize(3u);
+        shape[0u] = 4;
+        shape[1u] = 3;
+        shape[2u] = 2;
+
+        uint32 ref[24u][3u] = {
+            { 0, 0, 0 },
+            { 0, 0, 1 },
+            { 0, 1, 0 },
+            { 0, 1, 1 },
+            { 0, 2, 0 },
+            { 0, 2, 1 },
+            { 1, 0, 0 },
+            { 1, 0, 1 },
+            { 1, 1, 0 },
+            { 1, 1, 1 },
+            { 1, 2, 0 },
+            { 1, 2, 1 },
+            { 2, 0, 0 },
+            { 2, 0, 1 },
+            { 2, 1, 0 },
+            { 2, 1, 1 },
+            { 2, 2, 0 },
+            { 2, 2, 1 },
+            { 3, 0, 0 },
+            { 3, 0, 1 },
+            { 3, 1, 0 },
+            { 3, 1, 1 },
+            { 3, 2, 0 },
+            { 3, 2, 1 } };
+
+        for (uint32 linearIdx = 0u; ok && (linearIdx < (shape[0u]*shape[1u]*shape[2u])); linearIdx++) {
+            Vector<uint32> subscripts = LinearIndexToSubscripts(linearIdx, shape);
+            ok = (MemoryOperationsHelper::Compare( ((uint32*)subscripts.GetDataPointer() ), &ref[linearIdx][0u], 3*sizeof(uint32) ) == 0);
+        }
+
+    }
+
+    return ok;
+
 }

@@ -536,6 +536,8 @@ public:
      */
     bool TestExecute_WithEnumSignals();
 #endif
+
+    bool TestLinearIndexToSubscripts();
     
     /**
      * @brief A general template for the GAM configuration.
@@ -625,6 +627,16 @@ public:
         "        Class = IntrospectionStructure "
         "        Vector_Structured = { NumberOfElements = {2, 3}  Type = Vector_Structured_t } "
         "        Matrix_Structured = { NumberOfElements = {2}     Type = Matrix_Structured_t } "
+        "    } "
+        "    +ScalarVector_Structured_t = { "
+        "        Class = IntrospectionStructure "
+        "        Scalar_Structured = { NumberOfElements = {1}    Type = Scalar_Structured_t } "
+        "        Vector_Structured = { NumberOfElements = {1}    Type = Vector_Structured_t } "
+        "    } "
+        "    +ScalarVector_StructuredArray_t = { "
+        "        Class = IntrospectionStructure "
+        "        Scalar_Structured = { NumberOfElements = {2, 3, 4} Type = Scalar_Structured_t } "
+        "        Vector_Structured = { NumberOfElements = {2, 3}    Type = Vector_Structured_t } "
         "    } "
         "} "
         ;
