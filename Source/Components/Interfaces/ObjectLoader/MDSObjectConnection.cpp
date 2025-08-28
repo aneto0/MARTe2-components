@@ -555,6 +555,10 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
 ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName, StreamString orientation, MDSplus::Data* const nodeData) {
 
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
+    ret.communicationError = (nodeData == NULL);
+    if (bool(ret.communicationError)) {
+        REPORT_ERROR(ret, "[%s] - Parameter %s: nodeData is NULL.", GetName(), nodeName.Buffer());
+    }
 
     // Introspection information from MDSplus will be stored here
     dtype_t MDSDataType = DTYPE_MISSING;
@@ -562,7 +566,7 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
     void*   MDSDataPtr = NULL_PTR(void*);
     Vector<uint32> MDSDimArray = Vector<uint32>(0u);
 
-    if (ret.ErrorsCleared()) {
+    if (ret.ErrorsCleared() && (nodeData != NULL)) {
         try {
             char8  tempMDSDataClass;
             char8  tempMDSDataType;
