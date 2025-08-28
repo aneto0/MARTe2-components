@@ -109,11 +109,9 @@ ErrorManagement::ErrorType ObjectLoader::SerialiseObjects(const bool overwritePa
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
     bool noErrors = ret.ErrorsCleared();
     for (uint32 connectionIdx = 0u; (connectionIdx < Size()) && noErrors; connectionIdx++) {
-
         ReferenceT<ObjectConnectionI> connection = Get(connectionIdx);
         if (connection.IsValid()) {
             for (uint32 paramIdx = 0u; (paramIdx < connection->GetSize()) && noErrors; paramIdx++) {
-
                 AnyType* anyTypeParam = connection->operator[](paramIdx);
                 StreamString paramName = (connection->GetParameterName(paramIdx));
 
@@ -123,12 +121,11 @@ ErrorManagement::ErrorType ObjectLoader::SerialiseObjects(const bool overwritePa
                 }
 
                 if (ret.ErrorsCleared()) {
-
                     ReferenceT<AnyObject> paramObject = Find(paramName.Buffer());
                     if ( (paramObject.IsValid()) && overwriteParams ) {
                         // parameter is already there, cleanup for updating
                         paramObject->CleanUp();
-                        ret.exception = !Delete(paramObject);
+                        if ( Delete(paramObject) ) {}
                     } else {
                         // create new parameter
                         paramObject = ReferenceT<AnyObject>("AnyObject", GlobalObjectsDatabase::Instance()->GetStandardHeap());
@@ -154,7 +151,6 @@ ErrorManagement::ErrorType ObjectLoader::SerialiseObjects(const bool overwritePa
             }
         }
     }
-
     return ret;
 }
 

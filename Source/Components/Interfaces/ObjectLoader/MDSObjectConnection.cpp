@@ -288,9 +288,9 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
             REPORT_ERROR(ErrorManagement::Warning, "[%s] - Parameter %s: unlinked, no value stored.", GetName(), nodeName.Buffer());
             AnyType* anyTypeParam = new AnyType(0u);
             anyTypeParam->SetStaticDeclared(false);   // unlinked
-            ret.exception = Add(anyTypeParam);
+            ret.exception = !Add(anyTypeParam);
             if (ret.ErrorsCleared()) {
-                ret.exception = paramNames.Add(new StreamString(nodeName));
+                ret.exception = !paramNames.Add(new StreamString(nodeName));
             }
         }
     }
@@ -315,12 +315,12 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
 
         // evaluate node usage
         usage_t nodeUsage = TreeUSAGE_MAXIMUM;
-        if ( (ret.ErrorsCleared()) && (mdsTree != NULL) && (mdsConnection != NULL) ) {
+        if ( ret.ErrorsCleared() && ( (mdsTree != NULL) || (mdsConnection != NULL) ) ) {
 
             // create a valid temporary path for nodes with %u in the path
             StreamString tempMDSPath = "";
             if ((startIdx != 0u) && (stopIdx != 0u)) {
-                ret.exception = tempMDSPath.Printf(MDSPath.Buffer(), startIdx);
+                ret.exception = !tempMDSPath.Printf(MDSPath.Buffer(), startIdx);
             } else {
                 tempMDSPath = MDSPath;
             }
@@ -344,7 +344,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                 }
                 else /*if (clientType == ThinClient)*/ {
                     StreamString usageExpr = "";
-                    ret.exception = usageExpr.Printf("GETNCI('%s', 'USAGE')", tempMDSPath.Buffer());
+                    ret.exception = !usageExpr.Printf("GETNCI('%s', 'USAGE')", tempMDSPath.Buffer());
                     MDSplus::Data* nodeUsageData = mdsConnection->get(usageExpr.Buffer());
                     nodeUsage = static_cast<usage_t>(nodeUsageData->getByte()); //lint !e930 Justification: the enum source has the same range of the enum destination. Conversion is safe.
                 }
@@ -376,7 +376,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                     "     _swgVec = _swgVec[0:%u];                                 "
                     " _swgVec                                                      ";
 
-                ret.exception = expandedMDSPath.Printf(tdiExpr.Buffer(), targetDim, MDSPath.Buffer(), targetDim - 1u);
+                ret.exception = !expandedMDSPath.Printf(tdiExpr.Buffer(), targetDim, MDSPath.Buffer(), targetDim - 1u);
             }
             // Modify path if StartIdx and StopIdx options are specified
             else if ( (targetDim == 0u) && ( (startIdx != 0u) || (stopIdx != 0u) ) ) {
@@ -386,7 +386,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                 /*lint -e{850} Justification: currIdx is not modified within the loop*/
                 for (uint32 currIdx = startIdx; ret.ErrorsCleared() && (currIdx <= stopIdx); currIdx++) {
                     StreamString currNode;
-                    ret.exception = currNode.Printf(MDSPath.Buffer(), currIdx);
+                    ret.exception = !currNode.Printf(MDSPath.Buffer(), currIdx);
                     expandedMDSPath += currNode;
                     if (currIdx != stopIdx)
                     {
@@ -407,7 +407,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
         }
 
         // get the actual data
-        if ( (ret.ErrorsCleared()) && (mdsConnection != NULL) && (mdsTree != NULL) ) {
+        if ( (ret.ErrorsCleared()) && ( (mdsConnection != NULL) || (mdsTree != NULL) ) ) {
             // ordinay node, read node Data
             if (nodeUsage != TreeUSAGE_STRUCTURE) {
                 MDSplus::Data* nodeData = NULL_PTR(MDSplus::Data*);
@@ -466,7 +466,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                                     (minPath.BufferReference())[dashIdx] = '.';
                                 }
                                 StreamString relativePath = "";
-                                ret.exception = relativePath.Printf("%s%s%s", nodeName.Buffer(), (minPath[0u] == '.') ? "" : ".", minPath.Buffer());
+                                ret.exception = !relativePath.Printf("%s%s%s", nodeName.Buffer(), (minPath[0u] == '.') ? "" : ".", minPath.Buffer());
 
                                 ret = AddAnyType(relativePath, orientation, membersArray[elemIdx]->getData());
                             }
@@ -478,7 +478,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                     else /*if (clientType == ThinClient)*/ {
 
                         StreamString tdiCall = "";
-                        ret.exception = tdiCall.Printf("GETNCI(%s, 'PATH')", expandedMDSPath.Buffer());
+                        ret.exception = !tdiCall.Printf("GETNCI(%s, 'PATH')", expandedMDSPath.Buffer());
                         MDSplus::Data* structNodePath = mdsConnection->get(tdiCall.Buffer());
                         StaticStack<MDSplus::Data*> nodeStack;
                         ret.exception = !nodeStack.Push(structNodePath);
@@ -493,24 +493,25 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
 
                             // subnodes: add to the stack
                             tdiCall = "";
-                            ret.exception = tdiCall.Printf("GETNCI(%s, 'NUMBER_OF_CHILDREN')", currentNodePath->getString());
+                            ret.exception = !tdiCall.Printf("GETNCI(%s, 'NUMBER_OF_CHILDREN')", currentNodePath->getString());
                             int32 numChildren = (mdsConnection->get(tdiCall.Buffer()))->getInt();
                             /*lint -e{850} Justification: itemIdx is not modified within the loop*/
                             for (int32 elemIdx = 0; ret.ErrorsCleared() && (elemIdx < numChildren); elemIdx++) {
                                 tdiCall = "";
-                                ret.exception = tdiCall.Printf("GETNCI(GETNCI(%s, 'CHILDREN_NIDS'), 'MINPATH')[%i]", currentNodePath->getString(), elemIdx);
+                                ret.exception = !tdiCall.Printf("GETNCI(GETNCI(%s, 'CHILDREN_NIDS'), 'MINPATH')[%i]", currentNodePath->getString(), elemIdx);
                                 MDSplus::Data* childrenArrayElem = mdsConnection->get(tdiCall.Buffer());
                                 ret.exception = !nodeStack.Push(childrenArrayElem);
                             }
 
                             // leaves: add parameters to this connection
                             tdiCall = "";
-                            ret.exception = tdiCall.Printf("GETNCI(%s, 'NUMBER_OF_MEMBERS')", currentNodePath->getString());
+                            ret.exception = !tdiCall.Printf("GETNCI(%s, 'NUMBER_OF_MEMBERS')", currentNodePath->getString());
                             int32 numMembers = (mdsConnection->get(tdiCall.Buffer()))->getInt();
                             /*lint -e{850} Justification: itemIdx is not modified within the loop*/
+
                             for (int32 elemIdx = 0; ret.ErrorsCleared() && (elemIdx < numMembers); elemIdx++) {
                                 tdiCall = "";
-                                ret.exception = tdiCall.Printf("GETNCI(GETNCI(%s, 'MEMBER_NIDS'),'MINPATH')[%i]", currentNodePath->getString(), elemIdx);
+                                ret.exception = !tdiCall.Printf("GETNCI(GETNCI(%s, 'MEMBER_NIDS'),'MINPATH')[%i]", currentNodePath->getString(), elemIdx);
                                 MDSplus::Data* memberPath = mdsConnection->get(tdiCall.Buffer());
 
                                 StreamString minPath = memberPath->getString();
@@ -519,7 +520,7 @@ ErrorManagement::ErrorType MDSObjectConnection::ConnectParameter(StreamString no
                                     (minPath.BufferReference())[dashIdx] = '.';
                                 }
                                 StreamString relativePath = "";
-                                ret.exception = relativePath.Printf("%s%s%s", nodeName.Buffer(), (minPath[0u] == '.') ? "" : ".", minPath.Buffer());
+                                ret.exception = !relativePath.Printf("%s%s%s", nodeName.Buffer(), (minPath[0u] == '.') ? "" : ".", minPath.Buffer());
 
                                 ret = AddAnyType(relativePath, orientation, mdsConnection->get(minPath.Buffer()));
                             }
@@ -749,7 +750,6 @@ ErrorManagement::ErrorType MDSObjectConnection::AddAnyType(StreamString nodeName
             }
             if (ret.ErrorsCleared()) {
                 anyTypeParam->SetStaticDeclared(true);   // linked
-
                 ret.fatalError = !Add(anyTypeParam);
                 ret.exception  = !paramNames.Add(new StreamString(nodeName));
                 if (ret.ErrorsCleared()) {
