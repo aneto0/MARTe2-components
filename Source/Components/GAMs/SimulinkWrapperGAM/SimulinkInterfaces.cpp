@@ -51,6 +51,7 @@ namespace MARTe
 SimulinkInterface::SimulinkInterface() {
 
     interfaceName = "";
+    structPath    = "";
     fullPath      = "";
 
     interfaceType = InvalidInterface;
@@ -475,8 +476,8 @@ void SimulinkRootInterface::Print(uint64 paddingLength /*= 50u*/, StreamString p
             // calculate the substructure bytesize
             uint32 structBytesize = GetInterfaceBytesize(rootStructure);
 
-            REPORT_ERROR_STATIC(ErrorManagement::Information, "%s| struct  | % 4d | % 5d | % 4!%s | %p | %d [s]", printName.Buffer(),
-                                MARTeNumOfDims, numOfElements, dimensions, sizeFiller.Buffer(), structAddr, structBytesize);
+            REPORT_ERROR_STATIC(ErrorManagement::Information, "%s| struct  | % 4d | % 5d | % 4!%s | %p | %d [struct]", printName.Buffer(),
+                                MARTeNumOfDims, numOfElements, dimensions, sizeFiller.Buffer(), structAddr, numOfElements*structBytesize);
 
             StreamString passedSpacer = parentSpacer;
             if (currNumOfChildren != parIdx + 1u) {
@@ -505,7 +506,7 @@ void SimulinkRootInterface::Print(uint64 paddingLength /*= 50u*/, StreamString p
             } else if (interfaceName == "_padding_") {
                 uint32 paddingSize = 0u;
                 rootStructure.Read(interfaceName.Buffer(), paddingSize);
-                REPORT_ERROR_STATIC(ErrorManagement::Information, "%s| void    | -    | -     | -                   | -                  | %d [p]", printName.Buffer(), paddingSize);
+                REPORT_ERROR_STATIC(ErrorManagement::Information, "%s| void    | -    | -     | -                   | -                  | %d [pad]", printName.Buffer(), paddingSize);
             } else {
                 uint32 interfaceIdx = 0u;
                 rootStructure.Read(interfaceName.Buffer(), interfaceIdx);
@@ -535,7 +536,19 @@ uint32 SimulinkRootInterface::GetInterfaceBytesize(ConfigurationDatabase structu
         // node
         if (structureIn.MoveToChild(parIdx)) {
             uint32 currentStructureBytesize = GetInterfaceBytesize(structureIn);
-            structureBytesize += currentStructureBytesize;
+            uint32 numOfElements = 1u;
+            AnyType arrayDescription = structureIn.GetType("__Dimensions__");
+            if (arrayDescription.GetDataPointer() != NULL_PTR(void *)) {
+                uint32  numOfDims = arrayDescription.GetNumberOfElements(0u);
+                uint32* dimPtr = new uint32[numOfDims];
+                dimensions = Vector<uint32>(dimPtr, numOfDims);
+                if (structureIn.Read("__Dimensions__", dimensions)) {
+                    for (uint32 dimIdx = 0u; dimIdx < numOfDims; dimIdx++) {
+                        numOfElements *= dimensions[dimIdx];
+                    }
+                }
+            }
+            structureBytesize += numOfElements*currentStructureBytesize;
             structureIn.MoveToAncestor(1u);
         }
         // leaf

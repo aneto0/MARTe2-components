@@ -1357,9 +1357,9 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
     ErrorManagement::ErrorType ret = ErrorManagement::NoError;
     ret.exception = (dataTypeMap == NULL) || (dimArray == NULL) || (dimMap == NULL) || (dataAddrMap == NULL);
 
-    StreamString interfaceName = "";
-    StreamString parentPath = "";
-    StreamString fullPath   = "";
+    StreamString interfaceName  = "";
+    StreamString structPath     = "";
+    StreamString fullPath       = "";
 
     uint16       typeIdx = 0u;
     uint16  dimensionIdx = 0u;
@@ -1415,7 +1415,6 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
                 dimensionIdx  = rtwCAPI_GetElementDimensionIdx(elementStruct, sigIdx);
                 dataAddr      = static_cast<uint8*>(parentAddr) + rtwCAPI_GetElementOffset(elementStruct, sigIdx); //lint !e9016 Justification: pointer arithmetic is required by the Simulink C-APIs
 
-                parentPath = parentName;
                 fullPath += parentName;
                 fullPath += ".";
                 fullPath += interfaceName;
@@ -1486,7 +1485,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
         if ( mode != Element ) { // root level interface
 
             interfaceArray.interfaceName = interfaceName;
-            interfaceArray.parentPath    = parentPath;
+            interfaceArray.structPath    = "";
             interfaceArray.fullPath      = fullPath;
             interfaceArray.interfaceType = mode;
 
@@ -1546,22 +1545,32 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
                 }
             }
 
+            // detect padding
             if (ret.ErrorsCleared()) {
-                // detect padding
                 if (mode != Element) {
                     for (uint32 elemIdx = 0u; ret.ErrorsCleared() && (elemIdx < interfaceArray.GetSize() - 1u); elemIdx++) {
                         uint8* endOfElemMemory   = static_cast<uint8*>(interfaceArray[elemIdx]->dataAddr) + interfaceArray[elemIdx]->byteSize;
                         uint8* startOfNextMemory = static_cast<uint8*>(interfaceArray[elemIdx + 1u]->dataAddr);
 
                         if (endOfElemMemory != startOfNextMemory) {
-                            bool ok1 = (interfaceArray.rootStructure).MoveAbsolute(interfaceArray[elemIdx]->parentPath.Buffer());
-                            (interfaceArray.rootStructure).Write("_padding_", static_cast<uint32>(startOfNextMemory - endOfElemMemory));
-                            (interfaceArray.rootStructure).MoveToAncestor(1u);
+                            bool isSubStruct = (interfaceArray.rootStructure).MoveRelative(interfaceArray[elemIdx]->structPath.Buffer());
+                            bool okWrite     = false;
+                            bool okReturn    = false;
+                            if ( isSubStruct ) {
+                                okWrite = (interfaceArray.rootStructure).Write("_padding_", static_cast<uint32>(startOfNextMemory - endOfElemMemory));
+                                okReturn = (interfaceArray.rootStructure).MoveToAncestor(1u);
+                            } else {
+                                okWrite = (interfaceArray.rootStructure).Write("_padding_", static_cast<uint32>(startOfNextMemory - endOfElemMemory));
+                                okReturn = true;
+                            }
+                            ret.exception = !( okWrite && okReturn );
                        }
                     }
                 }
+            }
 
-                // struct info are written in the associated ConfigurationDatabase
+            // struct info are written in the associated ConfigurationDatabase
+            if (ret.ErrorsCleared()) {
                 ret.exception = !( (interfaceArray.rootStructure).Write("__Dimensions__", dimensions) );
                 if (!ret.exception) {
                     ret.exception = !( (interfaceArray.rootStructure).MoveToAncestor(1u) );
@@ -1573,7 +1582,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
             SimulinkInterface* currentInterface = new SimulinkInterface();
 
             currentInterface->interfaceName = interfaceName;
-            currentInterface->parentPath    = parentPath;
+            currentInterface->structPath    = (interfaceArray.rootStructure).GetName();
             currentInterface->fullPath      = fullPath;
             currentInterface->interfaceType = mode;
 

@@ -95,7 +95,7 @@ public:
     SimulinkInterface();
 
     StreamString interfaceName;                 //!< Name of this interface
-    StreamString parentPath;                    //!< The parent path of this interface
+    StreamString structPath;                    //!< The parent path of this interface without indices (e.g. `myInterface.subElem` instead of `myInterface[0][1].subElem`)
     StreamString fullPath;                      //!< Fully expanded signal path (different from interfaceName in structured interfaces only)
 
     InterfaceType interfaceType;
