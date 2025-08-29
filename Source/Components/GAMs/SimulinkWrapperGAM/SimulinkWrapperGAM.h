@@ -1328,7 +1328,7 @@ static inline Vector<uint32> LinearIndexToSubscripts(const uint32 linearIdxIn, c
 // struct arrays seem to be always in row-major orientation
 
 //     if (orientation == rtwCAPI_MATRIX_ROW_MAJOR || orientation == rtwCAPI_MATRIX_ROW_MAJOR_ND) {
-    for (uint32 idx = numOfDims - 1u; idx < numOfDims; --idx) {
+    for (int64 idx = numOfDims - 1u; idx >= 0; --idx) {
         uint32 iSub = linearIdx % shape[idx];
         linearIdx -= iSub;
         linearIdx /= shape[idx];
