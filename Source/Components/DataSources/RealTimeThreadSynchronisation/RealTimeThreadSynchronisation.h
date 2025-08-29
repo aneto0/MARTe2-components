@@ -313,6 +313,8 @@ private:
      * If 1 => first reset and then wait at the synchronisation point.
      */
     uint8 waitForNext;
+
+    StreamString datasourceName;
 };
 }
 
