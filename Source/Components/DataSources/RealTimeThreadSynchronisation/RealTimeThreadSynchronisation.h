@@ -48,7 +48,9 @@ namespace MARTe {
  *  The synchronisation is based on double buffer protected with two mux and two semaphores, one for each buffer. It allows to block one buffer to write while reading in the other buffer.
  *  The use case assumes that the consumer thread of the buffer (the reader) ends its cycle faster than the producer thread (the writer), in this condition the double buffer acts like FIFO.
  *
- *  @warning In an overwrite scenario an specific very unlikely thread cycle times, the reader could, in theory, read the new data before the old date (see test RealTimeThreadSynchronisationTest::TestInvertedData()).
+ *  When the two buffers are full the data is overwrite by the writing thread, in this scenario the AddSample() report the overwrite and updates the index where the reader wants to read, to point to the oldest data.
+ *
+ * @warning Since two buffer mechanism is used, the reader can be delayed (not using the most recent data), but the reader can catch the writer if runs fast enough.
  *
  * Only one GAM is allowed to write into this DataSource. More than one GAM may read in the same thread, but it should be noted that the
  *  reading is blocking and this will force multiple synchronisation points (which has an unspecified behaviour and thus should be avoided).

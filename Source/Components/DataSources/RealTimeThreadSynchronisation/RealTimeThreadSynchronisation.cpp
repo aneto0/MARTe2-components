@@ -177,7 +177,7 @@ bool RealTimeThreadSynchronisation::Initialise(StructuredDataI & data) {
         printOverwrite = false;
         REPORT_ERROR(ErrorManagement::Information, "Using printOverwrite default value. printOverwrite = false");
     }else{
-        if (auxRead == 0){
+        if (auxRead == 0u){
             printOverwrite = false;
         }
         else{

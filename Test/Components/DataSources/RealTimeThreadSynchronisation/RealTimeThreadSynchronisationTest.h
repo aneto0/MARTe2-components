@@ -91,6 +91,11 @@ public:
     bool TestInitialise_Timeout();
 
     /**
+     * @brief Tests the Initialise method with a timeout different from the default timeout
+     */
+    bool TestInitialise_printOverwrite();
+
+    /**
      * @brief Tests the GetSynchroniseTimeout method.
      */
     bool TestGetSynchroniseTimeout();
@@ -170,11 +175,6 @@ public:
      * @brief Tests that the the overwrite buffer message
      */
     bool TestBufferOverwrite();
-
-    /**
-     * @brief Test the wierd case where new data is read before the old data
-     */
-    bool TestInvertedData();
 
     /**
      * @brief Tests that GetNumberOfStatefulMemoryBuffers returns 2

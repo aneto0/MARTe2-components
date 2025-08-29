@@ -58,6 +58,7 @@ RealTimeThreadSynchBroker::RealTimeThreadSynchBroker() :
     waitForNext = 0u;
     mux[0].Create();
     mux[1].Create();
+    muxCurrentBufferIdxRead.Create();
     memoryIsWritten[0] = 0u;
     memoryIsWritten[1] = 0u;
 }
@@ -156,10 +157,14 @@ bool RealTimeThreadSynchBroker::AllocateMemory(char8 *const dataSourceMemoryIn,
     }
     if (ok) {
         ok = synchSem[0].Create();
+    }
+    if (ok) {
         ok = synchSem[1].Create();
     }
     if (ok) {
         ok = synchSem[0].Reset();
+    }
+    if (ok) {
         ok = synchSem[1].Reset();
     }
     return ok;
@@ -191,7 +196,8 @@ bool RealTimeThreadSynchBroker::AddSample(bool &bufferOverwrite) {
             }
         }
         //Rise the barrier in order to avoid to read if we start to write one sample and there is more than one sample to write.
-        synchSem[currentBufferIdxWrite].Reset(); //As soon as we start to write to the buffer we rise the barrier. Also an if with currentSamples == 0 can be implemented to reset only once
+        bool auxOk = synchSem[currentBufferIdxWrite].Reset(); //As soon as we start to write to the buffer we rise the barrier. Also an if with currentSamples == 0 can be implemented to reset only once
+        ok = ok && auxOk;
     }
     mux[currentBufferIdxWrite].FastUnLock();
     currentSample++;
@@ -199,7 +205,18 @@ bool RealTimeThreadSynchBroker::AddSample(bool &bufferOverwrite) {
         currentSample = 0u;
         if (mux[currentBufferIdxWrite].FastLock() == ErrorManagement::NoError) {
             bufferOverwrite = memoryIsWritten[currentBufferIdxWrite] == 1u;
-            memoryIsWritten[currentBufferIdxWrite] = 1;
+            if (bufferOverwrite) { //Points to the old data.
+                if (muxCurrentBufferIdxRead.FastLock() == ErrorManagement::NoError) {
+                    if (currentBufferIdxWrite == 0u) {
+                        currentBufferIdxRead = 1u;
+                    }
+                    else {
+                        currentBufferIdxRead = 0u;
+                    }
+                }
+                muxCurrentBufferIdxRead.FastUnLock();
+            }
+            memoryIsWritten[currentBufferIdxWrite] = 1u;
             ok = synchSem[currentBufferIdxWrite].Post();
         }
         mux[currentBufferIdxWrite].FastUnLock();
@@ -221,39 +238,44 @@ bool RealTimeThreadSynchBroker::Execute() {
 
     //First Reset 
     if (waitForNext == 1u) {
-        if (mux[currentBufferIdxRead].FastLock() == ErrorManagement::NoError) {
-            ok = synchSem[currentBufferIdxRead].Reset();
-        }
-        mux[currentBufferIdxRead].FastUnLock();
-        if (ok) {
-            ok = (synchSem[currentBufferIdxRead].Wait(timeout) == ErrorManagement::NoError);
-        }
-    }
-    //First wait
-    else {
-        ok = (synchSem[currentBufferIdxRead].Wait(timeout) == ErrorManagement::NoError);
-        if (ok) {
+        if (muxCurrentBufferIdxRead.FastLock() == ErrorManagement::NoError) {
             if (mux[currentBufferIdxRead].FastLock() == ErrorManagement::NoError) {
                 ok = synchSem[currentBufferIdxRead].Reset();
             }
             mux[currentBufferIdxRead].FastUnLock();
+            if (ok) {
+                ok = (synchSem[currentBufferIdxRead].Wait(timeout) == ErrorManagement::NoError);
+            }
+        }
+    }
+    //First wait
+    else {
+        if (muxCurrentBufferIdxRead.FastLock() == ErrorManagement::NoError) {
+            ok = (synchSem[currentBufferIdxRead].Wait(timeout) == ErrorManagement::NoError);
+            if (ok) {
+                if (mux[currentBufferIdxRead].FastLock() == ErrorManagement::NoError) {
+                    ok = synchSem[currentBufferIdxRead].Reset();
+                }
+                mux[currentBufferIdxRead].FastUnLock();
+            }
         }
     }
     uint32 n;
-    if (mux[currentBufferIdxRead].FastLock()) {
+    if (mux[currentBufferIdxRead].FastLock() == ErrorManagement::NoError) {
         if (copyTable != NULL_PTR(MemoryMapBrokerCopyTableEntry*)) {
             for (n = 0u; (n < numberOfCopies) && (ok); n++) {
                 uint32 dataSourceIndex = ((currentBufferIdxRead * numberOfCopies) + n);
                 ok = MemoryOperationsHelper::Copy(copyTable[n].gamPointer, copyTable[dataSourceIndex].dataSourcePointer, copyTable[n].copySize);
             }
         }
-        memoryIsWritten[currentBufferIdxRead] = 0;
+        memoryIsWritten[currentBufferIdxRead] = 0u;
     }
     mux[currentBufferIdxRead].FastUnLock();
     currentBufferIdxRead++;
-    if(currentBufferIdxRead > 1u){
+    if (currentBufferIdxRead > 1u) {
         currentBufferIdxRead = 0u;
     }
+    muxCurrentBufferIdxRead.FastUnLock();
     return ok;
 }
 

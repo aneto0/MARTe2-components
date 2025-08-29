@@ -124,7 +124,7 @@ private:
     uint32 currentBufferIdxWrite;
 
     /**
-     * Dual-buffer pointer for the read action. This variable CANNOT be used in the AddSample() because AddSample() is in the context of thread A and Execute is in the context of thread B and no mux is used.
+     * Dual-buffer pointer for the read action. This variable is updated by AddSample() when an overwrite is detected
      */
     uint32 currentBufferIdxRead;
 
@@ -187,6 +187,11 @@ private:
      * Protect the event sem one for each buffer
      */
     FastPollingMutexSem mux[2];
+
+    /**
+     * mutex to protect concurrent access to currentBufferIdxRead
+     */
+    FastPollingMutexSem muxCurrentBufferIdxRead;
 };
 }
 

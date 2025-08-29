@@ -552,21 +552,7 @@ static const MARTe::char8 *const config12 = ""
         "                    Type = uint16"
         "                    DataSource = RealTimeThreadSynchronisationTest"
         "                    NumberOfDimensions = 1"
-        "                    NumberOfElements = 3"
-        "                }"
-        "                SignalUInt32 = {"
-        "                    Type = uint32"
-        "                    DataSource = RealTimeThreadSynchronisationTest"
-        "                }"
-        "                SignalUInt64 = {"
-        "                    Type = uint64"
-        "                    DataSource = RealTimeThreadSynchronisationTest"
-        "                    NumberOfDimensions = 1"
-        "                    NumberOfElements = 5"
-        "                }"
-        "                SignalInt32 = {"
-        "                    Type = int32"
-        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    NumberOfElements = 1"
         "                }"
         "            }"
         "        }"
@@ -577,21 +563,7 @@ static const MARTe::char8 *const config12 = ""
         "                    Type = uint16"
         "                    DataSource = RealTimeThreadSynchronisationTest"
         "                    NumberOfDimensions = 1"
-        "                    NumberOfElements = 3"
-        "                }"
-        "                SignalUInt32 = {"
-        "                    Type = uint32"
-        "                    DataSource = RealTimeThreadSynchronisationTest"
-        "                }"
-        "                SignalUInt64 = {"
-        "                    Type = uint64"
-        "                    DataSource = RealTimeThreadSynchronisationTest"
-        "                    NumberOfDimensions = 1"
-        "                    NumberOfElements = 5"
-        "                }"
-        "                SignalInt32 = {"
-        "                    Type = int32"
-        "                    DataSource = RealTimeThreadSynchronisationTest"
+        "                    NumberOfElements = 1"
         "                }"
         "            }"
         "        }"
@@ -2335,6 +2307,17 @@ bool RealTimeThreadSynchronisationTest::TestInitialise_Timeout() {
     return ok;
 }
 
+bool RealTimeThreadSynchronisationTest::TestInitialise_printOverwrite() {
+    using namespace MARTe;
+    RealTimeThreadSynchronisation test;
+    ConfigurationDatabase cdb;
+    uint8 printOverwriteTest = 0;
+    cdb.Write("PrintOverwrite", printOverwriteTest);
+    bool ok = test.Initialise(cdb);
+
+    return ok;
+}
+
 bool RealTimeThreadSynchronisationTest::TestGetSynchroniseTimeout() {
     return TestInitialise_Timeout();
 }
@@ -3090,81 +3073,50 @@ bool RealTimeThreadSynchronisationTest::TestBufferOverwrite() {
     if (ok) {
         ok = application->StartNextStateExecution();
     }
+    uint32 nOfBuffers = 2u;
+    uint16 **buffers = new uint16*[nOfBuffers];    //help to check the read data
+    for (uint32 i = 0u; i < nOfBuffers; i++) {
+        buffers[i] = new uint16[gam1Thread1->uint16SignalElements];
+    }
+    uint32 bufferIdx = 0u;
     uint32 e;
     uint32 j = 1;
     for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
         gam1Thread1->uint16Signal[e] = ((j + 1) + e);
-    }
-    for (e = 0u; (e < gam1Thread1->uint32SignalElements); e++) {
-        gam1Thread1->uint32Signal[e] = ((j + 1) * gam1Thread1->uint16SignalElements + e);
-    }
-    for (e = 0u; (e < gam1Thread1->uint64SignalElements); e++) {
-        gam1Thread1->uint64Signal[e] = ((j + 1) * (gam1Thread1->uint16SignalElements + gam1Thread1->uint32SignalElements) + e);
-    }
-    for (e = 0u; (e < gam1Thread1->int32SignalElements); e++) {
-        gam1Thread1->int32Signal[e] =
-                ((j + 1) * (gam1Thread1->uint16SignalElements + gam1Thread1->uint32SignalElements + gam1Thread1->uint64SignalElements) + e);
+        buffers[bufferIdx][e] = ((j + 1) + e);
     }
     scheduler->ExecuteThreadCycle(0); //Fill the first buffer
     j = 2;
+    bufferIdx = 1u;
     for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
         gam1Thread1->uint16Signal[e] = ((j + 1) + e);
+        buffers[bufferIdx][e] = ((j + 1) + e);
     }
-    for (e = 0u; (e < gam1Thread1->uint32SignalElements); e++) {
-        gam1Thread1->uint32Signal[e] = ((j + 1) * gam1Thread1->uint16SignalElements + e);
-    }
-    for (e = 0u; (e < gam1Thread1->uint64SignalElements); e++) {
-        gam1Thread1->uint64Signal[e] = ((j + 1) * (gam1Thread1->uint16SignalElements + gam1Thread1->uint32SignalElements) + e);
-    }
-    for (e = 0u; (e < gam1Thread1->int32SignalElements); e++) {
-        gam1Thread1->int32Signal[e] =
-                ((j + 1) * (gam1Thread1->uint16SignalElements + gam1Thread1->uint32SignalElements + gam1Thread1->uint64SignalElements) + e);
-    }
+
     scheduler->ExecuteThreadCycle(0); //Fill the second buffer
     j = 3;
+    bufferIdx = 0u;
     for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
         gam1Thread1->uint16Signal[e] = ((j + 1) + e);
+        buffers[bufferIdx][e] = ((j + 1) + e);
     }
-    for (e = 0u; (e < gam1Thread1->uint32SignalElements); e++) {
-        gam1Thread1->uint32Signal[e] = ((j + 1) * gam1Thread1->uint16SignalElements + e);
-    }
-    for (e = 0u; (e < gam1Thread1->uint64SignalElements); e++) {
-        gam1Thread1->uint64Signal[e] = ((j + 1) * (gam1Thread1->uint16SignalElements + gam1Thread1->uint32SignalElements) + e);
-    }
-    for (e = 0u; (e < gam1Thread1->int32SignalElements); e++) {
-        gam1Thread1->int32Signal[e] =
-                ((j + 1) * (gam1Thread1->uint16SignalElements + gam1Thread1->uint32SignalElements + gam1Thread1->uint64SignalElements) + e);
-    }
-    scheduler->ExecuteThreadCycle(0); //Overwrite the first buffer.
-    scheduler->ExecuteThreadCycle(1); //Consume last data.
-    //Thread 2 should always have the same values of thread 1
+
+    scheduler->ExecuteThreadCycle(0); //Overwrite the first buffer. overwrite the 1
+    scheduler->ExecuteThreadCycle(1); //Consume old data. (second buffer)
+    bufferIdx = 1u;
     for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
-        ok = (gam1Thread1->uint16Signal[e] == gam1Thread2->uint16Signal[e]);
+        ok = (buffers[bufferIdx][e] == gam1Thread2->uint16Signal[e]);
     }
-    for (e = 0u; (e < gam1Thread1->uint32SignalElements) && (ok); e++) {
-        ok = (gam1Thread1->uint32Signal[e] == gam1Thread2->uint32Signal[e]);
-    }
-    for (e = 0u; (e < gam1Thread1->uint64SignalElements) && (ok); e++) {
-        ok = (gam1Thread1->uint64Signal[e] == gam1Thread2->uint64Signal[e]);
-    }
-    for (e = 0u; (e < gam1Thread1->int32SignalElements) && (ok); e++) {
-        ok = (gam1Thread1->int32Signal[e] == gam1Thread2->int32Signal[e]);
+    scheduler->ExecuteThreadCycle(1); //Consume data. (first buffer). Reader catch writer (normal scenario).
+    bufferIdx = 0u;
+    for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
+        ok = (buffers[bufferIdx][e] == gam1Thread2->uint16Signal[e]);
     }
     uint32 numberOfExecutions = 0u;
     for (j = 0u; (j < numberOfExecutions) && (ok); j++) {    //Make sure that after buffer overwrite everything still working
         uint32 e;
-        for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
-            gam1Thread1->uint16Signal[e] = ((j + 1) + e);
-        }
-        for (e = 0u; (e < gam1Thread1->uint32SignalElements); e++) {
-            gam1Thread1->uint32Signal[e] = ((j + 1) * gam1Thread1->uint16SignalElements + e);
-        }
-        for (e = 0u; (e < gam1Thread1->uint64SignalElements); e++) {
-            gam1Thread1->uint64Signal[e] = ((j + 1) * (gam1Thread1->uint16SignalElements + gam1Thread1->uint32SignalElements) + e);
-        }
-        for (e = 0u; (e < gam1Thread1->int32SignalElements); e++) {
-            gam1Thread1->int32Signal[e] = ((j + 1) * (gam1Thread1->uint16SignalElements + gam1Thread1->uint32SignalElements + gam1Thread1->uint64SignalElements)
-                    + e);
+        for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
+            ok = (buffers[bufferIdx][e] == gam1Thread2->uint16Signal[e]);
         }
         scheduler->ExecuteThreadCycle(0);
         scheduler->ExecuteThreadCycle(1);
@@ -3173,128 +3125,133 @@ bool RealTimeThreadSynchronisationTest::TestBufferOverwrite() {
         for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
             ok = (gam1Thread1->uint16Signal[e] == gam1Thread2->uint16Signal[e]);
         }
-        for (e = 0u; (e < gam1Thread1->uint32SignalElements) && (ok); e++) {
-            ok = (gam1Thread1->uint32Signal[e] == gam1Thread2->uint32Signal[e]);
-        }
-        for (e = 0u; (e < gam1Thread1->uint64SignalElements) && (ok); e++) {
-            ok = (gam1Thread1->uint64Signal[e] == gam1Thread2->uint64Signal[e]);
-        }
-        for (e = 0u; (e < gam1Thread1->int32SignalElements) && (ok); e++) {
-            ok = (gam1Thread1->int32Signal[e] == gam1Thread2->int32Signal[e]);
-        }
     }
-    godb->Purge();
-    return ok;
-}
-
-bool RealTimeThreadSynchronisationTest::TestInvertedData() {
-    using namespace MARTe;
-    bool ok = TestIntegratedInApplication(config13, false);
-
-    ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
-
-    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread1;
-    ReferenceT<RealTimeThreadSynchronisationGAMTestHelper> gam1Thread2;
-    ReferenceT<RealTimeThreadSynchronisationSchedulerTestHelper> scheduler;
-    ReferenceT<RealTimeApplication> application;
-
-    if (ok) {
-        application = godb->Find("Test");
-        ok = application.IsValid();
-    }
-    if (ok) {
-        gam1Thread1 = godb->Find("Test.Functions.GAM1Thread1");
-        ok = gam1Thread1.IsValid();
-    }
-    if (ok) {
-        gam1Thread2 = godb->Find("Test.Functions.GAM1Thread2");
-        ok = gam1Thread2.IsValid();
-    }
-    if (ok) {
-        scheduler = godb->Find("Test.Scheduler");
-        ok = scheduler.IsValid();
-    }
-    if (ok) {
-        ok = application->PrepareNextState("State1");
-    }
-    if (ok) {
-        ok = application->StartNextStateExecution();
-    }
-    uint32 nOfBuffers = 2u;
-    uint16 **buffers = new uint16*[nOfBuffers];    //help to check the read data
-    for (uint32 i = 0u; i < nOfBuffers; i++) {
-        buffers[i] = new uint16[gam1Thread1->uint16SignalElements];
-    }
-    uint32 bufferIdx = 0;
-    uint32 e;
-    uint32 j = 1;
-    for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
-        gam1Thread1->uint16Signal[e] = ((j + 1) + e);
-        buffers[bufferIdx][e] = ((j + 1) + e);
-    }
-    scheduler->ExecuteThreadCycle(0); //Fill first buffer
-    scheduler->ExecuteThreadCycle(1); //Consume first buffer
-    //Thread 2 should always have the same values of thread 1
-    for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
-        ok = (gam1Thread1->uint16Signal[e] == gam1Thread2->uint16Signal[e]);
-    }
-
-    j = 2;
-    bufferIdx = 1;
-    for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
-        gam1Thread1->uint16Signal[e] = ((j + 1) + e);
-        buffers[bufferIdx][e] = ((j + 1) + e);
-    }
-    scheduler->ExecuteThreadCycle(0); //Fill second buffer
-    j = 3;
-    bufferIdx = 0;
-    for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
-        gam1Thread1->uint16Signal[e] = ((j + 1) + e);
-        buffers[bufferIdx][e] = ((j + 1) + e);
-    }
-    scheduler->ExecuteThreadCycle(0); //Fill first buffer.
-
-    j++;
-    bufferIdx = 1;
-    for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
-        gam1Thread1->uint16Signal[e] = ((j + 1) + e);
-        buffers[bufferIdx][e] = ((j + 1) + e);
-    }
-    scheduler->ExecuteThreadCycle(0); //Fill second buffer. Buffer overwrite!!
-    scheduler->ExecuteThreadCycle(1); //Consume second buffer.
-    for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
-        ok = (buffers[bufferIdx][e] == gam1Thread2->uint16Signal[e]);
-    }
+    /**
+     *
+     */
+    /***********************
+     * Delay the reader and go delay by one
+     *************************/
     bufferIdx = 0u;
-    scheduler->ExecuteThreadCycle(1); //Consume first buffer.
-    for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
-        ok = (buffers[bufferIdx][e] == gam1Thread2->uint16Signal[e]);
-    }
- // resume normal operation
     j++;
-    bufferIdx = 1;
     for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
         gam1Thread1->uint16Signal[e] = ((j + 1) + e);
         buffers[bufferIdx][e] = ((j + 1) + e);
     }
-    scheduler->ExecuteThreadCycle(0); //Fill second buffer. Buffer overwrite!!
-    scheduler->ExecuteThreadCycle(1); //Consume second buffer.
-    for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
-        ok = (buffers[bufferIdx][e] == gam1Thread2->uint16Signal[e]);
-    }
+
+    scheduler->ExecuteThreadCycle(0);
+    bufferIdx = 1u;
     j++;
-    bufferIdx = 0;
     for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
         gam1Thread1->uint16Signal[e] = ((j + 1) + e);
         buffers[bufferIdx][e] = ((j + 1) + e);
     }
-    scheduler->ExecuteThreadCycle(0); //Fill second buffer. Buffer overwrite!!
-    scheduler->ExecuteThreadCycle(1); //Consume second buffer.
+    scheduler->ExecuteThreadCycle(0);
+    scheduler->ExecuteThreadCycle(1);
+    bufferIdx = 0u;
     for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
         ok = (buffers[bufferIdx][e] == gam1Thread2->uint16Signal[e]);
+    }
+
+    bufferIdx = 0u;
+    j++;
+    for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
+        gam1Thread1->uint16Signal[e] = ((j + 1) + e);
+        buffers[bufferIdx][e] = ((j + 1) + e);
+    }
+    scheduler->ExecuteThreadCycle(0);
+    scheduler->ExecuteThreadCycle(1);
+    bufferIdx = 1u;
+    for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
+        ok = (buffers[bufferIdx][e] == gam1Thread2->uint16Signal[e]);
+    }
+
+    bufferIdx = 1u;
+    j++;
+    for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
+        gam1Thread1->uint16Signal[e] = ((j + 1) + e);
+        buffers[bufferIdx][e] = ((j + 1) + e);
+    }
+    scheduler->ExecuteThreadCycle(0);
+
+    bufferIdx = 0u;
+    j++;
+    for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
+        gam1Thread1->uint16Signal[e] = ((j + 1) + e);
+        buffers[bufferIdx][e] = ((j + 1) + e);
+    }
+    scheduler->ExecuteThreadCycle(0); //overwrite!
+    scheduler->ExecuteThreadCycle(1);
+    bufferIdx = 1u;
+    for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
+        ok = (buffers[bufferIdx][e] == gam1Thread2->uint16Signal[e]);
+    }
+
+    bufferIdx = 1u;
+    j++;
+    for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
+        gam1Thread1->uint16Signal[e] = ((j + 1) + e);
+        buffers[bufferIdx][e] = ((j + 1) + e);
+    }
+    scheduler->ExecuteThreadCycle(0);
+
+    bufferIdx = 0u;
+    j++;
+    for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
+        gam1Thread1->uint16Signal[e] = ((j + 1) + e);
+        buffers[bufferIdx][e] = ((j + 1) + e);
+    }
+    scheduler->ExecuteThreadCycle(0); //overwrite!
+
+    bufferIdx = 1u;
+    j++;
+    for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
+        gam1Thread1->uint16Signal[e] = ((j + 1) + e);
+        buffers[bufferIdx][e] = ((j + 1) + e);
+    }
+    scheduler->ExecuteThreadCycle(0); //overwrite!
+
+    bufferIdx = 0u;
+    j++;
+    for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
+        gam1Thread1->uint16Signal[e] = ((j + 1) + e);
+        buffers[bufferIdx][e] = ((j + 1) + e);
+    }
+    scheduler->ExecuteThreadCycle(0); //overwrite!
+
+    bufferIdx = 1u;
+    j++;
+    for (e = 0u; (e < gam1Thread1->uint16SignalElements); e++) {
+        gam1Thread1->uint16Signal[e] = ((j + 1) + e);
+        buffers[bufferIdx][e] = ((j + 1) + e);
+    }
+    scheduler->ExecuteThreadCycle(0); //overwrite!
+    scheduler->ExecuteThreadCycle(1);
+    bufferIdx = 0u;
+    for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
+        ok = (buffers[bufferIdx][e] == gam1Thread2->uint16Signal[e]);
+    }
+
+    scheduler->ExecuteThreadCycle(1);
+    bufferIdx = 1u;
+    for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
+        ok = (buffers[bufferIdx][e] == gam1Thread2->uint16Signal[e]);
+    }
+
+    for (j = 0u; (j < numberOfExecutions) && (ok); j++) {    //Make sure that after buffer overwrite everything still working
+        uint32 e;
+        for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
+            ok = (buffers[bufferIdx][e] == gam1Thread2->uint16Signal[e]);
+        }
+        scheduler->ExecuteThreadCycle(0);
+        scheduler->ExecuteThreadCycle(1);
+
+        //Thread 2 should always have the same values of thread 1
+        for (e = 0u; (e < gam1Thread1->uint16SignalElements) && (ok); e++) {
+            ok = (gam1Thread1->uint16Signal[e] == gam1Thread2->uint16Signal[e]);
+        }
     }
     godb->Purge();
-
     if (buffers != NULL_PTR(uint16**)) {
         for (uint32 i = 0u; i < nOfBuffers; i++) {
             if (buffers[i] != NULL_PTR(uint16*)) {
