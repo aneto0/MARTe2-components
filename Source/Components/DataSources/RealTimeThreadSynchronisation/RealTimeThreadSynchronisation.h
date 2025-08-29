@@ -45,12 +45,18 @@ namespace MARTe {
  *  synchronise against this DataSource. If the number of samples read from the GAM is great than one the DataSource will
  *  block until the specified number of samples is available. This feature allows to run and synchronise threads at a lower frequency.
  *
+ *  The synchronisation is based on double buffer protected with two mux and two semaphores, one for each buffer. It allows to block one buffer to write while reading in the other buffer.
+ *  The use case assumes that the consumer thread of the buffer (the reader) ends its cycle faster than the producer thread (the writer), in this condition the double buffer acts like FIFO.
+ *
+ *  @warning In an overwrite scenario an specific very unlikely thread cycle times, the reader could, in theory, read the new data before the old date (see test RealTimeThreadSynchronisationTest::TestInvertedData()).
+ *
  * Only one GAM is allowed to write into this DataSource. More than one GAM may read in the same thread, but it should be noted that the
  *  reading is blocking and this will force multiple synchronisation points (which has an unspecified behaviour and thus should be avoided).
  *
  * The number of samples of the signals of the GAM writing into this DataSource shall be exactly 1.
  *
  * The number of samples for all the signals of any given GAM reading from this DataSource shall be the same.
+ *
  *
  * If the parameter WaitForNext is set to 1, the synchronisation thread will first reset and then wait on the event semaphore. This can be 
  * useful if cycles were lost and the thread should wait for the next synchronisation cycle. The default behaviour (WaitForNext=0) is to 
@@ -142,6 +148,7 @@ namespace MARTe {
  *     Timeout = 1000 //Timeout in ms to wait for the thread to cycle.
  *                    //If this parameter is not set it will wait forever to be triggered and might lock a state change.
  *                    //Default is 1000
+ *     PrintOverwrite = 0 | 1 (Optional. default 0. If PrintOverwrite == 0 --> no print on buffer overwrite. If PrintOverwrite ~= 0 --> print on buffer overwrite
  *   }
  * }
  * </pre>
@@ -274,6 +281,16 @@ private:
      * Size required to hold the latest values of the signals written into this DataSourceI.
      */
     uint32 memorySize;
+
+    /**
+     * True if the buffer is written when write action is executed.
+     */
+    bool bufferOverwrite;
+
+    /**
+     * From PrintOverwite input parameter the printOverwrite controls the print when buffer overwrite happens.
+     */
+    bool printOverwrite;
 
     /**
      * Offsets of the signals in the memory area.

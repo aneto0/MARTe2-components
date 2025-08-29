@@ -167,6 +167,16 @@ public:
     bool TestSynchronise_orphan();
 
     /**
+     * @brief Tests that the the overwrite buffer message
+     */
+    bool TestBufferOverwrite();
+
+    /**
+     * @brief Test the wierd case where new data is read before the old data
+     */
+    bool TestInvertedData();
+
+    /**
      * @brief Tests that GetNumberOfStatefulMemoryBuffers returns 2
      */
     bool TestGetNumberOfStatefulMemoryBuffers();

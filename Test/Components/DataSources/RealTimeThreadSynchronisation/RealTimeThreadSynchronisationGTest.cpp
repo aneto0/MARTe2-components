@@ -164,6 +164,16 @@ TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase_WaitForNext) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_WaitForNext());
 }
 
+TEST(RealTimeThreadSynchronisationGTest,TestBufferOverwrite) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestBufferOverwrite());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestInvertedData) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestInvertedData());
+}
+
 TEST(RealTimeThreadSynchronisationGTest,TestGetNumberOfStatefulMemoryBuffers) {
     RealTimeThreadSynchronisationTest test;
     ASSERT_TRUE(test.TestGetNumberOfStatefulMemoryBuffers());

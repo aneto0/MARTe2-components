@@ -45,9 +45,8 @@ namespace MARTe {
  * @details A MemoryMapInputBroker which will store in memory the required number of samples copies of the DataSourceI memory.
  * It will lock in Execute until the required number of samples are added by calling the AddSample method.
  */
-class RealTimeThreadSynchBroker : public MemoryMapInputBroker {
-public:
-    CLASS_REGISTER_DECLARATION()
+class RealTimeThreadSynchBroker: public MemoryMapInputBroker {
+public:CLASS_REGISTER_DECLARATION()
     /**
      * @brief Default constructor. NOOP.
      */
@@ -65,7 +64,10 @@ public:
      * @param[in] timeoutIn the maximum time to wait for the expected number of samples to be available.
      * @param[in] waitForNextIn if 1 first reset and then wait at the synchronisation point.
      */
-    void SetFunctionIndex(DataSourceI *dataSourceIn, uint32 functionIdxIn, const TimeoutType & timeoutIn, const uint8 waitForNextIn);
+    void SetFunctionIndex(DataSourceI *dataSourceIn,
+                          uint32 functionIdxIn,
+                          const TimeoutType &timeoutIn,
+                          const uint8 waitForNextIn);
 
     /**
      * @brief Allocates memory to hold N copies of the dataSourceMemoryIn, where the N is the number of samples that are to be
@@ -74,12 +76,15 @@ public:
      * @param[in] dataSourceMemoryOffsetsIn the signals offsets in the \a dataSourceMemoryIn.
      * @return true if the number of samples is the same for all signals and if the memory could be successfully allocated.
      */
-    bool AllocateMemory(char8 *dataSourceMemoryIn, uint32 *dataSourceMemoryOffsetsIn);
+    bool AllocateMemory(char8 *dataSourceMemoryIn,
+                        uint32 *dataSourceMemoryOffsetsIn);
 
     /**
      * @brief Proxy method to the DataSourceI::GetSignalMemoryBuffer
      */
-    bool GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress) const;
+    bool GetSignalMemoryBuffer(const uint32 signalIdx,
+                               const uint32 bufferIdx,
+                               void *&signalAddress) const;
 
     /**
      * @brief Adds a new sample of all the signals into the memory managed by this broker.
@@ -87,13 +92,13 @@ public:
      * @pre
      *   All the memory must have been successfully allocated. For performance reasons the memory allocation is not checked at every iteration.
      */
-    bool AddSample();
+    bool AddSample(bool &bufferOverwrite);
 
     /**
      * @brief Gets the name of the GAM interacting with the DataSourceI that uses this broker instance.
      * @return the name of the GAM interacting with the DataSourceI that uses this broker instance.
      */
-    const char8 *const GetGAMName();
+    const char8* const GetGAMName();
 
     /**
      * @brief Locks until the expected number of samples is written into this broker instance (see AddSample) and then copies the samples
@@ -114,9 +119,14 @@ private:
     char8 **signalMemory;
 
     /**
-     * Dual-buffer pointer
+     * Dual-buffer pointer for the write action. This variable CANNOT be used in the Execute() because AddSample is in the context of thread A and Execute is in the context of thread B and no mux is used.
      */
-    uint32 currentBufferIdx;
+    uint32 currentBufferIdxWrite;
+
+    /**
+     * Dual-buffer pointer for the read action. This variable CANNOT be used in the AddSample() because AddSample() is in the context of thread A and Execute is in the context of thread B and no mux is used.
+     */
+    uint32 currentBufferIdxRead;
 
     /**
      * Size of each signal to be copied.
@@ -149,9 +159,14 @@ private:
     uint32 currentSample;
 
     /**
-     * Semaphore which will lock until all the samples are written.
+     * Semaphore which will lock until all the samples are written. There are two semaphores one for each buffer
      */
-    EventSem synchSem;
+    EventSem synchSem[2];
+
+    /**
+     * Indicates if the buffer memory is written (1) or empty (0). This is shared memory and needs to be protected by a mux
+     */
+    uint8 memoryIsWritten[2];
 
     /**
      * The name of the GAM interacting with the DataSourceI that uses this broker instance.
@@ -169,16 +184,15 @@ private:
     uint8 waitForNext;
 
     /**
-     * Protect the event sem
+     * Protect the event sem one for each buffer
      */
-    FastPollingMutexSem mux;
+    FastPollingMutexSem mux[2];
 };
 }
-
 
 /*---------------------------------------------------------------------------*/
 /*                        Inline method definitions                          */
 /*---------------------------------------------------------------------------*/
 
 #endif /* REALTIMETHREADSYNCHBROKER_H_ */
-	
+

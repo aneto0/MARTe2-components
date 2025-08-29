@@ -51,6 +51,8 @@ RealTimeThreadSynchronisation::RealTimeThreadSynchronisation() :
     synchInputBrokers = NULL_PTR(RealTimeThreadSynchBroker **);
     currentInitBrokerIndex = -1;
     waitForNext = 0u;
+    bufferOverwrite = false;
+    printOverwrite = false;
 }
 
 /*lint -e{1551} must free the allocated memory in the destructor. */
@@ -170,6 +172,18 @@ bool RealTimeThreadSynchronisation::Initialise(StructuredDataI & data) {
     if (!data.Read("WaitForNext", waitForNext)) {
         waitForNext = 0u;
     }
+    uint32 auxRead = 0u;
+    if (!data.Read("PrintOverwrite", auxRead)) {
+        printOverwrite = false;
+        REPORT_ERROR(ErrorManagement::Information, "Using printOverwrite default value. printOverwrite = false");
+    }else{
+        if (auxRead == 0){
+            printOverwrite = false;
+        }
+        else{
+            printOverwrite = true;
+        }
+    }
     return ok;
 }
 
@@ -279,7 +293,11 @@ bool RealTimeThreadSynchronisation::Synchronise() {
     uint32 u;
     if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
         for (u = 0u; (u < numberOfSyncGAMs) && (ok); u++) {
-            ok = synchInputBrokers[u]->AddSample();
+            ok = synchInputBrokers[u]->AddSample(bufferOverwrite);
+            if(bufferOverwrite && printOverwrite){
+                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Buffer overwrite");
+                    bufferOverwrite = false;
+            }
         }
     }
 
