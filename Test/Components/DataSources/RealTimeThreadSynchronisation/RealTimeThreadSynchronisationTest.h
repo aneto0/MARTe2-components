@@ -151,6 +151,11 @@ public:
     bool TestSynchronise();
 
     /**
+     * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI
+     */
+    bool TestSynchronise_waitForNext();
+
+    /**
      * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI when the first signal is not consumed by one Thread (the rest of the Threads consume all signals)
      */
     bool TestSynchronise_2();

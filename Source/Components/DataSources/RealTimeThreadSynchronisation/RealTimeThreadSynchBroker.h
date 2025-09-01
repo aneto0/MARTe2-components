@@ -193,10 +193,19 @@ private:
      */
     FastPollingMutexSem muxSynch;
     
+    /**
+     * Holds information about overwrite event
+     */
     bool internalOverwrite;
     
+    /**
+     * Indicates if an overwrite event and if synch is needed
+     */
     bool forceSynch;
     
+    /**
+     * indicates at what index buffer the overwrite happened.
+     */
     uint32 synchIdx;
 };
 }

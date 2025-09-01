@@ -48,7 +48,8 @@ namespace MARTe {
  *  The synchronisation is based on double buffer protected with two mux and two semaphores, one for each buffer. It allows to block one buffer to write while reading in the other buffer.
  *  The use case assumes that the consumer thread of the buffer (the reader) ends its cycle faster than the producer thread (the writer), in this condition the double buffer acts like FIFO.
  *
- *  When the two buffers are full the data is overwrite by the writing thread, in this scenario the AddSample() report the overwrite and updates the index where the reader wants to read, to point to the oldest data.
+ *  When the two buffers are full the data is overwrite by the writing thread, in this scenario the AddSample() report the overwrite and force a synch event that will be processed by the reader
+ *  in the Execute() function.
  *
  * @warning Since two buffer mechanism is used, the reader can be delayed (not using the most recent data), but the reader can catch the writer if runs fast enough.
  *
@@ -314,6 +315,9 @@ private:
      */
     uint8 waitForNext;
 
+    /**
+     * Datasource name to print error with more information
+     */
     StreamString datasourceName;
 };
 }
