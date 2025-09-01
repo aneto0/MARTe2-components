@@ -152,6 +152,7 @@ public:
 
     /**
      * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI
+     * @details Only for coverage. Functionality cannot be tested with unit tests.
      */
     bool TestSynchronise_waitForNext();
 

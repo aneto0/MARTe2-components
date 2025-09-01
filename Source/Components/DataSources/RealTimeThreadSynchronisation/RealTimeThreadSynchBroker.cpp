@@ -247,7 +247,7 @@ bool RealTimeThreadSynchBroker::Execute() {
         currentBufferIdxRead = 0u;
     }
     //First Reset 
-    if (waitForNext == 1u) {
+    if (waitForNext == 1u) {//Cannot be tested in the unite test
         if (mux[idxUsed].FastLock() == ErrorManagement::NoError) {
             ok = synchSem[idxUsed].Reset();
         }
