@@ -58,9 +58,12 @@ RealTimeThreadSynchBroker::RealTimeThreadSynchBroker() :
     waitForNext = 0u;
     mux[0].Create();
     mux[1].Create();
-    muxCurrentBufferIdxRead.Create();
+    muxSynch.Create();
     memoryIsWritten[0] = 0u;
     memoryIsWritten[1] = 0u;
+    synchIdx = 0;
+    forceSynch = false;
+    
 }
 
 /*lint -e{1551} -e{1740} must free the allocated memory in the destructor and close the semaphore. The dataSourceMemory,
@@ -195,37 +198,28 @@ bool RealTimeThreadSynchBroker::AddSample(bool &bufferOverwrite) {
                 ok = MemoryOperationsHelper::Copy(destination, source, signalSize[s]);
             }
         }
+        
         //Rise the barrier in order to avoid to read if we start to write one sample and there is more than one sample to write.
-        bool auxOk = synchSem[currentBufferIdxWrite].Reset(); //As soon as we start to write to the buffer we rise the barrier. Also an if with currentSamples == 0 can be implemented to reset only once
-        ok = ok && auxOk;
+        if (currentSample == 0){
+            bool auxOk = synchSem[currentBufferIdxWrite].Reset(); //As soon as we start to write to the buffer we rise the barrier.
+            internalOverwrite = memoryIsWritten[currentBufferIdxWrite] == 1u;
+            if (internalOverwrite) {
+                if (muxSynch.FastLock() == ErrorManagement::NoError){
+                    forceSynch = true;
+                    synchIdx = currentBufferIdxWrite;
+                }
+                muxSynch.FastUnLock();
+            }
+            ok = ok && auxOk;
+        }
     }
     mux[currentBufferIdxWrite].FastUnLock();
     currentSample++;
     if (currentSample == numberOfSamples) {
         currentSample = 0u;
+        bufferOverwrite = internalOverwrite;
+        internalOverwrite = false; //reset the internalOverwrite
         if (mux[currentBufferIdxWrite].FastLock() == ErrorManagement::NoError) {
-            bufferOverwrite = memoryIsWritten[currentBufferIdxWrite] == 1u;
-            if (bufferOverwrite) { //Points to the old data.
-                if (muxCurrentBufferIdxRead.FastLock() == ErrorManagement::NoError) {
-                    if (currentBufferIdxWrite == 0u) {
-                        if (memoryIsWritten[1] == 1) {
-                            currentBufferIdxRead = 1u;
-                        }
-                        else {
-                            currentBufferIdxRead = 0u;
-                        }
-                    }
-                    else {
-                        if (memoryIsWritten[0] == 1) {
-                            currentBufferIdxRead = 0u;
-                        }
-                        else {
-                            currentBufferIdxRead = 1u;
-                        }
-                    }
-                }
-                muxCurrentBufferIdxRead.FastUnLock();
-            }
             memoryIsWritten[currentBufferIdxWrite] = 1u;
             ok = synchSem[currentBufferIdxWrite].Post();
         }
@@ -246,49 +240,71 @@ const char8* const RealTimeThreadSynchBroker::GetGAMName() {
 bool RealTimeThreadSynchBroker::Execute() {
     bool ok = true;
     uint32 idxUsed;
-    if (muxCurrentBufferIdxRead.FastLock() == ErrorManagement::NoError){
-        idxUsed = currentBufferIdxRead;
+    idxUsed = currentBufferIdxRead;
+    currentBufferIdxRead++;
+    if(currentBufferIdxRead > 1u){
+        currentBufferIdxRead  = 0u;
     }
-    muxCurrentBufferIdxRead.FastUnLock();
     //First Reset 
     if (waitForNext == 1u) {
-            if (mux[idxUsed].FastLock() == ErrorManagement::NoError) {
-                ok = synchSem[idxUsed].Reset();
-            }
-            if (ok) {
-                ok = (synchSem[idxUsed].Wait(timeout) == ErrorManagement::NoError);
-            }
-        //}
+         if(mux[idxUsed].FastLock() == ErrorManagement::NoError) {
+            ok = synchSem[idxUsed].Reset();
+        }
+        mux[idxUsed].FastUnLock();
+        if (ok) {
+            ok = (synchSem[idxUsed].Wait(timeout) == ErrorManagement::NoError);
+        }
     }
     //First wait
     else {
-            ok = (synchSem[idxUsed].Wait(timeout) == ErrorManagement::NoError);
-            if (ok) {
-                if (mux[idxUsed].FastLock() == ErrorManagement::NoError) {
-                    ok = synchSem[idxUsed].Reset();
-                }
+        ok = (synchSem[idxUsed].Wait(timeout) == ErrorManagement::NoError);
+        if (ok) {
+            if(mux[idxUsed].FastLock() == ErrorManagement::NoError) {
+                ok = synchSem[idxUsed].Reset();
             }
-        //}
+            mux[idxUsed].FastUnLock();
+        }
     }
     uint32 n;
-    if (copyTable != NULL_PTR(MemoryMapBrokerCopyTableEntry*)) {
-        for (n = 0u; (n < numberOfCopies) && (ok); n++) {
-            uint32 dataSourceIndex = ((idxUsed * numberOfCopies) + n);
-            ok = MemoryOperationsHelper::Copy(copyTable[n].gamPointer, copyTable[dataSourceIndex].dataSourcePointer, copyTable[n].copySize);
+    if(ok){
+        if(mux[idxUsed].FastLock() == ErrorManagement::NoError) {
+            if (copyTable != NULL_PTR(MemoryMapBrokerCopyTableEntry*)) {
+                for (n = 0u; (n < numberOfCopies) && (ok); n++) {
+                    uint32 dataSourceIndex = ((idxUsed * numberOfCopies) + n);
+                    ok = MemoryOperationsHelper::Copy(copyTable[n].gamPointer, copyTable[dataSourceIndex].dataSourcePointer, copyTable[n].copySize);
+                }
+            }
+            if(memoryIsWritten[idxUsed] == 0){
+                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Buffere read was 0");
+            }
+            memoryIsWritten[idxUsed] = 0u;
+        }
+        mux[idxUsed].FastUnLock();
+    }
+    
+    
+    if (muxSynch.FastLock() == ErrorManagement::NoError){
+        if(forceSynch){
+            /*if(idxUsed != synchIdx){// if it is not the current buffer already comsumed
+                currentBufferIdxRead = synchIdx;// point to new data
+            }*/
+            uint32 auxIdx = 0;
+            if(synchIdx == 0u){//Invalidate the other buffer data
+                auxIdx = 1u;
+            }
+            if(mux[auxIdx].FastLock() == ErrorManagement::NoError){
+                synchSem[auxIdx].Reset();
+                memoryIsWritten[auxIdx] = 0u;
+            }
+            mux[auxIdx].FastUnLock();
+            forceSynch = false;
         }
     }
-    if(memoryIsWritten[idxUsed] == 0){
-        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Buffere read was 0");
+    muxSynch.FastUnLock();
+    /*if (muxSynch.FastLock() == ErrorManagement::NoError){
+        
     }
-    memoryIsWritten[idxUsed] = 0u;
-    mux[idxUsed].FastUnLock();
-    if (muxCurrentBufferIdxRead.FastLock() == ErrorManagement::NoError){
-        currentBufferIdxRead++;
-        if (currentBufferIdxRead > 1u) {
-            currentBufferIdxRead = 0u;
-        }
-    }
-    muxCurrentBufferIdxRead.FastUnLock();
+    muxSynch.FastUnLock();*/
     return ok;
 }
 

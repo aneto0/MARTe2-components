@@ -191,7 +191,13 @@ private:
     /**
      * mutex to protect concurrent access to currentBufferIdxRead
      */
-    FastPollingMutexSem muxCurrentBufferIdxRead;
+    FastPollingMutexSem muxSynch;
+    
+    bool internalOverwrite;
+    
+    bool forceSynch;
+    
+    uint32 synchIdx;
 };
 }
 
