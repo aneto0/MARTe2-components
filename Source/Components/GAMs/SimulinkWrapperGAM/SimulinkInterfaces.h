@@ -98,7 +98,7 @@ public:
     StreamString structPath;                    //!< The parent path of this interface without indices (e.g. `myInterface.subElem` instead of `myInterface[0][1].subElem`)
     StreamString fullPath;                      //!< Fully expanded signal path (different from interfaceName in structured interfaces only)
 
-    InterfaceType interfaceType;
+    InterfaceType interfaceType;                //!< Whether this interface is an input/output, parameter or signal
 
     /**
      * @name Simulink data
@@ -196,7 +196,6 @@ public:
     ~SimulinkRootInterface();
 
     ConfigurationDatabase rootStructure;    //!< A ConfigurationDatabase representation of this interface's structure (mostly for printing).
-    InterfaceType interfaceType;            //!< Whether this interface is an input/output, parameter or signal
 
     /**
      * @brief   Prints information about the interface.

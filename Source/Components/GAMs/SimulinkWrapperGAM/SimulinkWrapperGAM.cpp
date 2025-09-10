@@ -870,8 +870,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::SetupSimulink() {
             fillerWhiteSpaces += " ";
             fillerEqualSign   += "=";
         }
-        StreamString currentName = GetName();
-        while (fillerEqualSignSmall.Size() < currentName.Size()) {
+        StreamString currentElemName = GetName();
+        while (fillerEqualSignSmall.Size() < currentElemName.Size()) {
             fillerEqualSignSmall += "=";
             fillerMinusSignSmall += "-";
         }
@@ -1358,7 +1358,6 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
     ret.exception = (dataTypeMap == NULL) || (dimArray == NULL) || (dimMap == NULL) || (dataAddrMap == NULL);
 
     StreamString interfaceName  = "";
-    StreamString structPath     = "";
     StreamString fullPath       = "";
 
     uint16       typeIdx = 0u;
@@ -1508,7 +1507,6 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
             // structured: traverse all its elements
             uint16 dataTypeNumElements   = rtwCAPI_GetDataTypeNumElements (dataTypeMap, typeIdx);
             uint16 elemOffsetIdx = rtwCAPI_GetDataTypeElemMapIndex(dataTypeMap, typeIdx);
-            Vector<uint32> paddingDetectionIndices = Vector<uint32>(2u);
 
             ret.exception = !( (interfaceArray.rootStructure).CreateRelative(interfaceName.Buffer()) );
 
@@ -1548,7 +1546,8 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
             // detect padding
             if (ret.ErrorsCleared()) {
                 if (mode != Element) {
-                    for (uint32 elemIdx = 0u; ret.ErrorsCleared() && (elemIdx < interfaceArray.GetSize() - 1u); elemIdx++) {
+                    uint32 numOfSignalElements = interfaceArray.GetSize();
+                    for (uint32 elemIdx = 0u; ret.ErrorsCleared() && (elemIdx < (numOfSignalElements - 1u)); elemIdx++) {
                         uint8* endOfElemMemory   = static_cast<uint8*>(interfaceArray[elemIdx]->dataAddr) + interfaceArray[elemIdx]->byteSize;
                         uint8* startOfNextMemory = static_cast<uint8*>(interfaceArray[elemIdx + 1u]->dataAddr);
 
@@ -1564,7 +1563,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
                                 okReturn = true;
                             }
                             ret.exception = !( okWrite && okReturn );
-                       }
+                        }
                     }
                 }
             }

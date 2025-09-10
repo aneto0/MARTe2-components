@@ -526,7 +526,6 @@ void SimulinkRootInterface::Print(uint64 paddingLength /*= 50u*/, StreamString p
     }
 }
 
-
 uint32 SimulinkRootInterface::GetInterfaceBytesize(ConfigurationDatabase structureIn) {
 
     uint32 structureBytesize = 0u;
