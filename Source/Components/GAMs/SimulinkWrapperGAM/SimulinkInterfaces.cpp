@@ -418,7 +418,7 @@ void SimulinkRootInterface::Print(const uint64 paddingLength /*= 50u*/, StreamSt
             spacer = "▪ ";
         }
         else {
-            if (rootStructure.GetNumberOfChildren() == parIdx + 1u) {
+            if (rootStructure.GetNumberOfChildren() == (parIdx + 1u)) {
                 spacer = "└ ";
             }
             else {
@@ -434,14 +434,14 @@ void SimulinkRootInterface::Print(const uint64 paddingLength /*= 50u*/, StreamSt
 
             // format the structure name
             printName += rootStructure.GetName();
-            while (printName.Size() < ( paddingLength + (parentSpacer.Size() + spacer.Size())/2u )) {
+            while (printName.Size() < ( paddingLength + ((parentSpacer.Size() + spacer.Size())/2u) )) {
                 printName += " ";
             }
 
             // get the structure base address (address of the first element)
             StreamString firstElementName = rootStructure.GetChildName(0u);
             uint32 firstElementIdx = 0u;
-            rootStructure.Read(firstElementName.Buffer(), firstElementIdx);
+            if (rootStructure.Read(firstElementName.Buffer(), firstElementIdx)) {}
             SimulinkInterface* currentInterface = this->operator[](firstElementIdx);
             void* structAddr = currentInterface->dataAddr;
 
@@ -450,20 +450,20 @@ void SimulinkRootInterface::Print(const uint64 paddingLength /*= 50u*/, StreamSt
             uint32 numOfDims = 0u;
             uint32 MARTeNumOfDims = 0u;
             uint32 numOfElements = 1u;
-            Vector<uint32> dimensions(2u);
-            dimensions[0u] = 1u; dimensions[1u] = 1u;
+            Vector<uint32> dimensionVector(2u);
+            dimensionVector[0u] = 1u; dimensionVector[1u] = 1u;
             AnyType arrayDescription = rootStructure.GetType("__Dimensions__");
             if (arrayDescription.GetDataPointer() != NULL_PTR(void *)) {
                 numOfDims = arrayDescription.GetNumberOfElements(0u);
-                uint32* dimPtr = new uint32[numOfDims];  //lint !e429 Justification: memory pointed by dimPtr is freed using dimensions.SetSize(0u) in the destructor
-                dimensions = Vector<uint32>(dimPtr, numOfDims);
-                if (rootStructure.Read("__Dimensions__", dimensions)) {
+                uint32* dimPtr = new uint32[numOfDims];
+                dimensionVector = Vector<uint32>(dimPtr, numOfDims);
+                if (rootStructure.Read("__Dimensions__", dimensionVector)) {
                     if (numOfDims >= 3u) {
                         MARTeNumOfDims = numOfDims - 1u;
                         sizeFiller = "";
                     }
                     else {
-                        if (dimensions[0u] != 1u && dimensions[1u] != 1u) {
+                        if ((dimensionVector[0u] != 1u) && (dimensionVector[1u] != 1u)) {
                             MARTeNumOfDims = 2u;
                         }
                         else {
@@ -472,7 +472,7 @@ void SimulinkRootInterface::Print(const uint64 paddingLength /*= 50u*/, StreamSt
                     }
 
                     for (uint32 dimIdx = 0u; dimIdx < numOfDims; dimIdx++) {
-                        numOfElements *= dimensions[dimIdx];
+                        numOfElements *= dimensionVector[dimIdx];
                     }
                 }
 
@@ -483,10 +483,10 @@ void SimulinkRootInterface::Print(const uint64 paddingLength /*= 50u*/, StreamSt
             uint32 structBytesize = GetInterfaceBytesize(rootStructure);
 
             REPORT_ERROR_STATIC(ErrorManagement::Information, "%s| struct  | % 4d | % 5d | % 4!%s | %p | %d [struct]", printName.Buffer(),
-                                MARTeNumOfDims, numOfElements, dimensions, sizeFiller.Buffer(), structAddr, numOfElements*structBytesize);
+                                MARTeNumOfDims, numOfElements, dimensionVector, sizeFiller.Buffer(), structAddr, numOfElements*structBytesize);
 
             StreamString passedSpacer = parentSpacer;
-            if (currNumOfChildren != parIdx + 1u) {
+            if (currNumOfChildren != (parIdx + 1u)) {
                 passedSpacer += "┆ ";
             }
             else {
@@ -494,28 +494,29 @@ void SimulinkRootInterface::Print(const uint64 paddingLength /*= 50u*/, StreamSt
             }
 
             Print(paddingLength, passedSpacer);
-            rootStructure.MoveToAncestor(1u);
+            if (rootStructure.MoveToAncestor(1u)) {}
+            dimensionVector.SetSize(0u);
         }
         // numeric
         else {
 
-            StreamString interfaceName = rootStructure.GetChildName(parIdx);
+            StreamString elementName = rootStructure.GetChildName(parIdx);
 
             // format the numeric name
-            printName += interfaceName;
+            printName += elementName;
             while (printName.Size() < ( paddingLength + ((parentSpacer.Size() + spacer.Size())/2u) )) {
                 printName += " ";
             }
 
-            if (interfaceName == "__Dimensions__") {
+            if (elementName == "__Dimensions__") {
                 // nothing to do
-            } else if (interfaceName == "_padding_") {
+            } else if (elementName == "_padding_") {
                 uint32 paddingSize = 0u;
-                if (rootStructure.Read(interfaceName.Buffer(), paddingSize)) {}
+                if (rootStructure.Read(elementName.Buffer(), paddingSize)) {}
                 REPORT_ERROR_STATIC(ErrorManagement::Information, "%s| void    | -    | -     | -                   | -                  | %d [pad]", printName.Buffer(), paddingSize);
             } else {
                 uint32 interfaceIdx = 0u;
-                if (rootStructure.Read(interfaceName.Buffer(), interfaceIdx)) {}
+                if (rootStructure.Read(elementName.Buffer(), interfaceIdx)) {}
                 SimulinkInterface* currentInterface = this->operator[](interfaceIdx);
 
                 StreamString sizeFiller = "";
