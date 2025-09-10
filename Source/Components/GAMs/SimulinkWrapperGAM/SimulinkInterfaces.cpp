@@ -353,6 +353,7 @@ bool SimulinkInterface::TransposeAndCopyT(void *const destination, const void *c
 SimulinkRootInterface::SimulinkRootInterface()
     : SimulinkInterface() {}
 
+//lint -e{1551} Justification: absolutely no exception thrown whatsoever
 SimulinkRootInterface::~SimulinkRootInterface() {
     while (GetSize() > 0u) {
         SimulinkInterface* toDelete;
@@ -453,6 +454,7 @@ void SimulinkRootInterface::Print(const uint64 paddingLength /*= 50u*/, StreamSt
             Vector<uint32> dimensionVector(2u);
             dimensionVector[0u] = 1u; dimensionVector[1u] = 1u;
             AnyType arrayDescription = rootStructure.GetType("__Dimensions__");
+            //lint -e{429} Justification: memory pointed by dimPtr is passed to dimensionVector, which is later freed using dimensionVector.SetSize(0u);
             if (arrayDescription.GetDataPointer() != NULL_PTR(void *)) {
                 numOfDims = arrayDescription.GetNumberOfElements(0u);
                 uint32* dimPtr = new uint32[numOfDims];
@@ -463,7 +465,9 @@ void SimulinkRootInterface::Print(const uint64 paddingLength /*= 50u*/, StreamSt
                         sizeFiller = "";
                     }
                     else {
-                        if ((dimensionVector[0u] != 1u) && (dimensionVector[1u] != 1u)) {
+                        bool isMatrix1 = (dimensionVector[0u] != 1u);
+                        bool isMatrix2 = (dimensionVector[1u] != 1u);
+                        if ( isMatrix1 && isMatrix2 ) {
                             MARTeNumOfDims = 2u;
                         }
                         else {
@@ -537,6 +541,7 @@ uint32 SimulinkRootInterface::GetInterfaceBytesize(ConfigurationDatabase structu
 
     uint32 structureBytesize = 0u;
 
+    //lint -e{429} Justification: memory pointed by dimPtr is passed to dimensionVector, which is later freed using dimensionVector.SetSize(0u);
     for (uint32 parIdx = 0u; parIdx < structureIn.GetNumberOfChildren(); parIdx++) {
 
         // node
@@ -547,12 +552,13 @@ uint32 SimulinkRootInterface::GetInterfaceBytesize(ConfigurationDatabase structu
             if (arrayDescription.GetDataPointer() != NULL_PTR(void *)) {
                 uint32  numOfDims = arrayDescription.GetNumberOfElements(0u);
                 uint32* dimPtr = new uint32[numOfDims];
-                dimensions = Vector<uint32>(dimPtr, numOfDims);
-                if (structureIn.Read("__Dimensions__", dimensions)) {
+                Vector<uint32> dimensionVector = Vector<uint32>(dimPtr, numOfDims);
+                if (structureIn.Read("__Dimensions__", dimensionVector)) {
                     for (uint32 dimIdx = 0u; dimIdx < numOfDims; dimIdx++) {
-                        numOfElements *= dimensions[dimIdx];
+                        numOfElements *= dimensionVector[dimIdx];
                     }
                 }
+                dimensionVector.SetSize(0u);
             }
             structureBytesize += numOfElements*currentStructureBytesize;
             if (structureIn.MoveToAncestor(1u)) {}
