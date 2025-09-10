@@ -79,6 +79,12 @@ SimulinkInterface::SimulinkInterface() {
 
 }
 
+SimulinkInterface::~SimulinkInterface() {
+    if (dimensions.GetNumberOfElements() != 0u) {
+        dimensions.SetSize(0u);
+    }
+}
+
 bool SimulinkInterface::Actualise(const AnyType& sourceParameter) {
 
     bool ok;
@@ -399,7 +405,7 @@ bool SimulinkRootInterface::CopyData(const SimulinkNonVirtualBusMode copyMode) {
     return ok;
 }
 
-void SimulinkRootInterface::Print(uint64 paddingLength /*= 50u*/, StreamString parentSpacer /*= ""*/) {
+void SimulinkRootInterface::Print(const uint64 paddingLength /*= 50u*/, StreamString parentSpacer /*= ""*/) {
 
     uint32 currNumOfChildren = rootStructure.GetNumberOfChildren();
 
@@ -449,7 +455,7 @@ void SimulinkRootInterface::Print(uint64 paddingLength /*= 50u*/, StreamString p
             AnyType arrayDescription = rootStructure.GetType("__Dimensions__");
             if (arrayDescription.GetDataPointer() != NULL_PTR(void *)) {
                 numOfDims = arrayDescription.GetNumberOfElements(0u);
-                uint32* dimPtr = new uint32[numOfDims];
+                uint32* dimPtr = new uint32[numOfDims];  //lint !e429 Justification: memory pointed by dimPtr is freed using dimensions.SetSize(0u) in the destructor
                 dimensions = Vector<uint32>(dimPtr, numOfDims);
                 if (rootStructure.Read("__Dimensions__", dimensions)) {
                     if (numOfDims >= 3u) {
@@ -497,7 +503,7 @@ void SimulinkRootInterface::Print(uint64 paddingLength /*= 50u*/, StreamString p
 
             // format the numeric name
             printName += interfaceName;
-            while (printName.Size() < ( paddingLength + (parentSpacer.Size() + spacer.Size())/2u )) {
+            while (printName.Size() < ( paddingLength + ((parentSpacer.Size() + spacer.Size())/2u) )) {
                 printName += " ";
             }
 
@@ -505,11 +511,11 @@ void SimulinkRootInterface::Print(uint64 paddingLength /*= 50u*/, StreamString p
                 // nothing to do
             } else if (interfaceName == "_padding_") {
                 uint32 paddingSize = 0u;
-                rootStructure.Read(interfaceName.Buffer(), paddingSize);
+                if (rootStructure.Read(interfaceName.Buffer(), paddingSize)) {}
                 REPORT_ERROR_STATIC(ErrorManagement::Information, "%s| void    | -    | -     | -                   | -                  | %d [pad]", printName.Buffer(), paddingSize);
             } else {
                 uint32 interfaceIdx = 0u;
-                rootStructure.Read(interfaceName.Buffer(), interfaceIdx);
+                if (rootStructure.Read(interfaceName.Buffer(), interfaceIdx)) {}
                 SimulinkInterface* currentInterface = this->operator[](interfaceIdx);
 
                 StreamString sizeFiller = "";
@@ -548,7 +554,7 @@ uint32 SimulinkRootInterface::GetInterfaceBytesize(ConfigurationDatabase structu
                 }
             }
             structureBytesize += numOfElements*currentStructureBytesize;
-            structureIn.MoveToAncestor(1u);
+            if (structureIn.MoveToAncestor(1u)) {}
         }
         // leaf
         else {
@@ -557,11 +563,11 @@ uint32 SimulinkRootInterface::GetInterfaceBytesize(ConfigurationDatabase structu
                 // nothing to do
             } else if (leafName == "_padding_") {
                 uint32 paddingSize = 0u;
-                structureIn.Read(leafName.Buffer(), paddingSize);
+                if (structureIn.Read(leafName.Buffer(), paddingSize)) {}
                 structureBytesize += paddingSize;
             } else {
                 uint32 interfaceIdx = 0u;
-                structureIn.Read(leafName.Buffer(), interfaceIdx);
+                if (structureIn.Read(leafName.Buffer(), interfaceIdx)) {}
 
                 SimulinkInterface* currentInterface = this->operator[](interfaceIdx);
                 structureBytesize += currentInterface->byteSize;

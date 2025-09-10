@@ -94,6 +94,8 @@ public:
 
     SimulinkInterface();
 
+    virtual ~SimulinkInterface();
+
     StreamString interfaceName;                 //!< Name of this interface
     StreamString structPath;                    //!< The parent path of this interface without indices (e.g. `myInterface.subElem` instead of `myInterface[0][1].subElem`)
     StreamString fullPath;                      //!< Fully expanded signal path (different from interfaceName in structured interfaces only)
@@ -202,7 +204,7 @@ public:
      * @details This method prints information about a root-level interface
      *          and all its carried signals or parameters.
      */
-    void Print(uint64 paddingLength = 50u, StreamString parentSpacer = "");
+    void Print(const uint64 paddingLength = 50u, StreamString parentSpacer = "");
 
     /**
      * @brief   Calulate the bytesize of an interface.
