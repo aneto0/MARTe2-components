@@ -1085,7 +1085,7 @@ namespace MARTe {
  * ------: | :--------: | :----
  * 1.0     | 01/01/2018 | Initial release.
  * 2.0     | 01/07/2020 | QA, rework, support for external parameter source, support for literal parameters.
- * 3.0     | 15/05/2025 | Add structured arrays, logging of block signals and 3D matrices in `Structured` mode. Extensive rework of interface methods.
+ * 3.0     | 11/09/2025 | Add structured arrays, logging of block signals and 3D matrices in `Structured` mode. Extensive rework of interface methods.
  *
  *
  * @todo Fix int64/uint64 issue: models with [u]int64 signals when compiled

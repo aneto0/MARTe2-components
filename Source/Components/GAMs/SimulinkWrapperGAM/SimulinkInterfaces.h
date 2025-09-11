@@ -88,12 +88,31 @@ enum InterfaceType {
 /*                             SimulinkInterface                             */
 /*---------------------------------------------------------------------------*/
 
+/**
+ * @brief Hosts the information on Simulink interfaces.
+ *
+ * Release notes
+ * ==========================================================================
+ *
+ * Version |    Date    | Notes
+ * ------: | :--------: | :----
+ * 1.0     | 01/01/2018 | Initial release.
+ * 2.0     | 01/07/2020 | QA, rework, support for external parameter source, support for literal parameters.
+ * 2.0     | 11/09/2025 | tested and linted version
+ *
+ */
 class SimulinkInterface {
 
 public:
 
+    /**
+     * @brief Default constructor.
+     */
     SimulinkInterface();
 
+    /**
+     * @brief Default destructor.
+     */
     virtual ~SimulinkInterface();
 
     StreamString interfaceName;                 //!< Name of this interface
@@ -181,6 +200,16 @@ public:
  * @details The root interface is represented both as a StaticList<SimulinkInterface*>
  *          (to be cycled over as a copy map) and as a structure (to preserve information
  *          about the structured nature of the interface and for printing purpose)
+ *
+ * Release notes
+ * ==========================================================================
+ *
+ * Version |    Date    | Notes
+ * ------: | :--------: | :----
+ * 1.0     | 01/01/2018 | Initial release.
+ * 2.0     | 01/07/2020 | QA, rework, support for external parameter source, support for literal parameters.
+ * 2.0     | 11/09/2025 | tested and linted version
+ *
  */
 //lint -e{1790} Justification: the functions of StaticList can't be made virtual within this user-story
 class SimulinkRootInterface : public SimulinkInterface, public StaticList<SimulinkInterface*> {

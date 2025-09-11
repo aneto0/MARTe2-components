@@ -363,7 +363,7 @@ enum MDSClientType {
  * Version |    Date    | Notes
  * ------: | :--------: | :----
  * 1.0     | 16/09/2024 | initial release
- * 2.0     | 31/07/2025 | add support for structure arrays; tests and linting
+ * 2.0     | 11/09/2025 | add support for structure arrays; tests and linting
  *
  */
 class MDSObjectConnection : public ObjectConnectionI {

@@ -187,5 +187,5 @@ void ObjectConnectionI::TransposeAndCopyT(void *const destination, const void *c
     }
 }
 
-CLASS_REGISTER(ObjectConnectionI, "1.1")
+CLASS_REGISTER(ObjectConnectionI, "2.0")
 } /* namespace MARTe */

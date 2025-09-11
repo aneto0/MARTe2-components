@@ -151,7 +151,7 @@ namespace MARTe {
  * Version |    Date    | Notes
  * ------: | :--------: | :----
  * 1.0     | 16/09/2024 | initial release
- * 2.0     | 31/07/2025 | add `UpdateParameters` RPC; tests and linting
+ * 2.0     | 11/09/2025 | add `UpdateParameters` RPC; tests and linting
  *
  */
 class ObjectLoader : public ReferenceContainer, public MessageI {

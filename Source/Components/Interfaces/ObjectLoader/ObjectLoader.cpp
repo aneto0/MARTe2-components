@@ -185,7 +185,7 @@ ErrorManagement::ErrorType ObjectLoader::UpdateParameters() {
 }
 
 
-CLASS_REGISTER(ObjectLoader, "1.1")
+CLASS_REGISTER(ObjectLoader, "2.0")
 CLASS_METHOD_REGISTER(ObjectLoader, UpdateParameters)
 
 } /* namespace MARTe */

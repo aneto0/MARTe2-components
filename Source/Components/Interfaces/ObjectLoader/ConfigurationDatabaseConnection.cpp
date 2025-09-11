@@ -158,5 +158,5 @@ bool ConfigurationDatabaseConnection::Initialise(StructuredDataI & data) {
 }
 
 
-CLASS_REGISTER(ConfigurationDatabaseConnection, "1.1")
+CLASS_REGISTER(ConfigurationDatabaseConnection, "2.0")
 } /* namespace MARTe */
