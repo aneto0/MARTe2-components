@@ -182,8 +182,8 @@ public:
  *          (to be cycled over as a copy map) and as a structure (to preserve information
  *          about the structured nature of the interface and for printing purpose)
  */
+//lint -e{1509,1790} Justification: the functions and destructor of StaticList can't be made virtual within this user-story
 class SimulinkRootInterface : public SimulinkInterface, public StaticList<SimulinkInterface*> {
-//lint --e{1509,1790} Justification: the functions and destructor of StaticList can't be made virtual within this user-story
 
 public:
 
