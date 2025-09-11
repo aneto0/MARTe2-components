@@ -1571,14 +1571,12 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
                 if (mode != Element) {
                     uint32 numOfSignalElements = interfaceArray.GetSize();
                     for (uint32 elemIdx = 0u; ret.ErrorsCleared() && (elemIdx < (numOfSignalElements - 1u)); elemIdx++) {
-                        uint64 endOfElemMemory   = reinterpret_cast<uint64>(interfaceArray[elemIdx]->dataAddr) + interfaceArray[elemIdx]->byteSize;
-                        uint64 startOfNextMemory = reinterpret_cast<uint64>(interfaceArray[elemIdx + 1u]->dataAddr);
-
+                        uint64 endOfElemMemory   = reinterpret_cast<uint64>(interfaceArray[elemIdx]->dataAddr) + interfaceArray[elemIdx]->byteSize; //lint !e923 !e9091 Justification: actually compliant to rule 5-2-7, while rule 5-2-9 is only advisory
+                        uint64 startOfNextMemory = reinterpret_cast<uint64>(interfaceArray[elemIdx + 1u]->dataAddr);                                //lint !e923 !e9091 Justification: actually compliant to rule 5-2-7, while rule 5-2-9 is only advisory
                         if (endOfElemMemory != startOfNextMemory) {
                             bool isSubStruct = (interfaceArray.rootStructure).MoveRelative(interfaceArray[elemIdx]->structPath.Buffer());
-                            bool okWrite     = false;
+                            bool okWrite     = (interfaceArray.rootStructure).Write("_padding_", startOfNextMemory - endOfElemMemory);
                             bool okReturn    = false;
-                            okWrite = (interfaceArray.rootStructure).Write("_padding_", startOfNextMemory - endOfElemMemory);
                             if ( isSubStruct ) {
                                 okReturn = (interfaceArray.rootStructure).MoveToAncestor(1u);
                             } else {
