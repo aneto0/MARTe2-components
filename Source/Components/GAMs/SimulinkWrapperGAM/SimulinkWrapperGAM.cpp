@@ -1543,30 +1543,7 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
                 }
             }
 
-//             // detect padding
-//             if (ret.ErrorsCleared()) {
-//                 if (mode != Element) {
-//                     uint32 numOfSignalElements = interfaceArray.GetSize();
-//                     for (uint32 elemIdx = 0u; ret.ErrorsCleared() && (elemIdx < (numOfSignalElements - 1u)); elemIdx++) {
-//                         uint8* endOfElemMemory   = static_cast<uint8*>(interfaceArray[elemIdx]->dataAddr) + interfaceArray[elemIdx]->byteSize; //lint !e9016 Justification: pointer arithmetic is required by the Simulink C-APIs
-//                         uint8* startOfNextMemory = static_cast<uint8*>(interfaceArray[elemIdx + 1u]->dataAddr);
-//
-//                         if (endOfElemMemory != startOfNextMemory) {
-//                             bool isSubStruct = (interfaceArray.rootStructure).MoveRelative(interfaceArray[elemIdx]->structPath.Buffer());
-//                             bool okWrite     = false;
-//                             bool okReturn    = false;
-//                             okWrite = (interfaceArray.rootStructure).Write("_padding_", static_cast<uint32>(startOfNextMemory - endOfElemMemory));
-//                             if ( isSubStruct ) {
-//                                 okReturn = (interfaceArray.rootStructure).MoveToAncestor(1u);
-//                             } else {
-//                                 okReturn = true;
-//                             }
-//                             ret.exception = !( okWrite && okReturn );
-//                         }
-//                     }
-//                 }
-//             }
-
+            // detect padding
             if (ret.ErrorsCleared()) {
                 if (mode != Element) {
                     uint32 numOfSignalElements = interfaceArray.GetSize();
