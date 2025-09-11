@@ -79,10 +79,17 @@ SimulinkInterface::SimulinkInterface() {
 
 }
 
+//lint -e{1551} Justification: absolutely no exception thrown whatsoever
 SimulinkInterface::~SimulinkInterface() {
     if (dimensions.GetNumberOfElements() != 0u) {
         dimensions.SetSize(0u);
     }
+    CTypeName    = NULL_PTR(char8*);
+    className    = NULL_PTR(char8*);
+    dataAddr     = NULL_PTR(void*);
+    MARTeAddress = NULL_PTR(void*);
+    destPtr      = NULL_PTR(void*);
+    sourcePtr    = NULL_PTR(void*);
 }
 
 bool SimulinkInterface::Actualise(const AnyType& sourceParameter) {
@@ -149,7 +156,7 @@ bool SimulinkInterface::Actualise(const AnyType& sourceParameter) {
 
         uint32 slkDim1 = dimensions[0u];
         uint32 slkDim2 = dimensions[1u];
-        uint32 slkDim3 = dimensions.GetNumberOfElements() > 2u ? dimensions[2u] : 1u;
+        uint32 slkDim3 = (dimensions.GetNumberOfElements() > 2u) ? dimensions[2u] : 1u;
 
         // On the model side, scalars are [1,1], vectors are [1,N] or [N,1],
         // matrices are [N,M]. AnyType instead can be respectively [1], [N], [N,M].
@@ -351,7 +358,7 @@ bool SimulinkInterface::TransposeAndCopyT(void *const destination, const void *c
 /*---------------------------------------------------------------------------*/
 
 SimulinkRootInterface::SimulinkRootInterface()
-    : SimulinkInterface() {}
+    : SimulinkInterface(), StaticList<SimulinkInterface*>() {}
 
 //lint -e{1551} Justification: absolutely no exception thrown whatsoever
 SimulinkRootInterface::~SimulinkRootInterface() {
