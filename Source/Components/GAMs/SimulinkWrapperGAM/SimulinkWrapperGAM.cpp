@@ -1603,7 +1603,9 @@ ErrorManagement::ErrorType SimulinkWrapperGAM::ScanInterface(SimulinkRootInterfa
         }
     }
 
+    /*lint -e{438} enumSLId is used*/
     return ret;
+    /*lint -e{529} enumSLId is used*/
 }
 
 /*lint -e{429} Justification: interfaceArray is freed in the destructor */
