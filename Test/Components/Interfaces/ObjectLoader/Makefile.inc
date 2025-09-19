@@ -24,40 +24,25 @@
 #
 #############################################################
 
-OBJSX += SimulinkWrapperGAMTest.x
-		
-PACKAGE=Components/GAMs
+OBJSX +=  ObjectLoaderTest.x\
+	ObjectConnectionITest.x\
+	ConfigurationDatabaseConnectionTest.x
+
+OBJSX += ObjectLoaderGTest.x\
+	ObjectConnectionIGTest.x\
+	ConfigurationDatabaseConnectionGTest.x
+
+ifdef MDSPLUS_DIR
+OBJSX += MDSObjectConnectionTest.x\
+	MDSObjectConnectionGTest.x
+endif
+
+
+PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
-include $(ROOT_DIR)/Source/Components/GAMs/SimulinkWrapperGAM/Makefile.detect
-
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
-
-# These flags are required in order to retrieve type definitions from tmwtypes.h
-# instead of rtwtypes.h (which is generated for each model and not available in MATLAB root directory)
-CPPFLAGS += -DHOST_CAPI_BUILD -DMATLAB_MEX_FILE
-
-# Add row-major support for 3D matrices. Available from version 2018b (9.05) onwards
-ifeq ($(shell [ $(MATLAB_VERSION) -ge 905 ]; echo $$?),0)
-CFLAGS += -DROW_MAJOR_ND_FEATURE
-CPPFLAGS += -DROW_MAJOR_ND_FEATURE
-endif
-
-# Add enum support. Available from version 2019a (9.06) onwards
-ifeq ($(shell [ $(MATLAB_VERSION) -ge 906 ]; echo $$?),0)
-CFLAGS += -DENUM_FEATURE
-CPPFLAGS += -DENUM_FEATURE
-endif
-
-# Tests of logging signals require coder.mapping, available from version 2020b (9.09) onwards
-ifeq ($(shell [ $(MATLAB_VERSION) -ge 909 ]; echo $$?),0)
-CFLAGS += -DBLOCKSIGNAL_TEST_FEATURE
-CPPFLAGS += -DBLOCKSIGNAL_TEST_FEATURE
-else
-$(warning MATLAB Version is less than 9.9. Logging Signals tests cannot be performed.)
-endif
-
 
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
@@ -65,23 +50,28 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Logger
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4StateMachine
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4LoggerService
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L1Portability
-INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 
-INCLUDES += -I../../../../Source/Components/GAMs/SimulinkWrapperGAM
+INCLUDES += -I../../../../Source/Components/Interfaces/ObjectLoader
 
-INCLUDES += -I$(MATLAB_DIR)/extern/include
-INCLUDES += -I$(MATLAB_DIR)/rtw/c/src/
-INCLUDES += -I$(MATLAB_DIR)/simulink/include/
+ifdef MDSPLUS_DIR
+INCLUDES += -I$(MDSPLUS_DIR)/include
+
+#TODO Temporary to fix problem in mdsplus include
+CPPFLAGS += -Wno-error=sign-compare
+LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
+endif
 
 all: $(OBJS) \
-                $(BUILD_DIR)/SimulinkWrapperGAMTest$(LIBEXT)
+                $(BUILD_DIR)/ObjectLoaderTest$(LIBEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)

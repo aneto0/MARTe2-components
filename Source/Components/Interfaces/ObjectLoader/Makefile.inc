@@ -2,7 +2,7 @@
 #
 # Copyright 2015 F4E | European Joint Undertaking for ITER 
 #  and the Development of Fusion Energy ('Fusion for Energy')
-#
+# 
 # Licensed under the EUPL, Version 1.1 or - as soon they 
 # will be approved by the European Commission - subsequent  
 # versions of the EUPL (the "Licence"); 
@@ -20,39 +20,23 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
-# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
-#
 #############################################################
-OBJSX=SimulinkWrapperGAM.x SimulinkInterfaces.x
 
-PACKAGE=Components/GAMs
+OBJSX=ObjectLoader.x \
+	ObjectConnectionI.x \
+	ConfigurationDatabaseConnection.x
+
+ifdef MDSPLUS_DIR
+OBJSX += MDSObjectConnection.x
+endif
+
+PACKAGE=Components/Interfaces
 
 ROOT_DIR=../../../../
+
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
-include $(ROOT_DIR)/Source/Components/GAMs/SimulinkWrapperGAM/Makefile.detect
-
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
-
-CPPFLAGS += -O1
-
-# Flags required in order to retrieve type definitions from tmwtypes.h
-# instead of rtwtypes.h (which is generated for each model and not available in MATLAB root directory)
-CPPFLAGS += -DHOST_CAPI_BUILD -DMATLAB_MEX_FILE
-CFLAGS += -DHOST_CAPI_BUILD -DMATLAB_MEX_FILE
-
-# Add row-major support for 3D matrices. Available from version 2018b (9.05) onwards
-ifeq ($(shell [ $(MATLAB_VERSION) -ge 905 ]; echo $$?),0)
-CFLAGS += -DROW_MAJOR_ND_FEATURE
-CPPFLAGS += -DROW_MAJOR_ND_FEATURE
-endif
-
-# Add enum support. Available from version 2019a (9.06) onwards
-ifeq ($(shell [ $(MATLAB_VERSION) -ge 906 ]; echo $$?),0)
-CFLAGS += -DENUM_FEATURE
-CPPFLAGS += -DENUM_FEATURE
-endif
-
 
 INCLUDES += -I.
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
@@ -65,18 +49,22 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
-INCLUDES += -I$(MATLAB_DIR)/extern/include
-INCLUDES += -I$(MATLAB_DIR)/rtw/c/src/
-INCLUDES += -I$(MATLAB_DIR)/simulink/include/
+ifdef MDSPLUS_DIR
+INCLUDES += -I$(MDSPLUS_DIR)/include
 
-# Remember that no linking shall be performed against the matlab libraries, as this would prevent deploying it in an environment where no matlab is installed.
+#TODO Temporary to fix problem in mdsplus include
+CPPFLAGS += -Wno-error=sign-compare
+LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
+endif
 
+all: $(OBJS)    \
+    $(BUILD_DIR)/ObjectLoader$(LIBEXT) \
+    $(BUILD_DIR)/ObjectLoader$(DLLEXT)
+	echo  $(OBJS)
 
-all: $(OBJS) $(SUBPROJ) \
-	$(BUILD_DIR)/SimulinkWrapperGAM$(LIBEXT) \
-	$(BUILD_DIR)/SimulinkWrapperGAM$(DLLEXT)
-	    echo  $(OBJS)
+include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 

@@ -30,6 +30,9 @@ ifndef SKIP_PROFINET
 include $(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource/Makefile.detect
 endif
 
+# Detect MATLAB(R) version
+include $(ROOT_DIR)/Source/Components/GAMs/SimulinkWrapperGAM/Makefile.detect
+
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
@@ -94,7 +97,13 @@ LIBRARIES += -lpvAccess -lpvData -lpvDatabase -lnt -lpvAccessIOC -lpvAccessCA -l
 endif 
 
 ifdef MATLAB_DIR
-LIBRARIES += -Wl,-rpath-link,$(MATLAB_DIR)/bin/glnxa64 "$(MATLAB_DIR)/sys/os/glnxa64/libstdc++.so.6" -L$(MATLAB_DIR)/extern/bin/glnxa64/ -L$(MATLAB_DIR)/bin/glnxa64/ -lMatlabDataArray -lMatlabEngine -lmx -lmex -lmat -lm -lstdc++ -leng
+ifeq ($(shell [ $(MATLAB_VERSION) -ge 913 ]; echo $$?),0)
+# Libraries for versions 2022b (9.13) and above
+LIBRARIES += -pthread -L$(MATLAB_DIR)/extern/bin/$(MATLAB_ARCH)/ -L$(MATLAB_DIR)/bin/$(MATLAB_ARCH)/ -lMatlabDataArray -lMatlabEngine
+else
+# Libraries for versions below 2022b (9.13)
+LIBRARIES += -Wl,-rpath-link,$(MATLAB_DIR)/bin/$(MATLAB_ARCH) "$(MATLAB_DIR)/sys/os/$(MATLAB_ARCH)/libstdc++.so.6" -L$(MATLAB_DIR)/extern/bin/$(MATLAB_ARCH)/ -L$(MATLAB_DIR)/bin/$(MATLAB_ARCH)/ -lMatlabDataArray -lMatlabEngine -lmx -lmex -lmat -lm -lstdc++ -leng
+endif
 endif
 
 ifdef PDNA_LIB
