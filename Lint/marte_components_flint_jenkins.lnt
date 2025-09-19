@@ -15,6 +15,8 @@ marte_components_flint_exceptions.lnt
  * defines for SimulinkWrapperGAM
  */
 -dHOST_CAPI_BUILD
+-dROW_MAJOR_ND_FEATURE
+-dENUM_FEATURE
 
 /*
  * Set jenkins output format

@@ -23,12 +23,15 @@
 # $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
 #
 #############################################################
-OBJSX=SimulinkWrapperGAM.x SimulinkClasses.x
+OBJSX=SimulinkWrapperGAM.x SimulinkInterfaces.x
 
 PACKAGE=Components/GAMs
 
 ROOT_DIR=../../../../
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
+
+include $(ROOT_DIR)/Source/Components/GAMs/SimulinkWrapperGAM/Makefile.detect
+
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 CPPFLAGS += -O1
@@ -38,19 +41,18 @@ CPPFLAGS += -O1
 CPPFLAGS += -DHOST_CAPI_BUILD -DMATLAB_MEX_FILE
 CFLAGS += -DHOST_CAPI_BUILD -DMATLAB_MEX_FILE
 
-# Add row-major support for 3D matrices only if available (from version 2018b onwards)
-ROW_MAJOR_ND_FEATURE = $(shell if grep -qr rtwCAPI_MATRIX_ROW_MAJOR_ND $$MATLAB_DIR/rtw/c/src; then echo 0; else echo 1; fi)
-ifeq "$(ROW_MAJOR_ND_FEATURE)" "0"
+# Add row-major support for 3D matrices. Available from version 2018b (9.05) onwards
+ifeq ($(shell [ $(MATLAB_VERSION) -ge 905 ]; echo $$?),0)
 CFLAGS += -DROW_MAJOR_ND_FEATURE
 CPPFLAGS += -DROW_MAJOR_ND_FEATURE
 endif
 
-# Add enum support only if available (from version 2019a onwards)
-ENUM_FEATURE = $(shell if grep -qr rtwCAPI_GetDataEnumStorageType $$MATLAB_DIR/rtw/c/src; then echo 0; else echo 1; fi)
-ifeq "$(ENUM_FEATURE)" "0"
+# Add enum support. Available from version 2019a (9.06) onwards
+ifeq ($(shell [ $(MATLAB_VERSION) -ge 906 ]; echo $$?),0)
 CFLAGS += -DENUM_FEATURE
 CPPFLAGS += -DENUM_FEATURE
 endif
+
 
 INCLUDES += -I.
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
@@ -74,7 +76,7 @@ INCLUDES += -I$(MATLAB_DIR)/simulink/include/
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/SimulinkWrapperGAM$(LIBEXT) \
 	$(BUILD_DIR)/SimulinkWrapperGAM$(DLLEXT)
-	    echo  $(OBJS) $(ENUM_SUPPORT)
+	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 

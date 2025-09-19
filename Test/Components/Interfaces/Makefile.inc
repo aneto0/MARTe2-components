@@ -24,7 +24,7 @@
 #
 #############################################################
 
-SPB=MemoryGate.x	\
+SPB=MemoryGate.x \
 	SysLogger.x	
 
 ifdef EFDA_MARTe_DIR
@@ -35,8 +35,8 @@ ifdef EPICS_BASE
 SPB   += EPICS.x
 endif
 
-
 ifdef MDSPLUS_DIR
+SPB += ObjectLoader.x
 SPB += MDSStructuredDataI.x
 endif
 

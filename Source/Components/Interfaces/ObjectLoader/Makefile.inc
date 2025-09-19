@@ -22,9 +22,15 @@
 #
 #############################################################
 
-OBJSX=NI6368ADCInputBroker.x NI6368ADC.x NI6368DAC.x NI6368DIO.x
+OBJSX=ObjectLoader.x \
+	ObjectConnectionI.x \
+	ConfigurationDatabaseConnection.x
 
-PACKAGE=Components/DataSources
+ifdef MDSPLUS_DIR
+OBJSX += MDSObjectConnection.x
+endif
+
+PACKAGE=Components/Interfaces
 
 ROOT_DIR=../../../../
 
@@ -33,7 +39,6 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 INCLUDES += -I.
-INCLUDES += -I$(CODAC_ROOT)/include/
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
@@ -44,14 +49,19 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 
-## Compatibility issue with xseries_dma_init pre CCSv6.0
-CCS_VER = $(shell codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g')
-CPPFLAGS += -DCCS_VER=$(CCS_VER)
+ifdef MDSPLUS_DIR
+INCLUDES += -I$(MDSPLUS_DIR)/include
+
+#TODO Temporary to fix problem in mdsplus include
+CPPFLAGS += -Wno-error=sign-compare
+LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
+endif
 
 all: $(OBJS)    \
-    $(BUILD_DIR)/NI6368$(LIBEXT) \
-    $(BUILD_DIR)/NI6368$(DLLEXT)
+    $(BUILD_DIR)/ObjectLoader$(LIBEXT) \
+    $(BUILD_DIR)/ObjectLoader$(DLLEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)
