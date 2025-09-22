@@ -34,6 +34,7 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
+#include "ConfigurationDatabase.h"
 #include "MessageI.h"
 #include "Object.h"
 #include "StreamString.h"
@@ -377,7 +378,12 @@ private:
     /**
      * The EPICS PV Value to be changed when in a message.
      */
-    uint64 changedPvVal;
+    ConfigurationDatabase changedPvVal;
+
+    /**
+     * The EPICS PV Message mask containing a PV Value.
+     */
+    //uint64 changedMsg;
 
     /**
      * The number of times HandlePVEvent was called.
