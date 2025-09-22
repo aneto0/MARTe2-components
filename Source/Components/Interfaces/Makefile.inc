@@ -23,7 +23,8 @@
 #############################################################
 
 SPB=MemoryGate.x \
-	SysLogger.x 
+	SysLogger.x \
+	ApplicationKiller.x
 
 ifdef OPEN62541_LIB
 SPB+=OPCUA.x
@@ -42,7 +43,8 @@ SPB+=EPICS.x
 endif
 
 ifdef MDSPLUS_DIR
-SPB+= MDSStructuredDataI.x
+SPB+=ObjectLoader.x 
+SPB+=MDSStructuredDataI.x
 endif
 
 ifdef CODAC_ROOT

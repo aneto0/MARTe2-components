@@ -91,8 +91,9 @@ public:
     /**
      * @brief Helper method to test Initialise by passing a ConfigurationDatabase.
      * @param[in] configIn the configuration database with the configuration to be tested.
+     * @param[out] status  the status of the GAM
      */
-    bool TestInitialiseWithConfiguration(MARTe::ConfigurationDatabase configIn);
+    bool TestInitialiseWithConfiguration(MARTe::ConfigurationDatabase configIn, MARTe::ErrorManagement::ErrorType& status);
     
     /**
      * @brief General method to test GAM setup. The method allows to
@@ -101,20 +102,34 @@ public:
      * @param[in] inputSignals a string containing the input signal configuration for current test
      * @param[in] outputSignals a string containing the output signal configuration for current test
      * @param[in] parameters a string containing the parameter configuration for current test
+     * @param[out] status the error status of the GAM for further testing
      * @param[in] objRegDatabase (optional) if specified, a pointer to the registry
      *          of the current MARTe2 is returned (but then it is
      *          up to the user to call objRegDatabase->Purge()).
      */
     bool TestSetupWithTemplate(MARTe::StreamString scriptCall,
-                                                   MARTe::StreamString skipUnlinkedParams,
-                                                   MARTe::StreamString inputSignals,
-                                                   MARTe::StreamString outputSignals,
-                                                   MARTe::StreamString parameters,
-                                                   MARTe::ObjectRegistryDatabase* objRegDatabase, /* = NULL_PTR(ObjectRegistryDatabase*)*/
-                                                   bool         structuredSignalsAsByteArrays, /* = true */
-                                                   bool         enforceModelSignalCoverage /*= false */
-                                                   );
+                               MARTe::StreamString inputSignals,
+                               MARTe::StreamString outputSignals,
+                               MARTe::StreamString parameters,
+                               MARTe::StreamString configOptions,
+                               MARTe::ErrorManagement::ErrorType& status,
+                               MARTe::ObjectRegistryDatabase* objRegDatabase /* = NULL_PTR(ObjectRegistryDatabase*)*/
+                                );
     
+    /**
+     * @brief General method to test GAM execute. The input strings shall be in MARTe2
+     *        configuration syntax and are parsed by a StandardParser. The values are
+     *        compared with that of the signals.
+     */
+    bool TestExecuteGeneric(MARTe::StreamString marteInputs,
+                            MARTe::StreamString modelExpectedInputs,
+                            MARTe::StreamString modelExpectedOutputs,
+                            MARTe::StreamString marteExpectedOutputs,
+                            MARTe::StreamString marteExpectedLoggingSignals,
+                            MARTe::ErrorManagement::ErrorType& status,
+                            MARTe::ObjectRegistryDatabase* objRegDatabase
+                            );
+
     /**
      * @brief Tests the Initialise() method if optional settings are missing.
      */
@@ -209,19 +224,44 @@ public:
     bool TestSetup_WithNestedStructSignals();
     
     /**
+     * @brief Tests the Setup() method when block signals are logged.
+     */
+    bool TestSetup_WithLoggingSignals();
+
+    /**
      * @brief Tests the Setup() method when told to skip not ok tunable parameters.
      */
     bool TestSetup_SkipInvalidTunableParams();
-    
+
     /**
      * @brief Tests the Setup() method when there are no inputs.
      */
     bool TestSetup_NoInputs();
-    
+
     /**
      * @brief Tests the Setup() method when there are no outputs.
      */
     bool TestSetup_NoOutputs();
+
+    /**
+     * @brief Tests the Setup() method when verbosity level is set to 1.
+     */
+    bool TestSetup_LowVerbosity();
+
+    /**
+     * @brief Tests the Setup() method when verbosity level is set to 0.
+     */
+    bool TestSetup_ZeroVerbosity();
+
+    /**
+     * @brief Tests the GetInterfaceBytesize method of SimulinkRootInterface.
+     */
+    bool TestSetup_StructSignalBytesize();
+
+    /**
+     * @brief Tests the Setup() method with 3D signals in the bus input.
+     */
+    bool TestSetup_With3DSignals();
     
     /**
      * @brief Tests the Setup() method when told not to skip not ok tunable parameters.
@@ -241,16 +281,34 @@ public:
     bool TestSetup_Failed_WrongNumberOfOutputs();
     
     /**
+     * @brief Tests the Setup() method when the number of model logging signals
+     *        do not match the ones declared in the configuration.
+     */
+    bool TestSetup_Failed_WrongNumberOfLoggingSignals();
+
+    /**
+     * @brief Tests the Setup() method when an input signal name does
+     *        not match.
+     */
+    bool TestSetup_Failed_EmptyInterfaceName();
+
+    /**
      * @brief Tests the Setup() method when an input signal name does
      *        not match.
      */
     bool TestSetup_Failed_WrongInputName();
-    
+
     /**
      * @brief Tests the Setup() method when an output signal name does
      *        not match.
      */
     bool TestSetup_Failed_WrongOutputName();
+
+    /**
+     * @brief Tests the Setup() method when an output signal name does
+     *        not match.
+     */
+    bool TestSetup_Failed_WrongLoggingSignalName();
     
     /**
      * @brief Tests the Setup() method  when a signal number of elements
@@ -263,12 +321,18 @@ public:
      *        does not match.
      */
     bool TestSetup_Failed_WrongNumberOfDimensions();
-    
+
     /**
      * @brief Tests the Setup() method  when a signal type
      *        does not match.
      */
     bool TestSetup_Failed_WrongDatatype();
+
+    /**
+     * @brief Tests the Setup() method  when a logging signal type
+     *        does not match.
+     */
+    bool TestSetup_Failed_LoggingSignalWrongDatatype();
     
     /**
      * @brief Tests the Setup() method  when a parameter number of dimensions
@@ -298,13 +362,13 @@ public:
      * @brief Tests the Setup() method when the model has struct arrays
      *        used as parameters.
      */
-    bool TestSetup_Failed_StructArraysAsParams();
+    bool TestSetup_StructArraysAsParams();
     
     /**
      * @brief Tests the Setup() method when the model has nested struct arrays
      *        used as parameters.
      */
-    bool TestSetup_Failed_NestedStructArraysAsParams();
+    bool TestSetup_NestedStructArraysAsParams();
     
     /**
      * @brief Tests the Setup() method when the configuration has
@@ -317,6 +381,7 @@ public:
      *        Type != uint8 for a struct signal.
      */
     bool TestSetup_Failed_WrongDatatypeWithStructSignals();
+
 #ifdef ROW_MAJOR_ND_FEATURE    
     /**
      * @brief Tests the correct actualisation of parameters in a model
@@ -352,29 +417,81 @@ public:
      * @brief Tests the PrintAlgoInfo() method.
      */
     bool TestPrintAlgoInfo();
-    
+
     /**
      * @brief Test the behaviour when working in pure structured signal mode
      */
     bool Test_StructuredSignals();
 
+    /**
+     * @brief Test the behaviour when working in pure structured signal mode
+     *        and having logging signals
+     */
+    bool TestSetup_WithStructuredLoggingSignals();
+
+    /**
+     * @brief Test execution and coherence with logging signals
+     */
+    bool TestExecute_WithLoggingSignals();
 
     /**
      * @brief Test execution and coherence when working in pure structured mode
      */
     bool TestExecute_WithStructuredSignals();
 
+    /**
+     * @brief Test execution and coherence when working in pure structured mode
+     */
+    bool TestExecute_WithStructuredLoggingSignals();
 
     /**
      * @brief Test execution and coherence when working with mixed signals and transposition takes place
      */
-    bool Test_MultiMixedSignalsTranspose(bool transpose);
+    bool TestExecute_MultiMixedSignalsTranspose(bool transpose);
+
+    /**
+     * @brief Test execution and coherence when working with 3D signals
+     */
+    bool TestExecute_With3DSignals(bool transpose);
+
+    /**
+     * @brief Test execution and coherence when working with 3D signals
+     */
+    bool TestExecute_With3DSignals_NoInputs(bool transpose);
+
+    /**
+     * @brief Test execution and coherence when working with struct array signals
+     */
+    bool TestExecute_WithStructArraySignals(bool transpose);
+
+    /**
+     * @brief Test execution and coherence when working with struct array signals
+     */
+    bool TestExecute_WithStructArraySignals_NoInputs();
 
     /**
      * @brief Test the behaviour when working in pure structured signal mode, while enforcing
      * MARTe2 - Simulink parameter coverage (1:1 mapping)
      */
-    bool Test_StructuredSignals_Failed();
+    bool TestSetup_DisconnectedOutputSignal_Failed();
+
+    /**
+     * @brief Test the behaviour when working in pure structured signal mode, while enforcing
+     * MARTe2 - Simulink parameter coverage (1:1 mapping)
+     */
+    bool TestSetup_DisconnectedOutputStructuredSignal_Failed();
+
+    /**
+     * @brief Test the behaviour when working in pure structured signal mode, while enforcing
+     * MARTe2 - Simulink parameter coverage (1:1 mapping)
+     */
+    bool TestSetup_DisconnectedInputSignal_Failed();
+
+    /**
+     * @brief Test the behaviour when working in pure structured signal mode, while enforcing
+     * MARTe2 - Simulink parameter coverage (1:1 mapping)
+     */
+    bool TestSetup_DisconnectedInputStructuredSignal_Failed();
 
 
     /**
@@ -391,7 +508,7 @@ public:
     /**
      * @brief Tests the setup of a model with struct parameters from external AnyObject source
      */
-    bool TestSetup_StructTunableParametersFromExternalSource_Failed();
+    bool TestSetup_StructTunableParametersFromExternalSource_Unlinked();
     
 #ifdef ENUM_FEATURE
     /**
@@ -419,6 +536,8 @@ public:
      */
     bool TestExecute_WithEnumSignals();
 #endif
+
+    bool TestLinearIndexToSubscripts();
     
     /**
      * @brief A general template for the GAM configuration.
@@ -435,13 +554,10 @@ public:
         "            Class = SimulinkWrapperGAMHelper"
         "            Library = \"%s\""
         "            SymbolPrefix = \"%s\""
-        "            Verbosity = 2"
+        "               %s " // Configuration options
         "            TunableParamExternalSource = ExtSource"
-        "            NonVirtualBusMode = %s"
-        "            EnforceModelSignalCoverage = %s"
-        "            SkipInvalidTunableParams = %s"
-        "               %s" // InputSignals
-        "               %s" // OutputSignals
+        "               %s " // InputSignals
+        "               %s " // OutputSignals
         "            Parameters = {"
         "                one = (uint8) 1"
         "                %s"
@@ -478,8 +594,52 @@ public:
         "    +Scheduler = {"
         "        Class = GAMScheduler"
         "        TimingDataSource = Timings"
-        "    }"
-        "}";
+        "    } "
+        "} "
+        "+Types = { "
+        "    Class = ReferenceContainer "
+        "    +Scalar_Structured_t = { "
+        "        Class = IntrospectionStructure "
+        "        ScalarDouble = { NumberOfElements = {1}    Type = float64 } "
+        "        ScalarUint32 = { NumberOfElements = {1}    Type = uint32  } "
+        "    } "
+        "    +Vector_Structured_t = { "
+        "        Class = IntrospectionStructure "
+        "        VectorDouble = { NumberOfElements = {8}    Type = float64 } "
+        "        VectorUint32 = { NumberOfElements = {8}    Type = uint32  } "
+        "    } "
+        "    +Matrix_Structured_t = { "
+        "        Class = IntrospectionStructure "
+        "        MatrixDouble = { NumberOfElements = {6, 6} Type = float64 } "
+        "        MatrixUint32 = { NumberOfElements = {6, 6} Type = uint32  } "
+        "    } "
+        "    +Matrix3D_Structured_t = { "
+        "        Class = IntrospectionStructure "
+        "        Matrix3DDouble = { NumberOfElements = {2, 3, 4} Type = float64 } "
+        "        Matrix3DUint32 = { NumberOfElements = {2, 3, 4} Type = uint32  } "
+        "    } "
+        "    +VectorMatrix_Structured_t = { "
+        "        Class = IntrospectionStructure "
+        "        Vector_Structured = { NumberOfElements = {1}    Type = Vector_Structured_t } "
+        "        Matrix_Structured = { NumberOfElements = {1}    Type = Matrix_Structured_t } "
+        "    } "
+        "    +VectorMatrix_StructuredArray_t = { "
+        "        Class = IntrospectionStructure "
+        "        Vector_Structured = { NumberOfElements = {2, 3}  Type = Vector_Structured_t } "
+        "        Matrix_Structured = { NumberOfElements = {2}     Type = Matrix_Structured_t } "
+        "    } "
+        "    +ScalarVector_Structured_t = { "
+        "        Class = IntrospectionStructure "
+        "        Scalar_Structured = { NumberOfElements = {1}    Type = Scalar_Structured_t } "
+        "        Vector_Structured = { NumberOfElements = {1}    Type = Vector_Structured_t } "
+        "    } "
+        "    +ScalarVector_StructuredArray_t = { "
+        "        Class = IntrospectionStructure "
+        "        Scalar_Structured = { NumberOfElements = {2, 3, 4} Type = Scalar_Structured_t } "
+        "        Vector_Structured = { NumberOfElements = {2, 3}    Type = Vector_Structured_t } "
+        "    } "
+        "} "
+        ;
 
 };
 

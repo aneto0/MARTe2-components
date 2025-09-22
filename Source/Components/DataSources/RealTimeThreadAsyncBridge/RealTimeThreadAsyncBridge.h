@@ -50,6 +50,11 @@ namespace MARTe {
  * function returns false. The same happens if there is no buffer available for the reader (impossible if more than one buffer has been declared),
  * in this case the GetInputOffset returns false.
  *
+ * @details In addiction to the standard non-blocking mode, user can define BlockingMode. If BlockingMode is declared greater than 0, only one buffer will be used.
+ * If BlockingMode==1, the access on each signal is regulated by a dedicated signal spinlock mutex.
+ * If BlockingMode==2, the access to all the signals is regulated by a global spinlock mutex. This can be used to ensure consistency between signals for instance
+ * in communication between two GAMs belonging to different threads.
+ *
  * The RPC method ResetSignalValue allows to reset all the signal values.
  *
   * <pre>
@@ -57,7 +62,8 @@ namespace MARTe {
  *    Class = RealTimeThreadAsyncBridge
  *    NumberOfBuffers = 3 //Optional but < 64. Default = 1. Each buffer contains a copy of each signal.
  *    HeapName = "Default" //Optional. Default = GlobalObjectsDatabase::Instance()->GetStandardHeap();
- *    BlockingMode = 0 //Optional. Default = 0. NumberOfBuffers will be set to 1 and a spinlock mutex is used for synchronization on the shared signals
+ *    BlockingMode = 0 //Optional. Default = 0. If > 0 the NumberOfBuffers will be set to 1 and a spinlock mutex is used for synchronization on the shared signals.
+ *                                              If equal to 2 each access is regulated by a mutex for the whole bunch of signals
  *    ResetMSecTimeout = 1 //Optional. Default = TTInfiniteWait. The TerminateOutputCopy function can block when the counter used to newest written buffer overflows and needs to be reset.
  *                                                               If the reader should wait for this counter to be properly reset then the ResetMSecTimeout should
  *                                                               be increased to a large number. If instead the reader does not mind to get oldest buffer (instead of the newest) while this reset operation
@@ -159,6 +165,18 @@ RealTimeThreadAsyncBridge    ();
             const uint32 offset, const uint32 numberOfSamples);
 
     /**
+     * @see DataSourceI::GetCurrentStateBuffer
+     * @brief if BlockingMode==2, locks the global mutex
+     */
+    virtual uint32 GetCurrentStateBuffer();
+
+    /**
+     * @see DataSourceI::BrokerCopyTerminated
+     * @brief if BlockingMode==2, unlocks the global mutex
+     */
+    virtual bool BrokerCopyTerminated();
+
+    /**
      * @see DataSourceI::GetBrokerName
      * @returns the broker name.
      */
@@ -198,9 +216,18 @@ protected:
     TimeoutType resetTimeout;
 
     /**
-     * TODO
+     * The blocking mode.
+     * If equal to 0, the access is not blocking on the first available buffer
+     * If equal to 1 the access on each signal is regulated by a mutex
+     * If equal to 2 the access on the whole bunch of signals is regulated by a mutex
+     *
      */
     uint8 blockingMode;
+
+    /**
+     * Global mutex for all signals if \a blockingMode==2
+     */
+    FastPollingMutexSem globMux;
 };
 
 }

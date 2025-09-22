@@ -53,64 +53,85 @@ bool FlattenedStructIOGAM::Initialise(StructuredDataI &data) {
     if (!ret) {
         REPORT_ERROR(ErrorManagement::InitialisationError, "The InputSignals shall be set");
     }
-    if (ret) {
+    /*if (ret) {
         ret = (data.GetNumberOfChildren() == 1u);
         if (!ret) {
             REPORT_ERROR(ErrorManagement::InitialisationError, "Exactly one structured signal shall be set.");
         }
-    }
-    if (ret) {
+    }*/
+    uint32 nOfStructuredSignals = data.GetNumberOfChildren();
+    ConfigurationDatabase expandedSignals;
+    uint32 signalCounter = 0u;
+    for (uint32 n=0u; (n<nOfStructuredSignals) && (ret); n++) {
         ret = data.MoveToChild(0u);
-    }
-    StreamString signalName;
-    if (ret) {
-        signalName = data.GetName();
-    }
-    uint32 numberOfElements = 1u;
-    StreamString structType;
-    if (ret) {
-        if (!data.Read("NumberOfElements", numberOfElements)) {
-            numberOfElements = 1u;
+        StreamString signalName;
+        if (ret) {
+            signalName = data.GetName();
         }
-        ret = data.Read("Type", structType);
-        if (!ret) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "The signal Type shall be set.");
+        uint32 numberOfElements = 1u;
+        StreamString structType;
+        if (ret) {
+            if (!data.Read("NumberOfElements", numberOfElements)) {
+                numberOfElements = 1u;
+            }
+            ret = data.Read("Type", structType);
+            if (!ret) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "The signal Type shall be set.");
+            }
         }
-    }
-    StreamString dataSourceName;
-    if (ret) {
-        ret = data.Read("DataSource", dataSourceName);
-        if (!ret) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "The signal DataSource shall be set.");
+        StreamString dataSourceName;
+        if (ret) {
+            ret = data.Read("DataSource", dataSourceName);
+            if (!ret) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "The signal DataSource shall be set.");
+            }
         }
+        if (ret) {
+            ret = data.MoveToAncestor(1u);
+        }
+        if (ret) {
+            ret = data.Delete(signalName.Buffer());
+        }
+        const Introspection *memberIntro = NULL_PTR(const Introspection *);
+        const ClassRegistryItem *cri = NULL_PTR(const ClassRegistryItem *);
+        if (ret) {
+            cri = ClassRegistryDatabase::Instance()->Find(structType.Buffer());
+            ret = (cri != NULL_PTR(const ClassRegistryItem *));
+        }
+        if (ret) {
+            //lint -e{613} cri cannot be NULL as it is checked above.
+            memberIntro = cri->GetIntrospection();
+            ret = (memberIntro != NULL_PTR(const Introspection *));
+        }
+        ConfigurationDatabase signalPathCDB;
+        if (ret) {
+            ret = signalPathCDB.CreateAbsolute(signalName.Buffer());
+        }
+        if (ret) {
+            ret = signalPathCDB.Write("NumberOfElements", numberOfElements);
+        }
+        ConfigurationDatabase expandedSignal;
+        if (ret) {
+            ret = TransverseStructure(memberIntro, signalPathCDB, expandedSignal, signalCounter, dataSourceName.Buffer());
+        }
+        /*StreamString pp;
+        pp.Printf("%!\n", expandedSignal);
+        printf("%s\n", pp.Buffer());*/
+        if (ret) {
+            ret = expandedSignal.MoveToRoot();
+        }
+        if (ret) {
+            ret = expandedSignal.Copy(expandedSignals);
+        }
+        if (ret) {
+            ret = expandedSignals.MoveToRoot();
+        }
+        /*if (ret) {
+            ret = data.MoveToAncestor(1u);
+        }*/
     }
     if (ret) {
-        ret = data.MoveToAncestor(1u);
-    }
-    if (ret) {
-        ret = data.Delete(signalName.Buffer());
-    }
-    const Introspection *memberIntro = NULL_PTR(const Introspection *);
-    const ClassRegistryItem *cri = NULL_PTR(const ClassRegistryItem *);
-    if (ret) {
-        cri = ClassRegistryDatabase::Instance()->Find(structType.Buffer());
-        ret = (cri != NULL_PTR(const ClassRegistryItem *));
-    }
-    if (ret) {
-        //lint -e{613} cri cannot be NULL as it is checked above.
-        memberIntro = cri->GetIntrospection();
-        ret = (memberIntro != NULL_PTR(const Introspection *));
-    }
-    ConfigurationDatabase signalPathCDB;
-    if (ret) {
-        ret = signalPathCDB.CreateAbsolute(signalName.Buffer());
-    }
-    if (ret) {
-        ret = signalPathCDB.Write("NumberOfElements", numberOfElements);
-    }
-    if (ret) {
-        uint32 signalCounter = 0u;
-        ret = TransverseStructure(memberIntro, signalPathCDB, data, signalCounter, dataSourceName.Buffer());
+        ret = expandedSignals.Copy(data);
     }
     if (ret) {
         ret = data.MoveToAncestor(1u);

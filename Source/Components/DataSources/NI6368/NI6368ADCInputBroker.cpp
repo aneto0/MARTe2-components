@@ -136,8 +136,15 @@ bool NI6368ADCInputBroker::Execute() {
         if (adcBoard->IsSynchronising()) {
             ret = adcBoard->Synchronise();
         }
+        else {
+            ret = adcBoard->NonSynchronise();
+        }
 
         uint32 idx = adcBoard->GetLastBufferIdx();
+        //no problem if working on different buffers
+        adcBoard->Lock(idx);
+
+
         void *dataSourceSignalPointer;
         for (n = 0u; (n < numberOfCopies) && (ret); n++) {
             if (copyTable != NULL_PTR(NI6368CopyTableEntry *)) {
@@ -145,6 +152,8 @@ bool NI6368ADCInputBroker::Execute() {
                 ret = MemoryOperationsHelper::Copy(copyTable[n].gamPointer, dataSourceSignalPointer, copyTable[n].copySize);
             }
         }
+
+        adcBoard->UnLock(idx);
     }
     return ret;
 }
