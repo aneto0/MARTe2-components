@@ -23,7 +23,8 @@
 #############################################################
 
 SPB=MemoryGate.x \
-	SysLogger.x 
+	SysLogger.x \
+	ApplicationKiller.x
 
 ifdef OPEN62541_LIB
 SPB+=OPCUA.x

@@ -20,71 +20,38 @@
 # See the Licence for the specific language governing 
 # permissions and limitations under the Licence. 
 #
-# $Id: Makefile.inc 3 2012-01-15 16:26:07Z aneto $
-#
 #############################################################
 
-SPB=MemoryGate.x	\
-	SysLogger.x	\
-	ApplicationKiller.x
+OBJSX=ApplicationKiller.x
 
-ifdef EFDA_MARTe_DIR
-SPB += BaseLib2Wrapper.x
-endif
+PACKAGE=Components/Interfaces
 
-ifdef EPICS_BASE
-SPB   += EPICS.x
-endif
-
-ifdef MDSPLUS_DIR
-SPB += ObjectLoader.x
-SPB += MDSStructuredDataI.x
-endif
-
-ifdef CODAC_ROOT
-SPB+=NI9157Device.x
-SPB+=TcnTimeProvider.x
-## Only force EPICSPVA if CCS version is gt v6.1
-CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
-ifeq "$(CCSGT61)" "1"
-EPICSPVA = "1"
-endif
-endif
-
-ifdef CODAC_ROOT
-## Only force CCSHelpers if CCS version is gt v6.3
-CCSGT63 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 63 ]; then echo 1; else echo 0; fi)
-ifeq "$(CCSGT63)" "1"
-SPB+=CCSHelpers.x
-endif
-endif
-
-
-ifdef EPICSPVA
-SPB   += EPICSPVA.x
-endif
-
-ifdef OPEN62541_LIB
-SPB+=OPCUA.x
-endif
-
-ifdef EPICS_PCAS
-SPB+=MARTeIOC.x
-endif
-
-ifdef UEIDAQ_MOCKUP
-SPB+=UEIDAQ.x
-endif
-
-PACKAGE=Components
-ROOT_DIR=../../..
+ROOT_DIR=../../../../
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-all: $(OBJS) $(SUBPROJ)
+INCLUDES += -I.
+INCLUDES += -I$(MDSPLUS_DIR)/include/
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L2Objects
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L4Configuration
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L5GAMs
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
+INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
+
+
+all: $(OBJS)    \
+    $(BUILD_DIR)/ApplicationKiller$(LIBEXT) \
+    $(BUILD_DIR)/ApplicationKiller$(DLLEXT)
 	echo  $(OBJS)
 
 include depends.$(TARGET)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
+
