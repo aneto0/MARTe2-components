@@ -510,6 +510,27 @@ bool FlattenedStructIOGAMTest::TestInitialise_MoreThanOneInput() {
             "                   NumberOfElements = 4"
             "                   DataSource = DDB1"
             "               }"
+            "               StructArrayType2_MyFloat64 = {"
+            "                   Type = float64"
+            "                   NumberOfElements = 1"
+            "                   DataSource = DDB1"
+            "               }"
+            "               StructArrayType2_MyType1Array_MyUInt32s = {"
+            "                   Type = uint32"
+            "                   NumberOfElements = 2"
+            "                   DataSource = DDB1"
+            "               }"
+            "               StructArrayType2_MyType1Array_MyFloat32s = {"
+            "                   Type = float32"
+            "                   NumberOfElements = 16"
+            "                   DataSource = DDB1"
+            "               }"
+            "               StructArrayType2_MyType1Array_MyType0Array_MyUInt16s = {"
+            "                   Type = uint16"
+            "                   NumberOfElements = 4"
+            "                   DataSource = DDB1"
+            "               }"
+
             "           }"
             "       }"
             "    }"
@@ -544,7 +565,7 @@ bool FlattenedStructIOGAMTest::TestInitialise_MoreThanOneInput() {
             "        TimingDataSource = Timings"
             "    }"
             "}";
-    bool ok = !TestIntegratedInApplication(config1);
+    bool ok = TestIntegratedInApplication(config1);
     return ok;
 }
 

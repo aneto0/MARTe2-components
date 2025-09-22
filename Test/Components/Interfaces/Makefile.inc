@@ -36,8 +36,8 @@ ifdef EPICS_BASE
 SPB   += EPICS.x
 endif
 
-
 ifdef MDSPLUS_DIR
+SPB += ObjectLoader.x
 SPB += MDSStructuredDataI.x
 endif
 

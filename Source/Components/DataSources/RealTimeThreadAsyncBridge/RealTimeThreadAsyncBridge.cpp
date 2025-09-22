@@ -99,8 +99,8 @@ bool RealTimeThreadAsyncBridge::Initialise(StructuredDataI &data) {
             numberOfBuffers = 1u;
         }
 
-        if (numberOfBuffers == 1u) {
-            REPORT_ERROR(ErrorManagement::InitialisationError, "NumberOfBuffers==1, use blocking mode");
+        if ((numberOfBuffers == 1u) && (blockingMode == 0u)) {
+            REPORT_ERROR(ErrorManagement::Warning, "NumberOfBuffers==1, use blocking mode");
         }
         uint32 resetTimeoutT;
         if (!data.Read("ResetMSecTimeout", resetTimeoutT)) {
@@ -216,7 +216,7 @@ bool RealTimeThreadAsyncBridge::GetInputOffset(const uint32 signalIdx,
                                                 uint32 &offset) {
 
     bool ok = false;
-    if (blockingMode != 0u) {
+    if (blockingMode > 0u) {
         if (spinlocksWrite[signalIdx].FastLock() == ErrorManagement::NoError) {
             Atomic::Increment(&spinlocksRead[signalIdx]);
             spinlocksWrite[signalIdx].FastUnLock();
@@ -264,7 +264,7 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx,
                                                  const uint32 numberOfSamples,
                                                  uint32 &offset) {
     bool ok = false;
-    if (blockingMode != 0u) {
+    if (blockingMode > 0u) {
         if (spinlocksWrite[signalIdx].FastLock() == ErrorManagement::NoError) {
             //wait for the reader to finish
             while (spinlocksRead[signalIdx] > 0) {
@@ -306,8 +306,8 @@ bool RealTimeThreadAsyncBridge::GetOutputOffset(const uint32 signalIdx,
                     uint32 newestIndex = (signalIdx * numberOfBuffers) + newestBuffer;
                     //needed in case of ranges
                     if (spinlocksWrite[newestIndex].FastTryLock()) {
-                        uint32 destOffset = signalOffsets[signalIdx] + offset; 
-                        uint32 srcOffset = signalOffsets[signalIdx] + newestOffset; 
+                        uint32 destOffset = signalOffsets[signalIdx] + offset;
+                        uint32 srcOffset = signalOffsets[signalIdx] + newestOffset;
                         (void) MemoryOperationsHelper::Copy(&memory[destOffset], &memory[srcOffset], signalSize[signalIdx]);
                         spinlocksWrite[newestIndex].FastUnLock();
                     }
@@ -377,6 +377,20 @@ bool RealTimeThreadAsyncBridge::TerminateOutputCopy(const uint32 signalIdx,
     }
     spinlocksWrite[index].FastUnLock();
 
+    return true;
+}
+
+uint32 RealTimeThreadAsyncBridge::GetCurrentStateBuffer() {
+    if (blockingMode > 1u) {
+        (void)(globMux.FastLock());
+    }
+    return MemoryDataSourceI::GetCurrentStateBuffer();
+}
+
+bool RealTimeThreadAsyncBridge::BrokerCopyTerminated() {
+    if (blockingMode > 1u) {
+        globMux.FastUnLock();
+    }
     return true;
 }
 

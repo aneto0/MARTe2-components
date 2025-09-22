@@ -85,7 +85,7 @@ namespace MARTe {
  * +FlatIOGAM = {
  *   Class = FlattenedStructIOGAM
  *   InputSignals = {
- *     StructArrayType = { //Exactly one structure signal shall be defined.
+ *     StructArrayType = { //Any number of structure signals can be defined.
  *       Type = MyType2 //The Type shall be structured and is required.
  *       DataSource = DDB1 //Compulsory.
  *     } 

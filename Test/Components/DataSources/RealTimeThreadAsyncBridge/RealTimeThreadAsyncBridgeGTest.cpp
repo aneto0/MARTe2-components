@@ -134,6 +134,16 @@ TEST(RealTimeThreadAsyncBridgeGTest,TestGetOutputOffset_Blocking) {
     ASSERT_TRUE(test.TestGetOutputOffset_Blocking());
 }
 
+TEST(RealTimeThreadAsyncBridgeGTest,TestGetInputOffset_Blocking2) {
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestGetInputOffset_Blocking2());
+}
+
+TEST(RealTimeThreadAsyncBridgeGTest,TestGetOutputOffset_Blocking2) {
+    RealTimeThreadAsyncBridgeTest test;
+    ASSERT_TRUE(test.TestGetOutputOffset_Blocking2());
+}
+
 TEST(RealTimeThreadAsyncBridgeGTest,TestTerminateRead) {
     RealTimeThreadAsyncBridgeTest test;
     ASSERT_TRUE(test.TestTerminateRead());

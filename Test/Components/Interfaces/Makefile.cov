@@ -48,6 +48,7 @@ endif
 
 ifdef MDSPLUS_DIR
 LIBRARIES_STATIC+=MDSStructuredDataI/cov/MDSStructuredDataITest$(LIBEXT)
+LIBRARIES_STATIC+=ObjectLoader/cov/ObjectLoaderTest$(LIBEXT)
 endif
 
 ifdef EPICSPVA

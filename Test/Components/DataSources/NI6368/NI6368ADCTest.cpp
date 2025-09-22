@@ -40,6 +40,7 @@
 #include "ObjectRegistryDatabase.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
+#include "BrokerI.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -1853,7 +1854,7 @@ bool NI6368ADCTest::TestAllocateMemory() {
 bool NI6368ADCTest::TestGetNumberOfMemoryBuffers() {
     using namespace MARTe;
     NI6368ADC ni6368ADC;
-    return (ni6368ADC.GetNumberOfMemoryBuffers() == 8u);
+    return (ni6368ADC.GetNumberOfMemoryBuffers() == 32u);
 }
 
 bool NI6368ADCTest::TestGetSignalMemoryBuffer() {
@@ -2016,6 +2017,79 @@ bool NI6368ADCTest::TestInitialise_False_NoDeviceName() {
     return ok;
 }
 
+bool NI6368ADCTest::TestInitialise_False_BadSamplingFrequency(){
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Write("SamplingFrequency", 3000000);
+    NI6368ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368ADCTest::TestInitialise_False_BadSamplingFrequency2(){
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Write("SamplingFrequency", 1999999);
+    NI6368ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368ADCTest::TestInitialise_False_BadConvertFrequency(){
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Write("IsMultiplexed", 1);
+    cdb.Delete("DeviceName");
+    cdb.Write("DeviceName", "/dev/pxie-6363");
+    cdb.Write("SamplingFrequency", 2000000);
+    cdb.Write("ConvertFrequency", 3000000);
+    NI6368ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+bool NI6368ADCTest::TestInitialise_False_BadConvertFrequency2(){
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    cdb.Write("IsMultiplexed", 1);
+    cdb.Delete("DeviceName");
+    cdb.Write("DeviceName", "/dev/pxie-6363");
+    cdb.Write("SamplingFrequency", 250000);
+    cdb.Write("ConvertFrequency", 200000);
+    NI6368ADC test;
+    if (ok) {
+        ok = !test.Initialise(cdb);
+    }
+    return ok;
+}
+
+
 bool NI6368ADCTest::TestInitialise_False_NoBoardId() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
@@ -2032,7 +2106,7 @@ bool NI6368ADCTest::TestInitialise_False_NoBoardId() {
     return ok;
 }
 
-bool NI6368ADCTest::TestInitialise_False_NoDMABufferSize() {
+bool NI6368ADCTest::TestInitialise_Default_NoDMABufferSize() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -2043,7 +2117,7 @@ bool NI6368ADCTest::TestInitialise_False_NoDMABufferSize() {
     cdb.Delete("DMABufferSize");
     NI6368ADC test;
     if (ok) {
-        ok = !test.Initialise(cdb);
+        ok = test.Initialise(cdb);
     }
     return ok;
 }
@@ -2064,7 +2138,7 @@ bool NI6368ADCTest::TestInitialise_False_NoScanIntervalCounterPeriod() {
     return ok;
 }
 
-bool NI6368ADCTest::TestInitialise_False_NoScanIntervalCounterDelay() {
+bool NI6368ADCTest::TestInitialise_Default_NoScanIntervalCounterDelay() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -2075,7 +2149,7 @@ bool NI6368ADCTest::TestInitialise_False_NoScanIntervalCounterDelay() {
     cdb.Delete("ScanIntervalCounterDelay");
     NI6368ADC test;
     if (ok) {
-        ok = !test.Initialise(cdb);
+        ok = test.Initialise(cdb);
     }
     return ok;
 }
@@ -2547,7 +2621,7 @@ bool NI6368ADCTest::TestInitialise_ClockSampleSource() {
     return ok;
 }
 
-bool NI6368ADCTest::TestInitialise_False_NoClockSampleSource() {
+bool NI6368ADCTest::TestInitialise_Default_NoClockSampleSource() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -2558,7 +2632,7 @@ bool NI6368ADCTest::TestInitialise_False_NoClockSampleSource() {
     cdb.Delete("ClockSampleSource");
     NI6368ADC test;
     if (ok) {
-        ok = !test.Initialise(cdb);
+        ok = test.Initialise(cdb);
     }
     return ok;
 }
@@ -2605,7 +2679,7 @@ bool NI6368ADCTest::TestInitialise_ClockSamplePolarity() {
     return ok;
 }
 
-bool NI6368ADCTest::TestInitialise_False_NoClockSamplePolarity() {
+bool NI6368ADCTest::TestInitialise_Default_NoClockSamplePolarity() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -2616,7 +2690,7 @@ bool NI6368ADCTest::TestInitialise_False_NoClockSamplePolarity() {
     cdb.Delete("ClockSamplePolarity");
     NI6368ADC test;
     if (ok) {
-        ok = !test.Initialise(cdb);
+        ok = test.Initialise(cdb);
     }
     return ok;
 }
@@ -3104,7 +3178,7 @@ bool NI6368ADCTest::TestInitialise_ClockConvertSource() {
     return ok;
 }
 
-bool NI6368ADCTest::TestInitialise_False_NoClockConvertSource() {
+bool NI6368ADCTest::TestInitialise_Default_NoClockConvertSource() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -3115,7 +3189,7 @@ bool NI6368ADCTest::TestInitialise_False_NoClockConvertSource() {
     cdb.Delete("ClockConvertSource");
     NI6368ADC test;
     if (ok) {
-        ok = !test.Initialise(cdb);
+        ok = test.Initialise(cdb);
     }
     return ok;
 }
@@ -3431,7 +3505,7 @@ bool NI6368ADCTest::TestInitialise_ScanIntervalCounterSource() {
     return ok;
 }
 
-bool NI6368ADCTest::TestInitialise_False_NoScanIntervalCounterSource() {
+bool NI6368ADCTest::TestInitialise_Default_NoScanIntervalCounterSource() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -3442,7 +3516,7 @@ bool NI6368ADCTest::TestInitialise_False_NoScanIntervalCounterSource() {
     cdb.Delete("ScanIntervalCounterSource");
     NI6368ADC test;
     if (ok) {
-        ok = !test.Initialise(cdb);
+        ok = test.Initialise(cdb);
     }
     return ok;
 }
@@ -3489,7 +3563,7 @@ bool NI6368ADCTest::TestInitialise_ScanIntervalCounterPolarity() {
     return ok;
 }
 
-bool NI6368ADCTest::TestInitialise_False_NoScanIntervalCounterPolarity() {
+bool NI6368ADCTest::TestInitialise_Default_NoScanIntervalCounterPolarity() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -3500,7 +3574,7 @@ bool NI6368ADCTest::TestInitialise_False_NoScanIntervalCounterPolarity() {
     cdb.Delete("ScanIntervalCounterPolarity");
     NI6368ADC test;
     if (ok) {
-        ok = !test.Initialise(cdb);
+        ok = test.Initialise(cdb);
     }
     return ok;
 }
@@ -3547,7 +3621,7 @@ bool NI6368ADCTest::TestInitialise_ClockConvertPolarity() {
     return ok;
 }
 
-bool NI6368ADCTest::TestInitialise_False_NoClockConvertPolarity() {
+bool NI6368ADCTest::TestInitialise_Default_NoClockConvertPolarity() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -3558,7 +3632,7 @@ bool NI6368ADCTest::TestInitialise_False_NoClockConvertPolarity() {
     cdb.Delete("ClockConvertPolarity");
     NI6368ADC test;
     if (ok) {
-        ok = !test.Initialise(cdb);
+        ok = test.Initialise(cdb);
     }
     return ok;
 }
@@ -3792,10 +3866,6 @@ bool NI6368ADCTest::TestSetConfiguredDatabase_False_WrongDeviceName() {
     return !TestIntegratedInApplication(config11);
 }
 
-bool NI6368ADCTest::TestSetConfiguredDatabase_False_WrongFrequencyVsSamples() {
-    return !TestIntegratedInApplication(config12);
-}
-
 bool NI6368ADCTest::TestSetConfiguredDatabase_False_CounterSamples() {
     return !TestIntegratedInApplication(config13);
 }
@@ -3806,10 +3876,6 @@ bool NI6368ADCTest::TestSetConfiguredDatabase_False_TimerSamples() {
 
 bool NI6368ADCTest::TestSetConfiguredDatabase_False_MoreThanOneGAM() {
     return !TestIntegratedInApplication(config5);
-}
-
-bool NI6368ADCTest::TestSetConfiguredDatabase_False_NotSynchronisingGAM() {
-    return !TestIntegratedInApplication(config5b);
 }
 
 bool NI6368ADCTest::TestGetLastBufferIdx() {
@@ -3870,3 +3936,297 @@ bool NI6368ADCTest::TestIntegrated() {
     return ok;
 }
 
+
+
+bool NI6368ADCTest::TestIntegrated_RealTimeThreadExecutionMode() {
+    using namespace MARTe;
+
+    //Two channels base configuration
+    static const MARTe::char8 *const configRealTimeThreadExecutionMode = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = NI6368ADCTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = NI6368_0"
+            "                }"
+            "                Time = {"
+            "                    DataSource = NI6368_0"
+            "                }"
+            "                ADC0_0 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = int16"
+            "                    Samples = 1000"
+            "                    Frequency = 1"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +NI6368_0 = {"
+            "            Class = NI6368ADC"
+            "            SamplingFrequency = 1000"
+            "            ConvertFrequency = 1000000"
+            "            IsMultiplexed = 1"
+            "            DeviceName = \"/dev/pxie-6363\""
+            "            BoardId = 0"
+            "            SampleDelayDivisor = 2"
+            "            ConvertDivisor = 100"
+            "            ExecutionMode = RealTimeThread"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                    ResetOnBufferChange = 1"
+            "                }"
+            "                Time = {"
+            "                    Type = uint64"
+            "                }"
+            "                ADC0_0 = {"
+            "                   InputRange = 10"
+            "                   Type = int16"
+            "                   ChannelId = 0"
+            "                   InputPolarity = Bipolar"
+            "                   InputMode = RSE"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMA}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = configRealTimeThreadExecutionMode;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+    ReferenceT<NI6368ADCTestGAM> testGAM;
+    if (ok) {
+        testGAM = application->Find("Functions.GAMA");
+        ok = testGAM.IsValid();
+    }
+    ReferenceT<NI6368ADC> testADC;
+    if (ok) {
+        testADC = application->Find("Data.NI6368_0");
+        ok = testADC.IsValid();
+    }
+    ReferenceT<GAMScheduler> scheduler;
+    if (ok) {
+        scheduler = application->Find("Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        uint64 *counter;
+        testADC->GetSignalMemoryBuffer(0u, 0u, (void*&) counter);
+        uint64 *time;
+        testADC->GetSignalMemoryBuffer(1u, 0u, (void*&) time);
+        int16 *adc0;
+        testADC->GetSignalMemoryBuffer(2u, 0u, (void*&) adc0);
+
+        ReferenceContainer inputBrokers;
+        testGAM->GetInputBrokers(inputBrokers);
+
+        application->PrepareNextState("State1");
+        //Sleep::MSec(500);
+        for (uint32 i = 0u; i < inputBrokers.Size(); i++) {
+            ReferenceT<BrokerI> broker = inputBrokers.Get(i);
+            if (broker.IsValid()) {
+                broker->Execute();
+            }
+        }
+
+        printf("Counter %llu\n", *counter);
+        printf("Time %llu\n", *time);
+        printf("adc0[0] %d\n", adc0[0]);
+
+        ok = (*counter == 1000ull);
+        ok &= (*time == 1000000ull);
+    }
+    god->Purge();
+    return ok;
+}
+
+bool NI6368ADCTest::TestIntegrated_RealTimeThreadExecutionMode_NoSync() {
+    using namespace MARTe;
+
+    //Two channels base configuration
+    static const MARTe::char8 *const configRealTimeThreadExecutionModeNoSync = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = NI6368ADCTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = NI6368_0"
+            "                }"
+            "                Time = {"
+            "                    DataSource = NI6368_0"
+            "                }"
+            "                ADC0_0 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = int16"
+            "                    Samples = 1000"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +NI6368_0 = {"
+            "            Class = NI6368ADC"
+            "            SamplingFrequency = 1000"
+            "            ConvertFrequency = 1000000"
+            "            IsMultiplexed = 1"
+            "            DeviceName = \"/dev/pxie-6363\""
+            "            BoardId = 0"
+            "            SampleDelayDivisor = 2"
+            "            ConvertDivisor = 100"
+            "            ExecutionMode = RealTimeThread"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                    ResetOnBufferChange = 1"
+            "                }"
+            "                Time = {"
+            "                    Type = uint64"
+            "                }"
+            "                ADC0_0 = {"
+            "                   InputRange = 10"
+            "                   Type = int16"
+            "                   ChannelId = 0"
+            "                   InputPolarity = Bipolar"
+            "                   InputMode = RSE"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMA}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = configRealTimeThreadExecutionModeNoSync;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+    ReferenceT<NI6368ADCTestGAM> testGAM;
+    if (ok) {
+        testGAM = application->Find("Functions.GAMA");
+        ok = testGAM.IsValid();
+    }
+    ReferenceT<NI6368ADC> testADC;
+    if (ok) {
+        testADC = application->Find("Data.NI6368_0");
+        ok = testADC.IsValid();
+    }
+    ReferenceT<GAMScheduler> scheduler;
+    if (ok) {
+        scheduler = application->Find("Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        uint64 *counter;
+        testADC->GetSignalMemoryBuffer(0u, 0u, (void*&) counter);
+        uint64 *time;
+        testADC->GetSignalMemoryBuffer(1u, 0u, (void*&) time);
+        int16 *adc0;
+        testADC->GetSignalMemoryBuffer(2u, 0u, (void*&) adc0);
+
+        ReferenceContainer inputBrokers;
+        testGAM->GetInputBrokers(inputBrokers);
+
+        application->PrepareNextState("State1");
+        Sleep::MSec(500);
+        for (uint32 i = 0u; i < inputBrokers.Size(); i++) {
+            ReferenceT<BrokerI> broker = inputBrokers.Get(i);
+            if (broker.IsValid()) {
+                broker->Execute();
+            }
+        }
+
+        printf("Counter %llu\n", *counter);
+        printf("Time %llu\n", *time);
+        printf("adc0[0] %d\n", adc0[0]);
+
+        ok = (*counter < 600ull && *counter > 400ull);
+        ok &= (*time < 600000 && *time > 400000ull);
+    }
+    god->Purge();
+    return ok;
+}

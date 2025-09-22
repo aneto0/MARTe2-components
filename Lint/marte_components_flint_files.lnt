@@ -79,6 +79,7 @@
 -i./Source/Components/Interfaces/MDSStructuredDataI/
 -i./Source/Components/Interfaces/MemoryGate/
 -i./Source/Components/Interfaces/NI9157Device/
+-i./Source/Components/Interfaces/ObjectLoader/
 -i./Source/Components/Interfaces/SysLogger/
 -i./Source/Components/Interfaces/TcnTimeProvider/
 
@@ -87,6 +88,7 @@ ApplicationKiller.cpp
 BaseLib2GAM.cpp
 BaseLib2Wrapper.cpp
 BaseLib2WrapperMessageFilter.cpp
+ConfigurationDatabaseConnection.cpp
 ConstantGAM.cpp
 ConversionGAM.cpp
 ConversionHelper.cpp
@@ -139,6 +141,7 @@ LoggerDataSource.cpp
 LoggerBroker.cpp
 MarkerBitChecker.cpp
 MathExpressionGAM.cpp
+MDSObjectConnection.cpp
 MDSStructuredDataI.cpp
 MDSReader.cpp
 MDSWriter.cpp
@@ -165,6 +168,8 @@ NI9157DeviceOperatorT.cpp
 NI9157DeviceOperatorTI.cpp
 NI9157MemoryOperationsHelper.cpp
 NI9157MxiDataSource.cpp
+ObjectConnectionI.cpp
+ObjectLoader.cpp
 Platform.cpp
 PIDGAM.cpp
 ProfinetDataSource.cpp
@@ -177,7 +182,7 @@ SampleChecker.cpp
 Sigblock.cpp
 SigblockDoubleBuffer.cpp
 Signal.h
-SimulinkClasses.cpp
+SimulinkInterfaces.cpp
 SimulinkWrapperGAM.cpp
 SDNPublisher.cpp
 SDNSubscriber.cpp
