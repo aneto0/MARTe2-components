@@ -345,6 +345,16 @@ TEST(EPICSPVGTest,TestHandlePVEvent_Function_Message_PVValue) {
     ASSERT_TRUE(test.TestHandlePVEvent_Function_Message_PVValue());
 }
 
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Message_PVValue_Two_Messages) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Message_PVValue_Two_Messages());
+}
+
+TEST(EPICSPVGTest,TestHandlePVEvent_Function_Message_PVValue_Three_Parameters) {
+    EPICSPVTest test;
+    ASSERT_TRUE(test.TestHandlePVEvent_Function_Message_PVValue_Three_Parameters());
+}
+
 TEST(EPICSPVGTest,TestCAPut_UInt16) {
     EPICSPVTest test;
     ASSERT_TRUE(test.TestCAPut_UInt16());

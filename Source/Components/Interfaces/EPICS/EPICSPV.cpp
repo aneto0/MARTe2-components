@@ -61,8 +61,6 @@ EPICSPV::EPICSPV() :
     pvMemory = NULL_PTR(void*);
     memorySize = 0u;
     typeSize = 0u;
-    changedPvVal = 0ull;
-    changedMsg = 0ull;
     handlePVEventNthTime = 0u;
 
     ReferenceT<RegisteredMethodsMessageFilter> filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
@@ -499,23 +497,25 @@ void EPICSPV::TriggerEventMessage() {
             for (uint32 i = 0u; (i < numberOfMessages) && ok; i++) {
                 ReferenceT<Message> message = Get(i);
                 if (message.IsValid()) {
+                    StreamString childName = "";
                     ReferenceT<ConfigurationDatabase> parameters = message->Get(0u);
                     if (parameters.IsValid()) {
-                        uint32 numberOfParameters = parameters->GetNumberOfChildren();
-                        for (uint32 j = 0u; (j < numberOfParameters) && ok; j++) {
-                            StreamString childName = parameters->GetChildName(j);
-                            if (handlePVEventNthTime >= 2u) {
-                                if (((1ull << i) & changedMsg) != 0u) {
-                                    if (((1ull << j) & changedPvVal) != 0u) {
-                                        ok = parameters->Delete(childName.Buffer());
-                                        if (ok) {
-                                            ok = parameters->Write(childName.Buffer(), pvAnyType);
-                                        }
-                                    }
+                        if (handlePVEventNthTime >= 2u) {
+                            childName = "";
+                            //The changedPvVal is a dictionary that contains only the message that have $PVValue set.
+                            //The name of the parameter (stored as childName) is retrieved once on the first loop below
+                            if (changedPvVal.Read(message->GetName(), childName)) {
+                                ok = parameters->Delete(childName.Buffer());
+                                if (ok) {
+                                    ok = parameters->Write(childName.Buffer(), pvAnyType);
                                 }
                             }
-                            else {
+                        }
+                        else {
+                            uint32 numberOfParameters = parameters->GetNumberOfChildren();
+                            for (uint32 j = 0u; (j < numberOfParameters) && ok; j++) {
                                 StreamString templ;
+                                childName = parameters->GetChildName(j);
                                 if (parameters->Read(childName.Buffer(), templ)) {
                                     if (templ == "$PVName") {
                                         ok = parameters->Delete(childName.Buffer());
@@ -530,9 +530,7 @@ void EPICSPV::TriggerEventMessage() {
                                                 ok = parameters->Write(childName.Buffer(), pvAnyType);
                                             }
                                             if (ok) {
-                                                changedPvVal >>= 1u;
-                                                changedPvVal |= (1ull << (numberOfParameters-1u));
-                                                changedMsg |= (1ull << i);
+                                                ok = changedPvVal.Write(message->GetName(), childName.Buffer());
                                             }
                                         }
                                     }
