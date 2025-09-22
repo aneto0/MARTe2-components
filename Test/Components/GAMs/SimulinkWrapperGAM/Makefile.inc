@@ -30,17 +30,34 @@ PACKAGE=Components/GAMs
 ROOT_DIR=../../../..
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
+include $(ROOT_DIR)/Source/Components/GAMs/SimulinkWrapperGAM/Makefile.detect
+
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 # These flags are required in order to retrieve type definitions from tmwtypes.h
 # instead of rtwtypes.h (which is generated for each model and not available in MATLAB root directory)
 CPPFLAGS += -DHOST_CAPI_BUILD -DMATLAB_MEX_FILE
 
-# Add enum support only if available (from version 2019a onwards)
-ENUM_FEATURE = $(shell if grep -qr rtwCAPI_GetDataEnumStorageType $$MATLAB_DIR/rtw/c/src; then echo 0; else echo 1; fi)
-ifeq "$(ENUM_FEATURE)" "0"
+# Add row-major support for 3D matrices. Available from version 2018b (9.05) onwards
+ifeq ($(shell [ $(MATLAB_VERSION) -ge 905 ]; echo $$?),0)
+CFLAGS += -DROW_MAJOR_ND_FEATURE
+CPPFLAGS += -DROW_MAJOR_ND_FEATURE
+endif
+
+# Add enum support. Available from version 2019a (9.06) onwards
+ifeq ($(shell [ $(MATLAB_VERSION) -ge 906 ]; echo $$?),0)
+CFLAGS += -DENUM_FEATURE
 CPPFLAGS += -DENUM_FEATURE
 endif
+
+# Tests of logging signals require coder.mapping, available from version 2020b (9.09) onwards
+ifeq ($(shell [ $(MATLAB_VERSION) -ge 909 ]; echo $$?),0)
+CFLAGS += -DBLOCKSIGNAL_TEST_FEATURE
+CPPFLAGS += -DBLOCKSIGNAL_TEST_FEATURE
+else
+$(warning MATLAB Version is less than 9.9. Logging Signals tests cannot be performed.)
+endif
+
 
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L1Portability
@@ -62,8 +79,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/SimulinkWrapperGAM
 INCLUDES += -I$(MATLAB_DIR)/extern/include
 INCLUDES += -I$(MATLAB_DIR)/rtw/c/src/
 INCLUDES += -I$(MATLAB_DIR)/simulink/include/
-
-LIBRARIES += -pthread -Wl,--no-undefined -Wl,-rpath-link,($MATLAB_DIR)/bin/glnxa64 -L($MATLAB_DIR)/bin/glnxa64 "($MATLAB_DIR)/sys/os/glnxa64/libstdc++.so.6" -L"($MATLAB_DIR)/extern/bin/glnxa64" -lMatlabDataArray -lMatlabEngine -lmx -lmex -lmat -lm -lstdc++ -leng
 
 all: $(OBJS) \
                 $(BUILD_DIR)/SimulinkWrapperGAMTest$(LIBEXT)

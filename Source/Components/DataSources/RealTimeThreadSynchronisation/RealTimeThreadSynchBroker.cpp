@@ -46,63 +46,78 @@ RealTimeThreadSynchBroker::RealTimeThreadSynchBroker() :
         MemoryMapInputBroker() {
     functionIdx = 0u;
     numberOfDataSourceSignals = 0u;
-    currentBufferIdx = 0u;
-    signalMemory = NULL_PTR(char8 **);
-    signalSize = NULL_PTR(uint32 *);
-    dataSourceMemory = NULL_PTR(char8 *);
-    dataSourceMemoryOffsets = NULL_PTR(uint32 *);
+    currentBufferIdxWrite = 0u;
+    currentBufferIdxRead = 0u;
+    signalMemory = NULL_PTR(char8**);
+    signalSize = NULL_PTR(uint32*);
+    dataSourceMemory = NULL_PTR(char8*);
+    dataSourceMemoryOffsets = NULL_PTR(uint32*);
     numberOfSamples = 0u;
     currentSample = 0u;
-    dataSource = NULL_PTR(DataSourceI *);
+    dataSource = NULL_PTR(DataSourceI*);
     waitForNext = 0u;
-    mux.Create();
+    mux[0].Create();
+    mux[1].Create();
+    muxSynch.Create();
+    memoryIsWritten[0] = 0u;
+    memoryIsWritten[1] = 0u;
+    synchIdx = 0u;
+    internalOverwrite = false;
+    forceSynch = false;
+
 }
 
 /*lint -e{1551} -e{1740} must free the allocated memory in the destructor and close the semaphore. The dataSourceMemory,
  * the dataSourceMemoryOffsets are freed by the DataSourceI not by the broker. The dataSource is freed by the framework.*/
 RealTimeThreadSynchBroker::~RealTimeThreadSynchBroker() {
-    if (signalMemory != NULL_PTR(char8 **)) {
+    if (signalMemory != NULL_PTR(char8**)) {
         uint32 s;
         for (s = 0u; s < (numberOfDataSourceSignals * 2u); s++) { //*2 -> dual-buffer
-            if (signalMemory[s] != NULL_PTR(char8 *)) {
-                GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(signalMemory[s]));
+            if (signalMemory[s] != NULL_PTR(char8*)) {
+                GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void*&>(signalMemory[s]));
             }
         }
         delete[] signalMemory;
     }
-    if (signalSize != NULL_PTR(uint32 *)) {
+    if (signalSize != NULL_PTR(uint32*)) {
         delete[] signalSize;
     }
 
-    (void) synchSem.Post();
-    (void) synchSem.Close();
+    (void) synchSem[0].Post();
+    (void) synchSem[1].Post();
+    (void) synchSem[0].Close();
+    (void) synchSem[1].Close();
 }
 
-void RealTimeThreadSynchBroker::SetFunctionIndex(DataSourceI * const dataSourceIn, const uint32 functionIdxIn, const TimeoutType & timeoutIn, const uint8 waitForNextIn) {
+void RealTimeThreadSynchBroker::SetFunctionIndex(DataSourceI *const dataSourceIn,
+                                                 const uint32 functionIdxIn,
+                                                 const TimeoutType &timeoutIn,
+                                                 const uint8 waitForNextIn) {
     dataSource = dataSourceIn;
     functionIdx = functionIdxIn;
     timeout = timeoutIn;
     waitForNext = waitForNextIn;
-    if (dataSource != NULL_PTR(DataSourceI *)) {
+    if (dataSource != NULL_PTR(DataSourceI*)) {
         (void) dataSource->GetFunctionName(functionIdx, gamName);
     }
 }
 
-bool RealTimeThreadSynchBroker::AllocateMemory(char8 * const dataSourceMemoryIn, uint32 * const dataSourceMemoryOffsetsIn) {
+bool RealTimeThreadSynchBroker::AllocateMemory(char8 *const dataSourceMemoryIn,
+                                               uint32 *const dataSourceMemoryOffsetsIn) {
     bool ok = false;
-    if (dataSource != NULL_PTR(DataSourceI *)) {
+    if (dataSource != NULL_PTR(DataSourceI*)) {
         dataSourceMemory = dataSourceMemoryIn;
         dataSourceMemoryOffsets = dataSourceMemoryOffsetsIn;
         numberOfDataSourceSignals = dataSource->GetNumberOfSignals();
         //lint -e{647} -e{9114} numberOfDataSourceSignals * 2u does not have a truncation risk
-        signalMemory = new char8*[numberOfDataSourceSignals * 2u];//*2 -> dual-buffer
+        signalMemory = new char8*[numberOfDataSourceSignals * 2u]; //*2 -> dual-buffer
         signalSize = new uint32[numberOfDataSourceSignals];
         uint32 numberOfFunctionSignals = 0u;
         uint32 s;
         for (s = 0u; s < numberOfDataSourceSignals; s++) {
-            signalMemory[s] = NULL_PTR(char8 *);
+            signalMemory[s] = NULL_PTR(char8*);
             //lint -e{679} not a truncation risk
-            signalMemory[s + numberOfDataSourceSignals] = NULL_PTR(char8 *);
+            signalMemory[s + numberOfDataSourceSignals] = NULL_PTR(char8*);
         }
         ok = dataSource->GetFunctionNumberOfSignals(InputSignals, functionIdx, numberOfFunctionSignals);
         if (ok) {
@@ -115,116 +130,183 @@ bool RealTimeThreadSynchBroker::AllocateMemory(char8 * const dataSourceMemoryIn,
                 if (ok) {
                     ok = (numberOfSamples == numberOfSamplesRead);
                     if (!ok) {
-                        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "The number of samples shall be the same for all signals (%d != %d)", numberOfSamples, numberOfSamplesRead);
+                        REPORT_ERROR_STATIC(ErrorManagement::FatalError, "The number of samples shall be the same for all signals (%d != %d)", numberOfSamples,
+                                            numberOfSamplesRead);
                     }
                 }
                 StreamString functionSignalAlias;
                 if (ok) {
-                    ok = dataSource->GetFunctionSignalAlias(InputSignals, functionIdx, s, functionSignalAlias);
+                    ok = dataSource->GetFunctionSignalAlias(InputSignals, functionIdx, s, functionSignalAlias); // s is the signal index in the function identified by functionIdx
                 }
                 uint32 signalIdx = 0u;
                 if (ok) {
-                    ok = dataSource->GetSignalIndex(signalIdx, functionSignalAlias.Buffer());
+                    ok = dataSource->GetSignalIndex(signalIdx, functionSignalAlias.Buffer()); // signalIdx is the datasource index of functionSignalAlias.Buffer() in t
                 }
                 if (ok) {
                     uint32 signalSizeRead;
-                    ok = dataSource->GetSignalByteSize(s, signalSizeRead);
+//                    ok = dataSource->GetSignalByteSize(s, signalSizeRead);
+                    ok = dataSource->GetSignalByteSize(signalIdx, signalSizeRead);
                     signalSize[signalIdx] = signalSizeRead;
                 }
                 //The memory has to be reordered so that each signal can store the numberOfSamples required.
                 if (ok) {
-                    signalMemory[signalIdx] = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(signalSize[signalIdx] * numberOfSamples));
+                    signalMemory[signalIdx] = reinterpret_cast<char8*>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(
+                            signalSize[signalIdx] * numberOfSamples));
                     //lint -e{679} signalIdx +  numberOfDataSourceSignals does not have a truncation risk
-                    signalMemory[signalIdx + numberOfDataSourceSignals] = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(signalSize[signalIdx] * numberOfSamples));
+                    signalMemory[signalIdx + numberOfDataSourceSignals] = reinterpret_cast<char8*>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(
+                            signalSize[signalIdx] * numberOfSamples));
                 }
             }
         }
     }
     if (ok) {
-        ok = synchSem.Create();
+        ok = synchSem[0].Create();
     }
     if (ok) {
-        ok = synchSem.Reset();
+        ok = synchSem[1].Create();
+    }
+    if (ok) {
+        ok = synchSem[0].Reset();
+    }
+    if (ok) {
+        ok = synchSem[1].Reset();
     }
     return ok;
 }
 
-bool RealTimeThreadSynchBroker::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress) const {
-    bool ok = (signalMemory != NULL_PTR(char8 **));
+bool RealTimeThreadSynchBroker::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                                      const uint32 bufferIdx,
+                                                      void *&signalAddress) const {
+    bool ok = (signalMemory != NULL_PTR(char8**));
     if (ok) {
         /*lint -e{613} -e{679} signalMemory cannot be NULL as otherwise ok = false*/
-        signalAddress = reinterpret_cast<void *>(&signalMemory[signalIdx + (bufferIdx * numberOfDataSourceSignals)][0u]);
+        signalAddress = reinterpret_cast<void*>(&signalMemory[signalIdx + (bufferIdx * numberOfDataSourceSignals)][0u]);
     }
     return ok;
 }
 
-bool RealTimeThreadSynchBroker::AddSample() {
+bool RealTimeThreadSynchBroker::AddSample(bool &bufferOverwrite) {
     bool ok = false;
     uint32 s;
-    for (s = 0u; s < numberOfDataSourceSignals; s++) {
-        /*lint -e{613} All the memory must have been successfully allocated. For performance reasons the memory allocation is not checked at every iteration.*/
-        if (signalMemory[s] != NULL_PTR(char8 *)) {
-            uint32 signalIdx = currentSample * signalSize[s];
-            //lint -e{679} not a truncation risk
-            void *destination = &signalMemory[s + (currentBufferIdx * numberOfDataSourceSignals)][signalIdx];
-            const void *source = &dataSourceMemory[dataSourceMemoryOffsets[s]];
-            ok = MemoryOperationsHelper::Copy(destination, source, signalSize[s]);
+    if (mux[currentBufferIdxWrite].FastLock() == ErrorManagement::NoError) {
+        for (s = 0u; s < numberOfDataSourceSignals; s++) {
+            /*lint -e{613} All the memory must have been successfully allocated. For performance reasons the memory allocation is not checked at every iteration.*/
+            if (signalMemory[s] != NULL_PTR(char8*)) {
+                uint32 signalIdx = currentSample * signalSize[s];
+                //lint -e{679} not a truncation risk
+                void *destination = &signalMemory[s + (currentBufferIdxWrite * numberOfDataSourceSignals)][signalIdx];
+                const void *source = &dataSourceMemory[dataSourceMemoryOffsets[s]];
+                ok = MemoryOperationsHelper::Copy(destination, source, signalSize[s]);
+            }
+        }
+
+        //Rise the barrier in order to avoid to read if we start to write one sample and there is more than one sample to write.
+        if (currentSample == 0u) {
+            bool auxOk = synchSem[currentBufferIdxWrite].Reset(); //As soon as we start to write to the buffer we rise the barrier.
+            internalOverwrite = memoryIsWritten[currentBufferIdxWrite] == 1u;
+            if (internalOverwrite) {
+                if (muxSynch.FastLock() == ErrorManagement::NoError) {
+                    forceSynch = true;
+                    synchIdx = currentBufferIdxWrite;
+                }
+                muxSynch.FastUnLock();
+            }
+            ok = ok && auxOk;
         }
     }
+    mux[currentBufferIdxWrite].FastUnLock();
     currentSample++;
     if (currentSample == numberOfSamples) {
         currentSample = 0u;
-        if(mux.FastLock() == ErrorManagement::NoError) {
-            currentBufferIdx++;
-            if (currentBufferIdx > 1u) {
-                currentBufferIdx = 0u;
-            }
-            ok = synchSem.Post();
+        bufferOverwrite = internalOverwrite;
+        internalOverwrite = false; //reset the internalOverwrite
+        if (mux[currentBufferIdxWrite].FastLock() == ErrorManagement::NoError) {
+            memoryIsWritten[currentBufferIdxWrite] = 1u;
+            ok = synchSem[currentBufferIdxWrite].Post();
         }
-        mux.FastUnLock();
+        mux[currentBufferIdxWrite].FastUnLock();
+        currentBufferIdxWrite++;
+        if (currentBufferIdxWrite > 1u) {
+            currentBufferIdxWrite = 0u;
+        }
     }
+
     return ok;
 }
 
-const char8 * const RealTimeThreadSynchBroker::GetGAMName() {
+const char8* const RealTimeThreadSynchBroker::GetGAMName() {
     return gamName.Buffer();
 }
 
 bool RealTimeThreadSynchBroker::Execute() {
     bool ok = true;
-   
+    uint32 idxUsed;
+    idxUsed = currentBufferIdxRead;
+    currentBufferIdxRead++;
+    if (currentBufferIdxRead > 1u) {
+        currentBufferIdxRead = 0u;
+    }
     //First Reset 
-    if (waitForNext == 1u) {
-        if(mux.FastLock() == ErrorManagement::NoError) {
-            ok = synchSem.Reset();
+    if (waitForNext == 1u) {//Cannot be tested in the unite test
+        if (mux[idxUsed].FastLock() == ErrorManagement::NoError) {
+            ok = synchSem[idxUsed].Reset();
         }
-        mux.FastUnLock();
+        mux[idxUsed].FastUnLock();
         if (ok) {
-            ok = (synchSem.Wait(timeout) == ErrorManagement::NoError);
+            ok = (synchSem[idxUsed].Wait(timeout) == ErrorManagement::NoError);
         }
     }
     //First wait
     else {
-        ok = (synchSem.Wait(timeout) == ErrorManagement::NoError);
+        ok = (synchSem[idxUsed].Wait(timeout) == ErrorManagement::NoError);
         if (ok) {
-            if(mux.FastLock() == ErrorManagement::NoError) {
-                ok = synchSem.Reset();
+            if (mux[idxUsed].FastLock() == ErrorManagement::NoError) {
+                ok = synchSem[idxUsed].Reset();
             }
-            mux.FastUnLock();
+            mux[idxUsed].FastUnLock();
         }
     }
     uint32 n;
-    /*lint -e{613} null pointer checked before.*/
-    uint32 idx = 0u;
-    if(currentBufferIdx == 0u) {
-        idx = 1u;
+    if (ok) {
+        if (mux[idxUsed].FastLock() == ErrorManagement::NoError) {
+            if (copyTable != NULL_PTR(MemoryMapBrokerCopyTableEntry*)) {
+                for (n = 0u; (n < numberOfCopies) && (ok); n++) {
+                    uint32 dataSourceIndex = ((idxUsed * numberOfCopies) + n);
+                    ok = MemoryOperationsHelper::Copy(copyTable[n].gamPointer, copyTable[dataSourceIndex].dataSourcePointer, copyTable[n].copySize);
+                }
+            }
+            if (memoryIsWritten[idxUsed] == 0u) {//Should never go here. Because onn timeout ok is false.
+                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Buffer read was 0");
+            }
+            memoryIsWritten[idxUsed] = 0u;
+        }
+        mux[idxUsed].FastUnLock();
     }
-    if (copyTable != NULL_PTR(MemoryMapBrokerCopyTableEntry *)) {
-        for (n = 0u; (n < numberOfCopies) && (ok); n++) {
-            uint32 dataSourceIndex = ((idx * numberOfCopies) + n);
-            ok = MemoryOperationsHelper::Copy(copyTable[n].gamPointer, copyTable[dataSourceIndex].dataSourcePointer, copyTable[n].copySize);
+
+    if (ok) {
+        if (muxSynch.FastLock() == ErrorManagement::NoError) {
+            if (forceSynch) {
+                /*if(idxUsed != synchIdx){// if it is not the current buffer already comsumed
+                 currentBufferIdxRead = synchIdx;// point to new data
+                 }*/
+                uint32 auxIdx = 0u;
+                if (synchIdx == 0u) { //Invalidate the other buffer data
+                    auxIdx = 1u;
+                }
+                if (mux[auxIdx].FastLock() == ErrorManagement::NoError) {
+                    ok = synchSem[auxIdx].Reset();
+                    memoryIsWritten[auxIdx] = 0u;
+                }
+                mux[auxIdx].FastUnLock();
+                forceSynch = false;
+            }
         }
     }
+    muxSynch.FastUnLock();
+    /*if (muxSynch.FastLock() == ErrorManagement::NoError){
+
+     }
+     muxSynch.FastUnLock();*/
     return ok;
 }
 

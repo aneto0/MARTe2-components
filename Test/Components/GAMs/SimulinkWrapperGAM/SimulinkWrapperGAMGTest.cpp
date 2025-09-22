@@ -137,7 +137,6 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_SkipInvalidTunableParams) {
     ASSERT_TRUE(test.TestSetup_SkipInvalidTunableParams());
 }
 
-
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithStructSignals) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_WithStructSignals());
@@ -146,6 +145,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_WithStructSignals) {
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithNestedStructSignals) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_WithNestedStructSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithLoggingSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_WithLoggingSignals());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_DontSkipUnlinkedTunableParams) {
@@ -163,6 +167,16 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfOutputs) {
     ASSERT_TRUE(test.TestSetup_Failed_WrongNumberOfOutputs());
 }
 
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfLoggingSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_WrongNumberOfLoggingSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_EmptyInterfaceName) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_EmptyInterfaceName());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongInputName) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_WrongInputName());
@@ -171,6 +185,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongInputName) {
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongOutputName) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_WrongOutputName());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongLoggingSignalName) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_WrongLoggingSignalName());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfElements) {
@@ -186,6 +205,11 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfDimensions) {
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongDatatype) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_Failed_WrongDatatype());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_LoggingSignalWrongDatatype) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_Failed_LoggingSignalWrongDatatype());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_ParamWrongNumberOfDimensions) {
@@ -208,14 +232,14 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_ParamWrongDatatype) {
     ASSERT_TRUE(test.TestSetup_Failed_ParamWrongDatatype());
 }
 
-TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_StructArraysAsParams) {
+TEST(SimulinkWrapperGAMGTest, TestSetup_StructArraysAsParams) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestSetup_Failed_StructArraysAsParams());
+    ASSERT_TRUE(test.TestSetup_StructArraysAsParams());
 }
 
-TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_NestedStructArraysAsParams) {
+TEST(SimulinkWrapperGAMGTest, TestSetup_NestedStructArraysAsParams) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestSetup_Failed_NestedStructArraysAsParams());
+    ASSERT_TRUE(test.TestSetup_NestedStructArraysAsParams());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_NoInputs) {
@@ -226,6 +250,26 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_NoInputs) {
 TEST(SimulinkWrapperGAMGTest, TestSetup_NoOutputs) {
     SimulinkWrapperGAMTest test;
     ASSERT_TRUE(test.TestSetup_NoOutputs());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_LowVerbosity) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_LowVerbosity());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_ZeroVerbosity) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_ZeroVerbosity());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_StructSignalBytesize) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_StructSignalBytesize());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_With3DSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_With3DSignals());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_Failed_WrongNumberOfDimensionsWithStructSignals) {
@@ -282,9 +326,39 @@ TEST(SimulinkWrapperGAMGTest, Test_StructuredSignals) {
     ASSERT_TRUE(test.Test_StructuredSignals());
 }
 
-TEST(SimulinkWrapperGAMGTest, Test_StructuredSignals_Failed) {
+TEST(SimulinkWrapperGAMGTest, TestSetup_WithStructuredLoggingSignals) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.Test_StructuredSignals_Failed());
+    ASSERT_TRUE(test.TestSetup_WithStructuredLoggingSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_WithLoggingSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_WithLoggingSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_WithStructuredLoggingSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_WithStructuredLoggingSignals());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_DisconnectedOutputSignal_Failed) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_DisconnectedOutputSignal_Failed());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_DisconnectedOutputStructuredSignal_Failed) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_DisconnectedOutputStructuredSignal_Failed());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_DisconnectedInputSignal_Failed) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_DisconnectedInputSignal_Failed());
+}
+
+TEST(SimulinkWrapperGAMGTest, TestSetup_DisconnectedInputStructuredSignal_Failed) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestSetup_DisconnectedInputStructuredSignal_Failed());
 }
 
 TEST(SimulinkWrapperGAMGTest, TestExecute_WithStructuredSignals) {
@@ -292,28 +366,63 @@ TEST(SimulinkWrapperGAMGTest, TestExecute_WithStructuredSignals) {
     ASSERT_TRUE(test.TestExecute_WithStructuredSignals());
 }
 
-TEST(SimulinkWrapperGAMGTest, Test_MultiMixedSignalsTranspose) {
+TEST(SimulinkWrapperGAMGTest, TestExecute_MultiMixedSignalsTranspose) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.Test_MultiMixedSignalsTranspose(true));
+    ASSERT_TRUE(test.TestExecute_MultiMixedSignalsTranspose(true));
 }
 
 #ifdef ROW_MAJOR_ND_FEATURE
 
-TEST(SimulinkWrapperGAMGTest, Test_MultiMixedSignalsNorm) {
+TEST(SimulinkWrapperGAMGTest, TestExecute_MultiMixedSignalsNorm) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.Test_MultiMixedSignalsTranspose(false));
+    ASSERT_TRUE(test.TestExecute_MultiMixedSignalsTranspose(false));
 }
 
 #endif /* ROW_MAJOR_ND_FEATURE */
 
+TEST(SimulinkWrapperGAMGTest, TestExecute_With3DSignals) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_With3DSignals(false));
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_With3DSignals_ColumnMajor) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_With3DSignals(true));
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_With3DSignals_NoInputs) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_With3DSignals_NoInputs(false));
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_With3DSignals_NoInputs_ColumnMajor) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_With3DSignals_NoInputs(true));
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_WithStructArraySignals_RowMajor) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_WithStructArraySignals(false));
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_WithStructArraySignals_ColumnMajor) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_WithStructArraySignals(true));
+}
+
+TEST(SimulinkWrapperGAMGTest, TestExecute_WithStructArraySignals_NoInputs) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestExecute_WithStructArraySignals_NoInputs());
+}
+
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithNotFoundParameterAndProcessUnlinked_Failed) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(true));
+    ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(false));
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithNotFoundParameterAndSkipInvalid) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(false));
+    ASSERT_TRUE(test.TestSetup_WithNotFoundParameter_Failed(true));
 }
 
 TEST(SimulinkWrapperGAMGTest, TestSetup_WithNestedSingleSignals) {
@@ -321,9 +430,9 @@ TEST(SimulinkWrapperGAMGTest, TestSetup_WithNestedSingleSignals) {
     ASSERT_TRUE(test.TestSetup_WithNestedSingleSignals());
 }
 
-TEST(SimulinkWrapperGAMGTest, TestSetup_StructTunableParametersFromExternalSource_Failed) {
+TEST(SimulinkWrapperGAMGTest, TestSetup_StructTunableParametersFromExternalSource_Unlinked) {
     SimulinkWrapperGAMTest test;
-    ASSERT_TRUE(test.TestSetup_StructTunableParametersFromExternalSource_Failed());
+    ASSERT_TRUE(test.TestSetup_StructTunableParametersFromExternalSource_Unlinked());
 }
 
 #ifdef ENUM_FEATURE
@@ -352,6 +461,11 @@ TEST(SimulinkWrapperGAMGTest, TestExecute_WithEnumSignals) {
     ASSERT_TRUE(test.TestExecute_WithEnumSignals());
 }
 #endif
+
+TEST(SimulinkWrapperGAMGTest, TestLinearIndexToSubscripts) {
+    SimulinkWrapperGAMTest test;
+    ASSERT_TRUE(test.TestLinearIndexToSubscripts());
+}
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
