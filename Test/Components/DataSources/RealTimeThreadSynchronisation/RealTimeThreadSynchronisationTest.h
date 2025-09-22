@@ -91,6 +91,11 @@ public:
     bool TestInitialise_Timeout();
 
     /**
+     * @brief Tests the Initialise method with a timeout different from the default timeout
+     */
+    bool TestInitialise_printOverwrite();
+
+    /**
      * @brief Tests the GetSynchroniseTimeout method.
      */
     bool TestGetSynchroniseTimeout();
@@ -144,6 +149,38 @@ public:
      * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI
      */
     bool TestSynchronise();
+
+    /**
+     * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI
+     * @details Only for coverage. Functionality cannot be tested with unit tests.
+     */
+    bool TestSynchronise_waitForNext();
+
+    /**
+     * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI when the first signal is not consumed by one Thread (the rest of the Threads consume all signals)
+     */
+    bool TestSynchronise_2();
+
+    /**
+     * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI when the first signal is not consumed by one Thread (the rest of the Threads consume all signals)
+     */
+    bool TestSynchronise_2_signalOrderChanged();
+
+    /**
+     * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI when the first signal is not consumed at all
+     */
+    bool TestSynchronise_3();
+
+    /**
+     * @brief Tests that the RealTimeThreads values are correctly synchronised by the DataSourceI with orphan signal
+     * @details Orphans signals are currently allowed, but maybe meaningless in real configuration. If orphan signals are not allowed this tests should be modified.
+     */
+    bool TestSynchronise_orphan();
+
+    /**
+     * @brief Tests that the the overwrite buffer message
+     */
+    bool TestBufferOverwrite();
 
     /**
      * @brief Tests that GetNumberOfStatefulMemoryBuffers returns 2
