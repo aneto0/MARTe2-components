@@ -37,6 +37,7 @@
 
 CLASS_REGISTER(EPICSPVTestHelper, "1.0")
 CLASS_METHOD_REGISTER(EPICSPVTestHelper, HandleMessage)
+CLASS_METHOD_REGISTER(EPICSPVTestHelper, HandleMessageThreeParameters)
 CLASS_METHOD_REGISTER(EPICSPVTestHelper, HandleNoParameter)
 CLASS_METHOD_REGISTER(EPICSPVTestHelper, Handle_int16)
 CLASS_METHOD_REGISTER(EPICSPVTestHelper, Handle_uint16)
@@ -1408,6 +1409,173 @@ bool EPICSPVTest::TestHandlePVEvent_Function_Message_PVValue() {
         args.count = 1;
         aPV->HandlePVEvent(args);
         //Call twice more to trigger change
+        aPV->HandlePVEvent(args);
+        aPV->HandlePVEvent(args);
+        ok = (anObject->messageReceived);
+        if (ok) {
+            ok = (anObject->parameterName == "APARAM");
+        }
+        if (ok) {
+            ok = (anObject->int32Value == value);
+        }
+    }
+    ord->Purge();
+    return ok;
+}
+
+bool EPICSPVTest::TestHandlePVEvent_Function_Message_PVValue_Two_Messages() {
+    using namespace MARTe;
+    EPICSPV pv;
+    StreamString config = ""
+            "+PV_1 = {"
+            "    Class = EPICSPV"
+            "    PVName = PVS::PV1"
+            "    PVType = int32"
+            "    Event = {"
+            "        PVValue = Message"
+            "    }"
+            "    +AMessage = {"
+            "        Class = Message"
+            "        Destination = AnObject"
+            "        Function = HandleMessage"
+            "        +Parameters = {"
+            "            Class = ConfigurationDatabase"
+            "            param1 = APARAM"
+            "            param2 = $PVValue"
+            "        }"
+            "    }"
+            "    +BMessage = {"
+            "        Class = Message"
+            "        Destination = AnObject"
+            "        Function = HandleMessage"
+            "        +Parameters = {"
+            "            Class = ConfigurationDatabase"
+            "            param1 = APARAM"
+            "            param2 = 8"
+            "        }"
+            "    }"
+            "}"
+            "+AnObject = {"
+            "    Class = EPICSPVTestHelper"
+            "}";
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<EPICSPVTestHelper> anObject;
+    ReferenceT<EPICSPV> aPV;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        aPV = ord->Find("PV_1");
+        ok = aPV.IsValid();
+    }
+    if (ok) {
+        anObject = ord->Find("AnObject");
+        ok = anObject.IsValid();
+    }
+    if (ok) {
+        int32 value = 7;
+        struct event_handler_args args;
+        args.dbr = reinterpret_cast<const void *>(&value);
+        args.count = 1;
+        aPV->HandlePVEvent(args);
+        //Call twice more to trigger change
+        aPV->HandlePVEvent(args);
+        aPV->HandlePVEvent(args);
+        Sleep::Sec(1.0);
+        value = 8;
+        args.dbr = reinterpret_cast<const void *>(&value);
+        args.count = 1;
+        //Make sure the second message goes through
+        aPV->HandlePVEvent(args);
+        aPV->HandlePVEvent(args);
+        ok = (anObject->messageReceived);
+        if (ok) {
+            ok = (anObject->parameterName == "APARAM");
+        }
+        if (ok) {
+            ok = (anObject->int32Value == value);
+        }
+    }
+    ord->Purge();
+    return ok;
+}
+
+bool EPICSPVTest::TestHandlePVEvent_Function_Message_PVValue_Three_Parameters() {
+    using namespace MARTe;
+    EPICSPV pv;
+    StreamString config = ""
+            "+PV_1 = {"
+            "    Class = EPICSPV"
+            "    PVName = PVS::PV1"
+            "    PVType = int32"
+            "    Event = {"
+            "        PVValue = Message"
+            "    }"
+            "    +AMessage = {"
+            "        Class = Message"
+            "        Destination = AnObject"
+            "        Function = HandleMessage"
+            "        +Parameters = {"
+            "            Class = ConfigurationDatabase"
+            "            param1 = APARAM"
+            "            param2 = 9"
+            "        }"
+            "    }"
+            "    +BMessage = {"
+            "        Class = Message"
+            "        Destination = AnObject"
+            "        Function = HandleMessageThreeParameters"
+            "        +Parameters = {"
+            "            Class = ConfigurationDatabase"
+            "            param1 = APARAM"
+            "            param2 = $PVValue"
+            "            param3 = 9"
+            "        }"
+            "    }"
+            "}"
+            "+AnObject = {"
+            "    Class = EPICSPVTestHelper"
+            "}";
+
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    ReferenceT<EPICSPVTestHelper> anObject;
+    ReferenceT<EPICSPV> aPV;
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    if (ok) {
+        aPV = ord->Find("PV_1");
+        ok = aPV.IsValid();
+    }
+    if (ok) {
+        anObject = ord->Find("AnObject");
+        ok = anObject.IsValid();
+    }
+    if (ok) {
+        int32 value = 7;
+        struct event_handler_args args;
+        args.dbr = reinterpret_cast<const void *>(&value);
+        args.count = 1;
+        aPV->HandlePVEvent(args);
+        //Call twice more to trigger change
+        aPV->HandlePVEvent(args);
+        aPV->HandlePVEvent(args);
+        Sleep::Sec(1.0);
+        value = 8;
+        args.dbr = reinterpret_cast<const void *>(&value);
+        args.count = 1;
+        //Make sure the second message goes through
         aPV->HandlePVEvent(args);
         aPV->HandlePVEvent(args);
         ok = (anObject->messageReceived);

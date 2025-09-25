@@ -44,24 +44,26 @@ namespace MARTe {
 
 RealTimeThreadSynchronisation::RealTimeThreadSynchronisation() :
         DataSourceI() {
-    memory = NULL_PTR(char8 *);
+    memory = NULL_PTR(char8*);
     memorySize = 0u;
     numberOfSyncGAMs = 0u;
-    memoryOffsets = NULL_PTR(uint32 *);
-    synchInputBrokers = NULL_PTR(RealTimeThreadSynchBroker **);
+    memoryOffsets = NULL_PTR(uint32*);
+    synchInputBrokers = NULL_PTR(RealTimeThreadSynchBroker**);
     currentInitBrokerIndex = -1;
     waitForNext = 0u;
+    bufferOverwrite = false;
+    printOverwrite = false;
 }
 
 /*lint -e{1551} must free the allocated memory in the destructor. */
 RealTimeThreadSynchronisation::~RealTimeThreadSynchronisation() {
-    if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
+    if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker**)) {
         delete[] synchInputBrokers;
     }
-    if (memory != NULL_PTR(char8 *)) {
-        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void *&>(memory));
+    if (memory != NULL_PTR(char8*)) {
+        GlobalObjectsDatabase::Instance()->GetStandardHeap()->Free(reinterpret_cast<void*&>(memory));
     }
-    if (memoryOffsets != NULL_PTR(uint32 *)) {
+    if (memoryOffsets != NULL_PTR(uint32*)) {
         delete[] memoryOffsets;
     }
 }
@@ -75,22 +77,24 @@ uint32 RealTimeThreadSynchronisation::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The signalAddress is independent of the bufferIdx.*/
-bool RealTimeThreadSynchronisation::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void *&signalAddress) {
+bool RealTimeThreadSynchronisation::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                                          const uint32 bufferIdx,
+                                                          void *&signalAddress) {
     bool ok = (signalIdx < GetNumberOfSignals());
     if (ok) {
-        ok = (memoryOffsets != NULL_PTR(uint32 *));
+        ok = (memoryOffsets != NULL_PTR(uint32*));
     }
     if (ok) {
-        ok = (memory != NULL_PTR(char8 *));
+        ok = (memory != NULL_PTR(char8*));
     }
     if (ok) {
         if (currentInitBrokerIndex == -1) {
-            if ((memory != NULL_PTR(char8 *)) && (memoryOffsets != NULL_PTR(uint32 *))) {
-                signalAddress = reinterpret_cast<void *>(&memory[memoryOffsets[signalIdx]]);
+            if ((memory != NULL_PTR(char8*)) && (memoryOffsets != NULL_PTR(uint32*))) {
+                signalAddress = reinterpret_cast<void*>(&memory[memoryOffsets[signalIdx]]);
             }
         }
         else {
-            if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
+            if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker**)) {
                 ok = synchInputBrokers[currentInitBrokerIndex]->GetSignalMemoryBuffer(signalIdx, bufferIdx, signalAddress);
             }
         }
@@ -99,7 +103,8 @@ bool RealTimeThreadSynchronisation::GetSignalMemoryBuffer(const uint32 signalIdx
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
-const char8 *RealTimeThreadSynchronisation::GetBrokerName(StructuredDataI &data, const SignalDirection direction) {
+const char8* RealTimeThreadSynchronisation::GetBrokerName(StructuredDataI &data,
+                                                          const SignalDirection direction) {
     const char8 *brokerName = "RealTimeThreadSynchBroker";
     if (direction == OutputSignals) {
         brokerName = "MemoryMapSynchronisedOutputBroker";
@@ -107,10 +112,12 @@ const char8 *RealTimeThreadSynchronisation::GetBrokerName(StructuredDataI &data,
     return brokerName;
 }
 
-bool RealTimeThreadSynchronisation::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool RealTimeThreadSynchronisation::GetInputBrokers(ReferenceContainer &inputBrokers,
+                                                    const char8 *const functionName,
+                                                    void *const gamMemPtr) {
     ReferenceT<RealTimeThreadSynchBroker> broker;
     bool ok = false;
-    if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
+    if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker**)) {
         uint32 n;
         for (n = 0u; (n < numberOfSyncGAMs) && (!ok); n++) {
             StreamString gamName = synchInputBrokers[n]->GetGAMName();
@@ -135,7 +142,9 @@ bool RealTimeThreadSynchronisation::GetInputBrokers(ReferenceContainer& inputBro
     return ok;
 }
 
-bool RealTimeThreadSynchronisation::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool RealTimeThreadSynchronisation::GetOutputBrokers(ReferenceContainer &outputBrokers,
+                                                     const char8 *const functionName,
+                                                     void *const gamMemPtr) {
     ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
     currentInitBrokerIndex = -1;
     bool ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
@@ -152,11 +161,12 @@ bool RealTimeThreadSynchronisation::GetOutputBrokers(ReferenceContainer& outputB
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool RealTimeThreadSynchronisation::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool RealTimeThreadSynchronisation::PrepareNextState(const char8 *const currentStateName,
+                                                     const char8 *const nextStateName) {
     return true;
 }
 
-bool RealTimeThreadSynchronisation::Initialise(StructuredDataI & data) {
+bool RealTimeThreadSynchronisation::Initialise(StructuredDataI &data) {
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
         uint32 timeoutMillis = 0u;
@@ -170,10 +180,26 @@ bool RealTimeThreadSynchronisation::Initialise(StructuredDataI & data) {
     if (!data.Read("WaitForNext", waitForNext)) {
         waitForNext = 0u;
     }
+    uint32 auxRead = 0u;
+    if (!data.Read("PrintOverwrite", auxRead)) {
+        printOverwrite = false;
+        REPORT_ERROR(ErrorManagement::Information, "Using printOverwrite default value. printOverwrite = false");
+    }
+    else {
+        if (auxRead == 0u) {
+            printOverwrite = false;
+        }
+        else {
+            printOverwrite = true;
+        }
+    }
+    if(ok){
+        datasourceName = data.GetName();
+    }
     return ok;
 }
 
-bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data) {
+bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     //At most one output function is allowed to interact with the RealTimeThreadSynchronisation
     uint32 numberOfFunctions = GetNumberOfFunctions();
@@ -198,15 +224,19 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
             if (isProducer) {
                 ok = !producerFound;
                 if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "One and exactly one function shall write into this DataSourceI and more than one was found");
+                    REPORT_ERROR(ErrorManagement::ParametersError,
+                                 "One and exactly one function shall write into this DataSourceI and more than one was found");
                 }
+                uint32 nOfSignals = GetNumberOfSignals();
                 if (ok) {
                     producerFound = isProducer;
-                    if (numberOfFunctionSignals != GetNumberOfSignals()) {
-                        REPORT_ERROR_STATIC(ErrorManagement::Warning, "The GAM which writes to this RealTimeThreadSynchronisation does not produce all the signals.");
+                    if (numberOfFunctionSignals != nOfSignals) {
+                        REPORT_ERROR_STATIC(ErrorManagement::Warning,
+                                            "The GAM which writes to this RealTimeThreadSynchronisation does not produce all the signals.");
                     }
 
-                    memoryOffsets = new uint32[numberOfFunctionSignals];
+//                    memoryOffsets = new uint32[numberOfFunctionSignals];
+                    memoryOffsets = new uint32[nOfSignals]; // This assumes that numberOfFunctionSignals < nOfSignals (Datasource number of signals). If this is not true think about implications or add a condition which check it.
                     //Check that the number of samples is exactly one.
 
                     uint32 numberOfSamplesRead;
@@ -223,9 +253,9 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
                 }
 
                 if (ok) {
-                    uint32 nOfSignals = GetNumberOfSignals();
+
                     uint32 s;
-                    if (memoryOffsets != NULL_PTR(uint32 *)) {
+                    if (memoryOffsets != NULL_PTR(uint32*)) {
                         for (s = 0u; (s < nOfSignals) && (ok); s++) {
                             uint32 size = 0u;
                             ok = GetSignalByteSize(s, size);
@@ -234,7 +264,7 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
                         }
                     }
                     if (ok) {
-                        memory = reinterpret_cast<char8 *>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize));
+                        memory = reinterpret_cast<char8*>(GlobalObjectsDatabase::Instance()->GetStandardHeap()->Malloc(memorySize));
                     }
                 }
             }
@@ -254,10 +284,10 @@ bool RealTimeThreadSynchronisation::SetConfiguredDatabase(StructuredDataI & data
         }
     }
     //Create the synchInputBrokers
-    if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
+    if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker**)) {
         for (n = 0u; (n < numberOfSyncGAMs) && (ok); n++) {
             ReferenceT<RealTimeThreadSynchBroker> synchInputBroker = synchInputBrokersContainer.Get(n);
-            synchInputBrokers[n] = dynamic_cast<RealTimeThreadSynchBroker *>(synchInputBroker.operator ->());
+            synchInputBrokers[n] = dynamic_cast<RealTimeThreadSynchBroker*>(synchInputBroker.operator ->());
             ok = synchInputBrokers[n]->AllocateMemory(memory, memoryOffsets);
         }
     }
@@ -275,9 +305,13 @@ uint32 RealTimeThreadSynchronisation::GetNumberOfStatefulMemoryBuffers() {
 bool RealTimeThreadSynchronisation::Synchronise() {
     bool ok = true;
     uint32 u;
-    if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker **)) {
+    if (synchInputBrokers != NULL_PTR(RealTimeThreadSynchBroker**)) {
         for (u = 0u; (u < numberOfSyncGAMs) && (ok); u++) {
-            ok = synchInputBrokers[u]->AddSample();
+            ok = synchInputBrokers[u]->AddSample(bufferOverwrite);
+            if (bufferOverwrite && printOverwrite) {
+                REPORT_ERROR_STATIC(ErrorManagement::FatalError, "%s::Buffer overwrite", datasourceName.Buffer());
+                bufferOverwrite = false;
+            }
         }
     }
 

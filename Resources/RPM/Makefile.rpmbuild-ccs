@@ -48,7 +48,7 @@ define build-component
 endef
 
 define build-component-test
-	make -C $(TOP_DIR) -f Makefile.$(TARGET) SKIP_PROFINET=1 \
+	make -C $(TOP_DIR) -f Makefile.$(TARGET) SKIP_PROFINET=1 SKIP_MATLAB=1 \
 		M2_RPM_ID=$(M2_RPM_ID)-$(1)-test \
 		M2_RPM_NAME=MARTe2_Components_$(1) \
 		M2_RPM_BUILD_EXTRA_ARGS='SPBM=\"$(2)\" SPBMT=\"$(3) $(4) Test/GTest.x\"' \
@@ -172,7 +172,7 @@ endif
 
 
 ccs-comps:
-	make -C $(TOP_DIR) -f Makefile.$(TARGET) SKIP_PROFINET=1 \
+	make -C $(TOP_DIR) -f Makefile.$(TARGET) SKIP_PROFINET=1 SKIP_MATLAB=1 \
 		M2_RPM_ID=$(M2_RPM_ID)-comps \
 		M2_RPM_NAME=MARTe2_Components-ccs \
 		M2_RPM_BUILD_EXTRA_ARGS='SPBM=\"\" SPBMT=\"\"' \
@@ -188,7 +188,7 @@ ccs-comps:
 		M2_RPM_LIB_DIR="" 
 
 ccs-comps-test:
-	make -C $(TOP_DIR) -f Makefile.$(TARGET) SKIP_PROFINET=1 \
+	make -C $(TOP_DIR) -f Makefile.$(TARGET) SKIP_PROFINET=1 SKIP_MATLAB=1 \
 		M2_RPM_ID=$(M2_RPM_ID)-ccs-comps-test \
 		M2_RPM_NAME=MARTe2_Components-ccs-test \
 		M2_RPM_BUILD_EXTRA_ARGS='SPBM=\"\" SPBMT=\"\"' \

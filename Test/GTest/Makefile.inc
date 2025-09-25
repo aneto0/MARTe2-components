@@ -30,8 +30,10 @@ ifndef SKIP_PROFINET
 include $(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource/Makefile.detect
 endif
 
+ifndef SKIP_MATLAB
 # Detect MATLAB(R) version
 include $(ROOT_DIR)/Source/Components/GAMs/SimulinkWrapperGAM/Makefile.detect
+endif
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 

@@ -299,6 +299,16 @@ public:
     bool TestHandlePVEvent_Function_Message_PVValue();
 
     /**
+     * @brief Tests the HandlePVEvent method calling a function in Message mode with two messages, replacing PVValue.
+     */
+    bool TestHandlePVEvent_Function_Message_PVValue_Two_Messages();
+
+    /**
+     * @brief Tests the HandlePVEvent method calling a function in Message mode with two message and three parameters, replacing PVValue.
+     */
+    bool TestHandlePVEvent_Function_Message_PVValue_Three_Parameters();
+
+    /**
      * @brief Tests the GetPVName method.
      */
     bool TestGetPVName();
@@ -789,6 +799,15 @@ public:
         int32Value = newValue;
         return MARTe::ErrorManagement::NoError;
     }
+
+    MARTe::ErrorManagement::ErrorType HandleMessageThreeParameters(MARTe::StreamString parameterNameIn, const MARTe::int32 newValue1, const MARTe::int32 newValue2) {
+        using namespace MARTe;
+        messageReceived = true;
+        parameterName = parameterNameIn;
+        int32Value = newValue1;
+        return MARTe::ErrorManagement::NoError;
+    }
+
 
     MARTe::ErrorManagement::ErrorType HandleNoParameter() {
         noParameterFunctionCalled = true;

@@ -89,6 +89,11 @@ TEST(RealTimeThreadSynchronisationGTest,TestInitialise_Timeout) {
     ASSERT_TRUE(test.TestInitialise_Timeout());
 }
 
+TEST(RealTimeThreadSynchronisationGTest,TestInitialise_printOverwrite) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestInitialise_printOverwrite());
+}
+
 TEST(RealTimeThreadSynchronisationGTest,TestGetSynchroniseTimeout) {
     RealTimeThreadSynchronisationTest test;
     ASSERT_TRUE(test.TestGetSynchroniseTimeout());
@@ -139,9 +144,39 @@ TEST(RealTimeThreadSynchronisationGTest,TestSynchronise) {
     ASSERT_TRUE(test.TestSynchronise());
 }
 
+TEST(RealTimeThreadSynchronisationGTest,TestSynchronise_waitForNext) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSynchronise_waitForNext());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSynchronise_2) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSynchronise_2());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSynchronise_2_signalOrderChanged) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSynchronise_2_signalOrderChanged());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSynchronise_3) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSynchronise_3());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestSynchronise_orphan) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestSynchronise_orphan());
+}
+
 TEST(RealTimeThreadSynchronisationGTest,TestSetConfiguredDatabase_WaitForNext) {
     RealTimeThreadSynchronisationTest test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase_WaitForNext());
+}
+
+TEST(RealTimeThreadSynchronisationGTest,TestBufferOverwrite) {
+    RealTimeThreadSynchronisationTest test;
+    ASSERT_TRUE(test.TestBufferOverwrite());
 }
 
 TEST(RealTimeThreadSynchronisationGTest,TestGetNumberOfStatefulMemoryBuffers) {
