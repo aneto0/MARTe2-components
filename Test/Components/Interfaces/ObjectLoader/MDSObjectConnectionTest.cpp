@@ -39,6 +39,7 @@
 class MDSObjectConnectionTestEnvironment {
 public:
     MDSObjectConnectionTestEnvironment() {
+        testTree = NULL_PTR(MDSplus::Tree*);
         SetupTestEnvironment();
     }
 

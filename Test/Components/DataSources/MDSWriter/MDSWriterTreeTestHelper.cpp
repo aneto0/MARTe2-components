@@ -154,5 +154,13 @@ void MDSWriterTreeTestHelper::Destroy() {
     strShot += "/";
     strShot += "shotid.sys";
     remove(strShot.Buffer());
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Remove the environment variable so other static instances in MDSObjectConnectionTest 
+    // does not try to destroy the tree with the environment variable created here 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    MARTe::StreamString treeNameEnv = treeName;
+    treeNameEnv += "_path";
+    unsetenv(treeNameEnv.Buffer());
 }
 
