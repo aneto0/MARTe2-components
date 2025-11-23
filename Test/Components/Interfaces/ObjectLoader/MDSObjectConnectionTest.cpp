@@ -533,6 +533,7 @@ void MDSObjectConnectionTestEnvironment::DeleteTestEnvironment() {
 
     if (testTree != NULL) {
         delete testTree;
+        testTree = NULL_PTR(MDSplus::Tree*);
     }
 }
 
