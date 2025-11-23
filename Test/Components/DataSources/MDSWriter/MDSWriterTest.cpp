@@ -404,6 +404,8 @@ template<typename typeToCheck> static bool CheckSegmentData(MARTe::int32 numberO
         }
         deleteData(segment);
         deleteData(segTimeD);
+        delete[]segTime;
+        delete[]data;
     }
     return ok;
 }
@@ -7844,6 +7846,7 @@ bool MDSWriterTest::TestOpenTree() {
     }
     if (ok) {
         try {
+            MDSplus::deleteData(sigUInt16F);//open above. If used again first delete pointer to reopen. I do not know why we are reopening.
             sigUInt16F = tree->getNode("SIGUINT16F");
             sigUInt16F->deleteData();
         }
@@ -7890,6 +7893,7 @@ bool MDSWriterTest::TestOpenTree() {
         delete tree;
     }
     godb->Purge();
+    MDSplus::deleteData(sigUInt16F);
     return ok;
 }
 

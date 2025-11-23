@@ -125,18 +125,31 @@ void CreateTree::CreateModel() {
     catch (const MDSplus::MdsException &exc) {
         REPORT_ERROR_STATIC(ErrorManagement::Warning, "Failed opening tree %s with the pulseNumber = %d. Error: %s", treeName.Buffer(), -1, exc.what());
     }
-    tree->addNode("S_uint8", "SIGNAL");
-    tree->addNode("S_int8", "SIGNAL");
-    tree->addNode("S_uint16", "SIGNAL");
-    tree->addNode("S_int16", "SIGNAL");
-    tree->addNode("S_uint32", "SIGNAL");
-    tree->addNode("S_int32", "SIGNAL");
-    tree->addNode("S_uint64", "SIGNAL");
-    tree->addNode("S_int64", "SIGNAL");
-    tree->addNode("S_float32", "SIGNAL");
-    tree->addNode("S_float64", "SIGNAL");
-    tree->addNode("EmptyNode", "SIGNAL");
-    tree->addNode("Info", "TEXT");
+    MDSplus::TreeNode *node;
+    node = tree->addNode("S_uint8", "SIGNAL");
+    MDSplus::deleteData(node);
+    node = tree->addNode("S_int8", "SIGNAL");
+    MDSplus::deleteData(node);
+    node = tree->addNode("S_uint16", "SIGNAL");
+    MDSplus::deleteData(node);
+    node = tree->addNode("S_int16", "SIGNAL");
+    MDSplus::deleteData(node);
+    node = tree->addNode("S_uint32", "SIGNAL");
+    MDSplus::deleteData(node);
+    node = tree->addNode("S_int32", "SIGNAL");
+    MDSplus::deleteData(node);
+    node = tree->addNode("S_uint64", "SIGNAL");
+    MDSplus::deleteData(node);
+    node = tree->addNode("S_int64", "SIGNAL");
+    MDSplus::deleteData(node);
+    node = tree->addNode("S_float32", "SIGNAL");
+    MDSplus::deleteData(node);
+    node = tree->addNode("S_float64", "SIGNAL");
+    MDSplus::deleteData(node);
+    node = tree->addNode("EmptyNode", "SIGNAL");
+    MDSplus::deleteData(node);
+    node = tree->addNode("Info", "TEXT");
+    MDSplus::deleteData(node);
     tree->write();
     delete tree;
 }

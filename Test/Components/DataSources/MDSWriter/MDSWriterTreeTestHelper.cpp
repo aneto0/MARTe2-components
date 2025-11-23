@@ -70,45 +70,76 @@ void MDSWriterTreeTestHelper::Create(MARTe::StreamString treeNameIn) {
     }
     if (tree != NULL) {
         try {
-            tree->addNode(":SIGUINT8F", "SIGNAL");
-            tree->addNode(":SIGUINT8D", "SIGNAL");
-            tree->addNode(":SIGUINT8", "SIGNAL");
+            MDSplus::TreeNode *nodeAux;
+            nodeAux = tree->addNode(":SIGUINT8F", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGUINT8D", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGUINT8", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
 
-            tree->addNode(":SIGUINT16F", "SIGNAL");
-            tree->addNode(":SIGUINT16D", "SIGNAL");
-            tree->addNode(":SIGUINT16", "SIGNAL");
+            nodeAux = tree->addNode(":SIGUINT16F", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGUINT16D", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGUINT16", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
 
-            tree->addNode(":SIGUINT32F", "SIGNAL");
-            tree->addNode(":SIGUINT32D", "SIGNAL");
-            tree->addNode(":SIGUINT32", "SIGNAL");
+            nodeAux = tree->addNode(":SIGUINT32F", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGUINT32D", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGUINT32", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
 
-            tree->addNode(":SIGUINT64F", "SIGNAL");
-            tree->addNode(":SIGUINT64D", "SIGNAL");
-            tree->addNode(":SIGUINT64", "SIGNAL");
+            nodeAux = tree->addNode(":SIGUINT64F", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGUINT64D", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGUINT64", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
 
-            tree->addNode(":SIGINT8F", "SIGNAL");
-            tree->addNode(":SIGINT8D", "SIGNAL");
-            tree->addNode(":SIGINT8", "SIGNAL");
+            nodeAux = tree->addNode(":SIGINT8F", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGINT8D", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGINT8", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
 
-            tree->addNode(":SIGINT16F", "SIGNAL");
-            tree->addNode(":SIGINT16D", "SIGNAL");
-            tree->addNode(":SIGINT16", "SIGNAL");
+            nodeAux = tree->addNode(":SIGINT16F", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGINT16D", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGINT16", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
 
-            tree->addNode(":SIGINT32F", "SIGNAL");
-            tree->addNode(":SIGINT32D", "SIGNAL");
-            tree->addNode(":SIGINT32", "SIGNAL");
+            nodeAux = tree->addNode(":SIGINT32F", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGINT32D", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGINT32", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
 
-            tree->addNode(":SIGINT64F", "SIGNAL");
-            tree->addNode(":SIGINT64D", "SIGNAL");
-            tree->addNode(":SIGINT64", "SIGNAL");
+            nodeAux = tree->addNode(":SIGINT64F", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGINT64D", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGINT64", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
 
-            tree->addNode(":SIGFLT32F", "SIGNAL");
-            tree->addNode(":SIGFLT32D", "SIGNAL");
-            tree->addNode(":SIGFLT32", "SIGNAL");
+            nodeAux = tree->addNode(":SIGFLT32F", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGFLT32D", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGFLT32", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
 
-            tree->addNode(":SIGFLT64F", "SIGNAL");
-            tree->addNode(":SIGFLT64D", "SIGNAL");
-            tree->addNode(":SIGFLT64", "SIGNAL");
+            nodeAux = tree->addNode(":SIGFLT64F", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGFLT64D", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
+            nodeAux = tree->addNode(":SIGFLT64", "SIGNAL");
+            MDSplus::deleteData(nodeAux);
 
             tree->write();
             delete tree;
