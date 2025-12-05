@@ -39,12 +39,14 @@ include ../../../Source/Components/DataSources/ProfinetDataSource/Makefile.detec
 
 ifdef CODAC_ROOT
 SPB+=DAN.x
+ifndef EXCLUDE_NI
 SPB+=NI1588.x
 SPB+=NI6259.x
 SPB+=NI6368.x
 SPB+=NI9157.x
 SPB+=NI9157/Optim.x
 SPB+=NI9157/Optim.x
+endif
 
 ## Only force EPICSPVA if CCS version is gt v6.1
 CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
@@ -82,7 +84,9 @@ endif
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 # Current assumption is prior installation of CODAC Core System on the build node
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
+ifndef EXCLUDE_SDN
 SPB   += SDN.x
+endif
 endif
 	
 PACKAGE=Components
