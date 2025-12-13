@@ -827,7 +827,7 @@ static bool TestIntegratedExecution(const MARTe::char8 *const config,
     cdb.MoveRelative("Signals");
     uint32 nSignals = cdb.GetNumberOfChildren();
     uint32 n = 0;
-//Do not patch the trigger and the timing signal
+    //Do not patch the trigger and the timing signal
     if (triggerToGenerate != NULL) {
         n = 2;
     }

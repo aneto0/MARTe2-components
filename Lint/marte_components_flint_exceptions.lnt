@@ -95,6 +95,7 @@
 -estring(1960,*__throw_*)
 -estring(1960,*epics*::*)
 -estring(1960,*MDSplus*::*)
+-estring(1960,*MARTe::UnorderedMap*)
 -estring(451,*NiFpga.h*)
 
 /* Exceptions related to the open62541*/
