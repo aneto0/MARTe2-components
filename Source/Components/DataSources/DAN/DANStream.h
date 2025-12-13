@@ -46,7 +46,7 @@ class DANStream {
 public:
     /**
      * @brief Constructor which assigns the DANStream parameters.
-     * @param[in] tdIn the TypeDescriptor of DANStream.
+     * @param[in] typeNameIn the string type of DANStream.
      * @param[in] baseNameIn the name of the DANSource, which will be used to register the stream with the name baseName_TypeDescriptor::GetTypeNameFromTypeDescriptor(tdIn).
      * @param[in] danBufferMultiplierIn the number of buffers that will be used by the DAN library to store the signals in order to avoid buffer overwrites after a PutData.
      * @param[in] samplingFrequencyIn the stream sampling frequency.
@@ -59,6 +59,18 @@ public:
               const float64 samplingFrequencyIn,
               const uint32 numberOfSamplesIn,
               const bool interleaveIn);
+
+    /**
+     * @brief Constructor which assigns the DANStream parameters.
+     * @param[in] tdIn the TypeDescriptor of DANStream.
+     * @param[in] baseNameIn the name of the DANSource, which will be used to register the stream with the name baseName_TypeDescriptor::GetTypeNameFromTypeDescriptor(tdIn).
+     * @param[in] samplingFrequencyIn the stream sampling frequency.
+     * @param[in] numberOfSamplesIn the number of samples written on every PutData call.
+     */
+    DANStream(const TypeDescriptor & tdIn,
+              const char8 * const baseNameIn,
+              float64 samplingFrequencyIn,
+              uint32 numberOfSamplesIn);
 
     /**
      * @brief Frees the allocated memory and calls dan_publisher_unpublishSource.
@@ -131,6 +143,34 @@ public:
     bool PutData();
 
     /**
+     * @brief Initialize DAN publish source using shared memory.
+     * @param[in] baseName new base name.
+     * @param[in] shmemName Shared memory file name.
+     * @param[in] shmsize Shared memory size.
+     * @return true if initialisation was successful.
+     */
+    bool InitializePublishSource(const char8 * const newBaseName,
+                                 const char8 * const shmemName,
+                                 const int64_t shmsize);
+
+    /**
+     * @brief Streams the signals data into DAN from the shared memory.
+     * @details The time stamp will be:
+     * - if useExternalAbsoluteTimingSignal the time is read directly from the signal set with SetAbsoluteTimeSignal and is assumed to be the absolute time in nano-seconds from the Epoch.
+     * - if useExternalRelativeTimingSignal the relative time will be read directly from the signal set with SetRelativeTimeSignal and added to the time set in SetAbsoluteStartTime.
+     * - otherwise the number of times this function has been called (stored in the counter), multiplied by the period in nano-seconds will be added to the time set in SetAbsoluteStartTime.
+     * @param[in] header the optional header to pass on to DANAPI::PutBlockReference.
+     * @param[in] actualNumberOfSamples the number of valid signals in this put.
+     * @param[in] data_offset offset into shared memory buffer.
+     * @param[in] flush request flush (open and close of stream) after put.
+     * @return true if dan_publisher_putDataBlock returns >= 0.
+     */
+    bool PutData(const char8 * const header,
+                 const uint32 actualNumberOfSamples,
+                 const uint64 data_offset,
+                 const bool flush = false);
+
+    /**
      * @brief Opens the DANStream.
      * @return true if dan_publisher_openStream returns 0.
      */
@@ -175,6 +215,15 @@ public:
     void SetAbsoluteStartTime(uint64 absoluteStartTimeIn);
 
 private:
+    /**
+     * Shared initialisation, since constructor delegation is not available.
+     */
+    void init(const char8 *typeNameIn,
+              const char8 *baseNameIn,
+              const uint32 danBufferMultiplierIn,
+              const float64 samplingFrequencyIn,
+              const uint32 numberOfSamplesIn,
+              const bool interleaveIn);
 
     /**
      * The name of the DANSource that holds this DANStream.
@@ -355,6 +404,11 @@ private:
      * Holds the fields names
      */
     StreamString *fieldNames;
+
+    /**
+     * Stream opened flag. 
+     */
+    bool opened;
 
     /*lint -e{1712} This class does not have a default constructor because
      * the constructor input parameters must be defined on construction and both remain constant

@@ -31,6 +31,7 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "DANStreamTest.h"
+#include "DANStreamByReferenceTest.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -162,4 +163,54 @@ TEST(DANStreamGTest,TestSetRelativeTimeSignal) {
 TEST(DANStreamGTest,TestSetAbsoluteStartTime) {
     DANStreamTest test;
     ASSERT_TRUE(test.TestSetAbsoluteStartTime());
+}
+
+TEST(DANStreamByReferenceGTest,TestConstructor) {
+    DANStreamByReferenceTest test;
+    ASSERT_TRUE(test.TestConstructor());
+}
+
+TEST(DANStreamByReferenceGTest,TestInitializePublishSource) {
+    DANStreamByReferenceTest test;
+    ASSERT_TRUE(test.TestInitializePublishSource());
+}
+
+TEST(DANStreamByReferenceGTest,TestOpenStream) {
+    DANStreamByReferenceTest test;
+    ASSERT_TRUE(test.TestOpenStream());
+}
+
+TEST(DANStreamByReferenceGTest,TestCloseStream) {
+    DANStreamByReferenceTest test;
+    ASSERT_TRUE(test.TestCloseStream());
+}
+
+TEST(DANStreamByReferenceGTest,TestPutData_Float32) {
+    DANStreamByReferenceTest test;
+    ASSERT_TRUE(test.TestPutData_Float32());
+}
+
+TEST(DANStreamByReferenceGTest,TestPutData_Float32Flush) {
+    DANStreamByReferenceTest test;
+    ASSERT_TRUE(test.TestPutData_Float32Flush());
+}
+
+TEST(DANStreamByReferenceGTest,TestSetAbsoluteTimeSignal) {
+    DANStreamByReferenceTest test;
+    ASSERT_TRUE(test.TestSetAbsoluteTimeSignal());
+}
+
+TEST(DANStreamByReferenceGTest,TestSetRelativeTimeSignal) {
+    DANStreamByReferenceTest test;
+    ASSERT_TRUE(test.TestSetRelativeTimeSignal());
+}
+
+TEST(DANStreamByReferenceGTest,TestPutWithNoOpenOK) {
+    DANStreamByReferenceTest test;
+    ASSERT_TRUE(test.TestPutWithNoOpenOK());
+}
+
+TEST(DANStreamByReferenceGTest,TestDoubleCloseOK) {
+    DANStreamByReferenceTest test;
+    ASSERT_TRUE(test.TestDoubleCloseOK());
 }

@@ -85,6 +85,15 @@ bool PutDataBlock(void *danSource,
                                        NULL_PTR(char8*)) >= 0);
 }
 
+bool PutBlockReference(void *danSource, uint64 timeStamp, int64_t blockOffset, uint32 blockSize,
+                       char8 *blockHeader = NULL_PTR(char8 *))
+{
+    return (dan_publisher_putBlockReference(reinterpret_cast<dan_Source>(danSource), timeStamp,
+                                            static_cast<ssize_t>(blockSize), blockOffset,
+                                            blockHeader)
+            >= 0);
+}
+
 bool OpenStream(void *danSource,
                 float64 samplingFrequency) {
     return (dan_publisher_openStream(reinterpret_cast<dan_Source>(danSource), samplingFrequency, static_cast<ssize_t>(0)) == 0);
@@ -97,6 +106,10 @@ bool CloseStream(void *danSource) {
 void* PublishSource(const char8 *const sourceName,
                     uint64 bufferSize) {
     return dan_publisher_publishSource_withDAQBuffer(danDataCore, sourceName, bufferSize);
+}
+
+void *PublishSource(const char8 *const sourceName, const char8 *const refName, uint64 bufferSize) {
+    return dan_publisher_publishSource(danDataCore, sourceName, refName, DAN_DAQ_MMAP, bufferSize, 0);
 }
 
 void UnpublishSource(void *danSource) {
