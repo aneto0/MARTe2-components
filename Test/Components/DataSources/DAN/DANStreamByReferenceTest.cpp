@@ -142,13 +142,13 @@ static MARTe::char8* setUp(MARTe::DANStream & ds,
     if (!DANAPI::InitLibrary()) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to initialise DAN API.");
         result = false;
-        return nullptr;
+        return NULL_PTR(char8 *);
     }
     MARTe::char8 *buffer = allocateSharedMemoryBuffer(shmName, shmSize);
-    if (buffer == nullptr) {
+    if (buffer == NULL_PTR(char8 *)) {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to allocate shared memory buffer.");
         result = false;
-        return nullptr;
+        return NULL_PTR(char8 *);
     }
 
     // initialize standard header fields
@@ -220,7 +220,7 @@ static bool streamCreatorAndWriter(TimingMode mode,
     DANStream ds(Float32Bit, "DANSource0", samplingFrequencyIn, numberOfSamplesIn);
 
     MARTe::char8 *buffer = setUp(ds, ok, shmName, shmSize);
-    if (buffer == nullptr) {
+    if (buffer == NULL_PTR(char8 *)) {
         return false;
     }
 
@@ -246,7 +246,7 @@ static bool streamCreatorAndWriter(TimingMode mode,
         return false;
     }
 
-    if (ok && buffer != nullptr) {
+    if (ok && buffer != NULL_PTR(char8 *)) {
         ok = ds.OpenStream();
     }
 
@@ -266,7 +266,7 @@ static bool streamCreatorAndWriter(TimingMode mode,
     ds.CloseStream();
 
     // Teardown
-    if (buffer != nullptr) {
+    if (buffer != NULL_PTR(char8 *)) {
         tearDown(false, streamName, buffer, shmSize);
     }
 
@@ -418,7 +418,7 @@ bool DANStreamByReferenceTest::TestInitializePublishSource() {
     DANStream ds(Float32Bit, "DANSource0", samplingFrequencyIn, numberOfSamplesIn);
 
     MARTe::char8 *buffer = setUp(ds, ok, shmName, shmSize);
-    if (buffer == nullptr) {
+    if (buffer == NULL_PTR(char8 *)) {
         return false;
     }
 
@@ -439,7 +439,7 @@ bool DANStreamByReferenceTest::TestInitializePublishSource() {
         tearDown(true, altStreamName, buffer, shmSize);
         return false;
     }
-    if (buffer != nullptr) {
+    if (buffer != NULL_PTR(char8 *)) {
         tearDown(true, altStreamName, buffer, shmSize);
     }
 
@@ -458,7 +458,7 @@ bool DANStreamByReferenceTest::TestOpenStream() {
     DANStream ds(Float32Bit, "DANSource0", samplingFrequencyIn, numberOfSamplesIn);
 
     MARTe::char8 *buffer = setUp(ds, ok, shmName, shmSize);
-    if (buffer == nullptr) {
+    if (buffer == NULL_PTR(char8 *)) {
         return false;
     }
 
@@ -471,13 +471,13 @@ bool DANStreamByReferenceTest::TestOpenStream() {
         return false;
     }
 
-    if (ok && buffer != nullptr) {
+    if (ok && buffer != NULL_PTR(char8 *)) {
         // Function under test
         ok = ds.OpenStream();
         ds.CloseStream();
     }
 
-    if (buffer != nullptr) {
+    if (buffer != NULL_PTR(char8 *)) {
         tearDown(true, streamName, buffer, shmSize);
     }
 
@@ -496,7 +496,7 @@ bool DANStreamByReferenceTest::TestCloseStream() {
     DANStream ds(Float32Bit, "DANSource0", samplingFrequencyIn, numberOfSamplesIn);
 
     MARTe::char8 *buffer = setUp(ds, ok, shmName, shmSize);
-    if (buffer == nullptr) {
+    if (buffer == NULL_PTR(char8 *)) {
         return false;
     }
 
@@ -509,13 +509,13 @@ bool DANStreamByReferenceTest::TestCloseStream() {
         return false;
     }
 
-    if (ok && buffer != nullptr) {
+    if (ok && buffer != NULL_PTR(char8 *)) {
         ok = ds.OpenStream();
         // Function under test
         ok &= ds.CloseStream();
     }
 
-    if (buffer != nullptr) {
+    if (buffer != NULL_PTR(char8 *)) {
         tearDown(true, streamName, buffer, shmSize);
     }
 
@@ -636,7 +636,7 @@ bool DANStreamByReferenceTest::TestDoubleCloseOK() {
     DANStream ds(Float32Bit, "DANSource0", samplingFrequencyIn, numberOfSamplesIn);
 
     MARTe::char8 *buffer = setUp(ds, ok, shmName, shmSize);
-    if (buffer == nullptr) {
+    if (buffer == NULL_PTR(char8 *)) {
         return false;
     }
 
@@ -649,7 +649,7 @@ bool DANStreamByReferenceTest::TestDoubleCloseOK() {
         return false;
     }
 
-    if (ok && buffer != nullptr) {
+    if (ok && buffer != NULL_PTR(char8 *)) {
         ok = ds.OpenStream();
         ds.CloseStream();
         // Function under test
@@ -659,7 +659,7 @@ bool DANStreamByReferenceTest::TestDoubleCloseOK() {
         Sleep::Sec(1.5);
     }
 
-    if (buffer != nullptr) {
+    if (buffer != NULL_PTR(char8 *)) {
         tearDown(true, streamName, buffer, shmSize);
     }
 
