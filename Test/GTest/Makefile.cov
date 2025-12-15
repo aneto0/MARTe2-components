@@ -28,7 +28,7 @@ include Makefile.inc
 INCLUDES+=-I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
 LIBRARIES+=-L$(MARTe2_DIR)/Build/x86-linux/Core/
-ifneq ($(wildcard $(MARTe2_DIR)/Build/$(TARGET)/Core/libMARTe2.so),)
+ifneq ($(wildcard $(MARTe2_DIR)/Build/x86-linux/Core/libMARTe2.so),)
 LIBRARIES+= -lMARTe2
 else
 LIBRARIES+= -lmarte2
