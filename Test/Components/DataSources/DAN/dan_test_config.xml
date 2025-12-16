@@ -285,7 +285,7 @@
              <manufactureCode >N1134342</manufactureCode>
         </deviceInfo>
          <channelsInfo sequence="SEQUENCIAL" >
-            <channel number="0" variable="Channel0" label="Channel0" status="ENABLE" ></channel>
+            <channel number="0" pvName="Signal1" label="Signal1" status="ENABLE" ></channel>
         </channelsInfo>
     </source>    
 
