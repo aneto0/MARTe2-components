@@ -27,8 +27,18 @@ include Makefile.inc
 
 INCLUDES+=-I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
 
-LIBRARIES+=-L$(MARTe2_DIR)/Build/$(TARGET)/Core/ -lMARTe2
+LIBRARIES+=-L$(MARTe2_DIR)/Build/$(TARGET)/Core/
+ifneq ($(wildcard $(MARTe2_DIR)/Build/$(TARGET)/Core/libMARTe2.so),)
+LIBRARIES+= -lMARTe2
+else
+LIBRARIES+= -lmarte2
+endif
+
+ifneq ($(wildcard $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a),)
 LIBRARIES+=$(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest_main.a
+else
+LIBRARIES+=$(MARTe2_DIR)/Include/Lib/libgtest.a $(MARTe2_DIR)/Include/Lib/libgtest_main.a
+endif
 
 #Look for all the statically linked files
 LIBRARIES_STATIC+=$(shell find $(ROOT_DIR)/Build/$(TARGET) -name "*.a")

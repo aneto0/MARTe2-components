@@ -70,6 +70,15 @@ bool PutDataBlock(void *danSource,
                   uint32 blockSize);
 
 /**
+ * @brief see dan_publisher_putBlockReference
+ */
+bool PutBlockReference(void * danSource,
+                  uint64 timeStamp,
+                  int64_t blockOffset,
+                  uint32 blockSize,
+                  char8 *blockHeader);
+
+/**
  * @brief see dan_publisher_openStream
  */
 bool OpenStream(void *danSource,
@@ -84,6 +93,13 @@ bool CloseStream(void *danSource);
  * @brief see dan_publisher_publishSource_withDAQBuffer
  */
 void* PublishSource(const char8 *const sourceName,
+                    uint64 bufferSize);
+
+/**
+ * @brief see dan_publisher_publishSource, publish with shared memory
+ */
+void *PublishSource(const char8 * const sourceName,
+                    const char8 * const shmemName,
                     uint64 bufferSize);
 
 /**
