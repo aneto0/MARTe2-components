@@ -37,6 +37,7 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+/*lint -e1923 -e9024 allow to use #define for constants.*/
 #define ADC_BASE_FREQ 20000000u
 #define ADC_ONE_CH_MAX_FREQ 1250000u
 #define ADC_MORE_CH_MAX_FREQ 1000000u
@@ -45,6 +46,7 @@
 #define REAL_TIME_THREAD 1u
 
 #define ATTR_MAP_ENTRY(attr) { #attr , attr }
+/*lint +e1923 +e9024 */
 namespace MARTe {
 
 struct AttributeMap {
@@ -84,18 +86,21 @@ ATTR_MAP_ENTRY(AI_SI_SOURCE_SELECT),
 ATTR_MAP_ENTRY(AI_ARM_SC),
 ATTR_MAP_ENTRY(AI_ARM_SI),
 ATTR_MAP_ENTRY(AI_ARM_SI2),
-ATTR_MAP_ENTRY(AI_ARM_DIV), { NULL, AO_CONTINUOUS}
+ATTR_MAP_ENTRY(AI_ARM_DIV), 
+{ NULL_PTR(const char8 * const), AO_CONTINUOUS}
 };
 
-static pxi6259_segment_attribute GetAttribute(const char8 *attrName) {
+static pxi6259_segment_attribute GetAttribute(const char8 * const attrName) {
     uint32 i = 0u;
+    pxi6259_segment_attribute attr = AO_CONTINUOUS;
     while (attributeMap[i].name != NULL) {
         if(StringHelper::Compare(attributeMap[i].name, attrName) == 0) {
-            return attributeMap[i].attribute;
+            attr = attributeMap[i].attribute;
+            break;
         }
         i++;
     }
-    return AO_CONTINUOUS;
+    return attr;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -170,7 +175,7 @@ NI6259ADC::NI6259ADC() :
 NI6259ADC::~NI6259ADC() {
     if (synchType == INDEPENDENT_THREAD) {
         if (!executor.Stop()) {
-            Sleep::MSec(100);
+            Sleep::MSec(100u);
             if (!executor.Stop()) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
             }
@@ -288,9 +293,9 @@ bool NI6259ADC::PrepareNextState(const char8 *const currentStateName,
             timeValue[b] = 0ull;
         }
         currentBufferOffset = 0u;
-        for (uint32 n = 0u; n < numberOfADCsEnabled; n++) {
+        for (uint32 n = 0u; (n < numberOfADCsEnabled) && (ok); n++) {
             uint32 memSize = sampleSize * numberOfSamples;
-            MemoryOperationsHelper::Set(&channelsMemory[currentBufferIdx][n][0], '\0', memSize);
+            ok = MemoryOperationsHelper::Set(&channelsMemory[currentBufferIdx][n][0], '\0', memSize);
         }
     }
     counterResetFastMux.FastUnLock();
@@ -342,27 +347,23 @@ bool NI6259ADC::Synchronise() {
         }
     }
 
-    if (timeValue != NULL_PTR(uint64*)) {
-        if (lastTimeValue == timeValue[lastBufferIdx]) {
-            if (lastTimeValue != 0u) {
-                REPORT_ERROR(ErrorManagement::Warning, "Repeated time values. Last = %d Current = %d. lastBufferIdx = %d currentBufferIdx = %d", lastTimeValue,
-                             timeValue[lastBufferIdx], lastBufferIdx, currentBufferIdx);
-            }
+    if (lastTimeValue == timeValue[lastBufferIdx]) {
+        if (lastTimeValue != 0u) {
+            REPORT_ERROR(ErrorManagement::Warning, "Repeated time values. Last = %d Current = %d. lastBufferIdx = %d currentBufferIdx = %d", lastTimeValue,
+                    timeValue[lastBufferIdx], lastBufferIdx, currentBufferIdx);
         }
-        lastTimeValue = timeValue[lastBufferIdx];
     }
+    lastTimeValue = timeValue[lastBufferIdx];
 
     return err.ErrorsCleared();
 }
 
 bool NI6259ADC::NonSynchronise() {
     ErrorManagement::ErrorType err(true);
-    synchSem.Reset();
-
-    bool isLastBuffer = false;
+    (void) synchSem.Reset();
 
     (void) allBufMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
-    isLastBuffer = (lastBufferIdx == currentBufferIdx);
+    bool isLastBuffer = (lastBufferIdx == currentBufferIdx);
     if (isLastBuffer && (synchType == INDEPENDENT_THREAD)) {
         changeBuffer = true;
     }
@@ -388,12 +389,12 @@ bool NI6259ADC::NonSynchronise() {
                 }
                 for (uint32 n = 0u; n < numberOfADCsEnabled; n++) {
                     uint32 memSize = sampleSize * numberOfSamples;
-                    MemoryOperationsHelper::Set(&channelsMemory[currentBufferIdx][n][0], '\0', memSize);
+                    (void) MemoryOperationsHelper::Set(&channelsMemory[currentBufferIdx][n][0], '\0', memSize);
                 }
             }
         }
         else {
-            synchSem.Wait(TTInfiniteWait);
+            (void) synchSem.Wait(TTInfiniteWait);
         }
     }
 
@@ -415,7 +416,8 @@ bool NI6259ADC::Initialise(StructuredDataI &data) {
         }
     }
     if (ok) {
-        ok = ((ADC_BASE_FREQ % samplingFrequency) == 0);
+        /*lint -e{414} samplingFrequency cannot be zero, otherwise ok = false*/
+        ok = ((ADC_BASE_FREQ % samplingFrequency) == 0u);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "SamplingFrequency must divide exactly the ADC base clock (20 MHz)");
         }
@@ -425,9 +427,14 @@ bool NI6259ADC::Initialise(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::Information, "ConvertFrequency not specified. Setting same as SamplingFrequency (%d)", samplingFrequency);
             convertFrequency = samplingFrequency;
         }
+        ok = (convertFrequency > 0u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "ConvertFrequency must be > 0");
+        }
     }
     if (ok) {
-        ok = ((ADC_BASE_FREQ % convertFrequency) == 0);
+        /*lint -e{414} convertFrequency cannot be zero, otherwise ok = false*/
+        ok = ((ADC_BASE_FREQ % convertFrequency) == 0u);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "ConvertFrequency must divide exactly the ADC base clock (20 MHz)");
         }
@@ -852,12 +859,14 @@ bool NI6259ADC::Initialise(StructuredDataI &data) {
     }
     if (ok) {
         if (data.MoveRelative("Attributes")) {
-            attributes.Write("Attributes", data);
-            data.MoveToAncestor(1u);
+            ok = attributes.Write("Attributes", data);
+            if (ok) {
+                ok = data.MoveToAncestor(1u);
+            }
         }
     }
     if (ok) {
-        ok = ((numberOfADCsEnabled > 0) && (samplingFrequency <= ADC_MORE_CH_MAX_FREQ));
+        ok = ((numberOfADCsEnabled > 0u) && (samplingFrequency <= ADC_MORE_CH_MAX_FREQ));
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The SamplingFrequency must be <= 1 MHz when more than one channel is defined");
         }
@@ -872,7 +881,8 @@ bool NI6259ADC::Initialise(StructuredDataI &data) {
             singleADCFrequency = static_cast<float64>(samplingFrequency);
         }
         else {
-            singleADCFrequency = (samplingFrequency / static_cast<float64>(numberOfADCsEnabled));
+            /*lint -e{414} numberOfADCsEnabled cannot be zero, otherwise ok = false*/
+            singleADCFrequency = (static_cast<float64>(samplingFrequency) / static_cast<float64>(numberOfADCsEnabled));
         }
 
     }
@@ -880,6 +890,7 @@ bool NI6259ADC::Initialise(StructuredDataI &data) {
     return ok;
 }
 
+/*lint -e{641} enum to int conversion required*/
 bool NI6259ADC::SetConfiguredDatabase(StructuredDataI &data) {
     uint32 i;
     bool ok = DataSourceI::SetConfiguredDatabase(data);
@@ -892,6 +903,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI &data) {
 
     //The type of counter shall be unsigned int32 or uint32
     if (ok) {
+        /*lint -e{9007} no side-effect from GetSignalType*/
         ok = ((GetSignalType(0u) == UnsignedInteger64Bit) || (GetSignalType(0u) == UnsignedInteger32Bit));
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError,
@@ -900,6 +912,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI &data) {
     }
     //The type of time shall be unsigned int32 or uint32
     if (ok) {
+        /*lint -e{9007} no side-effect from GetSignalType*/
         ok = ((GetSignalType(1u) == UnsignedInteger64Bit) || (GetSignalType(0u) == UnsignedInteger32Bit));
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError,
@@ -907,6 +920,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     TypeDescriptor channelTd = (calibrate) ? (Float32Bit) : (SignedInteger16Bit);
+    /*lint -e{9119} sampleSize is large enough to hold sizeof*/
     sampleSize = (calibrate) ? (sizeof(float32)) : (sizeof(int16));
     if (ok) {
         for (i = 0u; (i < numberOfADCsEnabled) && (ok); i++) {
@@ -997,11 +1011,11 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI &data) {
     }
     REPORT_ERROR(ErrorManagement::Information, "pxi6259_create_ai_conf()");
     pxi6259_ai_conf_t adcConfiguration = pxi6259_create_ai_conf();
+    /*lint -e{850} i is not modified by the loop*/
     for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (ok); i++) {
         if (adcEnabled[i]) {
-            REPORT_ERROR(ErrorManagement::Information, "pxi6259_add_ai_channel(&adcConfiguration, %d, %d, %d, %d, 0)", i, inputPolarity[i], inputRange[i],
-                         inputMode[i]);
-            ok = (pxi6259_add_ai_channel(&adcConfiguration, static_cast<uint8_t>(i), inputPolarity[i], inputRange[i], inputMode[i], 0) == 0);
+            REPORT_ERROR(ErrorManagement::Information, "pxi6259_add_ai_channel(&adcConfiguration, %d, %d, %d, %d, 0)", i, inputPolarity[i], inputRange[i], inputMode[i]);
+            ok = (pxi6259_add_ai_channel(&adcConfiguration, static_cast<uint8_t>(i), inputPolarity[i], inputRange[i], inputMode[i], 0u) == 0);
             if (ok) {
                 REPORT_ERROR(ErrorManagement::Information, "Channel %d set with input range %d", i, inputRange[i]);
             }
@@ -1011,6 +1025,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     if (ok) {
+        /*lint -e{414} samplingFrequency cannot be zero, otherwise ok = false*/
         uint32 sampleClockDivisor = (ADC_BASE_FREQ / samplingFrequency);
         REPORT_ERROR(ErrorManagement::Information, "pxi6259_set_ai_sample_clk(&adcConfiguration, %d, %d, %d, %d)", sampleClockDivisor, sampleDelayDivisor,
                      clockSampleSource, clockSamplePolarity);
@@ -1021,6 +1036,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     if (ok) {
+        /*lint -e{414} convertFrequency cannot be zero, otherwise ok = false*/
         uint32 convertClockDivisor = (ADC_BASE_FREQ / convertFrequency);
         REPORT_ERROR(ErrorManagement::Information, "pxi6259_set_ai_convert_clk(&adcConfiguration, %d, %d, %d, %d)", convertClockDivisor, convertDelayDivisor,
                      clockConvertSource, clockConvertPolarity);
@@ -1031,10 +1047,9 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     if (ok) {
-
         //Add additional attributes
         if (attributes.MoveAbsolute("Attributes")) {
-            for (uint32 i = 0u; (i < attributes.GetNumberOfChildren()) && ok; i++) {
+            for (i = 0u; (i < attributes.GetNumberOfChildren()) && ok; i++) {
                 StreamString attrName = attributes.GetChildName(i);
                 uint32 attrVal;
                 ok = attributes.Read(attrName.Buffer(), attrVal);
@@ -1082,6 +1097,7 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI &data) {
         for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (ok); i++) {
             uint32 b;
             for (b = 0u; (b < NUMBER_OF_BUFFERS) && (ok); b++) {
+                /*lint -e{647} -e{9114} no truncation*/
                 channelsMemory[b][i] = new uint8[numberOfSamples * sampleSize];
             }
         }
@@ -1117,15 +1133,16 @@ ErrorManagement::ErrorType NI6259ADC::CopyFromDMA(const size_t numberOfSamplesFr
             (void) allBufMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
 
             uint8 currentBufferIdxCache = currentBufferIdx;
-            Lock(currentBufferIdxCache);
+            LockB(currentBufferIdxCache);
             if (calibrate) {
                 if (dmaCalibBuffer != NULL_PTR(float32*)) {
-                    MemoryOperationsHelper::Copy(&channelsMemory[currentBufferIdx][dmaChannel][currentBufferOffset * sampleSize], &dmaCalibBuffer[s],
-                                                 sampleSize);
+                    /*lint -e{679} no truncation*/
+                    (void) MemoryOperationsHelper::Copy(&channelsMemory[currentBufferIdx][dmaChannel][currentBufferOffset * sampleSize], &dmaCalibBuffer[s], sampleSize);
                 }
             }
             else {
-                MemoryOperationsHelper::Copy(&channelsMemory[currentBufferIdx][dmaChannel][currentBufferOffset * sampleSize], &dmaReadBuffer[s], sampleSize);
+                /*lint -e{679} no truncation*/
+                (void) MemoryOperationsHelper::Copy(&channelsMemory[currentBufferIdx][dmaChannel][currentBufferOffset * sampleSize], &dmaReadBuffer[s], sampleSize);
             }
             s++;
             dmaChannel++;
@@ -1145,9 +1162,7 @@ ErrorManagement::ErrorType NI6259ADC::CopyFromDMA(const size_t numberOfSamplesFr
                 float64 counterSamples = static_cast<float64>(counter);
                 counterSamples *= 1000000.;
                 counterSamples /= singleADCFrequency;
-                if (timeValue != NULL_PTR(uint64*)) {
-                    timeValue[currentBufferIdx] = static_cast<uint64>(counterSamples);
-                }
+                timeValue[currentBufferIdx] = static_cast<uint64>(counterSamples);
                 currentBufferOffset++;
 
                 if ((currentBufferOffset == numberOfSamples) || (changeBuffer)) {
@@ -1160,19 +1175,19 @@ ErrorManagement::ErrorType NI6259ADC::CopyFromDMA(const size_t numberOfSamplesFr
                     if (currentBufferIdx == NUMBER_OF_BUFFERS) {
                         currentBufferIdx = 0u;
                     }
-                    Lock(currentBufferIdx);
+                    LockB(currentBufferIdx);
                     for (uint32 n = 0u; n < numberOfADCsEnabled; n++) {
                         uint32 memSize = sampleSize * numberOfSamples;
-                        MemoryOperationsHelper::Set(&channelsMemory[currentBufferIdx][n][0], '\0', memSize);
+                        (void) MemoryOperationsHelper::Set(&channelsMemory[currentBufferIdx][n][0], '\0', memSize);
                     }
                     counterValue[currentBufferIdx] = 0ull;
                     timeValue[currentBufferIdx] = timeValue[oldBuff];
-                    UnLock(currentBufferIdx);
+                    UnLockB(currentBufferIdx);
                     err = !synchSem.Post();
                     fastBufMux.FastUnLock();
                 }
             }
-            UnLock(currentBufferIdxCache);
+            UnLockB(currentBufferIdxCache);
             allBufMux.FastUnLock();
 
         }
@@ -1208,6 +1223,7 @@ ErrorManagement::ErrorType NI6259ADC::Execute(ExecutionInfo &info) {
             bool skip = (nSamplesInDMA == (dma->ai.count - 1u));
 
             if (!skip) {
+                /*lint -e{414} numberOfADCsEnabled > 0 otherwise initialisation will fail*/
                 nSamplesInDMA = (nSamplesInDMA / numberOfADCsEnabled) * numberOfADCsEnabled;
 
                 //REPORT_ERROR(ErrorManagement::Information, "Read %d samples", (uint32 )nSamplesInDMA);
@@ -1221,16 +1237,20 @@ ErrorManagement::ErrorType NI6259ADC::Execute(ExecutionInfo &info) {
                             size_t samplesToCopy = (dma->ai.count - dmaOffset);
                             //Roll to the beginning
                             size_t samplesToCopyRoll = ((dmaOffset + nSamplesInDMA) - dma->ai.count);
-                            MemoryOperationsHelper::Copy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * samplesToCopy));
-                            MemoryOperationsHelper::Copy(&dmaReadBuffer[samplesToCopy], &dma->ai.data[0], (sizeof(int16) * samplesToCopyRoll));
+                            /*lint -e{712} -e{747} -e{9119} -e{9114} use of sizeof as third argument is safe, given that it size << int*/
+                            (void) MemoryOperationsHelper::Copy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * samplesToCopy));
+                            /*lint -e{712} -e{747} -e{9119} -e{9114} use of sizeof as third argument is safe, given that it size << int*/
+                            (void) MemoryOperationsHelper::Copy(&dmaReadBuffer[samplesToCopy], &dma->ai.data[0], (sizeof(int16) * samplesToCopyRoll));
                         }
                         else {
-                            MemoryOperationsHelper::Copy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * nSamplesInDMA));
+                            /*lint -e{712} -e{747} -e{9119} -e{9114} use of sizeof as third argument is safe, given that it size << int*/
+                            (void) MemoryOperationsHelper::Copy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * nSamplesInDMA));
                         }
 
                         if (calibrate && (dmaCalibBuffer != NULL_PTR(float32*))) {
-                            MemoryOperationsHelper::Copy(&dmaCalibBuffer[nSamplesInDMA / 2], &dmaReadBuffer[0], (sizeof(int16) * nSamplesInDMA));
-                            pxi6259_calibration_ai(dmaCalibBuffer, nSamplesInDMA, 1, &ai_coefs_all);
+                            /*lint -e{712} -e{747} -e{9119} -e{9114} use of sizeof as third argument is safe, given that it size << int*/
+                            (void) MemoryOperationsHelper::Copy(&dmaCalibBuffer[nSamplesInDMA / 2u], &dmaReadBuffer[0], (sizeof(int16) * nSamplesInDMA));
+                            (void) pxi6259_calibration_ai(dmaCalibBuffer, nSamplesInDMA, 1, &ai_coefs_all);
                         }
 
                         err = CopyFromDMA(nSamplesInDMA);
@@ -1240,7 +1260,7 @@ ErrorManagement::ErrorType NI6259ADC::Execute(ExecutionInfo &info) {
                 }
             }
         }
-        sched_yield();
+        (void) sched_yield();
     }
     return err;
 }
@@ -1268,11 +1288,11 @@ bool NI6259ADC::IsSynchronising() const {
     return synchronising;
 }
 
-void NI6259ADC::Lock(const uint32 idx) {
+void NI6259ADC::LockB(const uint32 idx) {
     (void) fastMux[idx].FastLock(TTInfiniteWait, fastMuxSleepTime);
 }
 
-void NI6259ADC::UnLock(const uint32 idx) {
+void NI6259ADC::UnLockB(const uint32 idx) {
     fastMux[idx].FastUnLock();
 }
 

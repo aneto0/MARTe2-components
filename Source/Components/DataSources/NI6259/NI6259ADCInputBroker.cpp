@@ -146,7 +146,7 @@ bool NI6259ADCInputBroker::Execute() {
         uint32 idx = adcBoard->GetLastBufferIdx();
 
         //no problem if working on different buffers
-        adcBoard->Lock(idx);
+        adcBoard->LockB(idx);
 
         void *dataSourceSignalPointer;
         for (n = 0u; (n < numberOfCopies) && (ret); n++) {
@@ -156,7 +156,7 @@ bool NI6259ADCInputBroker::Execute() {
             }
         }
 
-        adcBoard->UnLock(idx);
+        adcBoard->UnLockB(idx);
     }
     return ret;
 }

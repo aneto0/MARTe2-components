@@ -255,13 +255,13 @@ NI6259ADC    ();
      * @brief Lock the buffer in use
      * @param[in] idx: the buffer index to lock
      */
-    void Lock(const uint32 idx);
+    void LockB(const uint32 idx);
 
     /**
      * @brief Unlock the buffer in use
      * @param[in] idx: the buffer index to unlock
      */
-    void UnLock(const uint32 idx);
+    void UnLockB(const uint32 idx);
 
     /**
      * @brief Calls the ADC read if ExecutionMode == RealTimeThread
