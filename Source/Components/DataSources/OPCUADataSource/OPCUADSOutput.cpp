@@ -487,11 +487,33 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
 const char8* OPCUADSOutput::GetBrokerName(StructuredDataI &data,
-                                          const SignalDirection direction) {
-    const char8 *brokerName = "";
+                                         const SignalDirection direction) {
+
+    const char8 *brokerName = NULL_PTR(const char8*);
+
     if (direction == OutputSignals) {
-        brokerName = "MemoryMapSynchronisedOutputBroker";
+
+        uint32 trigger = 0u;
+
+        if (!data.Read("Trigger", trigger)) {
+            trigger = 0u;
+        }
+
+        if (trigger == 1u) {
+            brokerName = "MemoryMapSynchronisedOutputBroker";
+        
+        }
+        else {
+            brokerName = "MemoryMapOutputBroker";
+        }
+
     }
+    else {
+        
+         REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with InputSignals");
+        
+    }
+
     return brokerName;
 }
 
