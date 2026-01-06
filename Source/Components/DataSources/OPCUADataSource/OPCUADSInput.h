@@ -289,7 +289,7 @@ private:
     /**
      * Holds the value of the configuration parameter SamplingTime
      */
-    float64 samplingTime;
+    uint32 samplingTime;
 
     /**
      * The array that stores all the browse paths for each

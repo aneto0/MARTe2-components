@@ -62,7 +62,7 @@ OPCUADSInput::OPCUADSInput() :
     serverAddress = "";
     readMode = "";
     sync = false; 
-    samplingTime = 0.0;
+    samplingTime = 0u;
     nElements = NULL_PTR(uint32 *);
     tempNElements = NULL_PTR(uint32 *);
     entryArrayElements = NULL_PTR(uint32 *);
@@ -171,7 +171,7 @@ bool OPCUADSInput::Initialise(StructuredDataI &data) {
             ok = data.Read("SamplingTime", samplingTime);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::Information, "Sampling Time not set. Using default value: 250ms");
-                samplingTime = 250.0;
+                samplingTime = 250u;
                 ok = true;
             }
         }
@@ -544,12 +544,12 @@ const char8 *OPCUADSInput::GetBrokerName(StructuredDataI &data,
     else {
         if (direction == InputSignals) {
 
-            uint32 tempSync = 0;
+            uint32 tempSync = 0u;
             if (!data.Read("SynchSignal", tempSync)) {
-                tempSync = 0;
+                tempSync = 0u;
             }
 
-            if (tempSync > 0) {
+            if (tempSync > 0u) {
                 brokerName = "MemoryMapSynchronisedInputBroker";
             }
             else { 
