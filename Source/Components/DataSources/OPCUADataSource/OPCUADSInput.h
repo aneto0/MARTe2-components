@@ -115,7 +115,7 @@ namespace MARTe {
  *             Path = Object3.Block1.Block2.NodeStructure1
  *             ExtensionObject = "yes"
  *             SynchSignal = 1 //if Synchronise at least one signal shall specify it
- *         }s
+ *         }
  *     }
  * }
  * </pre>
@@ -269,7 +269,7 @@ private:
     /**
      * Holds the value of the configuration parameter Synchronise
      */
-    StreamString sync;
+    bool sync;
 
     /**
      * Holds the value of the configuration parameter Address
@@ -379,8 +379,6 @@ private:
      * 
      */
     StreamString password;
-
-  
 };
 
 }
