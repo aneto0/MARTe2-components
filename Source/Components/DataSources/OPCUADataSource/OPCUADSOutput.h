@@ -87,6 +87,7 @@ namespace MARTe {
  *             Type = MyStructure
  *             NamespaceIndex = 3
  *             Path = Object3.Block1.Block2.NodeStructure1
+ *             Trigger=1 //at least one Signal shall specify it 
  *         }
  *     }
  * }

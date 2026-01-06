@@ -114,7 +114,8 @@ namespace MARTe {
  *             NamespaceIndex = 3
  *             Path = Object3.Block1.Block2.NodeStructure1
  *             ExtensionObject = "yes"
- *         }
+ *             SynchSignal = 1 //if Synchronise at least one signal shall specify it
+ *         }s
  *     }
  * }
  * </pre>
@@ -378,6 +379,8 @@ private:
      * 
      */
     StreamString password;
+
+  
 };
 
 }
