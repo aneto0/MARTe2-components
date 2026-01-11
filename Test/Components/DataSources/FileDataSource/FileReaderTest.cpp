@@ -827,7 +827,7 @@ static bool TestIntegratedExecution(const MARTe::char8 *const config,
     for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
         delete signals[i];
     }
-    delete signals;
+    delete [] signals;
     DeleteTestFile(filename);
 
     return ok;
@@ -877,8 +877,8 @@ static bool TestIntegratedExecutionInterpolation(const MARTe::char8 *const confi
     for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
         delete signalsToVerify[i];
     }
-    delete signalsFile;
-    delete signalsToVerify;
+    delete [] signalsFile;
+    delete [] signalsToVerify;
     DeleteTestFile(filename);
 
     return ok;
@@ -3338,7 +3338,7 @@ bool FileReaderTest::TestInitialise_Binary() {
     for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
         delete signals[i];
     }
-    delete signals;
+    delete [] signals;
     cdb.Write("Filename", filename);
     cdb.Write("FileFormat", "binary");
     cdb.Write("Interpolate", "yes");
@@ -3720,7 +3720,7 @@ bool FileReaderTest::TestRuntimeErrorMessage() {
     for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
         delete signals[i];
     }
-    delete signals;
+    delete [] signals;
     DeleteTestFile(filename);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
@@ -3760,7 +3760,7 @@ bool FileReaderTest::TestRuntimeErrorMessage_2() {
     for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
         delete signals[i];
     }
-    delete signals;
+    delete [] signals;
     DeleteTestFile(filename);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
@@ -3840,7 +3840,7 @@ bool FileReaderTest::TestRuntimeErrorMessage_Fail_Preload() {
     for (i = 0; i < signalToVerifyNumberOfSamples; i++) {
         delete signals[i];
     }
-    delete signals;
+    delete [] signals;
     DeleteTestFile(filename);
     ObjectRegistryDatabase *godb = ObjectRegistryDatabase::Instance();
 
