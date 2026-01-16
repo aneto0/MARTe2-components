@@ -36,7 +36,7 @@ include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 # These flags are required in order to retrieve type definitions from tmwtypes.h
 # instead of rtwtypes.h (which is generated for each model and not available in MATLAB root directory)
-CPPFLAGS += -DHOST_CAPI_BUILD -DMATLAB_MEX_FILE
+CPPFLAGS += -DHOST_CAPI_BUILD -DMATLAB_MEX_FILE -Wno-unused-local-typedefs
 
 # Add row-major support for 3D matrices. Available from version 2018b (9.05) onwards
 ifeq ($(shell [ $(MATLAB_VERSION) -ge 905 ]; echo $$?),0)

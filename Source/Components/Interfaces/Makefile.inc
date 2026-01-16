@@ -31,7 +31,9 @@ SPB+=OPCUA.x
 endif
 
 ifdef CODAC_ROOT
+ifndef EXCLUDE_NI
 SPB+=NI9157Device.x
+endif
 endif
 
 ifdef EFDA_MARTe_DIR
@@ -65,7 +67,9 @@ endif
 
 
 ifdef CODAC_ROOT
+ifndef EXCLUDE_TCN
 SPB+=TcnTimeProvider.x
+endif
 endif
 
 ifdef EPICSPVA

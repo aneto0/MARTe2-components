@@ -262,7 +262,34 @@
         </channelsInfo>
     </source>    
 
-     <danStreamer name="DANSTREAMER0" >
+    <source name="DANStreamByReferenceTest_float32" >
+         <itemDanType >danFloat</itemDanType>
+         <checkPolicy >NO_CHECK</checkPolicy>
+         <maxTransferRate >100000</maxTransferRate>
+         <streamType >DATA_D0</streamType>
+         <dataModel >DM_BLOCK2D_VAR</dataModel>
+         <advancedSource >
+             <queueSize >1000</queueSize>
+             <profMonitoring >1</profMonitoring>
+             <timeFormat >UTC</timeFormat>
+             <debug >
+                 <srvChunkHeaderSize >20</srvChunkHeaderSize>
+                 <srvChunkSize >10000</srvChunkSize>
+                 <srvBufferSize >2</srvBufferSize>
+            </debug>
+        </advancedSource>
+         <deviceInfo >
+             <deviceName >MARTeTest</deviceName>
+             <deviceVersion >v1.3</deviceVersion>
+             <operationalMode >0</operationalMode>
+             <manufactureCode >N1134342</manufactureCode>
+        </deviceInfo>
+         <channelsInfo sequence="SEQUENCIAL" >
+            <channel number="0" pvName="Signal1" label="Signal1" status="ENABLE" ></channel>
+        </channelsInfo>
+    </source>    
+
+    <danStreamer name="DANSTREAMER0" >
          <link >ALL</link>
          <internal >
              <danInterface >eth0</danInterface>

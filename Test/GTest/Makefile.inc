@@ -47,7 +47,10 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L3Streams
 # Current assumption is prior installation of CODAC Core System on the build node
 ifdef CODAC_ROOT
 ## DAN client API dependencies
-LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2
+LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -llog
+ifndef EXCLUDE_TCN
+LIBRARIES +=  -lxml2 -ltcn
+endif
 ## DAN HDF5 reader dependencies (test code)
 LIBRARIES += -ldan_base -ldan_archive -ldan_wrapper_srv -ldan_uda_reader_base -ldan_stream_reader_cpp
 CCS_LT_63 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -le 62 ]; then echo 1; else echo 0; fi)
@@ -57,7 +60,9 @@ endif
 endif
 
 ifdef SDN_CORE_LIBRARY_DIR
+ifndef EXCLUDE_SDN
 LIBRARIES += -L$(SDN_CORE_LIBRARY_DIR) -lsdn-core -lxml2
+endif
 endif
 
 ifdef PROFINET_COMPILE
@@ -66,10 +71,12 @@ endif
 
 ifdef CODAC_ROOT
 LIBRARIES += -L$(CODAC_ROOT)/lib/
+ifndef EXCLUDE_NI
 LIBRARIES += -lnisync
 LIBRARIES += -lnixseries
 LIBRARIES += -lpxi6259
 LIBRARIES += -lNiFpga
+endif
 
 ## Only force EPICSPVA if CCS version is gt v6.1
 CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)

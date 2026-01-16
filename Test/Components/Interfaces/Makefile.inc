@@ -42,8 +42,12 @@ SPB += MDSStructuredDataI.x
 endif
 
 ifdef CODAC_ROOT
+ifndef EXCLUDE_NI
 SPB+=NI9157Device.x
+endif
+ifndef EXCLUDE_TCN
 SPB+=TcnTimeProvider.x
+endif
 ## Only force EPICSPVA if CCS version is gt v6.1
 CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
 ifeq "$(CCSGT61)" "1"

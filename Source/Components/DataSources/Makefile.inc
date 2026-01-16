@@ -46,10 +46,12 @@ SPB    += OPCUADataSource.x
 endif
 
 ifdef CODAC_ROOT
+ifndef EXCLUDE_NI
 SPB    += NI1588.x
 SPB    += NI6259.x
 SPB    += NI6368.x
 SPB    += NI9157.x
+endif
 SPB    += DAN.x
 
 ## Only force EPICSPVA if CCS version is gt v6.1
@@ -75,7 +77,9 @@ endif
 # Compilation of SDNPublisher DataSource is contingent to availability of SDN core library, etc.
 # Current assumption is prior installation of CODAC Core System on the build node
 ifneq "$(or $(CODAC_VERSION),$(SDN_CORE_LIBRARY_DIR))" ""
+ifndef EXCLUDE_SDN
 SPB   += SDN.x
+endif
 endif
 
 ifdef PDNA_INCLUDE

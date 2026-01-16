@@ -24,16 +24,19 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
-#include <tcn.h>
-
-/*---------------------------------------------------------------------------*/
-/*                         Project header includes                           */
-/*---------------------------------------------------------------------------*/
 #ifdef LINT
 /*lint -e1923 macro needs to be defined to detect CSS version*/
 #define CCS_VER 0
 /*lint +e1923*/
 #endif
+
+#if CCS_VER < 70
+#include <tcn.h>
+#endif
+
+/*---------------------------------------------------------------------------*/
+/*                         Project header includes                           */
+/*---------------------------------------------------------------------------*/
 
 #include "AdvancedErrorManagement.h"
 #include "CompilerTypes.h"
@@ -50,7 +53,7 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-DANStream::DANStream(const char8 * const typeNameIn,
+void DANStream::init(const char8 * const typeNameIn,
                      const char8 * const baseNameIn,
                      const uint32 danBufferMultiplierIn,
                      const float64 samplingFrequencyIn,
@@ -93,6 +96,26 @@ DANStream::DANStream(const char8 * const typeNameIn,
     units = NULL_PTR(StreamString*);
     descriptions = NULL_PTR(StreamString*);
     fieldNames = NULL_PTR(StreamString*);
+    opened = false;
+}
+
+/*lint -e{1566} -sem(DANStream::Init, initializer) both constructors use the same init function, since construction delegation is not available until C++11 */
+DANStream::DANStream(const char8 * const typeNameIn,
+                     const char8 * const baseNameIn,
+                     const uint32 danBufferMultiplierIn,
+                     const float64 samplingFrequencyIn,
+                     const uint32 numberOfSamplesIn,
+                     const bool interleaveIn) {
+    init(typeNameIn, baseNameIn, danBufferMultiplierIn, samplingFrequencyIn, numberOfSamplesIn, interleaveIn);
+}
+
+/*lint -e{1566} -sem(DANStream::Init, initializer) both constructors use the same init function.*/
+DANStream::DANStream(const TypeDescriptor & tdIn,
+                     const char8 * const baseNameIn,
+                     const float64 samplingFrequencyIn,
+                     const uint32 numberOfSamplesIn) {
+    init(TypeDescriptor::GetTypeNameFromTypeDescriptor(tdIn), baseNameIn, 1u, samplingFrequencyIn, numberOfSamplesIn, false);
+    typeSize = static_cast<uint32>(tdIn.numberOfBits) / 8u;
 }
 
 /*lint -e{1551} the destructor must guarantee that the DANSource is unpublished at the of the object life-cycle. The internal buffering memory is also cleaned in this function.*/
@@ -237,16 +260,97 @@ bool DANStream::PutData() {
     return ok;
 }
 
+bool DANStream::PutData(const char8 * const header,
+                        const uint32 actualNumberOfSamples,
+                        const uint64 data_offset,
+                        const bool flush) {
+    bool ok = true;
+
+    // silently drop data if closed, to allow unaltered flow in non-ARCHIVING states
+    if (!opened) {
+        ok = true;
+    }
+    else {
+        uint64 timeStamp = 0u;
+        if (useExternalAbsoluteTimingSignal) {
+            /*lint -e{613} timeAbsoluteSignal cannot be NULL as otherwise useExternalAbsoluteTimingSignal=false*/
+            timeStamp = *timeAbsoluteSignal;
+        }
+        else if (useExternalRelativeTimingSignal) {
+            //Time in nanoseconds
+            /*lint -e{613} timeRelativeSignal cannot be NULL as otherwise useExternalRelativeTimingSignal=false*/
+            uint64 timeRelativeSignalNanos = static_cast<uint64>(*timeRelativeSignal);
+            timeRelativeSignalNanos *= 1000u;
+            timeStamp = absoluteStartTime;
+            timeStamp += timeRelativeSignalNanos;
+        }
+        else {
+            timeStamp = absoluteStartTime;
+            timeStamp += writeCounts * static_cast<uint64>(actualNumberOfSamples) * periodNanos;
+            writeCounts++;
+        }
+
+        if (actualNumberOfSamples > 0u) {
+            uint32 actualBlockSize = typeSize * static_cast<uint32>(actualNumberOfSamples);
+            ok = DANAPI::PutBlockReference(danSource, timeStamp, static_cast<int64_t>(data_offset), static_cast<uint32_t>(actualBlockSize), const_cast<char8*>(header));
+        }
+
+        // flush, if requested
+        if (ok && flush) {
+            bool closeOk = CloseStream();
+            bool openOk = OpenStream();
+            ok = closeOk && openOk;
+        }
+    }
+    return ok;
+}
+
 bool DANStream::OpenStream() {
     bool ok = DANAPI::OpenStream(danSource, samplingFrequency);
-    if (!ok) {
+    if (ok) {
+        opened = true;
+    }
+    else {
         REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to dan_publisher_openStream for %s", danSourceName.Buffer());
     }
     return ok;
 }
 
 bool DANStream::CloseStream() {
-    return DANAPI::CloseStream(danSource);
+    bool ret;
+    if (!opened) {
+        ret = true;
+    }
+    else {
+        opened = false;
+        ret = DANAPI::CloseStream(danSource);
+    }
+    return ret;
+}
+
+bool DANStream::InitializePublishSource(const char8 * const newBaseName,
+                                        const char8 * const shmemName,
+                                        const int64_t shmsize) {
+    if (baseName != newBaseName) {
+
+        // unpublish existing one fist, if initialized
+        if (danSource != NULL_PTR(void *)) {
+            (void) CloseStream();
+            DANAPI::UnpublishSource(danSource);
+            danSource = NULL_PTR(void *);
+        }
+
+        baseName = newBaseName;
+
+        bool baseNameIsNotNull = (baseName != "NULL");
+        if ((static_cast<uint64>(baseName.Size()) > 0u) && baseNameIsNotNull) {
+            (void) danSourceName.SetSize(static_cast<uint64>(0u)); // Reset the buffer to 0
+            (void) danSourceName.Printf("%s_%s", baseName.Buffer(), typeName.Buffer());
+            (void) danSourceName.Seek(0LLU);
+            danSource = DANAPI::PublishSource(danSourceName.Buffer(), shmemName, static_cast<uint64>(shmsize));
+        }
+    }
+    return danSource != NULL_PTR(void *);
 }
 
 bool DANStream::Finalise() {
@@ -387,7 +491,6 @@ bool DANStream::AddToStructure(const uint32 fieldIdxIn,
                                         fieldIdxIn, signalIndexMap[numberOfSignals - 1u], fieldNameIn, fieldNames[numberOfFields].Buffer());
                 }
             }
-
         }
         else {
             fieldInStructOffset[numberOfFields] = typeSize;

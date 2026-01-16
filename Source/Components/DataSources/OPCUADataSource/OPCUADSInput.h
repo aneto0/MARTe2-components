@@ -114,6 +114,7 @@ namespace MARTe {
  *             NamespaceIndex = 3
  *             Path = Object3.Block1.Block2.NodeStructure1
  *             ExtensionObject = "yes"
+ *             SynchSignal = 1 //if Synchronise at least one signal shall specify it
  *         }
  *     }
  * }
@@ -268,7 +269,7 @@ private:
     /**
      * Holds the value of the configuration parameter Synchronise
      */
-    StreamString sync;
+    bool sync;
 
     /**
      * Holds the value of the configuration parameter Address
@@ -288,7 +289,7 @@ private:
     /**
      * Holds the value of the configuration parameter SamplingTime
      */
-    float64 samplingTime;
+    uint32 samplingTime;
 
     /**
      * The array that stores all the browse paths for each

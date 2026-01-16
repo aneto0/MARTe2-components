@@ -292,7 +292,7 @@ bool DANStreamTest::TestConstructor() {
     ok &= (ds.GetPeriodNanos() == 500);
     ok &= (ds.GetNumberOfSamples() == 8);
 
-    return true;
+    return ok;
 }
 
 bool DANStreamTest::TestGetType() {

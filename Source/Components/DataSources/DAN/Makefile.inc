@@ -45,7 +45,14 @@ INCLUDES += -I/usr/include/libxml2
 
 ifdef CODAC_ROOT
 INCLUDES += -I$(CODAC_ROOT)/include
-LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -ltcn -llog -lxml2
+LIBRARIES += -L$(CODAC_ROOT)/lib -lccs-core -ldan_api -ldan_client_api -ldan_stream -llog
+
+# Maybe needed to import additional libraries for CCS <= 6.1
+CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
+ifeq "$(CCSGT61)" "0"
+LIBRARIES += -ltcn -lxml2
+endif
+
 # Override CPPFLAGS due to scoped enums. Allow narrowing. TODO file bug report.
 #CPPFLAGS += -std=c++0x -Wno-error=narrowing
 

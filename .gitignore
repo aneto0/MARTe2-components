@@ -16,3 +16,4 @@ depends*.*
 VSCodeLcov.sh
 .vscode
 EclipseLcov.local.sh
+DAN_lcov.sh

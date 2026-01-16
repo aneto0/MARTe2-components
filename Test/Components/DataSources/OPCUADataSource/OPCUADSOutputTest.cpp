@@ -11,13 +11,13 @@
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
  *
- * @warning Unless required by applicable law or agreed to in writing, 
+ * @warning Unless required by applicable law or agreed to in writing,
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class OPCUADSOutputTest (public, protected, and private). Be aware that some 
+ * the class OPCUADSOutputTest (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -120,6 +120,7 @@ bool OPCUADSOutputTest::TestInitialise() {
             "                    NamespaceIndex = 1\n"
             "                    Path = MyNode\n"
             "                    Type = uint32\n"
+            "                    Trigger = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -251,6 +252,7 @@ bool OPCUADSOutputTest::TestInitialise_Introspection() {
             "                    NamespaceIndex = 1\n"
             "                    Path = MasterSet.SensorPackage1.Sensor1\n"
             "                    Type = uint32\n"
+            "                    Trigger = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -384,6 +386,7 @@ bool OPCUADSOutputTest::TestInitialise_ExtensionObject() {
             "                    Path = MasterSet\n"
             "                    Type = MasterSet\n"
             "                    ExtensionObject = \"yes\"\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -397,6 +400,7 @@ bool OPCUADSOutputTest::TestInitialise_ExtensionObject() {
             "                    Path = MasterSet\n"
             "                    Type = MasterSet\n"
             "                    ExtensionObject = \"yes\"\n"
+            "                    Trigger = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -509,6 +513,7 @@ bool OPCUADSOutputTest::TestInitialise_NoAddress() {
             "                    NamespaceIndex = 1\n"
             "                    Path = MyNode\n"
             "                    Type = uint32\n"
+            "                    Trigger = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -600,6 +605,7 @@ bool OPCUADSOutputTest::TestInitialise_NoSignals() {
             "                Counter = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUA\n"
+            "                    Trigger = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -727,6 +733,7 @@ bool OPCUADSOutputTest::TestInitialise_NoPath() {
             "                MyNode = {\n"
             "                    NamespaceIndex = 1\n"
             "                    Type = uint32\n"
+            "                    Trigger = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -839,6 +846,7 @@ bool OPCUADSOutputTest::TestInitialise_NoNamespaceIndex() {
             "                MyNode = {\n"
             "                    Path = MyNode\n"
             "                    Type = uint32\n"
+            "                    Trigger = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -964,6 +972,7 @@ bool OPCUADSOutputTest::Test_NumberOfDimensionsGreater1() {
             "          Path = MyNode\n"
             "          Type = uint32\n"
             "          NumberOfDimensions = 2\n"
+            "          Trigger = 1\n"
             "        }\n"
             "      }\n"
             "    }\n"
@@ -1079,6 +1088,7 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_FailSetServiceRequest() {
             "         MyNode = {\n"
             "           DataSource = OPCUAOut\n"
             "           Type = uint32\n"
+            "           Trigger = 1\n"
             "         }\n"
             "       }\n"
             "     }\n"
@@ -1259,6 +1269,7 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_ExtensionObject() {
             "                    NamespaceIndex = 1\n"
             "                    Path = MasterSet.SensorPackage1.Sensor1\n"
             "                    Type = uint32\n"
+            "                    Trigger = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1346,6 +1357,7 @@ bool OPCUADSOutputTest::Test_Authentication() {
             "                Counter = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUAOut\n"
+            "                    Trigger = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1413,7 +1425,7 @@ bool OPCUADSOutputTest::Test_Authentication() {
     uint32 serverAuthKeysSize = serverAuthKeys.Size();
     File serverAuthKeysFile;
     bool ok = serverAuthKeysFile.Open("/tmp/opcua_server_test_auth_keys.cfg",
-    	BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
+            BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
     ok = ok && serverAuthKeysFile.Write(serverAuthKeys.Buffer(), serverAuthKeysSize);
     (void) serverAuthKeysFile.Close();
 
@@ -1425,7 +1437,7 @@ bool OPCUADSOutputTest::Test_Authentication() {
     uint32 clientAuthKeySize = clientAuthKey.Size();
     File clientAuthKeyFile;
     ok = ok && clientAuthKeyFile.Open("/tmp/opcua_client_test_auth_key.cfg",
-        BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
+            BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
     ok = ok && clientAuthKeyFile.Write(clientAuthKey.Buffer(), clientAuthKeySize);
     (void) clientAuthKeyFile.Close();
 
@@ -1485,6 +1497,7 @@ bool OPCUADSOutputTest::Test_Authentication_NoCreds() {
             "                Counter = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUAOut\n"
+            "                    Trigger = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1551,7 +1564,7 @@ bool OPCUADSOutputTest::Test_Authentication_NoCreds() {
     uint32 serverAuthKeysSize = serverAuthKeys.Size();
     File serverAuthKeysFile;
     bool ok = serverAuthKeysFile.Open("/tmp/opcua_server_test_auth_keys.cfg",
-    	BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
+            BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
     ok = ok && serverAuthKeysFile.Write(serverAuthKeys.Buffer(), serverAuthKeysSize);
     (void) serverAuthKeysFile.Close();
 
@@ -1600,6 +1613,7 @@ bool OPCUADSOutputTest::Test_Authentication_BadCreds() {
             "                Counter = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUAOut\n"
+            "                    Trigger = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1667,7 +1681,7 @@ bool OPCUADSOutputTest::Test_Authentication_BadCreds() {
     uint32 serverAuthKeysSize = serverAuthKeys.Size();
     File serverAuthKeysFile;
     bool ok = serverAuthKeysFile.Open("/tmp/opcua_server_test_auth_keys.cfg",
-    	BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
+        BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
     ok = ok && serverAuthKeysFile.Write(serverAuthKeys.Buffer(), serverAuthKeysSize);
     (void) serverAuthKeysFile.Close();
 
