@@ -148,7 +148,7 @@ MDSReader::~MDSReader() {
         lastValue = NULL_PTR(char8 *);
     }
     if (lastTime != NULL_PTR(float64 *)) {
-        delete lastTime;
+        delete[] lastTime;
         lastTime = NULL_PTR(float64 *);
     }
     if (offsetLastValue != NULL_PTR(uint32 *)) {
@@ -1025,6 +1025,8 @@ uint32 MDSReader::CheckDiscontinuityOfTheSegments(const uint32 nodeNumber,
     nodes[nodeNumber]->getSegmentLimits(static_cast<int32>(initialSegment), &tminD, &tmaxD);
     tmax = tmaxD->getDouble();
     for (int32 currentSegment = static_cast<int32>(initialSegment) + 1; currentSegment < maxSegment; currentSegment++) {
+        MDSplus::deleteData(tminD);
+        MDSplus::deleteData(tmaxD);
         nodes[nodeNumber]->getSegmentLimits(currentSegment, &tminD, &tmaxD);
         tmin = tminD->getDouble();
         if ((tmin - tmax) > (nodeSamplingTime[nodeNumber] * 1.5)) {
@@ -1053,7 +1055,8 @@ bool MDSReader::GetNodeSamplingTime(const uint32 idx,
             int32 numberOfElementsPerSeg2 = 0;
             float64 *time2 = timeD2->getDoubleArray(&numberOfElementsPerSeg2);
             tDiff = time2[0] - timeNode[0];
-            deleteData(timeD2);
+            MDSplus::deleteData(timeD2);
+            delete[] time2;
         }
         else {
             ret = false;
@@ -1063,6 +1066,7 @@ bool MDSReader::GetNodeSamplingTime(const uint32 idx,
         tDiff = timeNode[1] - timeNode[0];
     }
     MDSplus::deleteData(timeD);
+    delete[] timeNode;
     return ret;
 }
 
@@ -1420,9 +1424,13 @@ bool MDSReader::FindDiscontinuity(const uint32 nodeNumber,
     if (auxDiff > 0.00000001) {                        //tolerance is 1/100MHz
         endTime = tmin;
         find = true;
+        MDSplus::deleteData(tminD);
+        MDSplus::deleteData(tmaxD);
     }
     else {
         tmax = tmaxD->getDouble();
+        MDSplus::deleteData(tminD);
+        MDSplus::deleteData(tmaxD);
         int32 initialSemgnet = static_cast<int32>(segment) + 1;
         for (int32 currentSegment = initialSemgnet; (currentSegment < static_cast<int32>(maxNumberOfSegments[nodeNumber])) && (!find); currentSegment++) {
             nodes[nodeNumber]->getSegmentLimits(currentSegment, &tminD, &tmaxD);
@@ -1434,10 +1442,10 @@ bool MDSReader::FindDiscontinuity(const uint32 nodeNumber,
             }
             tmax = tmaxD->getDouble();
             segment = static_cast<uint32>(currentSegment);
+            MDSplus::deleteData(tminD);
+            MDSplus::deleteData(tmaxD);
         }
     }
-    MDSplus::deleteData(tminD);
-    MDSplus::deleteData(tmaxD);
     return find;
 //    return (find && (!error));
 }

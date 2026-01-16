@@ -159,6 +159,13 @@ MDSReaderTest::~MDSReaderTest() {
     if (remove(strShot.Buffer()) != 0) {
         printf("Error while removing %s\n", strShot.Buffer());
     }
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Remove the environment variable so other static instances in MDSObjectConnectionTest
+    // does not try to destroy the tree with the environment variable created here
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    MARTe::StreamString treeNameEnv = treeName;
+    treeNameEnv += "_path";
+    unsetenv(treeNameEnv.Buffer());
 }
 
 bool MDSReaderTest::TestInitialiseNoTreeName() {
@@ -1624,6 +1631,7 @@ bool MDSReaderTest::TestSynchronise1() {
             }
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -1659,6 +1667,7 @@ bool MDSReaderTest::TestSynchronise2() {
             }
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -1694,6 +1703,7 @@ bool MDSReaderTest::TestSynchronise3() {
             }
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -1728,6 +1738,7 @@ bool MDSReaderTest::TestSynchronise4() {
             }
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -1762,6 +1773,7 @@ bool MDSReaderTest::TestSynchronise5() {
             }
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -1796,6 +1808,7 @@ bool MDSReaderTest::TestSynchronise6() {
             }
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -1831,6 +1844,7 @@ bool MDSReaderTest::TestSynchronise7() {
             }
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -1865,6 +1879,7 @@ bool MDSReaderTest::TestSynchronise8() {
             }
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -1899,6 +1914,7 @@ bool MDSReaderTest::TestSynchronise9() {
             }
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -1934,6 +1950,7 @@ bool MDSReaderTest::TestSynchronise10() {
             }
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -2024,6 +2041,7 @@ bool MDSReaderTest::TestSynchronise11() {
         ok &= dS.CompareS_float32((&((float32 *) ptr[8])[10]), interation, 0.1, 5);
         ok &= dS.CompareS_float64((&((float64 *) ptr[9])[10]), interation, 0.1, 5);
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -2102,6 +2120,7 @@ bool MDSReaderTest::TestSynchronise11_1() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[i], 0.0);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -2180,6 +2199,7 @@ bool MDSReaderTest::TestSynchronise11_2() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[i], 0.0);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -2258,6 +2278,7 @@ bool MDSReaderTest::TestSynchronise11_3() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[i], 0.0);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -2336,6 +2357,7 @@ bool MDSReaderTest::TestSynchronise11_4() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[i], 3.9);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -2414,6 +2436,7 @@ bool MDSReaderTest::TestSynchronise11_5() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[i], 3.9);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -2516,6 +2539,7 @@ bool MDSReaderTest::TestSynchronise12() {
             ok &= (((float64 *) ptr[9])[i] == 0);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -2571,6 +2595,7 @@ bool MDSReaderTest::TestSynchronise13() {
             }
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -2661,6 +2686,7 @@ bool MDSReaderTest::TestSynchronise14() {
         ok &= dS.CompareS_float32((&((float32 *) ptr[8])[10]), 2, 0.1, elementsToCheck);
         ok &= dS.CompareS_float64((&((float64 *) ptr[9])[10]), 2, 0.1, elementsToCheck);
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -2763,6 +2789,7 @@ bool MDSReaderTest::TestSynchronise15() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[i], 3.9);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -2823,6 +2850,7 @@ bool MDSReaderTest::TestSynchronise16() {
 
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -2913,6 +2941,7 @@ bool MDSReaderTest::TestSynchronise17() {
         ok &= dS.CompareS_float32((&((float32 *) ptr[8])[10]), 2, 0.1, elementsToCheck);
         ok &= dS.CompareS_float64((&((float64 *) ptr[9])[10]), 2, 0.1, elementsToCheck);
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -3015,6 +3044,7 @@ bool MDSReaderTest::TestSynchronise18() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[i], 0);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -3075,6 +3105,7 @@ bool MDSReaderTest::TestSynchronise19() {
 
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -3165,6 +3196,7 @@ bool MDSReaderTest::TestSynchronise20() {
         ok &= dS.CompareS_float32((&((float32 *) ptr[8])[10]), 2, 0.1, elementsToCheck);
         ok &= dS.CompareS_float64((&((float64 *) ptr[9])[10]), 2, 0.1, elementsToCheck);
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -3267,6 +3299,7 @@ bool MDSReaderTest::TestSynchronise21() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[i], 3.9);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -3327,6 +3360,7 @@ bool MDSReaderTest::TestSynchronise22() {
 
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -3417,6 +3451,7 @@ bool MDSReaderTest::TestSynchronise23() {
         ok &= dS.CompareS_float32((&((float32 *) ptr[8])[10]), 2, 0.1, elementsToCheck);
         ok &= dS.CompareS_float64((&((float64 *) ptr[9])[10]), 2, 0.1, elementsToCheck);
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -3519,6 +3554,7 @@ bool MDSReaderTest::TestSynchronise24() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[i], 0);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -3579,6 +3615,7 @@ bool MDSReaderTest::TestSynchronise25() {
 
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -3669,6 +3706,7 @@ bool MDSReaderTest::TestSynchronise26() {
         ok &= dS.CompareS_float32((&((float32 *) ptr[8])[10]), 2, 0.1, elementsToCheck);
         ok &= dS.CompareS_float64((&((float64 *) ptr[9])[10]), 2, 0.1, elementsToCheck);
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -3771,6 +3809,7 @@ bool MDSReaderTest::TestSynchronise27() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[i], 3.9);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -3831,6 +3870,7 @@ bool MDSReaderTest::TestSynchronise28() {
 
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -3927,6 +3967,7 @@ bool MDSReaderTest::TestSynchronise29() {
             ok &= (((float64 *) ptr[9])[j] == 0);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -4035,6 +4076,7 @@ bool MDSReaderTest::TestSynchronise30() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -4132,6 +4174,7 @@ bool MDSReaderTest::TestSynchronise31() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[i], 1.9);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -4242,6 +4285,7 @@ bool MDSReaderTest::TestSynchronise32() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -4338,6 +4382,7 @@ bool MDSReaderTest::TestSynchronise33() {
             ok &= (((float64 *) ptr[9])[j] == 0);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -4446,6 +4491,7 @@ bool MDSReaderTest::TestSynchronise34() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -4543,6 +4589,7 @@ bool MDSReaderTest::TestSynchronise35() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[i], 1.9);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -4653,6 +4700,7 @@ bool MDSReaderTest::TestSynchronise36() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -4749,6 +4797,7 @@ bool MDSReaderTest::TestSynchronise37() {
             ok &= (((float64 *) ptr[9])[j] == 0);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -4857,6 +4906,7 @@ bool MDSReaderTest::TestSynchronise38() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -4954,6 +5004,7 @@ bool MDSReaderTest::TestSynchronise39() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[i], 1.9);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -5064,6 +5115,7 @@ bool MDSReaderTest::TestSynchronise40() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -5211,6 +5263,7 @@ bool MDSReaderTest::TestSynchronise41() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -5302,6 +5355,7 @@ bool MDSReaderTest::TestSynchronise42() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -5393,6 +5447,7 @@ bool MDSReaderTest::TestSynchronise43() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -5484,6 +5539,7 @@ bool MDSReaderTest::TestSynchronise44() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -5575,6 +5631,7 @@ bool MDSReaderTest::TestSynchronise45() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -5666,6 +5723,7 @@ bool MDSReaderTest::TestSynchronise46() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -5757,6 +5815,7 @@ bool MDSReaderTest::TestSynchronise47() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -5848,6 +5907,7 @@ bool MDSReaderTest::TestSynchronise48() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[j], 0);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -5939,6 +5999,7 @@ bool MDSReaderTest::TestSynchronise49() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[j], 0);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -6030,6 +6091,7 @@ bool MDSReaderTest::TestSynchronise50() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[j], 0);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -6125,6 +6187,7 @@ bool MDSReaderTest::TestSynchronise51() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[j], 3.9);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -6220,6 +6283,7 @@ bool MDSReaderTest::TestSynchronise52() {
             ok &= dS.IsEqualLargeMargins(((float64 *) ptr[9])[j], 3.9);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -6317,6 +6381,7 @@ bool MDSReaderTest::TestSynchronise53() {
             ok &= dS.CompareFloatPointValue<float64>(&(((float64 *) ptr[9])[from]), iteration, 3.9, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
@@ -6487,6 +6552,7 @@ bool MDSReaderTest::TestSynchronise54() {
             ok &= dS.CompareS_float64(&((float64 *) ptr[9])[from], iteration, 0.1, samplesToCheck);
         }
     }
+    delete[] ptr;
     return ok;
 }
 
