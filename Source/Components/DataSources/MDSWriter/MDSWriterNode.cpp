@@ -535,25 +535,27 @@ bool MDSWriterNode::ForceSegment() {
     else {
         //An invalid nodeType is trapped before.
     }
-    if(minMaxResampleFactor > segmentDim[0]){//Code added by LLCN. According with valgrind in test MDSWriterGTest.TestIntegratedInApplication_Trigger_NotMultiple
-    /*
-     * ==605249== Syscall param write(buf) points to uninitialised byte(s)
-==605249==    at 0x541BB7F: write (in /usr/lib64/libc.so.6)
-==605249==    by 0x4A33D3D: write_property (in /usr/local/mdsplus/lib64/libTreeShr.so)
-==605249==    by 0x4A3B780: _TreeXNciMakeSegment (in /usr/local/mdsplus/lib64/libTreeShr.so)
-==605249==    by 0x4A3EF3F: _TreeMakeSegment (in /usr/local/mdsplus/lib64/libTreeShr.so)
-==605249==    by 0x4A40827: _TreeMakeSegmentMinMax (in /usr/local/mdsplus/lib64/libTreeShr.so)
-==605249==    by 0x4AD3C9A: makeTreeSegmentMinMax (in /usr/local/mdsplus/lib64/libMdsObjectsCppShr.so)
-==605249==    by 0x4AB6C5F: MDSplus::TreeNode::makeSegmentMinMax(MDSplus::Data*, MDSplus::Data*, MDSplus::Data*, MDSplus::Array*, MDSplus::TreeNode*, int) (in /usr/local/mdsplus/lib64/libMdsObjectsCppShr.so)
-==605249==  Address 0x78b1ad0 is 0 bytes inside a block of size 4 alloc'd
-==605249==    at 0x484482F: malloc (vg_replace_malloc.c:431)
-==605249==    by 0x4A405A2: _TreeMakeSegmentMinMax (in /usr/local/mdsplus/lib64/libTreeShr.so)
-==605249==    by 0x4AD3C9A: makeTreeSegmentMinMax (in /usr/local/mdsplus/lib64/libMdsObjectsCppShr.so)
-==605249==    by 0x4AB6C5F: MDSplus::TreeNode::makeSegmentMinMax(MDSplus::Data*, MDSplus::Data*, MDSplus::Data*, MDSplus::Array*, MDSplus::TreeNode*, int) (in /usr/local/mdsplus/lib64/libMdsObjectsCppShr.so)
-==605249==    by 0x5D3F1D: MARTe::MDSWriterNode::ForceSegment() (MDSWriterNode.cpp:546)
-LImiting the minMaxResampleFactor to the segmentDim avoid the error. Maybe is better to protect into MDSplus interface...*/
+    if(minMaxResampleFactor > segmentDim[0]){
+        //Code added by LLCN. According with valgrind in test MDSWriterGTest.TestIntegratedInApplication_Trigger_NotMultiple
+        /*
+	     * ==605249== Syscall param write(buf) points to uninitialised byte(s)
+	     * ==605249==    at 0x541BB7F: write (in /usr/lib64/libc.so.6)
+	     * ==605249==    by 0x4A33D3D: write_property (in /usr/local/mdsplus/lib64/libTreeShr.so)
+	     * ==605249==    by 0x4A3B780: _TreeXNciMakeSegment (in /usr/local/mdsplus/lib64/libTreeShr.so)
+	     * ==605249==    by 0x4A3EF3F: _TreeMakeSegment (in /usr/local/mdsplus/lib64/libTreeShr.so)
+	     * ==605249==    by 0x4A40827: _TreeMakeSegmentMinMax (in /usr/local/mdsplus/lib64/libTreeShr.so)
+	     * ==605249==    by 0x4AD3C9A: makeTreeSegmentMinMax (in /usr/local/mdsplus/lib64/libMdsObjectsCppShr.so)
+	     * ==605249==    by 0x4AB6C5F: MDSplus::TreeNode::makeSegmentMinMax(MDSplus::Data*, MDSplus::Data*, MDSplus::Data*, MDSplus::Array*, MDSplus::TreeNode*, int) (in /usr/local/mdsplus/lib64/libMdsObjectsCppShr.so)
+	     * ==605249==  Address 0x78b1ad0 is 0 bytes inside a block of size 4 alloc'd
+	     * ==605249==    at 0x484482F: malloc (vg_replace_malloc.c:431)
+	     * ==605249==    by 0x4A405A2: _TreeMakeSegmentMinMax (in /usr/local/mdsplus/lib64/libTreeShr.so)
+	     * ==605249==    by 0x4AD3C9A: makeTreeSegmentMinMax (in /usr/local/mdsplus/lib64/libMdsObjectsCppShr.so)
+	     * ==605249==    by 0x4AB6C5F: MDSplus::TreeNode::makeSegmentMinMax(MDSplus::Data*, MDSplus::Data*, MDSplus::Data*, MDSplus::Array*, MDSplus::TreeNode*, int) (in /usr/local/mdsplus/lib64/libMdsObjectsCppShr.so)
+	     * ==605249==    by 0x5D3F1D: MARTe::MDSWriterNode::ForceSegment() (MDSWriterNode.cpp:546)
+	LImiting the minMaxResampleFactor to the segmentDim avoid the error. Maybe is better to protect into MDSplus interface...
+        */
         minMaxResampleFactor = segmentDim[0];
-   }
+    }
     if (array != NULL_PTR(MDSplus::Array*)) {
         if (decimatedMinMax) {
             //lint -e{613} node is checked not to be null in the beginning of the function
