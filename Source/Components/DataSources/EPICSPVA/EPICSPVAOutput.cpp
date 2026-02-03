@@ -42,16 +42,16 @@ EPICSPVAOutput::EPICSPVAOutput() :
     numberOfBrokerBuffers = 0u;
     numberOfChannels = 0u;
     ignoreBufferOverrun = 1u;
-    channelList = NULL_PTR(EPICSPVAChannelWrapper *);
+    channelList = NULL_PTR(EPICSPVAChannelWrapper*);
 }
 
 EPICSPVAOutput::~EPICSPVAOutput() {
-    if (channelList != NULL_PTR(EPICSPVAChannelWrapper *)) {
+    if (channelList != NULL_PTR(EPICSPVAChannelWrapper*)) {
         delete[] channelList;
     }
 }
 
-bool EPICSPVAOutput::Initialise(StructuredDataI & data) {
+bool EPICSPVAOutput::Initialise(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::Initialise(data);
 
     //Force the MemoryDataSourceI to have only one buffer
@@ -81,9 +81,19 @@ bool EPICSPVAOutput::Initialise(StructuredDataI & data) {
         }
         //Do not allow to add signals in run-time
         if (ok) {
-            ok = signalsDatabase.Write("Locked", 1u);
-            numberOfChannels = (signalsDatabase.GetNumberOfChildren() - 1u);
-            REPORT_ERROR(ErrorManagement::Information, "Found %d channels", numberOfChannels);
+            //Need to add Locked at the end of the signal as Write does not overwrite anymore
+            uint8 locked = 1u;
+            if (signalsDatabase.Read("Locked", locked)) {
+                ok = signalsDatabase.Delete("Locked");
+            }
+            else {
+                locked = 1u;
+            }
+            if (ok) {
+                ok = signalsDatabase.Write("Locked", locked);
+                numberOfChannels = (signalsDatabase.GetNumberOfChildren() - 1u);
+                REPORT_ERROR(ErrorManagement::Information, "Found %d channels", numberOfChannels);
+            }
         }
         //Create the channel wrapper list.
         if (ok) {
@@ -111,7 +121,7 @@ bool EPICSPVAOutput::Initialise(StructuredDataI & data) {
     return ok;
 }
 
-bool EPICSPVAOutput::SetConfiguredDatabase(StructuredDataI & data) {
+bool EPICSPVAOutput::SetConfiguredDatabase(StructuredDataI &data) {
     bool ok = MemoryDataSourceI::SetConfiguredDatabase(data);
 //Check the signal index of the timing signal.
     uint32 nOfSignals = GetNumberOfSignals();
@@ -148,7 +158,6 @@ bool EPICSPVAOutput::SetConfiguredDatabase(StructuredDataI & data) {
     return ok;
 }
 
-
 bool EPICSPVAOutput::AllocateMemory() {
     bool ok = MemoryDataSourceI::AllocateMemory();
     uint32 n;
@@ -164,15 +173,18 @@ uint32 EPICSPVAOutput::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
-const char8* EPICSPVAOutput::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
-    const char8* brokerName = "";
+const char8* EPICSPVAOutput::GetBrokerName(StructuredDataI &data,
+                                           const SignalDirection direction) {
+    const char8 *brokerName = "";
     if (direction == OutputSignals) {
         brokerName = "MemoryMapAsyncOutputBroker";
     }
     return brokerName;
 }
 
-bool EPICSPVAOutput::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool EPICSPVAOutput::GetOutputBrokers(ReferenceContainer &outputBrokers,
+                                      const char8 *const functionName,
+                                      void *const gamMemPtr) {
     broker = ReferenceT<MemoryMapAsyncOutputBroker>("MemoryMapAsyncOutputBroker");
     bool ok = broker->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBrokerBuffers, cpuMask, stackSize);
     if (ok) {
@@ -184,7 +196,8 @@ bool EPICSPVAOutput::GetOutputBrokers(ReferenceContainer& outputBrokers, const c
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
-bool EPICSPVAOutput::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool EPICSPVAOutput::PrepareNextState(const char8 *const currentStateName,
+                                      const char8 *const nextStateName) {
     return true;
 }
 
