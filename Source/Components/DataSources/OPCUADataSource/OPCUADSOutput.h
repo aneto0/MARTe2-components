@@ -194,6 +194,8 @@ public:
 
 private:
 
+    uint32 GetNumberOfNodes();
+
     /**
      * @brief Read the structure recursively and gets informations about the length of the ByteString (for ExtensionObject).
      * @param[in] intro the first introspection from which starting the research
@@ -247,9 +249,9 @@ private:
     uint32 numberOfNodes;
 
     /**
-     * Holds the value of the configuration parameter ExtensionObject
+     * True if it holds an extensionObject 
      */
-    StreamString *extensionObject;
+    bool isExtensionObject;
 
     /**
      * The array that stores all the browse paths for each
@@ -330,6 +332,11 @@ private:
      * 
      */
     StreamString password;
+
+    /**
+     * TODO 
+     */
+    ConfigurationDatabase nodesDatabase;
 
 };
 

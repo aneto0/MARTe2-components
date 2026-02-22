@@ -111,6 +111,11 @@ public:
      */
     bool Test_Authentication_BadCreds();
 
+    /**
+     * @brief Test the Synchronise method with no timing signals
+     */
+    bool Test_Synchronise();
+
 };
 
 /*---------------------------------------------------------------------------*/

@@ -38,14 +38,285 @@
 #include "StandardParser.h"
 #include "File.h"
 
+#include "open62541.h"
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+class OPCUADSOutputTestReader {
+public:
+	OPCUADSOutputTestReader() {
+ 		client = NULL_PTR(UA_Client *);
+	}
+
+	bool Connect() {
+		using namespace MARTe;
+		bool connected = false;
+		uint32 retries = 5;
+		while(retries > 0 && !connected) {
+			client = UA_Client_new();
+			UA_ClientConfig_setDefault(UA_Client_getConfig(client));
+
+			UA_StatusCode retval = UA_Client_connect(client, "opc.tcp://localhost:4840");
+			connected = (retval == UA_STATUSCODE_GOOD);
+			if (!connected) {
+				UA_Client_disconnect(client);
+				UA_Client_delete(client);
+				retries--;
+				Sleep::Sec(1.0);
+			}
+		}
+		return connected;
+	}
+
+	UA_StatusCode FindChildNodeId(const MARTe::char8 *targetName, UA_NodeId *outNodeId) {
+		using namespace MARTe;
+		UA_NodeId parent = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
+		UA_BrowseRequest bReq;
+		UA_BrowseRequest_init(&bReq);
+
+		bReq.nodesToBrowse = UA_BrowseDescription_new();
+		bReq.nodesToBrowseSize = 1;
+
+		bReq.nodesToBrowse[0].nodeId = parent;
+		bReq.nodesToBrowse[0].browseDirection = UA_BROWSEDIRECTION_FORWARD;
+		bReq.nodesToBrowse[0].resultMask = UA_BROWSERESULTMASK_ALL;
+
+		UA_BrowseResponse bResp = UA_Client_Service_browse(client, bReq);
+
+		UA_StatusCode rc = UA_STATUSCODE_BADNOTFOUND;
+		bool found = false;
+		uint32 targetNameLen = StringHelper::Length(targetName);
+		for(uint32 i = 0; (i < bResp.resultsSize) && (!found); i++) {
+			for(uint32 j = 0; (j < bResp.results[i].referencesSize) && (!found); j++) {
+				UA_ReferenceDescription *ref = &bResp.results[i].references[j];
+				found = (targetNameLen == ref->browseName.name.length);
+				if (found) {
+					found = (StringHelper::CompareN((char8*)ref->browseName.name.data, targetName, ref->browseName.name.length) == 0);
+				}
+				if (found) {
+					*outNodeId = ref->nodeId.nodeId;
+					rc = UA_STATUSCODE_GOOD;
+				}
+			}
+		}
+
+		UA_BrowseResponse_clear(&bResp);
+		UA_BrowseRequest_clear(&bReq);
+		return rc;
+	}
+
+	UA_StatusCode ReadValue(UA_NodeId nodeId, const UA_DataType *expectedType, MARTe::uint32 nElements, UA_Variant *out) {
+
+		UA_Variant_clear(out);
+
+		UA_StatusCode rc = UA_Client_readValueAttribute(client, nodeId, out);
+		if(rc == UA_STATUSCODE_GOOD) {
+			if (nElements == 1u) {
+				if(!UA_Variant_hasScalarType(out, expectedType)) {
+					rc = UA_STATUSCODE_BADTYPEMISMATCH;
+				}
+			}
+			else {
+				if(!UA_Variant_hasArrayType(out, expectedType)) {
+					rc = UA_STATUSCODE_BADTYPEMISMATCH;
+				}
+			}
+		}
+		if (rc != UA_STATUSCODE_GOOD) {
+			UA_Variant_clear(out);
+		}
+
+		return rc;
+	}
+
+	bool WaitForValue(UA_NodeId nodeId, MARTe::uint8 *expectedValue, const UA_DataType *expectedType, MARTe::uint32 typeLen, MARTe::uint32 nElements, MARTe::uint32 retries = 5) {
+		using namespace MARTe;
+		UA_Variant v;
+		UA_Variant_init(&v);
+		UA_StatusCode rc = ReadValue(nodeId, expectedType, nElements, &v);
+		bool ok = false;
+		while(retries > 0u && !ok) {
+			if(rc == UA_STATUSCODE_GOOD) {
+				bool valueOk = true;
+				if (nElements > 1u) {
+					valueOk = (v.arrayLength == nElements);
+				}
+				uint8 *readValue = static_cast<uint8 *>(v.data);
+				typeLen *= nElements;
+				for (uint32 k=0; (k<typeLen) && (valueOk); k++) {
+					valueOk = (readValue[k] == expectedValue[k]);
+					//printf("Checking readValue[%d] == expectedValue[%d]: %d == %d?\n", k, k, readValue[k], expectedValue[k]);
+				}
+				ok = valueOk;
+			}
+			if (!ok) {
+				printf("Read failed: %s\n", UA_StatusCode_name(rc));
+				retries--;
+				Sleep::Sec(1.0);
+				rc = ReadValue(nodeId, expectedType, nElements, &v);
+			}
+		}
+		UA_Variant_clear(&v);
+		return ok;
+	}
+
+	void Disconnect() {
+		UA_Client_disconnect(client);
+		UA_Client_delete(client);
+	}
+
+
+private:
+	UA_Client *client;
+
+
+};
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+
+class OPCUADSOutputSchedulerTestHelper: public MARTe::GAMSchedulerI {
+public:
+
+    CLASS_REGISTER_DECLARATION()
+
+OPCUADSOutputSchedulerTestHelper    () : MARTe::GAMSchedulerI() {
+        scheduledStates = NULL;
+    }
+
+    virtual MARTe::ErrorManagement::ErrorType StartNextStateExecution() {
+        return MARTe::ErrorManagement::NoError;
+    }
+
+    virtual MARTe::ErrorManagement::ErrorType StopCurrentStateExecution() {
+        return MARTe::ErrorManagement::NoError;
+    }
+
+    void ExecuteThreadCycle(MARTe::uint32 threadId) {
+        using namespace MARTe;
+        ReferenceT<RealTimeApplication> realTimeAppT = realTimeApp;
+        ExecuteSingleCycle(scheduledStates[realTimeAppT->GetIndex()]->threads[threadId].executables,
+                scheduledStates[realTimeAppT->GetIndex()]->threads[threadId].numberOfExecutables);
+    }
+
+    virtual bool ConfigureScheduler(MARTe::Reference realTimeApp) {
+
+        bool ret = GAMSchedulerI::ConfigureScheduler(realTimeApp);
+        if (ret) {
+            scheduledStates = GetSchedulableStates();
+        }
+        return ret;
+    }
+
+    virtual void CustomPrepareNextState() {
+    }
+
+private:
+
+    MARTe::ScheduledState * const * scheduledStates;
+};
+
+CLASS_REGISTER(OPCUADSOutputSchedulerTestHelper, "1.0")
+
+/**
+ * @brief GAM which writes signals into a given OPCUADSOutput
+ */
+class OPCUADSOutputGAMTestHelper: public MARTe::GAM {
+public:
+    CLASS_REGISTER_DECLARATION()OPCUADSOutputGAMTestHelper() {
+        char8Signal = NULL;
+        uint8Signal = NULL;
+        int8Signal = NULL;
+        uint16Signal = NULL;
+        int16Signal = NULL;
+        uint32Signal = NULL;
+        int32Signal = NULL;
+        uint64Signal = NULL;
+        int64Signal = NULL;
+        float32Signal = NULL;
+        float64Signal = NULL;
+        boolSignal = NULL;
+        numberOfElements = 1u;
+    }
+
+    virtual ~OPCUADSOutputGAMTestHelper() {
+        using namespace MARTe;
+    }
+
+    virtual bool Initialise(MARTe::StructuredDataI & data) {
+        return GAM::Initialise(data);
+    }
+
+    virtual bool Setup() {
+        using namespace MARTe;
+        GetSignalNumberOfElements(OutputSignals, 0, numberOfElements);
+        uint32 n;
+        uint32 numberOfSignals = GetNumberOfOutputSignals();
+        for(n=0; n<numberOfSignals; n++) {
+            if (GetSignalType(OutputSignals, n) == Character8Bit) {
+                char8Signal = reinterpret_cast<char8 *>(GetOutputSignalMemory(n));
+            }
+            else if (GetSignalType(OutputSignals, n) == UnsignedInteger8Bit) {
+                uint8Signal = reinterpret_cast<uint8 *>(GetOutputSignalMemory(n));
+            }
+            else if (GetSignalType(OutputSignals, n) == SignedInteger8Bit) {
+                int8Signal = reinterpret_cast<int8 *>(GetOutputSignalMemory(n));
+            }
+            else if (GetSignalType(OutputSignals, n) == UnsignedInteger16Bit) {
+                uint16Signal = reinterpret_cast<uint16 *>(GetOutputSignalMemory(n));
+            }
+            else if (GetSignalType(OutputSignals, n) == SignedInteger16Bit) {
+                int16Signal = reinterpret_cast<int16 *>(GetOutputSignalMemory(n));
+            }
+            else if (GetSignalType(OutputSignals, n) == UnsignedInteger32Bit) {
+                uint32Signal = reinterpret_cast<uint32 *>(GetOutputSignalMemory(n));
+            }
+            else if (GetSignalType(OutputSignals, n) == SignedInteger32Bit) {
+                int32Signal = reinterpret_cast<int32 *>(GetOutputSignalMemory(n));
+            }
+            else if (GetSignalType(OutputSignals, n) == UnsignedInteger64Bit) {
+                uint64Signal = reinterpret_cast<uint64 *>(GetOutputSignalMemory(n));
+            }
+            else if (GetSignalType(OutputSignals, n) == SignedInteger64Bit) {
+                int64Signal = reinterpret_cast<int64 *>(GetOutputSignalMemory(n));
+            }
+            else if (GetSignalType(OutputSignals, n) == Float32Bit) {
+                float32Signal = reinterpret_cast<float32 *>(GetOutputSignalMemory(n));
+            }
+            else if (GetSignalType(OutputSignals, n) == BooleanType) {
+                boolSignal = reinterpret_cast<bool *>(GetOutputSignalMemory(n));
+                *boolSignal = false;
+            }
+            else {
+                float64Signal = reinterpret_cast<float64 *>(GetOutputSignalMemory(n));
+            }
+        }
+
+        return true;
+    }
+
+    virtual bool Execute() {
+        using namespace MARTe;
+        return true;
+    }
+
+    MARTe::char8 *char8Signal;
+    MARTe::uint8 *uint8Signal;
+    MARTe::int8 *int8Signal;
+    MARTe::uint16 *uint16Signal;
+    MARTe::int16 *int16Signal;
+    MARTe::uint32 *uint32Signal;
+    MARTe::int32 *int32Signal;
+    MARTe::uint64 *uint64Signal;
+    MARTe::int64 *int64Signal;
+    MARTe::float32 *float32Signal;
+    MARTe::float64 *float64Signal;
+    bool *boolSignal;
+    MARTe::uint32 numberOfElements;
+};
+CLASS_REGISTER(OPCUADSOutputGAMTestHelper, "1.0")
 
 bool OPCUADSOutputTest::TestConstructor() {
     using namespace MARTe;
@@ -1720,6 +1991,505 @@ bool OPCUADSOutputTest::Test_Authentication_BadCreds() {
     (void) remove("/tmp/opcua_server_test_auth_keys.cfg");
     (void) remove("/tmp/opcua_client_test_auth_key.cfg");
     ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool OPCUADSOutputTest::Test_Synchronise() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+ServerTest = {\n"
+            "  Class = OPCUA::OPCUAServer\n"
+            "  Authentication = None\n"
+            "  CPUMask = 0x2\n"
+            "  AddressSpace = {\n"
+            "    NodeU8 = {\n"
+            "      Type = uint8\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    NodeU16 = {\n"
+            "      Type = uint16\n"
+            "    }\n"
+            "    NodeU32 = {\n"
+            "      Type = uint32\n"
+            "    }\n"
+            "    NodeU64 = {\n"
+            "      Type = uint64\n"
+            "    }\n"
+            "    NodeI8 = {\n"
+            "      Type = int8\n"
+            "    }\n"
+            "    NodeI16 = {\n"
+            "      Type = int16\n"
+            "    }\n"
+            "    NodeI32 = {\n"
+            "      Type = int32\n"
+            "    }\n"
+            "    NodeI64 = {\n"
+            "      Type = int64\n"
+            "    }\n"
+            "    NodeF32 = {\n"
+            "      Type = float32\n"
+            "    }\n"
+            "    NodeF64 = {\n"
+            "      Type = float32\n"
+            "    }\n"
+            "    NodeU8A = {\n"
+            "      Type = uint8\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeU16A = {\n"
+            "      Type = uint16\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeU32A = {\n"
+            "      Type = uint32\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeU64A = {\n"
+            "      Type = uint64\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI8A = {\n"
+            "      Type = int8\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI16A = {\n"
+            "      Type = int16\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI32A = {\n"
+            "      Type = int32\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI64A = {\n"
+            "      Type = int64\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeF32A = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeF64A = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "$TestApp = {\n"
+            "  Class = RealTimeApplication\n"
+            "  +Functions = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +GAMWriterScalar = {\n"
+            "      Class = OPCUADSOutputGAMTestHelper\n"
+            "      OutputSignals = {\n"
+            "        SignalUInt8 = {\n"
+            "          Type = uint8\n"
+            "          Trigger = 1\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "        }\n"
+            "        SignalUInt16 = {\n"
+            "          Type = uint16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "        }\n"
+            "        SignalUInt32 = {\n"
+            "          Type = uint32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "        }\n"
+            "        SignalUInt64 = {\n"
+            "          Type = uint64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "        }\n"
+            "        SignalInt8 = {\n"
+            "          Type = int8\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "        }\n"
+            "        SignalInt16 = {\n"
+            "          Type = int16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "        }\n"
+            "        SignalInt32 = {\n"
+            "          Type = int32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "        }\n"
+            "        SignalInt64 = {\n"
+            "          Type = int64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "        }\n"
+            "        SignalFloat32 = {\n"
+            "          Type = float32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "        }\n"
+			"        SignalFloat64 = {\n"
+            "          Type = float64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriterArray = {\n"
+            "      Class = OPCUADSOutputGAMTestHelper\n"
+            "      OutputSignals = {\n"
+            "        SignalUInt8A = {\n"
+            "          Type = uint8\n"
+            "          Trigger = 1\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalUInt16A = {\n"
+            "          Type = uint16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalUInt32A = {\n"
+            "          Type = uint32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalUInt64A = {\n"
+            "          Type = uint64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalInt8A = {\n"
+            "          Type = int8\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalInt16A = {\n"
+            "          Type = int16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalInt32A = {\n"
+            "          Type = int32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalInt64A = {\n"
+            "          Type = int64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalFloat32A = {\n"
+            "          Type = float32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "        }\n"
+			"        SignalFloat64A = {\n"
+            "          Type = float64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
+            "    +LoggerDataSource = {\n"
+            "      Class = LoggerDataSource\n"
+            "    }\n"
+            "    +OPCUADSOutputTest = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "      Authentication = None\n"
+            "      Signals = {\n"
+            "        SignalUInt8 = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeU8\n"
+            "          Type = uint8\n"
+            "        }\n"
+            "        SignalUInt16 = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeU16\n"
+            "          Type = uint16\n"
+            "        }\n"
+            "        SignalUInt32 = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeU32\n"
+            "          Type = uint32\n"
+            "        }\n"
+            "        SignalUInt64 = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeU64\n"
+            "          Type = uint64\n"
+            "        }\n"
+            "        SignalInt8 = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeI8\n"
+            "          Type = int8\n"
+            "        }\n"
+            "        SignalInt16 = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeI16\n"
+            "          Type = int16\n"
+            "        }\n"
+            "        SignalInt32 = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeI32\n"
+            "          Type = int32\n"
+            "        }\n"
+            "        SignalInt64 = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeI64\n"
+            "          Type = int64\n"
+            "        }\n"
+            "        SignalFloat32 = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeF32\n"
+            "          Type = float32\n"
+            "        }\n"
+            "        SignalFloat64 = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeF64\n"
+            "          Type = float64\n"
+            "        }\n"
+            "        SignalUInt8A = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeU8A\n"
+            "          Type = uint8\n"
+			"          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalUInt16A = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeU16A\n"
+            "          Type = uint16\n"
+			"          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalUInt32A = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeU32A\n"
+            "          Type = uint32\n"
+			"          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalUInt64A = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeU64A\n"
+            "          Type = uint64\n"
+			"          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalInt8A = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeI8A\n"
+            "          Type = int8\n"
+			"          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalInt16A = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeI16A\n"
+            "          Type = int16\n"
+			"          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalInt32A = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeI32A\n"
+            "          Type = int32\n"
+			"          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalInt64A = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeI64A\n"
+            "          Type = int64\n"
+			"          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalFloat32A = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeF32A\n"
+            "          Type = float32\n"
+			"          NumberOfElements = 3\n"
+            "        }\n"
+            "        SignalFloat64A = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = NodeF64A\n"
+            "          Type = float64\n"
+			"          NumberOfElements = 3\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +Timings = {\n"
+            "       Class = TimingDataSource\n"
+            "    }\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          CPUs = 0x2\n"
+            "          Functions = {GAMWriterScalar GAMWriterArray}\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = OPCUADSOutputSchedulerTestHelper\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
+            "}\n";
+    config.Seek(0LLU);
+    //HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    Sleep::MSec(200);
+    ReferenceT<RealTimeApplication> app;
+    if (ok) {
+        app = ord->Find("TestApp");
+        ok = app.IsValid();
+    }
+    if (ok) {
+        ok = app->ConfigureApplication();
+    }
+    ReferenceT<OPCUADSOutputGAMTestHelper> gamWriterScalar;
+    ReferenceT<OPCUADSOutputGAMTestHelper> gamWriterArray;
+    if (ok) {
+        gamWriterScalar = ord->Find("TestApp.Functions.GAMWriterScalar");
+        ok = gamWriterScalar.IsValid();
+    }
+    if (ok) {
+        gamWriterArray = ord->Find("TestApp.Functions.GAMWriterArray");
+        ok = gamWriterArray.IsValid();
+    }
+    if (ok) {
+        ok = app->PrepareNextState("State1");
+    }
+    ReferenceT<OPCUADSOutputSchedulerTestHelper> scheduler;
+    if (ok) {
+        scheduler = ord->Find("TestApp.Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        ok = app->StartNextStateExecution();
+    }
+	
+    UA_NodeId nodeU32Id;
+    UA_NodeId nodeF32Id;
+	OPCUADSOutputTestReader opcuaReader;
+	const uint32 numberOfNodes = 20;
+	const char8 *nodeNames[] = {"NodeU8", "NodeU16", "NodeU32", "NodeU64", "NodeI8", "NodeI16", "NodeI32", "NodeI64", "NodeF32", "NodeF64", "NodeU8A", "NodeU16A", "NodeU32A", "NodeU64A", "NodeI8A", "NodeI16A", "NodeI32A", "NodeI64A", "NodeF32A", "NodeF64A"};
+	uint32 nodeNElements[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
+	uint32 nodeTypeSizes[] = {sizeof(uint8), sizeof(uint16), sizeof(uint32), sizeof(uint64), sizeof(int8), sizeof(int16), sizeof(int32), sizeof(int64), sizeof(float32), sizeof(float64), sizeof(uint8), sizeof(uint16), sizeof(uint32), sizeof(uint64), sizeof(int8), sizeof(int16), sizeof(int32), sizeof(int64), sizeof(float32), sizeof(float64)};
+	UA_NodeId nodeIds[numberOfNodes];
+	const UA_DataType *nodeDataTypes[] = {&UA_TYPES[UA_TYPES_BYTE], &UA_TYPES[UA_TYPES_UINT16], &UA_TYPES[UA_TYPES_UINT32], &UA_TYPES[UA_TYPES_UINT64], &UA_TYPES[UA_TYPES_SBYTE], &UA_TYPES[UA_TYPES_INT16], &UA_TYPES[UA_TYPES_INT32], &UA_TYPES[UA_TYPES_INT64], &UA_TYPES[UA_TYPES_FLOAT], &UA_TYPES[UA_TYPES_DOUBLE], &UA_TYPES[UA_TYPES_BYTE], &UA_TYPES[UA_TYPES_UINT16], &UA_TYPES[UA_TYPES_UINT32], &UA_TYPES[UA_TYPES_UINT64], &UA_TYPES[UA_TYPES_SBYTE], &UA_TYPES[UA_TYPES_INT16], &UA_TYPES[UA_TYPES_INT32], &UA_TYPES[UA_TYPES_INT64], &UA_TYPES[UA_TYPES_FLOAT], &UA_TYPES[UA_TYPES_DOUBLE]};
+	void *expectedNodeValues[] = {gamWriterScalar->uint8Signal, gamWriterScalar->uint16Signal,gamWriterScalar->uint32Signal, gamWriterScalar->uint64Signal, gamWriterScalar->int8Signal, gamWriterScalar->int16Signal, gamWriterScalar->int32Signal, gamWriterScalar->int64Signal, gamWriterScalar->float32Signal, gamWriterScalar->float64Signal, gamWriterArray->uint8Signal, gamWriterArray->uint16Signal,gamWriterArray->uint32Signal, gamWriterArray->uint64Signal, gamWriterArray->int8Signal, gamWriterArray->int16Signal, gamWriterArray->int32Signal, gamWriterArray->int64Signal, gamWriterArray->float32Signal, gamWriterArray->float64Signal};
+
+    if (ok) {
+		ok = opcuaReader.Connect();
+	}
+    if (ok) {
+		for (uint32 k=0; (k<numberOfNodes) && (ok); k++) {
+			ok = (opcuaReader.FindChildNodeId(nodeNames[k], &nodeIds[k]) == UA_STATUSCODE_GOOD);
+		}
+    }
+    if (ok) {
+        *gamWriterScalar->uint8Signal = 1u;
+        *gamWriterScalar->uint16Signal = 2u;
+        *gamWriterScalar->uint32Signal = 3u;
+        *gamWriterScalar->uint64Signal = 4u;
+        *gamWriterScalar->int8Signal = 1;
+        *gamWriterScalar->int16Signal = 2;
+        *gamWriterScalar->int32Signal = 3;
+        *gamWriterScalar->int64Signal = 4;
+        *gamWriterScalar->float32Signal = 3.2;
+        *gamWriterScalar->float64Signal = 6.2;
+
+        gamWriterArray->uint8Signal[0] = 3;
+        gamWriterArray->uint8Signal[1] = 1;
+        gamWriterArray->uint8Signal[2] = 2;
+        gamWriterArray->uint16Signal[0] = 4;
+        gamWriterArray->uint16Signal[1] = 2;
+        gamWriterArray->uint16Signal[2] = 3;
+        gamWriterArray->uint32Signal[0] = 5;
+        gamWriterArray->uint32Signal[1] = 3;
+        gamWriterArray->uint32Signal[2] = 4;
+        gamWriterArray->uint64Signal[0] = 6;
+        gamWriterArray->uint64Signal[1] = 4;
+        gamWriterArray->uint64Signal[2] = 5;
+        gamWriterArray->int8Signal[0] = -3;
+        gamWriterArray->int8Signal[1] = 2;
+        gamWriterArray->int8Signal[2] = -2;
+        gamWriterArray->int16Signal[0] = -4;
+        gamWriterArray->int16Signal[1] = 3;
+        gamWriterArray->int16Signal[2] = -3;
+        gamWriterArray->int32Signal[0] = -5;
+        gamWriterArray->int32Signal[1] = 4;
+        gamWriterArray->int32Signal[2] = -4;
+        gamWriterArray->uint64Signal[0] = -6;
+        gamWriterArray->uint64Signal[1] = 5;
+        gamWriterArray->uint64Signal[2] = -5;
+        gamWriterArray->float32Signal[0] = 3.1;
+        gamWriterArray->float32Signal[1] = -3.2;
+        gamWriterArray->float32Signal[2] = 3.3;
+        gamWriterArray->float64Signal[0] = -6.1;
+        gamWriterArray->float64Signal[1] = 6.2;
+        gamWriterArray->float64Signal[2] = -6.3;
+        scheduler->ExecuteThreadCycle(0u);
+		for(uint32 k=0; (k<numberOfNodes) && (ok); k++) {
+			//printf("Checking %d %s %d\n", k, nodeNames[k], nodeNElements[k]);
+			ok = opcuaReader.WaitForValue(nodeIds[k], reinterpret_cast<uint8 *>(expectedNodeValues[k]), nodeDataTypes[k], nodeTypeSizes[k], nodeNElements[k]);
+		}
+	}
+    if (ok) {
+        *gamWriterScalar->uint8Signal = 2u;
+        *gamWriterScalar->uint16Signal = 3u;
+        *gamWriterScalar->uint32Signal = 4u;
+        *gamWriterScalar->uint64Signal = 5u;
+        *gamWriterScalar->int8Signal = 2;
+        *gamWriterScalar->int16Signal = 3;
+        *gamWriterScalar->int32Signal = 4;
+        *gamWriterScalar->int64Signal = 5;
+        *gamWriterScalar->float32Signal = 4.2;
+        *gamWriterScalar->float64Signal = 7.2;
+
+        gamWriterArray->uint8Signal[0] = 4;
+        gamWriterArray->uint8Signal[1] = 2;
+        gamWriterArray->uint8Signal[2] = 3;
+        gamWriterArray->uint16Signal[0] = 5;
+        gamWriterArray->uint16Signal[1] = 3;
+        gamWriterArray->uint16Signal[2] = 4;
+        gamWriterArray->uint32Signal[0] = 6;
+        gamWriterArray->uint32Signal[1] = 4;
+        gamWriterArray->uint32Signal[2] = 5;
+        gamWriterArray->uint64Signal[0] = 7;
+        gamWriterArray->uint64Signal[1] = 5;
+        gamWriterArray->uint64Signal[2] = 6;
+        gamWriterArray->int8Signal[0] = -2;
+        gamWriterArray->int8Signal[1] = 3;
+        gamWriterArray->int8Signal[2] = -1;
+        gamWriterArray->int16Signal[0] = -3;
+        gamWriterArray->int16Signal[1] = 4;
+        gamWriterArray->int16Signal[2] = -2;
+        gamWriterArray->int32Signal[0] = -4;
+        gamWriterArray->int32Signal[1] = 5;
+        gamWriterArray->int32Signal[2] = -3;
+        gamWriterArray->uint64Signal[0] = -5;
+        gamWriterArray->uint64Signal[1] = 6;
+        gamWriterArray->uint64Signal[2] = -4;
+        gamWriterArray->float32Signal[0] = 4.1;
+        gamWriterArray->float32Signal[1] = -2.2;
+        gamWriterArray->float32Signal[2] = 4.3;
+        gamWriterArray->float64Signal[0] = -5.1;
+        gamWriterArray->float64Signal[1] = 7.2;
+        gamWriterArray->float64Signal[2] = -6.3;
+
+        scheduler->ExecuteThreadCycle(0u);
+		for(uint32 k=0; (k<numberOfNodes) && (ok); k++) {
+			//printf("Checking %d %s %d\n", k, nodeNames[k], nodeNElements[k]);
+			ok = opcuaReader.WaitForValue(nodeIds[k], reinterpret_cast<uint8 *>(expectedNodeValues[k]), nodeDataTypes[k], nodeTypeSizes[k], nodeNElements[k]);
+		}
+
+	}
+	//Sleep::Sec(60);
+	opcuaReader.Disconnect();
+    ord->Purge();
+
     return ok;
 }
 

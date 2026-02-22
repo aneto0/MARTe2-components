@@ -108,6 +108,11 @@ TEST(OPCUADSOutputGTest,Test_Authentication_BadCreds) {
     ASSERT_TRUE(test.Test_Authentication_BadCreds());
 }
 
+TEST(OPCUADSOutputGTest,Test_Synchronise) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise());
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
