@@ -287,7 +287,7 @@ bool OPCUAClientWriteTest::Test_GetExtensionObjectByteString() {
             "        }\n"
             "        +OPCUAIn = {\n"
             "            Class = OPCUADataSource::OPCUADSInput\n"
-            "            Address = \"opc.tcp://localhost.localdomain:4840\""
+            "            Address = \"opc.tcp://localhost:4840\""
             "            Synchronise = \"yes\""
             "            Signals = {\n"
             "                Point = {\n"
@@ -300,7 +300,7 @@ bool OPCUAClientWriteTest::Test_GetExtensionObjectByteString() {
             "        }\n"
             "        +OPCUAOut = {\n"
             "            Class = OPCUADataSource::OPCUADSOutput\n"
-            "            Address = \"opc.tcp://localhost.localdomain:4840\""
+            "            Address = \"opc.tcp://localhost:4840\""
             "            Signals = {\n"
             "                Point = {\n"
             "                    NamespaceIndex = 1\n"
@@ -455,7 +455,7 @@ bool OPCUAClientWriteTest::Test_SetExtensionObject() {
             "        }\n"
             "        +OPCUAIn = {\n"
             "            Class = OPCUADataSource::OPCUADSInput\n"
-            "            Address = \"opc.tcp://localhost.localdomain:4840\""
+            "            Address = \"opc.tcp://localhost:4840\""
             "            Synchronise = \"yes\""
             "            Signals = {\n"
             "                Point = {\n"
@@ -468,7 +468,7 @@ bool OPCUAClientWriteTest::Test_SetExtensionObject() {
             "        }\n"
             "        +OPCUAOut = {\n"
             "            Class = OPCUADataSource::OPCUADSOutput\n"
-            "            Address = \"opc.tcp://localhost.localdomain:4840\""
+            "            Address = \"opc.tcp://localhost:4840\""
             "            Signals = {\n"
             "                Point = {\n"
             "                    NamespaceIndex = 1\n"
@@ -677,7 +677,7 @@ bool OPCUAClientWriteTest::Test_WrongNodeId() {
             "    }\n"
             "    +OPCUAOut = {\n"
             "      Class = OPCUADataSource::OPCUADSOutput\n"
-            "      Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "      Address = \"opc.tcp://localhost:4840\"\n"
             "      Signals = {\n"
             "        MyNode1 = {\n"
             "          NamespaceIndex = 1\n"
@@ -754,101 +754,103 @@ bool OPCUAClientWriteTest::Test_Write_ExtensionObject() {
     ots.service.Start();
     StreamString config = ""
             "+OPCUATypes = {\n"
-            "     Class = ReferenceContainer\n"
-            "     +Point = {\n"
-            "         Class = IntrospectionStructure\n"
-            "         x = {\n"
-            "             Type = float32\n"
-            "             NumberOfElements = 1\n"
-            "         }\n"
-            "         y = {\n"
-            "             Type = float32\n"
-            "             NumberOfElements = 1\n"
-            "         }\n"
-            "         z = {\n"
-            "             Type = float32\n"
-            "             NumberOfElements = 1\n"
-            "         }\n"
-            "     }\n"
+            "  Class = ReferenceContainer\n"
+            "  +Point = {\n"
+            "    Class = IntrospectionStructure\n"
+            "    x = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    y = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    z = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
             "}\n"
             "$Test = {\n"
-            "    Class = RealTimeApplication\n"
-            "    +Functions = {\n"
-            "        Class = ReferenceContainer\n"
-            "        +GAMTimer = {\n"
-            "            Class = IOGAM\n"
-            "            InputSignals = {\n"
-            "                Counter = {\n"
-            "                    Type = uint32\n"
-            "                    DataSource = Timer\n"
-            "                }\n"
-            "                Time = {\n"
-            "                    Frequency = 1\n"
-            "                    Type = uint32\n"
-            "                    DataSource = Timer\n"
-            "                }\n"
-            "            }\n"
-            "            OutputSignals = {\n"
-            "                Counter = {\n"
-            "                    Type = uint32\n"
-            "                    DataSource = DDB1\n"
-            "                }\n"
-            "                Time = {\n"
-            "                    Type = uint32\n"
-            "                    DataSource = DDB1\n"
-            "                }\n"
-            "            }\n"
+            "  Class = RealTimeApplication\n"
+            "  +Functions = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +GAMTimer = {\n"
+            "      Class = IOGAM\n"
+            "      InputSignals = {\n"
+            "        Counter = {\n"
+            "          Type = uint32\n"
+            "          DataSource = Timer\n"
             "        }\n"
-            "        +GAMDisplay = {\n"
-            "            Class = IOGAM\n"
-            "            InputSignals = {\n"
-            "                Point = {\n"
-            "                    Type = Point\n"
-            "                    DataSource = OPCUAIn\n"
-            "                }\n"
-            "            }\n"
-            "            OutputSignals = {\n"
-            "                Point = {\n"
-            "                    Type = Point\n"
-            "                    DataSource = OPCUAOut\n"
-            "                }\n"
-            "            }\n"
+            "        Time = {\n"
+            "          Frequency = 1\n"
+            "          Type = uint32\n"
+            "          DataSource = Timer\n"
             "        }\n"
+            "      }\n"
+            "      OutputSignals = {\n"
+            "        Counter = {\n"
+            "          Type = uint32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        Time = {\n"
+            "          Type = uint32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "      }\n"
             "    }\n"
-            "    +Data = {\n"
-            "        Class = ReferenceContainer\n"
-            "        DefaultDataSource = DDB1\n"
+            "    +GAMDisplay = {\n"
+            "      Class = IOGAM\n"
+            "      InputSignals = {\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          DataSource = OPCUAIn\n"
+            "        }\n"
+            "      }\n"
+            "      OutputSignals = {\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          DataSource = OPCUAOut\n"
+            "          Trigger = 1\n"
+            "          TriggerSignal = \"Point.x\"\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
             "    +DDB1 = {\n"
             "      Class = GAMDataSource\n"
             "    }\n"
-            "        +Timings = {\n"
-            "            Class = TimingDataSource\n"
+            "    +Timings = {\n"
+            "      Class = TimingDataSource\n"
+            "    }\n"
+            "    +OPCUAIn = {\n"
+            "      Class = OPCUADataSource::OPCUADSInput\n"
+            "      Address = \"opc.tcp://localhost:4840\""
+            "      Synchronise = \"yes\""
+            "      Signals = {\n"
+            "        Point = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = Point\n"
+            "          Type = Point\n"
+            "          ExtensionObject = \"yes\"\n"
             "        }\n"
-            "        +OPCUAIn = {\n"
-            "            Class = OPCUADataSource::OPCUADSInput\n"
-            "            Address = \"opc.tcp://localhost.localdomain:4840\""
-            "            Synchronise = \"yes\""
-            "            Signals = {\n"
-            "                Point = {\n"
-            "                    NamespaceIndex = 1\n"
-            "                    Path = Point\n"
-            "                    Type = Point\n"
-            "                    ExtensionObject = \"yes\"\n"
-            "                }\n"
-            "            }\n"
+            "      }\n"
+            "    }\n"
+            "    +OPCUAOut = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost:4840\""
+            "      Signals = {\n"
+            "        Point = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = Point\n"
+            "          Type = Point\n"
+            "          ExtensionObject = \"yes\"\n"
             "        }\n"
-            "        +OPCUAOut = {\n"
-            "            Class = OPCUADataSource::OPCUADSOutput\n"
-            "            Address = \"opc.tcp://localhost.localdomain:4840\""
-            "            Signals = {\n"
-            "                Point = {\n"
-            "                    NamespaceIndex = 1\n"
-            "                    Path = Point\n"
-            "                    Type = Point\n"
-            "                    ExtensionObject = \"yes\"\n"
-            "                }\n"
-            "            }\n"
-            "        }\n"
+            "      }\n"
+            "    }\n"
             "    +Timer = {\n"
             "      Class = LinuxTimer\n"
             "      SleepNature = \"Default\"\n"
@@ -861,24 +863,24 @@ bool OPCUAClientWriteTest::Test_Write_ExtensionObject() {
             "        }\n"
             "      }\n"
             "    }\n"
-            "    }\n"
-            "    +States = {\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
             "        Class = ReferenceContainer\n"
-            "        +State1 = {\n"
-            "            Class = RealTimeState\n"
-            "            +Threads = {\n"
-            "                Class = ReferenceContainer\n"
-            "                +Thread1 = {\n"
-            "                    Class = RealTimeThread\n"
-            "                    Functions = {GAMTimer GAMDisplay}\n"
-            "                }\n"
-            "            }\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          Functions = {GAMTimer GAMDisplay}\n"
             "        }\n"
+            "      }\n"
             "    }\n"
-            "    +Scheduler = {\n"
-            "        Class = GAMScheduler\n"
-            "        TimingDataSource = Timings\n"
-            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = GAMScheduler\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
             "}\n";
     config.Seek(0LLU);
     ConfigurationDatabase cdb;
@@ -908,22 +910,50 @@ bool OPCUAClientWriteTest::Test_Write_ExtensionObject() {
         gam = ord->Find("Test.Functions.GAMDisplay");
         ok = gam.IsValid();
     }
+    ReferenceContainer rci;
+    ReferenceContainer rco;
     if(ok) {
-        ReferenceContainer rc;
-        ok = gam->GetInputBrokers(rc);
-        if(ok) {
-            ok = gam->GetOutputBrokers(rc);
+        ok = gam->GetInputBrokers(rci);
+    }
+    if(ok) {
+        ok = gam->GetOutputBrokers(rco);
+    }
+    if(ok) {
+        ok = (rci.Size() > 0);
+    }
+    if(ok) {
+        ok = (rco.Size() > 0);
+    }
+    Sleep::Sec(120);
+    for (uint32 k=0; (k<rci.Size()) && (ok); k++) {
+        ReferenceT<MemoryMapSynchronisedInputBroker> ibs = rci.Get(k);
+        if (ibs.IsValid()) {
+            ok = ibs->Execute();
         }
-        if(ok) {
-            ReferenceT<MemoryMapSynchronisedInputBroker> ib = rc.Get(0u);
-            ReferenceT<MemoryMapSynchronisedOutputBroker> ob = rc.Get(1u);
-            ok = ib->Execute();
-            if(ok) {
-                ok = gam->Execute();
+        else {
+            ReferenceT<MemoryMapInputBroker> ib = rci.Get(k);
+            ok = ib.IsValid();
+            if (ok) {
+                ok = ib->Execute();
             }
-            if(ok) {
+
+        }
+    }
+    if(ok) {
+        ok = gam->Execute();
+    }
+    for (uint32 k=0; (k<rco.Size()) && (ok); k++) {
+        ReferenceT<MemoryMapSynchronisedOutputBroker> obs = rco.Get(k);
+        if (obs.IsValid()) {
+            ok = obs->Execute();
+        }
+        else {
+            ReferenceT<MemoryMapOutputBroker> ob = rco.Get(k);
+            ok = ob.IsValid();
+            if (ok) {
                 ok = ob->Execute();
             }
+
         }
     }
     ReferenceT<OPCUADSOutput> odo;
@@ -1050,7 +1080,7 @@ bool OPCUAClientWriteTest::Test_Write_ExtensionObject_Complex() {
             "        }\n"
             "        +OPCUAIn = {\n"
             "            Class = OPCUADataSource::OPCUADSInput\n"
-            "            Address = \"opc.tcp://192.168.1.89:4840\""
+            "            Address = \"opc.tcp://127.0.0.1:4840\""
             "            Synchronise = \"yes\""
             "            Signals = {\n"
             "                SCU_Config = {\n"
@@ -1063,7 +1093,7 @@ bool OPCUAClientWriteTest::Test_Write_ExtensionObject_Complex() {
             "        }\n"
             "        +OPCUAOut = {\n"
             "            Class = OPCUADataSource::OPCUADSOutput\n"
-            "            Address = \"opc.tcp://192.168.1.89:4840\""
+            "            Address = \"opc.tcp://127.0.0.1:4840\""
             "            Signals = {\n"
             "                SCU_Config = {\n"
             "                    NamespaceIndex = 3\n"
@@ -1245,7 +1275,7 @@ bool OPCUAClientWriteTest::Test_Write_ExtensionObject_Array() {
             "        }\n"
             "        +OPCUAIn = {\n"
             "            Class = OPCUADataSource::OPCUADSInput\n"
-            "            Address = \"opc.tcp://192.168.1.89:4840\""
+            "            Address = \"opc.tcp://127.0.0.1:4840\""
             "            Synchronise = \"yes\""
             "            Signals = {\n"
             "                PointArray = {\n"
@@ -1258,7 +1288,7 @@ bool OPCUAClientWriteTest::Test_Write_ExtensionObject_Array() {
             "        }\n"
             "        +OPCUAOut = {\n"
             "            Class = OPCUADataSource::OPCUADSOutput\n"
-            "            Address = \"opc.tcp://192.168.1.89:4840\""
+            "            Address = \"opc.tcp://127.0.0.1:4840\""
             "            Signals = {\n"
             "                PointArray = {\n"
             "                    NamespaceIndex = 3\n"

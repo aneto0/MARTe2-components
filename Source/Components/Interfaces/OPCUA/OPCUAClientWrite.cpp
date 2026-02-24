@@ -291,13 +291,14 @@ bool OPCUAClientWrite::SetExtensionObject() {
             if (readResponse.results[0].value.arrayLength > 1u) {
                 nOfEos = static_cast<uint32>(readResponse.results[0].value.arrayLength);
                 eos = reinterpret_cast<UA_ExtensionObject*>(UA_Array_new(static_cast<osulong>(nOfEos), &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]));
-                UA_Variant_setArray(&tempVariant[0u], eos, static_cast<osulong>(readResponse.results[0].value.arrayLength),
-                                    &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
+                ok = (UA_ExtensionObject_copy(valuePtr, eos) == UA_STATUSCODE_GOOD);
+                UA_Variant_setArray(&tempVariant[0u], eos, static_cast<osulong>(readResponse.results[0].value.arrayLength), &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
             }
             else {
                 nOfEos = 1u;
                 eos = UA_ExtensionObject_new();
                 UA_ExtensionObject_init(eos);
+                ok = (UA_ExtensionObject_copy(valuePtr, eos) == UA_STATUSCODE_GOOD);
                 /*lint -e{1055} function defined in open62541*/
                 (void) UA_Variant_setScalar(&tempVariant[0u], eos, &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
             }
@@ -458,7 +459,7 @@ bool OPCUAClientWrite::Write() {
             if (nOfEos > 1u) {
                 for (uint32 j = 0u; j < nOfEos; j++) {
                     if (ok) {
-                        (void) UA_ExtensionObject_copy(&valuePtr[j], &eos[j]);
+                        //UA_ExtensionObject_copy(&valuePtr[j], &eos[j]);
                         ok = MemoryOperationsHelper::Copy(eos[j].content.encoded.body.data, dataPtr, static_cast<uint32>(eos[j].content.encoded.body.length));
                         dataPtr = &reinterpret_cast<uint8*>(dataPtr)[eos[j].content.encoded.body.length];
                     }
@@ -467,8 +468,9 @@ bool OPCUAClientWrite::Write() {
                 SeekDataPtr(actualBodyLength);
             }
             else {
-                (void) UA_ExtensionObject_copy(valuePtr, eos);
-                ok = MemoryOperationsHelper::Copy(eos->content.encoded.body.data, dataPtr, static_cast<uint32>(eos->content.encoded.body.length));
+                if (ok) {
+                    ok = MemoryOperationsHelper::Copy(eos->content.encoded.body.data, dataPtr, static_cast<uint32>(eos->content.encoded.body.length));
+                }
             }
             if (writeValues != NULL_PTR(UA_WriteValue*)) {
                 writeValues[0u].value.value = static_cast<const UA_Variant>(tempVariant[0u]);

@@ -116,6 +116,13 @@ public:
      */
     bool Test_Synchronise();
 
+    /**
+     * @brief Test the Synchronise method with ExtensionObject
+     */
+    bool Test_Synchronise_ExtensionObject();
+
+
+
 };
 
 /*---------------------------------------------------------------------------*/

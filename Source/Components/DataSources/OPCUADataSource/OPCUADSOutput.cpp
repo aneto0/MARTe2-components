@@ -31,9 +31,10 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
-#include "OPCUADSOutput.h"
 #include "AuthUtils.h"
 #include "File.h"
+#include "StructuredDataIHelper.h"
+#include "OPCUADSOutput.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -54,7 +55,7 @@ OPCUADSOutput::OPCUADSOutput() :
     isExtensionObject = false;
     paths = NULL_PTR(StreamString*);
     namespaceIndexes = NULL_PTR(uint16*);
-    structuredTypeNames = NULL_PTR(StreamString*);
+    structuredTypeName = "";
     tempPaths = NULL_PTR(StreamString*);
     tempNamespaceIndexes = NULL_PTR(uint16*);
     tempNElements = NULL_PTR(uint32*);
@@ -83,9 +84,6 @@ OPCUADSOutput::~OPCUADSOutput() {
     }
     if (paths != NULL_PTR(StreamString*)) {
         delete[] paths;
-    }
-    if (structuredTypeNames != NULL_PTR(StreamString*)) {
-        delete[] structuredTypeNames;
     }
     if (namespaceIndexes != NULL_PTR(uint16*)) {
         delete[] namespaceIndexes;
@@ -181,6 +179,43 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
             for (uint32 i = 0u; (i < nOfSignals) && (ok); i++) {
                 ok = signalsDatabase.MoveRelative(signalsDatabase.GetChildName(i));
                 if (ok) {
+                    uint32 defaultTimeStampSignal;
+                    bool isDefaultTimestamp = signalsDatabase.Read("DefaultTimestampSignal", defaultTimeStampSignal);
+                    if (isDefaultTimestamp) {
+                        isDefaultTimestamp = (defaultTimeStampSignal == 1u);
+                    }
+                    if (isDefaultTimestamp) {
+                        uint32 ii = i;
+                        StreamString nname;
+                        (void)nname.Printf("%d", ii);
+                        ok = timestampDatabase.CreateAbsolute(nname.Buffer());
+                        if (ok) {
+                            ok = timestampDatabase.Write("DefaultTimestampSignal", defaultTimeStampSignal);
+                        }
+                    }
+                }
+                if (ok) {
+                    StructuredDataIHelper helper(signalsDatabase, this);
+                    StreamString *timestampTargets = NULL_PTR(StreamString *);
+                    uint32 numberOfTimestampTargets;
+                    bool isTimestampSignal = helper.ReadArray("Timestamp", timestampTargets, numberOfTimestampTargets);
+                    if (isTimestampSignal) {
+                        uint32 ii = i;
+                        StreamString nname;
+                        (void)nname.Printf("%d", ii);
+                        ok = timestampDatabase.CreateAbsolute(nname.Buffer());
+                        if (ok) {
+                            ok = timestampDatabase.CreateRelative("TargetSignals");
+                        }
+                        for (uint32 n=0; (n<numberOfTimestampTargets) && (ok); n++) {
+                            nname = "";
+                            ii = n;
+                            (void)nname.Printf("%d", ii);
+                            ok = timestampDatabase.Write(nname.Buffer(), timestampTargets[n].Buffer());
+                        }
+                    }
+                }
+                if (ok) {
                     ok = signalsDatabase.Read("Path", tempPaths[i]);
                     if (!ok) {
                         uint32 k = i;
@@ -208,8 +243,7 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
                     ok = signalsDatabase.Read("ExtensionObject", extensionObjectStr);
                     if ((extensionObjectStr == "yes") && ok) {
                         isExtensionObject = true;
-                        structuredTypeNames = new StreamString[nOfSignals];
-                        ok = signalsDatabase.Read("Type", structuredTypeNames[i]);
+                        ok = signalsDatabase.Read("Type", structuredTypeName);
                         if (!ok) {
                             uint32 k = i;
                             REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Type attribute from signal %d", k);
@@ -241,47 +275,9 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
 uint32 OPCUADSOutput::GetNumberOfNodes() {
     uint32 numberOfNodes = 0u;
     uint32 numberOfSignals = GetNumberOfSignals();
-    bool ok = true;
-    for (uint32 i=0u; (i<numberOfSignals) && (ok); i++) {
-        StreamString signalName;
-        StreamString nameToken;
-        ok = GetSignalName(i, signalName);
-        if (ok) {
-            ok = nodesDatabase.CreateAbsolute(signalName.Buffer());
-        }
-        if (ok) {
-            ok = signalName.Seek(0LLU);
-        }
-        if (ok) {
-            char8 ignore;
-            ok = signalName.GetToken(nameToken, "_", ignore);
-            if (nameToken == "Timestamp") {
-                ok = nodesDatabase.Write("IsTimestamp", true);
-                StreamString timeStampFor;
-                nameToken = "";
-                while(signalName.GetToken(nameToken, "_", ignore)) {
-                    if(timeStampFor.Size() > 0u) {
-                        timeStampFor += "_";
-                    }
-                    timeStampFor += nameToken;
-                }
-                if (ok) {
-                    ok = nodesDatabase.Write("TimestampedSignal", timeStampFor.Buffer());
-                }
-            }
-            else {
-                numberOfNodes++;
-            }
-        }
-    }
-    if (ok) {
-        ok = nodesDatabase.MoveToRoot();
-    }
-    StreamString pp;
-
-    pp.Printf("%!\n", nodesDatabase);
-    printf("\n\n\n[%s]\n\n\n", pp.Buffer());
-    return numberOfNodes;
+    (void) timestampDatabase.MoveToRoot();
+    uint32 numberOfTimestampSignals = timestampDatabase.GetNumberOfChildren();
+    return numberOfSignals - numberOfTimestampSignals;
 }
 
 bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
@@ -296,8 +292,7 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
             StreamString signalName;
             ok = GetSignalName(k, signalName);
             if (ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Signal %s has Number Of Dimensions = %d. Multidimensional arrays not supported yet.",
-                             signalName.Buffer(), nDimensions);
+                REPORT_ERROR(ErrorManagement::ParametersError, "Signal %s has Number Of Dimensions = %d. Multidimensional arrays not supported yet.", signalName.Buffer(), nDimensions);
                 ok = false;
             }
         }
@@ -310,32 +305,30 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
     }
 
     uint32 bodyLength = 0u;
-    if (structuredTypeNames != NULL_PTR(StreamString*)) {
-        for (uint32 k = 0u; k < nOfSignals; k++) {
-            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeNames[k].Buffer());
-            if (cri != NULL_PTR(const ClassRegistryItem*)) {
-                const Introspection *intro = cri->GetIntrospection();
-                ok = (intro != NULL_PTR(const Introspection*));
+    if (isExtensionObject) {
+        const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeName.Buffer());
+        if (cri != NULL_PTR(const ClassRegistryItem*)) {
+            const Introspection *intro = cri->GetIntrospection();
+            ok = (intro != NULL_PTR(const Introspection*));
+            if (ok) {
+                GetStructureDimensions(intro, entryArraySize);
+
+                entryArrayElements = new uint32[entryArraySize];
+                entryNumberOfMembers = new uint32[entryArraySize];
+                entryTypes = new TypeDescriptor[entryArraySize];
+
+                uint32 index = 0u;
+                ok = GetStructure(intro, entryArrayElements, entryTypes, entryNumberOfMembers, index);
                 if (ok) {
-                    GetStructureDimensions(intro, entryArraySize);
-
-                    entryArrayElements = new uint32[entryArraySize];
-                    entryNumberOfMembers = new uint32[entryArraySize];
-                    entryTypes = new TypeDescriptor[entryArraySize];
-
-                    uint32 index = 0u;
-                    ok = GetStructure(intro, entryArrayElements, entryTypes, entryNumberOfMembers, index);
-                    if (ok) {
-                        ok = GetBodyLength(intro, bodyLength);
-                    }
-                    if (ok) {
-                        bodyLength *= tempNElements[k];
-                    }
+                    ok = GetBodyLength(intro, bodyLength);
+                }
+                if (ok) {
+                    bodyLength *= tempNElements[0u];
                 }
             }
         }
     }
-    if (!isExtensionObject) {
+    else {
         if (ok) {
             paths = new StreamString[numberOfNodes];
             namespaceIndexes = new uint16[numberOfNodes];

@@ -26,19 +26,21 @@
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
+#include "open62541.h"
 
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 
+#include "File.h"
 #include "ObjectRegistryDatabase.h"
 #include "OPCUADSOutputTest.h"
 #include "OPCUADSOutput.h"
+#include "OPCUAClientWriteTest.h"
+#include "MessageI.h"
 #include "RealTimeApplication.h"
 #include "StandardParser.h"
-#include "File.h"
 
-#include "open62541.h"
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
@@ -69,9 +71,8 @@ public:
 		return connected;
 	}
 
-	UA_StatusCode FindChildNodeId(const MARTe::char8 *targetName, UA_NodeId *outNodeId) {
+	UA_StatusCode FindChildNodeId(const MARTe::char8 *targetName, UA_NodeId *outNodeId, UA_NodeId parent = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER)) {
 		using namespace MARTe;
-		UA_NodeId parent = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
 		UA_BrowseRequest bReq;
 		UA_BrowseRequest_init(&bReq);
 
@@ -95,8 +96,9 @@ public:
 					found = (StringHelper::CompareN((char8*)ref->browseName.name.data, targetName, ref->browseName.name.length) == 0);
 				}
 				if (found) {
-					*outNodeId = ref->nodeId.nodeId;
-					rc = UA_STATUSCODE_GOOD;
+                    if (UA_NodeId_copy(&ref->nodeId.nodeId, outNodeId) == UA_STATUSCODE_GOOD) {
+                        rc = UA_STATUSCODE_GOOD;
+                    }
 				}
 			}
 		}
@@ -160,6 +162,37 @@ public:
 		UA_Variant_clear(&v);
 		return ok;
 	}
+
+
+	bool WaitForExtObjValue(UA_NodeId nodeId, MARTe::uint8 *expectedValue, MARTe::uint32 valueLen, MARTe::uint32 retries = 5) {
+		using namespace MARTe;
+		UA_Variant v;
+		UA_Variant_init(&v);
+
+		UA_StatusCode rc = ReadValue(nodeId, &UA_TYPES[UA_TYPES_EXTENSIONOBJECT], 1u, &v);
+		bool ok = false;
+		while(retries > 0u && !ok) {
+			if(rc == UA_STATUSCODE_GOOD) {
+				bool valueOk = true;
+                UA_ExtensionObject *eo = (UA_ExtensionObject*) v.data;
+				uint8 *readValue = static_cast<uint8 *>(eo->content.encoded.body.data);
+				for (uint32 k=0; (k<valueLen) && (valueOk); k++) {
+					valueOk = (readValue[k] == expectedValue[k]);
+					//printf("Checking readValue[%d] == expectedValue[%d]: %d == %d?\n", k, k, readValue[k], expectedValue[k]);
+				}
+				ok = valueOk;
+			}
+			if (!ok) {
+				printf("Read failed: %s\n", UA_StatusCode_name(rc));
+				retries--;
+				Sleep::Sec(1.0);
+				rc = ReadValue(nodeId, &UA_TYPES[UA_TYPES_EXTENSIONOBJECT], 1u, &v);
+			}
+		}
+		UA_Variant_clear(&v);
+		return ok;
+
+    }
 
 	void Disconnect() {
 		UA_Client_disconnect(client);
@@ -640,9 +673,9 @@ bool OPCUADSOutputTest::TestInitialise_ExtensionObject() {
             "    +Data = {\n"
             "        Class = ReferenceContainer\n"
             "        DefaultDataSource = DDB1\n"
-            "    +DDB1 = {\n"
-            "      Class = GAMDataSource\n"
-            "    }\n"
+            "        +DDB1 = {\n"
+            "            Class = GAMDataSource\n"
+            "        }\n"
             "        +Timings = {\n"
             "            Class = TimingDataSource\n"
             "        }\n"
@@ -2421,9 +2454,9 @@ bool OPCUADSOutputTest::Test_Synchronise() {
         gamWriterArray->int32Signal[0] = -5;
         gamWriterArray->int32Signal[1] = 4;
         gamWriterArray->int32Signal[2] = -4;
-        gamWriterArray->uint64Signal[0] = -6;
-        gamWriterArray->uint64Signal[1] = 5;
-        gamWriterArray->uint64Signal[2] = -5;
+        gamWriterArray->int64Signal[0] = -6;
+        gamWriterArray->int64Signal[1] = 5;
+        gamWriterArray->int64Signal[2] = -5;
         gamWriterArray->float32Signal[0] = 3.1;
         gamWriterArray->float32Signal[1] = -3.2;
         gamWriterArray->float32Signal[2] = 3.3;
@@ -2469,9 +2502,9 @@ bool OPCUADSOutputTest::Test_Synchronise() {
         gamWriterArray->int32Signal[0] = -4;
         gamWriterArray->int32Signal[1] = 5;
         gamWriterArray->int32Signal[2] = -3;
-        gamWriterArray->uint64Signal[0] = -5;
-        gamWriterArray->uint64Signal[1] = 6;
-        gamWriterArray->uint64Signal[2] = -4;
+        gamWriterArray->int64Signal[0] = -5;
+        gamWriterArray->int64Signal[1] = 6;
+        gamWriterArray->int64Signal[2] = -4;
         gamWriterArray->float32Signal[0] = 4.1;
         gamWriterArray->float32Signal[1] = -2.2;
         gamWriterArray->float32Signal[2] = 4.3;
@@ -2490,6 +2523,225 @@ bool OPCUADSOutputTest::Test_Synchronise() {
 	opcuaReader.Disconnect();
     ord->Purge();
 
+    return ok;
+}
+
+bool OPCUADSOutputTest::Test_Synchronise_ExtensionObject() {
+    using namespace MARTe;
+    OPCUATestServer ots;
+    ots.service.Start();
+    StreamString config = ""
+            "+OPCUATypes = {\n"
+            "  Class = ReferenceContainer\n"
+            "  +Point = {\n"
+            "    Class = IntrospectionStructure\n"
+            "    x = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    y = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    z = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "+MessageX = {\n"
+            "  Class = Message\n"
+            "  Destination = \"TestApp.Functions.GAMXYZ\"\n"
+            "  Function = \"SetOutput\"\n"
+            "  +Parameters = {\n"
+            "    Class = ConfigurationDatabase\n"
+            "    SignalName = \"x\"\n"
+            "    SignalValue = -6.7\n"
+            "  }\n"
+            "}\n"
+            "+MessageY = {\n"
+            "  Class = Message\n"
+            "  Destination = \"TestApp.Functions.GAMXYZ\"\n"
+            "  Function = \"SetOutput\"\n"
+            "  +Parameters = {\n"
+            "    Class = ConfigurationDatabase\n"
+            "    SignalName = \"y\"\n"
+            "    SignalValue = -8.9\n"
+            "  }\n"
+            "}\n"
+            "+MessageZ = {\n"
+            "  Class = Message\n"
+            "  Destination = \"TestApp.Functions.GAMXYZ\"\n"
+            "  Function = \"SetOutput\"\n"
+            "  +Parameters = {\n"
+            "    Class = ConfigurationDatabase\n"
+            "    SignalName = \"z\"\n"
+            "    SignalValue = 9.0\n"
+            "  }\n"
+            "}\n"
+            "$TestApp = {\n"
+            "  Class = RealTimeApplication\n"
+            "  +Functions = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +GAMXYZ = {\n"
+            "      Class = ConstantGAM\n"
+            "      OutputSignals = {\n"
+            "        x = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 1.2\n"
+            "        }\n"
+            "        y = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 3.4\n"
+            "        }\n"
+            "        z = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = -5.6\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriter = {\n"
+            "      Class = IOGAM\n"
+            "      InputSignals = {\n"
+            "        x = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        y = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        z = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "      }\n"
+            "      OutputSignals = {\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          DataSource = OPCUAOut\n"
+            "          Trigger = 1\n"
+            "          TriggerSignal = \"Point.x\"\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
+            "    +DDB1 = {\n"
+            "      Class = GAMDataSource\n"
+            "    }\n"
+            "    +Timings = {\n"
+            "      Class = TimingDataSource\n"
+            "    }\n"
+            "    +OPCUAOut = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost.localdomain:4840\""
+            "      Signals = {\n"
+            "        Point = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = Point\n"
+            "          Type = Point\n"
+            "          ExtensionObject = \"yes\"\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          Functions = {GAMXYZ GAMWriter}\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = OPCUADSOutputSchedulerTestHelper\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
+            "}\n";
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> app;
+    if (ok) {
+        app = ord->Find("TestApp");
+        ok = app.IsValid();
+    }
+    if (ok) {
+        ok = app->ConfigureApplication();
+    }
+    if (ok) {
+        app->PrepareNextState("State1");
+    }
+    ReferenceT<OPCUADSOutputSchedulerTestHelper> scheduler;
+    if (ok) {
+        scheduler = ord->Find("TestApp.Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        ok = app->StartNextStateExecution();
+    }
+    if (ok) {
+        scheduler->ExecuteThreadCycle(0u);
+    }
+    Sleep::Sec(0.2);
+    OPCUADSOutputTestReader opcuaReader;
+    if (ok) {
+        ok = opcuaReader.Connect();
+    }
+    const char8 *nodeName = "Point";
+	UA_NodeId nodeId;
+
+    if (ok) {
+        ok = (opcuaReader.FindChildNodeId(nodeName, &nodeId) == UA_STATUSCODE_GOOD);
+    }
+    if (ok) {
+        float32 expectedValue[] = {1.2, 3.4, -5.6};
+        ok = opcuaReader.WaitForExtObjValue(nodeId, reinterpret_cast<uint8 *>(&expectedValue[0]), sizeof(float32) * 3);
+    }
+    ReferenceT<Message> message;
+    if (ok) {
+        message = ord->Find("MessageX");
+        MessageI::SendMessage(message, NULL);
+    }
+    if (ok) {
+        message = ord->Find("MessageY");
+        MessageI::SendMessage(message, NULL);
+    }
+    if (ok) {
+        message = ord->Find("MessageZ");
+        MessageI::SendMessage(message, NULL);
+    }
+    if (ok) {
+        scheduler->ExecuteThreadCycle(0u);
+    }
+    Sleep::Sec(0.2);
+
+    if (ok) {
+        float32 expectedValue[] = {-6.7, -8.9, 9.0};
+        ok = opcuaReader.WaitForExtObjValue(nodeId, reinterpret_cast<uint8 *>(&expectedValue[0]), sizeof(float32) * 3);
+    }
+
+    opcuaReader.Disconnect();
+    ots.SetRunning(false);
+    ots.service.Stop();
+    ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
 

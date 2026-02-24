@@ -109,8 +109,65 @@ namespace MARTe {
  *     }
  * }
  * </pre>
- * When using Complex DataType Extension, the DataSource only allows to write 1 structure. If you need to add more signals you must add
- * another OPCUADSOuput DataSource to your real time application.
+ * When using Complex DataType Extension, the DataSource only allows to write 1 structure. If you need to add more signals you must add another OPCUADSOuput DataSource to your real time application.
+ *
+ * The DataSource allows associating a timestamp signal to one or more output signals. When a timestamp signal is configured, its value is used to populate the OPC UA SourceTimestamp field when writing the associated nodes.
+ *
+ * The timestamp signals must be of type uint64 and represent the time value to be used as the OPC UA SourceTimestamp. They are not written to OPC UA. They can be associated explicitly to specific nodes, or globally as a default.
+ * <pre>
+ * +OPCUA = {
+ *     Class = OPCUADataSource::OPCUADSOutput
+ *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
+ *     Authentication = None | UserPassword
+ *     UserPasswordFile = /path/to/the/file
+ *     Signals = {
+ *         Node1 = {
+ *             Type = uint32
+ *             NamespaceIndex = 1
+ *             Path = Object1.Block1.Block2.Node1
+ *         }
+ *         TimeStampNode1 = {
+ *             Type = uint64 //Timestamp shall be uint64
+ *             Timestamp = {"Node1"} //List of nodes to be timestamped using this signal as the time source
+ *         }
+ *         Node2 = { //Not timestamped
+ *             Type = uint32
+ *             NamespaceIndex = 1
+ *             Path = Object1.Block1.Block2.Node1
+ *         }
+ *     }
+ * }
+ * </pre>
+ * 
+ * To timestamp all signals against a common timestamp signal, the property DefaultTimestampSignal = 1 shall be used. Note that the nodes with a Timestamp specified still have precedence (i.e. they will ignore the global timestamp signal).
+ * <pre>
+ * +OPCUA = {
+ *     Class = OPCUADataSource::OPCUADSOutput
+ *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
+ *     Authentication = None | UserPassword
+ *     UserPasswordFile = /path/to/the/file
+ *     Signals = {
+ *         TimestampGlobal = {
+ *             Type = uint64 //Timestamp shall be uint64
+ *             DefaultTimestampSignal = 1
+ *         }
+ *         Node1 = {
+ *             Type = uint32
+ *             NamespaceIndex = 1
+ *             Path = Object1.Block1.Block2.Node1
+ *         }
+ *         TimeStampNode1 = {
+ *             Type = uint64 //Timestamp shall be uint64
+ *             Timestamp = {"Node1"} //List of nodes to be timestamped using this signal as the time source. The DefaultTimestampSignal is ignored for these nodes.
+ *         }
+ *         Node2 = { //Timestamped with the TimestampGlobal
+ *             Type = uint32
+ *             NamespaceIndex = 1
+ *             Path = Object1.Block1.Block2.Node1
+ *         }
+ *     }
+ * }
+ * </pre>
  */
 class OPCUADSOutput: public DataSourceI {
 
@@ -311,9 +368,9 @@ private:
     TypeDescriptor *types;
 
     /**
-     * The array that stores the type name for structured data types (for ExtensionObject)
+     * The array that stores the type name for structured data type 
      */
-    StreamString *structuredTypeNames;
+    StreamString structuredTypeName;
 
     /**
      * The flag defining if authentication is used when connecting to the server
@@ -336,7 +393,7 @@ private:
     /**
      * TODO 
      */
-    ConfigurationDatabase nodesDatabase;
+    ConfigurationDatabase timestampDatabase;
 
 };
 

@@ -113,6 +113,11 @@ TEST(OPCUADSOutputGTest,Test_Synchronise) {
     ASSERT_TRUE(test.Test_Synchronise());
 }
 
+TEST(OPCUADSOutputGTest,Test_Synchronise_ExtensionObject) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_ExtensionObject());
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
