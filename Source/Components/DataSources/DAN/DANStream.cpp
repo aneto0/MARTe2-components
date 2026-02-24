@@ -53,8 +53,8 @@
 /*---------------------------------------------------------------------------*/
 namespace MARTe {
 
-void DANStream::init(const char8 * const typeNameIn,
-                     const char8 * const baseNameIn,
+void DANStream::init(const char8 *const typeNameIn,
+                     const char8 *const baseNameIn,
                      const uint32 danBufferMultiplierIn,
                      const float64 samplingFrequencyIn,
                      const uint32 numberOfSamplesIn,
@@ -96,12 +96,14 @@ void DANStream::init(const char8 * const typeNameIn,
     units = NULL_PTR(StreamString*);
     descriptions = NULL_PTR(StreamString*);
     fieldNames = NULL_PTR(StreamString*);
+    timeNsMultiplier = 1ull;
+    timeNsOffset = 0;
     opened = false;
 }
 
 /*lint -e{1566} -sem(DANStream::Init, initializer) both constructors use the same init function, since construction delegation is not available until C++11 */
-DANStream::DANStream(const char8 * const typeNameIn,
-                     const char8 * const baseNameIn,
+DANStream::DANStream(const char8 *const typeNameIn,
+                     const char8 *const baseNameIn,
                      const uint32 danBufferMultiplierIn,
                      const float64 samplingFrequencyIn,
                      const uint32 numberOfSamplesIn,
@@ -110,8 +112,8 @@ DANStream::DANStream(const char8 * const typeNameIn,
 }
 
 /*lint -e{1566} -sem(DANStream::Init, initializer) both constructors use the same init function.*/
-DANStream::DANStream(const TypeDescriptor & tdIn,
-                     const char8 * const baseNameIn,
+DANStream::DANStream(const TypeDescriptor &tdIn,
+                     const char8 *const baseNameIn,
                      const float64 samplingFrequencyIn,
                      const uint32 numberOfSamplesIn) {
     init(TypeDescriptor::GetTypeNameFromTypeDescriptor(tdIn), baseNameIn, 1u, samplingFrequencyIn, numberOfSamplesIn, false);
@@ -203,21 +205,31 @@ void DANStream::SetRelativeTimeSignal(uint32 *const timeRelativeSignalIn) {
     }
 }
 
+void DANStream::SetTimeSignalMultiplier(float64 timeSignalMultiplierIn) {
+    timeNsMultiplier = static_cast<uint64>(timeSignalMultiplierIn / 1e-9);
+}
+
+void DANStream::SetTimeSignalOffset(float64 timeSignalOffsetIn) {
+    timeNsOffset = static_cast<int64>(timeSignalOffsetIn * 1e9);
+}
+
+
 /*lint -e{613} fields cannot be NULL if ok = true*/
 bool DANStream::PutData() {
     bool ok = true;
     uint64 timeStamp = 0u;
     if (useExternalAbsoluteTimingSignal) {
         /*lint -e{613} timeAbsoluteSignal cannot be NULL as otherwise useExternalAbsoluteTimingSignal=false*/
-        timeStamp = *timeAbsoluteSignal;
+        timeStamp = ((*timeAbsoluteSignal) * timeNsMultiplier) + timeNsOffset;
     }
     else if (useExternalRelativeTimingSignal) {
         //Time in nanoseconds
         /*lint -e{613} timeRelativeSignal cannot be NULL as otherwise useExternalRelativeTimingSignal=false*/
         uint64 timeRelativeSignalNanos = static_cast<uint64>(*timeRelativeSignal);
-        timeRelativeSignalNanos *= 1000u;
+        timeRelativeSignalNanos *= timeNsMultiplier;
         timeStamp = absoluteStartTime;
         timeStamp += timeRelativeSignalNanos;
+        timeStamp += timeNsOffset;
     }
     else {
         timeStamp = absoluteStartTime;
@@ -260,7 +272,7 @@ bool DANStream::PutData() {
     return ok;
 }
 
-bool DANStream::PutData(const char8 * const header,
+bool DANStream::PutData(const char8 *const header,
                         const uint32 actualNumberOfSamples,
                         const uint64 data_offset,
                         const bool flush) {
@@ -292,7 +304,8 @@ bool DANStream::PutData(const char8 * const header,
 
         if (actualNumberOfSamples > 0u) {
             uint32 actualBlockSize = typeSize * static_cast<uint32>(actualNumberOfSamples);
-            ok = DANAPI::PutBlockReference(danSource, timeStamp, static_cast<int64_t>(data_offset), static_cast<uint32_t>(actualBlockSize), const_cast<char8*>(header));
+            ok = DANAPI::PutBlockReference(danSource, timeStamp, static_cast<int64_t>(data_offset), static_cast<uint32_t>(actualBlockSize),
+                                           const_cast<char8*>(header));
         }
 
         // flush, if requested
@@ -328,16 +341,16 @@ bool DANStream::CloseStream() {
     return ret;
 }
 
-bool DANStream::InitializePublishSource(const char8 * const newBaseName,
-                                        const char8 * const shmemName,
+bool DANStream::InitializePublishSource(const char8 *const newBaseName,
+                                        const char8 *const shmemName,
                                         const int64_t shmsize) {
     if (baseName != newBaseName) {
 
         // unpublish existing one fist, if initialized
-        if (danSource != NULL_PTR(void *)) {
+        if (danSource != NULL_PTR(void*)) {
             (void) CloseStream();
             DANAPI::UnpublishSource(danSource);
-            danSource = NULL_PTR(void *);
+            danSource = NULL_PTR(void*);
         }
 
         baseName = newBaseName;
@@ -350,7 +363,7 @@ bool DANStream::InitializePublishSource(const char8 * const newBaseName,
             danSource = DANAPI::PublishSource(danSourceName.Buffer(), shmemName, static_cast<uint64>(shmsize));
         }
     }
-    return danSource != NULL_PTR(void *);
+    return danSource != NULL_PTR(void*);
 }
 
 bool DANStream::Finalise() {
@@ -397,12 +410,12 @@ void DANStream::AddSignal(const uint32 signalIdx) {
 
 /*lint -e{613,1746} fields cannot be NULL if ret = true. typeDesc cannot be a constant ref.*/
 bool DANStream::AddToStructure(const uint32 fieldIdxIn,
-                               const char8 * const fieldNameIn,
+                               const char8 *const fieldNameIn,
                                const TypeDescriptor typeDesc,
                                const uint32 numberOfElementsIn,
                                const uint8 numberOfDimensionsIn,
-                               const char8 * const unitIn,
-                               const char8 * const descriptionIn) {
+                               const char8 *const unitIn,
+                               const char8 *const descriptionIn) {
     bool ret = (numberOfSignals > 0u);
     if (ret) {
         uint32 fieldSize = (static_cast<uint32>(typeDesc.numberOfBits) / 8u) * numberOfElementsIn;

@@ -214,6 +214,17 @@ public:
      */
     void SetAbsoluteStartTime(uint64 absoluteStartTimeIn);
 
+    /**
+     * @brief Sets the time multiplier of input signal.
+     */
+    void SetTimeSignalMultiplier(float64 timeSignalMultiplierIn);
+
+    /**
+     * @brief Sets the time offset of input signal.
+     */
+    void SetTimeSignalOffset(float64 timeSignalOffsetIn);
+
+
 private:
     /**
      * Shared initialisation, since constructor delegation is not available.
@@ -410,6 +421,11 @@ private:
      */
     bool opened;
 
+
+    uint64 timeNsMultiplier;
+
+
+    int64 timeNsOffset;
     /*lint -e{1712} This class does not have a default constructor because
      * the constructor input parameters must be defined on construction and both remain constant
      * during the object's lifetime*/
