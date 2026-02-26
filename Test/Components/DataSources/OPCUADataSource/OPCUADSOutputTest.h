@@ -121,6 +121,11 @@ public:
      */
     bool Test_Synchronise_ExtensionObject();
 
+    /**
+     * @brief Test the Synchronise method with timing signals
+     */
+    bool Test_Synchronise_Timestamp();
+
 
 
 };

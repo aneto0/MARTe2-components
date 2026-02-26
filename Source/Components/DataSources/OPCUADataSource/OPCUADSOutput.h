@@ -251,7 +251,21 @@ public:
 
 private:
 
+    /**
+     * TODO
+     */
     uint32 GetNumberOfNodes();
+
+    /**
+     * TODO
+     */
+    bool IsTimestampSignal(const uint32 idx);
+
+    /**
+     * TODO
+     */
+    bool PopulateTimestampDatabase();
+
 
     /**
      * @brief Read the structure recursively and gets informations about the length of the ByteString (for ExtensionObject).
@@ -317,25 +331,25 @@ private:
     StreamString *paths;
 
     /**
-     * Temporary array to store paths read from configuration
-     */
-    StreamString *tempPaths;
-
-    /**
      * The array that stores all the namespaceIndexes for each
      * node to write
      */
     uint16 *namespaceIndexes;
 
     /**
-     * Temporary array to store namespaceIndexes read from configuration
+     * TODO
      */
-    uint16 *tempNamespaceIndexes;
+    uint32 *signalIdxMap;
+    
+    /**
+     * TODO
+     */
+    uint64 *timestampSignals;
 
     /**
-     * Temporary array to store numberOfElements read from configuration
+     * TODO
      */
-    uint32 *tempNElements;
+    ConfigurationDatabase tempSignalsDatabase;
 
     /**
      * The array that stores the NumberOfElements for each IntrospectionEntry (for ExtensionObject)

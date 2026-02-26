@@ -58,6 +58,9 @@ namespace MARTe {
  * and to create the OPCUA Address Space correctly.
  *
  * All the nodes added in the AddressSpace will be of OPCUA Variable type.
+ *
+ * The structured types are registered as OPCUA Objects and thus cannot be read back as ExtensionObjects.
+ * The nodes have to be browsed to access the individual OPCUA Variables.
  * 
  * Authentication type can be defined (either None or UserPassword). When
  * using the UserPassword option, the UserPassword property must also be

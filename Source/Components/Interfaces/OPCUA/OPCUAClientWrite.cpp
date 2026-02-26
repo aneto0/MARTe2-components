@@ -285,23 +285,30 @@ bool OPCUAClientWrite::SetExtensionObject() {
     readResponse = UA_Client_Service_read(opcuaClient, readRequest);
     ok = (readResponse.responseHeader.serviceResult == 0x00U);
     if (ok) {
-        if (tempVariant != NULL_PTR(UA_Variant*)) {
-            valuePtr = reinterpret_cast<UA_ExtensionObject*>(readResponse.results[0].value.data);
-            /* Setting EO Memory */
-            if (readResponse.results[0].value.arrayLength > 1u) {
-                nOfEos = static_cast<uint32>(readResponse.results[0].value.arrayLength);
-                eos = reinterpret_cast<UA_ExtensionObject*>(UA_Array_new(static_cast<osulong>(nOfEos), &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]));
-                ok = (UA_ExtensionObject_copy(valuePtr, eos) == UA_STATUSCODE_GOOD);
-                UA_Variant_setArray(&tempVariant[0u], eos, static_cast<osulong>(readResponse.results[0].value.arrayLength), &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
-            }
-            else {
-                nOfEos = 1u;
-                eos = UA_ExtensionObject_new();
-                UA_ExtensionObject_init(eos);
-                ok = (UA_ExtensionObject_copy(valuePtr, eos) == UA_STATUSCODE_GOOD);
-                /*lint -e{1055} function defined in open62541*/
-                (void) UA_Variant_setScalar(&tempVariant[0u], eos, &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
-            }
+        ok = (tempVariant != NULL_PTR(UA_Variant*));
+    }
+    if (ok) {
+        valuePtr = reinterpret_cast<UA_ExtensionObject*>(readResponse.results[0].value.data);
+        ok = (valuePtr != NULL_PTR(UA_ExtensionObject *));
+        if (!ok) {
+            REPORT_ERROR_STATIC(ErrorManagement::FatalError, "Failed to read extension object from server.");
+        }
+    }
+    if (ok) {
+        /* Setting EO Memory */
+        if (readResponse.results[0].value.arrayLength > 1u) {
+            nOfEos = static_cast<uint32>(readResponse.results[0].value.arrayLength);
+            eos = reinterpret_cast<UA_ExtensionObject*>(UA_Array_new(static_cast<osulong>(nOfEos), &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]));
+            ok = (UA_ExtensionObject_copy(valuePtr, eos) == UA_STATUSCODE_GOOD);
+            UA_Variant_setArray(&tempVariant[0u], eos, static_cast<osulong>(readResponse.results[0].value.arrayLength), &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
+        }
+        else {
+            nOfEos = 1u;
+            eos = UA_ExtensionObject_new();
+            UA_ExtensionObject_init(eos);
+            ok = (UA_ExtensionObject_copy(valuePtr, eos) == UA_STATUSCODE_GOOD);
+            /*lint -e{1055} function defined in open62541*/
+            (void) UA_Variant_setScalar(&tempVariant[0u], eos, &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
         }
     }
     /*lint -e{526} -e{628} -e{1551} -e{1055} no exception thrown, function defined in open62541*/
