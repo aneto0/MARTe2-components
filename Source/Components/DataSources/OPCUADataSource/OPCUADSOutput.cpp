@@ -256,7 +256,6 @@ bool OPCUADSOutput::PopulateTimestampDatabase() {
     }
     uint32 nSignalsTemp = tempSignalsDatabase.GetNumberOfChildren();
     StructuredDataIHelper helper(tempSignalsDatabase, this);
-    bool defaultTimestampSignalFound = false;
     for (uint32 i = 0u; (i < nSignalsTemp) && (ok); i++) {
         ok = tempSignalsDatabase.MoveToChild(i);
         bool isDefaultTimestamp = false;
@@ -267,28 +266,25 @@ bool OPCUADSOutput::PopulateTimestampDatabase() {
                 isDefaultTimestamp = (defaultTimeStampSignal == 1u);
             }
             if (isDefaultTimestamp) {
-                ok = !defaultTimestampSignalFound;
+                uint32 ii = i;
+                if (isExtensionObject) {//The timesignal can be either the first or the last
+                    if (ii > 0u) {
+                        ii = GetNumberOfSignals() - 1u;
+                    }
+                }
+                StreamString nname;
+                //Identify the timestamp signal by index
+                (void)nname.Printf("%d", ii);
+                ok = timestampDatabase.CreateRelative(nname.Buffer());
                 if (ok) {
-                    uint32 ii = i;
-                    if (isExtensionObject) {//The timesignal can be either the first or the last
-                        if (ii > 0u) {
-                            ii = GetNumberOfSignals() - 1u;
-                        }
-                    }
-                    StreamString nname;
-                    //Identify the timestamp signal by index
-                    (void)nname.Printf("%d", ii);
-                    ok = timestampDatabase.CreateRelative(nname.Buffer());
-                    if (ok) {
-                        ok = timestampDatabase.Write("DefaultTimestampSignal", defaultTimeStampSignal);
-                    }
-                    if (ok) {
-                        ok = timestampDatabase.MoveToAncestor(1u);
-                    }
+                    ok = timestampDatabase.Write("DefaultTimestampSignal", defaultTimeStampSignal);
                 }
-                else {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "At most one DefaultTimestampSignal shall be specified.");
+                if (ok) {
+                    ok = timestampDatabase.MoveToAncestor(1u);
                 }
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "At most one DefaultTimestampSignal shall be specified.");
             }
         }
         bool isTimestampSignal = false;
