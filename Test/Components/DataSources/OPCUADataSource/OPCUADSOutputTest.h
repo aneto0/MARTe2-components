@@ -126,6 +126,26 @@ public:
      */
     bool Test_Synchronise_Timestamp();
 
+    /**
+     * @brief Test the Synchronise method with only the DefaultTimestampSignal
+     */
+    bool Test_Synchronise_Timestamp_Default_Only();
+
+    /**
+     * @brief Test the Synchronise method with only the DefaultTimestampSignal and non DefaultTimestampSignal
+     */
+    bool Test_Synchronise_Timestamp_Default_Mix();
+
+    /**
+     * @brief Test the Synchronise method with ExtensionObject and time stamping at idx 0
+     */
+    bool Test_Synchronise_ExtensionObject_Timestamp_Idx_0();
+
+    /**
+     * @brief Test the Synchronise method with ExtensionObject and time stamping at idx last
+     */
+    bool Test_Synchronise_ExtensionObject_Timestamp_Idx_Last();
+
 
 
 };

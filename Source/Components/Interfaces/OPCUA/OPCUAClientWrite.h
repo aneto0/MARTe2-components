@@ -113,6 +113,16 @@ public:
      */
     UA_ExtensionObject * GetExtensionObject() ;
 
+    /**
+     * TODO
+     */
+    void SetSourceTimestamps(uint64 **sourceTimestampsArr);
+
+    /**
+     *
+     */
+    void Timestamp(UA_WriteValue &writeValue, uint64 sourceTimestampNs);
+
 private:
 
     /**
@@ -168,6 +178,11 @@ private:
      * The ReadResponse struct to be used during SetExtensionObject.
      */
     UA_ReadResponse readResponse;
+
+    /**
+     * Source time-stamps.
+     */
+    uint64 **sourceTimestamps;
 
 };
 

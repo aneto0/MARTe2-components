@@ -176,7 +176,8 @@ uint32 OPCUAClientI::GetReferences(const UA_BrowseRequest bReq,
                                 delete [] stringNodeId;
                             }
                             stringNodeId = new char8[ref.nodeId.nodeId.identifier.string.length + 1u];
-                            ok = StringHelper::Copy(stringNodeId, reinterpret_cast<char8*>(ref.nodeId.nodeId.identifier.string.data));
+                            stringNodeId[ref.nodeId.nodeId.identifier.string.length] = 0U;
+                            ok = StringHelper::CopyN(stringNodeId, reinterpret_cast<char8*>(ref.nodeId.nodeId.identifier.string.data), ref.nodeId.nodeId.identifier.string.length);
                             if (ok) {
                                 numericNodeId = 0u;
                             }

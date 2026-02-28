@@ -53,6 +53,7 @@ OPCUAClientWrite::OPCUAClientWrite() :
     tempVariant = NULL_PTR(UA_Variant*);
     eos = NULL_PTR(UA_ExtensionObject*);
     valuePtr = NULL_PTR(UA_ExtensionObject*);
+    sourceTimestamps = NULL_PTR(uint64 **);
     nOfEos = 0u;
 }
 
@@ -78,6 +79,10 @@ OPCUAClientWrite::~OPCUAClientWrite() {
             (void) UA_ExtensionObject_clear(eos);
         }
     }
+}
+
+void OPCUAClientWrite::SetSourceTimestamps(uint64 **sourceTimestampsArr) {
+    sourceTimestamps = sourceTimestampsArr;
 }
 
 bool OPCUAClientWrite::SetServiceRequest(const uint16 *const namespaceIndexes,
@@ -177,8 +182,7 @@ bool OPCUAClientWrite::SetServiceRequest(const uint16 *const namespaceIndexes,
                     (void) UA_BrowsePathTarget_copy(&(tbpResp.results[0].targets[0]), &ref);
                     (void) UA_NodeId_copy(&(ref.targetId.nodeId), &monitoredNodes[i]);
                     if (writeValues != NULL_PTR(UA_WriteValue*)) {
-                        //UA_WriteValue_init(&writeValues[i]);
-                        writeValues[i].attributeId = 13u; /* UA_ATTRIBUTEID_VALUE */
+                        writeValues[i].attributeId = UA_ATTRIBUTEID_VALUE; 
                         (void) UA_NodeId_copy(&monitoredNodes[i], &(writeValues[i].nodeId));
                         /*lint -e{1013} -e{63} -e{40} hasValue is a member of struct UA_DataValue.*/
                         writeValues[i].value.hasValue = true;
@@ -273,7 +277,7 @@ bool OPCUAClientWrite::SetExtensionObject() {
     /* Reading Extension Object Information */
     UA_ReadValueId *readValues = UA_ReadValueId_new();
     //UA_ReadValueId_init(&readValues[0u]);
-    readValues[0u].attributeId = 13u; /* UA_ATTRIBUTEID_VALUE */
+    readValues[0u].attributeId = UA_ATTRIBUTEID_VALUE; 
 
     if (monitoredNodes != NULL_PTR(UA_NodeId*)) {
         (void) UA_NodeId_copy(&monitoredNodes[0u], &(readValues[0u].nodeId));
@@ -484,13 +488,29 @@ bool OPCUAClientWrite::Write() {
                 /*lint -e{1013} -e{63} -e{40} hasValue is a member of struct UA_DataValue.*/
                 writeValues[0u].value.hasValue = true;
             }
+            if (sourceTimestamps != NULL_PTR(uint64 **)) {
+                if(sourceTimestamps[0u] != NULL_PTR(uint64 *)) {
+                    Timestamp(writeValues[0u], *sourceTimestamps[0u]);
+                }
+            }
             writeRequest.nodesToWriteSize = 1u;
         }
     }
     else {
         writeRequest.nodesToWriteSize = nOfNodes;
     }
-    writeRequest.nodesToWrite = writeValues;
+    if (ok) {
+        if (sourceTimestamps != NULL_PTR(uint64 **)) {
+            for (uint32 i=0u; i<nOfNodes; i++) {
+                if(sourceTimestamps[i] != NULL_PTR(uint64 *)) {
+                    Timestamp(writeValues[i], *sourceTimestamps[i]);
+                }
+            }
+        }
+    }
+    if (ok) {
+        writeRequest.nodesToWrite = writeValues;
+    }
     if (ok) {
         UA_WriteResponse wResp = UA_Client_Service_write(opcuaClient, writeRequest);
         ok = (wResp.responseHeader.serviceResult == 0x00U); /* UA_STATUSCODE_GOOD */
@@ -503,6 +523,17 @@ bool OPCUAClientWrite::Write() {
         //UA_WriteResponse_clear(&wResp); // v1.3 API
     }
     return ok;
+}
+
+void OPCUAClientWrite::Timestamp(UA_WriteValue &writeValue, uint64 sourceTimestampNs) {
+    writeValue.value.hasSourceTimestamp = true;
+    writeValue.value.hasSourcePicoseconds = true;
+    //OPCUA DateTime is multiple of 100 ns
+    uint64 timestampValue100Ns = sourceTimestampNs / 100LLU;
+    uint64 timestampPicoU64 = sourceTimestampNs % 100LLU;
+    uint16 timestampPico = static_cast<uint16>(timestampPicoU64 * 100u); //to fit in 16 bits picoseconds are stored as multiple of 10 ps
+    writeValue.value.sourceTimestamp = static_cast<UA_DateTime>(static_cast<UA_Int64>(UA_DATETIME_UNIX_EPOCH) + static_cast<UA_Int64>(timestampValue100Ns));
+    writeValue.value.sourcePicoseconds = static_cast<UA_Int16>(timestampPico);
 }
 
 bool OPCUAClientWrite::RegisterNodes(const UA_NodeId *const monitoredNodes) {

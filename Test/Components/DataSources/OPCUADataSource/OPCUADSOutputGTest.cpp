@@ -123,6 +123,25 @@ TEST(OPCUADSOutputGTest,Test_Synchronise_Timestamp) {
     ASSERT_TRUE(test.Test_Synchronise_Timestamp());
 }
 
+TEST(OPCUADSOutputGTest,Test_Synchronise_Timestamp_Default_Only) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_Timestamp_Default_Only());
+}
+
+TEST(OPCUADSOutputGTest,Test_Synchronise_Timestamp_Default_Mix) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_Timestamp_Default_Mix());
+}
+
+TEST(OPCUADSOutputGTest,Test_Synchronise_ExtensionObject_Timestamp_Idx_0) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_ExtensionObject_Timestamp_Idx_0());
+}
+
+TEST(OPCUADSOutputGTest,Test_Synchronise_ExtensionObject_Timestamp_Idx_Last) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_ExtensionObject_Timestamp_Idx_Last());
+}
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */

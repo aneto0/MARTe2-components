@@ -50,7 +50,10 @@ namespace MARTe {
  * Since it uses the TranslateBrowsePathToNodeId service, you must indicate the relative browse path of the Address Space
  * starting from the OPCUA Object of interest inside the "Objects" folder.
  *
- * It supports int8/16/32/64, uint8/16/32/64, float32/64, and Introspection Structure. It also support OPCUA ExtensionObject structure.
+ * It supports int8/16/32/64, uint8/16/32/64, float32/64, and Introspection Structure. It also supports OPCUA ExtensionObject structure.
+ *
+ * At most one ExtensionObject is currently supported per DataSource instance. If an ExtensionObject is used no other basic type signals can be added
+ *  to the DataSource instance.
  * Strings are not supported yet.
  *
  * Authentication type can be defined (either None or UserPassword). When
@@ -83,11 +86,21 @@ namespace MARTe {
  *             NamespaceIndex = 2
  *             Path = Object2.Folder1.Node2
  *         }
+ *     }
+ * }
+ * </pre>
+ *
+ * <pre>
+ * +OPCUA = {
+ *     Class = OPCUADataSource::OPCUADSOutput
+ *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
+ *     Authentication = None | UserPassword
+ *     UserPasswordFile = /path/to/the/file
+ *     Signals = {
  *         NodeStructure1 = {
  *             Type = MyStructure
  *             NamespaceIndex = 3
  *             Path = Object3.Block1.Block2.NodeStructure1
- *             Trigger=1 //at least one Signal shall specify it 
  *         }
  *     }
  * }
@@ -113,7 +126,9 @@ namespace MARTe {
  *
  * The DataSource allows associating a timestamp signal to one or more output signals. When a timestamp signal is configured, its value is used to populate the OPC UA SourceTimestamp field when writing the associated nodes.
  *
- * The timestamp signals must be of type uint64 and represent the time value to be used as the OPC UA SourceTimestamp. They are not written to OPC UA. They can be associated explicitly to specific nodes, or globally as a default.
+ * The timestamp signals must be of type uint64 and represents the time value to be used as the OPC UA SourceTimestamp. The timestamp is defined as the number of nanoseconds ellapsed since the UTC Unix Epoch and it will be automatically converted to the OPCUA DateTime. The nodes with timestamps cannot be written to OPC UA as values (even if the Path and NamespaceIndex are specified). 
+ * 
+ * The timestamp signals can be associated explicitly to specific nodes, or globally as a default.
  * <pre>
  * +OPCUA = {
  *     Class = OPCUADataSource::OPCUADSOutput
@@ -126,7 +141,7 @@ namespace MARTe {
  *             NamespaceIndex = 1
  *             Path = Object1.Block1.Block2.Node1
  *         }
- *         TimeStampNode1 = {
+ *         TimestampNode1 = {
  *             Type = uint64 //Timestamp shall be uint64
  *             Timestamp = {"Node1"} //List of nodes to be timestamped using this signal as the time source
  *         }
@@ -156,7 +171,7 @@ namespace MARTe {
  *             NamespaceIndex = 1
  *             Path = Object1.Block1.Block2.Node1
  *         }
- *         TimeStampNode1 = {
+ *         TimestampNode1 = {
  *             Type = uint64 //Timestamp shall be uint64
  *             Timestamp = {"Node1"} //List of nodes to be timestamped using this signal as the time source. The DefaultTimestampSignal is ignored for these nodes.
  *         }
@@ -168,6 +183,29 @@ namespace MARTe {
  *     }
  * }
  * </pre>
+ *
+ * ExtensionObjects can also be timestamped. Only one Timestamp signal with the property DefaultTimestampSignal shall be set.
+ *
+ ** <pre>
+ * +OPCUA = {
+ *     Class = OPCUADataSource::OPCUADSOutput
+ *     Address = "opc.tcp://192.168.130.20:4840" //The OPCUA Server Address
+ *     ...
+ *     Signals = {
+ *           TimestampGlobal = {
+ *             Type = uint64 //Timestamp shall be uint64
+ *             DefaultTimestampSignal = 1
+ *         }
+ *         NodeStructure1 = {
+ *             Type = MyStructure
+ *             NamespaceIndex = 3
+ *             Path = Object3.Block1.Block2.NodeStructure1
+ *             ExtensionObject = "yes"
+ *         }
+ *     }
+ * }
+ * </pre>
+
  */
 class OPCUADSOutput: public DataSourceI {
 
@@ -264,8 +302,42 @@ private:
     /**
      * TODO
      */
+    bool IsDefaultTimestampSignal(const uint32 idx);
+
+    /**
+     * TODO
+     */
     bool PopulateTimestampDatabase();
 
+    /**
+     * TODO
+     */
+    bool PopulateTimestampNodes();
+
+    /**
+     * TODO
+     */
+    bool FindTargetIndex(const char8 * const targetName, uint32 &idx);
+
+    /**
+     * TODO
+     */
+    bool SetupNodes();
+
+    /**
+     * TODO
+     */
+    uint32 SetupExtensionObject();
+
+    /**
+     * TODO
+     */
+    bool MapNodeSignals();
+
+    /**
+     * TODO
+     */
+    bool MapExtensionObjectSignals();
 
     /**
      * @brief Read the structure recursively and gets informations about the length of the ByteString (for ExtensionObject).
@@ -308,11 +380,6 @@ private:
      * Holds the value of the configuration parameter Address
      */
     StreamString serverAddress;
-
-    /**
-     * The number of Signals during initialise
-     */
-    uint32 nOfSignals;
 
     /**
      * The number of OPC UA Nodes
@@ -408,6 +475,16 @@ private:
      * TODO 
      */
     ConfigurationDatabase timestampDatabase;
+
+    /**
+     * TODO
+     */
+    uint64 **timestampNodes;
+
+    /**
+     * Trigger signal set?
+     */
+    bool triggerSignalSet;
 
 };
 
