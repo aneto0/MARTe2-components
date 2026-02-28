@@ -207,6 +207,7 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
                     }
                     if (isExtensionObjectSignal) {
                         nElements = new uint32[1u];
+                        types = new TypeDescriptor[1u];
                         uint32 numberOfElements;
                         (void) helper.Read("NumberOfElements", numberOfElements, 1u);
                         nElements[0u] = numberOfElements;
@@ -549,20 +550,18 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
             ok = (nElements != NULL_PTR(uint32*));
             if (ok) {
                 masterClient->SetDataPtr(bodyLength);
-                for (uint32 k = 0u; (k < numberOfNodes) && (ok); k++) {
-                    uint32 nodeCounter = 0u;
-                    uint32 index;
-                    for (uint32 j = 0u; (j < nElements[k]) && (ok); j++) {
-                        index = 0u;
-                        uint32 numberOfNodesForEachIteration = (numberOfNodes / nElements[k]) * (j + 1u);
-                        while (nodeCounter < numberOfNodesForEachIteration) {
-                            if (ok) {
-                                ok = masterClient->GetExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, index);
-                            }
-                        }
+                uint32 nodeCounter = 0u;
+                uint32 index;
+                for (uint32 j = 0u; (j < nElements[0u]) && (ok); j++) {
+                    index = 0u;
+                    uint32 numberOfNodesForEachIteration = (numberOfNodes / nElements[0u]) * (j + 1u);
+                    while (nodeCounter < numberOfNodesForEachIteration) {
                         if (ok) {
-                            ok = masterClient->SetExtensionObject();
+                            ok = masterClient->GetExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, index);
                         }
+                    }
+                    if (ok) {
+                        ok = masterClient->SetExtensionObject();
                     }
                 }
             }
@@ -673,17 +672,24 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
         uint32 nodeIdx = signalIdxMap[signalIdx];
         if (!isTimestampSignal) {
             if (ok) {
-                ok = masterClient->GetSignalMemory(signalAddress, nodeIdx, types[nodeIdx], nElements[nodeIdx]);
-            }
-            if ((!isExtensionObject) && ok) {
-                uint8 nDimensions;
-                if (nElements[nodeIdx] > 1u) {
-                    nDimensions = 1u;
+                if (isExtensionObject) {
+                    ok = masterClient->GetSignalMemory(signalAddress, nodeIdx, types[0u], nElements[0u]);
                 }
                 else {
-                    nDimensions = 0u;
+                    ok = masterClient->GetSignalMemory(signalAddress, nodeIdx, types[nodeIdx], nElements[nodeIdx]);
                 }
-                masterClient->SetWriteRequest(nodeIdx, nDimensions, nElements[nodeIdx], types[nodeIdx]);
+            }
+            if (ok) {
+                if (!isExtensionObject) {
+                    uint8 nDimensions;
+                    if (nElements[nodeIdx] > 1u) {
+                        nDimensions = 1u;
+                    }
+                    else {
+                        nDimensions = 0u;
+                    }
+                    masterClient->SetWriteRequest(nodeIdx, nDimensions, nElements[nodeIdx], types[nodeIdx]);
+                }
             }
         }
         else {

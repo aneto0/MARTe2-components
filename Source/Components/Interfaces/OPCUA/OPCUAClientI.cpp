@@ -164,7 +164,11 @@ uint32 OPCUAClientI::GetReferences(const UA_BrowseRequest bReq,
                 for (uint32 j = 0u; j < bResp.results[i].referencesSize; ++j) {
                     UA_ReferenceDescription ref;
                     (void) UA_ReferenceDescription_copy(&(bResp.results[i].references[j]), &ref);
-                    if (StringHelper::CompareN(reinterpret_cast<char8*>(ref.browseName.name.data), path, StringHelper::Length(path)) == 0) {
+                    bool areEqual = (ref.browseName.name.length == StringHelper::Length(path));
+                    if (areEqual) {
+                        areEqual = (StringHelper::CompareN(reinterpret_cast<char8*>(ref.browseName.name.data), path, StringHelper::Length(path)) == 0);
+                    }
+                    if (areEqual) {
                         id = ref.referenceTypeId.identifier.numeric;
                         namespaceIndex = ref.nodeId.nodeId.namespaceIndex;
                         if (ref.nodeId.nodeId.identifierType == UA_NODEIDTYPE_NUMERIC) {

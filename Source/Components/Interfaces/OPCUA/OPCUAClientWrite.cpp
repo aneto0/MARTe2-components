@@ -165,7 +165,7 @@ bool OPCUAClientWrite::SetServiceRequest(const uint16 *const namespaceIndexes,
                     elem->targetName = UA_QUALIFIEDNAME_ALLOC(namespaceIndexes[i], const_cast<char8*>(path[j].Buffer()));
                 }
                 if (tempStringNodeId != NULL_PTR(char8*)) {
-                    delete tempStringNodeId;
+                    delete [] tempStringNodeId;
                 }
             }
 
@@ -567,6 +567,7 @@ bool OPCUAClientWrite::UnregisterNodes(const UA_NodeId *const monitoredNodes) {
         ok = (rResp.responseHeader.serviceResult == 0x00U);
         UA_Array_delete(rReq.nodesToUnregister, static_cast<osulong>(nOfNodes), &UA_TYPES[UA_TYPES_NODEID]);
         UA_UnregisterNodesResponse_deleteMembers(&rResp);
+        //UA_UnregisterNodesRequest_clear(&rReq); -->double-free corruption
         //UA_UnregisterNodesRequest_deleteMembers(&rReq); -->double-free corruption
     }
     return ok;
