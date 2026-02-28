@@ -62,6 +62,21 @@ public:
     bool TestInitialise_ExtensionObject();
 
     /**
+     * @brief Tests the Initialise method with more than one ExtensionObject which is not allowed.
+     */
+    bool TestInitialise_MoreThanOneExtensionObject();
+
+    /**
+     * @brief Tests the Initialise method without specifyng the Path in the ExtensionObject.
+     */
+    bool TestInitialise_ExtensionObject_NoPath();
+
+    /**
+     * @brief Tests the Initialise method without specifyng the NamespaceIndex in the ExtensionObject.
+     */
+    bool TestInitialise_ExtensionObject_NoNamespaceIndex();
+
+    /**
      * @brief Tests the Initialise method without specifying the address parameter.
      */
     bool TestInitialise_NoAddress();
@@ -82,6 +97,16 @@ public:
     bool TestInitialise_NoNamespaceIndex();
 
     /**
+     * @brief Tests the Initialise method without specifying an invalid Authentication method.
+     */
+    bool TestInitialise_Authentication_InvalidParameter();
+
+    /**
+     * @brief Tests the Initialise method with Authentication pointing at an invalid file.
+     */
+    bool TestInitialise_Authentication_InvalidFile();
+
+    /**
      * @brief Tests the Initialise method specifying a signal number of dimensions greater than 1.
      */
     bool Test_NumberOfDimensionsGreater1();
@@ -92,9 +117,34 @@ public:
     bool Test_SetConfiguredDatabase_FailSetServiceRequest();
 
     /**
-     * @brief Tests the SetConfiguredDatabase method when ExtensionObject is "yes".
+     * @brief Tests that the ExtensionObject is not allowed to be mixed with normal nodes.
      */
-    bool Test_SetConfiguredDatabase_ExtensionObject();
+    bool Test_SetConfiguredDatabase_ExtensionObject_MixedSignal();
+
+    /**
+     * @brief Tests that the ExtensionObject is not allowed to be mixed with normal nodes and timing signals.
+     */
+    bool Test_SetConfiguredDatabase_ExtensionObject_MixedSignals();
+
+    /**
+     * @brief Tests that only one DefaultTimestampSignal is allowed.
+     */
+    bool Test_SetConfiguredDatabase_MoreThanOneDefaultTimestamp();
+
+    /**
+     * @brief Tests that only uint64 is allowed for the timestamp signal.
+     */
+    bool Test_SetConfiguredDatabase_TimestampNotUint64();
+
+    /**
+     * @brief Tests that the timestamp signal is scalar.
+     */
+    bool Test_SetConfiguredDatabase_TimestampNotScalar();
+
+    /**
+     * @brief Tests that a trigger shall be set.
+     */
+    bool Test_SetConfiguredDatabase_NoTrigger();
 
     /**
      * @brief Test the user/password Authentication capability of the OPC UA Server.

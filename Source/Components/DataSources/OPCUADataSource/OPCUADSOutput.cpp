@@ -510,11 +510,13 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
             ok = SetupNodes();
         }
     }
-    if (isExtensionObject) {
-        ok = MapExtensionObjectSignals();
-    }
-    else {
-        ok = MapNodeSignals();
+    if (ok) {
+        if (isExtensionObject) {
+            ok = MapExtensionObjectSignals();
+        }
+        else {
+            ok = MapNodeSignals();
+        }
     }
     if (ok) {
         ok = PopulateTimestampNodes();
@@ -612,16 +614,22 @@ bool OPCUADSOutput::PopulateTimestampNodes() {
             }
         }
     }
+    bool defaultTimestampSignalFound = false;
     for (uint32 i=0u; (i<numberOfTimestampSources) && (ok); i++) {
         ok = timestampDatabase.MoveToChild(i);
-        StreamString defaultTimeStampSignal;
-        bool isDefaultTimestamp = timestampDatabase.Read("DefaultTimestampSignal", defaultTimeStampSignal);
+        StreamString defaultTimestampSignal;
+        bool isDefaultTimestamp = timestampDatabase.Read("DefaultTimestampSignal", defaultTimestampSignal);
         if (isDefaultTimestamp) {
-            for (uint32 k=0u; (k<numberOfTimestampNodes); k++) {
+            ok = !defaultTimestampSignalFound;
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "At most one Timestamp signal DefaultTimestampSignal shall be set");
+            }
+            for (uint32 k=0u; (k<numberOfTimestampNodes) && (ok); k++) {
                 if (timestampNodes[k] == NULL_PTR(uint64 *)) { //Do not overwrite existing signals
                     timestampNodes[k] = &timestampSignals[i];
                 }
             }
+            defaultTimestampSignalFound = true;
         }
         else {
             ok = (!isExtensionObject);
