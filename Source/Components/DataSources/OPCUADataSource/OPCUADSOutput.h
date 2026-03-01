@@ -290,52 +290,53 @@ public:
 private:
 
     /**
-     * TODO
+     * @brief Gets the actual number of nodes (OPCUA nodes - number of timestamp signals)
      */
     uint32 GetNumberOfNodes();
 
     /**
-     * TODO
+     * @brief Returns true if the signal at the input idx was declared as a Timestamp signal.
      */
     bool IsTimestampSignal(const uint32 idx);
 
     /**
-     * TODO
+     * @brief Returns true if the signal at the input idx was declared as a Timestamp signal with DefaultTimestampSignal = 1.
      */
     bool IsDefaultTimestampSignal(const uint32 idx);
 
     /**
-     * TODO
+     * @brief Helper method to populate the timestampDatabase with the mapping of the timestamp signals to the OPCUA nodes.
      */
     bool PopulateTimestampDatabase();
 
     /**
-     * TODO
+     * @brief Helper method to populate the OPCUA timestamp nodes.
      */
     bool PopulateTimestampNodes();
 
     /**
-     * TODO
+     * @brief Find the signal idx against the targetName. This method is used to map the timestamping signal to the relevant OPCUA nodes.
      */
     bool FindTargetIndex(const char8 * const targetName, uint32 &idx);
 
     /**
-     * TODO
+     * @brief Helper method to setup the OPCUA nodes.
      */
     bool SetupNodes();
 
     /**
-     * TODO
+     * @brief Helper method to the Setup the OPCUA node as an ExtensionObject.
+     * @return the size of the ExtensionObject
      */
     uint32 SetupExtensionObject();
 
     /**
-     * TODO
+     * Helper method to map the OPCUA nodes to the relevant MARTe signals.
      */
     bool MapNodeSignals();
 
     /**
-     * TODO
+     * Helper method to map the OPCUA ExtensionObject to the MARTe signals.
      */
     bool MapExtensionObjectSignals();
 
@@ -404,17 +405,17 @@ private:
     uint16 *namespaceIndexes;
 
     /**
-     * TODO
+     * Maps the nodes to the MARTe signals (given that they may be interleaved with timestamp signals).
      */
     uint32 *signalIdxMap;
     
     /**
-     * TODO
+     * Holds the memory for the timestamp signal values.
      */
     uint64 *timestampSignals;
 
     /**
-     * TODO
+     * Helper database to store the raw signals received at the Initialise.
      */
     ConfigurationDatabase tempSignalsDatabase;
 
@@ -472,12 +473,12 @@ private:
     StreamString password;
 
     /**
-     * TODO 
+     * Helper database to store the mapping of the timestamp signals to the nodes.
      */
     ConfigurationDatabase timestampDatabase;
 
     /**
-     * TODO
+     * For each node store the location of its timestamp signal pointer (may be NULL if not used).
      */
     uint64 **timestampNodes;
 

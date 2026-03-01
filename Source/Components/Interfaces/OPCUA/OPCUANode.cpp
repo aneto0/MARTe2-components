@@ -171,7 +171,7 @@ bool OPCUANode::GetOPCVariable(OPCUA::OPCUANodeSettings &settings,
          strcpy(readName, GetName());*/
         //StreamString readName = GetName();
         /*lint -e{1055} -e{64} -e{746} UA_QUALIFIEDNAME is declared in the open62541 library.*/
-        settings->nodeName = UA_QUALIFIEDNAME(1, const_cast<char8*>(GetName()));
+        settings->nodeName = UA_QUALIFIEDNAME(1u, const_cast<char8*>(GetName()));
         settings->attr.displayName = UA_LOCALIZEDTEXT(const_cast<char8*>("en-US"), const_cast<char8*>(GetName()));
         if (parentNodeId == 0u) {
             settings->parentNodeId = UA_NODEID_NUMERIC(0u, 85u); /* UA_NS0ID_OBJECTSFOLDER = 85 */

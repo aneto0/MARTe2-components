@@ -205,7 +205,7 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
                             namespaceIndexes[0u] = namespaceIdx;
                         }
                     }
-                    if (isExtensionObjectSignal) {
+                    if (ok) {
                         nElements = new uint32[1u];
                         types = new TypeDescriptor[1u];
                         uint32 numberOfElements;
@@ -242,7 +242,6 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
 }
 
 uint32 OPCUADSOutput::GetNumberOfNodes() {
-    uint32 numberOfNodes = 0u;
     uint32 numberOfSignals = GetNumberOfSignals();
     (void) timestampDatabase.MoveAbsolute("Sources");
     uint32 numberOfTimestampSignals = timestampDatabase.GetNumberOfChildren();
@@ -299,7 +298,7 @@ bool OPCUADSOutput::PopulateTimestampDatabase() {
                     StreamString nname;
                     (void)nname.Printf("%d", ii);
                     ok = timestampDatabase.CreateRelative(nname.Buffer());
-                    for (uint32 n=0; (n<numberOfTimestampTargets) && (ok); n++) {
+                    for (uint32 n=0u; (n<numberOfTimestampTargets) && (ok); n++) {
                         nname = "";
                         ii = n;
                         (void)nname.Printf("%d", ii);
@@ -348,6 +347,7 @@ uint32 OPCUADSOutput::SetupExtensionObject() {
     return bodyLength;
 }
 
+/*lint -e{423} -e{613} SetupNodes is only called if !isExtensionObject => nElements, types, namespaceIndexes and paths have not been allocated yet*/
 bool OPCUADSOutput::SetupNodes() {
     uint8 nDimensions = 0u;
     nElements = new uint32[numberOfNodes];
@@ -356,12 +356,10 @@ bool OPCUADSOutput::SetupNodes() {
     paths = new StreamString[numberOfNodes];
     bool ok = timestampDatabase.CreateAbsolute("NodesIdx");
     uint32 s=0u;
-    for (uint32 k=0; (k < numberOfSignals) && (ok); k++) {
+    for (uint32 k=0u; (k < numberOfSignals) && (ok); k++) {
         bool isTimestampSignal = IsTimestampSignal(k);
         StreamString signalName;
-        if (ok) {
-            ok = GetSignalName(k, signalName);
-        }
+        ok = GetSignalName(k, signalName);
 
         if (!isTimestampSignal) {
             if (ok) {
@@ -378,6 +376,7 @@ bool OPCUADSOutput::SetupNodes() {
             }
             if (ok) {
                 types[s] = GetSignalType(k);
+                /*lint -e{9007} no side effects in the ==*/
                 ok = !((types[s].type == CArray) || (types[s].type == BT_CCString) || (types[s].type == PCString) || (types[s].type == SString));
                 if (!ok) {
                     REPORT_ERROR(ErrorManagement::ParametersError, "Type String is not supported yet.");
@@ -396,7 +395,7 @@ bool OPCUADSOutput::SetupNodes() {
                     REPORT_ERROR(ErrorManagement::ParametersError, "Signal %s is a Timestamp signal and shall be of type uint64.", signalName.Buffer());
                 }
             }
-            uint32 nEl;
+            uint32 nEl = 0u;
             if (ok) {
                 ok = GetSignalNumberOfElements(k, nEl);
             }
@@ -447,6 +446,8 @@ bool OPCUADSOutput::MapNodeSignals() {
     return ok;
 }
 
+/*lint -e{423} -e{613} MapExtensionObjectSignals is only called if isExtensionObject => signalIdxMap and timestampSignals
+ * have not been allocated yet*/
 bool OPCUADSOutput::MapExtensionObjectSignals() {
     bool ok = true;
     signalIdxMap = new uint32[numberOfSignals];
@@ -495,7 +496,7 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
     if (ok) {
         ok = PopulateTimestampDatabase();
     }
-    uint32 bodyLength;
+    uint32 bodyLength = 0u;
     if (ok) {
         numberOfNodes = GetNumberOfNodes();
         if (isExtensionObject) {
@@ -531,6 +532,7 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not connect to the Server.");
         }
     }
+    /*lint -e{613} masterClient cannot be NULL as otherwise ok = false*/
     if (ok) {
         REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
         uint32 numberOfNodesRemote = numberOfNodes;
@@ -542,6 +544,7 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "SetServiceRequest Failed.");
         }
     }
+    /*lint -e{613} masterClient cannot be NULL as otherwise ok = false*/
     if (ok) {
         masterClient->SetValueMemories(numberOfNodes);
         if (isExtensionObject) {
@@ -566,6 +569,7 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
 
+    /*lint -e{613} masterClient cannot be NULL as otherwise ok = false*/
     if (ok) {
         masterClient->SetSourceTimestamps(timestampNodes);
     }
@@ -578,6 +582,7 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
     return ok;
 }
 
+/*lint -e{1762} function cannot be made const because of the ConfigurationDatabase*/
 bool OPCUADSOutput::FindTargetIndex(const char8 * const targetName, uint32 &idx) {
     ConfigurationDatabase timestampDatabaseTemp = timestampDatabase;
     bool ok = timestampDatabaseTemp.MoveAbsolute("NodesIdx");
@@ -590,6 +595,7 @@ bool OPCUADSOutput::FindTargetIndex(const char8 * const targetName, uint32 &idx)
     return ok;
 }
 
+/*lint -e{613} all memory allocated is a precondition to PopulateTimestampNodes()*/
 bool OPCUADSOutput::PopulateTimestampNodes() {
     uint32 numberOfTimestampNodes = numberOfNodes;
     if (isExtensionObject) {
@@ -603,12 +609,6 @@ bool OPCUADSOutput::PopulateTimestampNodes() {
     bool ok = timestampDatabase.MoveAbsolute("Sources");
     if (ok) {
         numberOfTimestampSources = timestampDatabase.GetNumberOfChildren();
-        if (isExtensionObject) {
-            ok = (numberOfTimestampSources < 2u);
-            if (!ok) {
-                 REPORT_ERROR(ErrorManagement::ParametersError, "With ExtensionObject at most one Timestamp signal shall be used.");
-            }
-        }
     }
     bool defaultTimestampSignalFound = false;
     for (uint32 i=0u; (i<numberOfTimestampSources) && (ok); i++) {
@@ -628,22 +628,13 @@ bool OPCUADSOutput::PopulateTimestampNodes() {
             defaultTimestampSignalFound = true;
         }
         else {
-            ok = (!isExtensionObject);
-            if (!ok) {
-                 REPORT_ERROR(ErrorManagement::ParametersError, "With ExtensionObject the Timestamp signal shall use the property DefaultTimestampSignal.");
-            }
-
-            uint32 numberOfTargets = 0u;;
-            if (ok) {
-                numberOfTargets = timestampDatabase.GetNumberOfChildren();
-            }
+            uint32 numberOfTargets = timestampDatabase.GetNumberOfChildren();
             for (uint32 k=0u; (k<numberOfTargets) && (ok); k++) {
                 StreamString nodeName;
-                if (ok) {
-                    StreamString nn;
-                    (void)nn.Printf("%s", k);
-                    ok = timestampDatabase.Read(nn.Buffer(), nodeName);
-                }
+                StreamString nn;
+                uint32 kk = k;
+                (void)nn.Printf("%s", kk);
+                ok = timestampDatabase.Read(nn.Buffer(), nodeName);
                 uint32 nodeIdx = 0u;
                 if (ok) {
                     ok = FindTargetIndex(nodeName.Buffer(), nodeIdx);
@@ -675,13 +666,11 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
         bool isTimestampSignal = IsTimestampSignal(signalIdx);
         uint32 nodeIdx = signalIdxMap[signalIdx];
         if (!isTimestampSignal) {
-            if (ok) {
-                if (isExtensionObject) {
-                    ok = masterClient->GetSignalMemory(signalAddress, nodeIdx, types[0u], nElements[0u]);
-                }
-                else {
-                    ok = masterClient->GetSignalMemory(signalAddress, nodeIdx, types[nodeIdx], nElements[nodeIdx]);
-                }
+            if (isExtensionObject) {
+                ok = masterClient->GetSignalMemory(signalAddress, nodeIdx, types[0u], nElements[0u]);
+            }
+            else {
+                ok = masterClient->GetSignalMemory(signalAddress, nodeIdx, types[nodeIdx], nElements[nodeIdx]);
             }
             if (ok) {
                 if (!isExtensionObject) {
@@ -855,6 +844,7 @@ bool OPCUADSOutput::GetStructure(const Introspection *const intro,
     return ok;
 }
 
+/*lint -e{1762} function cannot be made const because of the ConfigurationDatabase*/
 bool OPCUADSOutput::IsTimestampSignal(const uint32 idx) {
     StreamString nn;
     ConfigurationDatabase timestampDatabaseTemp = timestampDatabase;
@@ -867,6 +857,7 @@ bool OPCUADSOutput::IsTimestampSignal(const uint32 idx) {
 
 }
 
+/*lint -e{1762} function cannot be made const because of the ConfigurationDatabase*/
 bool OPCUADSOutput::IsDefaultTimestampSignal(const uint32 idx) {
     StreamString nn;
     ConfigurationDatabase timestampDatabaseTemp = timestampDatabase;

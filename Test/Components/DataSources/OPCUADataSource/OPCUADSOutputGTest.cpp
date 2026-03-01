@@ -143,6 +143,31 @@ TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_NoTrigger) {
     ASSERT_TRUE(test.Test_SetConfiguredDatabase_NoTrigger());
 }
 
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_ExtensionObject_Timestamp_NotDefault) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject_Timestamp_NotDefault());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_ExtensionObject_MoreThanOneTimestamp) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject_MoreThanOneTimestamp());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_MoreThanOneTrigger) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_MoreThanOneTrigger());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_TimestampNonExisting) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_TimestampNonExisting());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_InputSignals) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_InputSignals());
+}
+
 TEST(OPCUADSOutputGTest,Test_Authentication) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.Test_Authentication());

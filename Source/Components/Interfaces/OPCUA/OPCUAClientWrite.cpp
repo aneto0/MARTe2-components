@@ -76,15 +76,16 @@ OPCUAClientWrite::~OPCUAClientWrite() {
     else {
         if (eos != NULL_PTR(UA_ExtensionObject*)) {
             /*lint -e{526} -e{628} -e{1551} -e{1055} no exception thrown, function defined in open62541*/
-            (void) UA_ExtensionObject_clear(eos);
+            UA_ExtensionObject_clear(eos);
         }
     }
 }
 
-void OPCUAClientWrite::SetSourceTimestamps(uint64 **sourceTimestampsArr) {
+void OPCUAClientWrite::SetSourceTimestamps(uint64 ** const sourceTimestampsArr) {
     sourceTimestamps = sourceTimestampsArr;
 }
 
+/*lint -e{641} -e{9117} enums stored as ints.*/
 bool OPCUAClientWrite::SetServiceRequest(const uint16 *const namespaceIndexes,
                                          StreamString *const nodePaths,
                                          const uint32 numberOfNodes) {
@@ -272,6 +273,7 @@ bool OPCUAClientWrite::GetExtensionObjectByteString(const TypeDescriptor *const&
     return ok;
 }
 
+/*lint -e{641} -e{9117} enums stored as ints.*/
 bool OPCUAClientWrite::SetExtensionObject() {
     bool ok;
     /* Reading Extension Object Information */
@@ -304,6 +306,7 @@ bool OPCUAClientWrite::SetExtensionObject() {
             nOfEos = static_cast<uint32>(readResponse.results[0].value.arrayLength);
             eos = reinterpret_cast<UA_ExtensionObject*>(UA_Array_new(static_cast<osulong>(nOfEos), &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]));
             ok = (UA_ExtensionObject_copy(valuePtr, eos) == UA_STATUSCODE_GOOD);
+            /*lint -e{613} tempVariant != null is a precondition already tested => ok = true*/ 
             UA_Variant_setArray(&tempVariant[0u], eos, static_cast<osulong>(readResponse.results[0].value.arrayLength), &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
         }
         else {
@@ -311,12 +314,12 @@ bool OPCUAClientWrite::SetExtensionObject() {
             eos = UA_ExtensionObject_new();
             UA_ExtensionObject_init(eos);
             ok = (UA_ExtensionObject_copy(valuePtr, eos) == UA_STATUSCODE_GOOD);
-            /*lint -e{1055} function defined in open62541*/
+            /*lint -e{1055} -e{613} function defined in open62541 tempVariant != null is a precondition already tested => ok = true*/
             (void) UA_Variant_setScalar(&tempVariant[0u], eos, &UA_TYPES[UA_TYPES_EXTENSIONOBJECT]);
         }
     }
     /*lint -e{526} -e{628} -e{1551} -e{1055} no exception thrown, function defined in open62541*/
-    (void) UA_ReadValueId_clear(readValues);
+    UA_ReadValueId_clear(readValues);
     UA_ReadValueId_delete(readValues);
     //UA_ReadRequest_deleteMembers(&readRequest);-->double-free corruption
     UA_ReadResponse_deleteMembers(&readResponse);
@@ -462,30 +465,26 @@ void OPCUAClientWrite::SetWriteRequest(const uint32 idx,
 
 }
 
+/*lint -e{1013} -e{63} -e{40} ignore false positives on non-existing opcua struct members.*/
 bool OPCUAClientWrite::Write() {
     bool ok = true;
     if (dataPtr != NULL_PTR(void*)) {
-        if ((eos != NULL_PTR(UA_ExtensionObject*)) && (valuePtr != NULL_PTR(UA_ExtensionObject*)) && (tempVariant != NULL_PTR(UA_Variant*))) {
+        if ((eos != NULL_PTR(UA_ExtensionObject*)) && (valuePtr != NULL_PTR(UA_ExtensionObject*)) && (tempVariant != NULL_PTR(UA_Variant*))) { //Is an ExtensionObject
             uint32 actualBodyLength;
             if (nOfEos > 1u) {
-                for (uint32 j = 0u; j < nOfEos; j++) {
-                    if (ok) {
-                        //UA_ExtensionObject_copy(&valuePtr[j], &eos[j]);
-                        ok = MemoryOperationsHelper::Copy(eos[j].content.encoded.body.data, dataPtr, static_cast<uint32>(eos[j].content.encoded.body.length));
-                        dataPtr = &reinterpret_cast<uint8*>(dataPtr)[eos[j].content.encoded.body.length];
-                    }
+                for (uint32 j = 0u; (j < nOfEos) && (ok); j++) {
+                    //UA_ExtensionObject_copy(&valuePtr[j], &eos[j]);
+                    ok = MemoryOperationsHelper::Copy(eos[j].content.encoded.body.data, dataPtr, static_cast<uint32>(eos[j].content.encoded.body.length));
+                    dataPtr = &reinterpret_cast<uint8*>(dataPtr)[eos[j].content.encoded.body.length];
                 }
                 actualBodyLength = (nOfEos * static_cast<uint32>(eos[0u].content.encoded.body.length));
                 SeekDataPtr(actualBodyLength);
             }
             else {
-                if (ok) {
-                    ok = MemoryOperationsHelper::Copy(eos->content.encoded.body.data, dataPtr, static_cast<uint32>(eos->content.encoded.body.length));
-                }
+                ok = MemoryOperationsHelper::Copy(eos->content.encoded.body.data, dataPtr, static_cast<uint32>(eos->content.encoded.body.length));
             }
             if (writeValues != NULL_PTR(UA_WriteValue*)) {
                 writeValues[0u].value.value = static_cast<const UA_Variant>(tempVariant[0u]);
-                /*lint -e{1013} -e{63} -e{40} hasValue is a member of struct UA_DataValue.*/
                 writeValues[0u].value.hasValue = true;
             }
             if (sourceTimestamps != NULL_PTR(uint64 **)) {
@@ -500,7 +499,7 @@ bool OPCUAClientWrite::Write() {
         writeRequest.nodesToWriteSize = nOfNodes;
     }
     if (ok) {
-        if (sourceTimestamps != NULL_PTR(uint64 **)) {
+        if (sourceTimestamps != NULL_PTR(const uint64 **)) {
             for (uint32 i=0u; i<nOfNodes; i++) {
                 if(sourceTimestamps[i] != NULL_PTR(uint64 *)) {
                     Timestamp(writeValues[i], *sourceTimestamps[i]);
@@ -525,7 +524,8 @@ bool OPCUAClientWrite::Write() {
     return ok;
 }
 
-void OPCUAClientWrite::Timestamp(UA_WriteValue &writeValue, uint64 sourceTimestampNs) {
+/*lint -e{1013} -e{63} -e{40} -e{1762} ignore false positives on non-existing opcua struct members. Do not make the function const.*/
+void OPCUAClientWrite::Timestamp(UA_WriteValue &writeValue, const uint64 sourceTimestampNs) {
     writeValue.value.hasSourceTimestamp = true;
     writeValue.value.hasSourcePicoseconds = true;
     //OPCUA DateTime is multiple of 100 ns
@@ -533,7 +533,7 @@ void OPCUAClientWrite::Timestamp(UA_WriteValue &writeValue, uint64 sourceTimesta
     uint64 timestampPicoU64 = sourceTimestampNs % 100LLU;
     uint16 timestampPico = static_cast<uint16>(timestampPicoU64 * 100u); //to fit in 16 bits picoseconds are stored as multiple of 10 ps
     writeValue.value.sourceTimestamp = static_cast<UA_DateTime>(static_cast<UA_Int64>(UA_DATETIME_UNIX_EPOCH) + static_cast<UA_Int64>(timestampValue100Ns));
-    writeValue.value.sourcePicoseconds = static_cast<UA_Int16>(timestampPico);
+    writeValue.value.sourcePicoseconds = static_cast<UA_UInt16>(timestampPico);
 }
 
 bool OPCUAClientWrite::RegisterNodes(const UA_NodeId *const monitoredNodes) {

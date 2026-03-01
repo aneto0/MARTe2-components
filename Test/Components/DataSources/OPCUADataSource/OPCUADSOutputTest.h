@@ -147,6 +147,31 @@ public:
     bool Test_SetConfiguredDatabase_NoTrigger();
 
     /**
+     * @brief Tests that with ExtensionObject the only timestamp signal allowed is with DefaultTimestampSignal.
+     */
+    bool Test_SetConfiguredDatabase_ExtensionObject_Timestamp_NotDefault();
+
+    /**
+     * @brief Tests that with ExtensionObject only one timestamp signal is allowed.
+     */
+    bool Test_SetConfiguredDatabase_ExtensionObject_MoreThanOneTimestamp();
+
+    /**
+     * @brief Tests that the DataSource only accepts one trigger signal
+     */
+    bool Test_SetConfiguredDatabase_MoreThanOneTrigger();
+
+    /**
+     * @brief Tests that the DataSource does not accept input signals. 
+     */
+    bool Test_SetConfiguredDatabase_InputSignals();
+
+    /**
+     * @brief Tests that the DataSource detects an invalid timestamping signal.
+     */
+    bool Test_SetConfiguredDatabase_TimestampNonExisting();
+
+    /**
      * @brief Test the user/password Authentication capability of the OPC UA Server.
      */
     bool Test_Authentication();
