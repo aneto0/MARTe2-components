@@ -315,6 +315,7 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
             config->accessControl.deleteMembers(&config->accessControl);
 #endif
 #if (UA_OPEN62541_VER_MAJOR > 1) || ((UA_OPEN62541_VER_MAJOR >= 1) && (UA_OPEN62541_VER_MINOR >= 2))
+            /*lint -e{747} unsigned long to unsigned int*/
             UA_StatusCode retval = UA_AccessControl_default(config, false,
                     &config->certificateVerification, &config->securityPolicies[config->securityPoliciesSize-1].policyUri, nOfAuthKeys, authKeys);
 #else

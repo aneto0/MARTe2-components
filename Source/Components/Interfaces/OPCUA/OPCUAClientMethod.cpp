@@ -497,7 +497,7 @@ bool OPCUAClientMethod::SetExtensionObject() {
         }
     }
     /*lint -e{526} -e{628} -e{1551} -e{1055} -e{746} no exception thrown, function defined in open62541*/
-    (void) UA_ReadValueId_clear(readValues);
+    UA_ReadValueId_clear(readValues);
     UA_ReadValueId_delete(readValues);
     return ok;
 }
