@@ -58,6 +58,21 @@ TEST(OPCUADSOutputGTest,TestInitialise_ExtensionObject) {
     ASSERT_TRUE(test.TestInitialise_ExtensionObject());
 }
 
+TEST(OPCUADSOutputGTest,TestInitialise_ExtensionObject_NoPath) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_ExtensionObject_NoPath());
+}
+
+TEST(OPCUADSOutputGTest,TestInitialise_ExtensionObject_NoNamespaceIndex) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_ExtensionObject_NoNamespaceIndex());
+}
+
+TEST(OPCUADSOutputGTest,TestInitialise_MoreThanOneExtensionObject) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_MoreThanOneExtensionObject());
+}
+
 TEST(OPCUADSOutputGTest,TestInitialise_NoAddress) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.TestInitialise_NoAddress());
@@ -78,6 +93,16 @@ TEST(OPCUADSOutputGTest,TestInitialise_NoNamespaceIndex) {
     ASSERT_TRUE(test.TestInitialise_NoNamespaceIndex());
 }
 
+TEST(OPCUADSOutputGTest,TestInitialise_Authentication_InvalidParameter) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_Authentication_InvalidParameter());
+}
+
+TEST(OPCUADSOutputGTest,TestInitialise_Authentication_InvalidFile) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_Authentication_InvalidFile());
+}
+
 TEST(OPCUADSOutputGTest,Test_NumberOfDimensionsGreater1) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.Test_NumberOfDimensionsGreater1());
@@ -88,9 +113,59 @@ TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_FailSetServiceRequest) {
     ASSERT_TRUE(test.Test_SetConfiguredDatabase_FailSetServiceRequest());
 }
 
-TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_ExtensionObject) {
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_ExtensionObject_MixedSignal) {
     OPCUADSOutputTest test;
-    ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject());
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject_MixedSignal());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_ExtensionObject_MixedSignals) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject_MixedSignals());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_MoreThanOneDefaultTimestamp) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_MoreThanOneDefaultTimestamp());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_TimestampNotUint64) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_TimestampNotUint64());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_TimestampNotScalar) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_TimestampNotScalar());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_NoTrigger) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_NoTrigger());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_ExtensionObject_Timestamp_NotDefault) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject_Timestamp_NotDefault());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_ExtensionObject_MoreThanOneTimestamp) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject_MoreThanOneTimestamp());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_MoreThanOneTrigger) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_MoreThanOneTrigger());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_TimestampNonExisting) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_TimestampNonExisting());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_InputSignals) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_InputSignals());
 }
 
 TEST(OPCUADSOutputGTest,Test_Authentication) {
@@ -106,6 +181,41 @@ TEST(OPCUADSOutputGTest,Test_Authentication_NoCreds) {
 TEST(OPCUADSOutputGTest,Test_Authentication_BadCreds) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.Test_Authentication_BadCreds());
+}
+
+TEST(OPCUADSOutputGTest,Test_Synchronise) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise());
+}
+
+TEST(OPCUADSOutputGTest,Test_Synchronise_ExtensionObject) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_ExtensionObject());
+}
+
+TEST(OPCUADSOutputGTest,Test_Synchronise_Timestamp) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_Timestamp());
+}
+
+TEST(OPCUADSOutputGTest,Test_Synchronise_Timestamp_Default_Only) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_Timestamp_Default_Only());
+}
+
+TEST(OPCUADSOutputGTest,Test_Synchronise_Timestamp_Default_Mix) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_Timestamp_Default_Mix());
+}
+
+TEST(OPCUADSOutputGTest,Test_Synchronise_ExtensionObject_Timestamp_Idx_0) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_ExtensionObject_Timestamp_Idx_0());
+}
+
+TEST(OPCUADSOutputGTest,Test_Synchronise_ExtensionObject_Timestamp_Idx_Last) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_ExtensionObject_Timestamp_Idx_Last());
 }
 
 /*---------------------------------------------------------------------------*/

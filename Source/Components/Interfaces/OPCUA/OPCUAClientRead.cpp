@@ -272,7 +272,7 @@ bool OPCUAClientRead::Read(const TypeDescriptor *const types,
                         (void) UA_ExtensionObject_copy(valuePtr, eos);
                         (void) MemoryOperationsHelper::Copy(dataPtr, eos->content.encoded.body.data, static_cast<uint32>(eos->content.encoded.body.length));
                         /*lint -e{526} -e{628} -e{1551} -e{1055} -e{746} no exception thrown, function defined in open62541*/
-                        (void) UA_ExtensionObject_clear(eos);
+                        UA_ExtensionObject_clear(eos);
                         UA_ExtensionObject_delete(eos);
                     }
                 }
