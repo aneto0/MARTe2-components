@@ -35,8 +35,6 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
-#include "EmbeddedServiceMethodBinderI.h"
-#include "EventSem.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -49,21 +47,57 @@ namespace MARTe {
 const uint32 NI6368DAC_MAX_CHANNELS = 4u;
 /**
  * @brief A DataSource which provides an analogue output interface to the NI6368 boards.
+ *
+ * @details It is possible to define one optional signal which must be declared before the channels.
+ *   - Signal 0 (Status): the board status.
+ * The board status is a uint32 bitmask. Follows the error description for each bit:
+ *   0: ADC Overrun detected in STC3 (Intimer)
+ *   1: AI FIFO overflow detected in STC3 (Intimer)
+ *   2: AI FIFO overflow detected in Simultaneous Control
+ *   4: AI DMA channel error happened, the channel shall be restarted
+ *   5: DI Overrun error happened
+ *   6: DI Overflow error happened
+ *   8: DI DMA channel error happend, the channel shall be restarted
+ *   10: AO Overrun error detected
+ *   11: AO Underflow error detected
+ *   12: AO write too fast error detected
+ *   13: AO DMA channel error happend, the channel shall be restarted
+ *   14: DO Overrun error detected
+ *   15: DO Underflow error detected
+ *   16: DO Write too fast detected
+ *   17: DO DMA channel error happend, the channel shall be restarted
+ *   20: GPC0 DMA channel error happend, the channel shall be restarted
+ *   21: GPC1 DMA channel error happend, the channel shall be restarted
+ *   22: GPC2 DMA channel error happend, the channel shall be restarted
+ *   23: GPC3 DMA channel error happend, the channel shall be restarted
+ *
  * @details The configuration syntax is (names are only given as an example):
  *
  * <pre>
  * +NI6368_0_DAC = {
+ *
+ *     // Basic Configuration
+ *
  *     Class = NI6368::NI6368DAC
- *     DeviceName = "/dev/pxie-6368" //Mandatory
- *     BoardId = 0 //Mandatory
+ *     DeviceName = "/dev/pxie-6363"
+ *     BoardId = 0
+ *     IsMultiplexed = 1 //Default is 0 for 6368. Set to 1 if using 6363.
+ *     SamplingFrequency = 1000
+ *
+ *     // Advanced Configuration
+ *
+ *     BaseSampleClockFrequency = 100000000 //Default is 100 MHz
  *     StartTriggerSource = "SW_PULSE" //Mandatory. Start trigger source. Possible values: SW_PULSE, PFI0, ..., PFI15, RTSI0, ..., RTSI7, AI_START1, AI_START2, STAR_TRIGGER, PXIE_DSTARA, PXIE_DSTARB, ANALOG_TRIGGER, LOW, G0_OUT, ..., G3_OUT, DIO_CHGDETECT, DI_START1, DI_START2, DO_START1, INTTRIGGERA0, ..., INTTRIGGERA7, FIFOCONDITION
- *     UpdateCounterSource = "UI_TC" //Mandatory. Possible values: UI_TC, PFI0, PFI1, PFI2, PFI3, PFI4, PFI5, PFI6, PFI7, PFI8, PFI9, RTSI0, RTSI1, RTSI2, RTSI3, RTSI4, RTSI5, RTSI6, G0_OUT, G1_OUT, STAR_TRIGGER, PFI10, PFI11, PFI12, PFI13, PFI14, PFI15, RTSI7, G2_OUT, G3_OUT, ANALOG_TRIGGER, LOW, PXIE_DSTARA, PXIE_DSTARB, DIO_CHGDETECT, G0_SAMPLECLK, G1_SAMPLECLK, G2_SAMPLECLK, G3_SAMPLECLK, AI_CONVERT, AI_START, DI_CONVERT, DO_UPDATE, INTTRIGGERA0, INTTRIGGERA1, INTTRIGGERA2, INTTRIGGERA3, INTTRIGGERA4, INTTRIGGERA5, INTTRIGGERA6, INTTRIGGERA7, AUTOUPDATE
- *     UpdateCounterPolarity = "RISING_EDGE" //Mandatory. Update counter polarity.  RISING_EDGE, FALLING_EDGE
- *     UpdateIntervalCounterSource = "TB3" //Mandatory. Possible values:TB3, PFI0, PFI1, PFI2, PFI3, PFI4, PFI5, PFI6, PFI7, PFI8, PFI9, RTSI0, RTSI1, RTSI2, RTSI3, RTSI4, RTSI5, RTSI6, DSTARA, TB2, STAR_TRIGGER, PFI10, PFI11, PFI12, PFI13, PFI14, PFI15, RTSI7, TB1, PXI_CLK10, ANALOG_TRIGGER, DSTARB
- *     UpdateIntervalCounterPolarity = "RISING_EDGE" //Mandatory. Possible values: RISING_EDGE, FALLING_EDGE
- *     UpdateIntervalCounterDivisor = 100000 //Mandatory > 0
- *     UpdateIntervalCounterDelay = 2 //Mandatory > 0
+ *     BaseClockUpdateSource (or UpdateCounterSource) = "UI_TC" //Optional (default UI_TC). Possible values: UI_TC, PFI0, PFI1, PFI2, PFI3, PFI4, PFI5, PFI6, PFI7, PFI8, PFI9, RTSI0, RTSI1, RTSI2, RTSI3, RTSI4, RTSI5, RTSI6, G0_OUT, G1_OUT, STAR_TRIGGER, PFI10, PFI11, PFI12, PFI13, PFI14, PFI15, RTSI7, G2_OUT, G3_OUT, ANALOG_TRIGGER, LOW, PXIE_DSTARA, PXIE_DSTARB, DIO_CHGDETECT, G0_SAMPLECLK, G1_SAMPLECLK, G2_SAMPLECLK, G3_SAMPLECLK, AI_CONVERT, AI_START, DI_CONVERT, DO_UPDATE, INTTRIGGERA0, INTTRIGGERA1, INTTRIGGERA2, INTTRIGGERA3, INTTRIGGERA4, INTTRIGGERA5, INTTRIGGERA6, INTTRIGGERA7, AUTOUPDATE
+ *     BaseClockUpdatePolarity (or UpdateCounterPolarity) = "RISING_EDGE" //Optional (default RISING_EDGE). Update counter polarity.  RISING_EDGE, FALLING_EDGE
+ *     ClockUpdateSource (or UpdateIntervalCounterSource) = "TB3" //Optional (default TB3). Possible values:TB3, PFI0, PFI1, PFI2, PFI3, PFI4, PFI5, PFI6, PFI7, PFI8, PFI9, RTSI0, RTSI1, RTSI2, RTSI3, RTSI4, RTSI5, RTSI6, DSTARA, TB2, STAR_TRIGGER, PFI10, PFI11, PFI12, PFI13, PFI14, PFI15, RTSI7, TB1, PXI_CLK10, ANALOG_TRIGGER, DSTARB
+ *     ClockUpdatePolarity (or UpdateIntervalCounterPolarity) = "RISING_EDGE" //Optional (default RISING_EDGE). Possible values: RISING_EDGE, FALLING_EDGE
+ *     ClockUpdateDivisor (or UpdateIntervalCounterDivisor) = 100000 //Optional divisor of BaseSampleClockFrequency. To be defined as alternative of SamplingFrequency
+ *     ClockUpdateDelay (or UpdateIntervalCounterDelay) = 2 //Mandatory > 0
  *     Signals = {
+ *         Status = { //Optional. The board status
+ *             Type = uint32
+ *         }
  *         DAC0_0 = {
  *             Type = float32 //Mandatory. Only type that is supported.
  *             ChannelId = 0 //Mandatory. The channel number.
@@ -114,28 +148,6 @@ NI6368DAC    ();
      * @return MemoryMapSynchronisedOutputBroker if Trigger == 1 for any of the signals, MemoryMapOutputBroker otherwise.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data, const SignalDirection direction);
-
-    /**
-     * @brief See DataSourceI::GetInputBrokers.
-     * @return false.
-     */
-    virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
-
-    /**
-     * @brief See DataSourceI::GetOutputBrokers.
-     * @details If the functionName is one of the functions which requested a Trigger,
-     * it adds a MemoryMapSynchronisedOutputBroker instance to the outputBrokers,
-     * otherwise it adds a MemoryMapOutputBroker instance to the outputBrokers.
-     * @param[out] outputBrokers where the BrokerI instances have to be added to.
-     * @param[in] functionName name of the function being queried.
-     * @param[in] gamMemPtr the GAM memory where the signals will be read from.
-     * @return true if the outputBrokers can be successfully configured.
-     */
-    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
 
     /**
      * @brief See StatefulI::PrepareNextState.
@@ -212,22 +224,27 @@ private:
     /**
      * The update interval counter source
      */
-    xseries_outtimer_update_interval_counter_t updateIntervalCounterSource;
+    xseries_outtimer_update_interval_counter_t clockUpdateSource;
 
     /**
      * The update interval counter source
      */
-    xseries_outtimer_polarity_t updateIntervalCounterPolarity;
+    xseries_outtimer_polarity_t clockUpdatePolarity;
+
+    /**
+     * The base sample clock frequency
+     */
+    uint32 baseSampleClockFrequency;
 
     /**
      * The update interval counter period divisor
      */
-    uint32 updateIntervalCounterPeriodDivisor;
+    uint32 clockUpdateDivisor;
 
     /**
      * The update interval counter delay
      */
-    uint8 updateIntervalCounterDelay;
+    uint8 clockUpdateDelay;
 
     /**
      * The board individual channel output ranges
@@ -235,9 +252,24 @@ private:
     xseries_output_range_t outputRange[NI6368DAC_MAX_CHANNELS];
 
     /**
+     * The output gain
+     */
+    float32 outputGain[NI6368DAC_MAX_CHANNELS];
+
+    /**
+     * The output offset
+     */
+    float32 outputOffset[NI6368DAC_MAX_CHANNELS];
+
+    /**
      * The board file descriptor
      */
     int32 boardFileDescriptor;
+
+    /**
+     * The board status file descriptor
+     */
+    int32 rootFileDescriptor;
 
     /**
      * The channel file descriptors
@@ -252,7 +284,7 @@ private:
     /**
      * The number of elements to write
      */
-    size_t numberOfElements[NI6368DAC_MAX_CHANNELS];
+    uint32 numberOfSamplesT;
 
     /**
      * The DACs that are enabled
@@ -268,6 +300,22 @@ private:
      * True if at least one trigger was set.
      */
     bool triggerSet;
+
+    /**
+     * If multiplexed
+     */
+    uint8 multiplexed;
+
+    /**
+     * The number of signals in header
+     */
+    uint32 headerSize;
+
+    /**
+     * The board status
+     */
+    uint32 boardStatus;
+
 
 };
 }

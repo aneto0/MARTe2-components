@@ -45,15 +45,10 @@ namespace MARTe {
 /**
  * Number of ADC channels
  */
-/*lint -esym(551, MARTe::NI6363ADC_MAX_CHANNELS) the symbol is used to define the size of several array below*/
-const uint32 NI6363ADC_MAX_CHANNELS = 32u;
 /*lint -esym(551, MARTe::NI6368ADC_MAX_CHANNELS) the symbol is used to define the size of several array below*/
+const uint32 NI6363ADC_MAX_CHANNELS = 32u;
+
 const uint32 NI6368ADC_MAX_CHANNELS = 16u;
-/**
- * Counter and timer
- */
-/*lint -esym(551, MARTe::NI6368ADC_HEADER_SIZE) the symbol is used to define the size of one array below*/
-const uint32 NI6368ADC_HEADER_SIZE = 2u;
 /**
  * Sampling frequency
  */
@@ -61,7 +56,7 @@ const uint32 NI6368ADC_SAMPLING_FREQUENCY = 2000000u;
 /**
  * The number of buffers to synchronise with the DMA
  */
-const uint32 NUMBER_OF_BUFFERS = 32u;
+const uint32 NI6368ADC_NUMBER_OF_BUFFERS = 32u;
 //If the execution mode is RealTimeThread the synchronisation is performed in the scope of the real-time thread. Otherwise if the mode is IndependentThread then a thread is spawned in order to synchronised with the CPU
 /**
  * Execute in the context of the real-time thread.
@@ -101,19 +96,53 @@ const uint32 NI6368ADC_EXEC_SPAWNED = 2u;
  * immediately and if the declared samples have not been acquired yet, the buffer will be partially full and the Counter signal (if ResetOnBufferChange == 1)
  * reports the number of samples in the buffer.
  *
+ * @details It is possible to define three optional signals which must be declared before the channels.
+ *   - Signal 0 (Counter): number of ticks since last state change.
+ *   - Signal 1 (Time): timestamp of last sample.
+ *   - Signal 2 (Status): the board status.
+ * The board status is a uint32 bitmask. Follows the error description for each bit:
+ *   0: ADC Overrun detected in STC3 (Intimer)
+ *   1: AI FIFO overflow detected in STC3 (Intimer)
+ *   2: AI FIFO overflow detected in Simultaneous Control
+ *   4: AI DMA channel error happened, the channel shall be restarted
+ *   5: DI Overrun error happened
+ *   6: DI Overflow error happened
+ *   8: DI DMA channel error happend, the channel shall be restarted
+ *   10: AO Overrun error detected
+ *   11: AO Underflow error detected
+ *   12: AO write too fast error detected
+ *   13: AO DMA channel error happend, the channel shall be restarted
+ *   14: DO Overrun error detected
+ *   15: DO Underflow error detected
+ *   16: DO Write too fast detected
+ *   17: DO DMA channel error happend, the channel shall be restarted
+ *   20: GPC0 DMA channel error happend, the channel shall be restarted
+ *   21: GPC1 DMA channel error happend, the channel shall be restarted
+ *   22: GPC2 DMA channel error happend, the channel shall be restarted
+ *   23: GPC3 DMA channel error happend, the channel shall be restarted
+ *
  * @details There are two execution modes:
  * - IndependentThread: an internal thread manages the acquisition from DMA and copy to the data source internal buffers
+ * - IndependentRealTimeThread: an internal thread manages the acquisition from DMA and copy to the data source internal buffers. Thread is real-time
  * - RealTimeThread: the read from DMA is performed upon GAM read.
  *
  * <pre>
  * +NI6368_0 = {
+ *
+ *     // Basic configuration
+ *
  *     Class = NI6368::NI6368ADC
- *     DeviceName = "/dev/pxie-6368" //Mandatory
+ *     SamplingFrequency = 1000 //The divisor is computed on BaseSampleClockFrequency.
+ *     ConvertFrequency = 1000000 //The divisor is computed on BaseConvertClockFrequency.
+ *     DeviceName = "/dev/pxie-6363"
+ *     IsMultiplexed = 1 //Default is 0 for 6368. Set to 1 if using 6363.
  *     BoardId = 0 //Mandatory
- *     IsMultiplexed = 0 //Default is 0 for 6368. Set to 1 if using 6363.
- *     SamplingFrequency = 1000000 //[0, 2 MHZ] //Mandatory (can be optional but in that case ScanIntervalCounterPeriod is mandatory)
- *     ConvertFrequency = 1000000 //[0, 1 MHZ] //Optional. Relevant only if using 6363. Set by default to SamplingFrequency if not specified.
- *     ExecutionMode = IndependentThread //Optional. If not specified ExecutionMode=IndependentThread. If the execution mode is RealTimeThread the synchronisation is performed in the scope of the real-time thread. Otherwise if the mode is IndependentThread then a thread is spawned in order to synchronised with the CPU
+ *     ExecutionMode = RealTimeThread //Optional (default is IndepenentThread). Possible values:IndependentThread, IndependentRealTimeThread, RealTimeThread
+ *     Calibrate = 1 //Optional (default is 0). If disabled the signals show raw acquired value (signal type must be int16). If enabled the samples already converted accordingly to the declared InputRange. In this case the signal type must be float32
+ *
+ *     // Advanced configuration
+ *
+ *     CPUs = 0xf //CPUs where the thread which reads data from the board is allowed to run on. Meaningful only if ExecutionMode == IndependentThread
  *     DMABufferSize = 1000 //Optional. Default is 1000.
  *     ClockSampleSource = "INTERNALTIMING" //Optional. Default is INTERNALTIMING. Possible values: INTERNALTIMING, PFI0, ..., PFI15, RTSI0, ..., RTSI6, DIO_CHGDETECT, G0_OUT, ..., G3_OUT, STAR_TRIGGER, SCXI_TRIG1, LOW, PXIE_DSTARA, ATRIG, PXIE_DSTARB, G0_SAMPLECLK, ..., G3_SAMPLECLK, DI_CONVERT, AO_UPDATE, DO_UPDATE, INTTRIGGERA0, ..., INTTRIGGERA7
  *     ClockSamplePolarity = "ACTIVE_HIGH_OR_RISING_EDGE" //Optional. Default is ACTIVE_HIGH_OR_RISING_EDGE.Possible values: ACTIVE_HIGH_OR_RISING_EDGE, ACTIVE_LOW_OR_FALLING_EDGE
@@ -121,22 +150,26 @@ const uint32 NI6368ADC_EXEC_SPAWNED = 2u;
  *     ClockConvertPolarity = "ACTIVE_HIGH_OR_RISING_EDGE" //Optional. Default is ACTIVE_HIGH_OR_RISING_EDGE. Possible values: ACTIVE_HIGH_OR_RISING_EDGE, ACTIVE_LOW_OR_FALLING_EDGE
  *     ScanIntervalCounterSource = "COUNTER_TB3" //Optional. Default is COUNTER_TB3. Possible values: COUNTER_TB1, COUNTER_TB2, COUNTER_TB3, PFI0, ..., PFI15, RTSI0, ..., RTSI6,PXI_CLK0, STAR_TRIGGER, ANALOG_TRIGGER, D_STARA, D_STARB, STAR_TRIGGER
  *     ScanIntervalCounterPolarity = "RISING_EDGE" //Optional. Default is RISING_EDGE. Possible values: RISING_EDGE, FALLING_EDGE
+ *     SampleIntervalCounterSource = "COUNTER_TB3" //Optional. Default is COUNTER_TB3. Possible values: COUNTER_TB3, COUNTER_SI_SRC
  *     ScanIntervalCounterPeriod = 50 //Mandatory if SamplingFrequency not defined. Period of the scan interval expressed as divisor of 100 MHz.
  *     ScanIntervalCounterDelay = 2 //Optional. Default is 2. Minimum delay after the start trigger expressed as divisor of 2 MHz.
- *     CPUs = 0xf //Optional and only relevant if ExecutionMode==IndependentThread. CPU affinity for the thread which reads data from the board.
+ *     SampleIntervalCounterDelay = 2 //Optional. Default is 2. Minimum delay after the scan edge and the first sample clock.
  *     RealTimeMode = 0 //Optional and onle relevant if ExecutionMode==IndependentThread. If 1 it will busy sleep on the synchronisation semaphores.
  *     Signals = {
- *          Counter = { //Mandatory. Number of ticks since last state change.
+ *          Counter = { //Optional. Number of ticks since last state change.
  *              Type = uint64 //uint32 also supported.
  *              CountSamples = 1 //Optional (default is 0). If enabled, the signal shows the total number of samples acquired
  *              ResetOnBufferChange = 1 //Optional (default is 0). If enabled, the signal shows the number of samples in the current frame
  *          }
- *          Time = { //Mandatory. Elapsed time in micro-seconds since last state change.
+ *          Time = { //Optional. Timestamp of last sample.
  *              Type = uint64 //uint32 also supported.
+ *          }
+ *          Status = { //Optional. The board status
+ *               Type = uint32 //Bit 0: AI overrun, 1 AI overflow, 2 ao Overrun
  *          }
  *          ADC0_0 = { //At least one ADC input shall be specified.
  *              InputRange = 10 //Optional. Possible values: 1, 2, 5, 10. Default value 10.
- *              Type = uint16 //Mandatory. Only the uint16 type is supported.
+ *              Type = uint16 //Mandatory. Only the uint16 or float32 (if Calibrate == 1) are supported.
  *              ChannelId = 0 //Mandatory. The channel number.
  *              InputMode = Differential //Optional (default is Differential). Relevant only if 6363 as the 6368 only supports differential input. Possible values: Internal, Loopback, Differential, NRSE, RSE.
  *          }
@@ -172,7 +205,7 @@ NI6368ADC    ();
 
     /**
      * @brief See DataSourceI::GetNumberOfMemoryBuffers.
-     * @return NUMBER_OF_BUFFERS.
+     * @return NI6368ADC_NUMBER_OF_BUFFERS.
      */
     virtual uint32 GetNumberOfMemoryBuffers();
 
@@ -304,6 +337,26 @@ private:
     ErrorManagement::ErrorType CopyFromDMA(size_t numberOfSamplesFromDMA);
 
     /**
+     * @brief Lock if non sync and IndependentThread
+     */
+    void NonSynchroniseLock();
+
+    /**
+     * @brief UnLock if non sync and IndependentThread
+     */
+    void NonSynchroniseUnLock();
+
+    /**
+     * @brief Lock if sync and IndependentThread
+     */
+    void SynchroniseLock();
+
+    /**
+     * @brief UnLock if sync and IndependentThread
+     */
+    void SynchroniseUnLock();
+
+    /**
      * The sampling frequency.
      */
     uint32 samplingFrequency;
@@ -321,12 +374,17 @@ private:
     /**
      * The counter signal value (one for each buffer index)
      */
-    uint64 counterValue[NUMBER_OF_BUFFERS];
+    uint64 counterValue[NI6368ADC_NUMBER_OF_BUFFERS];
 
     /**
      * The time value (one for each buffer index)
      */
-    uint64 timeValue[NUMBER_OF_BUFFERS];
+    uint64 timeValue[NI6368ADC_NUMBER_OF_BUFFERS];
+
+    /**
+     * The board status bitmask
+     */
+    uint32 boardStatus[NI6368ADC_NUMBER_OF_BUFFERS];
 
     /**
      * The last time value (for error checking)
@@ -362,6 +420,16 @@ private:
      * The board individual channel modes
      */
     xseries_ai_channel_type_t inputMode[NI6363ADC_MAX_CHANNELS];
+
+    /**
+     * Input gain
+     */
+    float32 inputGain[NI6363ADC_MAX_CHANNELS];
+
+    /**
+     * Input offset
+     */
+    float32 inputOffset[NI6363ADC_MAX_CHANNELS];
 
     /**
      * The ADC sampling clock source;
@@ -424,6 +492,11 @@ private:
     int32 boardFileDescriptor;
 
     /**
+     * The board status file descriptor
+     */
+    int32 rootFileDescriptor;
+
+    /**
      * The channel file descriptors
      */
     int32 channelsFileDescriptors[NI6363ADC_MAX_CHANNELS];
@@ -434,12 +507,7 @@ private:
     /**
      * The signals memory
      */
-    uint8 *channelsMemory[NUMBER_OF_BUFFERS][NI6363ADC_MAX_CHANNELS];
-
-    /**
-     * Maps the signal index in the signal list to the channel id
-     */
-    uint32 signalIdxToChannelId[NI6363ADC_MAX_CHANNELS + NI6368ADC_HEADER_SIZE];
+    uint8 *channelsMemory[NI6368ADC_NUMBER_OF_BUFFERS][NI6363ADC_MAX_CHANNELS];
 
     /**
      * The memory DMA
@@ -484,7 +552,7 @@ private:
     /**
      * Semaphore to manage the buffer indexes.
      */
-    FastPollingMutexSem fastMux[NUMBER_OF_BUFFERS];
+    FastPollingMutexSem fastMux[NI6368ADC_NUMBER_OF_BUFFERS];
 
     /**
      * Semaphore to lock all the buffers
@@ -582,10 +650,15 @@ private:
     uint8 multiplexed;
 
     /**
-     * True if the sampling frequency was set explicitely.
+     * How the sample frequency is set
      */
-    bool samplingFrequencySet;
+    uint8 sampleFreqSet;
     
+    /**
+     * How the convert frequency is set
+     */
+    uint8 convertFreqSet;
+
     /**
      * The maximum number of channels - which depends on 6368 vs 6363
      */
@@ -600,6 +673,28 @@ private:
      * The size of a sample.
      */
     uint32 sampleSize;
+
+    /**
+     * The number of signals in header
+     */
+    uint32 headerSize;
+
+    /**
+     * The base sample clock frequency
+     */
+    uint32 baseSampleClockFrequency;
+
+    /**
+     * The base convert clock frequency
+     */
+    uint32 baseConvertClockFrequency;
+
+
+    /**
+     * To set real-time priority for the internal thread
+     */
+    bool realTimeInternalThread;
+
 };
 }
 
