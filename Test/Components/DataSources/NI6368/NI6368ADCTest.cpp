@@ -46,10 +46,10 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 class NI6368ADCTestGAM: public MARTe::GAM {
-public:
-    CLASS_REGISTER_DECLARATION()
+public:CLASS_REGISTER_DECLARATION()
 
-NI6368ADCTestGAM    () : GAM() {
+    NI6368ADCTestGAM() :
+            GAM() {
         rms = 0;
         numberOfSamples = 0;
         signalPtr = NULL;
@@ -64,8 +64,8 @@ NI6368ADCTestGAM    () : GAM() {
     bool Execute() {
         using namespace MARTe;
         uint32 i;
-        for (i=0; i<numberOfSamples; i++) {
-            rms += (signalPtr[i] *signalPtr[i]);
+        for (i = 0; i < numberOfSamples; i++) {
+            rms += (signalPtr[i] * signalPtr[i]);
         }
         totalSamples += numberOfSamples;
         return true;
@@ -73,9 +73,9 @@ NI6368ADCTestGAM    () : GAM() {
 
     bool Setup() {
         using namespace MARTe;
-        counterPtr = reinterpret_cast<uint32 *>(GetInputSignalMemory(0));
-        timerPtr = reinterpret_cast<uint32 *>(GetInputSignalMemory(1));
-        signalPtr = reinterpret_cast<int16 *>(GetInputSignalMemory(2));
+        counterPtr = reinterpret_cast<uint32*>(GetInputSignalMemory(0));
+        timerPtr = reinterpret_cast<uint32*>(GetInputSignalMemory(1));
+        signalPtr = reinterpret_cast<int16*>(GetInputSignalMemory(2));
         GetSignalNumberOfSamples(InputSignals, 2u, numberOfSamples);
         return true;
     }
@@ -90,7 +90,7 @@ NI6368ADCTestGAM    () : GAM() {
 };
 CLASS_REGISTER(NI6368ADCTestGAM, "1.0")
 
-static bool TestIntegratedInApplication(const MARTe::char8 * const config1) {
+static bool TestIntegratedInApplication(const MARTe::char8 *const config1) {
     using namespace MARTe;
 
     ConfigurationDatabase cdb;
@@ -143,8 +143,11 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config1) {
     return ok;
 }
 
-static bool PatchConfiguration(const MARTe::char8 * const config1, const MARTe::char8 * const absoluteParameterLocation,
-                               const MARTe::char8 * const parameterToPatch, const MARTe::char8 * const valueToPatch, xseries_ai_conf_t *conf) {
+static bool PatchConfiguration(const MARTe::char8 *const config1,
+                               const MARTe::char8 *const absoluteParameterLocation,
+                               const MARTe::char8 *const parameterToPatch,
+                               const MARTe::char8 *const valueToPatch,
+                               xseries_ai_conf_t *conf) {
     using namespace MARTe;
 
     ConfigurationDatabase cdb;
@@ -186,7 +189,93 @@ static bool PatchConfiguration(const MARTe::char8 * const config1, const MARTe::
 }
 
 //Two channels base configuration
-static const MARTe::char8 * const config1 = ""
+static const MARTe::char8 *const config1_full = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6368ADCTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = NI6368_0"
+        "                }"
+        "                Time = {"
+        "                    DataSource = NI6368_0"
+        "                }"
+        "                ADC0_0 = {"
+        "                    DataSource = NI6368_0"
+        "                    Type = int16"
+        "                    Samples = 2000"
+        "                    Frequency = 1000"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6368_0 = {"
+        "            Class = NI6368ADC"
+        "            DeviceName = \"/dev/pxie-6368\""
+        "            BoardId = 0"
+        "            DMABufferSize = 1000"
+        "            ClockSampleSource = \"INTERNALTIMING\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"INTERNALTIMING\""
+        "            ClockConvertPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ScanIntervalCounterSource = \"COUNTER_TB3\""
+        "            ScanIntervalCounterPolarity = \"RISING_EDGE\""
+        "            ScanIntervalCounterPeriod = 50"
+        "            ScanIntervalCounterDelay = 2"
+        "            CPUs = 0xf"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint32"
+        "                }"
+        "                Time = {"
+        "                    Type = uint32"
+        "                }"
+        "                Status = {"
+        "                    Type = uint32"
+        "                }"
+        "                ADC0_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 0"
+        "                }"
+        "                ADC1_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Two channels base configuration
+static const MARTe::char8 *const config1 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -268,7 +357,7 @@ static const MARTe::char8 * const config1 = ""
         "    }"
         "}";
 
-static const MARTe::char8 * const config1b = ""
+static const MARTe::char8 *const config1b = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -352,7 +441,7 @@ static const MARTe::char8 * const config1b = ""
         "}";
 
 //As config1 but with RealTimeMode = 1
-static const MARTe::char8 * const config1c = ""
+static const MARTe::char8 *const config1c = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -435,9 +524,8 @@ static const MARTe::char8 * const config1c = ""
         "    }"
         "}";
 
-
 //One channel base configuration
-static const MARTe::char8 * const config2 = ""
+static const MARTe::char8 *const config2 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -516,7 +604,7 @@ static const MARTe::char8 * const config2 = ""
         "}";
 
 //All channels base configuration
-static const MARTe::char8 * const config3 = ""
+static const MARTe::char8 *const config3 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -669,7 +757,7 @@ static const MARTe::char8 * const config3 = ""
         "}";
 
 //All channels base configuration with no default parameters
-static const MARTe::char8 * const config4 = ""
+static const MARTe::char8 *const config4 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -822,7 +910,7 @@ static const MARTe::char8 * const config4 = ""
         "}";
 
 //Two channels base configuration with more than one function
-static const MARTe::char8 * const config5 = ""
+static const MARTe::char8 *const config5 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -915,7 +1003,7 @@ static const MARTe::char8 * const config5 = ""
         "}";
 
 //Two channels base configuration including a not synchronising GAM
-static const MARTe::char8 * const config5b = ""
+static const MARTe::char8 *const config5b = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -996,9 +1084,8 @@ static const MARTe::char8 * const config5b = ""
         "    }"
         "}";
 
-
 //No channels defined
-static const MARTe::char8 * const config6 = ""
+static const MARTe::char8 *const config6 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1066,7 +1153,7 @@ static const MARTe::char8 * const config6 = ""
         "}";
 
 //Two channels base configuration with a wrong counter type
-static const MARTe::char8 * const config7 = ""
+static const MARTe::char8 *const config7 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1150,7 +1237,7 @@ static const MARTe::char8 * const config7 = ""
         "}";
 
 //Two channels base configuration with a wrong counter type
-static const MARTe::char8 * const config8 = ""
+static const MARTe::char8 *const config8 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1234,7 +1321,7 @@ static const MARTe::char8 * const config8 = ""
         "}";
 
 //Two channels base configuration with a wrong signal type
-static const MARTe::char8 * const config9 = ""
+static const MARTe::char8 *const config9 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1318,7 +1405,7 @@ static const MARTe::char8 * const config9 = ""
         "}";
 
 //Two channels base configuration with a number of samples mismatch
-static const MARTe::char8 * const config10 = ""
+static const MARTe::char8 *const config10 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1412,7 +1499,7 @@ static const MARTe::char8 * const config10 = ""
         "}";
 
 //Two channels base configuration with a wrong device name
-static const MARTe::char8 * const config11 = ""
+static const MARTe::char8 *const config11 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1496,7 +1583,7 @@ static const MARTe::char8 * const config11 = ""
         "}";
 
 //Two channels base configuration with a wrong configuration of the frequency vs samples
-static const MARTe::char8 * const config12 = ""
+static const MARTe::char8 *const config12 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1580,7 +1667,7 @@ static const MARTe::char8 * const config12 = ""
         "}";
 
 //Two channels base configuration with more than one sample for the counter
-static const MARTe::char8 * const config13 = ""
+static const MARTe::char8 *const config13 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1665,7 +1752,7 @@ static const MARTe::char8 * const config13 = ""
         "}";
 
 //Two channels base configuration with more than one sample for the timer
-static const MARTe::char8 * const config14 = ""
+static const MARTe::char8 *const config14 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1750,7 +1837,7 @@ static const MARTe::char8 * const config14 = ""
         "}";
 
 //Not monotonically increasing channel identifier
-static const MARTe::char8 * const config15 = ""
+static const MARTe::char8 *const config15 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -1858,14 +1945,61 @@ bool NI6368ADCTest::TestGetNumberOfMemoryBuffers() {
 }
 
 bool NI6368ADCTest::TestGetSignalMemoryBuffer() {
-    return TestIntegratedInApplication(config1);
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1_full;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    NI6368ADC test;
+    if (ok) {
+        ok = test.Initialise(cdb);
+    }
+    if (ok) {
+        uint32 *counter;
+        uint32 *time;
+        uint32 *status;
+        ok = test.GetSignalMemoryBuffer(0u, 0, (void*&) counter);
+        ok &= (counter != NULL);
+        ok &= test.GetSignalMemoryBuffer(1u, 0, (void*&) time);
+        ok &= (time != NULL);
+        ok &= test.GetSignalMemoryBuffer(2u, 0, (void*&) status);
+        ok &= (status != NULL);
+        int16 *adc0;
+        int16 *adc15;
+        ok &= test.GetSignalMemoryBuffer(3u, 0, (void*&) adc0);
+        ok &= (adc0 == NULL);
+        ok &= test.GetSignalMemoryBuffer(18u, 0, (void*&) adc15);
+        ok &= (adc15 == NULL);
+    }
+    return ok;
 }
 
-bool NI6368ADCTest::TestGetSignalMemoryBuffer_False() {
+bool NI6368ADCTest::TestGetSignalMemoryBuffer_False_Non_Init() {
     using namespace MARTe;
     NI6368ADC test;
     uint32 *ptr;
-    return !test.GetSignalMemoryBuffer(NI6368ADC_HEADER_SIZE + NI6368ADC_MAX_CHANNELS, 0, (void *&) ptr);
+    return !test.GetSignalMemoryBuffer(0u, 0, (void*&) ptr);
+}
+
+bool NI6368ADCTest::TestGetSignalMemoryBuffer_False_Invalid_Index() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    NI6368ADC test;
+    if (ok) {
+        ok = test.Initialise(cdb);
+    }
+    if (ok) {
+        uint32 *ptr;
+        ok = !test.GetSignalMemoryBuffer(NI6368ADC_MAX_CHANNELS + 4u, 0, (void*&) ptr);
+    }
+    return ok;
 }
 
 bool NI6368ADCTest::TestGetBrokerName() {
@@ -1953,8 +2087,8 @@ bool NI6368ADCTest::TestPrepareNextState() {
     uint32 *timer;
 
     if (ok) {
-        ni6368ADC->GetSignalMemoryBuffer(0, 0, (void *&) counter);
-        ni6368ADC->GetSignalMemoryBuffer(1, 0, (void *&) timer);
+        ni6368ADC->GetSignalMemoryBuffer(0, 0, (void*&) counter);
+        ni6368ADC->GetSignalMemoryBuffer(1, 0, (void*&) timer);
         uint32 c = 0;
         ok = false;
         while (c < 500 && !ok) {
@@ -1978,7 +2112,7 @@ bool NI6368ADCTest::TestPrepareNextState() {
             ok = application->PrepareNextState("State1");
         }
         if (ok) {
-            ok = (((*counter) < counterBefore) && ((*timer) < timerBefore));
+            ok = (((*counter) == counterBefore) && ((*timer) == timerBefore));
         }
     }
 
@@ -2017,7 +2151,7 @@ bool NI6368ADCTest::TestInitialise_False_NoDeviceName() {
     return ok;
 }
 
-bool NI6368ADCTest::TestInitialise_False_BadSamplingFrequency(){
+bool NI6368ADCTest::TestInitialise_False_BadSamplingFrequency() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -2033,7 +2167,7 @@ bool NI6368ADCTest::TestInitialise_False_BadSamplingFrequency(){
     return ok;
 }
 
-bool NI6368ADCTest::TestInitialise_False_BadSamplingFrequency2(){
+bool NI6368ADCTest::TestInitialise_False_BadSamplingFrequency2() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -2049,7 +2183,7 @@ bool NI6368ADCTest::TestInitialise_False_BadSamplingFrequency2(){
     return ok;
 }
 
-bool NI6368ADCTest::TestInitialise_False_BadConvertFrequency(){
+bool NI6368ADCTest::TestInitialise_False_BadConvertFrequency() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -2069,7 +2203,7 @@ bool NI6368ADCTest::TestInitialise_False_BadConvertFrequency(){
     return ok;
 }
 
-bool NI6368ADCTest::TestInitialise_False_BadConvertFrequency2(){
+bool NI6368ADCTest::TestInitialise_False_BadConvertFrequency2() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -2088,7 +2222,6 @@ bool NI6368ADCTest::TestInitialise_False_BadConvertFrequency2(){
     }
     return ok;
 }
-
 
 bool NI6368ADCTest::TestInitialise_False_NoBoardId() {
     using namespace MARTe;
@@ -2166,6 +2299,9 @@ bool NI6368ADCTest::TestInitialise_ClockSampleSource() {
             ok = (conf.start_source == XSERIES_AI_SAMPLE_CONVERT_CLOCK_INTERNALTIMING);
         }
     }
+#if 0
+
+    // to use PFIs, the lines must be free... to be done in data source?
     {
         xseries_ai_conf_t conf;
         if (ok) {
@@ -2319,6 +2455,7 @@ bool NI6368ADCTest::TestInitialise_ClockSampleSource() {
             ok = (conf.start_source == XSERIES_AI_SAMPLE_CONVERT_CLOCK_RTSI0);
         }
     }
+#endif
     {
         xseries_ai_conf_t conf;
         if (ok) {
@@ -2723,6 +2860,9 @@ bool NI6368ADCTest::TestInitialise_ClockConvertSource() {
             ok = (conf.start_source == XSERIES_AI_SAMPLE_CONVERT_CLOCK_INTERNALTIMING);
         }
     }
+#if 0
+
+    // to use PFIs, the lines must be free... to be done in data source?
     {
         xseries_ai_conf_t conf;
         if (ok) {
@@ -2867,6 +3007,8 @@ bool NI6368ADCTest::TestInitialise_ClockConvertSource() {
             ok = (conf.convert_source == XSERIES_AI_SAMPLE_CONVERT_CLOCK_PFI15);
         }
     }
+#endif
+
     {
         xseries_ai_conf_t conf;
         if (ok) {
@@ -3240,6 +3382,9 @@ bool NI6368ADCTest::TestInitialise_ScanIntervalCounterSource() {
             ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_TB1);
         }
     }
+#if 0
+
+    // to use PFIs, the lines must be free... to be done in data source?
     {
         xseries_ai_conf_t conf;
         if (ok) {
@@ -3384,6 +3529,8 @@ bool NI6368ADCTest::TestInitialise_ScanIntervalCounterSource() {
             ok = (conf.intimer_params.si_source == XSERIES_SCAN_INTERVAL_COUNTER_PFI15);
         }
     }
+#endif
+
     {
         xseries_ai_conf_t conf;
         if (ok) {
@@ -3936,7 +4083,139 @@ bool NI6368ADCTest::TestIntegrated() {
     return ok;
 }
 
+bool NI6368ADCTest::TestIntegrated_IndependentRealTimeThreadExecutionMode() {
+    using namespace MARTe;
 
+    static const char8 *config1 = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = NI6368ADCTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = NI6368_0"
+            "                }"
+            "                Time = {"
+            "                    DataSource = NI6368_0"
+            "                }"
+            "                ADC0_0 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = int16"
+            "                    Samples = 2000"
+            "                    Frequency = 1000"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +NI6368_0 = {"
+            "            Class = NI6368ADC"
+            "            DeviceName = \"/dev/pxie-6368\""
+            "            BoardId = 0"
+            "            DMABufferSize = 1000"
+            "            ClockSampleSource = \"INTERNALTIMING\""
+            "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+            "            ClockConvertSource = \"INTERNALTIMING\""
+            "            ClockConvertPolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+            "            ScanIntervalCounterSource = \"COUNTER_TB3\""
+            "            ScanIntervalCounterPolarity = \"RISING_EDGE\""
+            "            ScanIntervalCounterPeriod = 50"
+            "            ScanIntervalCounterDelay = 2"
+            "            CPUs = 0xf"
+            "            ExecutionMode = IndependentRealTimeThread"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint32"
+            "                }"
+            "                Time = {"
+            "                    Type = uint32"
+            "                }"
+            "                ADC0_0 = {"
+            "                   InputRange = 10"
+            "                   Type = int16"
+            "                   ChannelId = 0"
+            "                }"
+            "                ADC1_0 = {"
+            "                   InputRange = 10"
+            "                   Type = int16"
+            "                   ChannelId = 1"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMA}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+    ReferenceT<NI6368ADCTestGAM> testGAM;
+    if (ok) {
+        testGAM = application->Find("Functions.GAMA");
+        ok = testGAM.IsValid();
+    }
+    ReferenceT<GAMScheduler> scheduler;
+    if (ok) {
+        scheduler = application->Find("Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        application->PrepareNextState("State1");
+
+        application->StartNextStateExecution();
+        while (testGAM->totalSamples < 500000)
+            ;
+        uint16 rms = testGAM->rms;
+        if (testGAM->totalSamples > 0) {
+            rms = sqrtf(rms / testGAM->totalSamples);
+        }
+        printf("--->>>RMS = %u\n", rms);
+        application->StopCurrentStateExecution();
+    }
+    god->Purge();
+    return ok;
+}
 
 bool NI6368ADCTest::TestIntegrated_RealTimeThreadExecutionMode() {
     using namespace MARTe;

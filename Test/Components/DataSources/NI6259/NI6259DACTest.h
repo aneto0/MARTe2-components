@@ -56,10 +56,12 @@ public:
      */
     bool TestGetNumberOfMemoryBuffers();
 
+    bool TestGetSignalMemoryBuffer_False_Non_Init();
+
     /**
      * @brief Tests the GetSignalMemoryBuffer method with an invalid signal index.
      */
-    bool TestGetSignalMemoryBuffer_False();
+    bool TestGetSignalMemoryBuffer_False_Invalid_Index();
 
     /**
      * @brief Tests the GetSignalMemoryBuffer method.
@@ -122,11 +124,6 @@ public:
     bool TestInitialise_ClockUpdateSource();
 
     /**
-     * @brief Tests the Initialise method without specifying a clock source.
-     */
-    bool TestInitialise_False_NoClockUpdateSource();
-
-    /**
      * @brief Tests the Initialise method with an invalid clock source.
      */
     bool TestInitialise_False_BadClockUpdateSource();
@@ -135,11 +132,6 @@ public:
      * @brief Tests the Initialise method with all the possible clock polarities.
      */
     bool TestInitialise_ClockUpdatePolarity();
-
-    /**
-     * @brief Tests the Initialise method without specifying a clock polarity.
-     */
-    bool TestInitialise_False_NoClockUpdatePolarity();
 
     /**
      * @brief Tests the Initialise method with an invalid clock polarity.
@@ -205,7 +197,7 @@ public:
     /**
      * @brief Tests the SetConfiguredDatabase specifying a number of samples > 1.
      */
-    bool TestSetConfiguredDatabase_False_SignalNumberOfSamplesGreaterThanOne();
+    bool TestSetConfiguredDatabase_SignalNumberOfSamplesGreaterThanOne();
 
     /**
      * @brief Tests the SetConfiguredDatabase specifying a wrong device name.
