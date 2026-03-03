@@ -97,7 +97,9 @@ CLASS_REGISTER(NI6528TestGAM, "1.0")
 
 bool NI6528Test::TestConstructor() {
     NI6528 *test = new NI6528();
-    return test != NULL;
+    bool ret = (test != NULL);
+    delete test;
+    return ret;
 }
 
 static const MARTe::char8 *const config1_full = ""
@@ -299,21 +301,20 @@ bool NI6528Test::TestSynchronise() {
     return ok;
 }
 
-bool NI6528Test::TestAllocateMemory(){
+bool NI6528Test::TestAllocateMemory() {
     return true;
 }
-
 
 bool NI6528Test::TestGetSignalMemoryBuffer() {
     bool ok = true;
     void *ptr = NULL;
     NI6528 test;
     for (uint32 i = 0u; i < 6u; i++) {
-        ok &= test.GetSignalMemoryBuffer(i, 0u, (void*&)ptr);
+        ok &= test.GetSignalMemoryBuffer(i, 0u, (void*&) ptr);
     }
 
     if (ok) {
-        ok = !test.GetSignalMemoryBuffer(6u, 0u, (void*&)ptr);
+        ok = !test.GetSignalMemoryBuffer(6u, 0u, (void*&) ptr);
     }
     return ok;
 }
@@ -324,26 +325,26 @@ bool NI6528Test::TestGetBrokerName() {
     NI6528 test;
     StreamString brok = test.GetBrokerName(cdb, InputSignals);
     bool ok = (brok == "MemoryMapInputBroker");
-    if(ok){
-        brok=test.GetBrokerName(cdb, OutputSignals);
+    if (ok) {
+        brok = test.GetBrokerName(cdb, OutputSignals);
         ok = (brok == "MemoryMapOutputBroker");
     }
     cdb.Write("Trigger", 1u);
-    if(ok){
+    if (ok) {
         brok = test.GetBrokerName(cdb, InputSignals);
         ok = (brok == "MemoryMapSynchronisedInputBroker");
     }
-    if(ok){
+    if (ok) {
         brok = test.GetBrokerName(cdb, OutputSignals);
         ok = (brok == "MemoryMapSynchronisedOutputBroker");
     }
     cdb.Delete("Trigger");
     cdb.Write("Frequency", 0u);
-    if(ok){
+    if (ok) {
         brok = test.GetBrokerName(cdb, InputSignals);
         ok = (brok == "MemoryMapSynchronisedInputBroker");
     }
-    if(ok){
+    if (ok) {
         brok = test.GetBrokerName(cdb, OutputSignals);
         ok = (brok == "MemoryMapSynchronisedOutputBroker");
     }
