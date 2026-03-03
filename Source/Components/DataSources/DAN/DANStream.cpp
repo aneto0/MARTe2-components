@@ -205,11 +205,13 @@ void DANStream::SetRelativeTimeSignal(uint32 *const timeRelativeSignalIn) {
     }
 }
 
-void DANStream::SetTimeSignalMultiplier(float64 timeSignalMultiplierIn) {
+void DANStream::SetTimeSignalMultiplier(const float64 timeSignalMultiplierIn) {
+    /*lint -e{9122} cast to uint64 required*/
     timeNsMultiplier = static_cast<uint64>(timeSignalMultiplierIn / 1e-9);
 }
 
-void DANStream::SetTimeSignalOffset(float64 timeSignalOffsetIn) {
+void DANStream::SetTimeSignalOffset(const float64 timeSignalOffsetIn) {
+    /*lint -e{9122} cast to uint64 required*/
     timeNsOffset = static_cast<int64>(timeSignalOffsetIn * 1e9);
 }
 
@@ -219,7 +221,7 @@ bool DANStream::PutData() {
     bool ok = true;
     uint64 timeStamp = 0u;
     if (useExternalAbsoluteTimingSignal) {
-        /*lint -e{613} timeAbsoluteSignal cannot be NULL as otherwise useExternalAbsoluteTimingSignal=false*/
+        /*lint -e{613} -e{737} -e{9117} timeAbsoluteSignal cannot be NULL as otherwise useExternalAbsoluteTimingSignal=false. Sign not lost as timeNsOffset will always be smaller than ((*timeAbsoluteSignal) * timeNsMultiplier)*/
         timeStamp = ((*timeAbsoluteSignal) * timeNsMultiplier) + timeNsOffset;
     }
     else if (useExternalRelativeTimingSignal) {
@@ -229,6 +231,7 @@ bool DANStream::PutData() {
         timeRelativeSignalNanos *= timeNsMultiplier;
         timeStamp = absoluteStartTime;
         timeStamp += timeRelativeSignalNanos;
+        /*lint -e{737} -e{9117} Sign not lost as timeNsOffset will always be smaller than timeStamp*/
         timeStamp += timeNsOffset;
     }
     else {
