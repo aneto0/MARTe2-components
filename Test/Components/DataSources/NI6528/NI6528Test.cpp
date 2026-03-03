@@ -97,7 +97,7 @@ CLASS_REGISTER(NI6528TestGAM, "1.0")
 
 bool NI6528Test::TestConstructor() {
     NI6528 *test = new NI6528();
-    bool ret = (test != NULL);
+    bool ret=(test != NULL);
     delete test;
     return ret;
 }
@@ -219,6 +219,116 @@ bool NI6528Test::TestInitialise() {
     return ok;
 }
 
+bool NI6528Test::TestInitialise_FalseDoublePort(){
+    const char8 *config_double_port=""
+    "        +NI6368_0 = {"
+    "            Class = NI6528"
+    "            DeviceName = \"/dev/pxi6528\""
+    "            BoardId = 0"
+    "            Signals = {"
+    "                Port0 = {"
+    "                    PortId = 0"
+    "                    Type = uint8"
+    "                    InversionMask = 0xF"
+    "                }"
+    "                Port1 = {"
+    "                    PortId = 1"
+    "                    Type = uint8"
+    "                }"
+    "                Port2 = {"
+    "                    PortId = 1"
+    "                    Type = uint8"
+    "                }"
+    "                Port3 = {"
+    "                    PortId = 3"
+    "                    Type = uint8"
+    "                }"
+    "                Port4 = {"
+    "                    PortId = 4"
+    "                    Type = uint8"
+    "                }"
+    "                Port5 = {"
+    "                    PortId = 5"
+    "                    Type = uint8"
+    "                    InversionMask = 0xF"
+    "                }"
+    "            }"
+    "        }";
+    NI6528 test;
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = config_double_port;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    if (ok) {
+        ok = cdb.MoveAbsolute("+NI6368_0");
+        if (ok) {
+            ok = !test.Initialise(cdb);
+        }
+
+    }
+    return ok;
+}
+
+bool NI6528Test::TestInitialise_FalseInvalidPort(){
+    const char8 *config_invalid_port=""
+    "        +NI6368_0 = {"
+    "            Class = NI6528"
+    "            DeviceName = \"/dev/pxi6528\""
+    "            BoardId = 0"
+    "            Signals = {"
+    "                Port0 = {"
+    "                    PortId = 0"
+    "                    Type = uint8"
+    "                    InversionMask = 0xF"
+    "                }"
+    "                Port1 = {"
+    "                    PortId = 1"
+    "                    Type = uint8"
+    "                }"
+    "                Port2 = {"
+    "                    PortId = 1"
+    "                    Type = uint8"
+    "                }"
+    "                Port3 = {"
+    "                    PortId = 3"
+    "                    Type = uint8"
+    "                }"
+    "                Port4 = {"
+    "                    PortId = 4"
+    "                    Type = uint8"
+    "                }"
+    "                Port5 = {"
+    "                    PortId = 6"
+    "                    Type = uint8"
+    "                    InversionMask = 0xF"
+    "                }"
+    "            }"
+    "        }";
+    NI6528 test;
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = config_invalid_port;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    if (ok) {
+        ok = cdb.MoveAbsolute("+NI6368_0");
+        if (ok) {
+            ok = !test.Initialise(cdb);
+        }
+
+    }
+    return ok;
+}
+
+
+
 bool NI6528Test::TestSetConfiguredDatabase() {
     ConfigurationDatabase cdb;
     StreamString configStream = config1_full;
@@ -243,6 +353,258 @@ bool NI6528Test::TestSetConfiguredDatabase() {
     }
     return ok;
 }
+
+bool NI6528Test::TestSetConfiguredDatabase_FalseNSignals(){
+
+
+    static const MARTe::char8 *const config_toomany_signals = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = NI6528TestGAM"
+            "            InputSignals = {"
+            "                Port0 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = uint8"
+            "                    Trigger = 1"
+            "                }"
+            "                Port1 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = uint8"
+            "                }"
+            "                Port2 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = uint8"
+            "                }"
+            "            }"
+            "            OutputSignals = {"
+            "                Port3 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = uint8"
+            "                }"
+            "                Port4 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = uint8"
+            "                }"
+            "                Port5 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = uint8"
+            "                }"
+            "                Port6 = {"
+            "                    Type = uint8"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +NI6368_0 = {"
+            "            Class = NI6528"
+            "            DeviceName = \"/dev/pxi6528\""
+            "            BoardId = 0"
+            "            Signals = {"
+            "                Port0 = {"
+            "                    PortId = 0"
+            "                    Type = uint8"
+            "                    InversionMask = 0xF"
+            "                }"
+            "                Port1 = {"
+            "                    PortId = 1"
+            "                    Type = uint8"
+            "                }"
+            "                Port2 = {"
+            "                    PortId = 2"
+            "                    Type = uint8"
+            "                }"
+            "                Port3 = {"
+            "                    PortId = 3"
+            "                    Type = uint8"
+            "                }"
+            "                Port4 = {"
+            "                    PortId = 4"
+            "                    Type = uint8"
+            "                }"
+            "                Port5 = {"
+            "                    PortId = 5"
+            "                    Type = uint8"
+            "                    InversionMask = 0xF"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMA}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = config_toomany_signals;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = !application->ConfigureApplication();
+    }
+    return ok;
+}
+
+bool NI6528Test::TestSetConfiguredDatabase_FalseSignalType(){
+
+
+    static const MARTe::char8 *const config_wrong_type = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = NI6528TestGAM"
+            "            InputSignals = {"
+            "                Port0 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = uint8"
+            "                    Trigger = 1"
+            "                }"
+            "                Port1 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = uint8"
+            "                }"
+            "                Port2 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = uint8"
+            "                }"
+            "            }"
+            "            OutputSignals = {"
+            "                Port3 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = uint8"
+            "                }"
+            "                Port4 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = uint8"
+            "                }"
+            "                Port5 = {"
+            "                    DataSource = NI6368_0"
+            "                    Type = uint8"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +NI6368_0 = {"
+            "            Class = NI6528"
+            "            DeviceName = \"/dev/pxi6528\""
+            "            BoardId = 0"
+            "            Signals = {"
+            "                Port0 = {"
+            "                    PortId = 0"
+            "                    Type = uint16"
+            "                    InversionMask = 0xF"
+            "                }"
+            "                Port1 = {"
+            "                    PortId = 1"
+            "                    Type = uint8"
+            "                }"
+            "                Port2 = {"
+            "                    PortId = 2"
+            "                    Type = uint8"
+            "                }"
+            "                Port3 = {"
+            "                    PortId = 3"
+            "                    Type = uint8"
+            "                }"
+            "                Port4 = {"
+            "                    PortId = 4"
+            "                    Type = uint8"
+            "                }"
+            "                Port5 = {"
+            "                    PortId = 5"
+            "                    Type = uint8"
+            "                    InversionMask = 0xF"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMA}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = config_wrong_type;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = !application->ConfigureApplication();
+    }
+    return ok;
+}
+
 
 bool NI6528Test::TestSynchronise() {
 
@@ -301,20 +663,21 @@ bool NI6528Test::TestSynchronise() {
     return ok;
 }
 
-bool NI6528Test::TestAllocateMemory() {
+bool NI6528Test::TestAllocateMemory(){
     return true;
 }
+
 
 bool NI6528Test::TestGetSignalMemoryBuffer() {
     bool ok = true;
     void *ptr = NULL;
     NI6528 test;
     for (uint32 i = 0u; i < 6u; i++) {
-        ok &= test.GetSignalMemoryBuffer(i, 0u, (void*&) ptr);
+        ok &= test.GetSignalMemoryBuffer(i, 0u, (void*&)ptr);
     }
 
     if (ok) {
-        ok = !test.GetSignalMemoryBuffer(6u, 0u, (void*&) ptr);
+        ok = !test.GetSignalMemoryBuffer(6u, 0u, (void*&)ptr);
     }
     return ok;
 }
@@ -325,26 +688,26 @@ bool NI6528Test::TestGetBrokerName() {
     NI6528 test;
     StreamString brok = test.GetBrokerName(cdb, InputSignals);
     bool ok = (brok == "MemoryMapInputBroker");
-    if (ok) {
-        brok = test.GetBrokerName(cdb, OutputSignals);
+    if(ok){
+        brok=test.GetBrokerName(cdb, OutputSignals);
         ok = (brok == "MemoryMapOutputBroker");
     }
     cdb.Write("Trigger", 1u);
-    if (ok) {
+    if(ok){
         brok = test.GetBrokerName(cdb, InputSignals);
         ok = (brok == "MemoryMapSynchronisedInputBroker");
     }
-    if (ok) {
+    if(ok){
         brok = test.GetBrokerName(cdb, OutputSignals);
         ok = (brok == "MemoryMapSynchronisedOutputBroker");
     }
     cdb.Delete("Trigger");
     cdb.Write("Frequency", 0u);
-    if (ok) {
+    if(ok){
         brok = test.GetBrokerName(cdb, InputSignals);
         ok = (brok == "MemoryMapSynchronisedInputBroker");
     }
-    if (ok) {
+    if(ok){
         brok = test.GetBrokerName(cdb, OutputSignals);
         ok = (brok == "MemoryMapSynchronisedOutputBroker");
     }

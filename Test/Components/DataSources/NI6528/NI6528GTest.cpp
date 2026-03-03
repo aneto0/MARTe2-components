@@ -53,9 +53,29 @@ TEST(NI6528GTest,TestInitialise) {
     ASSERT_TRUE(test.TestInitialise());
 }
 
+TEST(NI6528GTest,TestInitialise_FalseDoublePort) {
+    NI6528Test test;
+    ASSERT_TRUE(test.TestInitialise_FalseDoublePort());
+}
+
+TEST(NI6528GTest,TestInitialise_FalseInvalidPort) {
+    NI6528Test test;
+    ASSERT_TRUE(test.TestInitialise_FalseInvalidPort());
+}
+
 TEST(NI6528GTest,TestSetConfiguredDatabase) {
     NI6528Test test;
     ASSERT_TRUE(test.TestSetConfiguredDatabase());
+}
+
+TEST(NI6528GTest,TestSetConfiguredDatabase_FalseNSignals) {
+    NI6528Test test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_FalseNSignals());
+}
+
+TEST(NI6528GTest,TestSetConfiguredDatabase_FalseSignalType) {
+    NI6528Test test;
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_FalseSignalType());
 }
 
 TEST(NI6528GTest,TestSynchronise) {

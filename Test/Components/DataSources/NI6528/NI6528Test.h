@@ -45,7 +45,15 @@ public:
 
     bool TestInitialise();
 
+    bool TestInitialise_FalseDoublePort();
+
+    bool TestInitialise_FalseInvalidPort();
+
     bool TestSetConfiguredDatabase();
+
+    bool TestSetConfiguredDatabase_FalseNSignals();
+
+    bool TestSetConfiguredDatabase_FalseSignalType();
 
     bool TestSynchronise();
 

@@ -106,7 +106,9 @@ bool NI6528::Initialise(StructuredDataI &data) {
                     }
                 }
             }
-            ok = data.MoveToAncestor(1u);
+            if (ok) {
+                ok = data.MoveToAncestor(1u);
+            }
         }
     }
     return ok;
@@ -147,7 +149,7 @@ bool NI6528::SetConfiguredDatabase(StructuredDataI &data) {
     return ok;
 }
 
-bool NI6528::AllocateMemory(){
+bool NI6528::AllocateMemory() {
     return true;
 }
 
