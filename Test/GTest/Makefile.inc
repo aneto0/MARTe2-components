@@ -75,6 +75,7 @@ ifndef EXCLUDE_NI
 LIBRARIES += -lnisync
 LIBRARIES += -lnixseries
 LIBRARIES += -lpxi6259
+LIBRARIES += -lpxi6528
 LIBRARIES += -lNiFpga
 endif
 
