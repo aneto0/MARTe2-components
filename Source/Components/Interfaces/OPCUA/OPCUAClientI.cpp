@@ -164,7 +164,11 @@ uint32 OPCUAClientI::GetReferences(const UA_BrowseRequest bReq,
                 for (uint32 j = 0u; j < bResp.results[i].referencesSize; ++j) {
                     UA_ReferenceDescription ref;
                     (void) UA_ReferenceDescription_copy(&(bResp.results[i].references[j]), &ref);
-                    if (StringHelper::CompareN(reinterpret_cast<char8*>(ref.browseName.name.data), path, StringHelper::Length(path)) == 0) {
+                    bool areEqual = (ref.browseName.name.length == StringHelper::Length(path));
+                    if (areEqual) {
+                        areEqual = (StringHelper::CompareN(reinterpret_cast<char8*>(ref.browseName.name.data), path, StringHelper::Length(path)) == 0);
+                    }
+                    if (areEqual) {
                         id = ref.referenceTypeId.identifier.numeric;
                         namespaceIndex = ref.nodeId.nodeId.namespaceIndex;
                         if (ref.nodeId.nodeId.identifierType == UA_NODEIDTYPE_NUMERIC) {
@@ -176,7 +180,8 @@ uint32 OPCUAClientI::GetReferences(const UA_BrowseRequest bReq,
                                 delete [] stringNodeId;
                             }
                             stringNodeId = new char8[ref.nodeId.nodeId.identifier.string.length + 1u];
-                            ok = StringHelper::Copy(stringNodeId, reinterpret_cast<char8*>(ref.nodeId.nodeId.identifier.string.data));
+                            stringNodeId[ref.nodeId.nodeId.identifier.string.length] = '\0';
+                            ok = StringHelper::CopyN(stringNodeId, reinterpret_cast<char8*>(ref.nodeId.nodeId.identifier.string.data), static_cast<uint32>(ref.nodeId.nodeId.identifier.string.length));
                             if (ok) {
                                 numericNodeId = 0u;
                             }
@@ -203,7 +208,7 @@ uint32 OPCUAClientI::GetReferences(const UA_BrowseRequest bReq,
                     *reinterpret_cast<UA_BrowseNextResponse*>(&bResp) = UA_Client_Service_browseNext(opcuaClient, nextReq);
                 }
                 /*lint -e{526} -e{628} -e{1551} -e{1055} -e{746} no exception thrown, function defined in open62541*/
-                (void) UA_ByteString_clear(nextReq.continuationPoints);
+                UA_ByteString_clear(nextReq.continuationPoints);
                 UA_ByteString_delete(nextReq.continuationPoints);
                 //UA_BrowseNextRequest_clear(&nextReq);
             }

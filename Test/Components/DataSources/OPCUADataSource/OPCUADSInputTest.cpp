@@ -11,13 +11,13 @@
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
  *
- * @warning Unless required by applicable law or agreed to in writing, 
+ * @warning Unless required by applicable law or agreed to in writing,
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class OPCUADSInputTest (public, protected, and private). Be aware that some 
+ * the class OPCUADSInputTest (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -103,6 +103,7 @@ bool OPCUADSInputTest::TestInitialise_Default() {
             "                MyNode = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUA\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "            OutputSignals = {\n"
@@ -256,6 +257,7 @@ bool OPCUADSInputTest::TestInitialise_Introspection() {
             "                Sensor3 = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUA\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "            OutputSignals = {\n"
@@ -285,6 +287,7 @@ bool OPCUADSInputTest::TestInitialise_Introspection() {
             "                    NamespaceIndex = 1\n"
             "                    Path = MasterSet.SensorPackage1.Sensor3\n"
             "                    Type = uint32\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -410,6 +413,7 @@ bool OPCUADSInputTest::TestInitialise_ExtensionObject() {
             "                MasterSet = {\n"
             "                    Type = MasterSet\n"
             "                    DataSource = OPCUA\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "            OutputSignals = {\n"
@@ -440,6 +444,7 @@ bool OPCUADSInputTest::TestInitialise_ExtensionObject() {
             "                    Path = MasterSet\n"
             "                    Type = MasterSet\n"
             "                    ExtensionObject = \"yes\"\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -535,6 +540,7 @@ bool OPCUADSInputTest::TestSynchronise_Default() {
             "                MyNode = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUA\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "            OutputSignals = {\n"
@@ -564,6 +570,7 @@ bool OPCUADSInputTest::TestSynchronise_Default() {
             "                    NamespaceIndex = 1\n"
             "                    Path = MyNode\n"
             "                    Type = uint32\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -667,6 +674,7 @@ bool OPCUADSInputTest::TestSynchronise_Monitor() {
             "                MyNode = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUA\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "            OutputSignals = {\n"
@@ -697,6 +705,7 @@ bool OPCUADSInputTest::TestSynchronise_Monitor() {
             "                    NamespaceIndex = 1\n"
             "                    Path = MyNode\n"
             "                    Type = uint32\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -800,6 +809,7 @@ bool OPCUADSInputTest::TestSynchronise_WrongMode() {
             "                MyNode = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUA\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "            OutputSignals = {\n"
@@ -830,6 +840,7 @@ bool OPCUADSInputTest::TestSynchronise_WrongMode() {
             "                    NamespaceIndex = 1\n"
             "                    Path = MyNode\n"
             "                    Type = uint32\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -1894,6 +1905,7 @@ bool OPCUADSInputTest::Test_NumberOfDimensionsGreater1() {
             "                MyNode = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUAIn\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "            OutputSignals = {\n"
@@ -1925,6 +1937,7 @@ bool OPCUADSInputTest::Test_NumberOfDimensionsGreater1() {
             "                    Path = MyNode\n"
             "                    Type = uint32\n"
             "                    NumberOfDimensions = 2\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -2028,6 +2041,7 @@ bool OPCUADSInputTest::Test_SetConfiguredDatabase_FailSetServiceRequest() {
             "                MyNode = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUAIn\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "            OutputSignals = {\n"
@@ -2058,6 +2072,7 @@ bool OPCUADSInputTest::Test_SetConfiguredDatabase_FailSetServiceRequest() {
             "                    NamespaceIndex = 1\n"
             "                    Path = MyNode1\n"
             "                    Type = uint32\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -2187,6 +2202,7 @@ bool OPCUADSInputTest::Test_SetConfiguredDatabase_ExtensionObject() {
             "                MasterSet = {\n"
             "                    Type = MasterSet\n"
             "                    DataSource = OPCUA\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "            OutputSignals = {\n"
@@ -2217,6 +2233,7 @@ bool OPCUADSInputTest::Test_SetConfiguredDatabase_ExtensionObject() {
             "                    Path = MasterSet\n"
             "                    Type = MasterSet\n"
             "                    ExtensionObject = \"yes\"\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "        }\n"
@@ -2297,6 +2314,7 @@ bool OPCUADSInputTest::Test_Authentication() {
             "                Number = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUAIn\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "            OutputSignals = {\n"
@@ -2375,7 +2393,7 @@ bool OPCUADSInputTest::Test_Authentication() {
     uint32 serverAuthKeysSize = serverAuthKeys.Size();
     File serverAuthKeysFile;
     bool ok = serverAuthKeysFile.Open("/tmp/opcua_server_test_auth_keys.cfg",
-    	BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
+        BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
     ok = ok && serverAuthKeysFile.Write(serverAuthKeys.Buffer(), serverAuthKeysSize);
     (void) serverAuthKeysFile.Close();
 
@@ -2441,6 +2459,7 @@ bool OPCUADSInputTest::Test_Authentication_NoCreds() {
             "                Number = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUAIn\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "            OutputSignals = {\n"
@@ -2518,7 +2537,7 @@ bool OPCUADSInputTest::Test_Authentication_NoCreds() {
     uint32 serverAuthKeysSize = serverAuthKeys.Size();
     File serverAuthKeysFile;
     bool ok = serverAuthKeysFile.Open("/tmp/opcua_server_test_auth_keys.cfg",
-    	BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
+        BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
     ok = ok && serverAuthKeysFile.Write(serverAuthKeys.Buffer(), serverAuthKeysSize);
     (void) serverAuthKeysFile.Close();
 
@@ -2561,6 +2580,7 @@ bool OPCUADSInputTest::Test_Authentication_BadCreds() {
             "                Number = {\n"
             "                    Type = uint32\n"
             "                    DataSource = OPCUAIn\n"
+            "                    SynchSignal = 1\n"
             "                }\n"
             "            }\n"
             "            OutputSignals = {\n"
@@ -2639,7 +2659,7 @@ bool OPCUADSInputTest::Test_Authentication_BadCreds() {
     uint32 serverAuthKeysSize = serverAuthKeys.Size();
     File serverAuthKeysFile;
     bool ok = serverAuthKeysFile.Open("/tmp/opcua_server_test_auth_keys.cfg",
-    	BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
+            BasicFile::FLAG_CREAT | BasicFile::ACCESS_MODE_W | BasicFile::FLAG_TRUNC | BasicFile::FLAG_APPEND);
     ok = ok && serverAuthKeysFile.Write(serverAuthKeys.Buffer(), serverAuthKeysSize);
     (void) serverAuthKeysFile.Close();
 

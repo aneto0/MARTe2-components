@@ -85,7 +85,14 @@ bool EPICSPVAInput::Initialise(StructuredDataI &data) {
             ok = signalsDatabase.MoveRelative("Signals");
         }
         if (ok) {
-            ok = signalsDatabase.Write("Locked", 1u);
+            uint8 locked = 1u;
+            if (signalsDatabase.Read("Locked", locked)) {
+                ok = signalsDatabase.Delete("Locked");
+            }
+            else {
+                locked = 1u;
+            }
+            ok = signalsDatabase.Write("Locked", locked);
             numberOfChannels = (signalsDatabase.GetNumberOfChildren() - 1u);
             executor.SetNumberOfPoolThreads(numberOfChannels);
             REPORT_ERROR(ErrorManagement::Information, "Found %d channels", numberOfChannels);

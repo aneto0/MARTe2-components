@@ -31,9 +31,10 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
-#include "OPCUADSOutput.h"
 #include "AuthUtils.h"
 #include "File.h"
+#include "StructuredDataIHelper.h"
+#include "OPCUADSOutput.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
@@ -49,15 +50,14 @@ namespace MARTe {
 OPCUADSOutput::OPCUADSOutput() :
         DataSourceI() {
     masterClient = NULL_PTR(OPCUAClientWrite*);
-    nOfSignals = 0u;
     numberOfNodes = 0u;
-    extensionObject = NULL_PTR(StreamString*);
+    isExtensionObject = false;
     paths = NULL_PTR(StreamString*);
     namespaceIndexes = NULL_PTR(uint16*);
-    structuredTypeNames = NULL_PTR(StreamString*);
-    tempPaths = NULL_PTR(StreamString*);
-    tempNamespaceIndexes = NULL_PTR(uint16*);
-    tempNElements = NULL_PTR(uint32*);
+    structuredTypeName = "";
+    signalIdxMap = NULL_PTR(uint32*);
+    timestampSignals = NULL_PTR(uint64*);
+    timestampNodes = NULL_PTR(uint64**);
     serverAddress = "";
     entryArrayElements = NULL_PTR(uint32*);
     entryNumberOfMembers = NULL_PTR(uint32*);
@@ -66,6 +66,7 @@ OPCUADSOutput::OPCUADSOutput() :
     nElements = NULL_PTR(uint32*);
     types = NULL_PTR(TypeDescriptor*);
     authenticate = false;
+    triggerSignalSet = false;
     username = "";
     password = "";
 }
@@ -84,20 +85,17 @@ OPCUADSOutput::~OPCUADSOutput() {
     if (paths != NULL_PTR(StreamString*)) {
         delete[] paths;
     }
-    if (extensionObject != NULL_PTR(StreamString*)) {
-        delete[] extensionObject;
-    }
-    if (structuredTypeNames != NULL_PTR(StreamString*)) {
-        delete[] structuredTypeNames;
-    }
     if (namespaceIndexes != NULL_PTR(uint16*)) {
         delete[] namespaceIndexes;
     }
-    if (tempPaths != NULL_PTR(StreamString*)) {
-        delete[] tempPaths;
+    if (signalIdxMap != NULL_PTR(uint32*)) {
+        delete[] signalIdxMap;
     }
-    if (tempNamespaceIndexes != NULL_PTR(uint16*)) {
-        delete[] tempNamespaceIndexes;
+    if (timestampSignals != NULL_PTR(uint64 *)) {
+        delete[] timestampSignals;
+    }
+    if (timestampNodes != NULL_PTR(uint64 **)) {
+        delete[] timestampNodes;
     }
     if (entryArrayElements != NULL_PTR(uint32*)) {
         delete[] entryArrayElements;
@@ -107,9 +105,6 @@ OPCUADSOutput::~OPCUADSOutput() {
     }
     if (entryTypes != NULL_PTR(TypeDescriptor*)) {
         delete[] entryTypes;
-    }
-    if (tempNElements != NULL_PTR(uint32*)) {
-        delete[] tempNElements;
     }
 }
 
@@ -171,62 +166,67 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
             }
         }
+        uint32 nOfTempSignals = data.GetNumberOfChildren();
+        StructuredDataIHelper helper(data, this);
+        for (uint32 k=0u; (k<nOfTempSignals) && (ok); k++) {
+            ok = data.MoveToChild(k);
+            if (ok) {
+                StreamString extensionObjectStr;
+                bool isExtensionObjectSignal = data.Read("ExtensionObject", extensionObjectStr);
+                if (isExtensionObjectSignal) {
+                    isExtensionObjectSignal = (extensionObjectStr == "yes");
+                }
+                if (isExtensionObjectSignal) {
+                    ok = !isExtensionObject;
+                    if (ok) {
+                        isExtensionObject = true;
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "At most one ExtensionObject shall be set per DataSource");
+                    }
+                }
+                if (isExtensionObjectSignal) {
+                    if (ok) {
+                        ok = helper.Read("Type", structuredTypeName);
+                    }
+                    if (ok) {
+                        paths = new StreamString[1u];
+                        StreamString path;
+                        ok = helper.Read("Path", path);
+                        if (ok) {
+                            paths[0] = path;
+                        }
+                    }
+                    if (ok) {
+                        namespaceIndexes = new uint16[1u];
+                        uint16 namespaceIdx;
+                        ok = helper.Read("NamespaceIndex", namespaceIdx);
+                        if (ok) {
+                            namespaceIndexes[0u] = namespaceIdx;
+                        }
+                    }
+                    if (ok) {
+                        nElements = new uint32[1u];
+                        types = new TypeDescriptor[1u];
+                        uint32 numberOfElements;
+                        (void) helper.Read("NumberOfElements", numberOfElements, 1u);
+                        nElements[0u] = numberOfElements;
+                    }
+                }
+            }
+            if (ok) {
+                ok = data.MoveToAncestor(1u);
+            }
+        }
         if (ok) {
             ok = signalsDatabase.MoveRelative("Signals");
         }
         /* Do not allow to add signals in run-time */
         if (ok) {
             ok = signalsDatabase.Write("Locked", 1u);
-            nOfSignals = (signalsDatabase.GetNumberOfChildren() - 1u);
-            tempPaths = new StreamString[nOfSignals];
-            tempNamespaceIndexes = new uint16[nOfSignals];
-            extensionObject = new StreamString[nOfSignals];
-            tempNElements = new uint32[nOfSignals];
-            for (uint32 i = 0u; (i < nOfSignals) && (ok); i++) {
-                ok = signalsDatabase.MoveRelative(signalsDatabase.GetChildName(i));
-                if (ok) {
-                    ok = signalsDatabase.Read("Path", tempPaths[i]);
-                    if (!ok) {
-                        uint32 k = i;
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Path attribute from signal %d", k);
-                    }
-                }
-                if (ok) {
-                    ok = signalsDatabase.Read("NamespaceIndex", tempNamespaceIndexes[i]);
-                    if (!ok) {
-                        uint32 k = i;
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the NamespaceIndex attribute from signal %d", k);
-                    }
-                }
-                if (ok) {
-                    ok = signalsDatabase.Read("NumberOfElements", tempNElements[i]);
-                    if (!ok) {
-                        tempNElements[i] = 1u;
-                        ok = true;
-                        uint32 k = i;
-                        REPORT_ERROR(ErrorManagement::Information, "No NumberOfElements set up for signal %d. Using N = 1", k);
-                    }
-                }
-                if (ok) {
-                    ok = signalsDatabase.Read("ExtensionObject", extensionObject[i]);
-                    if ((extensionObject[i] == "yes") && ok) {
-                        structuredTypeNames = new StreamString[nOfSignals];
-                        ok = signalsDatabase.Read("Type", structuredTypeNames[i]);
-                        if (!ok) {
-                            uint32 k = i;
-                            REPORT_ERROR(ErrorManagement::ParametersError, "Cannot read the Type attribute from signal %d", k);
-                        }
-                        REPORT_ERROR(ErrorManagement::Information, "Reading Structure with OPC UA Complex DataType Extension");
-                    }
-                    else {
-                        extensionObject[i] = "no";
-                        ok = true;
-                    }
-                }
-                if (ok) {
-                    ok = signalsDatabase.MoveToAncestor(1u);
-                }
-            }
+        }
+        if (ok) {
+            ok = data.Copy(tempSignalsDatabase);
         }
         if (ok) {
             ok = signalsDatabase.MoveToAncestor(1u);
@@ -241,149 +241,282 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
     return ok;
 }
 
-bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
-    bool ok = DataSourceI::SetConfiguredDatabase(data);
-    numberOfNodes = GetNumberOfSignals();
+uint32 OPCUADSOutput::GetNumberOfNodes() {
+    uint32 numberOfSignals = GetNumberOfSignals();
+    (void) timestampDatabase.MoveAbsolute("Sources");
+    uint32 numberOfTimestampSignals = timestampDatabase.GetNumberOfChildren();
+    return numberOfSignals - numberOfTimestampSignals;
+}
+
+bool OPCUADSOutput::PopulateTimestampDatabase() {
+    bool ok = tempSignalsDatabase.MoveToRoot();
+    if (ok) {
+        ok = timestampDatabase.CreateAbsolute("Sources");
+    }
+    uint32 nSignalsTemp = tempSignalsDatabase.GetNumberOfChildren();
+    StructuredDataIHelper helper(tempSignalsDatabase, this);
+    for (uint32 i = 0u; (i < nSignalsTemp) && (ok); i++) {
+        ok = tempSignalsDatabase.MoveToChild(i);
+        bool isDefaultTimestamp = false;
+        if (ok) {
+            uint32 defaultTimeStampSignal;
+            isDefaultTimestamp = tempSignalsDatabase.Read("DefaultTimestampSignal", defaultTimeStampSignal);
+            if (isDefaultTimestamp) {
+                isDefaultTimestamp = (defaultTimeStampSignal == 1u);
+            }
+            if (isDefaultTimestamp) {
+                uint32 ii = i;
+                if (isExtensionObject) {//The timesignal can be either the first or the last
+                    if (ii > 0u) {
+                        ii = GetNumberOfSignals() - 1u;
+                    }
+                }
+                StreamString nname;
+                //Identify the timestamp signal by index
+                (void)nname.Printf("%d", ii);
+                ok = timestampDatabase.CreateRelative(nname.Buffer());
+                if (ok) {
+                    ok = timestampDatabase.Write("DefaultTimestampSignal", defaultTimeStampSignal);
+                }
+                if (ok) {
+                    ok = timestampDatabase.MoveToAncestor(1u);
+                }
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "At most one DefaultTimestampSignal shall be specified.");
+            }
+        }
+        bool isTimestampSignal = false;
+        if (ok) {
+            if (!isDefaultTimestamp) {
+                StreamString *timestampTargets = NULL_PTR(StreamString *);
+                uint32 numberOfTimestampTargets;
+                isTimestampSignal = helper.ReadArray("Timestamp", timestampTargets, numberOfTimestampTargets);
+                helper.ResetErrors();
+                if (isTimestampSignal) {
+                    uint32 ii = i;
+                    StreamString nname;
+                    (void)nname.Printf("%d", ii);
+                    ok = timestampDatabase.CreateRelative(nname.Buffer());
+                    for (uint32 n=0u; (n<numberOfTimestampTargets) && (ok); n++) {
+                        nname = "";
+                        ii = n;
+                        (void)nname.Printf("%d", ii);
+                        ok = timestampDatabase.Write(nname.Buffer(), timestampTargets[n].Buffer());
+                    }
+                    if (ok) {
+                        ok = timestampDatabase.MoveToAncestor(1u);
+                    }
+                }
+            }
+        }
+        if (ok) {
+            ok = tempSignalsDatabase.MoveToAncestor(1u);
+        }
+    }
+    return ok;
+}
+
+uint32 OPCUADSOutput::SetupExtensionObject() {
+    uint32 bodyLength = 0u;
+    bool ok = false;
+    const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeName.Buffer());
+    if (cri != NULL_PTR(const ClassRegistryItem*)) {
+        const Introspection *intro = cri->GetIntrospection();
+        ok = (intro != NULL_PTR(const Introspection*));
+        if (ok) {
+            GetStructureDimensions(intro, entryArraySize);
+
+            entryArrayElements = new uint32[entryArraySize];
+            entryNumberOfMembers = new uint32[entryArraySize];
+            entryTypes = new TypeDescriptor[entryArraySize];
+
+            uint32 index = 0u;
+            ok = GetStructure(intro, entryArrayElements, entryTypes, entryNumberOfMembers, index);
+            if (ok) {
+                ok = GetBodyLength(intro, bodyLength);
+            }
+            if (ok) {
+                bodyLength *= nElements[0u];
+            }
+        }
+    }
+    if (!ok) {
+        bodyLength = 0u;
+    }
+    return bodyLength;
+}
+
+/*lint -e{423} -e{613} SetupNodes is only called if !isExtensionObject => nElements, types, namespaceIndexes and paths have not been allocated yet*/
+bool OPCUADSOutput::SetupNodes() {
     uint8 nDimensions = 0u;
     nElements = new uint32[numberOfNodes];
     types = new TypeDescriptor[numberOfNodes];
-    for (uint32 k = 0u; k < numberOfNodes; k++) {
-        ok = GetSignalNumberOfDimensions(k, nDimensions);
-        if ((nDimensions > 1u) && ok) {
-            StreamString signalName;
-            ok = GetSignalName(k, signalName);
+    namespaceIndexes = new uint16[numberOfNodes];
+    paths = new StreamString[numberOfNodes];
+    bool ok = timestampDatabase.CreateAbsolute("NodesIdx");
+    uint32 s=0u;
+    for (uint32 k=0u; (k < numberOfSignals) && (ok); k++) {
+        bool isTimestampSignal = IsTimestampSignal(k);
+        StreamString signalName;
+        ok = GetSignalName(k, signalName);
+
+        if (!isTimestampSignal) {
             if (ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Signal %s has Number Of Dimensions = %d. Multidimensional arrays not supported yet.",
-                             signalName.Buffer(), nDimensions);
-                ok = false;
+                ok = GetSignalNumberOfDimensions(k, nDimensions);
+            }
+            if (ok) {
+                ok = (nDimensions < 2u);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Signal %s has Number Of Dimensions = %d. Multidimensional arrays not supported yet.", signalName.Buffer(), nDimensions);
+                }
+            }
+            if (ok) {
+                ok = GetSignalNumberOfElements(k, nElements[s]);
+            }
+            if (ok) {
+                types[s] = GetSignalType(k);
+                /*lint -e{9007} no side effects in the ==*/
+                ok = !((types[s].type == CArray) || (types[s].type == BT_CCString) || (types[s].type == PCString) || (types[s].type == SString));
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Type String is not supported yet.");
+                }
+            }
+            if (ok) {
+                ok = timestampDatabase.Write(signalName.Buffer(), s);
+            }
+            s++;
+        }
+        else {
+            TypeDescriptor tt = GetSignalType(k);
+            if (ok) {
+                ok = (tt == UnsignedInteger64Bit);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Signal %s is a Timestamp signal and shall be of type uint64.", signalName.Buffer());
+                }
+            }
+            uint32 nEl = 0u;
+            if (ok) {
+                ok = GetSignalNumberOfElements(k, nEl);
+            }
+            if (ok) {
+                ok = (nEl < 2u);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Signal %s is a Timestamp signal and shall be a scalar.", signalName.Buffer());
+                }
             }
         }
-        if (ok) {
-            ok = GetSignalNumberOfElements(k, nElements[k]);
+    }
+    return ok;
+
+}
+
+bool OPCUADSOutput::MapNodeSignals() {
+    bool ok = tempSignalsDatabase.MoveToRoot();
+    StructuredDataIHelper helper(tempSignalsDatabase, this);
+    if (ok) {
+        signalIdxMap = new uint32[numberOfSignals];
+    }
+    uint32 k=0u;
+    uint32 t=0u;
+    for (uint32 i = 0u; (i < numberOfSignals) && (ok); i++) {
+        bool isTimestampSignal = IsTimestampSignal(i);
+        if (!isTimestampSignal) {
+            ok = helper.MoveToChild(i);
+            if (ok) {
+                ok = helper.Read("NamespaceIndex", namespaceIndexes[k]);
+            }
+            if (ok) {
+                ok = helper.Read("Path", paths[k]);
+            }
+            if (ok) {
+                ok = helper.MoveToAncestor(1u);
+            }
+            signalIdxMap[i] = k;
+            k++;
         }
-        if (ok) {
-            types[k] = GetSignalType(k);
+        else {
+            signalIdxMap[i] = t;
+            t++;
         }
     }
+    if (t > 0u) {
+        timestampSignals = new uint64[t];
+    }
+    return ok;
+}
 
+/*lint -e{423} -e{613} MapExtensionObjectSignals is only called if isExtensionObject => signalIdxMap and timestampSignals
+ * have not been allocated yet*/
+bool OPCUADSOutput::MapExtensionObjectSignals() {
+    bool ok = true;
+    signalIdxMap = new uint32[numberOfSignals];
+    uint32 nOfOriginalSignals = tempSignalsDatabase.GetNumberOfChildren();
+    if (nOfOriginalSignals == 1u) {
+        for (uint32 k=0u; k<numberOfSignals; k++) {
+            signalIdxMap[k] = k;
+        }
+    }
+    else if (nOfOriginalSignals == 2u) {
+        if (IsDefaultTimestampSignal(0u)) {
+            signalIdxMap[0u] = 0u; //timing signal
+            for (uint32 k=1u; k<numberOfSignals; k++) {
+                signalIdxMap[k] = k - 1u;
+            }
+        }
+        else if (IsDefaultTimestampSignal(numberOfSignals - 1u)) {
+            for (uint32 k=0u; k<numberOfSignals; k++) {
+                signalIdxMap[k] = k;
+            }
+            signalIdxMap[numberOfSignals - 1u] = 0u; //With extension objects the timing signal will always be at index 0 of timestampNodes
+        }
+        else {
+            ok = false;
+            REPORT_ERROR(ErrorManagement::ParametersError, "At most two signals can be specified when using ExtensionObject and one shall be a timing signal with the property DefaultTimestampSignal");
+        }
+        if (ok) {
+            timestampSignals = new uint64[1u];
+        }
+    }
+    else {
+        ok = false;
+        REPORT_ERROR(ErrorManagement::ParametersError, "At most two signals can be specified when using ExtensionObject and one shall be a timing signal");
+    }
+    return ok;
+}
+
+bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
+    bool ok = DataSourceI::SetConfiguredDatabase(data);
+    if (ok) {
+        ok = triggerSignalSet;
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "One Trigger signal shall be set.");
+        }
+    }
+    if (ok) {
+        ok = PopulateTimestampDatabase();
+    }
     uint32 bodyLength = 0u;
-    if (structuredTypeNames != NULL_PTR(StreamString*)) {
-        for (uint32 k = 0u; k < nOfSignals; k++) {
-            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeNames[k].Buffer());
-            if (cri != NULL_PTR(const ClassRegistryItem*)) {
-                const Introspection *intro = cri->GetIntrospection();
-                ok = (intro != NULL_PTR(const Introspection*));
-                if (ok) {
-                    GetStructureDimensions(intro, entryArraySize);
-
-                    entryArrayElements = new uint32[entryArraySize];
-                    entryNumberOfMembers = new uint32[entryArraySize];
-                    entryTypes = new TypeDescriptor[entryArraySize];
-
-                    uint32 index = 0u;
-                    ok = GetStructure(intro, entryArrayElements, entryTypes, entryNumberOfMembers, index);
-                    if (ok) {
-                        ok = GetBodyLength(intro, bodyLength);
-                    }
-                    if (ok) {
-                        bodyLength *= tempNElements[k];
-                    }
-                }
-            }
+    if (ok) {
+        numberOfNodes = GetNumberOfNodes();
+        if (isExtensionObject) {
+            bodyLength = SetupExtensionObject();
+            ok = (bodyLength > 0u);
+        }
+        else {
+            ok = SetupNodes();
         }
     }
-    if (extensionObject != NULL_PTR(StreamString*)) {
-        if (extensionObject[0u] == "no") {
-            if (ok) {
-                paths = new StreamString[numberOfNodes];
-                namespaceIndexes = new uint16[numberOfNodes];
-                StreamString sigName;
-                StreamString pathToken;
-                StreamString sigToken;
-                char8 ignore;
-                for (uint32 i = 0u; i < numberOfNodes; i++) {
-                    sigName = "";
-                    /* Getting the first name from the signal path */
-                    ok = GetSignalName(i, sigName);
-                    if (ok) {
-                        ok = sigName.Seek(0LLU);
-                    }
-                    if (ok) {
-                        ok = sigName.GetToken(sigToken, ".", ignore);
-                    }
-                    if (ok) {
-                        for (uint32 j = 0u; j < nOfSignals; j++) {
-                            StreamString lastToken;
-                            sigToken = "";
-                            if (tempPaths != NULL_PTR(StreamString*)) {
-                                ok = tempPaths[j].Seek(0LLU);
-                                if (ok) {
-                                    do {
-                                        ok = tempPaths[j].GetToken(lastToken, ".", ignore);
-                                        if (ok) {
-                                            sigToken = lastToken;
-                                        }
-                                        lastToken = "";
-                                    }
-                                    while (ok);
-                                }
-
-                                /* This cycle will save the last token found */
-                                ok = tempPaths[j].Seek(0LLU);
-                                if (ok) {
-                                    do {
-                                        ok = tempPaths[j].GetToken(lastToken, ".", ignore);
-                                        if (ok) {
-                                            sigToken = lastToken;
-                                        }
-                                        lastToken = "";
-                                    }
-                                    while (ok);
-                                }
-                                /* This cycle will save the last token found */
-                                ok = tempPaths[j].Seek(0LLU);
-                                if (ok) {
-                                    do {
-                                        pathToken = "";
-                                        ok = tempPaths[j].GetToken(pathToken, ".", ignore);
-                                        if ((paths != NULL_PTR(StreamString*)) && ok) {
-                                            if ((namespaceIndexes != NULL_PTR(uint16*)) && (tempNamespaceIndexes != NULL_PTR(uint16*))) {
-                                                if (pathToken == sigToken) {
-                                                    if (numberOfNodes == nOfSignals) {
-                                                        paths[j] = tempPaths[j];
-                                                        namespaceIndexes[j] = tempNamespaceIndexes[j];
-                                                    }
-                                                    else {
-                                                        paths[i] = tempPaths[j];
-                                                        namespaceIndexes[i] = tempNamespaceIndexes[j];
-                                                    }
-                                                    ok = false; /* Exit from the cycle */
-                                                }
-                                            }
-                                        }
-                                    }
-                                    while (ok);
-                                }
-
-                            }
-                        }
-
-                        /* Then we add to the path the remaining node names */
-                        StreamString dotToken = ".";
-                        do {
-                            sigToken = "";
-                            ok = sigName.GetToken(sigToken, ".", ignore);
-                            if ((paths != NULL_PTR(StreamString*)) && ok) {
-                                paths[i] += dotToken;
-                                paths[i] += sigToken;
-                            }
-                        }
-                        while (ok);
-                        ok = true;
-                    }
-                }
-            }
+    if (ok) {
+        if (isExtensionObject) {
+            ok = MapExtensionObjectSignals();
         }
+        else {
+            ok = MapNodeSignals();
+        }
+    }
+    if (ok) {
+        ok = PopulateTimestampNodes();
     }
     if (ok) {
         /* Setting up the master Client who will perform the operations */
@@ -398,51 +531,122 @@ bool OPCUADSOutput::SetConfiguredDatabase(StructuredDataI &data) {
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not connect to the Server.");
         }
-        if (ok) {
-            REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
-            if (extensionObject != NULL_PTR(StreamString*)) {
-                if (extensionObject[0u] == "no") {
-                    ok = masterClient->SetServiceRequest(namespaceIndexes, paths, numberOfNodes);
-                    if (ok) {
-                        masterClient->SetValueMemories(numberOfNodes);
-                    }
-                    else {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "SetServiceRequest Failed.");
-                    }
-                }
-                else {
-                    ok = masterClient->SetServiceRequest(tempNamespaceIndexes, tempPaths, nOfSignals);
-                    if (ok) {
-                        masterClient->SetValueMemories(numberOfNodes);
-                        masterClient->SetDataPtr(bodyLength);
-                        for (uint32 k = 0u; k < nOfSignals; k++) {
-                            uint32 nodeCounter = 0u;
-                            uint32 index;
-                            if (tempNElements != NULL_PTR(uint32*)) {
-                                for (uint32 j = 0u; j < tempNElements[k]; j++) {
-                                    index = 0u;
-                                    uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1u);
-                                    while (nodeCounter < numberOfNodesForEachIteration) {
-                                        if (ok) {
-                                            ok = masterClient->GetExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers,
-                                                                                            entryArraySize, nodeCounter, index);
-                                        }
-                                    }
-
-                                    if (ok) {
-                                        ok = masterClient->SetExtensionObject();
-                                    }
-
-                                }
-                            }
+    }
+    /*lint -e{613} masterClient cannot be NULL as otherwise ok = false*/
+    if (ok) {
+        REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
+        uint32 numberOfNodesRemote = numberOfNodes;
+        if (isExtensionObject) {
+            numberOfNodesRemote = 1u;
+        }
+        ok = masterClient->SetServiceRequest(namespaceIndexes, paths, numberOfNodesRemote);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "SetServiceRequest Failed.");
+        }
+    }
+    /*lint -e{613} masterClient cannot be NULL as otherwise ok = false*/
+    if (ok) {
+        masterClient->SetValueMemories(numberOfNodes);
+        if (isExtensionObject) {
+            ok = (nElements != NULL_PTR(uint32*));
+            if (ok) {
+                masterClient->SetDataPtr(bodyLength);
+                uint32 nodeCounter = 0u;
+                uint32 index;
+                for (uint32 j = 0u; (j < nElements[0u]) && (ok); j++) {
+                    index = 0u;
+                    uint32 numberOfNodesForEachIteration = (numberOfNodes / nElements[0u]) * (j + 1u);
+                    while (nodeCounter < numberOfNodesForEachIteration) {
+                        if (ok) {
+                            ok = masterClient->GetExtensionObjectByteString(entryTypes, entryArrayElements, entryNumberOfMembers, entryArraySize, nodeCounter, index);
                         }
+                    }
+                    if (ok) {
+                        ok = masterClient->SetExtensionObject();
                     }
                 }
             }
         }
     }
+
+    /*lint -e{613} masterClient cannot be NULL as otherwise ok = false*/
+    if (ok) {
+        masterClient->SetSourceTimestamps(timestampNodes);
+    }
+    if (ok) {
+        tempSignalsDatabase.Purge();
+    }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Error during configuration.");
+    }
+    return ok;
+}
+
+/*lint -e{1762} function cannot be made const because of the ConfigurationDatabase*/
+bool OPCUADSOutput::FindTargetIndex(const char8 * const targetName, uint32 &idx) {
+    ConfigurationDatabase timestampDatabaseTemp = timestampDatabase;
+    bool ok = timestampDatabaseTemp.MoveAbsolute("NodesIdx");
+    if (ok) {
+        ok = timestampDatabaseTemp.Read(targetName, idx);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Failed to find target signal to be timestamped: %s.", targetName);
+        }
+    }
+    return ok;
+}
+
+/*lint -e{613} all memory allocated is a precondition to PopulateTimestampNodes()*/
+bool OPCUADSOutput::PopulateTimestampNodes() {
+    uint32 numberOfTimestampNodes = numberOfNodes;
+    if (isExtensionObject) {
+        numberOfTimestampNodes = 1u;
+    }
+    timestampNodes = new uint64*[numberOfTimestampNodes];
+    for (uint32 k=0u; (k<numberOfTimestampNodes); k++) {
+        timestampNodes[k] = NULL_PTR(uint64 *);
+    }
+    uint32 numberOfTimestampSources = 0u;
+    bool ok = timestampDatabase.MoveAbsolute("Sources");
+    if (ok) {
+        numberOfTimestampSources = timestampDatabase.GetNumberOfChildren();
+    }
+    bool defaultTimestampSignalFound = false;
+    for (uint32 i=0u; (i<numberOfTimestampSources) && (ok); i++) {
+        ok = timestampDatabase.MoveToChild(i);
+        StreamString defaultTimestampSignal;
+        bool isDefaultTimestamp = timestampDatabase.Read("DefaultTimestampSignal", defaultTimestampSignal);
+        if (isDefaultTimestamp) {
+            ok = !defaultTimestampSignalFound;
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "At most one Timestamp signal DefaultTimestampSignal shall be set");
+            }
+            for (uint32 k=0u; (k<numberOfTimestampNodes) && (ok); k++) {
+                if (timestampNodes[k] == NULL_PTR(uint64 *)) { //Do not overwrite existing signals
+                    timestampNodes[k] = &timestampSignals[i];
+                }
+            }
+            defaultTimestampSignalFound = true;
+        }
+        else {
+            uint32 numberOfTargets = timestampDatabase.GetNumberOfChildren();
+            for (uint32 k=0u; (k<numberOfTargets) && (ok); k++) {
+                StreamString nodeName;
+                StreamString nn;
+                uint32 kk = k;
+                (void)nn.Printf("%s", kk);
+                ok = timestampDatabase.Read(nn.Buffer(), nodeName);
+                uint32 nodeIdx = 0u;
+                if (ok) {
+                    ok = FindTargetIndex(nodeName.Buffer(), nodeIdx);
+                }
+                if (ok) {
+                    timestampNodes[nodeIdx] = &timestampSignals[i];
+                }
+            }
+        }
+        if (ok) {
+            ok = timestampDatabase.MoveToAncestor(1u);
+        }
     }
     return ok;
 }
@@ -455,31 +659,37 @@ bool OPCUADSOutput::AllocateMemory() {
 bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
                                           const uint32 bufferIdx,
                                           void *&signalAddress) {
-    StreamString opcDisplayName;
-    bool ok = GetSignalName(signalIdx, opcDisplayName);
+    bool ok = (masterClient != NULL_PTR(OPCUAClientWrite*)) && (nElements != NULL_PTR(uint32*));
+
     if (ok) {
-        if (types != NULL_PTR(TypeDescriptor*)) {
-            /*lint -e{9007}  [MISRA C++ Rule 5-14-1] Justification: No side effects.*/
-            if ((types[signalIdx].type == CArray) || (types[signalIdx].type == BT_CCString) || (types[signalIdx].type == PCString)
-                    || (types[signalIdx].type == SString)) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Type String is not supported yet.");
+        /*lint -e{9007}  [MISRA C++ Rule 5-14-1] Justification: No side effects.*/
+        bool isTimestampSignal = IsTimestampSignal(signalIdx);
+        uint32 nodeIdx = signalIdxMap[signalIdx];
+        if (!isTimestampSignal) {
+            if (isExtensionObject) {
+                ok = masterClient->GetSignalMemory(signalAddress, nodeIdx, types[0u], nElements[0u]);
             }
-            if ((masterClient != NULL_PTR(OPCUAClientWrite*)) && (extensionObject != NULL_PTR(StreamString*)) && (nElements != NULL_PTR(uint32*))) {
-                ok = masterClient->GetSignalMemory(signalAddress, signalIdx, types[signalIdx], nElements[signalIdx]);
-                if ((extensionObject[0u] == "no") && ok) {
+            else {
+                ok = masterClient->GetSignalMemory(signalAddress, nodeIdx, types[nodeIdx], nElements[nodeIdx]);
+            }
+            if (ok) {
+                if (!isExtensionObject) {
                     uint8 nDimensions;
-                    if (nElements[signalIdx] > 1u) {
+                    if (nElements[nodeIdx] > 1u) {
                         nDimensions = 1u;
                     }
                     else {
                         nDimensions = 0u;
                     }
-                    masterClient->SetWriteRequest(signalIdx, nDimensions, nElements[signalIdx], types[signalIdx]);
-                }
-                if (ok) {
-                    ok = (signalAddress != NULL_PTR(void*));
+                    masterClient->SetWriteRequest(nodeIdx, nDimensions, nElements[nodeIdx], types[nodeIdx]);
                 }
             }
+        }
+        else {
+            signalAddress = &timestampSignals[nodeIdx];
+        }
+        if (ok) {
+            ok = (signalAddress != NULL_PTR(void*));
         }
     }
     return ok;
@@ -487,29 +697,46 @@ bool OPCUADSOutput::GetSignalMemoryBuffer(const uint32 signalIdx,
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
 const char8* OPCUADSOutput::GetBrokerName(StructuredDataI &data,
-                                          const SignalDirection direction) {
-    const char8 *brokerName = "";
+                                         const SignalDirection direction) {
+
+    const char8 *brokerName = NULL_PTR(const char8*);
+
     if (direction == OutputSignals) {
-        brokerName = "MemoryMapSynchronisedOutputBroker";
+        uint32 trigger = 0u;
+        if (!data.Read("Trigger", trigger)) {
+            trigger = 0u;
+        }
+        if (trigger == 1u) {
+            if (!triggerSignalSet) {
+                triggerSignalSet = true;
+                brokerName = "MemoryMapSynchronisedOutputBroker";
+            }
+            else {
+                 REPORT_ERROR(ErrorManagement::ParametersError, "At most one Trigger signal shall be set");
+            }
+        }
+        else {
+            brokerName = "MemoryMapOutputBroker";
+        }
     }
+    else {
+         REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with InputSignals");
+    }
+
     return brokerName;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP at StateChange, independently of the function parameters.*/
 bool OPCUADSOutput::PrepareNextState(const char8 *const currentStateName,
                                      const char8 *const nextStateName) {
+    timestampDatabase.Purge();
     return true;
 }
 
 bool OPCUADSOutput::Synchronise() {
     bool ok = true;
-    if ((masterClient != NULL_PTR(OPCUAClientWrite*)) && (extensionObject != NULL_PTR(StreamString*))) {
-        if (extensionObject[0u] == "yes") {
-            ok = masterClient->Write();
-        }
-        else {
-            ok = masterClient->Write();
-        }
+    if (masterClient != NULL_PTR(OPCUAClientWrite*)) {
+        ok = masterClient->Write();
     }
     return ok;
 }
@@ -615,6 +842,39 @@ bool OPCUADSOutput::GetStructure(const Introspection *const intro,
         }
     }
     return ok;
+}
+
+/*lint -e{1762} function cannot be made const because of the ConfigurationDatabase*/
+bool OPCUADSOutput::IsTimestampSignal(const uint32 idx) {
+    StreamString nn;
+    ConfigurationDatabase timestampDatabaseTemp = timestampDatabase;
+    bool isTimestampSignal = timestampDatabaseTemp.MoveAbsolute("Sources");
+    if (isTimestampSignal) {
+        (void) nn.Printf("%d", idx);
+        isTimestampSignal = timestampDatabaseTemp.MoveRelative(nn.Buffer());
+    }
+    return isTimestampSignal;
+
+}
+
+/*lint -e{1762} function cannot be made const because of the ConfigurationDatabase*/
+bool OPCUADSOutput::IsDefaultTimestampSignal(const uint32 idx) {
+    StreamString nn;
+    ConfigurationDatabase timestampDatabaseTemp = timestampDatabase;
+    bool isDefaultTimestampSignal = timestampDatabaseTemp.MoveAbsolute("Sources");
+    if (isDefaultTimestampSignal) {
+        (void) nn.Printf("%d", idx);
+        isDefaultTimestampSignal = timestampDatabaseTemp.MoveRelative(nn.Buffer());
+    }
+    if (isDefaultTimestampSignal) {
+        uint32 defaultTimeStampSignal;
+        isDefaultTimestampSignal = timestampDatabaseTemp.Read("DefaultTimestampSignal", defaultTimeStampSignal);
+        if (isDefaultTimestampSignal) {
+            isDefaultTimestampSignal = (defaultTimeStampSignal == 1u);
+        }
+    } 
+    return isDefaultTimestampSignal;
+
 }
 
 CLASS_REGISTER(OPCUADSOutput, "1.0")

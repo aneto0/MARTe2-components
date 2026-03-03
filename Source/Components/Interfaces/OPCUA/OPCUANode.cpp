@@ -171,7 +171,7 @@ bool OPCUANode::GetOPCVariable(OPCUA::OPCUANodeSettings &settings,
          strcpy(readName, GetName());*/
         //StreamString readName = GetName();
         /*lint -e{1055} -e{64} -e{746} UA_QUALIFIEDNAME is declared in the open62541 library.*/
-        settings->nodeName = UA_QUALIFIEDNAME(1, const_cast<char8*>(GetName()));
+        settings->nodeName = UA_QUALIFIEDNAME(1u, const_cast<char8*>(GetName()));
         settings->attr.displayName = UA_LOCALIZEDTEXT(const_cast<char8*>("en-US"), const_cast<char8*>(GetName()));
         if (parentNodeId == 0u) {
             settings->parentNodeId = UA_NODEID_NUMERIC(0u, 85u); /* UA_NS0ID_OBJECTSFOLDER = 85 */
@@ -200,9 +200,9 @@ bool OPCUANode::InitArray(OPCUA::OPCUANodeSettings const & settings,
     bool ok = true;
     //settings->attr.valueRank = numberOfDimensions;
     settings->attr.valueRank = 1; /*numberOfDimensions */
-    settings->attr.arrayDimensions = static_cast<uint32 *>(UA_Array_new(static_cast<osulong>(numberOfDimensions), type));
+    settings->attr.arrayDimensions = static_cast<uint32 *>(UA_Array_new(static_cast<osulong>(numberOfDimensions), &UA_TYPES[UA_TYPES_UINT32]));
     settings->attr.arrayDimensionsSize = numberOfDimensions;
-    settings->attr.value.arrayDimensions = static_cast<uint32 *>(UA_Array_new(static_cast<osulong>(numberOfDimensions), type));
+    settings->attr.value.arrayDimensions = static_cast<uint32 *>(UA_Array_new(static_cast<osulong>(numberOfDimensions), &UA_TYPES[UA_TYPES_UINT32]));
     settings->attr.value.arrayDimensionsSize = numberOfDimensions;
     for (uint8 k = 0u; k < numberOfDimensions; k++) {
         settings->attr.arrayDimensions[k] = numberOfElements[k];

@@ -41,14 +41,14 @@ namespace MARTe {
 
 NI6259ADCInputBroker::NI6259ADCInputBroker() :
         BrokerI() {
-    adcBoard = NULL_PTR(NI6259ADC *);
-    copyTable = NULL_PTR(NI6259CopyTableEntry *);
+    adcBoard = NULL_PTR(NI6259ADC*);
+    copyTable = NULL_PTR(NI6259CopyTableEntry*);
 }
 
-NI6259ADCInputBroker::NI6259ADCInputBroker(NI6259ADC * const adcBoardIn) :
+NI6259ADCInputBroker::NI6259ADCInputBroker(NI6259ADC *const adcBoardIn) :
         BrokerI() {
     adcBoard = adcBoardIn;
-    copyTable = NULL_PTR(NI6259CopyTableEntry *);
+    copyTable = NULL_PTR(NI6259CopyTableEntry*);
 }
 
 /*lint -e{1540} the adcBoard is freed by the DataSource*/
@@ -56,16 +56,19 @@ NI6259ADCInputBroker::~NI6259ADCInputBroker() {
 
 }
 
-bool NI6259ADCInputBroker::Init(const SignalDirection direction, DataSourceI &dataSourceIn, const char8 * const functionName, void * const gamMemoryAddress) {
+bool NI6259ADCInputBroker::Init(const SignalDirection direction,
+                                DataSourceI &dataSourceIn,
+                                const char8 *const functionName,
+                                void *const gamMemoryAddress) {
     DataSourceI *dataSource = &dataSourceIn;
 
     bool ret = InitFunctionPointers(direction, dataSourceIn, functionName, gamMemoryAddress);
 
-    const ClassProperties * properties = GetClassProperties();
+    const ClassProperties *properties = GetClassProperties();
     if (ret) {
         ret = (properties != NULL);
     }
-    const char8* brokerClassName = NULL_PTR(const char8*);
+    const char8 *brokerClassName = NULL_PTR(const char8*);
     if (ret) {
         brokerClassName = properties->GetName();
         ret = (brokerClassName != NULL);
@@ -89,7 +92,7 @@ bool NI6259ADCInputBroker::Init(const SignalDirection direction, DataSourceI &da
     uint32 c = 0u;
     uint32 n;
     uint32 numberOfBuffers = NUMBER_OF_BUFFERS;
-    if (adcBoard != NULL_PTR(NI6259ADC *)) {
+    if (adcBoard != NULL_PTR(NI6259ADC*)) {
         numberOfBuffers = adcBoard->GetNumberOfMemoryBuffers();
     }
     for (n = 0u; (n < functionNumberOfSignals) && (ret); n++) {
@@ -108,7 +111,7 @@ bool NI6259ADCInputBroker::Init(const SignalDirection direction, DataSourceI &da
             //Take into account different ranges for the same signal
             uint32 bo;
             for (bo = 0u; (bo < numberOfByteOffsets) && (ret); bo++) {
-                if (copyTable != NULL_PTR(NI6259CopyTableEntry *)) {
+                if (copyTable != NULL_PTR(NI6259CopyTableEntry*)) {
                     copyTable[c].copySize = GetCopyByteSize(c);
                     copyTable[c].gamPointer = GetFunctionPointer(c);
                     copyTable[c].dataSourceOffset = GetCopyOffset(c);
@@ -132,19 +135,28 @@ bool NI6259ADCInputBroker::Init(const SignalDirection direction, DataSourceI &da
 bool NI6259ADCInputBroker::Execute() {
     uint32 n;
     bool ret = true;
-    if (adcBoard != NULL_PTR(NI6259ADC *)) {
+    if (adcBoard != NULL_PTR(NI6259ADC*)) {
         if (adcBoard->IsSynchronising()) {
             ret = adcBoard->Synchronise();
         }
+        else {
+            ret = adcBoard->NonSynchronise();
+        }
 
         uint32 idx = adcBoard->GetLastBufferIdx();
+
+        //no problem if working on different buffers
+        adcBoard->LockB(idx);
+
         void *dataSourceSignalPointer;
         for (n = 0u; (n < numberOfCopies) && (ret); n++) {
-            if (copyTable != NULL_PTR(NI6259CopyTableEntry *)) {
+            if (copyTable != NULL_PTR(NI6259CopyTableEntry*)) {
                 dataSourceSignalPointer = copyTable[n].dataSourcePointer[idx];
                 ret = MemoryOperationsHelper::Copy(copyTable[n].gamPointer, dataSourceSignalPointer, copyTable[n].copySize);
             }
         }
+
+        adcBoard->UnLockB(idx);
     }
     return ret;
 }

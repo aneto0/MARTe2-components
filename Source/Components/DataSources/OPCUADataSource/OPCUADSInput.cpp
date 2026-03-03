@@ -11,13 +11,13 @@
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
  *
- * @warning Unless required by applicable law or agreed to in writing, 
+ * @warning Unless required by applicable law or agreed to in writing,
  * software distributed under the Licence is distributed on an "AS IS"
  * basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the Licence permissions and limitations under the Licence.
 
  * @details This source file contains the definition of all the methods for
- * the class OPCUADSInput (public, protected, and private). Be aware that some 
+ * the class OPCUADSInput (public, protected, and private). Be aware that some
  * methods, such as those inline could be defined on the header file, instead.
  */
 
@@ -46,30 +46,30 @@
 /*lint -save -e909 -e9133 -e578*/
 namespace MARTe {
 
-OPCUADSInput::OPCUADSInput() :
+OPCUADSInput::OPCUADSInput() : 
         DataSourceI(),
         EmbeddedServiceMethodBinderI(),
         executor(*this) {
-    masterClient = NULL_PTR(OPCUAClientRead*);
+    masterClient = NULL_PTR(OPCUAClientRead *);
     nOfSignals = 0u;
     numberOfNodes = 0u;
-    paths = NULL_PTR(StreamString*);
-    extensionObject = NULL_PTR(StreamString*);
-    structuredTypeNames = NULL_PTR(StreamString*);
-    namespaceIndexes = NULL_PTR(uint16*);
-    tempPaths = NULL_PTR(StreamString*);
-    tempNamespaceIndexes = NULL_PTR(uint16*);
+    paths = NULL_PTR(StreamString *);
+    extensionObject = NULL_PTR(StreamString *);
+    structuredTypeNames = NULL_PTR(StreamString *);
+    namespaceIndexes = NULL_PTR(uint16 *);
+    tempPaths = NULL_PTR(StreamString *);
+    tempNamespaceIndexes = NULL_PTR(uint16 *);
     serverAddress = "";
     readMode = "";
-    sync = "";
-    samplingTime = 0.0;
-    nElements = NULL_PTR(uint32*);
-    tempNElements = NULL_PTR(uint32*);
-    entryArrayElements = NULL_PTR(uint32*);
-    entryNumberOfMembers = NULL_PTR(uint32*);
+    sync = false; 
+    samplingTime = 0u;
+    nElements = NULL_PTR(uint32 *);
+    tempNElements = NULL_PTR(uint32 *);
+    entryArrayElements = NULL_PTR(uint32 *);
+    entryNumberOfMembers = NULL_PTR(uint32 *);
     entryArraySize = 0u;
-    types = NULL_PTR(TypeDescriptor*);
-    entryTypes = NULL_PTR(TypeDescriptor*);
+    types = NULL_PTR(TypeDescriptor *);
+    entryTypes = NULL_PTR(TypeDescriptor *);
     cpuMask = 0xffu;
     stackSize = THREADS_DEFAULT_STACKSIZE;
     authenticate = false;
@@ -79,44 +79,44 @@ OPCUADSInput::OPCUADSInput() :
 
 /*lint -e{1551} must stop the SingleThreadService in the destructor.*/
 OPCUADSInput::~OPCUADSInput() {
-    (void) executor.Stop();
-    if (masterClient != NULL_PTR(OPCUAClientRead*)) {
+    (void)executor.Stop();
+    if (masterClient != NULL_PTR(OPCUAClientRead *)) {
         delete masterClient;
     }
-    if (nElements != NULL_PTR(uint32*)) {
+    if (nElements != NULL_PTR(uint32 *)) {
         delete[] nElements;
     }
-    if (tempNElements != NULL_PTR(uint32*)) {
+    if (tempNElements != NULL_PTR(uint32 *)) {
         delete[] tempNElements;
     }
-    if (types != NULL_PTR(TypeDescriptor*)) {
+    if (types != NULL_PTR(TypeDescriptor *)) {
         delete[] types;
     }
-    if (namespaceIndexes != NULL_PTR(uint16*)) {
+    if (namespaceIndexes != NULL_PTR(uint16 *)) {
         delete[] namespaceIndexes;
     }
-    if (paths != NULL_PTR(StreamString*)) {
+    if (paths != NULL_PTR(StreamString *)) {
         delete[] paths;
     }
-    if (extensionObject != NULL_PTR(StreamString*)) {
+    if (extensionObject != NULL_PTR(StreamString *)) {
         delete[] extensionObject;
     }
-    if (structuredTypeNames != NULL_PTR(StreamString*)) {
+    if (structuredTypeNames != NULL_PTR(StreamString *)) {
         delete[] structuredTypeNames;
     }
-    if (tempPaths != NULL_PTR(StreamString*)) {
+    if (tempPaths != NULL_PTR(StreamString *)) {
         delete[] tempPaths;
     }
-    if (tempNamespaceIndexes != NULL_PTR(uint16*)) {
+    if (tempNamespaceIndexes != NULL_PTR(uint16 *)) {
         delete[] tempNamespaceIndexes;
     }
-    if (entryArrayElements != NULL_PTR(uint32*)) {
+    if (entryArrayElements != NULL_PTR(uint32 *)) {
         delete[] entryArrayElements;
     }
-    if (entryNumberOfMembers != NULL_PTR(uint32*)) {
+    if (entryNumberOfMembers != NULL_PTR(uint32 *)) {
         delete[] entryNumberOfMembers;
     }
-    if (entryTypes != NULL_PTR(TypeDescriptor*)) {
+    if (entryTypes != NULL_PTR(TypeDescriptor *)) {
         delete[] entryTypes;
     }
 
@@ -138,14 +138,20 @@ bool OPCUADSInput::Initialise(StructuredDataI &data) {
             }
         }
         if (ok) {
-            ok = data.Read("Synchronise", sync);
-            if (!ok) {
-                sync = "no";
-                REPORT_ERROR(ErrorManagement::Information, "Synchronise option is not enabled. Using SingleThreadService.");
+            StreamString syncStr;
+            ok = data.Read("Synchronise", syncStr);
+            if (ok) {
+                sync = (syncStr == "yes");
+            }
+            else {
+                sync = false;
                 ok = true;
             }
+            if (!sync) {
+                REPORT_ERROR(ErrorManagement::Information, "Synchronise option is not enabled. Using SingleThreadService.");
+            }
         }
-        if (sync == "no") {
+        if (!sync) {
             if (ok) {
                 ok = data.Read("CpuMask", cpuMask);
                 if (!ok) {
@@ -165,7 +171,7 @@ bool OPCUADSInput::Initialise(StructuredDataI &data) {
             ok = data.Read("SamplingTime", samplingTime);
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::Information, "Sampling Time not set. Using default value: 250ms");
-                samplingTime = 250.0;
+                samplingTime = 250u;
                 ok = true;
             }
         }
@@ -198,7 +204,7 @@ bool OPCUADSInput::Initialise(StructuredDataI &data) {
             }
             File f;
             if (ok) {
-                (void) userPasswordFile.Seek(0LLU);
+                (void)userPasswordFile.Seek(0LLU);
                 ok = f.Open(userPasswordFile.Buffer(), BasicFile::ACCESS_MODE_R);
                 if (!ok) {
                     REPORT_ERROR_STATIC(ErrorManagement::ParametersError, "Failed to open the file at path '%s'!", userPasswordFile.Buffer());
@@ -318,12 +324,12 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
     }
 
     uint32 bodyLength = 0u;
-    if (structuredTypeNames != NULL_PTR(StreamString*)) {
+    if (structuredTypeNames != NULL_PTR(StreamString *)) {
         for (uint32 k = 0u; k < nOfSignals; k++) {
             const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(structuredTypeNames[k].Buffer());
-            if (cri != NULL_PTR(const ClassRegistryItem*)) {
+            if (cri != NULL_PTR(const ClassRegistryItem *)) {
                 const Introspection *intro = cri->GetIntrospection();
-                ok = (intro != NULL_PTR(const Introspection*));
+                ok = (intro != NULL_PTR(const Introspection *));
                 if (ok) {
                     GetStructureDimensions(intro, entryArraySize);
 
@@ -343,7 +349,7 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
             }
         }
     }
-    if (extensionObject != NULL_PTR(StreamString*)) {
+    if (extensionObject != NULL_PTR(StreamString *)) {
         if (extensionObject[0u] == "no") {
             if (ok) {
                 paths = new StreamString[numberOfNodes];
@@ -366,7 +372,7 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
                         for (uint32 j = 0u; j < nOfSignals; j++) {
                             StreamString lastToken;
                             sigToken = "";
-                            if (tempPaths != NULL_PTR(StreamString*)) {
+                            if (tempPaths != NULL_PTR(StreamString *)) {
                                 ok = tempPaths[j].Seek(0LLU);
                                 if (ok) {
                                     do {
@@ -375,7 +381,7 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
                                             sigToken = lastToken;
                                         }
                                         lastToken = "";
-                                    }
+                                    } 
                                     while (ok);
                                 }
                                 /* This cycle will save the last token found */
@@ -387,7 +393,7 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
                                             sigToken = lastToken;
                                         }
                                         lastToken = "";
-                                    }
+                                    } 
                                     while (ok);
                                 }
                                 ok = tempPaths[j].Seek(0LLU);
@@ -395,8 +401,8 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
                                     do {
                                         pathToken = "";
                                         ok = tempPaths[j].GetToken(pathToken, ".", ignore);
-                                        if ((paths != NULL_PTR(StreamString*)) && ok) {
-                                            if ((namespaceIndexes != NULL_PTR(uint16*)) && (tempNamespaceIndexes != NULL_PTR(uint16*))) {
+                                        if ((paths != NULL_PTR(StreamString *)) && ok) {
+                                            if ((namespaceIndexes != NULL_PTR(uint16 *)) && (tempNamespaceIndexes != NULL_PTR(uint16 *))) {
                                                 if (pathToken == sigToken) {
                                                     if (numberOfNodes == nOfSignals) {
                                                         paths[j] = tempPaths[j];
@@ -410,7 +416,7 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
                                                 }
                                             }
                                         }
-                                    }
+                                    } 
                                     while (ok);
                                 }
 
@@ -422,11 +428,11 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
                         do {
                             sigToken = "";
                             ok = sigName.GetToken(sigToken, ".", ignore);
-                            if ((paths != NULL_PTR(StreamString*)) && ok) {
+                            if ((paths != NULL_PTR(StreamString *)) && ok) {
                                 paths[i] += dotToken;
                                 paths[i] += sigToken;
                             }
-                        }
+                        } 
                         while (ok);
                         ok = true;
                     }
@@ -449,7 +455,7 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
         }
         if (ok) {
             REPORT_ERROR(ErrorManagement::Information, "The connection with the OPCUA Server has been established successfully!");
-            if (extensionObject != NULL_PTR(StreamString*)) {
+            if (extensionObject != NULL_PTR(StreamString *)) {
                 if (extensionObject[0u] == "no") {
                     ok = masterClient->SetServiceRequest(namespaceIndexes, paths, numberOfNodes);
                     if (ok) {
@@ -467,7 +473,7 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
                         for (uint32 k = 0u; k < nOfSignals; k++) {
                             uint32 nodeCounter = 0u;
                             uint32 index;
-                            if (tempNElements != NULL_PTR(uint32*)) {
+                            if (tempNElements != NULL_PTR(uint32 *)) {
                                 for (uint32 j = 0u; j < tempNElements[k]; j++) {
                                     index = 0u;
                                     uint32 numberOfNodesForEachIteration = (numberOfNodes / tempNElements[k]) * (j + 1u);
@@ -485,11 +491,13 @@ bool OPCUADSInput::SetConfiguredDatabase(StructuredDataI &data) {
             }
         }
     }
-    if ((sync == "no") && ok) {
-        executor.SetCPUMask(cpuMask);
-        executor.SetStackSize(stackSize);
-        executor.SetName(GetName());
-        ok = (executor.Start() == ErrorManagement::NoError);
+    if (ok) {
+        if (!sync) {
+            executor.SetCPUMask(cpuMask);
+            executor.SetStackSize(stackSize);
+            executor.SetName(GetName());
+            ok = (executor.Start() == ErrorManagement::NoError);
+        }
     }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Error during configuration.");
@@ -507,39 +515,47 @@ bool OPCUADSInput::GetSignalMemoryBuffer(const uint32 signalIdx,
     StreamString opcDisplayName;
     bool ok = GetSignalName(signalIdx, opcDisplayName);
     if (ok) {
-        if (types != NULL_PTR(TypeDescriptor*)) {
+        if (types != NULL_PTR(TypeDescriptor *)) {
             /*lint -e{9007}  [MISRA C++ Rule 5-14-1] Justification: No side effects.*/
-            if ((types[signalIdx].type == CArray) || (types[signalIdx].type == BT_CCString) || (types[signalIdx].type == PCString)
+            if ((types[signalIdx].type == CArray) || (types[signalIdx].type == BT_CCString) || (types[signalIdx].type == PCString) 
                     || (types[signalIdx].type == SString)) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Type String is not supported yet.");
             }
-            if ((nElements != NULL_PTR(uint32*)) && (masterClient != NULL_PTR(OPCUAClientRead*))) {
+            if ((nElements != NULL_PTR(uint32 *)) && (masterClient != NULL_PTR(OPCUAClientRead *))) {
                 ok = masterClient->GetSignalMemory(signalAddress, signalIdx, types[signalIdx], nElements[signalIdx]);
             }
         }
     }
     if (ok) {
-        ok = (signalAddress != NULL_PTR(void*));
+        ok = (signalAddress != NULL_PTR(void *));
     }
     return ok;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The brokerName only depends on the direction */
-const char8* OPCUADSInput::GetBrokerName(StructuredDataI &data,
+const char8 *OPCUADSInput::GetBrokerName(StructuredDataI &data,
                                          const SignalDirection direction) {
     const char8 *brokerName = "";
-    if (sync == "no") {
+    if (!sync) {
         if (direction == InputSignals) {
             brokerName = "MemoryMapInputBroker";
         }
     }
-    else if (sync == "yes") {
-        if (direction == InputSignals) {
-            brokerName = "MemoryMapSynchronisedInputBroker";
-        }
-    }
     else {
-        REPORT_ERROR(ErrorManagement::ParametersError, "Impossible to define a broker. Check Synchronise option.");
+        if (direction == InputSignals) {
+
+            uint32 tempSync = 0u;
+            if (!data.Read("SynchSignal", tempSync)) {
+                tempSync = 0u;
+            }
+
+            if (tempSync > 0u) {
+                brokerName = "MemoryMapSynchronisedInputBroker";
+            }
+            else { 
+                brokerName = "MemoryMapInputBroker";
+            }
+        }
     }
     return brokerName;
 }
@@ -553,7 +569,7 @@ bool OPCUADSInput::PrepareNextState(const char8 *const currentStateName,
 ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo &info) {
     ErrorManagement::ErrorType err = ErrorManagement::NoError;
     if (info.GetStage() != ExecutionInfo::BadTerminationStage) {
-        if ((types != NULL_PTR(TypeDescriptor*)) && (nElements != NULL_PTR(uint32*)) && (masterClient != NULL_PTR(OPCUAClientRead*))) {
+        if ((types != NULL_PTR(TypeDescriptor *)) && (nElements != NULL_PTR(uint32 *)) && (masterClient != NULL_PTR(OPCUAClientRead *))) {
             bool ok;
             if (readMode == "Read") {
                 ok = masterClient->Read(types, nElements);
@@ -569,13 +585,14 @@ ErrorManagement::ErrorType OPCUADSInput::Execute(ExecutionInfo &info) {
             }
         }
     }
+    Sleep::MSec(samplingTime);
     return err;
 }
 
 bool OPCUADSInput::Synchronise() {
     bool ok = true;
-    if (sync == "yes") {
-        if ((types != NULL_PTR(TypeDescriptor*)) && (nElements != NULL_PTR(uint32*)) && (masterClient != NULL_PTR(OPCUAClientRead*))) {
+    if (sync) {
+        if ((types != NULL_PTR(TypeDescriptor *)) && (nElements != NULL_PTR(uint32 *)) && (masterClient != NULL_PTR(OPCUAClientRead *))) {
             if (readMode == "Read") {
                 ok = masterClient->Read(types, nElements);
             }
@@ -590,7 +607,7 @@ bool OPCUADSInput::Synchronise() {
     return ok;
 }
 
-const char8* OPCUADSInput::GetServerAddress() {
+const char8 *OPCUADSInput::GetServerAddress() {
     return serverAddress.Buffer();
 }
 
@@ -610,7 +627,7 @@ bool OPCUADSInput::GetBodyLength(const Introspection *const intro,
         bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
         if (isStructured) {
             const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(memberTypeName);
-            ok = (cri != NULL_PTR(const ClassRegistryItem*));
+            ok = (cri != NULL_PTR(const ClassRegistryItem *));
             for (uint32 h = 0u; h < nElem; h++) {
                 if (ok) {
                     ok = GetBodyLength(cri->GetIntrospection(), bodyLength);
@@ -639,7 +656,7 @@ void OPCUADSInput::GetStructureDimensions(const Introspection *const intro,
         bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
         if (isStructured) {
             const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(memberTypeName);
-            ok = (cri != NULL_PTR(const ClassRegistryItem*));
+            ok = (cri != NULL_PTR(const ClassRegistryItem *));
             if (ok) {
                 GetStructureDimensions(cri->GetIntrospection(), arraySize);
             }
@@ -647,7 +664,7 @@ void OPCUADSInput::GetStructureDimensions(const Introspection *const intro,
     }
 }
 
-bool OPCUADSInput::GetStructure(const Introspection * const intro,
+bool OPCUADSInput::GetStructure(const Introspection *const intro,
                                 uint32 *&entryArrayElements,
                                 TypeDescriptor *&entryTypes,
                                 uint32 *&entryNumberOfMembers,
@@ -670,7 +687,7 @@ bool OPCUADSInput::GetStructure(const Introspection * const intro,
         bool isStructured = entry.GetMemberTypeDescriptor().isStructuredData;
         if (isStructured) {
             const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(memberTypeName);
-            ok = (cri != NULL_PTR(const ClassRegistryItem*));
+            ok = (cri != NULL_PTR(const ClassRegistryItem *));
             nMembers = cri->GetIntrospection()->GetNumberOfMembers();
             /* Updating entryNumberOfMembers */
             entryNumberOfMembers[index] = nMembers;
@@ -689,7 +706,7 @@ bool OPCUADSInput::GetStructure(const Introspection * const intro,
     return ok;
 }
 
-OPCUAClientRead* OPCUADSInput::GetOPCUAClient() {
+OPCUAClientRead *OPCUADSInput::GetOPCUAClient() {
     return masterClient;
 }
 

@@ -725,7 +725,7 @@ uint32 MDSReader::MakeRawCopyTemplate(uint32 nodeNumber,
         }
         *reinterpret_cast<T *>(&lastValue[offsetLastValue[nodeNumber]]) = data[nElements - 1];
         MDSplus::deleteData (dataD);
-        delete data;
+        delete[] data; //Valgrind complains and in theory I do not know who memory was allocated so lets assume valgrind knows.....
 
     }
     return samplesCopied;
@@ -825,8 +825,8 @@ uint32 MDSReader::LinearInterpolationCopyTemplate(uint32 nodeNumber,
         }
         MDSplus::deleteData (dataD);
         MDSplus::deleteData (timeNodeD);
-        delete data;
-        delete timeNode;
+        delete[] data;
+        delete[] timeNode;
     }
     return samplesCopied;
 
@@ -931,8 +931,8 @@ uint32 MDSReader::HoldCopyTemplate(uint32 nodeNumber,
         }
         MDSplus::deleteData (dataD);
         MDSplus::deleteData (timeNodeD);
-        delete data;
-        delete timeNode;
+        delete[] data;
+        delete[] timeNode;
     }
     return samplesCopied;
 }

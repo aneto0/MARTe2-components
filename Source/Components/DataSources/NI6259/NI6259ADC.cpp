@@ -25,7 +25,7 @@
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
 #include <fcntl.h>
-
+#include <sched.h>
 /*---------------------------------------------------------------------------*/
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
@@ -37,22 +37,90 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 
+/*lint -e1923 -e9024 allow to use #define for constants.*/
+#define ADC_BASE_FREQ 20000000u
+#define ADC_ONE_CH_MAX_FREQ 1250000u
+#define ADC_MORE_CH_MAX_FREQ 1000000u
+
+#define INDEPENDENT_THREAD 0u
+#define REAL_TIME_THREAD 1u
+
+#define ATTR_MAP_ENTRY(attr) { #attr , attr }
+/*lint +e1923 +e9024 */
+namespace MARTe {
+
+struct AttributeMap {
+    const char8 *name;
+    pxi6259_segment_attribute attribute;
+};
+
+static struct AttributeMap attributeMap[] = {
+ATTR_MAP_ENTRY(AI_NUMBER_OF_CHANNELS),
+ATTR_MAP_ENTRY(AI_NO_OF_PRE_TRIG_SAMPLES),
+ATTR_MAP_ENTRY(AI_NO_OF_POST_TRIG_SAMPLES),
+ATTR_MAP_ENTRY(AI_CONTINUOUS),
+ATTR_MAP_ENTRY(AI_EXTERNAL_CONVERT_CLOCK),
+ATTR_MAP_ENTRY(AI_SIP_OUTPUT_SELECT),
+ATTR_MAP_ENTRY(AI_EXTERNAL_MUX_PRESENT),
+ATTR_MAP_ENTRY(AI_EXTMUX_OUTPUT_SELECT),
+ATTR_MAP_ENTRY(AI_EXTERNAL_GATE_SELECT),
+ATTR_MAP_ENTRY(AI_EXTERNAL_GATE_POLARITY),
+ATTR_MAP_ENTRY(AI_BLOCKING_EXACT),
+ATTR_MAP_ENTRY(AI_START_SELECT),
+ATTR_MAP_ENTRY(AI_START_POLARITY),
+ATTR_MAP_ENTRY(AI_REFERENCE_SELECT),
+ATTR_MAP_ENTRY(AI_REFERENCE_POLARITY),
+ATTR_MAP_ENTRY(AI_STOP_SELECT),
+ATTR_MAP_ENTRY(AI_STOP_POLARITY),
+ATTR_MAP_ENTRY(AI_SAMPLE_SELECT),
+ATTR_MAP_ENTRY(AI_SAMPLE_POLARITY),
+ATTR_MAP_ENTRY(AI_SAMPLE_PERIOD_DEVISOR),
+ATTR_MAP_ENTRY(AI_SAMPLE_DELAY_DEVISOR),
+ATTR_MAP_ENTRY(AI_CONVERT_SELECT),
+ATTR_MAP_ENTRY(AI_CONVERT_POLARITY),
+ATTR_MAP_ENTRY(AI_CONVERT_PERIOD_DEVISOR),
+ATTR_MAP_ENTRY(AI_CONVERT_DELAY_DEVISOR),
+ATTR_MAP_ENTRY(AI_CONVERT_OUTPUT_SELECT),
+ATTR_MAP_ENTRY(AI_CONVERT_PULSE_WIDTH),
+ATTR_MAP_ENTRY(AI_SI_SOURCE_SELECT),
+ATTR_MAP_ENTRY(AI_ARM_SC),
+ATTR_MAP_ENTRY(AI_ARM_SI),
+ATTR_MAP_ENTRY(AI_ARM_SI2),
+ATTR_MAP_ENTRY(AI_ARM_DIV), 
+{ NULL_PTR(const char8 * const), AO_CONTINUOUS}
+};
+
+static pxi6259_segment_attribute GetAttribute(const char8 * const attrName) {
+    uint32 i = 0u;
+    pxi6259_segment_attribute attr = AO_CONTINUOUS;
+    while (attributeMap[i].name != NULL) {
+        if(StringHelper::Compare(attributeMap[i].name, attrName) == 0) {
+            attr = attributeMap[i].attribute;
+            break;
+        }
+        i++;
+    }
+    return attr;
+}
+
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
 
-namespace MARTe {
 NI6259ADC::NI6259ADC() :
-        DataSourceI(), EmbeddedServiceMethodBinderI(), executor(*this) {
-    cycleFrequency = 0.F;
+        DataSourceI(),
+        EmbeddedServiceMethodBinderI(),
+        executor(*this) {
     numberOfSamples = 0u;
     boardId = 0u;
     samplingFrequency = 0u;
-    singleADCFrequency = 0u;
+    convertFrequency = 0u;
+    singleADCFrequency = 0.;
     boardFileDescriptor = -1;
     deviceName = "";
-    counter = 0u;
-    delayDivisor = 0u;
+    counter = 0ull;
+    sampleDelayDivisor = 0u;
+    convertDelayDivisor = 0u;
     numberOfADCsEnabled = 0u;
     clockSampleSource = AI_SAMPLE_SELECT_SI_TC;
     clockSamplePolarity = AI_SAMPLE_POLARITY_ACTIVE_HIGH_OR_RISING_EDGE;
@@ -62,34 +130,40 @@ NI6259ADC::NI6259ADC() :
     synchronising = false;
     cpuMask = 0u;
     counterResetFastMux.Create();
-    fastMux.Create();
-
+    fastBufMux.Create();
+    allBufMux.Create();
     currentBufferIdx = 0u;
     lastBufferIdx = 0u;
 
     currentBufferOffset = 0u;
-    lastTimeValue = 0u;
+    lastTimeValue = 0ull;
     fastMuxSleepTime = 1e-3F;
-
-    counterValue = NULL_PTR(uint32 *);
-    timeValue = NULL_PTR(uint32 *);
-
-    dmaReadBuffer = NULL_PTR(int16 *);
-    dma = NULL_PTR(struct pxi6259_dma *);
+    for (uint32 n = 0u; n < NUMBER_OF_BUFFERS; n++) {
+        counterValue[n] = 0ull;
+        timeValue[n] = 0ull;
+    }
+    dmaReadBuffer = NULL_PTR(int16*);
+    dmaCalibBuffer = NULL_PTR(float32*);
+    dma = NULL_PTR(struct pxi6259_dma*);
     dmaOffset = 0u;
     dmaChannel = 0u;
+    synchType = 0u;
+    sampleSize = 0u;
 
-    uint32 n;
-    for (n = 0u; n < NI6259ADC_MAX_CHANNELS; n++) {
+    calibrate = false;
+    countSamples = false;
+    resetOnBufferChange = false;
+    changeBuffer = false;
+    lastCounter = 0ull;
+    for (uint32 n = 0u; n < NI6259ADC_MAX_CHANNELS; n++) {
         inputRange[n] = 1u;
         inputMode[n] = AI_CHANNEL_TYPE_RSE;
         inputPolarity[n] = AI_POLARITY_UNIPOLAR;
         adcEnabled[n] = false;
-        channelsFileDescriptors[n] = -1;
         uint32 b;
         for (b = 0u; b < NUMBER_OF_BUFFERS; b++) {
-            channelsMemory[b][n] = NULL_PTR(int16 *);
-            channelsMemory[b][n] = NULL_PTR(int16 *);
+            fastMux[b].Create();
+            channelsMemory[b][n] = NULL_PTR(uint8*);
         }
     }
     if (!synchSem.Create()) {
@@ -99,9 +173,12 @@ NI6259ADC::NI6259ADC() :
 
 /*lint -e{1551} -e{1740} the destructor must guarantee that the NI6259ADC SingleThreadService is stopped and that all the file descriptors are closed. The dma is freed by the pxi-6259-lib*/
 NI6259ADC::~NI6259ADC() {
-    if (!executor.Stop()) {
+    if (synchType == INDEPENDENT_THREAD) {
         if (!executor.Stop()) {
-            REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
+            Sleep::MSec(100u);
+            if (!executor.Stop()) {
+                REPORT_ERROR(ErrorManagement::FatalError, "Could not stop SingleThreadService.");
+            }
         }
     }
     uint32 n;
@@ -110,16 +187,11 @@ NI6259ADC::~NI6259ADC() {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop acquisition.");
         }
     }
-    for (n = 0u; n < NI6259ADC_MAX_CHANNELS; n++) {
-        if (channelsFileDescriptors[n] != -1) {
-            close(channelsFileDescriptors[n]);
-        }
+    if (dma != NULL_PTR(struct pxi6259_dma*)) {
+        pxi6259_dma_close(dma);
     }
     if (boardFileDescriptor != -1) {
         close(boardFileDescriptor);
-    }
-    if (dma != NULL_PTR(struct pxi6259_dma *)) {
-        pxi6259_dma_close(dma);
     }
     for (n = 0u; n < NI6259ADC_MAX_CHANNELS; n++) {
         uint32 b;
@@ -127,14 +199,11 @@ NI6259ADC::~NI6259ADC() {
             delete[] channelsMemory[b][n];
         }
     }
-    if (dmaReadBuffer != NULL_PTR(int16 *)) {
+    if (dmaReadBuffer != NULL_PTR(int16*)) {
         delete[] dmaReadBuffer;
     }
-    if (counterValue != NULL_PTR(uint32 *)) {
-        delete[] counterValue;
-    }
-    if (timeValue != NULL_PTR(uint32 *)) {
-        delete[] timeValue;
+    if (dmaCalibBuffer != NULL_PTR(float32*)) {
+        delete[] dmaCalibBuffer;
     }
 }
 
@@ -147,18 +216,16 @@ uint32 NI6259ADC::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
-bool NI6259ADC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
+bool NI6259ADC::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                      const uint32 bufferIdx,
+                                      void *&signalAddress) {
     bool ok = (signalIdx < (NI6259ADC_MAX_CHANNELS + NI6259ADC_HEADER_SIZE));
     if (ok) {
         if (signalIdx == 0u) {
-            if (counterValue != NULL_PTR(uint32 *)) {
-                signalAddress = reinterpret_cast<void *>(&counterValue[bufferIdx]);
-            }
+            signalAddress = reinterpret_cast<void*>(&counterValue[bufferIdx]);
         }
         else if (signalIdx == 1u) {
-            if (timeValue != NULL_PTR(uint32 *)) {
-                signalAddress = reinterpret_cast<void *>(&timeValue[bufferIdx]);
-            }
+            signalAddress = reinterpret_cast<void*>(&timeValue[bufferIdx]);
         }
         else {
             signalAddress = &(channelsMemory[bufferIdx][signalIdx - NI6259ADC_HEADER_SIZE][0]);
@@ -167,17 +234,22 @@ bool NI6259ADC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 buffe
     return ok;
 }
 
-const char8* NI6259ADC::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
-    const char8 *brokerName = NULL_PTR(const char8 *);
+const char8* NI6259ADC::GetBrokerName(StructuredDataI &data,
+                                      const SignalDirection direction) {
+    const char8 *brokerName = NULL_PTR(const char8*);
     if (direction == InputSignals) {
         float32 frequency = 0.F;
         if (!data.Read("Frequency", frequency)) {
             frequency = -1.F;
         }
 
+        uint32 trigger = 0u;
+        if (!data.Read("Trigger", trigger)) {
+            frequency = -1.F;
+        }
+
         brokerName = "NI6259ADCInputBroker";
-        if (frequency > 0.F) {
-            cycleFrequency = frequency;
+        if ((frequency > 0.F) || (trigger > 0u)) {
             synchronising = true;
         }
     }
@@ -187,7 +259,9 @@ const char8* NI6259ADC::GetBrokerName(StructuredDataI& data, const SignalDirecti
     return brokerName;
 }
 
-bool NI6259ADC::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool NI6259ADC::GetInputBrokers(ReferenceContainer &inputBrokers,
+                                const char8 *const functionName,
+                                void *const gamMemPtr) {
     ReferenceT<NI6259ADCInputBroker> broker(new NI6259ADCInputBroker(this));
     bool ok = broker.IsValid();
     if (ok) {
@@ -201,36 +275,49 @@ bool NI6259ADC::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* c
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns false irrespectively of the input parameters.*/
-bool NI6259ADC::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
+bool NI6259ADC::GetOutputBrokers(ReferenceContainer &outputBrokers,
+                                 const char8 *const functionName,
+                                 void *const gamMemPtr) {
     return false;
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: the counter and the timer are always reset irrespectively of the states being changed.*/
-bool NI6259ADC::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool NI6259ADC::PrepareNextState(const char8 *const currentStateName,
+                                 const char8 *const nextStateName) {
     bool ok = (counterResetFastMux.FastLock() == ErrorManagement::NoError);
     if (ok) {
-        counter = 0u;
+        counter = 0ull;
         uint32 b;
         for (b = 0u; b < NUMBER_OF_BUFFERS; b++) {
-            if (counterValue != NULL_PTR(uint32 *)) {
-                counterValue[b] = 0u;
-            }
-            if (timeValue != NULL_PTR(uint32 *)) {
-                timeValue[b] = 0u;
-            }
+            counterValue[b] = 0ull;
+            timeValue[b] = 0ull;
         }
         currentBufferOffset = 0u;
+        for (uint32 n = 0u; (n < numberOfADCsEnabled) && (ok); n++) {
+            uint32 memSize = sampleSize * numberOfSamples;
+            ok = MemoryOperationsHelper::Set(&channelsMemory[currentBufferIdx][n][0], '\0', memSize);
+        }
     }
     counterResetFastMux.FastUnLock();
     if (ok) {
-        if (executor.GetStatus() == EmbeddedThreadI::OffState) {
-            keepRunning = true;
-            if (cpuMask != 0u) {
-                executor.SetPriorityClass(Threads::RealTimePriorityClass);
-                executor.SetCPUMask(cpuMask);
+        REPORT_ERROR(ErrorManagement::Information, "pxi6259_start_ai(boardFileDescriptor)");
+        ok = (pxi6259_start_ai(boardFileDescriptor) == 0);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not start AI acquisition");
+        }
+    }
+
+    if (ok) {
+        if (synchType == INDEPENDENT_THREAD) {
+            if (executor.GetStatus() == EmbeddedThreadI::OffState) {
+                keepRunning = true;
+                if (cpuMask != 0u) {
+                    executor.SetPriorityClass(Threads::RealTimePriorityClass);
+                    executor.SetCPUMask(cpuMask);
+                }
+                executor.SetName(GetName());
+                ok = executor.Start();
             }
-            executor.SetName(GetName());
-            ok = executor.Start();
         }
     }
     return ok;
@@ -238,33 +325,83 @@ bool NI6259ADC::PrepareNextState(const char8* const currentStateName, const char
 
 bool NI6259ADC::Synchronise() {
     ErrorManagement::ErrorType err(true);
-    if (synchronising) {
-        (void) fastMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
+
+    if (synchType == REAL_TIME_THREAD) {
+        while (lastBufferIdx == currentBufferIdx) {
+            ExecutionInfo info;
+            info.SetStage(ExecutionInfo::MainStage);
+            err = Execute(info);
+        }
+    }
+    else {
+        (void) fastBufMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
         if (lastBufferIdx == currentBufferIdx) {
             err = !synchSem.Reset();
-            fastMux.FastUnLock();
+            fastBufMux.FastUnLock();
             if (err.ErrorsCleared()) {
                 err = synchSem.Wait(TTInfiniteWait);
             }
         }
         else {
-            fastMux.FastUnLock();
+            fastBufMux.FastUnLock();
         }
     }
-    if (timeValue != NULL_PTR(uint32 *)) {
-        if (lastTimeValue == timeValue[lastBufferIdx]) {
-            if (lastTimeValue != 0u) {
-                REPORT_ERROR(ErrorManagement::Warning, "Repeated time values. Last = %d Current = %d. lastBufferIdx = %d currentBufferIdx = %d", lastTimeValue, timeValue[lastBufferIdx], lastBufferIdx,
-                             currentBufferIdx);
+
+    if (lastTimeValue == timeValue[lastBufferIdx]) {
+        if (lastTimeValue != 0u) {
+            REPORT_ERROR(ErrorManagement::Warning, "Repeated time values. Last = %d Current = %d. lastBufferIdx = %d currentBufferIdx = %d", lastTimeValue,
+                    timeValue[lastBufferIdx], lastBufferIdx, currentBufferIdx);
+        }
+    }
+    lastTimeValue = timeValue[lastBufferIdx];
+
+    return err.ErrorsCleared();
+}
+
+bool NI6259ADC::NonSynchronise() {
+    ErrorManagement::ErrorType err(true);
+    (void) synchSem.Reset();
+
+    (void) allBufMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
+    bool isLastBuffer = (lastBufferIdx == currentBufferIdx);
+    if (isLastBuffer && (synchType == INDEPENDENT_THREAD)) {
+        changeBuffer = true;
+    }
+    allBufMux.FastUnLock();
+
+    uint8 currentBufferCache = currentBufferIdx;
+    if (synchType == REAL_TIME_THREAD) {
+        ExecutionInfo info;
+        info.SetStage(ExecutionInfo::MainStage);
+        err = Execute(info);
+    }
+
+    if (isLastBuffer) {
+        if (synchType == REAL_TIME_THREAD) {
+            if (currentBufferCache == currentBufferIdx) {
+                lastCounter = counter;
+
+                //change buffer for next read
+                currentBufferOffset = 0u;
+                currentBufferIdx++;
+                if (currentBufferIdx == NUMBER_OF_BUFFERS) {
+                    currentBufferIdx = 0u;
+                }
+                for (uint32 n = 0u; n < numberOfADCsEnabled; n++) {
+                    uint32 memSize = sampleSize * numberOfSamples;
+                    (void) MemoryOperationsHelper::Set(&channelsMemory[currentBufferIdx][n][0], '\0', memSize);
+                }
             }
         }
-        lastTimeValue = timeValue[lastBufferIdx];
+        else {
+            (void) synchSem.Wait(TTInfiniteWait);
+        }
     }
 
     return err.ErrorsCleared();
 }
 
-bool NI6259ADC::Initialise(StructuredDataI& data) {
+bool NI6259ADC::Initialise(StructuredDataI &data) {
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
         ok = data.Read("SamplingFrequency", samplingFrequency);
@@ -273,15 +410,33 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (samplingFrequency <= 1000000u);
+        ok = (samplingFrequency > 0u) && (samplingFrequency <= ADC_ONE_CH_MAX_FREQ);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::Information, "SamplingFrequency must be < 1 MHz");
+            REPORT_ERROR(ErrorManagement::ParametersError, "SamplingFrequency must be (< 1.25 MHz) and (> 0)");
         }
     }
     if (ok) {
-        ok = (samplingFrequency != 0u);
+        /*lint -e{414} samplingFrequency cannot be zero, otherwise ok = false*/
+        ok = ((ADC_BASE_FREQ % samplingFrequency) == 0u);
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::Information, "SamplingFrequency cannot be zero");
+            REPORT_ERROR(ErrorManagement::ParametersError, "SamplingFrequency must divide exactly the ADC base clock (20 MHz)");
+        }
+    }
+    if (ok) {
+        if (!data.Read("ConvertFrequency", convertFrequency)) {
+            REPORT_ERROR(ErrorManagement::Information, "ConvertFrequency not specified. Setting same as SamplingFrequency (%d)", samplingFrequency);
+            convertFrequency = samplingFrequency;
+        }
+        ok = (convertFrequency > 0u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "ConvertFrequency must be > 0");
+        }
+    }
+    if (ok) {
+        /*lint -e{414} convertFrequency cannot be zero, otherwise ok = false*/
+        ok = ((ADC_BASE_FREQ % convertFrequency) == 0u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "ConvertFrequency must divide exactly the ADC base clock (20 MHz)");
         }
     }
     if (ok) {
@@ -297,19 +452,51 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = data.Read("DelayDivisor", delayDivisor);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The DelayDivisor shall be specified");
+        if (!data.Read("SampleDelayDivisor", sampleDelayDivisor)) {
+            if (!data.Read("DelayDivisor", sampleDelayDivisor)) {
+                sampleDelayDivisor = 3u;
+                REPORT_ERROR(ErrorManagement::Information, "SampleDelayDivisor not specified. Setting default %d", sampleDelayDivisor);
+            }
         }
+        if (!data.Read("ConvertDelayDivisor", convertDelayDivisor)) {
+            if (!data.Read("DelayDivisor", convertDelayDivisor)) {
+
+                convertDelayDivisor = 3u;
+                REPORT_ERROR(ErrorManagement::Information, "ConvertDelayDivisor not specified. Setting default %d", convertDelayDivisor);
+            }
+        }
+    }
+    if (ok) {
+        StreamString synchTypeStr;
+        if (!data.Read("ExecutionMode", synchTypeStr)) {
+            synchTypeStr = "IndependentThread";
+            REPORT_ERROR(ErrorManagement::Information, "AcquireOn not specified. Setting default %s", synchTypeStr.Buffer());
+        }
+        if (synchTypeStr == "IndependentThread") {
+            synchType = INDEPENDENT_THREAD;
+        }
+        else if (synchTypeStr == "RealTimeThread") {
+            synchType = REAL_TIME_THREAD;
+        }
+        else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Invalid value of AcquireOn. Possible values are IndependentThread and RealTimeThread");
+            ok = false;
+        }
+    }
+    if (ok) {
+        uint8 calibrateU8;
+        if (!data.Read("Calibrate", calibrateU8)) {
+            calibrateU8 = 0u;
+            REPORT_ERROR(ErrorManagement::Information, "Calibrate not specified. Using default %d", calibrate);
+        }
+        calibrate = (calibrateU8 > 0u);
     }
     StreamString clockSampleSourceStr;
     if (ok) {
-        ok = data.Read("ClockSampleSource", clockSampleSourceStr);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockSampleSource shall be specified");
+        if (!data.Read("ClockSampleSource", clockSampleSourceStr)) {
+            clockSampleSourceStr = "SI_TC";
+            REPORT_ERROR(ErrorManagement::Information, "ClockSampleSource not specified. Set default to %s", clockSampleSourceStr.Buffer());
         }
-    }
-    if (ok) {
         if (clockSampleSourceStr == "SI_TC") {
             clockSampleSource = AI_SAMPLE_SELECT_SI_TC;
         }
@@ -413,12 +600,10 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
     }
     StreamString clockSamplePolarityStr;
     if (ok) {
-        ok = data.Read("ClockSamplePolarity", clockSamplePolarityStr);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockSamplePolarity shall be specified");
+        if (!data.Read("ClockSamplePolarity", clockSamplePolarityStr)) {
+            clockSamplePolarityStr = "ACTIVE_HIGH_OR_RISING_EDGE";
+            REPORT_ERROR(ErrorManagement::Information, "The ClockSamplePolarity not specified. Set default to %s", clockSamplePolarityStr.Buffer());
         }
-    }
-    if (ok) {
         if (clockSamplePolarityStr == "ACTIVE_HIGH_OR_RISING_EDGE") {
             clockSamplePolarity = AI_SAMPLE_POLARITY_ACTIVE_HIGH_OR_RISING_EDGE;
         }
@@ -432,12 +617,10 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
     }
     StreamString clockConvertSourceStr;
     if (ok) {
-        ok = data.Read("ClockConvertSource", clockConvertSourceStr);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockConvertSource shall be specified");
+        if (!data.Read("ClockConvertSource", clockConvertSourceStr)) {
+            clockConvertSourceStr = "SI2TC";
+            REPORT_ERROR(ErrorManagement::Information, "The ClockConvertSource not specified. Set default to %s", clockConvertSourceStr.Buffer());
         }
-    }
-    if (ok) {
         if (clockConvertSourceStr == "SI2TC") {
             clockConvertSource = AI_CONVERT_SELECT_SI2TC;
         }
@@ -532,12 +715,10 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
     }
     StreamString clockConvertPolarityStr;
     if (ok) {
-        ok = data.Read("ClockConvertPolarity", clockConvertPolarityStr);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The ClockConvertPolarity shall be specified");
+        if (!data.Read("ClockConvertPolarity", clockConvertPolarityStr)) {
+            clockConvertPolarityStr = "RISING_EDGE";
+            REPORT_ERROR(ErrorManagement::Information, "The ClockConvertPolarity not specified. Set default to %s", clockConvertPolarityStr.Buffer());
         }
-    }
-    if (ok) {
         if (clockConvertPolarityStr == "RISING_EDGE") {
             clockConvertPolarity = AI_CONVERT_POLARITY_RISING_EDGE;
         }
@@ -556,7 +737,6 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
         }
     }
 //Get individual signal parameters
-    uint32 i = 0u;
     if (ok) {
         ok = data.MoveRelative("Signals");
         if (!ok) {
@@ -572,6 +752,9 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
         if (ok) {
             ok = signalsDatabase.MoveToAncestor(1u);
         }
+
+        bool firstSignal = true;
+        uint32 i = 0u;
         while ((i < (NI6259ADC_MAX_CHANNELS + NI6259ADC_HEADER_SIZE)) && (ok)) {
             if (data.MoveRelative(data.GetChildName(i))) {
                 uint32 channelId;
@@ -642,6 +825,25 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
                         }
                     }
                 }
+                else {
+                    //get additional attributes of counter
+                    if (firstSignal) {
+                        uint8 countSamplesU8 = 0u;
+                        if (!data.Read("CountSamples", countSamplesU8)) {
+                            countSamplesU8 = 0u;
+                        }
+                        countSamples = (countSamplesU8 > 0u);
+                        uint8 resetOnBufferChangeU8 = 0u;
+                        if (!data.Read("ResetOnBufferChange", resetOnBufferChangeU8)) {
+                            resetOnBufferChangeU8 = 0u;
+                        }
+                        resetOnBufferChange = (resetOnBufferChangeU8 > 0u);
+                        if (resetOnBufferChange) {
+                            countSamples = true;
+                        }
+                        firstSignal = false;
+                    }
+                }
                 if (ok) {
                     ok = data.MoveToAncestor(1u);
                 }
@@ -651,17 +853,45 @@ bool NI6259ADC::Initialise(StructuredDataI& data) {
                 break;
             }
         }
-    }
-    if (ok) {
-        ok = data.MoveToAncestor(1u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the parent section");
+        if (ok) {
+            ok = data.MoveToAncestor(1u);
         }
     }
+    if (ok) {
+        if (data.MoveRelative("Attributes")) {
+            ok = attributes.Write("Attributes", data);
+            if (ok) {
+                ok = data.MoveToAncestor(1u);
+            }
+        }
+    }
+    if (ok) {
+        ok = ((numberOfADCsEnabled > 0u) && (samplingFrequency <= ADC_MORE_CH_MAX_FREQ));
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The SamplingFrequency must be <= 1 MHz when more than one channel is defined");
+        }
+    }
+    if (ok) {
+        if (convertFrequency != samplingFrequency) {
+            ok = ((samplingFrequency * numberOfADCsEnabled) < convertFrequency);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError,
+                             "The convert clock frequency must be greater than the sample clock frequency multplied for the number of chennels");
+            }
+            singleADCFrequency = static_cast<float64>(samplingFrequency);
+        }
+        else {
+            /*lint -e{414} numberOfADCsEnabled cannot be zero, otherwise ok = false*/
+            singleADCFrequency = (static_cast<float64>(samplingFrequency) / static_cast<float64>(numberOfADCsEnabled));
+        }
+
+    }
+
     return ok;
 }
 
-bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
+/*lint -e{641} enum to int conversion required*/
+bool NI6259ADC::SetConfiguredDatabase(StructuredDataI &data) {
     uint32 i;
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok) {
@@ -670,44 +900,39 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "At least (%d) signals shall be configured (header + 1 ADC)", NI6259ADC_HEADER_SIZE + 1u);
     }
-    
+
     //The type of counter shall be unsigned int32 or uint32
     if (ok) {
-        ok = (GetSignalType(0u) == SignedInteger32Bit);
+        /*lint -e{9007} no side-effect from GetSignalType*/
+        ok = ((GetSignalType(0u) == UnsignedInteger64Bit) || (GetSignalType(0u) == UnsignedInteger32Bit));
         if (!ok) {
-            ok = (GetSignalType(0u) == UnsignedInteger32Bit);
-        }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The first signal (counter) shall be of type SignedInteger32Bit or UnsignedInteger32Bit");
+            REPORT_ERROR(ErrorManagement::ParametersError,
+                         "The first signal (counter) shall be of type UnsignedInteger64Bit or UnsignedInteger32Bit (deprecated)");
         }
     }
     //The type of time shall be unsigned int32 or uint32
     if (ok) {
-        ok = (GetSignalType(1u) == SignedInteger32Bit);
+        /*lint -e{9007} no side-effect from GetSignalType*/
+        ok = ((GetSignalType(1u) == UnsignedInteger64Bit) || (GetSignalType(0u) == UnsignedInteger32Bit));
         if (!ok) {
-            ok = (GetSignalType(1u) == UnsignedInteger32Bit);
-        }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The second signal (time) shall be of type SignedInteger32Bit or UnsignedInteger32Bit");
+            REPORT_ERROR(ErrorManagement::ParametersError,
+                         "The second signal (time) shall be of type UnsignedInteger64Bit or UnsignedInteger32Bit (deprecated)");
         }
     }
+    TypeDescriptor channelTd = (calibrate) ? (Float32Bit) : (SignedInteger16Bit);
+    /*lint -e{9119} sampleSize is large enough to hold sizeof*/
+    sampleSize = (calibrate) ? (sizeof(float32)) : (sizeof(int16));
     if (ok) {
         for (i = 0u; (i < numberOfADCsEnabled) && (ok); i++) {
-            ok = (GetSignalType(NI6259ADC_HEADER_SIZE + i) == SignedInteger16Bit);
+            ok = (GetSignalType(NI6259ADC_HEADER_SIZE + i) == channelTd);
         }
         if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "All the ADC signals shall be of type SignedInteger16Bit");
+            REPORT_ERROR(ErrorManagement::ParametersError, "All the ADC signals shall be of type %s", TypeDescriptor::GetTypeNameFromTypeDescriptor(channelTd));
         }
     }
 
     //The current code would not work with more than one function interacting with this DataSourceI (see GetLastBufferIdx).
     //TODO reimplement with CircularBuffer from the core.
-    if (ok) {
-        ok = synchronising;
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The function interacting with this DataSourceI must be synchronising");
-        }
-    }
     uint32 nOfFunctions = GetNumberOfFunctions();
     if (ok) {
         ok = (nOfFunctions == 1u);
@@ -769,20 +994,6 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
             }
         }
     }
-    if (ok) {
-        if (synchronising) {
-            //numberOfADCsEnabled > 0 as otherwise it would be stopped
-            if (numberOfADCsEnabled > 0u) {
-                singleADCFrequency = samplingFrequency / numberOfADCsEnabled;
-                float32 totalNumberOfSamplesPerSecond = (static_cast<float32>(numberOfSamples) * cycleFrequency);
-                ok = (singleADCFrequency == static_cast<uint32>(totalNumberOfSamplesPerSecond));
-                if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "singleADCFrequency (%u) shall be equal to numberOfSamples * cycleFrequency (%u)",
-                                 singleADCFrequency, totalNumberOfSamplesPerSecond);
-                }
-            }
-        }
-    }
     StreamString fullDeviceName;
     //Configure the board
     if (ok) {
@@ -798,90 +1009,104 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not open device %s", fullDeviceName);
         }
     }
+    REPORT_ERROR(ErrorManagement::Information, "pxi6259_create_ai_conf()");
     pxi6259_ai_conf_t adcConfiguration = pxi6259_create_ai_conf();
+    /*lint -e{850} i is not modified by the loop*/
     for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (ok); i++) {
         if (adcEnabled[i]) {
+            REPORT_ERROR(ErrorManagement::Information, "pxi6259_add_ai_channel(&adcConfiguration, %d, %d, %d, %d, 0)", i, inputPolarity[i], inputRange[i], inputMode[i]);
             ok = (pxi6259_add_ai_channel(&adcConfiguration, static_cast<uint8_t>(i), inputPolarity[i], inputRange[i], inputMode[i], 0u) == 0);
-            uint32 ii = i;
             if (ok) {
-                REPORT_ERROR(ErrorManagement::Information, "Channel %d set with input range %d", ii, inputRange[i]);
+                REPORT_ERROR(ErrorManagement::Information, "Channel %d set with input range %d", i, inputRange[i]);
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Could not set InputRange for channel %d of device %s", ii, fullDeviceName);
+                REPORT_ERROR(ErrorManagement::ParametersError, "Could not set InputRange for channel %d of device %s", i, fullDeviceName);
             }
         }
     }
     if (ok) {
-        if (numberOfADCsEnabled == 1u) {
-            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 16u, delayDivisor, clockConvertSource, clockConvertPolarity) == 0);
-        }
-        else {
-            ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, 20u, delayDivisor, clockConvertSource, clockConvertPolarity) == 0);
-        }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName);
-        }
-    }
-    if (ok) {
-        if (numberOfADCsEnabled == 1u) {
-            ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, 16u, delayDivisor, clockSampleSource, clockSamplePolarity) == 0);
-        }
-        else {
-            ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, 20u, delayDivisor, clockSampleSource, clockSamplePolarity) == 0);
-        }
+        /*lint -e{414} samplingFrequency cannot be zero, otherwise ok = false*/
+        uint32 sampleClockDivisor = (ADC_BASE_FREQ / samplingFrequency);
+        REPORT_ERROR(ErrorManagement::Information, "pxi6259_set_ai_sample_clk(&adcConfiguration, %d, %d, %d, %d)", sampleClockDivisor, sampleDelayDivisor,
+                     clockSampleSource, clockSamplePolarity);
+
+        ok = (pxi6259_set_ai_sample_clk(&adcConfiguration, sampleClockDivisor, sampleDelayDivisor, clockSampleSource, clockSamplePolarity) == 0);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the clock for device %s", fullDeviceName);
         }
     }
     if (ok) {
+        /*lint -e{414} convertFrequency cannot be zero, otherwise ok = false*/
+        uint32 convertClockDivisor = (ADC_BASE_FREQ / convertFrequency);
+        REPORT_ERROR(ErrorManagement::Information, "pxi6259_set_ai_convert_clk(&adcConfiguration, %d, %d, %d, %d)", convertClockDivisor, convertDelayDivisor,
+                     clockConvertSource, clockConvertPolarity);
+
+        ok = (pxi6259_set_ai_convert_clk(&adcConfiguration, convertClockDivisor, convertDelayDivisor, clockConvertSource, clockConvertPolarity) == 0);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the convert clock for device %s", fullDeviceName);
+        }
+    }
+    if (ok) {
+        //Add additional attributes
+        if (attributes.MoveAbsolute("Attributes")) {
+            for (i = 0u; (i < attributes.GetNumberOfChildren()) && ok; i++) {
+                StreamString attrName = attributes.GetChildName(i);
+                uint32 attrVal;
+                ok = attributes.Read(attrName.Buffer(), attrVal);
+                if (ok) {
+                    pxi6259_segment_attribute attribute = GetAttribute(attrName.Buffer());
+                    ok = (attribute != AO_CONTINUOUS);
+                    if (ok) {
+                        REPORT_ERROR(ErrorManagement::Information, "pxi6259_set_ai_attribute(&adcConfiguration, %s, %d)", attrName.Buffer(), attrVal);
+
+                        ok = (pxi6259_set_ai_attribute(&adcConfiguration, attribute, attrVal) == 0);
+                        if (!ok) {
+                            REPORT_ERROR(ErrorManagement::FatalError, "Failed to set additional attribute %s to %d", attrName.Buffer(), attrVal);
+                        }
+                    }
+                    else {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "Could not find additional attribute %s", attrName.Buffer());
+                    }
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Could not read additional attribute %s", attrName.Buffer());
+                }
+            }
+            ok = attributes.MoveToAncestor(1u);
+        }
+    }
+
+    if (ok) {
+        REPORT_ERROR(ErrorManagement::Information, "pxi6259_load_ai_conf(boardFileDescriptor, &adcConfiguration)");
         ok = (pxi6259_load_ai_conf(boardFileDescriptor, &adcConfiguration) == 0);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not load configuration for device %s", fullDeviceName);
         }
     }
     if (ok) {
+        if (calibrate) {
+            REPORT_ERROR(ErrorManagement::Information, "pxi6259_get_ai_coefficient(boardFileDescriptor, &ai_coefs_all)");
+            ok = (pxi6259_get_ai_coefficient(boardFileDescriptor, &ai_coefs_all) == 0);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::FatalError, "Failed to get AI coefficient");
+            }
+        }
+    }
+    if (ok) {
         //Allocate memory
-        counterValue = new uint32[NUMBER_OF_BUFFERS];
-        timeValue = new uint32[NUMBER_OF_BUFFERS];
         for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (ok); i++) {
             uint32 b;
             for (b = 0u; (b < NUMBER_OF_BUFFERS) && (ok); b++) {
-                channelsMemory[b][i] = new int16[numberOfSamples];
+                /*lint -e{647} -e{9114} no truncation*/
+                channelsMemory[b][i] = new uint8[numberOfSamples * sampleSize];
             }
         }
     }
 
     if (ok) {
-        //Required to wait for devices to be available in /dev!
-        Sleep::Sec(1.0F);
-        for (i = 0u; (i < NI6259ADC_MAX_CHANNELS) && (ok); i++) {
-            if (adcEnabled[i]) {
-                StreamString channelDeviceName;
-                //Otherwise there is the perception that the Printf might modify i inside the for loop
-                uint32 ii = i;
-                ok = channelDeviceName.Printf("%s.%d", fullDeviceName.Buffer(), ii);
-                if (ok) {
-                    ok = channelDeviceName.Seek(0ULL);
-                }
-                if (ok) {
-                    channelsFileDescriptors[i] = open(channelDeviceName.Buffer(), O_RDWR);
-                    ok = (channelsFileDescriptors[i] > -1);
-                    if (!ok) {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Could not open device %s", channelDeviceName);
-                    }
-                }
-            }
-        }
-    }
-    if (ok) {
-        ok = (pxi6259_start_ai(boardFileDescriptor) == 0);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Could not start the device %s", fullDeviceName);
-        }
-    }
-    if (ok) {
+        REPORT_ERROR(ErrorManagement::Information, "pxi6259_dma_init(boardId)");
         dma = pxi6259_dma_init(static_cast<int32>(boardId));
-        ok = (dma != NULL_PTR(struct pxi6259_dma *));
+        ok = (dma != NULL_PTR(struct pxi6259_dma*));
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not set the dma for device %s", fullDeviceName);
         }
@@ -890,6 +1115,9 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
         //lint -e{613} dma cannot be null as otherwise ok would be false
         if (dma->ai.count > 0u) {
             dmaReadBuffer = new int16[dma->ai.count];
+            if (calibrate) {
+                dmaCalibBuffer = new float32[dma->ai.count];
+            }
         }
     }
 
@@ -899,57 +1127,76 @@ bool NI6259ADC::SetConfiguredDatabase(StructuredDataI& data) {
 ErrorManagement::ErrorType NI6259ADC::CopyFromDMA(const size_t numberOfSamplesFromDMA) {
     ErrorManagement::ErrorType err;
     uint32 s = 0u;
-    if (dmaReadBuffer != NULL_PTR(int16 *)) {
+    if (dmaReadBuffer != NULL_PTR(int16*)) {
         (void) (counterResetFastMux.FastLock());
         while (s < (numberOfSamplesFromDMA)) {
-            channelsMemory[currentBufferIdx][dmaChannel][currentBufferOffset] = dmaReadBuffer[s];
+            (void) allBufMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
+
+            uint8 currentBufferIdxCache = currentBufferIdx;
+            LockB(currentBufferIdxCache);
+            if (calibrate) {
+                if (dmaCalibBuffer != NULL_PTR(float32*)) {
+                    /*lint -e{679} no truncation*/
+                    (void) MemoryOperationsHelper::Copy(&channelsMemory[currentBufferIdx][dmaChannel][currentBufferOffset * sampleSize], &dmaCalibBuffer[s], sampleSize);
+                }
+            }
+            else {
+                /*lint -e{679} no truncation*/
+                (void) MemoryOperationsHelper::Copy(&channelsMemory[currentBufferIdx][dmaChannel][currentBufferOffset * sampleSize], &dmaReadBuffer[s], sampleSize);
+            }
             s++;
             dmaChannel++;
 
             if (dmaChannel == numberOfADCsEnabled) {
                 dmaChannel = 0u;
+                counter++;
+
+                if (resetOnBufferChange) {
+                    //counter starts from 1
+                    counterValue[currentBufferIdx] = (counter - lastCounter);
+                }
+                else {
+                    counterValue[currentBufferIdx] = (countSamples) ? (counter) : (counter / numberOfSamples);
+                }
+
+                float64 counterSamples = static_cast<float64>(counter);
+                counterSamples *= 1000000.;
+                counterSamples /= singleADCFrequency;
+                timeValue[currentBufferIdx] = static_cast<uint64>(counterSamples);
                 currentBufferOffset++;
-                if (currentBufferOffset == numberOfSamples) {
+
+                if ((currentBufferOffset == numberOfSamples) || (changeBuffer)) {
+                    changeBuffer = false;
+                    lastCounter = counter;
+                    (void) fastBufMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
                     currentBufferOffset = 0u;
-                    //Don't wait if this fails. At most a cycle will be delayed.
-                    (void) fastMux.FastLock(TTInfiniteWait, fastMuxSleepTime);
+                    uint8 oldBuff = currentBufferIdx;
                     currentBufferIdx++;
                     if (currentBufferIdx == NUMBER_OF_BUFFERS) {
                         currentBufferIdx = 0u;
                     }
-                    //This is required as otherwise it could copy the wrong counter value in the consumer thread.
-                    if (counterValue != NULL_PTR(uint32 *)) {
-                        counterValue[currentBufferIdx] = counter;
+                    LockB(currentBufferIdx);
+                    for (uint32 n = 0u; n < numberOfADCsEnabled; n++) {
+                        uint32 memSize = sampleSize * numberOfSamples;
+                        (void) MemoryOperationsHelper::Set(&channelsMemory[currentBufferIdx][n][0], '\0', memSize);
                     }
-                    if (counter > 0u) {
-                        uint64 counterSamples = counter;
-                        counterSamples *= numberOfSamples;
-                        counterSamples *= 1000000LLU;
-                        //lint -e{414} singleADCFrequency > 0 guaranteed during configuration.
-                        counterSamples /= singleADCFrequency;
-                        if (timeValue != NULL_PTR(uint32 *)) {
-                            timeValue[currentBufferIdx] = static_cast<uint32>(counterSamples);
-                        }
-                    }
-                    else {
-                        if (timeValue != NULL_PTR(uint32 *)) {
-                            timeValue[currentBufferIdx] = 0u;
-                        }
-                    }
-                    if (synchronising) {
-                        err = !synchSem.Post();
-                    }
-                    fastMux.FastUnLock();
-                    counter++;
+                    counterValue[currentBufferIdx] = 0ull;
+                    timeValue[currentBufferIdx] = timeValue[oldBuff];
+                    UnLockB(currentBufferIdx);
+                    err = !synchSem.Post();
+                    fastBufMux.FastUnLock();
                 }
             }
+            UnLockB(currentBufferIdxCache);
+            allBufMux.FastUnLock();
+
         }
         counterResetFastMux.FastUnLock();
     }
     return err;
 }
 
-ErrorManagement::ErrorType NI6259ADC::Execute(ExecutionInfo& info) {
+ErrorManagement::ErrorType NI6259ADC::Execute(ExecutionInfo &info) {
     ErrorManagement::ErrorType err;
     if (info.GetStage() == ExecutionInfo::TerminationStage) {
         keepRunning = false;
@@ -957,7 +1204,7 @@ ErrorManagement::ErrorType NI6259ADC::Execute(ExecutionInfo& info) {
     else if (info.GetStage() == ExecutionInfo::StartupStage) {
         //Empty DMA buffer
         //Does not work. The returned nBytesInDMA is always > 0...
-        #if 0
+#if 0
         size_t nBytesInDMA = pxi6259_dma_samples_in_buffer(dma, dmaOffset);
         if ((dma != NULL_PTR(struct pxi6259_dma *)) && (numberOfADCsEnabled > 0u)) {
             while (nBytesInDMA > 0u) {
@@ -967,38 +1214,58 @@ ErrorManagement::ErrorType NI6259ADC::Execute(ExecutionInfo& info) {
                 nBytesInDMA = pxi6259_dma_samples_in_buffer(dma, dmaOffset);
             }
         }
-        #endif
+#endif
     }
     else {
-        if ((dma != NULL_PTR(struct pxi6259_dma *)) && (dmaReadBuffer != NULL_PTR(int16 *))) {
-            size_t nBytesInDMA = pxi6259_dma_samples_in_buffer(dma, static_cast<off_t>(dmaOffset));
-            if (nBytesInDMA > 0u) {
-                if (nBytesInDMA > dma->ai.count) {
-                    REPORT_ERROR(ErrorManagement::FatalError, "Overflow while reading from the ADC");
-                }
-                else {
-                    if ((dmaOffset + nBytesInDMA) > (dma->ai.count)) {
-                        //Right part of the DMA
-                        size_t samplesToCopy = (dma->ai.count - dmaOffset);
-                        //Roll to the beginning
-                        size_t samplesToCopyRoll = ((dmaOffset + nBytesInDMA) - dma->ai.count);
-                        memcpy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * samplesToCopy));
-                        memcpy(&dmaReadBuffer[samplesToCopy], &dma->ai.data[0], (sizeof(int16) * samplesToCopyRoll));
+        if ((dma != NULL_PTR(struct pxi6259_dma*)) && (dmaReadBuffer != NULL_PTR(int16*))) {
+            size_t nSamplesInDMA = pxi6259_dma_samples_in_buffer(dma, static_cast<off_t>(dmaOffset));
+
+            bool skip = (nSamplesInDMA == (dma->ai.count - 1u));
+
+            if (!skip) {
+                /*lint -e{414} numberOfADCsEnabled > 0 otherwise initialisation will fail*/
+                nSamplesInDMA = (nSamplesInDMA / numberOfADCsEnabled) * numberOfADCsEnabled;
+
+                //REPORT_ERROR(ErrorManagement::Information, "Read %d samples", (uint32 )nSamplesInDMA);
+                if (nSamplesInDMA > 0u) {
+                    if (nSamplesInDMA > dma->ai.count) {
+                        REPORT_ERROR(ErrorManagement::FatalError, "Overflow while reading from the ADC");
                     }
                     else {
-                        memcpy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * nBytesInDMA));
+                        if ((dmaOffset + nSamplesInDMA) > (dma->ai.count)) {
+                            //Right part of the DMA
+                            size_t samplesToCopy = (dma->ai.count - dmaOffset);
+                            //Roll to the beginning
+                            size_t samplesToCopyRoll = ((dmaOffset + nSamplesInDMA) - dma->ai.count);
+                            /*lint -e{712} -e{747} -e{9119} -e{9114} use of sizeof as third argument is safe, given that it size << int*/
+                            (void) MemoryOperationsHelper::Copy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * samplesToCopy));
+                            /*lint -e{712} -e{747} -e{9119} -e{9114} use of sizeof as third argument is safe, given that it size << int*/
+                            (void) MemoryOperationsHelper::Copy(&dmaReadBuffer[samplesToCopy], &dma->ai.data[0], (sizeof(int16) * samplesToCopyRoll));
+                        }
+                        else {
+                            /*lint -e{712} -e{747} -e{9119} -e{9114} use of sizeof as third argument is safe, given that it size << int*/
+                            (void) MemoryOperationsHelper::Copy(&dmaReadBuffer[0], &dma->ai.data[dmaOffset], (sizeof(int16) * nSamplesInDMA));
+                        }
+
+                        if (calibrate && (dmaCalibBuffer != NULL_PTR(float32*))) {
+                            /*lint -e{712} -e{747} -e{9119} -e{9114} use of sizeof as third argument is safe, given that it size << int*/
+                            (void) MemoryOperationsHelper::Copy(&dmaCalibBuffer[nSamplesInDMA / 2u], &dmaReadBuffer[0], (sizeof(int16) * nSamplesInDMA));
+                            (void) pxi6259_calibration_ai(dmaCalibBuffer, nSamplesInDMA, 1, &ai_coefs_all);
+                        }
+
+                        err = CopyFromDMA(nSamplesInDMA);
                     }
-                    err = CopyFromDMA(nBytesInDMA);
+                    dmaOffset = dmaOffset + nSamplesInDMA;
+                    dmaOffset %= dma->ai.count;
                 }
-                dmaOffset = dmaOffset + nBytesInDMA;
-                dmaOffset %= dma->ai.count;
             }
         }
+        (void) sched_yield();
     }
     return err;
 }
 
-bool NI6259ADC::ReadAIConfiguration(pxi6259_ai_conf_t * const conf) const {
+bool NI6259ADC::ReadAIConfiguration(pxi6259_ai_conf_t *const conf) const {
     bool ok = false;
     if (boardFileDescriptor > 0) {
         ok = (pxi6259_read_ai_conf(boardFileDescriptor, conf) == 0);
@@ -1008,6 +1275,7 @@ bool NI6259ADC::ReadAIConfiguration(pxi6259_ai_conf_t * const conf) const {
 
 uint8 NI6259ADC::GetLastBufferIdx() {
     uint8 toReadIdx = lastBufferIdx;
+
     //This is thread safe since this is executed in the context of the thread which calls Synchronise.
     lastBufferIdx++;
     if (lastBufferIdx == NUMBER_OF_BUFFERS) {
@@ -1018,6 +1286,14 @@ uint8 NI6259ADC::GetLastBufferIdx() {
 
 bool NI6259ADC::IsSynchronising() const {
     return synchronising;
+}
+
+void NI6259ADC::LockB(const uint32 idx) {
+    (void) fastMux[idx].FastLock(TTInfiniteWait, fastMuxSleepTime);
+}
+
+void NI6259ADC::UnLockB(const uint32 idx) {
+    fastMux[idx].FastUnLock();
 }
 
 CLASS_REGISTER(NI6259ADC, "1.0")
