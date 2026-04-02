@@ -65,11 +65,15 @@ export OPEN62541_LIB=$OPEN62541_DIR/build/bin
 
 If amalgamation is disabled:
 ```
+export OPEN62541_INCLUDE=$OPEN62541_DIR/include
+export OPEN62541_LIB=$OPEN62541_DIR/lib64
 export OPEN62541_NO_ALMAGAMATION=1
 ```
 
 If dynamic linking is enabled:
 ```
+export OPEN62541_INCLUDE=$OPEN62541_DIR/include
+export OPEN62541_LIB=$OPEN62541_DIR/lib64
 export OPEN62541_NO_ALMAGAMATION=1
 export OPEN62541_DYNAMIC_LINK=1
 ```
