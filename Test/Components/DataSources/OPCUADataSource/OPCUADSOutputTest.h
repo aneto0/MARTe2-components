@@ -67,6 +67,11 @@ public:
     bool TestInitialise_MoreThanOneExtensionObject();
 
     /**
+     * @brief Tests the Initialise method with more than one structured type, which is not allowed.
+     */
+    bool TestInitialise_MoreThanOneStruct();
+
+    /**
      * @brief Tests the Initialise method without specifyng the Path in the ExtensionObject.
      */
     bool TestInitialise_ExtensionObject_NoPath();
@@ -75,6 +80,16 @@ public:
      * @brief Tests the Initialise method without specifyng the NamespaceIndex in the ExtensionObject.
      */
     bool TestInitialise_ExtensionObject_NoNamespaceIndex();
+
+    /**
+     * @brief Tests the Initialise method without specifyng the Path in the structured type.
+     */
+    bool TestInitialise_Struct_NoPath();
+
+    /**
+     * @brief Tests the Initialise method without specifyng the NamespaceIndex in the structured type.
+     */
+    bool TestInitialise_Struct_NoNamespaceIndex();
 
     /**
      * @brief Tests the Initialise method without specifying the address parameter.
@@ -127,6 +142,16 @@ public:
     bool Test_SetConfiguredDatabase_ExtensionObject_MixedSignals();
 
     /**
+     * @brief Tests that the structured type is not allowed to be mixed with normal nodes.
+     */
+    bool Test_SetConfiguredDatabase_Struct_MixedSignal();
+
+    /**
+     * @brief Tests that the structured type is not allowed to be mixed with normal nodes and timing signals.
+     */
+    bool Test_SetConfiguredDatabase_Struct_MixedSignals();
+
+    /**
      * @brief Tests that only one DefaultTimestampSignal is allowed.
      */
     bool Test_SetConfiguredDatabase_MoreThanOneDefaultTimestamp();
@@ -155,6 +180,16 @@ public:
      * @brief Tests that with ExtensionObject only one timestamp signal is allowed.
      */
     bool Test_SetConfiguredDatabase_ExtensionObject_MoreThanOneTimestamp();
+
+    /**
+     * @brief Tests that with structured types the only timestamp signal allowed is with DefaultTimestampSignal.
+     */
+    bool Test_SetConfiguredDatabase_Struct_Timestamp_NotDefault();
+
+    /**
+     * @brief Tests that with structured types only one timestamp signal is allowed.
+     */
+    bool Test_SetConfiguredDatabase_Struct_MoreThanOneTimestamp();
 
     /**
      * @brief Tests that the DataSource only accepts one trigger signal
@@ -197,6 +232,11 @@ public:
     bool Test_Synchronise_ExtensionObject();
 
     /**
+     * @brief Test the Synchronise method with a structured type that is not an ExtensionObject 
+     */
+    bool Test_Synchronise_Struct();
+
+    /**
      * @brief Test the Synchronise method with timing signals
      */
     bool Test_Synchronise_Timestamp();
@@ -221,7 +261,15 @@ public:
      */
     bool Test_Synchronise_ExtensionObject_Timestamp_Idx_Last();
 
+    /**
+     * @brief Test the Synchronise method with a structured type and time stamping at idx 0  
+     */
+    bool Test_Synchronise_Struct_Timestamp_Idx_0();
 
+    /**
+     * @brief Test the Synchronise method with a structured type and time stamping at idx 0  
+     */
+    bool Test_Synchronise_Struct_Timestamp_Idx_Last();
 
 };
 

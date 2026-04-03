@@ -936,6 +936,135 @@ bool OPCUADSOutputTest::TestInitialise_MoreThanOneExtensionObject() {
     return ok;
 }
 
+bool OPCUADSOutputTest::TestInitialise_MoreThanOneStruct() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+OPCUATypes = {\n"
+            "  Class = ReferenceContainer\n"
+            "  +Point = {\n"
+            "    Class = IntrospectionStructure\n"
+            "    x = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    y = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    z = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "$TestApp = {\n"
+            "  Class = RealTimeApplication\n"
+            "  +Functions = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +GAMXYZ = {\n"
+            "      Class = ConstantGAM\n"
+            "      OutputSignals = {\n"
+            "        x = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 1.2\n"
+            "        }\n"
+            "        y = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 3.4\n"
+            "        }\n"
+            "        z = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = -5.6\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriter = {\n"
+            "      Class = IOGAM\n"
+            "      InputSignals = {\n"
+            "        x = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        y = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        z = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "      }\n"
+            "      OutputSignals = {\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          DataSource = OPCUAOut\n"
+            "          Trigger = 1\n"
+            "          TriggerSignal = \"Point.x\"\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
+            "    +DDB1 = {\n"
+            "      Class = GAMDataSource\n"
+            "    }\n"
+            "    +Timings = {\n"
+            "      Class = TimingDataSource\n"
+            "    }\n"
+            "    +OPCUAOut = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost.localdomain:4840\""
+            "      Signals = {\n"
+            "        Point = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = Point\n"
+            "          Type = Point\n"
+            "        }\n"
+            "        PointBis = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = PointBis\n"
+            "          Type = Point\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          Functions = {GAMXYZ GAMWriter}\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = OPCUADSOutputSchedulerTestHelper\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
+            "}\n";
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = !ord->Initialise(cdb);
+    }
+    Sleep::MSec(200);
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
 bool OPCUADSOutputTest::TestInitialise_ExtensionObject_NoPath() {
     using namespace MARTe;
     StreamString config = ""
@@ -1183,6 +1312,253 @@ bool OPCUADSOutputTest::TestInitialise_ExtensionObject_NoNamespaceIndex() {
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
+
+bool OPCUADSOutputTest::TestInitialise_Struct_NoPath () {
+    using namespace MARTe;
+    StreamString config = ""
+            "+OPCUATypes = {\n"
+            "  Class = ReferenceContainer\n"
+            "  +Point = {\n"
+            "    Class = IntrospectionStructure\n"
+            "    x = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    y = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    z = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "$TestApp = {\n"
+            "  Class = RealTimeApplication\n"
+            "  +Functions = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +GAMXYZ = {\n"
+            "      Class = ConstantGAM\n"
+            "      OutputSignals = {\n"
+            "        x = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 1.2\n"
+            "        }\n"
+            "        y = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 3.4\n"
+            "        }\n"
+            "        z = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = -5.6\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriter = {\n"
+            "      Class = IOGAM\n"
+            "      InputSignals = {\n"
+            "        x = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        y = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        z = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "      }\n"
+            "      OutputSignals = {\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          DataSource = OPCUAOut\n"
+            "          Trigger = 1\n"
+            "          TriggerSignal = \"Point.x\"\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
+            "    +DDB1 = {\n"
+            "      Class = GAMDataSource\n"
+            "    }\n"
+            "    +Timings = {\n"
+            "      Class = TimingDataSource\n"
+            "    }\n"
+            "    +OPCUAOut = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost.localdomain:4840\""
+            "      Signals = {\n"
+            "        Point = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Type = Point\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          Functions = {GAMXYZ GAMWriter}\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = OPCUADSOutputSchedulerTestHelper\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
+            "}\n";
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = !ord->Initialise(cdb);
+    }
+    Sleep::MSec(200);
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool OPCUADSOutputTest::TestInitialise_Struct_NoNamespaceIndex () {
+    using namespace MARTe;
+    StreamString config = ""
+            "+OPCUATypes = {\n"
+            "  Class = ReferenceContainer\n"
+            "  +Point = {\n"
+            "    Class = IntrospectionStructure\n"
+            "    x = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    y = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    z = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "$TestApp = {\n"
+            "  Class = RealTimeApplication\n"
+            "  +Functions = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +GAMXYZ = {\n"
+            "      Class = ConstantGAM\n"
+            "      OutputSignals = {\n"
+            "        x = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 1.2\n"
+            "        }\n"
+            "        y = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 3.4\n"
+            "        }\n"
+            "        z = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = -5.6\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriter = {\n"
+            "      Class = IOGAM\n"
+            "      InputSignals = {\n"
+            "        x = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        y = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        z = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "      }\n"
+            "      OutputSignals = {\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          DataSource = OPCUAOut\n"
+            "          Trigger = 1\n"
+            "          TriggerSignal = \"Point.x\"\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
+            "    +DDB1 = {\n"
+            "      Class = GAMDataSource\n"
+            "    }\n"
+            "    +Timings = {\n"
+            "      Class = TimingDataSource\n"
+            "    }\n"
+            "    +OPCUAOut = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost.localdomain:4840\""
+            "      Signals = {\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          Path = Point\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          Functions = {GAMXYZ GAMWriter}\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = OPCUADSOutputSchedulerTestHelper\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
+            "}\n";
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = !ord->Initialise(cdb);
+    }
+    Sleep::MSec(200);
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
 bool OPCUADSOutputTest::TestInitialise_NoAddress() {
     using namespace MARTe;
     StreamString config = ""
@@ -2251,17 +2627,15 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_ExtensionObject_MixedSignal()
     if (ok) {
         ok = ord->Initialise(cdb);
     }
-    Sleep::MSec(200);
     ReferenceT<RealTimeApplication> app;
     if (ok) {
         app = ord->Find("TestApp");
         ok = app.IsValid();
     }
     if (ok) {
-        // ConfigureApplication() calls SetConfiguredDatabase() on the DS
-        // which uses a client to connect with authentication
-        ok = !(app->ConfigureApplication());
+        ok = !app->ConfigureApplication();
     }
+    Sleep::MSec(200);
 
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
@@ -2393,19 +2767,269 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_ExtensionObject_MixedSignals(
     cdb.MoveToRoot();
     ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
     if (ok) {
-        ok = ord->Initialise(cdb);
+        ok = !ord->Initialise(cdb);
     }
     Sleep::MSec(200);
-    ReferenceT<RealTimeApplication> app;
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool OPCUADSOutputTest::Test_SetConfiguredDatabase_Struct_MixedSignal() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+OPCUATypes = {\n"
+            "  Class = ReferenceContainer\n"
+            "  +Point = {\n"
+            "    Class = IntrospectionStructure\n"
+            "    x = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    y = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    z = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "$TestApp = {\n"
+            "  Class = RealTimeApplication\n"
+            "  +Functions = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +GAMXYZ = {\n"
+            "      Class = ConstantGAM\n"
+            "      OutputSignals = {\n"
+            "        x = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 1.2\n"
+            "        }\n"
+            "        y = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 3.4\n"
+            "        }\n"
+            "        z = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = -5.6\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriter = {\n"
+            "      Class = IOGAM\n"
+            "      InputSignals = {\n"
+            "        x = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        y = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        z = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "      }\n"
+            "      OutputSignals = {\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          DataSource = OPCUAOut\n"
+            "          Trigger = 1\n"
+            "          TriggerSignal = \"Point.x\"\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
+            "    +DDB1 = {\n"
+            "      Class = GAMDataSource\n"
+            "    }\n"
+            "    +Timings = {\n"
+            "      Class = TimingDataSource\n"
+            "    }\n"
+            "    +OPCUAOut = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost.localdomain:4840\""
+            "      Signals = {\n"
+            "        Node1 = {\n"
+            "          Type = uint32\n"
+            "          Path = Node1\n"
+            "        }\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          Path = Point\n"
+            "          NamespaceIndex = 1\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          Functions = {GAMXYZ GAMWriter}\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = OPCUADSOutputSchedulerTestHelper\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
+            "}\n";
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
     if (ok) {
-        app = ord->Find("TestApp");
-        ok = app.IsValid();
+        ok = !ord->Initialise(cdb);
     }
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool OPCUADSOutputTest::Test_SetConfiguredDatabase_Struct_MixedSignals() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+OPCUATypes = {\n"
+            "  Class = ReferenceContainer\n"
+            "  +Point = {\n"
+            "    Class = IntrospectionStructure\n"
+            "    x = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    y = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    z = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "$TestApp = {\n"
+            "  Class = RealTimeApplication\n"
+            "  +Functions = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +GAMXYZ = {\n"
+            "      Class = ConstantGAM\n"
+            "      OutputSignals = {\n"
+            "        x = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 1.2\n"
+            "        }\n"
+            "        y = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 3.4\n"
+            "        }\n"
+            "        z = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = -5.6\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriter = {\n"
+            "      Class = IOGAM\n"
+            "      InputSignals = {\n"
+            "        x = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        y = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        z = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "      }\n"
+            "      OutputSignals = {\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          DataSource = OPCUAOut\n"
+            "          Trigger = 1\n"
+            "          TriggerSignal = \"Point.x\"\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
+            "    +DDB1 = {\n"
+            "      Class = GAMDataSource\n"
+            "    }\n"
+            "    +Timings = {\n"
+            "      Class = TimingDataSource\n"
+            "    }\n"
+            "    +OPCUAOut = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost.localdomain:4840\""
+            "      Signals = {\n"
+            "        Timestamp1 = {\n"
+            "          Type = uint64\n"
+            "          DefaultTimestampSignal = 1\n"
+            "        }\n"
+            "        Node1 = {\n"
+            "          Type = uint32\n"
+            "          Path = Node1\n"
+            "        }\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          Path = Point\n"
+            "          NamespaceIndex = 1\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          Functions = {GAMXYZ GAMWriter}\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = OPCUADSOutputSchedulerTestHelper\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
+            "}\n";
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
     if (ok) {
-        // ConfigureApplication() calls SetConfiguredDatabase() on the DS
-        // which uses a client to connect with authentication
-        ok = !(app->ConfigureApplication());
+        ok = !ord->Initialise(cdb);
     }
+    Sleep::MSec(200);
 
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
@@ -3176,6 +3800,7 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_MoreThanOneDefaultTimestamp()
     if (ok) {
         ok = ord->Initialise(cdb);
     }
+    Sleep::MSec(200);
     ReferenceT<RealTimeApplication> app;
     if (ok) {
         app = ord->Find("TestApp");
@@ -3186,8 +3811,6 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_MoreThanOneDefaultTimestamp()
         // which uses a client to connect with authentication
         ok = !(app->ConfigureApplication());
     }
-
-    Sleep::MSec(200);
     ord->Purge();
     return ok;
 }
@@ -4976,23 +5599,274 @@ bool OPCUADSOutputTest::Test_SetConfiguredDatabase_ExtensionObject_MoreThanOneTi
     cdb.MoveToRoot();
     ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
     if (ok) {
-        ok = ord->Initialise(cdb);
-    }
-    Sleep::MSec(200);
-    ReferenceT<RealTimeApplication> app;
-    if (ok) {
-        app = ord->Find("TestApp");
-        ok = app.IsValid();
-    }
-    if (ok) {
-        // ConfigureApplication() calls SetConfiguredDatabase() on the DS
-        // which uses a client to connect with authentication
-        ok = !(app->ConfigureApplication());
+        ok = !ord->Initialise(cdb);
     }
 
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
+
+bool OPCUADSOutputTest::Test_SetConfiguredDatabase_Struct_Timestamp_NotDefault() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+OPCUATypes = {\n"
+            "  Class = ReferenceContainer\n"
+            "  +Point = {\n"
+            "    Class = IntrospectionStructure\n"
+            "    x = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    y = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    z = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "$TestApp = {\n"
+            "  Class = RealTimeApplication\n"
+            "  +Functions = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +GAMXYZ = {\n"
+            "      Class = ConstantGAM\n"
+            "      OutputSignals = {\n"
+            "        x = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 1.2\n"
+            "        }\n"
+            "        y = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 3.4\n"
+            "        }\n"
+            "        z = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = -5.6\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriter = {\n"
+            "      Class = IOGAM\n"
+            "      InputSignals = {\n"
+            "        x = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        y = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        z = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "      }\n"
+            "      OutputSignals = {\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          DataSource = OPCUAOut\n"
+            "          Trigger = 1\n"
+            "          TriggerSignal = \"Point.x\"\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
+            "    +DDB1 = {\n"
+            "      Class = GAMDataSource\n"
+            "    }\n"
+            "    +Timings = {\n"
+            "      Class = TimingDataSource\n"
+            "    }\n"
+            "    +OPCUAOut = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost.localdomain:4840\""
+            "      Signals = {\n"
+            "        Timestamp1 = {\n"
+            "          Type = uint64\n"
+            "          Timestamp = {\"Point.x\"}\n"
+            "        }\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          Path = Point\n"
+            "          NamespaceIndex = 1\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          Functions = {GAMXYZ GAMWriter}\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = OPCUADSOutputSchedulerTestHelper\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
+            "}\n";
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = !ord->Initialise(cdb);
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool OPCUADSOutputTest::Test_SetConfiguredDatabase_Struct_MoreThanOneTimestamp() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+OPCUATypes = {\n"
+            "  Class = ReferenceContainer\n"
+            "  +Point = {\n"
+            "    Class = IntrospectionStructure\n"
+            "    x = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    y = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    z = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "$TestApp = {\n"
+            "  Class = RealTimeApplication\n"
+            "  +Functions = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +GAMXYZ = {\n"
+            "      Class = ConstantGAM\n"
+            "      OutputSignals = {\n"
+            "        x = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 1.2\n"
+            "        }\n"
+            "        y = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = 3.4\n"
+            "        }\n"
+            "        z = {\n"
+            "          DataSource = DDB1\n"
+            "          Type = float32\n"
+            "          Default = -5.6\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriter = {\n"
+            "      Class = IOGAM\n"
+            "      InputSignals = {\n"
+            "        x = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        y = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "        z = {\n"
+            "          Type = float32\n"
+            "          DataSource = DDB1\n"
+            "        }\n"
+            "      }\n"
+            "      OutputSignals = {\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          DataSource = OPCUAOut\n"
+            "          Trigger = 1\n"
+            "          TriggerSignal = \"Point.x\"\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
+            "    +DDB1 = {\n"
+            "      Class = GAMDataSource\n"
+            "    }\n"
+            "    +Timings = {\n"
+            "      Class = TimingDataSource\n"
+            "    }\n"
+            "    +OPCUAOut = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost.localdomain:4840\""
+            "      Signals = {\n"
+            "        Timestamp1 = {\n"
+            "          Type = uint64\n"
+            "          Timestamp = {\"Point.x\"}\n"
+            "        }\n"
+            "        Timestamp2 = {\n"
+            "          Type = uint64\n"
+            "          DefaultTimestampSignal = 1\n"
+            "        }\n"
+            "        Point = {\n"
+            "          Type = Point\n"
+            "          Path = Point\n"
+            "          NamespaceIndex = 1\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          Functions = {GAMXYZ GAMWriter}\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = OPCUADSOutputSchedulerTestHelper\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
+            "}\n";
+    config.Seek(0LLU);
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = !ord->Initialise(cdb);
+    }
+
+    ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+
 
 bool OPCUADSOutputTest::Test_SetConfiguredDatabase_MoreThanOneTrigger() {
     using namespace MARTe;
@@ -6487,6 +7361,461 @@ bool OPCUADSOutputTest::Test_Synchronise_ExtensionObject() {
     ots.SetRunning(false);
     ots.service.Stop();
     ObjectRegistryDatabase::Instance()->Purge();
+    return ok;
+}
+
+bool OPCUADSOutputTest::Test_Synchronise_Struct() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+Types = {\n"
+            "  Class = ReferenceContainer"
+            "  +Scalars = {\n"
+            "    Class = IntrospectionStructure"
+            "    NodeU8 = {\n"
+            "      Type = uint8\n"
+            "    }\n"
+            "    NodeU16 = {\n"
+            "      Type = uint16\n"
+            "    }\n"
+            "    NodeU32 = {\n"
+            "      Type = uint32\n"
+            "    }\n"
+            "    NodeU64 = {\n"
+            "      Type = uint64\n"
+            "    }\n"
+            "    NodeI8 = {\n"
+            "      Type = int8\n"
+            "    }\n"
+            "    NodeI16 = {\n"
+            "      Type = int16\n"
+            "    }\n"
+            "    NodeI32 = {\n"
+            "      Type = int32\n"
+            "    }\n"
+            "    NodeI64 = {\n"
+            "      Type = int64\n"
+            "    }\n"
+            "    NodeF32 = {\n"
+            "      Type = float32\n"
+            "    }\n"
+            "    NodeF64 = {\n"
+            "      Type = float64\n"
+            "    }\n"
+            "  }\n"
+            "  +Arrays = {\n"
+            "    Class = IntrospectionStructure"
+            "    NodeU8A = {\n"
+            "      Type = uint8\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeU16A = {\n"
+            "      Type = uint16\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeU32A = {\n"
+            "      Type = uint32\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeU64A = {\n"
+            "      Type = uint64\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI8A = {\n"
+            "      Type = int8\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI16A = {\n"
+            "      Type = int16\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI32A = {\n"
+            "      Type = int32\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI64A = {\n"
+            "      Type = int64\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeF32A = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeF64A = {\n"
+            "      Type = float64\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "  }\n"
+            "  +ComposedT = {\n"
+            "    Class = IntrospectionStructure"
+            "    Scalar = {\n"
+            "      Type = Scalars\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    Array = {\n"
+            "      Type = Arrays\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "+ServerTest = {\n"
+            "  Class = OPCUA::OPCUAServer\n"
+            "  Authentication = None\n"
+            "  CPUMask = 0x2\n"
+            "  AddressSpace = {\n"
+            "    ComposedQ = {\n"
+            "      Type = ComposedT\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "$TestApp = {\n"
+            "  Class = RealTimeApplication\n"
+            "  +Functions = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +GAMWriterScalar = {\n"
+            "      Class = OPCUADSOutputGAMTestHelper\n"
+            "      OutputSignals = {\n"
+            "        SignalUInt8 = {\n"
+            "          Type = uint8\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeU8\n"
+            "        }\n"
+            "        SignalUInt16 = {\n"
+            "          Type = uint16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeU16\n"
+            "        }\n"
+            "        SignalUInt32 = {\n"
+            "          Type = uint32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeU32\n"
+            "        }\n"
+            "        SignalUInt64 = {\n"
+            "          Type = uint64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeU64\n"
+            "        }\n"
+            "        SignalInt8 = {\n"
+            "          Type = int8\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeI8\n"
+            "        }\n"
+            "        SignalInt16 = {\n"
+            "          Type = int16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeI16\n"
+            "        }\n"
+            "        SignalInt32 = {\n"
+            "          Type = int32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeI32\n"
+            "        }\n"
+            "        SignalInt64 = {\n"
+            "          Type = int64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeI64\n"
+            "        }\n"
+            "        SignalFloat32 = {\n"
+            "          Type = float32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeF32\n"
+            "        }\n"
+            "        SignalFloat64 = {\n"
+            "          Type = float64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeF64\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriterArray = {\n"
+            "      Class = OPCUADSOutputGAMTestHelper\n"
+            "      OutputSignals = {\n"
+            "        SignalUInt8A = {\n"
+            "          Type = uint8\n"
+            "          Trigger = 1\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeU8A\n"
+            "          TriggerSignal = Composed.Array.NodeU8A\n"
+            "        }\n"
+            "        SignalUInt16A = {\n"
+            "          Type = uint16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeU16A\n"
+            "        }\n"
+            "        SignalUInt32A = {\n"
+            "          Type = uint32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeU32A\n"
+            "        }\n"
+            "        SignalUInt64A = {\n"
+            "          Type = uint64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeU64A\n"
+            "        }\n"
+            "        SignalInt8A = {\n"
+            "          Type = int8\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeI8A\n"
+            "        }\n"
+            "        SignalInt16A = {\n"
+            "          Type = int16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeI16A\n"
+            "        }\n"
+            "        SignalInt32A = {\n"
+            "          Type = int32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeI32A\n"
+            "        }\n"
+            "        SignalInt64A = {\n"
+            "          Type = int64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeI64A\n"
+            "        }\n"
+            "        SignalFloat32A = {\n"
+            "          Type = float32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeF32A\n"
+            "        }\n"
+            "        SignalFloat64A = {\n"
+            "          Type = float64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeF64A\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
+            "    +LoggerDataSource = {\n"
+            "      Class = LoggerDataSource\n"
+            "    }\n"
+            "    +OPCUADSOutputTest = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "      Authentication = None\n"
+            "      Signals = {\n"
+            "        Composed = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = ComposedQ\n"
+            "          Type = ComposedT\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +Timings = {\n"
+            "       Class = TimingDataSource\n"
+            "    }\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          CPUs = 0x2\n"
+            "          Functions = {GAMWriterScalar GAMWriterArray}\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = OPCUADSOutputSchedulerTestHelper\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
+            "}\n";
+    config.Seek(0LLU);
+    //HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    Sleep::MSec(200);
+    ReferenceT<RealTimeApplication> app;
+    if (ok) {
+        app = ord->Find("TestApp");
+        ok = app.IsValid();
+    }
+    if (ok) {
+        ok = app->ConfigureApplication();
+    }
+    ReferenceT<OPCUADSOutputGAMTestHelper> gamWriterScalar;
+    ReferenceT<OPCUADSOutputGAMTestHelper> gamWriterArray;
+    if (ok) {
+        gamWriterScalar = ord->Find("TestApp.Functions.GAMWriterScalar");
+        ok = gamWriterScalar.IsValid();
+    }
+    if (ok) {
+        gamWriterArray = ord->Find("TestApp.Functions.GAMWriterArray");
+        ok = gamWriterArray.IsValid();
+    }
+    if (ok) {
+        ok = app->PrepareNextState("State1");
+    }
+    ReferenceT<OPCUADSOutputSchedulerTestHelper> scheduler;
+    if (ok) {
+        scheduler = ord->Find("TestApp.Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        ok = app->StartNextStateExecution();
+    }
+    
+    OPCUADSOutputTestReader opcuaReader;
+    const uint32 numberOfNodes = 20;
+    const char8 *nodeNames[] = {"NodeU8", "NodeU16", "NodeU32", "NodeU64", "NodeI8", "NodeI16", "NodeI32", "NodeI64", "NodeF32", "NodeF64", "NodeU8A", "NodeU16A", "NodeU32A", "NodeU64A", "NodeI8A", "NodeI16A", "NodeI32A", "NodeI64A", "NodeF32A", "NodeF64A"};
+    uint32 nodeNElements[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
+    uint32 nodeTypeSizes[] = {sizeof(uint8), sizeof(uint16), sizeof(uint32), sizeof(uint64), sizeof(int8), sizeof(int16), sizeof(int32), sizeof(int64), sizeof(float32), sizeof(float64), sizeof(uint8), sizeof(uint16), sizeof(uint32), sizeof(uint64), sizeof(int8), sizeof(int16), sizeof(int32), sizeof(int64), sizeof(float32), sizeof(float64)};
+    UA_NodeId nodeIds[numberOfNodes];
+    const UA_DataType *nodeDataTypes[] = {&UA_TYPES[UA_TYPES_BYTE], &UA_TYPES[UA_TYPES_UINT16], &UA_TYPES[UA_TYPES_UINT32], &UA_TYPES[UA_TYPES_UINT64], &UA_TYPES[UA_TYPES_SBYTE], &UA_TYPES[UA_TYPES_INT16], &UA_TYPES[UA_TYPES_INT32], &UA_TYPES[UA_TYPES_INT64], &UA_TYPES[UA_TYPES_FLOAT], &UA_TYPES[UA_TYPES_DOUBLE], &UA_TYPES[UA_TYPES_BYTE], &UA_TYPES[UA_TYPES_UINT16], &UA_TYPES[UA_TYPES_UINT32], &UA_TYPES[UA_TYPES_UINT64], &UA_TYPES[UA_TYPES_SBYTE], &UA_TYPES[UA_TYPES_INT16], &UA_TYPES[UA_TYPES_INT32], &UA_TYPES[UA_TYPES_INT64], &UA_TYPES[UA_TYPES_FLOAT], &UA_TYPES[UA_TYPES_DOUBLE]};
+    void *expectedNodeValues[] = {gamWriterScalar->uint8Signal, gamWriterScalar->uint16Signal,gamWriterScalar->uint32Signal, gamWriterScalar->uint64Signal, gamWriterScalar->int8Signal, gamWriterScalar->int16Signal, gamWriterScalar->int32Signal, gamWriterScalar->int64Signal, gamWriterScalar->float32Signal, gamWriterScalar->float64Signal, gamWriterArray->uint8Signal, gamWriterArray->uint16Signal,gamWriterArray->uint32Signal, gamWriterArray->uint64Signal, gamWriterArray->int8Signal, gamWriterArray->int16Signal, gamWriterArray->int32Signal, gamWriterArray->int64Signal, gamWriterArray->float32Signal, gamWriterArray->float64Signal};
+
+    if (ok) {
+        ok = opcuaReader.Connect();
+    }
+    UA_NodeId parentL1;
+    UA_NodeId parentL2S;
+    UA_NodeId parentL2A;
+
+    if (ok) {
+        UA_NodeId ignore;
+        ok = (opcuaReader.FindChildNodeId("ComposedQ", &parentL1) == UA_STATUSCODE_GOOD);
+    }
+    if (ok) {
+        UA_NodeId ignore;
+        ok = (opcuaReader.FindChildNodeId("Scalar", &parentL2S, parentL1) == UA_STATUSCODE_GOOD);
+    }
+    if (ok) {
+        UA_NodeId ignore;
+        ok = (opcuaReader.FindChildNodeId("Array", &parentL2A, parentL1) == UA_STATUSCODE_GOOD);
+    }
+
+    if (ok) {
+        for (uint32 k=0; (k<numberOfNodes / 2) && (ok); k++) {
+            ok = (opcuaReader.FindChildNodeId(nodeNames[k], &nodeIds[k], parentL2S) == UA_STATUSCODE_GOOD);
+        }
+        for (uint32 k=(numberOfNodes / 2); (k<numberOfNodes) && (ok); k++) {
+            ok = (opcuaReader.FindChildNodeId(nodeNames[k], &nodeIds[k], parentL2A) == UA_STATUSCODE_GOOD);
+        }
+    }
+    if (ok) {
+        *gamWriterScalar->uint8Signal = 1u;
+        *gamWriterScalar->uint16Signal = 2u;
+        *gamWriterScalar->uint32Signal = 3u;
+        *gamWriterScalar->uint64Signal = 4u;
+        *gamWriterScalar->int8Signal = 1;
+        *gamWriterScalar->int16Signal = 2;
+        *gamWriterScalar->int32Signal = 3;
+        *gamWriterScalar->int64Signal = 4;
+        *gamWriterScalar->float32Signal = 3.2;
+        *gamWriterScalar->float64Signal = 6.2;
+
+        gamWriterArray->uint8Signal[0] = 3;
+        gamWriterArray->uint8Signal[1] = 1;
+        gamWriterArray->uint8Signal[2] = 2;
+        gamWriterArray->uint16Signal[0] = 4;
+        gamWriterArray->uint16Signal[1] = 2;
+        gamWriterArray->uint16Signal[2] = 3;
+        gamWriterArray->uint32Signal[0] = 5;
+        gamWriterArray->uint32Signal[1] = 3;
+        gamWriterArray->uint32Signal[2] = 4;
+        gamWriterArray->uint64Signal[0] = 6;
+        gamWriterArray->uint64Signal[1] = 4;
+        gamWriterArray->uint64Signal[2] = 5;
+        gamWriterArray->int8Signal[0] = -3;
+        gamWriterArray->int8Signal[1] = 2;
+        gamWriterArray->int8Signal[2] = -2;
+        gamWriterArray->int16Signal[0] = -4;
+        gamWriterArray->int16Signal[1] = 3;
+        gamWriterArray->int16Signal[2] = -3;
+        gamWriterArray->int32Signal[0] = -5;
+        gamWriterArray->int32Signal[1] = 4;
+        gamWriterArray->int32Signal[2] = -4;
+        gamWriterArray->int64Signal[0] = -6;
+        gamWriterArray->int64Signal[1] = 5;
+        gamWriterArray->int64Signal[2] = -5;
+        gamWriterArray->float32Signal[0] = 3.1;
+        gamWriterArray->float32Signal[1] = -3.2;
+        gamWriterArray->float32Signal[2] = 3.3;
+        gamWriterArray->float64Signal[0] = -6.1;
+        gamWriterArray->float64Signal[1] = 6.2;
+        gamWriterArray->float64Signal[2] = -6.3;
+        scheduler->ExecuteThreadCycle(0u);
+        for(uint32 k=0; (k<numberOfNodes) && (ok); k++) {
+            //printf("Checking %d %s %d\n", k, nodeNames[k], nodeNElements[k]);
+            ok = opcuaReader.WaitForValue(nodeIds[k], reinterpret_cast<uint8 *>(expectedNodeValues[k]), nodeDataTypes[k], nodeTypeSizes[k], nodeNElements[k]);
+        }
+    }
+    if (ok) {
+        *gamWriterScalar->uint8Signal = 2u;
+        *gamWriterScalar->uint16Signal = 3u;
+        *gamWriterScalar->uint32Signal = 4u;
+        *gamWriterScalar->uint64Signal = 5u;
+        *gamWriterScalar->int8Signal = 2;
+        *gamWriterScalar->int16Signal = 3;
+        *gamWriterScalar->int32Signal = 4;
+        *gamWriterScalar->int64Signal = 5;
+        *gamWriterScalar->float32Signal = 4.2;
+        *gamWriterScalar->float64Signal = 7.2;
+
+        gamWriterArray->uint8Signal[0] = 4;
+        gamWriterArray->uint8Signal[1] = 2;
+        gamWriterArray->uint8Signal[2] = 3;
+        gamWriterArray->uint16Signal[0] = 5;
+        gamWriterArray->uint16Signal[1] = 3;
+        gamWriterArray->uint16Signal[2] = 4;
+        gamWriterArray->uint32Signal[0] = 6;
+        gamWriterArray->uint32Signal[1] = 4;
+        gamWriterArray->uint32Signal[2] = 5;
+        gamWriterArray->uint64Signal[0] = 7;
+        gamWriterArray->uint64Signal[1] = 5;
+        gamWriterArray->uint64Signal[2] = 6;
+        gamWriterArray->int8Signal[0] = -2;
+        gamWriterArray->int8Signal[1] = 3;
+        gamWriterArray->int8Signal[2] = -1;
+        gamWriterArray->int16Signal[0] = -3;
+        gamWriterArray->int16Signal[1] = 4;
+        gamWriterArray->int16Signal[2] = -2;
+        gamWriterArray->int32Signal[0] = -4;
+        gamWriterArray->int32Signal[1] = 5;
+        gamWriterArray->int32Signal[2] = -3;
+        gamWriterArray->int64Signal[0] = -5;
+        gamWriterArray->int64Signal[1] = 6;
+        gamWriterArray->int64Signal[2] = -4;
+        gamWriterArray->float32Signal[0] = 4.1;
+        gamWriterArray->float32Signal[1] = -2.2;
+        gamWriterArray->float32Signal[2] = 4.3;
+        gamWriterArray->float64Signal[0] = -5.1;
+        gamWriterArray->float64Signal[1] = 7.2;
+        gamWriterArray->float64Signal[2] = -6.3;
+
+        scheduler->ExecuteThreadCycle(0u);
+        for(uint32 k=0; (k<numberOfNodes) && (ok); k++) {
+            //printf("Checking %d %s %d\n", k, nodeNames[k], nodeNElements[k]);
+            ok = opcuaReader.WaitForValue(nodeIds[k], reinterpret_cast<uint8 *>(expectedNodeValues[k]), nodeDataTypes[k], nodeTypeSizes[k], nodeNElements[k]);
+        }
+
+    }
+    //Sleep::Sec(60);
+    opcuaReader.Disconnect();
+    ord->Purge();
+
     return ok;
 }
 
@@ -8472,3 +9801,966 @@ bool OPCUADSOutputTest::Test_Synchronise_ExtensionObject_Timestamp_Idx_Last() {
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
 }
+
+bool OPCUADSOutputTest::Test_Synchronise_Struct_Timestamp_Idx_0() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+Types = {\n"
+            "  Class = ReferenceContainer"
+            "  +Scalars = {\n"
+            "    Class = IntrospectionStructure"
+            "    NodeU8 = {\n"
+            "      Type = uint8\n"
+            "    }\n"
+            "    NodeU16 = {\n"
+            "      Type = uint16\n"
+            "    }\n"
+            "    NodeU32 = {\n"
+            "      Type = uint32\n"
+            "    }\n"
+            "    NodeU64 = {\n"
+            "      Type = uint64\n"
+            "    }\n"
+            "    NodeI8 = {\n"
+            "      Type = int8\n"
+            "    }\n"
+            "    NodeI16 = {\n"
+            "      Type = int16\n"
+            "    }\n"
+            "    NodeI32 = {\n"
+            "      Type = int32\n"
+            "    }\n"
+            "    NodeI64 = {\n"
+            "      Type = int64\n"
+            "    }\n"
+            "    NodeF32 = {\n"
+            "      Type = float32\n"
+            "    }\n"
+            "    NodeF64 = {\n"
+            "      Type = float64\n"
+            "    }\n"
+            "  }\n"
+            "  +Arrays = {\n"
+            "    Class = IntrospectionStructure"
+            "    NodeU8A = {\n"
+            "      Type = uint8\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeU16A = {\n"
+            "      Type = uint16\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeU32A = {\n"
+            "      Type = uint32\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeU64A = {\n"
+            "      Type = uint64\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI8A = {\n"
+            "      Type = int8\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI16A = {\n"
+            "      Type = int16\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI32A = {\n"
+            "      Type = int32\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI64A = {\n"
+            "      Type = int64\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeF32A = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeF64A = {\n"
+            "      Type = float64\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "  }\n"
+            "  +ComposedT = {\n"
+            "    Class = IntrospectionStructure"
+            "    Scalar = {\n"
+            "      Type = Scalars\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    Array = {\n"
+            "      Type = Arrays\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "+ServerTest = {\n"
+            "  Class = OPCUA::OPCUAServer\n"
+            "  Authentication = None\n"
+            "  CPUMask = 0x2\n"
+            "  AddressSpace = {\n"
+            "    ComposedQ = {\n"
+            "      Type = ComposedT\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "$TestApp = {\n"
+            "  Class = RealTimeApplication\n"
+            "  +Functions = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +GAMWriterTimestamp1 = {\n"
+            "      Class = OPCUADSOutputGAMTestHelper\n"
+            "      OutputSignals = {\n"
+            "        Timestamp1 = {\n"
+            "          Type = uint64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriterScalar = {\n"
+            "      Class = OPCUADSOutputGAMTestHelper\n"
+            "      OutputSignals = {\n"
+            "        SignalUInt8 = {\n"
+            "          Type = uint8\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeU8\n"
+            "        }\n"
+            "        SignalUInt16 = {\n"
+            "          Type = uint16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeU16\n"
+            "        }\n"
+            "        SignalUInt32 = {\n"
+            "          Type = uint32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeU32\n"
+            "        }\n"
+            "        SignalUInt64 = {\n"
+            "          Type = uint64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeU64\n"
+            "        }\n"
+            "        SignalInt8 = {\n"
+            "          Type = int8\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeI8\n"
+            "        }\n"
+            "        SignalInt16 = {\n"
+            "          Type = int16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeI16\n"
+            "        }\n"
+            "        SignalInt32 = {\n"
+            "          Type = int32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeI32\n"
+            "        }\n"
+            "        SignalInt64 = {\n"
+            "          Type = int64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeI64\n"
+            "        }\n"
+            "        SignalFloat32 = {\n"
+            "          Type = float32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeF32\n"
+            "        }\n"
+            "        SignalFloat64 = {\n"
+            "          Type = float64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeF64\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriterArray = {\n"
+            "      Class = OPCUADSOutputGAMTestHelper\n"
+            "      OutputSignals = {\n"
+            "        SignalUInt8A = {\n"
+            "          Type = uint8\n"
+            "          Trigger = 1\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeU8A\n"
+            "          TriggerSignal = Composed.Array.NodeU8A\n"
+            "        }\n"
+            "        SignalUInt16A = {\n"
+            "          Type = uint16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeU16A\n"
+            "        }\n"
+            "        SignalUInt32A = {\n"
+            "          Type = uint32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeU32A\n"
+            "        }\n"
+            "        SignalUInt64A = {\n"
+            "          Type = uint64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeU64A\n"
+            "        }\n"
+            "        SignalInt8A = {\n"
+            "          Type = int8\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeI8A\n"
+            "        }\n"
+            "        SignalInt16A = {\n"
+            "          Type = int16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeI16A\n"
+            "        }\n"
+            "        SignalInt32A = {\n"
+            "          Type = int32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeI32A\n"
+            "        }\n"
+            "        SignalInt64A = {\n"
+            "          Type = int64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeI64A\n"
+            "        }\n"
+            "        SignalFloat32A = {\n"
+            "          Type = float32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeF32A\n"
+            "        }\n"
+            "        SignalFloat64A = {\n"
+            "          Type = float64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeF64A\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
+            "    +LoggerDataSource = {\n"
+            "      Class = LoggerDataSource\n"
+            "    }\n"
+            "    +OPCUADSOutputTest = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "      Authentication = None\n"
+            "      Signals = {\n"
+            "        Timestamp1 = {\n"
+            "          DefaultTimestampSignal = 1\n"
+            "          Type = uint64\n"
+            "        }\n"
+            "        Composed = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = ComposedQ\n"
+            "          Type = ComposedT\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +Timings = {\n"
+            "       Class = TimingDataSource\n"
+            "    }\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          CPUs = 0x2\n"
+            "          Functions = {GAMWriterTimestamp1 GAMWriterScalar GAMWriterArray}\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = OPCUADSOutputSchedulerTestHelper\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
+            "}\n";
+    config.Seek(0LLU);
+    //HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    Sleep::MSec(200);
+    ReferenceT<RealTimeApplication> app;
+    if (ok) {
+        app = ord->Find("TestApp");
+        ok = app.IsValid();
+    }
+    if (ok) {
+        ok = app->ConfigureApplication();
+    }
+    ReferenceT<OPCUADSOutputGAMTestHelper> gamWriterScalar;
+    ReferenceT<OPCUADSOutputGAMTestHelper> gamWriterArray;
+    if (ok) {
+        gamWriterScalar = ord->Find("TestApp.Functions.GAMWriterScalar");
+        ok = gamWriterScalar.IsValid();
+    }
+    if (ok) {
+        gamWriterArray = ord->Find("TestApp.Functions.GAMWriterArray");
+        ok = gamWriterArray.IsValid();
+    }
+    ReferenceT<OPCUADSOutputGAMTestHelper> gamWriterTimestamp1;
+    if (ok) {
+        gamWriterTimestamp1 = ord->Find("TestApp.Functions.GAMWriterTimestamp1");
+        ok = gamWriterTimestamp1.IsValid();
+    }
+    if (ok) {
+        ok = app->PrepareNextState("State1");
+    }
+    ReferenceT<OPCUADSOutputSchedulerTestHelper> scheduler;
+    if (ok) {
+        scheduler = ord->Find("TestApp.Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        ok = app->StartNextStateExecution();
+    }
+    
+    OPCUADSOutputTestReader opcuaReader;
+    const uint32 numberOfNodes = 20;
+    const char8 *nodeNames[] = {"NodeU8", "NodeU16", "NodeU32", "NodeU64", "NodeI8", "NodeI16", "NodeI32", "NodeI64", "NodeF32", "NodeF64", "NodeU8A", "NodeU16A", "NodeU32A", "NodeU64A", "NodeI8A", "NodeI16A", "NodeI32A", "NodeI64A", "NodeF32A", "NodeF64A"};
+    uint32 nodeNElements[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
+    uint32 nodeTypeSizes[] = {sizeof(uint8), sizeof(uint16), sizeof(uint32), sizeof(uint64), sizeof(int8), sizeof(int16), sizeof(int32), sizeof(int64), sizeof(float32), sizeof(float64), sizeof(uint8), sizeof(uint16), sizeof(uint32), sizeof(uint64), sizeof(int8), sizeof(int16), sizeof(int32), sizeof(int64), sizeof(float32), sizeof(float64)};
+    UA_NodeId nodeIds[numberOfNodes];
+    const UA_DataType *nodeDataTypes[] = {&UA_TYPES[UA_TYPES_BYTE], &UA_TYPES[UA_TYPES_UINT16], &UA_TYPES[UA_TYPES_UINT32], &UA_TYPES[UA_TYPES_UINT64], &UA_TYPES[UA_TYPES_SBYTE], &UA_TYPES[UA_TYPES_INT16], &UA_TYPES[UA_TYPES_INT32], &UA_TYPES[UA_TYPES_INT64], &UA_TYPES[UA_TYPES_FLOAT], &UA_TYPES[UA_TYPES_DOUBLE], &UA_TYPES[UA_TYPES_BYTE], &UA_TYPES[UA_TYPES_UINT16], &UA_TYPES[UA_TYPES_UINT32], &UA_TYPES[UA_TYPES_UINT64], &UA_TYPES[UA_TYPES_SBYTE], &UA_TYPES[UA_TYPES_INT16], &UA_TYPES[UA_TYPES_INT32], &UA_TYPES[UA_TYPES_INT64], &UA_TYPES[UA_TYPES_FLOAT], &UA_TYPES[UA_TYPES_DOUBLE]};
+    void *expectedNodeValues[] = {gamWriterScalar->uint8Signal, gamWriterScalar->uint16Signal,gamWriterScalar->uint32Signal, gamWriterScalar->uint64Signal, gamWriterScalar->int8Signal, gamWriterScalar->int16Signal, gamWriterScalar->int32Signal, gamWriterScalar->int64Signal, gamWriterScalar->float32Signal, gamWriterScalar->float64Signal, gamWriterArray->uint8Signal, gamWriterArray->uint16Signal,gamWriterArray->uint32Signal, gamWriterArray->uint64Signal, gamWriterArray->int8Signal, gamWriterArray->int16Signal, gamWriterArray->int32Signal, gamWriterArray->int64Signal, gamWriterArray->float32Signal, gamWriterArray->float64Signal};
+
+    if (ok) {
+        ok = opcuaReader.Connect();
+    }
+    UA_NodeId parentL1;
+    UA_NodeId parentL2S;
+    UA_NodeId parentL2A;
+
+    if (ok) {
+        UA_NodeId ignore;
+        ok = (opcuaReader.FindChildNodeId("ComposedQ", &parentL1) == UA_STATUSCODE_GOOD);
+    }
+    if (ok) {
+        UA_NodeId ignore;
+        ok = (opcuaReader.FindChildNodeId("Scalar", &parentL2S, parentL1) == UA_STATUSCODE_GOOD);
+    }
+    if (ok) {
+        UA_NodeId ignore;
+        ok = (opcuaReader.FindChildNodeId("Array", &parentL2A, parentL1) == UA_STATUSCODE_GOOD);
+    }
+
+    if (ok) {
+        for (uint32 k=0; (k<numberOfNodes / 2) && (ok); k++) {
+            ok = (opcuaReader.FindChildNodeId(nodeNames[k], &nodeIds[k], parentL2S) == UA_STATUSCODE_GOOD);
+        }
+        for (uint32 k=(numberOfNodes / 2); (k<numberOfNodes) && (ok); k++) {
+            ok = (opcuaReader.FindChildNodeId(nodeNames[k], &nodeIds[k], parentL2A) == UA_STATUSCODE_GOOD);
+        }
+    }
+    if (ok) {
+        *gamWriterScalar->uint8Signal = 1u;
+        *gamWriterScalar->uint16Signal = 2u;
+        *gamWriterScalar->uint32Signal = 3u;
+        *gamWriterScalar->uint64Signal = 4u;
+        *gamWriterScalar->int8Signal = 1;
+        *gamWriterScalar->int16Signal = 2;
+        *gamWriterScalar->int32Signal = 3;
+        *gamWriterScalar->int64Signal = 4;
+        *gamWriterScalar->float32Signal = 3.2;
+        *gamWriterScalar->float64Signal = 6.2;
+
+        gamWriterArray->uint8Signal[0] = 3;
+        gamWriterArray->uint8Signal[1] = 1;
+        gamWriterArray->uint8Signal[2] = 2;
+        gamWriterArray->uint16Signal[0] = 4;
+        gamWriterArray->uint16Signal[1] = 2;
+        gamWriterArray->uint16Signal[2] = 3;
+        gamWriterArray->uint32Signal[0] = 5;
+        gamWriterArray->uint32Signal[1] = 3;
+        gamWriterArray->uint32Signal[2] = 4;
+        gamWriterArray->uint64Signal[0] = 6;
+        gamWriterArray->uint64Signal[1] = 4;
+        gamWriterArray->uint64Signal[2] = 5;
+        gamWriterArray->int8Signal[0] = -3;
+        gamWriterArray->int8Signal[1] = 2;
+        gamWriterArray->int8Signal[2] = -2;
+        gamWriterArray->int16Signal[0] = -4;
+        gamWriterArray->int16Signal[1] = 3;
+        gamWriterArray->int16Signal[2] = -3;
+        gamWriterArray->int32Signal[0] = -5;
+        gamWriterArray->int32Signal[1] = 4;
+        gamWriterArray->int32Signal[2] = -4;
+        gamWriterArray->int64Signal[0] = -6;
+        gamWriterArray->int64Signal[1] = 5;
+        gamWriterArray->int64Signal[2] = -5;
+        gamWriterArray->float32Signal[0] = 3.1;
+        gamWriterArray->float32Signal[1] = -3.2;
+        gamWriterArray->float32Signal[2] = 3.3;
+        gamWriterArray->float64Signal[0] = -6.1;
+        gamWriterArray->float64Signal[1] = 6.2;
+        gamWriterArray->float64Signal[2] = -6.3;
+        *gamWriterTimestamp1->uint64Signal = 1193227200123456789;
+        scheduler->ExecuteThreadCycle(0u);
+        for(uint32 k=0; (k<numberOfNodes) && (ok); k++) {
+            //printf("Checking %d %s %d\n", k, nodeNames[k], nodeNElements[k]);
+            ok = opcuaReader.WaitForValue(nodeIds[k], reinterpret_cast<uint8 *>(expectedNodeValues[k]), nodeDataTypes[k], nodeTypeSizes[k], nodeNElements[k]);
+        }
+        for(uint32 k=0; (k<numberOfNodes) && (ok); k++) {
+            ok = opcuaReader.CheckTimestamp(nodeIds[k], *gamWriterTimestamp1->uint64Signal, true);
+        }
+    }
+    if (ok) {
+        *gamWriterScalar->uint8Signal = 2u;
+        *gamWriterScalar->uint16Signal = 3u;
+        *gamWriterScalar->uint32Signal = 4u;
+        *gamWriterScalar->uint64Signal = 5u;
+        *gamWriterScalar->int8Signal = 2;
+        *gamWriterScalar->int16Signal = 3;
+        *gamWriterScalar->int32Signal = 4;
+        *gamWriterScalar->int64Signal = 5;
+        *gamWriterScalar->float32Signal = 4.2;
+        *gamWriterScalar->float64Signal = 7.2;
+
+        gamWriterArray->uint8Signal[0] = 4;
+        gamWriterArray->uint8Signal[1] = 2;
+        gamWriterArray->uint8Signal[2] = 3;
+        gamWriterArray->uint16Signal[0] = 5;
+        gamWriterArray->uint16Signal[1] = 3;
+        gamWriterArray->uint16Signal[2] = 4;
+        gamWriterArray->uint32Signal[0] = 6;
+        gamWriterArray->uint32Signal[1] = 4;
+        gamWriterArray->uint32Signal[2] = 5;
+        gamWriterArray->uint64Signal[0] = 7;
+        gamWriterArray->uint64Signal[1] = 5;
+        gamWriterArray->uint64Signal[2] = 6;
+        gamWriterArray->int8Signal[0] = -2;
+        gamWriterArray->int8Signal[1] = 3;
+        gamWriterArray->int8Signal[2] = -1;
+        gamWriterArray->int16Signal[0] = -3;
+        gamWriterArray->int16Signal[1] = 4;
+        gamWriterArray->int16Signal[2] = -2;
+        gamWriterArray->int32Signal[0] = -4;
+        gamWriterArray->int32Signal[1] = 5;
+        gamWriterArray->int32Signal[2] = -3;
+        gamWriterArray->int64Signal[0] = -5;
+        gamWriterArray->int64Signal[1] = 6;
+        gamWriterArray->int64Signal[2] = -4;
+        gamWriterArray->float32Signal[0] = 4.1;
+        gamWriterArray->float32Signal[1] = -2.2;
+        gamWriterArray->float32Signal[2] = 4.3;
+        gamWriterArray->float64Signal[0] = -5.1;
+        gamWriterArray->float64Signal[1] = 7.2;
+        gamWriterArray->float64Signal[2] = -6.3;
+
+        *gamWriterTimestamp1->uint64Signal = 1193227200123456790;
+        scheduler->ExecuteThreadCycle(0u);
+        for(uint32 k=0; (k<numberOfNodes) && (ok); k++) {
+            //printf("Checking %d %s %d\n", k, nodeNames[k], nodeNElements[k]);
+            ok = opcuaReader.WaitForValue(nodeIds[k], reinterpret_cast<uint8 *>(expectedNodeValues[k]), nodeDataTypes[k], nodeTypeSizes[k], nodeNElements[k]);
+        }
+        for(uint32 k=0; (k<numberOfNodes) && (ok); k++) {
+            ok = opcuaReader.CheckTimestamp(nodeIds[k], *gamWriterTimestamp1->uint64Signal, true);
+        }
+
+    }
+    //Sleep::Sec(60);
+    opcuaReader.Disconnect();
+    ord->Purge();
+
+    return ok;
+}
+
+bool OPCUADSOutputTest::Test_Synchronise_Struct_Timestamp_Idx_Last() {
+    using namespace MARTe;
+    StreamString config = ""
+            "+Types = {\n"
+            "  Class = ReferenceContainer"
+            "  +Scalars = {\n"
+            "    Class = IntrospectionStructure"
+            "    NodeU8 = {\n"
+            "      Type = uint8\n"
+            "    }\n"
+            "    NodeU16 = {\n"
+            "      Type = uint16\n"
+            "    }\n"
+            "    NodeU32 = {\n"
+            "      Type = uint32\n"
+            "    }\n"
+            "    NodeU64 = {\n"
+            "      Type = uint64\n"
+            "    }\n"
+            "    NodeI8 = {\n"
+            "      Type = int8\n"
+            "    }\n"
+            "    NodeI16 = {\n"
+            "      Type = int16\n"
+            "    }\n"
+            "    NodeI32 = {\n"
+            "      Type = int32\n"
+            "    }\n"
+            "    NodeI64 = {\n"
+            "      Type = int64\n"
+            "    }\n"
+            "    NodeF32 = {\n"
+            "      Type = float32\n"
+            "    }\n"
+            "    NodeF64 = {\n"
+            "      Type = float64\n"
+            "    }\n"
+            "  }\n"
+            "  +Arrays = {\n"
+            "    Class = IntrospectionStructure"
+            "    NodeU8A = {\n"
+            "      Type = uint8\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeU16A = {\n"
+            "      Type = uint16\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeU32A = {\n"
+            "      Type = uint32\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeU64A = {\n"
+            "      Type = uint64\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI8A = {\n"
+            "      Type = int8\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI16A = {\n"
+            "      Type = int16\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI32A = {\n"
+            "      Type = int32\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeI64A = {\n"
+            "      Type = int64\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeF32A = {\n"
+            "      Type = float32\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "    NodeF64A = {\n"
+            "      Type = float64\n"
+            "      NumberOfElements = 3\n"
+            "    }\n"
+            "  }\n"
+            "  +ComposedT = {\n"
+            "    Class = IntrospectionStructure"
+            "    Scalar = {\n"
+            "      Type = Scalars\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "    Array = {\n"
+            "      Type = Arrays\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "+ServerTest = {\n"
+            "  Class = OPCUA::OPCUAServer\n"
+            "  Authentication = None\n"
+            "  CPUMask = 0x2\n"
+            "  AddressSpace = {\n"
+            "    ComposedQ = {\n"
+            "      Type = ComposedT\n"
+            "      NumberOfElements = 1\n"
+            "    }\n"
+            "  }\n"
+            "}\n"
+            "$TestApp = {\n"
+            "  Class = RealTimeApplication\n"
+            "  +Functions = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +GAMWriterTimestamp1 = {\n"
+            "      Class = OPCUADSOutputGAMTestHelper\n"
+            "      OutputSignals = {\n"
+            "        Timestamp1 = {\n"
+            "          Type = uint64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriterScalar = {\n"
+            "      Class = OPCUADSOutputGAMTestHelper\n"
+            "      OutputSignals = {\n"
+            "        SignalUInt8 = {\n"
+            "          Type = uint8\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeU8\n"
+            "        }\n"
+            "        SignalUInt16 = {\n"
+            "          Type = uint16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeU16\n"
+            "        }\n"
+            "        SignalUInt32 = {\n"
+            "          Type = uint32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeU32\n"
+            "        }\n"
+            "        SignalUInt64 = {\n"
+            "          Type = uint64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeU64\n"
+            "        }\n"
+            "        SignalInt8 = {\n"
+            "          Type = int8\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeI8\n"
+            "        }\n"
+            "        SignalInt16 = {\n"
+            "          Type = int16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeI16\n"
+            "        }\n"
+            "        SignalInt32 = {\n"
+            "          Type = int32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeI32\n"
+            "        }\n"
+            "        SignalInt64 = {\n"
+            "          Type = int64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeI64\n"
+            "        }\n"
+            "        SignalFloat32 = {\n"
+            "          Type = float32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeF32\n"
+            "        }\n"
+            "        SignalFloat64 = {\n"
+            "          Type = float64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          Alias = Composed.Scalar.NodeF64\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +GAMWriterArray = {\n"
+            "      Class = OPCUADSOutputGAMTestHelper\n"
+            "      OutputSignals = {\n"
+            "        SignalUInt8A = {\n"
+            "          Type = uint8\n"
+            "          Trigger = 1\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeU8A\n"
+            "          TriggerSignal = Composed.Array.NodeU8A\n"
+            "        }\n"
+            "        SignalUInt16A = {\n"
+            "          Type = uint16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeU16A\n"
+            "        }\n"
+            "        SignalUInt32A = {\n"
+            "          Type = uint32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeU32A\n"
+            "        }\n"
+            "        SignalUInt64A = {\n"
+            "          Type = uint64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeU64A\n"
+            "        }\n"
+            "        SignalInt8A = {\n"
+            "          Type = int8\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeI8A\n"
+            "        }\n"
+            "        SignalInt16A = {\n"
+            "          Type = int16\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeI16A\n"
+            "        }\n"
+            "        SignalInt32A = {\n"
+            "          Type = int32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeI32A\n"
+            "        }\n"
+            "        SignalInt64A = {\n"
+            "          Type = int64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeI64A\n"
+            "        }\n"
+            "        SignalFloat32A = {\n"
+            "          Type = float32\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeF32A\n"
+            "        }\n"
+            "        SignalFloat64A = {\n"
+            "          Type = float64\n"
+            "          DataSource = OPCUADSOutputTest\n"
+            "          NumberOfElements = 3\n"
+            "          Alias = Composed.Array.NodeF64A\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Data = {\n"
+            "    Class = ReferenceContainer\n"
+            "    DefaultDataSource = DDB1\n"
+            "    +LoggerDataSource = {\n"
+            "      Class = LoggerDataSource\n"
+            "    }\n"
+            "    +OPCUADSOutputTest = {\n"
+            "      Class = OPCUADataSource::OPCUADSOutput\n"
+            "      Address = \"opc.tcp://localhost.localdomain:4840\"\n"
+            "      Authentication = None\n"
+            "      Signals = {\n"
+            "        Composed = {\n"
+            "          NamespaceIndex = 1\n"
+            "          Path = ComposedQ\n"
+            "          Type = ComposedT\n"
+            "        }\n"
+            "        Timestamp1 = {\n"
+            "          DefaultTimestampSignal = 1\n"
+            "          Type = uint64\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "    +Timings = {\n"
+            "       Class = TimingDataSource\n"
+            "    }\n"
+            "  }\n"
+            "  +States = {\n"
+            "    Class = ReferenceContainer\n"
+            "    +State1 = {\n"
+            "      Class = RealTimeState\n"
+            "      +Threads = {\n"
+            "        Class = ReferenceContainer\n"
+            "        +Thread1 = {\n"
+            "          Class = RealTimeThread\n"
+            "          CPUs = 0x2\n"
+            "          Functions = {GAMWriterTimestamp1 GAMWriterScalar GAMWriterArray}\n"
+            "        }\n"
+            "      }\n"
+            "    }\n"
+            "  }\n"
+            "  +Scheduler = {\n"
+            "    Class = OPCUADSOutputSchedulerTestHelper\n"
+            "    TimingDataSource = Timings\n"
+            "  }\n"
+            "}\n";
+    config.Seek(0LLU);
+    //HeapManager::AddHeap(GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    ConfigurationDatabase cdb;
+    StandardParser parser(config, cdb, NULL);
+    bool ok = parser.Parse();
+    cdb.MoveToRoot();
+    ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
+    if (ok) {
+        ok = ord->Initialise(cdb);
+    }
+    Sleep::MSec(200);
+    ReferenceT<RealTimeApplication> app;
+    if (ok) {
+        app = ord->Find("TestApp");
+        ok = app.IsValid();
+    }
+    if (ok) {
+        ok = app->ConfigureApplication();
+    }
+    ReferenceT<OPCUADSOutputGAMTestHelper> gamWriterScalar;
+    ReferenceT<OPCUADSOutputGAMTestHelper> gamWriterArray;
+    if (ok) {
+        gamWriterScalar = ord->Find("TestApp.Functions.GAMWriterScalar");
+        ok = gamWriterScalar.IsValid();
+    }
+    if (ok) {
+        gamWriterArray = ord->Find("TestApp.Functions.GAMWriterArray");
+        ok = gamWriterArray.IsValid();
+    }
+    ReferenceT<OPCUADSOutputGAMTestHelper> gamWriterTimestamp1;
+    if (ok) {
+        gamWriterTimestamp1 = ord->Find("TestApp.Functions.GAMWriterTimestamp1");
+        ok = gamWriterTimestamp1.IsValid();
+    }
+    if (ok) {
+        ok = app->PrepareNextState("State1");
+    }
+    ReferenceT<OPCUADSOutputSchedulerTestHelper> scheduler;
+    if (ok) {
+        scheduler = ord->Find("TestApp.Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        ok = app->StartNextStateExecution();
+    }
+    
+    OPCUADSOutputTestReader opcuaReader;
+    const uint32 numberOfNodes = 20;
+    const char8 *nodeNames[] = {"NodeU8", "NodeU16", "NodeU32", "NodeU64", "NodeI8", "NodeI16", "NodeI32", "NodeI64", "NodeF32", "NodeF64", "NodeU8A", "NodeU16A", "NodeU32A", "NodeU64A", "NodeI8A", "NodeI16A", "NodeI32A", "NodeI64A", "NodeF32A", "NodeF64A"};
+    uint32 nodeNElements[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
+    uint32 nodeTypeSizes[] = {sizeof(uint8), sizeof(uint16), sizeof(uint32), sizeof(uint64), sizeof(int8), sizeof(int16), sizeof(int32), sizeof(int64), sizeof(float32), sizeof(float64), sizeof(uint8), sizeof(uint16), sizeof(uint32), sizeof(uint64), sizeof(int8), sizeof(int16), sizeof(int32), sizeof(int64), sizeof(float32), sizeof(float64)};
+    UA_NodeId nodeIds[numberOfNodes];
+    const UA_DataType *nodeDataTypes[] = {&UA_TYPES[UA_TYPES_BYTE], &UA_TYPES[UA_TYPES_UINT16], &UA_TYPES[UA_TYPES_UINT32], &UA_TYPES[UA_TYPES_UINT64], &UA_TYPES[UA_TYPES_SBYTE], &UA_TYPES[UA_TYPES_INT16], &UA_TYPES[UA_TYPES_INT32], &UA_TYPES[UA_TYPES_INT64], &UA_TYPES[UA_TYPES_FLOAT], &UA_TYPES[UA_TYPES_DOUBLE], &UA_TYPES[UA_TYPES_BYTE], &UA_TYPES[UA_TYPES_UINT16], &UA_TYPES[UA_TYPES_UINT32], &UA_TYPES[UA_TYPES_UINT64], &UA_TYPES[UA_TYPES_SBYTE], &UA_TYPES[UA_TYPES_INT16], &UA_TYPES[UA_TYPES_INT32], &UA_TYPES[UA_TYPES_INT64], &UA_TYPES[UA_TYPES_FLOAT], &UA_TYPES[UA_TYPES_DOUBLE]};
+    void *expectedNodeValues[] = {gamWriterScalar->uint8Signal, gamWriterScalar->uint16Signal,gamWriterScalar->uint32Signal, gamWriterScalar->uint64Signal, gamWriterScalar->int8Signal, gamWriterScalar->int16Signal, gamWriterScalar->int32Signal, gamWriterScalar->int64Signal, gamWriterScalar->float32Signal, gamWriterScalar->float64Signal, gamWriterArray->uint8Signal, gamWriterArray->uint16Signal,gamWriterArray->uint32Signal, gamWriterArray->uint64Signal, gamWriterArray->int8Signal, gamWriterArray->int16Signal, gamWriterArray->int32Signal, gamWriterArray->int64Signal, gamWriterArray->float32Signal, gamWriterArray->float64Signal};
+
+    if (ok) {
+        ok = opcuaReader.Connect();
+    }
+    UA_NodeId parentL1;
+    UA_NodeId parentL2S;
+    UA_NodeId parentL2A;
+
+    if (ok) {
+        UA_NodeId ignore;
+        ok = (opcuaReader.FindChildNodeId("ComposedQ", &parentL1) == UA_STATUSCODE_GOOD);
+    }
+    if (ok) {
+        UA_NodeId ignore;
+        ok = (opcuaReader.FindChildNodeId("Scalar", &parentL2S, parentL1) == UA_STATUSCODE_GOOD);
+    }
+    if (ok) {
+        UA_NodeId ignore;
+        ok = (opcuaReader.FindChildNodeId("Array", &parentL2A, parentL1) == UA_STATUSCODE_GOOD);
+    }
+
+    if (ok) {
+        for (uint32 k=0; (k<numberOfNodes / 2) && (ok); k++) {
+            ok = (opcuaReader.FindChildNodeId(nodeNames[k], &nodeIds[k], parentL2S) == UA_STATUSCODE_GOOD);
+        }
+        for (uint32 k=(numberOfNodes / 2); (k<numberOfNodes) && (ok); k++) {
+            ok = (opcuaReader.FindChildNodeId(nodeNames[k], &nodeIds[k], parentL2A) == UA_STATUSCODE_GOOD);
+        }
+    }
+    if (ok) {
+        *gamWriterScalar->uint8Signal = 1u;
+        *gamWriterScalar->uint16Signal = 2u;
+        *gamWriterScalar->uint32Signal = 3u;
+        *gamWriterScalar->uint64Signal = 4u;
+        *gamWriterScalar->int8Signal = 1;
+        *gamWriterScalar->int16Signal = 2;
+        *gamWriterScalar->int32Signal = 3;
+        *gamWriterScalar->int64Signal = 4;
+        *gamWriterScalar->float32Signal = 3.2;
+        *gamWriterScalar->float64Signal = 6.2;
+
+        gamWriterArray->uint8Signal[0] = 3;
+        gamWriterArray->uint8Signal[1] = 1;
+        gamWriterArray->uint8Signal[2] = 2;
+        gamWriterArray->uint16Signal[0] = 4;
+        gamWriterArray->uint16Signal[1] = 2;
+        gamWriterArray->uint16Signal[2] = 3;
+        gamWriterArray->uint32Signal[0] = 5;
+        gamWriterArray->uint32Signal[1] = 3;
+        gamWriterArray->uint32Signal[2] = 4;
+        gamWriterArray->uint64Signal[0] = 6;
+        gamWriterArray->uint64Signal[1] = 4;
+        gamWriterArray->uint64Signal[2] = 5;
+        gamWriterArray->int8Signal[0] = -3;
+        gamWriterArray->int8Signal[1] = 2;
+        gamWriterArray->int8Signal[2] = -2;
+        gamWriterArray->int16Signal[0] = -4;
+        gamWriterArray->int16Signal[1] = 3;
+        gamWriterArray->int16Signal[2] = -3;
+        gamWriterArray->int32Signal[0] = -5;
+        gamWriterArray->int32Signal[1] = 4;
+        gamWriterArray->int32Signal[2] = -4;
+        gamWriterArray->int64Signal[0] = -6;
+        gamWriterArray->int64Signal[1] = 5;
+        gamWriterArray->int64Signal[2] = -5;
+        gamWriterArray->float32Signal[0] = 3.1;
+        gamWriterArray->float32Signal[1] = -3.2;
+        gamWriterArray->float32Signal[2] = 3.3;
+        gamWriterArray->float64Signal[0] = -6.1;
+        gamWriterArray->float64Signal[1] = 6.2;
+        gamWriterArray->float64Signal[2] = -6.3;
+        *gamWriterTimestamp1->uint64Signal = 1193227200123456789;
+        scheduler->ExecuteThreadCycle(0u);
+        for(uint32 k=0; (k<numberOfNodes) && (ok); k++) {
+            //printf("Checking %d %s %d\n", k, nodeNames[k], nodeNElements[k]);
+            ok = opcuaReader.WaitForValue(nodeIds[k], reinterpret_cast<uint8 *>(expectedNodeValues[k]), nodeDataTypes[k], nodeTypeSizes[k], nodeNElements[k]);
+        }
+        for(uint32 k=0; (k<numberOfNodes) && (ok); k++) {
+            ok = opcuaReader.CheckTimestamp(nodeIds[k], *gamWriterTimestamp1->uint64Signal, true);
+        }
+    }
+    if (ok) {
+        *gamWriterScalar->uint8Signal = 2u;
+        *gamWriterScalar->uint16Signal = 3u;
+        *gamWriterScalar->uint32Signal = 4u;
+        *gamWriterScalar->uint64Signal = 5u;
+        *gamWriterScalar->int8Signal = 2;
+        *gamWriterScalar->int16Signal = 3;
+        *gamWriterScalar->int32Signal = 4;
+        *gamWriterScalar->int64Signal = 5;
+        *gamWriterScalar->float32Signal = 4.2;
+        *gamWriterScalar->float64Signal = 7.2;
+
+        gamWriterArray->uint8Signal[0] = 4;
+        gamWriterArray->uint8Signal[1] = 2;
+        gamWriterArray->uint8Signal[2] = 3;
+        gamWriterArray->uint16Signal[0] = 5;
+        gamWriterArray->uint16Signal[1] = 3;
+        gamWriterArray->uint16Signal[2] = 4;
+        gamWriterArray->uint32Signal[0] = 6;
+        gamWriterArray->uint32Signal[1] = 4;
+        gamWriterArray->uint32Signal[2] = 5;
+        gamWriterArray->uint64Signal[0] = 7;
+        gamWriterArray->uint64Signal[1] = 5;
+        gamWriterArray->uint64Signal[2] = 6;
+        gamWriterArray->int8Signal[0] = -2;
+        gamWriterArray->int8Signal[1] = 3;
+        gamWriterArray->int8Signal[2] = -1;
+        gamWriterArray->int16Signal[0] = -3;
+        gamWriterArray->int16Signal[1] = 4;
+        gamWriterArray->int16Signal[2] = -2;
+        gamWriterArray->int32Signal[0] = -4;
+        gamWriterArray->int32Signal[1] = 5;
+        gamWriterArray->int32Signal[2] = -3;
+        gamWriterArray->int64Signal[0] = -5;
+        gamWriterArray->int64Signal[1] = 6;
+        gamWriterArray->int64Signal[2] = -4;
+        gamWriterArray->float32Signal[0] = 4.1;
+        gamWriterArray->float32Signal[1] = -2.2;
+        gamWriterArray->float32Signal[2] = 4.3;
+        gamWriterArray->float64Signal[0] = -5.1;
+        gamWriterArray->float64Signal[1] = 7.2;
+        gamWriterArray->float64Signal[2] = -6.3;
+
+        *gamWriterTimestamp1->uint64Signal = 1193227200123456790;
+        scheduler->ExecuteThreadCycle(0u);
+        for(uint32 k=0; (k<numberOfNodes) && (ok); k++) {
+            //printf("Checking %d %s %d\n", k, nodeNames[k], nodeNElements[k]);
+            ok = opcuaReader.WaitForValue(nodeIds[k], reinterpret_cast<uint8 *>(expectedNodeValues[k]), nodeDataTypes[k], nodeTypeSizes[k], nodeNElements[k]);
+        }
+        for(uint32 k=0; (k<numberOfNodes) && (ok); k++) {
+            ok = opcuaReader.CheckTimestamp(nodeIds[k], *gamWriterTimestamp1->uint64Signal, true);
+        }
+
+    }
+    //Sleep::Sec(60);
+    opcuaReader.Disconnect();
+    ord->Purge();
+
+    return ok;
+}
+

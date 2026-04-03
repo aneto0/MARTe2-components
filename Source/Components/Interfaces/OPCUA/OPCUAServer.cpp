@@ -22,7 +22,7 @@
  */
 
 #define DLL_API
-
+#include <open62541/plugin/log_stdout.h>
 /*---------------------------------------------------------------------------*/
 /*                         Standard header includes                          */
 /*---------------------------------------------------------------------------*/
@@ -305,6 +305,8 @@ bool OPCUAServer::Initialise(StructuredDataI &data) {
         UA_ServerConfig *config = UA_Server_getConfig(opcuaServer);
         /*lint -e{526} -e{628} -e{1055} -e{746} function defined in open62541*/
         (void) UA_ServerConfig_setDefault(config);
+        config->logger = UA_Log_Stdout_withLevel(UA_LOGLEVEL_DEBUG);
+        //(void) UA_ServerConfig_setMinimal(config, port, NULL);
 
         /*lint -e40 -e64 -e9117 -e732 the callback functions are defined. Loss of sign is not an issue here.*/
         if (authenticate) {

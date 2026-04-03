@@ -52,8 +52,10 @@ namespace MARTe {
  *
  * It supports int8/16/32/64, uint8/16/32/64, float32/64, and Introspection Structure. It also supports OPCUA ExtensionObject structure.
  *
- * At most one ExtensionObject is currently supported per DataSource instance. If an ExtensionObject is used no other basic type signals can be added
- *  to the DataSource instance.
+ * At most one ExtensionObject is currently supported per DataSource instance. If an ExtensionObject is used no other basic type signals can be added to the DataSource instance.
+ *
+ * At most one Introspection Structure is currently supported per DataSource instance. If an Introspection StructuredDataI is used no other basic type signals can be added to the DataSource instance.
+ *
  * Strings are not supported yet.
  *
  * Authentication type can be defined (either None or UserPassword). When
@@ -184,7 +186,7 @@ namespace MARTe {
  * }
  * </pre>
  *
- * ExtensionObjects can also be timestamped. Only one Timestamp signal with the property DefaultTimestampSignal shall be set.
+ * ExtensionObjects and Introspection Structures can also be timestamped. Only one Timestamp signal with the property DefaultTimestampSignal shall be set.
  *
  ** <pre>
  * +OPCUA = {
@@ -200,7 +202,7 @@ namespace MARTe {
  *             Type = MyStructure
  *             NamespaceIndex = 3
  *             Path = Object3.Block1.Block2.NodeStructure1
- *             ExtensionObject = "yes"
+ *             ExtensionObject = "yes" //Remove to use as an Introspection Structure
  *         }
  *     }
  * }
@@ -373,6 +375,16 @@ private:
                       uint32 &index);
 
     /**
+     * Validate that all the rules for the extension objects are met.
+     */
+    bool ValidateExtensionObject(); 
+
+    /**
+     * Validate that all the rules for the structured signals are met.
+     */
+    bool ValidateStructuredSignal(); 
+
+    /**
      * Pointer to the Helper Class for the main Client
      */
     OPCUAClientWrite * masterClient;
@@ -391,6 +403,16 @@ private:
      * True if it holds an extensionObject 
      */
     bool isExtensionObject;
+
+    /**
+     * True if it holds a structured signal (that is not an extensionObject) 
+     */
+    bool isStructuredSignal;
+
+    /**
+     * Original index of the structured signal
+     */
+    uint32 structuredSignalIdx;
 
     /**
      * The array that stores all the browse paths for each
