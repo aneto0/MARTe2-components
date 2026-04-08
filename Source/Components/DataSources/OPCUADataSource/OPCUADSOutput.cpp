@@ -509,7 +509,7 @@ bool OPCUADSOutput::MapNodeSignals() {
     }
     uint32 k=0u;
     uint32 t=0u;
-    uint32 lastNamespaceIndex = 0u;
+    uint16 lastNamespaceIndex = 0u;
     StreamString lastPath = "";
   
     if (isStructuredSignal) {
