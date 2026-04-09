@@ -929,8 +929,18 @@ bool OPCUADSOutputTest::TestInitialise_MoreThanOneExtensionObject() {
     cdb.MoveToRoot();
     ObjectRegistryDatabase *ord = ObjectRegistryDatabase::Instance();
     if (ok) {
-        ok = !ord->Initialise(cdb);
+        ok = ord->Initialise(cdb);
     }
+    Sleep::MSec(200);
+    ReferenceT<RealTimeApplication> app;
+    if (ok) {
+        app = ord->Find("TestApp");
+        ok = app.IsValid();
+    }
+    if (ok) {
+        ok = !app->ConfigureApplication();
+    }
+
     Sleep::MSec(200);
     ObjectRegistryDatabase::Instance()->Purge();
     return ok;
