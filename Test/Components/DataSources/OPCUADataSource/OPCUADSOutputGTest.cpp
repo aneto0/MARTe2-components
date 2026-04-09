@@ -68,9 +68,24 @@ TEST(OPCUADSOutputGTest,TestInitialise_ExtensionObject_NoNamespaceIndex) {
     ASSERT_TRUE(test.TestInitialise_ExtensionObject_NoNamespaceIndex());
 }
 
+TEST(OPCUADSOutputGTest,TestInitialise_Struct_NoPath) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_Struct_NoPath());
+}
+
+TEST(OPCUADSOutputGTest,TestInitialise_Struct_NoNamespaceIndex) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_Struct_NoNamespaceIndex());
+}
+
 TEST(OPCUADSOutputGTest,TestInitialise_MoreThanOneExtensionObject) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.TestInitialise_MoreThanOneExtensionObject());
+}
+
+TEST(OPCUADSOutputGTest,TestInitialise_MoreThanOneStruct) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.TestInitialise_MoreThanOneStruct());
 }
 
 TEST(OPCUADSOutputGTest,TestInitialise_NoAddress) {
@@ -123,6 +138,15 @@ TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_ExtensionObject_MixedSignals)
     ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject_MixedSignals());
 }
 
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_Struct_MixedSignal) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_Struct_MixedSignal());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_Struct_MixedSignals) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_Struct_MixedSignals());
+}
 TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_MoreThanOneDefaultTimestamp) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.Test_SetConfiguredDatabase_MoreThanOneDefaultTimestamp());
@@ -151,6 +175,16 @@ TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_ExtensionObject_Timestamp_Not
 TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_ExtensionObject_MoreThanOneTimestamp) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.Test_SetConfiguredDatabase_ExtensionObject_MoreThanOneTimestamp());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_Struct_Timestamp_NotDefault) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_Struct_Timestamp_NotDefault());
+}
+
+TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_Struct_MoreThanOneTimestamp) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_SetConfiguredDatabase_Struct_MoreThanOneTimestamp());
 }
 
 TEST(OPCUADSOutputGTest,Test_SetConfiguredDatabase_MoreThanOneTrigger) {
@@ -193,6 +227,11 @@ TEST(OPCUADSOutputGTest,Test_Synchronise_ExtensionObject) {
     ASSERT_TRUE(test.Test_Synchronise_ExtensionObject());
 }
 
+TEST(OPCUADSOutputGTest,Test_Synchronise_Struct) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_Struct());
+}
+
 TEST(OPCUADSOutputGTest,Test_Synchronise_Timestamp) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.Test_Synchronise_Timestamp());
@@ -216,6 +255,16 @@ TEST(OPCUADSOutputGTest,Test_Synchronise_ExtensionObject_Timestamp_Idx_0) {
 TEST(OPCUADSOutputGTest,Test_Synchronise_ExtensionObject_Timestamp_Idx_Last) {
     OPCUADSOutputTest test;
     ASSERT_TRUE(test.Test_Synchronise_ExtensionObject_Timestamp_Idx_Last());
+}
+
+TEST(OPCUADSOutputGTest,Test_Synchronise_Struct_Timestamp_Idx_0) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_Struct_Timestamp_Idx_0());
+}
+
+TEST(OPCUADSOutputGTest,Test_Synchronise_Struct_Timestamp_Idx_Last) {
+    OPCUADSOutputTest test;
+    ASSERT_TRUE(test.Test_Synchronise_Struct_Timestamp_Idx_Last());
 }
 
 /*---------------------------------------------------------------------------*/

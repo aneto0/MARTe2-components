@@ -70,8 +70,8 @@ typedef struct {
   uint64_t recv_time; /* see SDN core library */
 
 } Header_t;
-}
 //! @endcond
+}
 #endif
 
 /*---------------------------------------------------------------------------*/

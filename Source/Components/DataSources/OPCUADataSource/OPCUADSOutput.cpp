@@ -52,6 +52,8 @@ OPCUADSOutput::OPCUADSOutput() :
     masterClient = NULL_PTR(OPCUAClientWrite*);
     numberOfNodes = 0u;
     isExtensionObject = false;
+    isStructuredSignal = false;
+    structuredSignalIdx = 0u;
     paths = NULL_PTR(StreamString*);
     namespaceIndexes = NULL_PTR(uint16*);
     structuredTypeName = "";
@@ -166,58 +168,7 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
             }
         }
-        uint32 nOfTempSignals = data.GetNumberOfChildren();
-        StructuredDataIHelper helper(data, this);
-        for (uint32 k=0u; (k<nOfTempSignals) && (ok); k++) {
-            ok = data.MoveToChild(k);
-            if (ok) {
-                StreamString extensionObjectStr;
-                bool isExtensionObjectSignal = data.Read("ExtensionObject", extensionObjectStr);
-                if (isExtensionObjectSignal) {
-                    isExtensionObjectSignal = (extensionObjectStr == "yes");
-                }
-                if (isExtensionObjectSignal) {
-                    ok = !isExtensionObject;
-                    if (ok) {
-                        isExtensionObject = true;
-                    }
-                    else {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "At most one ExtensionObject shall be set per DataSource");
-                    }
-                }
-                if (isExtensionObjectSignal) {
-                    if (ok) {
-                        ok = helper.Read("Type", structuredTypeName);
-                    }
-                    if (ok) {
-                        paths = new StreamString[1u];
-                        StreamString path;
-                        ok = helper.Read("Path", path);
-                        if (ok) {
-                            paths[0] = path;
-                        }
-                    }
-                    if (ok) {
-                        namespaceIndexes = new uint16[1u];
-                        uint16 namespaceIdx;
-                        ok = helper.Read("NamespaceIndex", namespaceIdx);
-                        if (ok) {
-                            namespaceIndexes[0u] = namespaceIdx;
-                        }
-                    }
-                    if (ok) {
-                        nElements = new uint32[1u];
-                        types = new TypeDescriptor[1u];
-                        uint32 numberOfElements;
-                        (void) helper.Read("NumberOfElements", numberOfElements, 1u);
-                        nElements[0u] = numberOfElements;
-                    }
-                }
-            }
-            if (ok) {
-                ok = data.MoveToAncestor(1u);
-            }
-        }
+
         if (ok) {
             ok = signalsDatabase.MoveRelative("Signals");
         }
@@ -235,8 +186,141 @@ bool OPCUADSOutput::Initialise(StructuredDataI &data) {
             ok = data.MoveToAncestor(1u);
         }
     }
+
+    if (ok) {
+        ok = ValidateExtensionObject();
+    }
+    if (ok) {
+        if (!isExtensionObject) {
+            ok = ValidateStructuredSignal();
+        }
+    }
     if (!ok) {
         REPORT_ERROR(ErrorManagement::ParametersError, "Error during Initialise!");
+    }
+    return ok;
+}
+
+bool OPCUADSOutput::ValidateExtensionObject() {
+    uint32 nOfTempSignals = tempSignalsDatabase.GetNumberOfChildren();
+    StructuredDataIHelper helper(tempSignalsDatabase, this);
+    bool ok = true;
+    for (uint32 k=0u; (k<nOfTempSignals) && (ok); k++) {
+        ok = tempSignalsDatabase.MoveToChild(k);
+        if (ok) {
+            StreamString extensionObjectStr;
+            bool isExtensionObjectSignal = tempSignalsDatabase.Read("ExtensionObject", extensionObjectStr);
+            if (isExtensionObjectSignal) {
+                isExtensionObjectSignal = (extensionObjectStr == "yes");
+            }
+            if (isExtensionObjectSignal) {
+                ok = !isExtensionObject;
+                if (ok) {
+                    isExtensionObject = true;
+                }
+                else {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "At most one ExtensionObject shall be set per DataSource");
+                }
+            }
+            if (isExtensionObjectSignal) {
+                ok = (nOfTempSignals <= 2u);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "With ExtensionObject, at most another signal (which shall be a DefaultTimestampSignal) can be defined");
+                }
+                if (ok) {
+                    ok = helper.Read("Type", structuredTypeName);
+                }
+                if (ok) {
+                    paths = new StreamString[1u];
+                    StreamString path;
+                    ok = helper.Read("Path", path);
+                    if (ok) {
+                        paths[0] = path;
+                    }
+                }
+                if (ok) {
+                    namespaceIndexes = new uint16[1u];
+                    uint16 namespaceIdx;
+                    ok = helper.Read("NamespaceIndex", namespaceIdx);
+                    if (ok) {
+                        namespaceIndexes[0u] = namespaceIdx;
+                    }
+                }
+                if (ok) {
+                    nElements = new uint32[1u];
+                    types = new TypeDescriptor[1u];
+                    uint32 numberOfElements;
+                    (void) helper.Read("NumberOfElements", numberOfElements, 1u);
+                    nElements[0u] = numberOfElements;
+                }
+            }
+        }
+        if (ok) {
+            ok = tempSignalsDatabase.MoveToAncestor(1u);
+        }
+    }
+    return ok;
+}
+
+bool OPCUADSOutput::ValidateStructuredSignal() {
+    uint32 nTempSignals = tempSignalsDatabase.GetNumberOfChildren(); 
+    //With structured signals it is either one structure or one structure + time 
+    StructuredDataIHelper helper(tempSignalsDatabase, this);
+    bool defaultTimestampSignalFound = false;
+    bool ok = true;
+    for (uint32 i = 0u; (i < nTempSignals) && (ok); i++) {
+        ok = helper.MoveToChild(i);
+        StreamString typeName;
+        bool typeDefined = helper.Read("Type", typeName, "");
+        if (typeDefined) {
+            const ClassRegistryItem *cri = ClassRegistryDatabase::Instance()->Find(typeName.Buffer());
+            bool isStructuredSignalIdx = (cri != NULL_PTR(const ClassRegistryItem*));
+            if (isStructuredSignalIdx) {
+                ok = !isStructuredSignal;
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "At most one structured signal shall be defined");
+                }
+                isStructuredSignal = isStructuredSignalIdx;
+                if (ok) {
+                    structuredSignalIdx = i;
+                    ok = (nTempSignals <= 2u);
+                    if (!ok) {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "With structured signals, at most another signal (which shall be a DefaultTimestampSignal) can be defined");
+                    }
+                    if (ok) {
+                        StreamString pathIgnore;
+                        ok = helper.Read("Path", pathIgnore);
+                    }
+                    if (ok) {
+                        uint32 namespaceIdxIgnore;
+                        ok = helper.Read("NamespaceIndex", namespaceIdxIgnore);
+                    }
+
+                }
+            }
+        }
+        if (ok) {
+            if (!defaultTimestampSignalFound) {
+                uint32 defaultTimeStampI = 0u;
+                bool isDefaultTimestamp = tempSignalsDatabase.Read("DefaultTimestampSignal", defaultTimeStampI);
+                if (isDefaultTimestamp) {
+                    defaultTimestampSignalFound = (defaultTimeStampI == 1u);
+                }
+            }
+        }
+        if (ok) {
+            ok = helper.MoveToAncestor(1u);
+        }
+    }
+    if (ok) {
+        if (isStructuredSignal) {
+            if (nTempSignals == 2u) {
+                ok = defaultTimestampSignalFound;
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "With structured signals, the other signal shall have the DefaultTimestampSignal property set to 1");
+                }
+            }
+        }
     }
     return ok;
 }
@@ -255,6 +339,7 @@ bool OPCUADSOutput::PopulateTimestampDatabase() {
     }
     uint32 nSignalsTemp = tempSignalsDatabase.GetNumberOfChildren();
     StructuredDataIHelper helper(tempSignalsDatabase, this);
+    bool defaultTimestampSignalFound = false;
     for (uint32 i = 0u; (i < nSignalsTemp) && (ok); i++) {
         ok = tempSignalsDatabase.MoveToChild(i);
         bool isDefaultTimestamp = false;
@@ -265,8 +350,15 @@ bool OPCUADSOutput::PopulateTimestampDatabase() {
                 isDefaultTimestamp = (defaultTimeStampSignal == 1u);
             }
             if (isDefaultTimestamp) {
+                ok = !defaultTimestampSignalFound;
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "At most one DefaultTimestampSignal shall be specified.");
+                    isDefaultTimestamp = false;
+                }
+            }
+            if (isDefaultTimestamp) {
                 uint32 ii = i;
-                if (isExtensionObject) {//The timesignal can be either the first or the last
+                if (isExtensionObject || isStructuredSignal) {//The timesignal can be either the first or the last
                     if (ii > 0u) {
                         ii = GetNumberOfSignals() - 1u;
                     }
@@ -281,9 +373,7 @@ bool OPCUADSOutput::PopulateTimestampDatabase() {
                 if (ok) {
                     ok = timestampDatabase.MoveToAncestor(1u);
                 }
-            }
-            else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "At most one DefaultTimestampSignal shall be specified.");
+                defaultTimestampSignalFound = true;
             }
         }
         bool isTimestampSignal = false;
@@ -419,18 +509,62 @@ bool OPCUADSOutput::MapNodeSignals() {
     }
     uint32 k=0u;
     uint32 t=0u;
+    uint16 lastNamespaceIndex = 0u;
+    StreamString lastPath = "";
+  
+    if (isStructuredSignal) {
+        ok = helper.MoveToChild(structuredSignalIdx);
+        if (ok) {
+            ok = helper.Read("NamespaceIndex", lastNamespaceIndex);
+        }
+        if (ok) {
+            ok = helper.Read("Type", structuredTypeName);
+        }
+        if (ok) {
+            ok = helper.Read("Path", lastPath);
+        }
+        if (ok) {
+            ok = helper.MoveToAncestor(1u);
+        }
+    }
+
     for (uint32 i = 0u; (i < numberOfSignals) && (ok); i++) {
         bool isTimestampSignal = IsTimestampSignal(i);
         if (!isTimestampSignal) {
-            ok = helper.MoveToChild(i);
-            if (ok) {
-                ok = helper.Read("NamespaceIndex", namespaceIndexes[k]);
+            if (isStructuredSignal) {
+                namespaceIndexes[k] = lastNamespaceIndex;
+                StreamString signalQName = "";
+                paths[k] = lastPath;
+                //Remove the DataSource signal name
+                StreamString token;
+                char8 term;
+                bool skip = true;
+                ok = GetSignalName(i, signalQName);
+                if (ok) {
+                    ok = signalQName.Seek(0LLU);
+                }
+                while (signalQName.GetToken(token, ".", term)) {
+                    if (!skip) {
+                        paths[k] += ".";
+                        paths[k] += token.Buffer();
+                    }
+                    else {
+                        skip = false;
+                    }
+                    token = "";
+                }
             }
-            if (ok) {
-                ok = helper.Read("Path", paths[k]);
-            }
-            if (ok) {
-                ok = helper.MoveToAncestor(1u);
+            else {//may or not be a structure
+                ok = helper.MoveToChild(i);
+                if (ok) {
+                    ok = helper.Read("NamespaceIndex", namespaceIndexes[k]);
+                }
+                if (ok) {
+                    ok = helper.Read("Path", paths[k]);
+                }
+                if (ok) {
+                    ok = helper.MoveToAncestor(1u);
+                }
             }
             signalIdxMap[i] = k;
             k++;
@@ -618,7 +752,7 @@ bool OPCUADSOutput::PopulateTimestampNodes() {
         if (isDefaultTimestamp) {
             ok = !defaultTimestampSignalFound;
             if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "At most one Timestamp signal DefaultTimestampSignal shall be set");
+                REPORT_ERROR(ErrorManagement::ParametersError, "Timestamp signal DefaultTimestampSignal was not found");
             }
             for (uint32 k=0u; (k<numberOfTimestampNodes) && (ok); k++) {
                 if (timestampNodes[k] == NULL_PTR(uint64 *)) { //Do not overwrite existing signals

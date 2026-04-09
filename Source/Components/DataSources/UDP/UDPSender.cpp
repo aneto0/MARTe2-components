@@ -205,7 +205,8 @@ bool UDPSender::Synchronise() {
     const char8 *const dataBuffer = reinterpret_cast<char8*>(memory);
     bool ok = false;
     if (client != NULL_PTR(BasicUDPSocket*)) {
-        ok = client->Write(dataBuffer, totalMemorySize);
+        uint32 sizeToWrite = totalMemorySize;
+        ok = client->Write(dataBuffer, sizeToWrite);
     }
     return ok;
 }
