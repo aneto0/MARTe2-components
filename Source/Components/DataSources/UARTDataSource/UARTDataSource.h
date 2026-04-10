@@ -85,6 +85,7 @@ namespace MARTe {
  *       Class = TimestampProvider //A class that provides the absolute time in ns. It shall inherit from TimestampProvider.
  *     }
  *   }
+ * </pre>
  */
 class UARTDataSource: public MemoryDataSourceI, public MessageI, public EmbeddedServiceMethodBinderT<UARTDataSource> {
 public:
