@@ -50,6 +50,9 @@ namespace MARTe {
  * produces the statistics computation in the same native type. As such, the output
  * signals are required to conform to the type of the input signal.
  *
+ * The order of the output signals is fixed and will defined if the standard deviation,
+ *  max. and min. value are output as signals.
+ *
  * The configuration syntax is (names and signal quantity are only given as an example):
  * <pre>
  * +Statistics = {
@@ -72,15 +75,15 @@ namespace MARTe {
  *             DataSource = "DDB"
  *             Type = uint64
  *         }
- *         ExecutionTime_std = {  // Optional - Standard deviation computed in case of 
- *             DataSource = "DDB" //            this second output signal, incl. square 
- *             Type = uint64      //            root computation.
+ *         ExecutionTime_std = {  // Optional - Added if the number of signals is > 1.
+ *             DataSource = "DDB"  
+ *             Type = uint64      
  *         }
- *         ExecutionTime_min = {  // Optional but constrained to having added the _std signal before
+ *         ExecutionTime_min = {  // Optional. Added if the number of signals is > 2.
  *             DataSource = "DDB"
  *             Type = uint64
  *         }
- *         ExecutionTime_max = {  // Optional but constrained to having added the _min signal before
+ *         ExecutionTime_max = {  // Optional. Added if the number of signals is > 3.
  *             DataSource = "DDB"
  *             Type = uint64
  *         }
