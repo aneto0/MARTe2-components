@@ -56,8 +56,8 @@ namespace MARTe {
  *
  *The configuration syntax is (names and signal quantity are only given as an example):
  *<pre>
- * +waveformChirp1 = {
- *     Class = WaveformChirp
+ * +WaveformChirp1 = {
+ *     Class = WaveformGAM::WaveformChirp
  *     Amplitude = 10.0
  *     Frequency1 = 1.0
  *     Frequency2 = 3.0

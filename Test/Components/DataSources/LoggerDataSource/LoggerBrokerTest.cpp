@@ -117,7 +117,7 @@ LoggerBrokerTestScheduler    ();
 
     virtual bool ConfigureScheduler(MARTe::Reference realTimeApp);
 
-    virtual void CustomPrepareNextState();
+    virtual bool CustomPrepareNextState();
 
 private:
 
@@ -151,8 +151,8 @@ MARTe::ErrorManagement::ErrorType LoggerBrokerTestScheduler::StopCurrentStateExe
     return MARTe::ErrorManagement::NoError;
 }
 
-void LoggerBrokerTestScheduler::CustomPrepareNextState() {
-
+bool LoggerBrokerTestScheduler::CustomPrepareNextState() {
+    return true;
 }
 
 CLASS_REGISTER(LoggerBrokerTestScheduler, "1.0")
