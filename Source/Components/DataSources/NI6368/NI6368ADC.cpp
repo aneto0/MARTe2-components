@@ -115,8 +115,8 @@ NI6368ADC::NI6368ADC() :
     for (n = 0u; n < NI6363ADC_MAX_CHANNELS; n++) {
         inputRange[n] = XSERIES_INPUT_RANGE_10V;
         inputMode[n] = XSERIES_AI_CHANNEL_TYPE_DIFFERENTIAL;
-        inputGain[n] = 1.0;
-        inputOffset[n] = 0.0;
+        inputGain[n] = 1.0F;
+        inputOffset[n] = 0.0F;
         adcEnabled[n] = false;
         channelsFileDescriptors[n] = -1;
         uint32 b;
@@ -203,6 +203,7 @@ bool NI6368ADC::GetSignalMemoryBuffer(const uint32 signalIdx,
         ok = (signalIdx < (maxNumberOfChannels + headerSize));
     }
     if (ok) {
+        //lint -e{9013} else not meaningful, signalIdx always < 2 
         if (signalIdx < headerSize) {
             if (signalIdx == 0u) {
                 signalAddress = reinterpret_cast<void*>(&counterValue[bufferIdx]);
@@ -454,6 +455,7 @@ bool NI6368ADC::Initialise(StructuredDataI &data) {
 
     if (ok) {
         sampleFreqSet = 0u;
+        //lint -e{9013} else not meaningful, SamplingFrequency exclusive w.r.t. ScanIntervalCounterPeriod
         if (data.Read("SamplingFrequency", samplingFrequency)) {
             ok = (samplingFrequency > 0u) && (samplingFrequency <= ADC_ONE_CH_MAX_FREQ);
             if (ok) {
@@ -493,6 +495,7 @@ bool NI6368ADC::Initialise(StructuredDataI &data) {
 
     if (ok) {
         convertFreqSet = 0u;
+        //lint -e{9013} else not meaningful, ConvertFrequency exclusive w.r.t. SampleIntervalCounterPeriod
         if (data.Read("ConvertFrequency", convertFrequency)) {
             ok = (convertFrequency > 0u);
             if (ok) {
@@ -1121,9 +1124,7 @@ bool NI6368ADC::Initialise(StructuredDataI &data) {
             ok = signalsDatabase.MoveToAncestor(1u);
         }
         uint32 maxChannelId = 0u;
-        uint32 i = 0u;
-
-        for (i = 0u; (i < data.GetNumberOfChildren()) && ok; i++) {
+        for (uint32 i = 0u; (i < data.GetNumberOfChildren()) && ok; i++) {
             if (data.MoveRelative(data.GetChildName(i))) {
                 uint32 channelId;
                 if (data.Read("ChannelId", channelId)) {
@@ -1264,16 +1265,17 @@ bool NI6368ADC::Initialise(StructuredDataI &data) {
                     singleADCFrequency = static_cast<float64>(samplingFrequency);
                 }
                 else {
-                    singleADCFrequency = static_cast<float64>(baseSampleClockFrequency / static_cast<float64>(scanIntervalCounterPeriod));
+                    //lint -e{414} cannot be zero, otherwise Initialise would have failed.
+                    singleADCFrequency = static_cast<float64>(baseSampleClockFrequency) / static_cast<float64>(scanIntervalCounterPeriod);
                 }
             }
             else {
                 /*lint -e{414} numberOfADCsEnabled cannot be zero, otherwise ok = false*/
                 if (sampleFreqSet == 1u) {
-                    singleADCFrequency = (samplingFrequency) / static_cast<float64>(numberOfADCsEnabled);
+                    singleADCFrequency = static_cast<float64>(samplingFrequency) / static_cast<float64>(numberOfADCsEnabled);
                 }
                 else {
-                    singleADCFrequency = baseSampleClockFrequency / static_cast<float64>(sampleIntervalCounterPeriod * numberOfADCsEnabled);
+                    singleADCFrequency = static_cast<float64>(baseSampleClockFrequency) / (static_cast<float64>(sampleIntervalCounterPeriod) * static_cast<float64>(numberOfADCsEnabled));
                 }
             }
         }
@@ -1282,7 +1284,8 @@ bool NI6368ADC::Initialise(StructuredDataI &data) {
                 singleADCFrequency = static_cast<float64>(samplingFrequency);
             }
             else {
-                singleADCFrequency = static_cast<float64>(baseSampleClockFrequency / static_cast<float64>(scanIntervalCounterPeriod));
+                //lint -e{414} cannot be zero, otherwise Initialise would have failed.
+                singleADCFrequency = static_cast<float64>(baseSampleClockFrequency) / static_cast<float64>(scanIntervalCounterPeriod);
             }
         }
     }
@@ -1446,6 +1449,7 @@ bool NI6368ADC::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     xseries_ai_conf_t adcConfiguration = xseries_continuous_ai();
+    //lint -e{641} conversion to int is safe to print
     for (i = 0u; (i < maxNumberOfChannels) && (ok); i++) {
         if (adcEnabled[i]) {
             //6368 only supports differential inputs.
@@ -1624,6 +1628,8 @@ uint8 NI6368ADC::GetLastBufferIdx() {
 bool NI6368ADC::IsSynchronising() const {
     return synchronising;
 }
+
+//lint -e{565} -e{1080} -e{1055} -e{516} -e{115} -e{1030} -e{40} -e{1013} -e{526} -e{628} symbols are in header file
 ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFromDMA) {
 
     xseries_device_status_t devStatus;

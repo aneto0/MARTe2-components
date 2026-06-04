@@ -51,7 +51,7 @@ NI6259ADCInputBroker::NI6259ADCInputBroker(NI6259ADC *const adcBoardIn) :
     copyTable = NULL_PTR(NI6259CopyTableEntry*);
 }
 
-/*lint -e{1540} the adcBoard is freed by the DataSource*/
+/*lint -e{1540} -e{1740} the adcBoard is freed by the DataSource*/
 NI6259ADCInputBroker::~NI6259ADCInputBroker() {
     if(copyTable != NULL_PTR(NI6259CopyTableEntry *)){
         delete[] copyTable;

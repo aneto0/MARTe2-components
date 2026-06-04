@@ -51,6 +51,7 @@
 /*lint +e1923 +e9024 */
 namespace MARTe {
 
+/*lint -e{770} private to this file (i.e. independent from the declaratin in the NI6259DAC.cpp*/
 struct AttributeMap {
     const char8 *name;
     pxi6259_segment_attribute attribute;
@@ -163,8 +164,8 @@ NI6259ADC::NI6259ADC() :
         inputRange[n] = 1u;
         inputMode[n] = AI_CHANNEL_TYPE_RSE;
         inputPolarity[n] = AI_POLARITY_UNIPOLAR;
-        inputGain[n] = 1.0;
-        inputOffset[n] = 0.0;
+        inputGain[n] = 1.0F;
+        inputOffset[n] = 0.0F;
         adcEnabled[n] = false;
         uint32 b;
         for (b = 0u; b < NI6259ADC_NUMBER_OF_BUFFERS; b++) {
@@ -243,6 +244,7 @@ bool NI6259ADC::GetSignalMemoryBuffer(const uint32 signalIdx,
     }
     if (ok) {
         if (signalIdx < headerSize) {
+            //lint -e{9013} else not meaningful, signalIdx always < 2 
             if (signalIdx == 0u) {
                 signalAddress = reinterpret_cast<void*>(&counterValue[bufferIdx]);
             }
@@ -470,6 +472,7 @@ bool NI6259ADC::Initialise(StructuredDataI &data) {
     }
     if (ok) {
         sampleFreqSet = 0u;
+        //lint -e{9013} else not meaningful, SamplingFrequency exclusive w.r.t. SampleClockUpdateDivisor 
         if (data.Read("SamplingFrequency", samplingFrequency)) {
             ok = (samplingFrequency > 0u) && (samplingFrequency <= ADC_ONE_CH_MAX_FREQ);
             if (ok) {
@@ -508,6 +511,7 @@ bool NI6259ADC::Initialise(StructuredDataI &data) {
     }
     if (ok) {
         convertFreqSet = 0u;
+        //lint -e{9013} else not meaningful, ConvertFrequency exclusive w.r.t. ConvertClockUpdateDivisor 
         if (data.Read("ConvertFrequency", convertFrequency)) {
             ok = (convertFrequency > 0u);
             if (ok) {
@@ -865,10 +869,7 @@ bool NI6259ADC::Initialise(StructuredDataI &data) {
         if (ok) {
             ok = signalsDatabase.MoveToAncestor(1u);
         }
-
-        uint32 i = 0u;
-
-        for (i = 0u; (i < data.GetNumberOfChildren()) && ok; i++) {
+        for (uint32 i = 0u; (i < data.GetNumberOfChildren()) && ok; i++) {
             if (data.MoveRelative(data.GetChildName(i))) {
                 uint32 channelId;
                 if (data.Read("ChannelId", channelId)) {
@@ -1021,16 +1022,17 @@ bool NI6259ADC::Initialise(StructuredDataI &data) {
                 singleADCFrequency = static_cast<float64>(samplingFrequency);
             }
             else {
-                singleADCFrequency = static_cast<float64>(baseSampleClockFrequency / static_cast<float64>(sampleClockDivisor));
+                //lint -e{414} cannot be zero, otherwise Initialise would have failed.
+                singleADCFrequency = static_cast<float64>(baseSampleClockFrequency) / static_cast<float64>(sampleClockDivisor);
             }
         }
         else {
             /*lint -e{414} numberOfADCsEnabled cannot be zero, otherwise ok = false*/
             if (sampleFreqSet == 1u) {
-                singleADCFrequency = (samplingFrequency) / static_cast<float64>(numberOfADCsEnabled);
+                singleADCFrequency = static_cast<float64>(samplingFrequency) / static_cast<float64>(numberOfADCsEnabled);
             }
             else {
-                singleADCFrequency = baseSampleClockFrequency / static_cast<float64>(sampleClockDivisor * numberOfADCsEnabled);
+                singleADCFrequency = static_cast<float64>(baseSampleClockFrequency) / (static_cast<float64>(sampleClockDivisor) * static_cast<float64>(numberOfADCsEnabled));
             }
         }
 
@@ -1308,14 +1310,16 @@ void NI6259ADC::NonSynchroniseLock() {
 
 void NI6259ADC::NonSynchroniseUnLock() {
     if ((!synchronising) && (synchType == INDEPENDENT_THREAD)) {
-        (void) allBufMux.FastUnLock();
+        allBufMux.FastUnLock();
     }
 }
 
 ErrorManagement::ErrorType NI6259ADC::CopyFromDMA(const size_t numberOfSamplesFromDMA) {
+    //lint -e{565} -e{1080} the symbol is in the header file
     struct pxi6259_board_status boardStatusT;
     if (headerSize > 2u) {
-        int32 ret = pxi6259_get_board_status(rootFileDescriptor, &boardStatusT);
+        //lint -e{1055} -e{746} the symbol is in the header file
+        (void) pxi6259_get_board_status(rootFileDescriptor, &boardStatusT);
     }
 
     ErrorManagement::ErrorType err;
@@ -1330,13 +1334,12 @@ ErrorManagement::ErrorType NI6259ADC::CopyFromDMA(const size_t numberOfSamplesFr
             uint32 offset = (currentBufferOffset * sampleSize);
             if (calibrate) {
                 if (dmaCalibBuffer != NULL_PTR(float32*)) {
-                    /*lint -e{679} no truncation*/
-                    *reinterpret_cast<float32*>(&channelsMemory[currentBufferIdx][dmaChannel][offset]) = ((dmaCalibBuffer[s] * inputGain[dmaChannel])
-                            + inputOffset[dmaChannel]);
+                    /*lint -e{679} -e{927} -e{826} no truncation*/
+                    *reinterpret_cast<float32*>(&channelsMemory[currentBufferIdx][dmaChannel][offset]) = ((dmaCalibBuffer[s] * inputGain[dmaChannel]) + inputOffset[dmaChannel]);
                 }
             }
             else {
-                /*lint -e{679} no truncation*/
+                /*lint -e{679} -e{927} -e{9117} -e{732} -e{826} no truncation*/
                 *reinterpret_cast<uint16*>(&channelsMemory[currentBufferIdx][dmaChannel][offset]) = dmaReadBuffer[s];
             }
             s++;
@@ -1358,6 +1361,7 @@ ErrorManagement::ErrorType NI6259ADC::CopyFromDMA(const size_t numberOfSamplesFr
                 counterSamples *= 1000000.;
                 counterSamples /= singleADCFrequency;
                 timeValue[currentBufferIdx] = static_cast<uint64>(counterSamples);
+                //lint -e{115} -e{1013} -e{40} the struct exists
                 boardStatus[currentBufferIdx] = boardStatusT.currentBoardStatus;
 
                 currentBufferOffset++;

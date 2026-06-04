@@ -30,8 +30,6 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
-#include "MemoryMapSynchronisedInputBroker.h"
-#include "MemoryMapSynchronisedOutputBroker.h"
 #include "NI6259DIO.h"
 
 /*---------------------------------------------------------------------------*/
@@ -41,8 +39,10 @@
 /**
  * To keep MISRA happy about the signs...
  */
+/*lint -e1923 -e9024 allow to use #define for constants.*/
 #define PXI6259_NUMBER_OF_PORTS_ static_cast<uint32>(PXI6259_NUMBER_OF_PORTS)
 #define INIT_HEADER_SIZE 0xFFFFFFFFu
+/*lint +e1923 +e9024 */
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -167,16 +167,16 @@ bool NI6259DIO::Initialise(StructuredDataI &data) {
     //Get individual signal parameters
     if (ok) {
         //Do not allow to add signals in run-time
-        if (ok) {
-            ok = signalsDatabase.MoveRelative("Signals");
-        }
+        ok = signalsDatabase.MoveRelative("Signals");
         if (ok) {
             ok = signalsDatabase.Write("Locked", 1u);
         }
         if (ok) {
             ok = signalsDatabase.MoveToAncestor(1u);
         }
-        ok = data.MoveRelative("Signals");
+        if (ok) {
+            ok = data.MoveRelative("Signals");
+        }
         if (ok) {
             for (uint32 i = 0u; (i < data.GetNumberOfChildren()) && (ok); i++) {
                 if (data.MoveRelative(data.GetChildName(i))) {
@@ -384,6 +384,7 @@ bool NI6259DIO::Synchronise() {
         }
     }
 
+    //lint -e{565} -e{1080} -e{1055} -e{516} -e{115} -e{1030} -e{40} -e{1013} -e{526} -e{628} symbols are in header file
     if (headerSize > 0u) {
         struct pxi6259_board_status boardStatusT;
         if (pxi6259_get_board_status(rootFileDescriptor, &boardStatusT) == 0) {

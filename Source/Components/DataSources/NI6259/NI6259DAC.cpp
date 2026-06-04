@@ -36,6 +36,7 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+/*lint -e1923 -e9024 allow to use #define for constants.*/
 #define DAC_BASE_FREQ 20000000u
 #define DAC_ONE_TWO_CH_MAX_FREQ 2860000u
 #define DAC_THREE_FOUR_CH_MAX_FREQ 1250000u
@@ -46,6 +47,7 @@
 /*lint +e1923 +e9024 */
 namespace MARTe {
 
+//lint -e{9109} -e{770} AttributeMap is private to this file and independent from NI6259ADC.cpp 
 struct AttributeMap {
     const char8 *name;
     pxi6259_segment_attribute attribute;
@@ -96,8 +98,8 @@ NI6259DAC::NI6259DAC() :
     clockUpdatePolarity = AO_UPDATE_SOURCE_POLARITY_RISING_EDGE;
     uint32 n;
     for (n = 0u; n < NI6259DAC_MAX_CHANNELS; n++) {
-        outputGain[n] = 1.0;
-        outputOffset[n] = 0.0;
+        outputGain[n] = 1.0F;
+        outputOffset[n] = 0.0F;
         channelsMemory[n] = NULL_PTR(float32*);
         outputPolarity[n] = AO_DAC_POLARITY_UNIPOLAR;
         dacEnabled[n] = false;
@@ -330,12 +332,13 @@ bool NI6259DAC::Initialise(StructuredDataI &data) {
     if (ok) {
         bool set = false;
         uint32 samplingFrequency = 0u;
+        //lint -e{9013} SamplingFrequency and ClockUpdateDivisor are mutually exclusive
         if (data.Read("SamplingFrequency", samplingFrequency)) {
             ok = (samplingFrequency <= baseSampleClockFrequency) && (samplingFrequency > 0u);
             if (ok) {
                 clockUpdateDivisor = (baseSampleClockFrequency / samplingFrequency);
                 REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ClockUpdateDivisor set to: %d", clockUpdateDivisor);
-                float32 samplingF = (baseSampleClockFrequency / (float32) clockUpdateDivisor);
+                float32 samplingF = static_cast<float32>(baseSampleClockFrequency) / static_cast<float32>(clockUpdateDivisor);
                 if ((baseSampleClockFrequency % samplingFrequency) > 0u) {
                     REPORT_ERROR(ErrorManagement::Warning, "SamplingFrequency does not divide exactly DAC base clock (%d). Set to %f", baseSampleClockFrequency,
                                  samplingF);
@@ -465,9 +468,9 @@ bool NI6259DAC::Initialise(StructuredDataI &data) {
         }
     }
     if (ok) {
-        float32 samplingF = (baseSampleClockFrequency / (float32) clockUpdateDivisor);
+        float32 samplingF = static_cast<float32>(baseSampleClockFrequency) / static_cast<float32>(clockUpdateDivisor);
         uint32 maxFreq = (numberOfDACsEnabled <= 2u) ? (DAC_ONE_TWO_CH_MAX_FREQ) : (DAC_THREE_FOUR_CH_MAX_FREQ);
-        ok = (samplingF <= maxFreq);
+        ok = (samplingF <= static_cast<float32>(maxFreq));
         if (!ok) {
             REPORT_ERROR(ErrorManagement::FatalError, "Sampling frequency (%f) shall be minor than %d", samplingF, maxFreq);
         }
@@ -693,7 +696,7 @@ bool NI6259DAC::SetConfiguredDatabase(StructuredDataI &data) {
 
 bool NI6259DAC::Synchronise() {
     uint32 i;
-    bool ok = (channelsMemory != NULL_PTR(float32**));
+    bool ok = true;
     for (i = 0u; (i < NI6259DAC_MAX_CHANNELS) && (ok); i++) {
         if (dacEnabled[i]) {
             if (channelsMemory[i] != NULL_PTR(float32*)) {
@@ -714,6 +717,7 @@ bool NI6259DAC::Synchronise() {
         }
     }
 
+    //lint -e{565} -e{1080} -e{1055} -e{516} -e{115} -e{1030} -e{40} -e{1013} symbols are in header file
     if (headerSize > 0u) {
         struct pxi6259_board_status boardStatusT;
         if (pxi6259_get_board_status(rootFileDescriptor, &boardStatusT) == 0) {
