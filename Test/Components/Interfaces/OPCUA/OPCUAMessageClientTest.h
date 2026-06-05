@@ -32,7 +32,12 @@
 /*                        Project header includes                            */
 /*---------------------------------------------------------------------------*/
 #include "ConfigurationDatabase.h"
+#ifndef OPEN62541_NO_ALMAGAMATION
 #include "open62541.h"
+#else
+#include "open62541/server.h"
+#include "open62541/server_config_default.h"
+#endif
 #if (UA_OPEN62541_VER_MAJOR > 1) || (UA_OPEN62541_VER_MINOR >= 2)
 #include "custom_datatype_1_3.h"
 #else

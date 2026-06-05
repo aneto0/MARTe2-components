@@ -353,7 +353,8 @@ public:
         return ret;
     }
 
-    virtual void CustomPrepareNextState() {
+    virtual bool CustomPrepareNextState() {
+        return true;
     }
 
 private:
@@ -1553,6 +1554,8 @@ static const MARTe::char8 *const config2 = ""
         "                Time = {"
         "                    Type = int32"
         "                    TimeSignal = 1"
+        "                    TimeSignalMultiplier = 1e-9"
+        "                    TimeSignalOffset = 0"
         "                }"
         "                SignalUInt16F_1 = {"
         "                    Period = 2"

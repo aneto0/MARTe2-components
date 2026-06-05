@@ -119,6 +119,10 @@ ifdef PDNA_LIB
 LIBRARIES += -lpowerdna -L$(PDNA_LIB)
 endif
 
+ifdef OPEN62541_DYNAMIC_LINK
+LIBRARIES += -L$(OPEN62541_LIB) -lopen62541
+endif
+
 #Allow to rename the MainGTest.ex 
 ifndef RENAME_GTEST_EX
 all: $(BUILD_DIR)/MainGTest$(EXEEXT)

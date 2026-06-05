@@ -526,6 +526,12 @@ private:
      */
     bool fullStreamName;
 
+
+    float64 timeMultiplier;
+
+
+    float64 timeOffset;
+
 };
 }
 

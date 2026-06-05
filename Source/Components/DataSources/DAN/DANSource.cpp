@@ -73,12 +73,14 @@ DANSource::DANSource() :
     interleave = true;
     fullStreamName = false;
     danStreams = NULL_PTR(DANStream**);
-    filter = ReferenceT < RegisteredMethodsMessageFilter > (GlobalObjectsDatabase::Instance()->GetStandardHeap());
+    filter = ReferenceT<RegisteredMethodsMessageFilter>(GlobalObjectsDatabase::Instance()->GetStandardHeap());
     filter->SetDestination(this);
     ErrorManagement::ErrorType ret = MessageI::InstallMessageFilter(filter);
     if (!ret.ErrorsCleared()) {
         REPORT_ERROR(ErrorManagement::FatalError, "Failed to install message filters");
     }
+    timeMultiplier = 1e-9;
+    timeOffset = 0.;
 }
 
 /*lint -e{1551} -e{1740} must destroy all the DANStreams in the destructor.*/
@@ -161,7 +163,7 @@ bool DANSource::GetOutputBrokers(ReferenceContainer &outputBrokers,
                                  void *const gamMemPtr) {
     bool ok = true;
     if (storeOnTrigger) {
-        brokerAsyncTrigger = ReferenceT < MemoryMapAsyncTriggerOutputBroker > ("MemoryMapAsyncTriggerOutputBroker");
+        brokerAsyncTrigger = ReferenceT<MemoryMapAsyncTriggerOutputBroker>("MemoryMapAsyncTriggerOutputBroker");
         ok = brokerAsyncTrigger->InitWithTriggerParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, numberOfPreTriggers,
                                                            numberOfPostTriggers, cpuMask, stackSize);
         if (ok) {
@@ -169,7 +171,7 @@ bool DANSource::GetOutputBrokers(ReferenceContainer &outputBrokers,
         }
     }
     else {
-        brokerAsyncOutput = ReferenceT < MemoryMapAsyncOutputBroker > ("MemoryMapAsyncOutputBroker");
+        brokerAsyncOutput = ReferenceT<MemoryMapAsyncOutputBroker>("MemoryMapAsyncOutputBroker");
         ok = brokerAsyncOutput->InitWithBufferParameters(OutputSignals, *this, functionName, gamMemPtr, numberOfBuffers, cpuMask, stackSize);
         if (ok) {
             ok = outputBrokers.Insert(brokerAsyncOutput);
@@ -380,7 +382,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
     if (ok) {
         for (uint32 n = 0u; (n < originalSignalInformation.GetNumberOfChildren()) && (ok); n++) {
             //Have to read properties from the original configuration file
-            StreamString signalName=originalSignalInformation.GetChildName(n);
+            StreamString signalName = originalSignalInformation.GetChildName(n);
             ok = originalSignalInformation.MoveRelative(signalName.Buffer());
             if (ok) {
                 //Check if the signal is defined as a TimeSignal
@@ -395,6 +397,12 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                         uint32 absoluteTime;
                         if (originalSignalInformation.Read("AbsoluteTime", absoluteTime)) {
                             useAbsoluteTime = (absoluteTime == 1u);
+                        }
+                        if (!originalSignalInformation.Read("TimeSignalMultiplier", timeMultiplier)) {
+                            timeMultiplier = 1e-9;
+                        }
+                        if (!originalSignalInformation.Read("TimeSignalOffset", timeOffset)) {
+                            timeOffset = 0.;
                         }
                     }
                 }
@@ -421,8 +429,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                     }
                 }
                 if (!addSignal) {
-                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "No Period nor SamplingFrequency specified for %s",
-                                        signalName.Buffer());
+                    REPORT_ERROR_STATIC(ErrorManagement::Warning, "No Period nor SamplingFrequency specified for %s", signalName.Buffer());
                 }
 
                 if ((ok) && (addSignal)) {
@@ -484,7 +491,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                             }
 
                             for (uint32 h = 0u; (h < originalSignalInformation.GetNumberOfChildren()) && ok; h++) {
-                                StreamString fieldName=originalSignalInformation.GetChildName(h);
+                                StreamString fieldName = originalSignalInformation.GetChildName(h);
                                 if (originalSignalInformation.MoveRelative(fieldName.Buffer())) {
                                     StreamString unit;
                                     if (!originalSignalInformation.Read("Unit", unit)) {
@@ -505,15 +512,15 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                                     if (ok) {
                                         numberOfElements /= numberOfSamples;
                                         TypeDescriptor typeDesc = GetSignalType(cnt);
-                                        ok = danStreams[danSourceIdx]->AddToStructure(cnt, fieldName.Buffer(), typeDesc, numberOfElements, numberOfDimensions, unit.Buffer(),
-                                                                                      description.Buffer());
+                                        ok = danStreams[danSourceIdx]->AddToStructure(cnt, fieldName.Buffer(), typeDesc, numberOfElements, numberOfDimensions,
+                                                                                      unit.Buffer(), description.Buffer());
                                     }
                                     (void) originalSignalInformation.MoveToAncestor(1u);
                                     cnt++;
                                 }
                             }
                         }
-                        else{
+                        else {
                             REPORT_ERROR_STATIC(ErrorManagement::Information, "NumberOfSamples must be > 0");
                         }
                     }
@@ -567,7 +574,7 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                                 danStreams[nOfDANStreams] = new DANStream(typeName.Buffer(), name.Buffer(), danBufferMultiplier, samplingFrequency,
                                                                           numberOfElements, interleave);
                                 danStreams[nOfDANStreams]->AddSignal(cnt);
-                                ok = danStreams[nOfDANStreams]->AddToStructure(cnt, signalName.Buffer(),typeDesc, 1u, 0u, "Unknown", "Unknown");
+                                ok = danStreams[nOfDANStreams]->AddToStructure(cnt, signalName.Buffer(), typeDesc, 1u, 0u, "Unknown", "Unknown");
                                 nOfDANStreams++;
                             }
                         }
@@ -644,6 +651,9 @@ bool DANSource::SetConfiguredDatabase(StructuredDataI &data) {
                     else {
                         danStreams[s]->SetRelativeTimeSignal(&timeUInt32);
                     }
+                    danStreams[s]->SetTimeSignalMultiplier(timeMultiplier);
+                    danStreams[s]->SetTimeSignalOffset(timeOffset);
+
                 }
             }
         }

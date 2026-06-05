@@ -27,6 +27,14 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+#ifndef OPEN62541_NO_ALMAGAMATION
+#include "open62541.h"
+#else
+#include "open62541/client.h"
+#include "open62541/client_config_default.h"
+#include "open62541/server.h"
+#include "open62541/server_config_default.h"
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*                        Project header includes                            */

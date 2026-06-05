@@ -113,7 +113,22 @@ public:
      */
     UA_ExtensionObject * GetExtensionObject() ;
 
+    /**
+     * Sets the pointer for the timestamp signals that are to be associated to the OPCUA nodes.
+     * If set the sourceTimestampsArr is assumed to hold the same number of nodes that are to be written, or one 
+     * if it is an ExtensionObject.
+     * If the element at a given index is NULL_PTR(uint64 *) the signal will not be timestamped.
+     * @param[in] sourceTimestampsArr array of signals holding the pointers to the timestamp signals.
+     */
+    void SetSourceTimestamps(uint64 **sourceTimestampsArr);
+
 private:
+
+    /**
+     * Helper function to time stamp the writeValue against a sourceTimestampNs with the number of ellapsed seconds 
+     * from the Epoch.
+     */
+    void Timestamp(UA_WriteValue &writeValue, uint64 sourceTimestampNs);
 
     /**
      * @brief Wrapper of RegisterNodes OPCUA Service
@@ -168,6 +183,11 @@ private:
      * The ReadResponse struct to be used during SetExtensionObject.
      */
     UA_ReadResponse readResponse;
+
+    /**
+     * Source time-stamps.
+     */
+    uint64 **sourceTimestamps;
 
 };
 

@@ -544,12 +544,16 @@ const char8 *OPCUADSInput::GetBrokerName(StructuredDataI &data,
     else {
         if (direction == InputSignals) {
 
-            uint32 tempSync = 0u;
-            if (!data.Read("SynchSignal", tempSync)) {
-                tempSync = 0u;
+            uint8 tempTrig = 0u;
+            if (!data.Read("Trigger", tempTrig)) {
+                tempTrig = 0u;
+            }
+            uint8 tempFreq = 0u;
+            if (!data.Read("Frequency", tempFreq)) {
+                tempFreq = 0u;
             }
 
-            if (tempSync > 0u) {
+            if ((tempTrig > 0u) || (tempFreq > 0u)) {
                 brokerName = "MemoryMapSynchronisedInputBroker";
             }
             else { 

@@ -1,4 +1,8 @@
 #!/bin/bash
+
+TEST_FILTER="${1:-"*"}"
+echo "Test filter set to: $TEST_FILTER"
+
 OUTPUT_DIR=Build
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTe2_DIR/Build/x86-linux/Core
@@ -12,7 +16,7 @@ make -f Makefile.cov
 lcov --capture --initial --directory . --no-external --output-file $OUTPUT_DIR/MARTe2-components.coverage.info.initial
 
 #Execute the tests
-Test/GTest/cov/MainGTest.ex --gtest_filter=*
+Test/GTest/cov/MainGTest.ex --gtest_filter=$TEST_FILTER
 
 #Create test coverage data file
 lcov --capture --directory . --no-external --output-file $OUTPUT_DIR/MARTe2-components.coverage.info.tests
