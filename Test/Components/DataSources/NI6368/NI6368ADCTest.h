@@ -59,7 +59,12 @@ public:
     /**
      * @brief Tests the GetSignalMemoryBuffer method with an invalid signal index.
      */
-    bool TestGetSignalMemoryBuffer_False();
+    bool TestGetSignalMemoryBuffer_False_Non_Init();
+
+    /**
+     * @brief Tests the GetSignalMemoryBuffer method with an invalid signal index.
+     */
+    bool TestGetSignalMemoryBuffer_False_Invalid_Index();
 
     /**
      * @brief Tests the GetSignalMemoryBuffer method.
@@ -116,12 +121,24 @@ public:
      */
     bool TestInitialise_False_NoDeviceName();
 
+    /**
+     * @brief Tests the Initialise method with invalid sampling frequency
+     */
     bool TestInitialise_False_BadSamplingFrequency();
 
+    /**
+     * @brief Tests the Initialise method with invalid sampling frequency
+     */
     bool TestInitialise_False_BadSamplingFrequency2();
 
+    /**
+     * @brief Tests the Initialise method with invalid convert frequency
+     */
     bool TestInitialise_False_BadConvertFrequency();
 
+    /**
+     * @brief Tests the Initialise method with invalid convert frequency
+     */
     bool TestInitialise_False_BadConvertFrequency2();
 
     /**
@@ -354,9 +371,19 @@ public:
      */
     bool TestIntegrated();
 
+    /**
+     * @brief Tests the NI6368 integrated in an application with IndependentRealTimeThread execution mode
+     */
+    bool TestIntegrated_IndependentRealTimeThreadExecutionMode();
 
+    /**
+     * @brief Tests the NI6368 integrated in an application with RealTimeThread execution mode
+     */
     bool TestIntegrated_RealTimeThreadExecutionMode();
 
+    /**
+     * @brief Tests the NI6368 integrated in an application with no synchronisation
+     */
     bool TestIntegrated_RealTimeThreadExecutionMode_NoSync();
 };
 

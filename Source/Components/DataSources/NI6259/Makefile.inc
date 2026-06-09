@@ -45,6 +45,8 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L1Portability
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L3Services
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 
+OPTIM = -O3
+
 all: $(OBJS)    \
     $(BUILD_DIR)/NI6259$(LIBEXT) \
     $(BUILD_DIR)/NI6259$(DLLEXT)

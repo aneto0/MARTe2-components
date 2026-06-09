@@ -30,8 +30,6 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
-#include "MemoryMapSynchronisedInputBroker.h"
-#include "MemoryMapSynchronisedOutputBroker.h"
 #include "NI6259DIO.h"
 
 /*---------------------------------------------------------------------------*/
@@ -41,28 +39,36 @@
 /**
  * To keep MISRA happy about the signs...
  */
+/*lint -e1923 -e9024 allow to use #define for constants.*/
 #define PXI6259_NUMBER_OF_PORTS_ static_cast<uint32>(PXI6259_NUMBER_OF_PORTS)
+#define INIT_HEADER_SIZE 0xFFFFFFFFu
+/*lint +e1923 +e9024 */
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+/*lint -efile(526,*NI6259DIO.cpp) symbols in header file.*/
+/*lint -efile(628,*NI6259DIO.cpp) symbols in header file.*/
 
 namespace MARTe {
 NI6259DIO::NI6259DIO() :
         DataSourceI() {
     boardId = 0u;
     boardFileDescriptor = -1;
+    rootFileDescriptor = -1;
     numberOfPortsEnabled = 0u;
     deviceName = "";
     triggerSet = false;
-    outputsEnabled = false;
     uint32 n;
     for (n = 0u; n < PXI6259_NUMBER_OF_PORTS_; n++) {
         portEnabled[n] = false;
         portFileDescriptors[n] = -1;
         portMask[n] = 0u;
         portValues[n] = 0u;
+        inversionMask[n]=0u;
     }
+    headerSize = INIT_HEADER_SIZE;
+    boardStatus = 0u;
 }
 
 NI6259DIO::~NI6259DIO() {
@@ -75,6 +81,9 @@ NI6259DIO::~NI6259DIO() {
     if (boardFileDescriptor != -1) {
         close(boardFileDescriptor);
     }
+    if (rootFileDescriptor != -1) {
+        close(rootFileDescriptor);
+    }
 }
 
 bool NI6259DIO::AllocateMemory() {
@@ -86,24 +95,37 @@ uint32 NI6259DIO::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
-bool NI6259DIO::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
-    bool ok = (signalIdx < (PXI6259_NUMBER_OF_PORTS_));
+bool NI6259DIO::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                      const uint32 bufferIdx,
+                                      void *&signalAddress) {
+    bool ok = (headerSize != INIT_HEADER_SIZE);
     if (ok) {
-        signalAddress = &(portValues[signalIdx]);
+        ok = (signalIdx < (PXI6259_NUMBER_OF_PORTS_+ headerSize));
+    }
+    if (ok) {
+        if (signalIdx < headerSize) {
+            if (signalIdx == 0u) {
+                signalAddress = reinterpret_cast<void*>(&boardStatus);
+            }
+        }
+        else {
+            signalAddress = &(portValues[signalIdx - headerSize]);
+        }
     }
     return ok;
 }
 
-const char8* NI6259DIO::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
-    const char8 *brokerName = NULL_PTR(const char8 *);
-    if (direction == OutputSignals) {
-        outputsEnabled = true;
-        uint32 trigger = 0u;
-        if (!data.Read("Trigger", trigger)) {
-            trigger = 0u;
-        }
+const char8* NI6259DIO::GetBrokerName(StructuredDataI &data,
+                                      const SignalDirection direction) {
+    const char8 *brokerName = NULL_PTR(const char8*);
 
-        if (trigger == 1u) {
+    uint32 trigger = 0u;
+    if (!data.Read("Trigger", trigger)) {
+        trigger = 0u;
+    }
+
+    if (direction == OutputSignals) {
+        if (trigger > 0u) {
             brokerName = "MemoryMapSynchronisedOutputBroker";
             triggerSet = true;
         }
@@ -112,84 +134,24 @@ const char8* NI6259DIO::GetBrokerName(StructuredDataI& data, const SignalDirecti
         }
     }
     else {
-        brokerName = "MemoryMapSynchronisedInputBroker";
+        if (trigger > 0u) {
+            brokerName = "MemoryMapSynchronisedInputBroker";
+            triggerSet = true;
+        }
+        else {
+            brokerName = "MemoryMapInputBroker";
+        }
     }
     return brokerName;
 }
 
-bool NI6259DIO::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    ReferenceT<MemoryMapSynchronisedInputBroker> broker("MemoryMapSynchronisedInputBroker");
-    bool ok = broker.IsValid();
-
-    if (ok) {
-        ok = broker->Init(InputSignals, *this, functionName, gamMemPtr);
-    }
-    if (ok) {
-        ok = inputBrokers.Insert(broker);
-    }
-
-    return ok;
-}
-
-bool NI6259DIO::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    uint32 functionIdx = 0u;
-    uint32 nOfFunctionSignals = 0u;
-    uint32 i;
-    bool triggerGAM = false;
-    bool ok = GetFunctionIndex(functionIdx, functionName);
-
-    if (ok) {
-        ok = GetFunctionNumberOfSignals(OutputSignals, functionIdx, nOfFunctionSignals);
-    }
-    uint32 trigger = 0u;
-    for (i = 0u; (i < nOfFunctionSignals) && (ok) && (!triggerGAM); i++) {
-        ok = GetFunctionSignalTrigger(OutputSignals, functionIdx, i, trigger);
-        triggerGAM = (trigger == 1u);
-    }
-    if ((ok) && (triggerGAM)) {
-        ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
-        ok = broker.IsValid();
-
-        if (ok) {
-            ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
-        }
-        if (ok) {
-            ok = outputBrokers.Insert(broker);
-        }
-        //Must also add the signals which are not triggering but that belong to the same GAM...
-        if (ok) {
-            if (nOfFunctionSignals > 1u) {
-                ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
-                ok = brokerNotSync.IsValid();
-                if (ok) {
-                    ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
-                }
-                if (ok) {
-                    ok = outputBrokers.Insert(brokerNotSync);
-                }
-            }
-        }
-    }
-    else {
-        ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
-        ok = brokerNotSync.IsValid();
-        if (ok) {
-            ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
-        }
-        if (ok) {
-            ok = outputBrokers.Insert(brokerNotSync);
-        }
-    }
-
-    return ok;
-}
-
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP irrespectively of the input parameters.*/
-bool NI6259DIO::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool NI6259DIO::PrepareNextState(const char8 *const currentStateName,
+                                 const char8 *const nextStateName) {
     return true;
 }
 
-bool NI6259DIO::Initialise(StructuredDataI& data) {
+bool NI6259DIO::Initialise(StructuredDataI &data) {
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
         ok = data.Read("DeviceName", deviceName);
@@ -205,76 +167,101 @@ bool NI6259DIO::Initialise(StructuredDataI& data) {
     }
 
     //Get individual signal parameters
-    uint32 i = 0u;
     if (ok) {
-        ok = data.MoveRelative("Signals");
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
-        }
         //Do not allow to add signals in run-time
-        if (ok) {
-            ok = signalsDatabase.MoveRelative("Signals");
-        }
+        ok = signalsDatabase.MoveRelative("Signals");
         if (ok) {
             ok = signalsDatabase.Write("Locked", 1u);
         }
         if (ok) {
             ok = signalsDatabase.MoveToAncestor(1u);
         }
-        while ((i < PXI6259_NUMBER_OF_PORTS_) && (ok)) {
-            if (data.MoveRelative(data.GetChildName(i))) {
-                uint32 portId;
-                if (data.Read("PortId", portId)) {
-                    ok = (portId < PXI6259_NUMBER_OF_PORTS_);
-                    if (!ok) {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Invalid PortId specified.");
-                    }
-                    if (ok) {
-                        portEnabled[portId] = true;
-                        numberOfPortsEnabled++;
-                        portMask[portId] = 0u;
-                        uint32 mask;
-                        if (data.Read("Mask", mask)) {
-                            portMask[portId] = mask;
+        if (ok) {
+            ok = data.MoveRelative("Signals");
+        }
+        if (ok) {
+            for (uint32 i = 0u; (i < data.GetNumberOfChildren()) && (ok); i++) {
+                if (data.MoveRelative(data.GetChildName(i))) {
+                    uint32 portId;
+                    if (data.Read("PortId", portId)) {
+                        if (headerSize == INIT_HEADER_SIZE) {
+                            headerSize = i;
+                        }
+                        ok = (portId < PXI6259_NUMBER_OF_PORTS_);
+                        if (!ok) {
+                            REPORT_ERROR(ErrorManagement::ParametersError, "Invalid PortId specified.");
+                        }
+                        if (ok) {
+                            portEnabled[portId] = true;
+                            numberOfPortsEnabled++;
+                            portMask[portId] = 0u;
+                            uint32 mask;
+                            if (data.Read("Mask", mask)) {
+                                portMask[portId] = mask;
+                            }
+                            if (!data.Read("InversionMask", inversionMask[portId])) {
+                                inversionMask[portId] = 0u;
+                            }
                         }
                     }
+                    else {
+                        ok = (headerSize == INIT_HEADER_SIZE);
+                        if (!ok) {
+                            REPORT_ERROR(ErrorManagement::InitialisationError, "Header signals must be defined before the channels");
+                        }
+                    }
+                    (void) data.MoveToAncestor(1u);
                 }
-                if (ok) {
-                    ok = data.MoveToAncestor(1u);
-                }
-                i++;
             }
-            else {
-                break;
-            }
+            (void) data.MoveToAncestor(1u);
         }
-    }
-    if (ok) {
-        ok = data.MoveToAncestor(1u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the parent section");
+        else {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not move to the Signals section");
+        }
+
+        if (ok) {
+            ok = (headerSize <= 1u);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Header can be composed maximum by 1 signals: status");
+            }
         }
     }
     return ok;
 }
 
-bool NI6259DIO::SetConfiguredDatabase(StructuredDataI& data) {
+bool NI6259DIO::SetConfiguredDatabase(StructuredDataI &data) {
     uint32 i;
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok) {
-        if (outputsEnabled) {
-            ok = triggerSet;
+        ok = triggerSet;
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "At least one Trigger signal shall be set.");
         }
     }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "At least one Trigger signal shall be set.");
+
+    if (ok) {
+        ok = (GetNumberOfSignals() == (headerSize + numberOfPortsEnabled));
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Number of signals mismatch. All signals must be configured in data source");
+        }
     }
+
+    if (ok) {
+        if (headerSize > 0u) {
+            /*lint -e{9007} no side-effect from GetSignalType*/
+            ok = (GetSignalType(0u) == UnsignedInteger32Bit);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "The first signal (status) shall be of type UnsignedInteger32Bit");
+            }
+        }
+    }
+
     if (ok) {
         for (i = 0u; (i < numberOfPortsEnabled) && (ok); i++) {
-            ok = (GetSignalType(i) == UnsignedInteger32Bit);
-        }
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "All the DIO signals shall be of type UnsignedInteger32Bit");
+            ok = (GetSignalType(headerSize + i) == UnsignedInteger32Bit);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "The DIO ports shall be uint32 type");
+            }
         }
     }
 
@@ -312,12 +299,25 @@ bool NI6259DIO::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
 
-    StreamString fullDeviceName;
+    StreamString rootDeviceName;
     //Configure the board
     if (ok) {
-        ok = fullDeviceName.Printf("%s.%d.dio", deviceName.Buffer(), boardId);
+        ok = rootDeviceName.Printf("%s.%d", deviceName.Buffer(), boardId);
     }
     if (ok) {
+        ok = rootDeviceName.Seek(0LLU);
+    }
+    if (ok) {
+        rootFileDescriptor = open(rootDeviceName.Buffer(), O_RDWR);
+        ok = (rootFileDescriptor > -1);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not open device %s", rootDeviceName);
+        }
+    }
+    StreamString fullDeviceName = rootDeviceName;
+    //Configure the board
+    if (ok) {
+        fullDeviceName += ".dio";
         ok = fullDeviceName.Seek(0LLU);
     }
     if (ok) {
@@ -376,16 +376,29 @@ bool NI6259DIO::Synchronise() {
     bool ok = true;
     for (i = 0u; (i < PXI6259_NUMBER_OF_PORTS_) && (ok); i++) {
         if (portEnabled[i]) {
-            ok = (write(portFileDescriptors[i], &(portValues[i]), sizeof(uint32)) == static_cast<ssize_t>(sizeof(int32)));
+            uint32 portWrite=(portValues[i]^inversionMask[i]);
+            ok = (write(portFileDescriptors[i], &portWrite, sizeof(uint32)) == static_cast<ssize_t>(sizeof(int32)));
             if (ok) {
-                ok = (read(portFileDescriptors[i], &(portValues[i]), sizeof(uint32)) == static_cast<ssize_t>(sizeof(int32)));
+                uint32 portRead;
+                ok = (read(portFileDescriptors[i], &portRead, sizeof(uint32)) == static_cast<ssize_t>(sizeof(int32)));
+                portValues[i]=(portRead^inversionMask[i]);
             }
         }
     }
+
+    //lint -e{565} -e{1080} -e{1055} -e{516} -e{115} -e{1030} -e{40} -e{1013} symbols are in header file
+    if (headerSize > 0u) {
+        struct pxi6259_board_status boardStatusT;
+        if (ok) {
+            ok = (pxi6259_get_board_status(rootFileDescriptor, &boardStatusT) == 0);
+        }
+        boardStatus = boardStatusT.currentBoardStatus;
+    }
+
     return ok;
 }
 
-bool NI6259DIO::ReadDIOConfiguration(pxi6259_dio_conf_t * const conf) const {
+bool NI6259DIO::ReadDIOConfiguration(pxi6259_dio_conf_t *const conf) const {
     bool ok = false;
     if (boardFileDescriptor > 0) {
         ok = (pxi6259_read_dio_conf(boardFileDescriptor, conf) == 0);

@@ -59,7 +59,13 @@ public:
     /**
      * @brief Tests the GetSignalMemoryBuffer method with an invalid signal index.
      */
-    bool TestGetSignalMemoryBuffer_False();
+    bool TestGetSignalMemoryBuffer_False_Non_Init();
+
+
+    /**
+     * @brief Tests the GetSignalMemoryBuffer method with an invalid signal index.
+     */
+    bool TestGetSignalMemoryBuffer_False_Invalid_Index();
 
     /**
      * @brief Tests the GetSignalMemoryBuffer method.
@@ -323,9 +329,19 @@ public:
      */
     bool TestIntegrated();
 
+    /**
+     * @brief Tests the NI6259 integrated in an application with IndependentRealTimeThread execution mode
+     */
+    bool TestIntegrated_IndependentRealTimeThreadExecutionMode();
 
+    /**
+     * @brief Tests the NI6259 integrated in an application with RealTimeThread execution mode
+     */
     bool TestIntegrated_RealTimeThreadExecutionMode();
 
+    /**
+     * @brief Tests the NI6259 integrated in an application with no synchronisation
+     */
     bool TestIntegrated_RealTimeThreadExecutionMode_NoSync();
 
 };

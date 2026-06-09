@@ -39,6 +39,10 @@
 #include "EventSem.h"
 #include "SingleThreadService.h"
 
+/*lint -e1923 allow macros*/
+#define PXI6363_NUMBER_OF_PORTS 3U
+/*lint +e1923 */
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
@@ -47,29 +51,54 @@ namespace MARTe {
  * @brief A DataSource which provides a digital input/output interface to the NI6368 boards.
  * @details The configuration syntax is (names are only given as an example):
  *
+ * @details It is possible to define one optional signal which must be declared before the channels.
+ *   - Signal 0 (Status): the board status.
+ * The board status is a uint32 bitmask. Follows the error description for each bit:
+ *   0: ADC Overrun detected in STC3 (Intimer)
+ *   1: AI FIFO overflow detected in STC3 (Intimer)
+ *   2: AI FIFO overflow detected in Simultaneous Control
+ *   4: AI DMA channel error happened, the channel shall be restarted
+ *   5: DI Overrun error happened
+ *   6: DI Overflow error happened
+ *   8: DI DMA channel error happend, the channel shall be restarted
+ *   10: AO Overrun error detected
+ *   11: AO Underflow error detected
+ *   12: AO write too fast error detected
+ *   13: AO DMA channel error happend, the channel shall be restarted
+ *   14: DO Overrun error detected
+ *   15: DO Underflow error detected
+ *   16: DO Write too fast detected
+ *   17: DO DMA channel error happend, the channel shall be restarted
+ *   20: GPC0 DMA channel error happend, the channel shall be restarted
+ *   21: GPC1 DMA channel error happend, the channel shall be restarted
+ *   22: GPC2 DMA channel error happend, the channel shall be restarted
+ *   23: GPC3 DMA channel error happend, the channel shall be restarted
+ *
  * <pre>
  * +NI6368_0_DIO = {
+ *
  *     Class = NI6368::NI6368DIO
- *     DeviceName = "/dev/pxi6368" //Mandatory
- *     BoardId = 0 //Mandatory
- *     ClockSampleSource = "INTERNAL" //Mandatory. Sampling clock source. Possible values: INTERNAL, PFI0, ..., PFI15, RTSI0, ..., RTSI6, DIO_CHGDETECT, G0_OUT, ..., G3_OUT, STAR_TRIGGER, LOW, PXIE_DSTARA, ATRIG, PXIE_DSTARB, G0_SAMPLECLK, ..., G3_SAMPLECLK, AI_CONVERT, AO_UPDATE, DO_UPDATE, INTTRIGGERA0, ..., INTTRIGGERA7
- *     ClockSamplePolarity = "ACTIVE_HIGH_OR_RISING_EDGE" //Mandatory. Sampling clock polarity. Possible values: ACTIVE_HIGH_OR_RISING_EDGE, ACTIVE_LOW_OR_FALLING_EDGE
- *     ClockConvertSource = "INTERNAL" //Mandatory. Convert clock source. Possible values: INTERNALTIMING, PFI0, ..., PFI15, RTSI0, ..., RTSI6, DIO_CHGDETECT, G0_OUT, ..., G3_OUT, STAR_TRIGGER, LOW, PXIE_DSTARA, ATRIG, PXIE_DSTARB, G0_SAMPLECLK, ..., G3_SAMPLECLK, AI_CONVERT, AO_UPDATE, DO_UPDATE, INTTRIGGERA0, ..., INTTRIGGERA7
- *     ScanIntervalCounterSource = "COUNTER_TB3" //Mandatory. Scan interval clock source. Possible values: COUNTER_TB1, COUNTER_TB2, COUNTER_TB3, PFI0, ..., PFI15, RTSI0, ..., RTSI6,PXI_CLK0, STAR_TRIGGER, ANALOG_TRIGGER, D_STARA, D_STARB, STAR_TRIGGER
- *     ScanIntervalCounterPeriod = 50 //Mandatory. Period of the scan interval.
- *     ScanIntervalCounterDelay = 2 //Mandatory. Minimum delay after the start trigger.
- *     StartTriggerSource = "SW_PULSE" //Mandatory. Start trigger source. Possible values: SW_PULSE, PFI0, ..., PFI15, RTSI0, ..., RTSI7, AI_START1, AI_START2, STAR_TRIGGER, PXIE_DSTARA, PXIE_DSTARB, ANALOG_TRIGGER, LOW, G0_OUT, ..., G3_OUT, DIO_CHGDETECT, DI_START1, DI_START2, INTTRIGGERA0, ..., INTTRIGGERA7, FIFOCONDITION
- *     UpdateCounterSource = "UI_TC" //Mandatory. Possible values: UI_TC, PFI0, PFI1, PFI2, PFI3, PFI4, PFI5, PFI6, PFI7, PFI8, PFI9, RTSI0, RTSI1, RTSI2, RTSI3, RTSI4, RTSI5, RTSI6, G0_OUT, G1_OUT, STAR_TRIGGER, PFI10, PFI11, PFI12, PFI13, PFI14, PFI15, RTSI7, G2_OUT, G3_OUT, ANALOG_TRIGGER, LOW, PXIE_DSTARA, PXIE_DSTARB, DIO_CHGDETECT, G0_SAMPLECLK, G1_SAMPLECLK, G2_SAMPLECLK, G3_SAMPLECLK, AI_CONVERT, AI_START, DI_CONVERT, INTTRIGGERA0, INTTRIGGERA1, INTTRIGGERA2, INTTRIGGERA3, INTTRIGGERA4, INTTRIGGERA5, INTTRIGGERA6, INTTRIGGERA7
- *     UpdateCounterPolarity = "RISING_EDGE" //Mandatory. Update counter polarity.  RISING_EDGE, FALLING_EDGE
- *     UpdateIntervalCounterSource = "TB3" //Mandatory. Possible values:TB3, PFI0, PFI1, PFI2, PFI3, PFI4, PFI5, PFI6, PFI7, PFI8, PFI9, RTSI0, RTSI1, RTSI2, RTSI3, RTSI4, RTSI5, RTSI6, DSTARA, TB2, STAR_TRIGGER, PFI10, PFI11, PFI12, PFI13, PFI14, PFI15, RTSI7, TB1, PXI_CLK10, ANALOG_TRIGGER, DSTARB
- *     UpdateIntervalCounterPolarity = "RISING_EDGE" //Mandatory. Possible values: RISING_EDGE, FALLING_EDGE
- *     UpdateIntervalCounterDivisor = 100000 //Mandatory > 0
- *     UpdateIntervalCounterDelay = 2 //Mandatory > 0
+ *     DeviceName = "/dev/pxie-6368"
+ *     BoardId = 0
  *     Signals = {
- *         DIO0_0 = {
+ *         Status = { //Optional. The board status
+ *             Type = uint32
+ *         }
+ *         Port0 = {
  *             Type = uint32 //Mandatory. Only type that is supported.
- *             InputPortMask = 0x1 //Mandatory. A mask where each bit defines if the pin is an input (bit=0) or an output (bit=1).
- *             OutputPortMask = 0x1 //Mandatory. A mask where each bit defines if the pin is an input (bit=0) or an output (bit=1).
+ *             PortId = 0 //Mandatory. The port id (0, 1 or 2)
+ *             Mask = 0xFFFF //Mandatory. A mask where each bit defines if the pin is an input (bit=0) or an output (bit=1).
+ *             InversionMask = 0xF //Optional, a mask with bits to invert before writing or after reading. Default is 0 (no invert)
+ *         }
+ *         Port1 = {
+ *             Type = uint32 //Mandatory. Only type that is supported.
+ *             PortId = 1 //Mandatory. The port id (0, 1 or 2)
+ *             Mask = 0xFF //Mandatory. A mask where each bit defines if the pin is an input (bit=0) or an output (bit=1).
+ *         }
+ *         Port2 = {
+ *             Type = uint32 //Mandatory. Only type that is supported.
+ *             PortId = 2 //Mandatory. The port id (0, 1 or 2)
+ *             Mask = 0xFF //Mandatory. A mask where each bit defines if the pin is an input (bit=0) or an output (bit=1).
  *         }
  *     }
  * }
@@ -126,21 +155,6 @@ NI6368DIO    ();
      * @param[in] gamMemPtr the GAM memory where the signals will be read from.
      * @return true if the inputBrokers can be successfully configured.
      */
-    virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
-
-    /**
-     * @brief See DataSourceI::GetOutputBrokers.
-     * @details Adds a MemoryMapSynchronisedOutputBroker instance to the inputBrokers.
-     * @param[out] outputBrokers where the BrokerI instances have to be added to.
-     * @param[in] functionName name of the function being queried.
-     * @param[in] gamMemPtr the GAM memory where the signals will be read from.
-     * @return true if the outputBrokers can be successfully configured.
-     */
-    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
 
     /**
      * @brief See StatefulI::PrepareNextState.
@@ -200,94 +214,54 @@ private:
     int32 boardFileDescriptor;
 
     /**
-     * The input mask of the DIO port
+     * The PFI file descriptor
      */
-    uint32 inputPortMask;
+    int32 pfiFileDescriptor;
 
     /**
-     * The output mask of the DIO port
+     * The board status file descriptor
      */
-    uint32 outputPortMask;
+    int32 rootFileDescriptor;
+
+    /**
+     * The input mask of the DIO port
+     */
+    uint32 portMask[PXI6363_NUMBER_OF_PORTS];
 
     /**
      * The current port value.
      */
-    uint32 portValue;
+    uint32 portValue[PXI6363_NUMBER_OF_PORTS];
 
     /**
-     * True if this board is used to write digital values.
+     * If the DIO port is enabled
      */
-    bool outputsEnabled;
+    bool portEnabled[PXI6363_NUMBER_OF_PORTS];
 
     /**
-     * True if this board is used to read digital values.
+     * The inversion mask
      */
-    bool inputsEnabled;
+    uint32 inversionMask[PXI6363_NUMBER_OF_PORTS];
 
     /**
-     * The DI sampling clock source;
+     * If this data source is sync
      */
-    xseries_di_sample_convert_clock_t clockSampleSource;
+    bool triggerSet;
 
     /**
-     * The DI sampling clock polarity;
+     * The number of enabled DIO ports
      */
-    xseries_di_polarity_t clockSamplePolarity;
+    uint32 numberOfPortsEnabled;
 
     /**
-     * The DI scan interval counter source
+     * The number of signals in header
      */
-    xseries_scan_interval_counter_t scanIntervalCounterSource;
+    uint32 headerSize;
 
     /**
-     * The DI interval counter period
+     * The board status
      */
-    uint32 scanIntervalCounterPeriod;
-
-    /**
-     * The DI interval counter delay from the trigger
-     */
-    uint32 scanIntervalCounterDelay;
-
-    /**
-     * The start trigger source
-     */
-    xseries_do_start_trigger_t startTriggerSource;
-
-    /**
-     * The start trigger polarity
-     */
-    xseries_do_polarity_t startTriggerPolarity;
-
-    /**
-     * The update counter source
-     */
-    xseries_do_update_counter_t updateCounterSource;
-
-    /**
-     * The update counter polarity
-     */
-    xseries_do_polarity_t updateCounterPolarity;
-
-    /**
-     * The update interval counter source
-     */
-    xseries_outtimer_update_interval_counter_t updateIntervalCounterSource;
-
-    /**
-     * The update interval counter source
-     */
-    xseries_outtimer_polarity_t updateIntervalCounterPolarity;
-
-    /**
-     * The update interval counter period divisor
-     */
-    uint32 updateIntervalCounterPeriodDivisor;
-
-    /**
-     * The update interval counter delay
-     */
-    uint8 updateIntervalCounterDelay;
+    uint32 boardStatus;
 
 };
 }

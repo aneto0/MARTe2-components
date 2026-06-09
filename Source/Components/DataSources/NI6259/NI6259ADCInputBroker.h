@@ -55,7 +55,7 @@ struct NI6259CopyTableEntry {
     /**
      * The array with the two datasource indirections.
      */
-    void *dataSourcePointer[NUMBER_OF_BUFFERS];
+    void *dataSourcePointer[NI6259ADC_NUMBER_OF_BUFFERS];
     /**
      * The data source offset.
      */

@@ -54,9 +54,14 @@ TEST(NI6368DIOGTest,TestGetNumberOfMemoryBuffers) {
     ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
 }
 
-TEST(NI6368DIOGTest,TestGetSignalMemoryBuffer_False) {
+TEST(NI6368DIOGTest,TestGetSignalMemoryBuffer_False_Non_Init) {
     NI6368DIOTest test;
-    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False());
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False_Non_Init());
+}
+
+TEST(NI6368DIOGTest,TestGetSignalMemoryBuffer_False_Invalid_Index) {
+    NI6368DIOTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False_Invalid_Index());
 }
 
 TEST(NI6368DIOGTest,TestGetSignalMemoryBuffer) {
@@ -104,172 +109,9 @@ TEST(NI6368DIOGTest,TestInitialise_False_NoBoardId) {
     ASSERT_TRUE(test.TestInitialise_False_NoBoardId());
 }
 
-TEST(NI6368DIOGTest,TestInitialise_False_NoInputPortMask) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoInputPortMask());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoOutputPortMask) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoOutputPortMask());
-}
-
 TEST(NI6368DIOGTest,TestInitialise_False_NoSignals) {
     NI6368DIOTest test;
     ASSERT_TRUE(test.TestInitialise_False_NoSignals());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_ClockSampleSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_ClockSampleSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoClockSampleSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoClockSampleSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_BadClockSampleSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_BadClockSampleSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_ClockSamplePolarity) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_ClockSamplePolarity());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoClockSamplePolarity) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoClockSamplePolarity());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_BadClockSamplePolarity) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_BadClockSamplePolarity());
-}
-
-
-TEST(NI6368DIOGTest,TestInitialise_ScanIntervalCounterSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_ScanIntervalCounterSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoScanIntervalCounterSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoScanIntervalCounterSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_BadScanIntervalCounterSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_BadScanIntervalCounterSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoScanIntervalCounterPeriod) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoScanIntervalCounterPeriod());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoScanIntervalCounterDelay) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoScanIntervalCounterDelay());
-}
-
-
-TEST(NI6368DIOGTest,TestInitialise_StartTriggerSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_StartTriggerSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoStartTriggerSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoStartTriggerSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_BadStartTriggerSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_BadStartTriggerSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_UpdateCounterSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_UpdateCounterSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoUpdateCounterSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoUpdateCounterSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_BadUpdateCounterSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_BadUpdateCounterSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_UpdateCounterPolarity) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_UpdateCounterPolarity());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoUpdateCounterPolarity) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoUpdateCounterPolarity());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_BadUpdateCounterPolarity) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_BadUpdateCounterPolarity());
-}
-
-
-TEST(NI6368DIOGTest,TestInitialise_UpdateIntervalCounterSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_UpdateIntervalCounterSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoUpdateIntervalCounterSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoUpdateIntervalCounterSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_BadUpdateIntervalCounterSource) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_BadUpdateIntervalCounterSource());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_UpdateIntervalCounterPolarity) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_UpdateIntervalCounterPolarity());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoUpdateIntervalCounterPolarity) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoUpdateIntervalCounterPolarity());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_BadUpdateIntervalCounterPolarity) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_BadUpdateIntervalCounterPolarity());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoUpdateIntervalCounterPeriodDivisor) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoUpdateIntervalCounterPeriodDivisor());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_NoUpdateIntervalCounterDelay) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoUpdateIntervalCounterDelay());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_InvalidUpdateIntervalCounterPeriodDivisor) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_InvalidUpdateIntervalCounterPeriodDivisor());
-}
-
-TEST(NI6368DIOGTest,TestInitialise_False_InvalidUpdateIntervalCounterDelay) {
-    NI6368DIOTest test;
-    ASSERT_TRUE(test.TestInitialise_False_InvalidUpdateIntervalCounterDelay());
 }
 
 TEST(NI6368DIOGTest,TestSetConfiguredDatabasel) {

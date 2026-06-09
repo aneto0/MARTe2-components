@@ -44,8 +44,9 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 class NI6259DIOTestGAM: public MARTe::GAM {
-public:
-    CLASS_REGISTER_DECLARATION()NI6259DIOTestGAM () : GAM() {
+public:CLASS_REGISTER_DECLARATION()
+    NI6259DIOTestGAM() :
+            GAM() {
         inSignalPtr = NULL;
         outSignalPtr = NULL;
         totalSamples = 0;
@@ -75,7 +76,7 @@ public:
 };
 CLASS_REGISTER(NI6259DIOTestGAM, "1.0")
 
-static bool TestIntegratedInApplication(const MARTe::char8 * const config1) {
+static bool TestIntegratedInApplication(const MARTe::char8 *const config1) {
     using namespace MARTe;
 
     ConfigurationDatabase cdb;
@@ -129,7 +130,71 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config1) {
 }
 
 //One port base configuration
-static const MARTe::char8 * const config1 = ""
+static const MARTe::char8 *const config1_full = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6259DIOTestGAM"
+        "            InputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                }"
+        "            }"
+        "            OutputSignals = {"
+        "                PORT0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = uint32"
+        "                    Trigger = 1"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6259_0 = {"
+        "            Class = NI6259DIO"
+        "            DeviceName = \"/dev/pxi6259\""
+        "            BoardId = 0"
+        "            Signals = {"
+        "                Status = {"
+        "                   Type = uint32"
+        "                }"
+        "                PORT0_0 = {"
+        "                   Type = uint32"
+        "                   PortId = 0"
+        "                   Mask = 0x1"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//One port base configuration
+static const MARTe::char8 *const config1 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -190,7 +255,7 @@ static const MARTe::char8 * const config1 = ""
         "}";
 
 //Two ports configuration. One port writing with no trigger.
-static const MARTe::char8 * const config2 = ""
+static const MARTe::char8 *const config2 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -271,7 +336,7 @@ static const MARTe::char8 * const config2 = ""
         "}";
 
 //Three ports configuration. One port writing with no trigger.
-static const MARTe::char8 * const config3 = ""
+static const MARTe::char8 *const config3 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -365,7 +430,7 @@ static const MARTe::char8 * const config3 = ""
         "}";
 
 //Configuration with no channels.
-static const MARTe::char8 * const config4 = ""
+static const MARTe::char8 *const config4 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -430,7 +495,7 @@ static const MARTe::char8 * const config4 = ""
         "}";
 
 //One port base configuration with signal type mismatch
-static const MARTe::char8 * const config5 = ""
+static const MARTe::char8 *const config5 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -491,7 +556,7 @@ static const MARTe::char8 * const config5 = ""
         "}";
 
 //One port base configuration with more than one sample
-static const MARTe::char8 * const config6 = ""
+static const MARTe::char8 *const config6 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -546,7 +611,7 @@ static const MARTe::char8 * const config6 = ""
         "}";
 
 //One port base configuration with a wrong device name
-static const MARTe::char8 * const config7 = ""
+static const MARTe::char8 *const config7 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -607,7 +672,7 @@ static const MARTe::char8 * const config7 = ""
         "}";
 
 //One port base configuration without specifying a triggering signal
-static const MARTe::char8 * const config8 = ""
+static const MARTe::char8 *const config8 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -666,9 +731,8 @@ static const MARTe::char8 * const config8 = ""
         "    }"
         "}";
 
-
 //One port base configuration with only inputs
-static const MARTe::char8 * const config9 = ""
+static const MARTe::char8 *const config9 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -722,7 +786,7 @@ static const MARTe::char8 * const config9 = ""
         "}";
 
 //One port base configuration with only outputs
-static const MARTe::char8 * const config10 = ""
+static const MARTe::char8 *const config10 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -796,20 +860,42 @@ bool NI6259DIOTest::TestGetNumberOfMemoryBuffers() {
     return (ni6259DIO.GetNumberOfMemoryBuffers() == 1u);
 }
 
-bool NI6259DIOTest::TestGetSignalMemoryBuffer() {
+bool NI6259DIOTest::TestGetSignalMemoryBuffer_False_Non_Init() {
     using namespace MARTe;
     NI6259DIO test;
     uint32 *dio0;
-    bool ok = test.GetSignalMemoryBuffer(0, 0, (void *&) dio0);
-    ok &= (dio0 != NULL);
+    bool ok = !test.GetSignalMemoryBuffer(0, 0, (void*&) dio0);
     return ok;
 }
 
-bool NI6259DIOTest::TestGetSignalMemoryBuffer_False() {
+bool NI6259DIOTest::TestGetSignalMemoryBuffer_False_Invalid_Index() {
     using namespace MARTe;
     NI6259DIO test;
     uint32 *ptr;
-    return !test.GetSignalMemoryBuffer(PXI6259_NUMBER_OF_PORTS, 0, (void *&) ptr);
+    return !test.GetSignalMemoryBuffer(PXI6259_NUMBER_OF_PORTS + 2u, 0, (void*&) ptr);
+}
+
+bool NI6259DIOTest::TestGetSignalMemoryBuffer() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1_full;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
+    NI6259DIO test;
+    if (ok) {
+        ok = test.Initialise(cdb);
+    }
+    if (ok) {
+        uint32 *status;
+        ok = test.GetSignalMemoryBuffer(0, 0, (void*&) status);
+        ok &= (status != NULL);
+        uint32 *dio0;
+        ok &= test.GetSignalMemoryBuffer(1, 0, (void*&) dio0);
+        ok &= (dio0 != NULL);
+    }
+    return ok;
 }
 
 bool NI6259DIOTest::TestGetBrokerName() {
@@ -817,13 +903,17 @@ bool NI6259DIOTest::TestGetBrokerName() {
     NI6259DIO test;
     ConfigurationDatabase config;
     StreamString brokerName = test.GetBrokerName(config, InputSignals);
-    bool ok = (brokerName == "MemoryMapSynchronisedInputBroker");
+    bool ok = (brokerName == "MemoryMapInputBroker");
     if (ok) {
         brokerName = test.GetBrokerName(config, OutputSignals);
         ok = (brokerName == "MemoryMapOutputBroker");
     }
     if (ok) {
         config.Write("Trigger", 1);
+        brokerName = test.GetBrokerName(config, InputSignals);
+        ok = (brokerName == "MemoryMapSynchronisedInputBroker");
+    }
+    if (ok) {
         brokerName = test.GetBrokerName(config, OutputSignals);
         ok = (brokerName == "MemoryMapSynchronisedOutputBroker");
     }

@@ -49,6 +49,8 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 CCS_VER = $(shell codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g')
 CPPFLAGS += -DCCS_VER=$(CCS_VER)
 
+OPTIM = -O3
+
 all: $(OBJS)    \
     $(BUILD_DIR)/NI6368$(LIBEXT) \
     $(BUILD_DIR)/NI6368$(DLLEXT)

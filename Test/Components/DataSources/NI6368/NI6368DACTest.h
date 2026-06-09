@@ -56,10 +56,12 @@ public:
      */
     bool TestGetNumberOfMemoryBuffers();
 
+    bool TestGetSignalMemoryBuffer_False_Non_Init();
+
     /**
      * @brief Tests the GetSignalMemoryBuffer method with an invalid signal index.
      */
-    bool TestGetSignalMemoryBuffer_False();
+    bool TestGetSignalMemoryBuffer_False_Invalid_Index();
 
     /**
      * @brief Tests the GetSignalMemoryBuffer method.
@@ -142,11 +144,6 @@ public:
     bool TestInitialise_StartTriggerSource();
 
     /**
-     * @brief Tests the Initialise method without specifying a start trigger sources.
-     */
-    bool TestInitialise_False_NoStartTriggerSource();
-
-    /**
      * @brief Tests the Initialise method with an invalid start trigger source.
      */
     bool TestInitialise_False_BadStartTriggerSource();
@@ -172,11 +169,6 @@ public:
     bool TestInitialise_UpdateCounterSource();
 
     /**
-     * @brief Tests the Initialise method without specifying an update counter source.
-     */
-    bool TestInitialise_False_NoUpdateCounterSource();
-
-    /**
      * @brief Tests the Initialise method with an invalid update counter source.
      */
     bool TestInitialise_False_BadUpdateCounterSource();
@@ -185,11 +177,6 @@ public:
      * @brief Tests the Initialise method with all the possible update counter polarities.
      */
     bool TestInitialise_UpdateCounterPolarity();
-
-    /**
-     * @brief Tests the Initialise method without specifying an update counter polarity.
-     */
-    bool TestInitialise_False_NoUpdateCounterPolarity();
 
     /**
      * @brief Tests the Initialise method with an invalid update counter polarity.
@@ -202,11 +189,6 @@ public:
     bool TestInitialise_UpdateIntervalCounterSource();
 
     /**
-     * @brief Tests the Initialise method without specifying an update interval counter source.
-     */
-    bool TestInitialise_False_NoUpdateIntervalCounterSource();
-
-    /**
      * @brief Tests the Initialise method with an invalid update interval counter source.
      */
     bool TestInitialise_False_BadUpdateIntervalCounterSource();
@@ -217,24 +199,9 @@ public:
     bool TestInitialise_UpdateIntervalCounterPolarity();
 
     /**
-     * @brief Tests the Initialise method without specifying an update interval counter polarity.
-     */
-    bool TestInitialise_False_NoUpdateIntervalCounterPolarity();
-
-    /**
      * @brief Tests the Initialise method with an invalid update interval counter polarity.
      */
     bool TestInitialise_False_BadUpdateIntervalCounterPolarity();
-
-    /**
-     * @brief Tests the Initialise method without specifying the UpdateIntervalCounterPeriodDivisor.
-     */
-    bool TestInitialise_False_NoUpdateIntervalCounterPeriodDivisor();
-
-    /**
-     * @brief Tests the Initialise method without specifying the UpdateIntervalCounterDelay.
-     */
-    bool TestInitialise_False_NoUpdateIntervalCounterDelay();
 
     /**
      * @brief Tests the Initialise method with an invalid UpdateIntervalCounterPeriod.
@@ -284,12 +251,12 @@ public:
     /**
      * @brief Tests the Initialise method with a non monotonically increasing channel identifier.
      */
-    bool TestInitialise_False_NotMonotonicallyIncreasingChannelId();
+    bool TestInitialise_NotMonotonicallyIncreasingChannelId();
 
     /**
      * @brief Tests the SetConfiguredDatabase specifying more than one sample.
      */
-    bool TestSetConfiguredDatabase_False_MoreThanOneSample();
+    bool TestSetConfiguredDatabase_MoreThanOneSample();
 };
 
 /*---------------------------------------------------------------------------*/

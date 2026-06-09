@@ -59,7 +59,12 @@ public:
     /**
      * @brief Tests the GetSignalMemoryBuffer method with an invalid signal index.
      */
-    bool TestGetSignalMemoryBuffer_False();
+    bool TestGetSignalMemoryBuffer_False_Non_Init();
+
+    /**
+     * @brief Tests the GetSignalMemoryBuffer method with an invalid signal index.
+     */
+    bool TestGetSignalMemoryBuffer_False_Invalid_Index();
 
     /**
      * @brief Tests the GetSignalMemoryBuffer method.

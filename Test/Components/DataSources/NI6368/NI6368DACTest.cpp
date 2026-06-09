@@ -44,10 +44,10 @@
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
 class NI6368DACTestGAM: public MARTe::GAM {
-public:
-    CLASS_REGISTER_DECLARATION()
+public:CLASS_REGISTER_DECLARATION()
 
-NI6368DACTestGAM    () : GAM() {
+    NI6368DACTestGAM() :
+            GAM() {
         voltage = 1;
         signalPtr = NULL;
         totalSamples = 0;
@@ -65,7 +65,7 @@ NI6368DACTestGAM    () : GAM() {
 
     bool Setup() {
         using namespace MARTe;
-        signalPtr = reinterpret_cast<float *>(GetOutputSignalMemory(0));
+        signalPtr = reinterpret_cast<float*>(GetOutputSignalMemory(0));
         return true;
     }
 
@@ -76,7 +76,7 @@ NI6368DACTestGAM    () : GAM() {
 };
 CLASS_REGISTER(NI6368DACTestGAM, "1.0")
 
-static bool TestIntegratedInApplication(const MARTe::char8 * const config1) {
+static bool TestIntegratedInApplication(const MARTe::char8 *const config1) {
     using namespace MARTe;
 
     ConfigurationDatabase cdb;
@@ -129,8 +129,11 @@ static bool TestIntegratedInApplication(const MARTe::char8 * const config1) {
     return ok;
 }
 
-static bool PatchConfiguration(const MARTe::char8 * const config1, const MARTe::char8 * const absoluteParameterLocation,
-                               const MARTe::char8 * const parameterToPatch, const MARTe::char8 * const valueToPatch, xseries_ao_conf_t *conf) {
+static bool PatchConfiguration(const MARTe::char8 *const config1,
+                               const MARTe::char8 *const absoluteParameterLocation,
+                               const MARTe::char8 *const parameterToPatch,
+                               const MARTe::char8 *const valueToPatch,
+                               xseries_ao_conf_t *conf) {
     using namespace MARTe;
 
     ConfigurationDatabase cdb;
@@ -173,7 +176,7 @@ static bool PatchConfiguration(const MARTe::char8 * const config1, const MARTe::
 }
 
 //One channel base configuration
-static const MARTe::char8 * const config1 = ""
+static const MARTe::char8 *const config1 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -184,7 +187,7 @@ static const MARTe::char8 * const config1 = ""
         "                DAC0_0 = {"
         "                    DataSource = NI6368_0"
         "                    Type = float32"
-        "                    NumberOfElements = 1000"
+        "                    Samples = 1000"
         "                    Trigger = 1"
         "                }"
         "            }"
@@ -236,7 +239,7 @@ static const MARTe::char8 * const config1 = ""
         "}";
 
 //Four channels base configuration
-static const MARTe::char8 * const config2 = ""
+static const MARTe::char8 *const config2 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -329,7 +332,7 @@ static const MARTe::char8 * const config2 = ""
         "}";
 
 //One channel base configuration with no signals defined
-static const MARTe::char8 * const config3 = ""
+static const MARTe::char8 *const config3 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -411,7 +414,7 @@ static const MARTe::char8 * const config3 = ""
         "}";
 
 //One channel base configuration with a wrong signal type
-static const MARTe::char8 * const config4 = ""
+static const MARTe::char8 *const config4 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -474,7 +477,7 @@ static const MARTe::char8 * const config4 = ""
         "}";
 
 //One channel base configuration with more than one sample
-static const MARTe::char8 * const config5 = ""
+static const MARTe::char8 *const config5 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -537,7 +540,7 @@ static const MARTe::char8 * const config5 = ""
         "}";
 
 //One channel base configuration with a wrong device name
-static const MARTe::char8 * const config6 = ""
+static const MARTe::char8 *const config6 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -600,7 +603,7 @@ static const MARTe::char8 * const config6 = ""
         "}";
 
 //Two channel base configuration with two GAMs
-static const MARTe::char8 * const config7 = ""
+static const MARTe::char8 *const config7 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -678,7 +681,7 @@ static const MARTe::char8 * const config7 = ""
         "}";
 
 //One channel base configuration without specifying triggers
-static const MARTe::char8 * const config8 = ""
+static const MARTe::char8 *const config8 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -740,7 +743,7 @@ static const MARTe::char8 * const config8 = ""
         "}";
 
 //Two channel base configuration with different number of elements
-static const MARTe::char8 * const config9 = ""
+static const MARTe::char8 *const config9 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -751,15 +754,13 @@ static const MARTe::char8 * const config9 = ""
         "                DAC0_0 = {"
         "                    DataSource = NI6368_0"
         "                    Type = float32"
-        "                    Samples = 1"
-        "                    NumberOfElements = 10"
+        "                    Samples = 10"
         "                    Trigger = 1"
         "                }"
         "                DAC1_0 = {"
         "                    DataSource = NI6368_0"
         "                    Type = float32"
-        "                    Samples = 1"
-        "                    NumberOfElements = 9"
+        "                    Samples = 10"
         "                }"
         "            }"
         "        }"
@@ -815,7 +816,7 @@ static const MARTe::char8 * const config9 = ""
         "}";
 
 //Two channel base configuration with more than one sample
-static const MARTe::char8 * const config10 = ""
+static const MARTe::char8 *const config10 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
         "    +Functions = {"
@@ -826,15 +827,13 @@ static const MARTe::char8 * const config10 = ""
         "                DAC0_0 = {"
         "                    DataSource = NI6368_0"
         "                    Type = float32"
-        "                    Samples = 1"
-        "                    NumberOfElements = 10"
+        "                    Samples = 10"
         "                    Trigger = 1"
         "                }"
         "                DAC1_0 = {"
         "                    DataSource = NI6368_0"
         "                    Type = float32"
-        "                    Samples = 2"
-        "                    NumberOfElements = 10"
+        "                    Samples = 10"
         "                }"
         "            }"
         "        }"
@@ -911,24 +910,54 @@ bool NI6368DACTest::TestGetNumberOfMemoryBuffers() {
 
 bool NI6368DACTest::TestGetSignalMemoryBuffer() {
     using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
     NI6368DAC test;
-    float32 *dac;
-    bool ok = test.GetSignalMemoryBuffer(0, 0, (void *&) dac);
-    ok &= (dac == NULL);
-    ok = test.GetSignalMemoryBuffer(1, 0, (void *&) dac);
-    ok &= (dac == NULL);
-    ok = test.GetSignalMemoryBuffer(2, 0, (void *&) dac);
-    ok &= (dac == NULL);
-    ok = test.GetSignalMemoryBuffer(3, 0, (void *&) dac);
-    ok &= (dac == NULL);
+    if (ok) {
+        ok = test.Initialise(cdb);
+    }
+    if (ok) {
+        float32 *dac;
+        ok = test.GetSignalMemoryBuffer(0, 0, (void*&) dac);
+        ok &= (dac == NULL);
+        ok &= test.GetSignalMemoryBuffer(1, 0, (void*&) dac);
+        ok &= (dac == NULL);
+        ok &= test.GetSignalMemoryBuffer(2, 0, (void*&) dac);
+        ok &= (dac == NULL);
+        ok &= test.GetSignalMemoryBuffer(3, 0, (void*&) dac);
+        ok &= (dac == NULL);
+    }
     return ok;
 }
 
-bool NI6368DACTest::TestGetSignalMemoryBuffer_False() {
+bool NI6368DACTest::TestGetSignalMemoryBuffer_False_Non_Init() {
     using namespace MARTe;
     NI6368DAC test;
     uint32 *ptr;
-    return !test.GetSignalMemoryBuffer(NI6368DAC_MAX_CHANNELS, 0, (void *&) ptr);
+    return !test.GetSignalMemoryBuffer(0u, 0, (void*&) ptr);
+}
+
+bool NI6368DACTest::TestGetSignalMemoryBuffer_False_Invalid_Index() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
+    NI6368DAC test;
+    if (ok) {
+        ok = test.Initialise(cdb);
+    }
+    if (ok) {
+        uint32 *ptr;
+        ok = !test.GetSignalMemoryBuffer(NI6368DAC_MAX_CHANNELS + 2u, 0, (void*&) ptr);
+    }
+    return ok;
 }
 
 bool NI6368DACTest::TestGetBrokerName() {
@@ -936,7 +965,7 @@ bool NI6368DACTest::TestGetBrokerName() {
     NI6368DAC test;
     ConfigurationDatabase config;
     StreamString brokerName = test.GetBrokerName(config, InputSignals);
-    bool ok = (brokerName == "");
+    bool ok = (brokerName == "MemoryMapInputBroker");
     if (ok) {
         brokerName = test.GetBrokerName(config, OutputSignals);
         ok = (brokerName == "MemoryMapOutputBroker");
@@ -945,6 +974,11 @@ bool NI6368DACTest::TestGetBrokerName() {
         config.Write("Trigger", 1);
         brokerName = test.GetBrokerName(config, OutputSignals);
         ok = (brokerName == "MemoryMapSynchronisedOutputBroker");
+    }
+    if (ok) {
+        config.Write("Trigger", 1);
+        brokerName = test.GetBrokerName(config, InputSignals);
+        ok = (brokerName == "MemoryMapSynchronisedInputBroker");
     }
 
     return ok;
@@ -1588,22 +1622,6 @@ bool NI6368DACTest::TestInitialise_StartTriggerSource() {
     return ok;
 }
 
-bool NI6368DACTest::TestInitialise_False_NoStartTriggerSource() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = config1;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
-    cdb.Delete("StartTriggerSource");
-    NI6368DAC test;
-    if (ok) {
-        ok = !test.Initialise(cdb);
-    }
-    return ok;
-}
-
 bool NI6368DACTest::TestInitialise_False_BadStartTriggerSource() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
@@ -2105,22 +2123,6 @@ bool NI6368DACTest::TestInitialise_UpdateCounterSource() {
     return ok;
 }
 
-bool NI6368DACTest::TestInitialise_False_NoUpdateCounterSource() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = config1;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
-    cdb.Delete("UpdateCounterSource");
-    NI6368DAC test;
-    if (ok) {
-        ok = !test.Initialise(cdb);
-    }
-    return ok;
-}
-
 bool NI6368DACTest::TestInitialise_False_BadUpdateCounterSource() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
@@ -2162,21 +2164,6 @@ bool NI6368DACTest::TestInitialise_UpdateCounterPolarity() {
     return ok;
 }
 
-bool NI6368DACTest::TestInitialise_False_NoUpdateCounterPolarity() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = config1;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
-    cdb.Delete("UpdateCounterPolarity");
-    NI6368DAC test;
-    if (ok) {
-        ok = !test.Initialise(cdb);
-    }
-    return ok;
-}
 
 bool NI6368DACTest::TestInitialise_False_BadUpdateCounterPolarity() {
     using namespace MARTe;
@@ -2499,22 +2486,6 @@ bool NI6368DACTest::TestInitialise_UpdateIntervalCounterSource() {
     return ok;
 }
 
-bool NI6368DACTest::TestInitialise_False_NoUpdateIntervalCounterSource() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = config1;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
-    cdb.Delete("UpdateIntervalCounterSource");
-    NI6368DAC test;
-    if (ok) {
-        ok = !test.Initialise(cdb);
-    }
-    return ok;
-}
-
 bool NI6368DACTest::TestInitialise_False_BadUpdateIntervalCounterSource() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
@@ -2556,22 +2527,6 @@ bool NI6368DACTest::TestInitialise_UpdateIntervalCounterPolarity() {
     return ok;
 }
 
-bool NI6368DACTest::TestInitialise_False_NoUpdateIntervalCounterPolarity() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = config1;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
-    cdb.Delete("UpdateIntervalCounterPolarity");
-    NI6368DAC test;
-    if (ok) {
-        ok = !test.Initialise(cdb);
-    }
-    return ok;
-}
-
 bool NI6368DACTest::TestInitialise_False_BadUpdateIntervalCounterPolarity() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
@@ -2589,37 +2544,6 @@ bool NI6368DACTest::TestInitialise_False_BadUpdateIntervalCounterPolarity() {
     return ok;
 }
 
-bool NI6368DACTest::TestInitialise_False_NoUpdateIntervalCounterPeriodDivisor() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = config1;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
-    cdb.Delete("UpdateIntervalCounterPeriodDivisor");
-    NI6368DAC test;
-    if (ok) {
-        ok = !test.Initialise(cdb);
-    }
-    return ok;
-}
-
-bool NI6368DACTest::TestInitialise_False_NoUpdateIntervalCounterDelay() {
-    using namespace MARTe;
-    ConfigurationDatabase cdb;
-    StreamString configStream = config1;
-    configStream.Seek(0);
-    StandardParser parser(configStream, cdb);
-    bool ok = parser.Parse();
-    cdb.MoveAbsolute("$Test.+Data.+NI6368_0");
-    cdb.Delete("UpdateIntervalCounterDelay");
-    NI6368DAC test;
-    if (ok) {
-        ok = !test.Initialise(cdb);
-    }
-    return ok;
-}
 
 bool NI6368DACTest::TestInitialise_False_InvalidUpdateIntervalCounterPeriodDivisor() {
     using namespace MARTe;
@@ -2723,11 +2647,11 @@ bool NI6368DACTest::TestSetConfiguredDatabase_False_NoTriggers() {
     return !TestIntegratedInApplication(config8);
 }
 
-bool NI6368DACTest::TestInitialise_False_NotMonotonicallyIncreasingChannelId() {
-    return !TestIntegratedInApplication(config9);
+bool NI6368DACTest::TestInitialise_NotMonotonicallyIncreasingChannelId() {
+    return TestIntegratedInApplication(config9);
 }
 
-bool NI6368DACTest::TestSetConfiguredDatabase_False_MoreThanOneSample() {
-    return !TestIntegratedInApplication(config10);
+bool NI6368DACTest::TestSetConfiguredDatabase_MoreThanOneSample() {
+    return TestIntegratedInApplication(config10);
 }
 

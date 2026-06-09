@@ -54,9 +54,14 @@ TEST(NI6259ADCGTest,TestGetNumberOfMemoryBuffers) {
     ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
 }
 
-TEST(NI6259ADCGTest,TestGetSignalMemoryBuffer_False) {
+TEST(NI6259ADCGTest,TestGetSignalMemoryBuffer_False_Non_Init) {
     NI6259ADCTest test;
-    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False());
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False_Non_Init());
+}
+
+TEST(NI6259ADCGTest,TestGetSignalMemoryBuffer_False_Invalid_Index) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False_Invalid_Index());
 }
 
 TEST(NI6259ADCGTest,TestGetSignalMemoryBuffer) {
@@ -327,6 +332,11 @@ TEST(NI6259ADCGTest,TestSetConfiguredDatabase_NotSynchronisingGAM) {
 TEST(NI6259ADCGTest,TestIntegrated) {
     NI6259ADCTest test;
     ASSERT_TRUE(test.TestIntegrated());
+}
+
+TEST(NI6259ADCGTest,TestIntegrated_IndependentRealTimeThreadExecutionMode) {
+    NI6259ADCTest test;
+    ASSERT_TRUE(test.TestIntegrated_IndependentRealTimeThreadExecutionMode());
 }
 
 TEST(NI6259ADCGTest,TestIntegrated_RealTimeThreadExecutionMode) {

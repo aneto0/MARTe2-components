@@ -56,10 +56,12 @@ public:
      */
     bool TestGetNumberOfMemoryBuffers();
 
+    bool TestGetSignalMemoryBuffer_False_Non_Init();
+
     /**
      * @brief Tests the GetSignalMemoryBuffer method with an invalid signal index.
      */
-    bool TestGetSignalMemoryBuffer_False();
+    bool TestGetSignalMemoryBuffer_False_Invalid_Index();
 
     /**
      * @brief Tests the GetSignalMemoryBuffer method.
@@ -107,170 +109,9 @@ public:
     bool TestInitialise_False_NoBoardId();
 
     /**
-     * @brief Tests the Initialise method without specifying the InputPortMask.
-     */
-    bool TestInitialise_False_NoInputPortMask();
-
-    /**
-     * @brief Tests the Initialise method without specifying the OutputPortMask.
-     */
-    bool TestInitialise_False_NoOutputPortMask();
-
-    /**
      * @brief Tests the Initialise method without specifying the signals section.
      */
     bool TestInitialise_False_NoSignals();
-
-    /**
-     * @brief Tests the Initialise method with all the possible clock sources.
-     */
-    bool TestInitialise_ClockSampleSource();
-
-    /**
-     * @brief Tests the Initialise method without specifying a clock source.
-     */
-    bool TestInitialise_False_NoClockSampleSource();
-
-    /**
-     * @brief Tests the Initialise method with an invalid clock source.
-     */
-    bool TestInitialise_False_BadClockSampleSource();
-
-    /**
-     * @brief Tests the Initialise method with all the possible clock polarities.
-     */
-    bool TestInitialise_ClockSamplePolarity();
-
-    /**
-     * @brief Tests the Initialise method without specifying a clock polarity.
-     */
-    bool TestInitialise_False_NoClockSamplePolarity();
-
-    /**
-     * @brief Tests the Initialise method with an invalid clock polarity.
-     */
-    bool TestInitialise_False_BadClockSamplePolarity();
-
-    /**
-     * @brief Tests the Initialise method with all the possible ScanIntervalCounterSources.
-     */
-    bool TestInitialise_ScanIntervalCounterSource();
-
-    /**
-     * @brief Tests the Initialise method without specifying a ScanIntervalCounterSource.
-     */
-    bool TestInitialise_False_NoScanIntervalCounterSource();
-
-    /**
-     * @brief Tests the Initialise method with an invalid ScanIntervalCounterSource.
-     */
-    bool TestInitialise_False_BadScanIntervalCounterSource();
-
-    /**
-     * @brief Tests the Initialise method without specifying the ScanIntervalCounterPeriod.
-     */
-    bool TestInitialise_False_NoScanIntervalCounterPeriod();
-
-    /**
-     * @brief Tests the Initialise method without specifying the ScanIntervalCounterDelay.
-     */
-    bool TestInitialise_False_NoScanIntervalCounterDelay();
-
-
-    /**
-     * @brief Tests the Initialise method with all the possible start trigger sources.
-     */
-    bool TestInitialise_StartTriggerSource();
-
-    /**
-     * @brief Tests the Initialise method without specifying a start trigger sources.
-     */
-    bool TestInitialise_False_NoStartTriggerSource();
-
-    /**
-     * @brief Tests the Initialise method with an invalid start trigger source.
-     */
-    bool TestInitialise_False_BadStartTriggerSource();
-
-    /**
-     * @brief Tests the Initialise method with all the possible update counter sources.
-     */
-    bool TestInitialise_UpdateCounterSource();
-
-    /**
-     * @brief Tests the Initialise method without specifying an update counter source.
-     */
-    bool TestInitialise_False_NoUpdateCounterSource();
-
-    /**
-     * @brief Tests the Initialise method with an invalid update counter source.
-     */
-    bool TestInitialise_False_BadUpdateCounterSource();
-
-    /**
-     * @brief Tests the Initialise method with all the possible update counter polarities.
-     */
-    bool TestInitialise_UpdateCounterPolarity();
-
-    /**
-     * @brief Tests the Initialise method without specifying an update counter polarity.
-     */
-    bool TestInitialise_False_NoUpdateCounterPolarity();
-
-    /**
-     * @brief Tests the Initialise method with an invalid update counter polarity.
-     */
-    bool TestInitialise_False_BadUpdateCounterPolarity();
-
-    /**
-     * @brief Tests the Initialise method with all the possible update interval counter sources.
-     */
-    bool TestInitialise_UpdateIntervalCounterSource();
-
-    /**
-     * @brief Tests the Initialise method without specifying an update interval counter source.
-     */
-    bool TestInitialise_False_NoUpdateIntervalCounterSource();
-
-    /**
-     * @brief Tests the Initialise method with an invalid update interval counter source.
-     */
-    bool TestInitialise_False_BadUpdateIntervalCounterSource();
-
-    /**
-     * @brief Tests the Initialise method with all the possible update interval counter polarities.
-     */
-    bool TestInitialise_UpdateIntervalCounterPolarity();
-
-    /**
-     * @brief Tests the Initialise method without specifying an update interval counter polarity.
-     */
-    bool TestInitialise_False_NoUpdateIntervalCounterPolarity();
-
-    /**
-     * @brief Tests the Initialise method with an invalid update interval counter polarity.
-     */
-    bool TestInitialise_False_BadUpdateIntervalCounterPolarity();
-
-    /**
-     * @brief Tests the Initialise method without specifying the UpdateIntervalCounterPeriodDivisor.
-     */
-    bool TestInitialise_False_NoUpdateIntervalCounterPeriodDivisor();
-
-    /**
-     * @brief Tests the Initialise method without specifying the UpdateIntervalCounterDelay.
-     */
-    bool TestInitialise_False_NoUpdateIntervalCounterDelay();
-
-    /**
-     * @brief Tests the Initialise method with an invalid UpdateIntervalCounterPeriod.
-     */
-    bool TestInitialise_False_InvalidUpdateIntervalCounterPeriodDivisor();
-
-    /**
-     * @brief Tests the Initialise method with an invalid UpdateIntervalDivisorCounterDelay.
-     */
-    bool TestInitialise_False_InvalidUpdateIntervalCounterDelay();
 
 
     /**

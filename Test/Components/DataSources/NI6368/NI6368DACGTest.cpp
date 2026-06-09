@@ -54,9 +54,15 @@ TEST(NI6368DACGTest,TestGetNumberOfMemoryBuffers) {
     ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
 }
 
-TEST(NI6368DACGTest,TestGetSignalMemoryBuffer_False) {
+
+TEST(NI6368DACGTest,TestGetSignalMemoryBuffer_False_Non_Init) {
     NI6368DACTest test;
-    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False());
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False_Non_Init());
+}
+
+TEST(NI6368DACGTest,TestGetSignalMemoryBuffer_False_Invalid_Index) {
+    NI6368DACTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False_Invalid_Index());
 }
 
 TEST(NI6368DACGTest,TestGetSignalMemoryBuffer) {
@@ -139,11 +145,6 @@ TEST(NI6368DACGTest,TestInitialise_StartTriggerSource) {
     ASSERT_TRUE(test.TestInitialise_StartTriggerSource());
 }
 
-TEST(NI6368DACGTest,TestInitialise_False_NoStartTriggerSource) {
-    NI6368DACTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoStartTriggerSource());
-}
-
 TEST(NI6368DACGTest,TestInitialise_False_BadStartTriggerSource) {
     NI6368DACTest test;
     ASSERT_TRUE(test.TestInitialise_False_BadStartTriggerSource());
@@ -154,11 +155,6 @@ TEST(NI6368DACGTest,TestInitialise_UpdateCounterSource) {
     ASSERT_TRUE(test.TestInitialise_UpdateCounterSource());
 }
 
-TEST(NI6368DACGTest,TestInitialise_False_NoUpdateCounterSource) {
-    NI6368DACTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoUpdateCounterSource());
-}
-
 TEST(NI6368DACGTest,TestInitialise_False_BadUpdateCounterSource) {
     NI6368DACTest test;
     ASSERT_TRUE(test.TestInitialise_False_BadUpdateCounterSource());
@@ -167,11 +163,6 @@ TEST(NI6368DACGTest,TestInitialise_False_BadUpdateCounterSource) {
 TEST(NI6368DACGTest,TestInitialise_UpdateCounterPolarity) {
     NI6368DACTest test;
     ASSERT_TRUE(test.TestInitialise_UpdateCounterPolarity());
-}
-
-TEST(NI6368DACGTest,TestInitialise_False_NoUpdateCounterPolarity) {
-    NI6368DACTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoUpdateCounterPolarity());
 }
 
 TEST(NI6368DACGTest,TestInitialise_False_BadUpdateCounterPolarity) {
@@ -185,11 +176,6 @@ TEST(NI6368DACGTest,TestInitialise_UpdateIntervalCounterSource) {
     ASSERT_TRUE(test.TestInitialise_UpdateIntervalCounterSource());
 }
 
-TEST(NI6368DACGTest,TestInitialise_False_NoUpdateIntervalCounterSource) {
-    NI6368DACTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoUpdateIntervalCounterSource());
-}
-
 TEST(NI6368DACGTest,TestInitialise_False_BadUpdateIntervalCounterSource) {
     NI6368DACTest test;
     ASSERT_TRUE(test.TestInitialise_False_BadUpdateIntervalCounterSource());
@@ -200,24 +186,9 @@ TEST(NI6368DACGTest,TestInitialise_UpdateIntervalCounterPolarity) {
     ASSERT_TRUE(test.TestInitialise_UpdateIntervalCounterPolarity());
 }
 
-TEST(NI6368DACGTest,TestInitialise_False_NoUpdateIntervalCounterPolarity) {
-    NI6368DACTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoUpdateIntervalCounterPolarity());
-}
-
 TEST(NI6368DACGTest,TestInitialise_False_BadUpdateIntervalCounterPolarity) {
     NI6368DACTest test;
     ASSERT_TRUE(test.TestInitialise_False_BadUpdateIntervalCounterPolarity());
-}
-
-TEST(NI6368DACGTest,TestInitialise_False_NoUpdateIntervalCounterPeriodDivisor) {
-    NI6368DACTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoUpdateIntervalCounterPeriodDivisor());
-}
-
-TEST(NI6368DACGTest,TestInitialise_False_NoUpdateIntervalCounterDelay) {
-    NI6368DACTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoUpdateIntervalCounterDelay());
 }
 
 TEST(NI6368DACGTest,TestInitialise_False_InvalidUpdateIntervalCounterPeriodDivisor) {
@@ -230,14 +201,14 @@ TEST(NI6368DACGTest,TestInitialise_False_InvalidUpdateIntervalCounterDelay) {
     ASSERT_TRUE(test.TestInitialise_False_InvalidUpdateIntervalCounterDelay());
 }
 
-TEST(NI6368DACGTest,TestInitialise_False_NotMonotonicallyIncreasingChannelId) {
+TEST(NI6368DACGTest,TestInitialise_NotMonotonicallyIncreasingChannelId) {
     NI6368DACTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NotMonotonicallyIncreasingChannelId());
+    ASSERT_TRUE(test.TestInitialise_NotMonotonicallyIncreasingChannelId());
 }
 
-TEST(NI6368DACGTest,TestSetConfiguredDatabase_False_MoreThanOneSample) {
+TEST(NI6368DACGTest,TestSetConfiguredDatabase_MoreThanOneSample) {
     NI6368DACTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_MoreThanOneSample());
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_MoreThanOneSample());
 }
 
 TEST(NI6368DACGTest,TestSetConfiguredDatabase) {

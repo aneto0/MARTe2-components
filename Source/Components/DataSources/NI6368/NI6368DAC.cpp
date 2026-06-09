@@ -37,6 +37,10 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+/*lint -e1923 -e9024 -e767 allow to use #define for constants. DAC_BASE_FREQ is private to this module.*/
+#define DAC_BASE_FREQ 100000000u
+#define INIT_HEADER_SIZE 0xFFFFFFFFu
+/*lint +e1923 +e9024 +e767 */
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -47,6 +51,7 @@ NI6368DAC::NI6368DAC() :
         DataSourceI() {
     boardId = 0u;
     boardFileDescriptor = -1;
+    rootFileDescriptor = -1;
     deviceName = "";
     numberOfDACsEnabled = 0u;
     triggerSet = false;
@@ -55,19 +60,24 @@ NI6368DAC::NI6368DAC() :
     startTriggerPolarity = XSERIES_AO_POLARITY_RISING_EDGE;
     updateCounterSource = XSERIES_AO_UPDATE_COUNTER_UI_TC;
     updateCounterPolarity = XSERIES_AO_POLARITY_RISING_EDGE;
-    updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB3;
-    updateIntervalCounterPolarity = XSERIES_OUTTIMER_POLARITY_RISING_EDGE;
-    updateIntervalCounterPeriodDivisor = 100000u;
-    updateIntervalCounterDelay = 2u;
-
-    uint32 n;
-    for (n = 0u; n < NI6368DAC_MAX_CHANNELS; n++) {
+    clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB3;
+    clockUpdatePolarity = XSERIES_OUTTIMER_POLARITY_RISING_EDGE;
+    clockUpdateDivisor = 100u;
+    clockUpdateDelay = 2u;
+    baseSampleClockFrequency = 0u;
+    for (uint32 n = 0u; n < NI6368DAC_MAX_CHANNELS; n++) {
         outputRange[n] = XSERIES_OUTPUT_RANGE_10V;
         dacEnabled[n] = false;
         channelsFileDescriptors[n] = -1;
-        numberOfElements[n] = 1u;
-        channelsMemory[n] = NULL_PTR(float32 *);
+        channelsMemory[n] = NULL_PTR(float32*);
+        outputGain[n] = 1.0F;
+        outputOffset[n] = 0.0F;
     }
+
+    numberOfSamplesT = 0u;
+    multiplexed = 0u;
+    headerSize = INIT_HEADER_SIZE;
+    boardStatus = 0u;
 }
 
 /*lint -e{1551} the destructor must guarantee that the NI6368DAC file descriptors are closed.*/
@@ -78,16 +88,21 @@ NI6368DAC::~NI6368DAC() {
             REPORT_ERROR(ErrorManagement::FatalError, "Could not stop acquisition.");
         }
     }
+
     for (n = 0u; n < NI6368DAC_MAX_CHANNELS; n++) {
         if (channelsFileDescriptors[n] != -1) {
             close(channelsFileDescriptors[n]);
         }
-        if (channelsMemory[n] != NULL_PTR(float32 *)) {
+        if (channelsMemory[n] != NULL_PTR(float32*)) {
             delete[] channelsMemory[n];
         }
     }
+
     if (boardFileDescriptor != -1) {
         close(boardFileDescriptor);
+    }
+    if (rootFileDescriptor != -1) {
+        close(rootFileDescriptor);
     }
 }
 
@@ -100,23 +115,40 @@ uint32 NI6368DAC::GetNumberOfMemoryBuffers() {
 }
 
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: The memory buffer is independent of the bufferIdx.*/
-bool NI6368DAC::GetSignalMemoryBuffer(const uint32 signalIdx, const uint32 bufferIdx, void*& signalAddress) {
-    bool ok = (signalIdx < (NI6368DAC_MAX_CHANNELS));
+bool NI6368DAC::GetSignalMemoryBuffer(const uint32 signalIdx,
+                                      const uint32 bufferIdx,
+                                      void *&signalAddress) {
+    bool ok = (headerSize != INIT_HEADER_SIZE);
     if (ok) {
-        signalAddress = channelsMemory[signalIdx];
+        ok = (signalIdx < (NI6368DAC_MAX_CHANNELS + headerSize));
+    }
+    if (ok) {
+        if (signalIdx < headerSize) {
+            if (signalIdx == 0u) {
+                signalAddress = reinterpret_cast<void*>(&boardStatus);
+            }
+        }
+        else {
+            signalAddress = &(channelsMemory[signalIdx - headerSize][0]);
+        }
     }
     return ok;
 }
 
-const char8* NI6368DAC::GetBrokerName(StructuredDataI& data, const SignalDirection direction) {
-    const char8 *brokerName = NULL_PTR(const char8 *);
-    if (direction == OutputSignals) {
-        uint32 trigger = 0u;
-        if (!data.Read("Trigger", trigger)) {
-            trigger = 0u;
-        }
+const char8* NI6368DAC::GetBrokerName(StructuredDataI &data,
+                                      const SignalDirection direction) {
+    const char8 *brokerName = NULL_PTR(const char8*);
+    float32 frequency = 0.F;
+    if (!data.Read("Frequency", frequency)) {
+        frequency = -1.F;
+    }
 
-        if (trigger == 1u) {
+    uint32 trigger = 0u;
+    if (!data.Read("Trigger", trigger)) {
+        trigger = 0u;
+    }
+    if (direction == OutputSignals) {
+        if ((frequency >= 0.F) || (trigger > 0u)) {
             brokerName = "MemoryMapSynchronisedOutputBroker";
             triggerSet = true;
         }
@@ -124,76 +156,28 @@ const char8* NI6368DAC::GetBrokerName(StructuredDataI& data, const SignalDirecti
             brokerName = "MemoryMapOutputBroker";
         }
     }
+    else if (direction == InputSignals) {
+        if ((frequency >= 0.F) || (trigger > 0u)) {
+            brokerName = "MemoryMapSynchronisedInputBroker";
+            triggerSet = true;
+        }
+        else {
+            brokerName = "MemoryMapInputBroker";
+        }
+    }
     else {
-        REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible with InputSignals");
+        REPORT_ERROR(ErrorManagement::ParametersError, "DataSource not compatible");
     }
     return brokerName;
 }
 
-/*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: returns false irrespectively of the input parameters.*/
-bool NI6368DAC::GetInputBrokers(ReferenceContainer& inputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    return false;
-}
-
-bool NI6368DAC::GetOutputBrokers(ReferenceContainer& outputBrokers, const char8* const functionName, void* const gamMemPtr) {
-    //Check if there is a Trigger signal for this function.
-    uint32 functionIdx = 0u;
-    uint32 nOfFunctionSignals = 0u;
-    uint32 i;
-    bool triggerGAM = false;
-    bool ok = GetFunctionIndex(functionIdx, functionName);
-
-    if (ok) {
-        ok = GetFunctionNumberOfSignals(OutputSignals, functionIdx, nOfFunctionSignals);
-    }
-    uint32 trigger = 0u;
-    for (i = 0u; (i < nOfFunctionSignals) && (ok) && (!triggerGAM); i++) {
-        ok = GetFunctionSignalTrigger(OutputSignals, functionIdx, i, trigger);
-        triggerGAM = (trigger == 1u);
-    }
-    if ((ok) && (triggerGAM)) {
-        ReferenceT<MemoryMapSynchronisedOutputBroker> broker("MemoryMapSynchronisedOutputBroker");
-        ok = broker.IsValid();
-
-        if (ok) {
-            ok = broker->Init(OutputSignals, *this, functionName, gamMemPtr);
-        }
-        if (ok) {
-            ok = outputBrokers.Insert(broker);
-        }
-        //Must also add the signals which are not triggering but that belong to the same GAM...
-        if (ok) {
-            if (nOfFunctionSignals > 1u) {
-                ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
-                ok = brokerNotSync.IsValid();
-                if (ok) {
-                    ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
-                }
-                if (ok) {
-                    ok = outputBrokers.Insert(brokerNotSync);
-                }
-            }
-        }
-    }
-    else {
-        ReferenceT<MemoryMapOutputBroker> brokerNotSync("MemoryMapOutputBroker");
-        ok = brokerNotSync.IsValid();
-        if (ok) {
-            ok = brokerNotSync->Init(OutputSignals, *this, functionName, gamMemPtr);
-        }
-        if (ok) {
-            ok = outputBrokers.Insert(brokerNotSync);
-        }
-    }
-    return ok;
-}
-
 /*lint -e{715}  [MISRA C++ Rule 0-1-11], [MISRA C++ Rule 0-1-12]. Justification: NOOP irrespectively of the input parameters.*/
-bool NI6368DAC::PrepareNextState(const char8* const currentStateName, const char8* const nextStateName) {
+bool NI6368DAC::PrepareNextState(const char8 *const currentStateName,
+                                 const char8 *const nextStateName) {
     return true;
 }
 
-bool NI6368DAC::Initialise(StructuredDataI& data) {
+bool NI6368DAC::Initialise(StructuredDataI &data) {
     bool ok = DataSourceI::Initialise(data);
     if (ok) {
         ok = data.Read("DeviceName", deviceName);
@@ -207,10 +191,20 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The BoardId shall be specified");
         }
     }
+    if (!data.Read("IsMultiplexed", multiplexed)) {
+        //Assume 6368 by default
+        multiplexed = 0u;
+    }
+    if (ok) {
+        if (!data.Read("BaseSampleClockFrequency", baseSampleClockFrequency)) {
+            baseSampleClockFrequency = DAC_BASE_FREQ;
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "BaseSampleClockFrequency not defined. Set to default %d", baseSampleClockFrequency);
+        }
+    }
     if (ok) {
         StreamString startTriggerSourceStr;
-        ok = data.Read("StartTriggerSource", startTriggerSourceStr);
-        if (ok) {
+
+        if (data.Read("StartTriggerSource", startTriggerSourceStr)) {
             if (startTriggerSourceStr == "SW_PULSE") {
                 startTriggerSource = XSERIES_AO_START_TRIGGER_SW_PULSE;
             }
@@ -364,167 +358,178 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
             }
         }
         else {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The StartTriggerSource shall be specified");
+            startTriggerSource = XSERIES_AO_START_TRIGGER_SW_PULSE;
+            REPORT_ERROR(ErrorManagement::Information, "StartTriggerSource not defined. Using default XSERIES_AO_START_TRIGGER_SW_PULSE");
         }
     }
     if (ok) {
-        StreamString updateCounterSourceStr;
-        ok = data.Read("UpdateCounterSource", updateCounterSourceStr);
-        if (ok) {
-            if (updateCounterSourceStr == "UI_TC") {
+        bool isConfigured = false;
+        StreamString baseClockUpdateSourceStr;
+        if (data.Read("BaseClockUpdateSource", baseClockUpdateSourceStr)) {
+            isConfigured = true;
+        }
+        else if (data.Read("UpdateCounterSource", baseClockUpdateSourceStr)) {
+            isConfigured = true;
+        }
+        else {
+            updateCounterSource = XSERIES_AO_UPDATE_COUNTER_UI_TC;
+            REPORT_ERROR(ErrorManagement::Information, "UpdateCounterSource not defined. Using default XSERIES_AO_UPDATE_COUNTER_UI_TC");
+        }
+        if (isConfigured) {
+            if (baseClockUpdateSourceStr == "UI_TC") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_UI_TC;
             }
-            else if (updateCounterSourceStr == "PFI0") {
+            else if (baseClockUpdateSourceStr == "PFI0") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI0;
             }
-            else if (updateCounterSourceStr == "PFI1") {
+            else if (baseClockUpdateSourceStr == "PFI1") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI1;
             }
-            else if (updateCounterSourceStr == "PFI2") {
+            else if (baseClockUpdateSourceStr == "PFI2") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI2;
             }
-            else if (updateCounterSourceStr == "PFI3") {
+            else if (baseClockUpdateSourceStr == "PFI3") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI3;
             }
-            else if (updateCounterSourceStr == "PFI4") {
+            else if (baseClockUpdateSourceStr == "PFI4") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI4;
             }
-            else if (updateCounterSourceStr == "PFI5") {
+            else if (baseClockUpdateSourceStr == "PFI5") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI5;
             }
-            else if (updateCounterSourceStr == "PFI6") {
+            else if (baseClockUpdateSourceStr == "PFI6") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI6;
             }
-            else if (updateCounterSourceStr == "PFI7") {
+            else if (baseClockUpdateSourceStr == "PFI7") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI7;
             }
-            else if (updateCounterSourceStr == "PFI8") {
+            else if (baseClockUpdateSourceStr == "PFI8") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI8;
             }
-            else if (updateCounterSourceStr == "PFI9") {
+            else if (baseClockUpdateSourceStr == "PFI9") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI9;
             }
-            else if (updateCounterSourceStr == "RTSI0") {
+            else if (baseClockUpdateSourceStr == "RTSI0") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI0;
             }
-            else if (updateCounterSourceStr == "RTSI1") {
+            else if (baseClockUpdateSourceStr == "RTSI1") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI1;
             }
-            else if (updateCounterSourceStr == "RTSI2") {
+            else if (baseClockUpdateSourceStr == "RTSI2") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI2;
             }
-            else if (updateCounterSourceStr == "RTSI3") {
+            else if (baseClockUpdateSourceStr == "RTSI3") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI3;
             }
-            else if (updateCounterSourceStr == "RTSI4") {
+            else if (baseClockUpdateSourceStr == "RTSI4") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI4;
             }
-            else if (updateCounterSourceStr == "RTSI5") {
+            else if (baseClockUpdateSourceStr == "RTSI5") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI5;
             }
-            else if (updateCounterSourceStr == "RTSI6") {
+            else if (baseClockUpdateSourceStr == "RTSI6") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI6;
             }
-            else if (updateCounterSourceStr == "G0_OUT") {
+            else if (baseClockUpdateSourceStr == "G0_OUT") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G0_OUT;
             }
-            else if (updateCounterSourceStr == "G1_OUT") {
+            else if (baseClockUpdateSourceStr == "G1_OUT") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G1_OUT;
             }
-            else if (updateCounterSourceStr == "STAR_TRIGGER") {
+            else if (baseClockUpdateSourceStr == "STAR_TRIGGER") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_STAR_TRIGGER;
             }
-            else if (updateCounterSourceStr == "PFI10") {
+            else if (baseClockUpdateSourceStr == "PFI10") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI10;
             }
-            else if (updateCounterSourceStr == "PFI11") {
+            else if (baseClockUpdateSourceStr == "PFI11") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI11;
             }
-            else if (updateCounterSourceStr == "PFI12") {
+            else if (baseClockUpdateSourceStr == "PFI12") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI12;
             }
-            else if (updateCounterSourceStr == "PFI13") {
+            else if (baseClockUpdateSourceStr == "PFI13") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI13;
             }
-            else if (updateCounterSourceStr == "PFI14") {
+            else if (baseClockUpdateSourceStr == "PFI14") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI14;
             }
-            else if (updateCounterSourceStr == "PFI15") {
+            else if (baseClockUpdateSourceStr == "PFI15") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PFI15;
             }
-            else if (updateCounterSourceStr == "RTSI7") {
+            else if (baseClockUpdateSourceStr == "RTSI7") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_RTSI7;
             }
-            else if (updateCounterSourceStr == "G2_OUT") {
+            else if (baseClockUpdateSourceStr == "G2_OUT") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G2_OUT;
             }
-            else if (updateCounterSourceStr == "G3_OUT") {
+            else if (baseClockUpdateSourceStr == "G3_OUT") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G3_OUT;
             }
-            else if (updateCounterSourceStr == "ANALOG_TRIGGER") {
+            else if (baseClockUpdateSourceStr == "ANALOG_TRIGGER") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_ANALOG_TRIGGER;
             }
-            else if (updateCounterSourceStr == "LOW") {
+            else if (baseClockUpdateSourceStr == "LOW") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_LOW;
             }
-            else if (updateCounterSourceStr == "PXIE_DSTARA") {
+            else if (baseClockUpdateSourceStr == "PXIE_DSTARA") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PXIE_DSTARA;
             }
-            else if (updateCounterSourceStr == "PXIE_DSTARB") {
+            else if (baseClockUpdateSourceStr == "PXIE_DSTARB") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_PXIE_DSTARB;
             }
-            else if (updateCounterSourceStr == "DIO_CHGDETECT") {
+            else if (baseClockUpdateSourceStr == "DIO_CHGDETECT") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_DIO_CHGDETECT;
             }
-            else if (updateCounterSourceStr == "G0_SAMPLECLK") {
+            else if (baseClockUpdateSourceStr == "G0_SAMPLECLK") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G0_SAMPLECLK;
             }
-            else if (updateCounterSourceStr == "G1_SAMPLECLK") {
+            else if (baseClockUpdateSourceStr == "G1_SAMPLECLK") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G1_SAMPLECLK;
             }
-            else if (updateCounterSourceStr == "G2_SAMPLECLK") {
+            else if (baseClockUpdateSourceStr == "G2_SAMPLECLK") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G2_SAMPLECLK;
             }
-            else if (updateCounterSourceStr == "G3_SAMPLECLK") {
+            else if (baseClockUpdateSourceStr == "G3_SAMPLECLK") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_G3_SAMPLECLK;
             }
-            else if (updateCounterSourceStr == "AI_CONVERT") {
+            else if (baseClockUpdateSourceStr == "AI_CONVERT") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_AI_CONVERT;
             }
-            else if (updateCounterSourceStr == "AI_START") {
+            else if (baseClockUpdateSourceStr == "AI_START") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_AI_START;
             }
-            else if (updateCounterSourceStr == "DI_CONVERT") {
+            else if (baseClockUpdateSourceStr == "DI_CONVERT") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_DI_CONVERT;
             }
-            else if (updateCounterSourceStr == "DO_UPDATE") {
+            else if (baseClockUpdateSourceStr == "DO_UPDATE") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_DO_UPDATE;
             }
-            else if (updateCounterSourceStr == "INTTRIGGERA0") {
+            else if (baseClockUpdateSourceStr == "INTTRIGGERA0") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA0;
             }
-            else if (updateCounterSourceStr == "INTTRIGGERA1") {
+            else if (baseClockUpdateSourceStr == "INTTRIGGERA1") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA1;
             }
-            else if (updateCounterSourceStr == "INTTRIGGERA2") {
+            else if (baseClockUpdateSourceStr == "INTTRIGGERA2") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA2;
             }
-            else if (updateCounterSourceStr == "INTTRIGGERA3") {
+            else if (baseClockUpdateSourceStr == "INTTRIGGERA3") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA3;
             }
-            else if (updateCounterSourceStr == "INTTRIGGERA4") {
+            else if (baseClockUpdateSourceStr == "INTTRIGGERA4") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA4;
             }
-            else if (updateCounterSourceStr == "INTTRIGGERA5") {
+            else if (baseClockUpdateSourceStr == "INTTRIGGERA5") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA5;
             }
-            else if (updateCounterSourceStr == "INTTRIGGERA6") {
+            else if (baseClockUpdateSourceStr == "INTTRIGGERA6") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA6;
             }
-            else if (updateCounterSourceStr == "INTTRIGGERA7") {
+            else if (baseClockUpdateSourceStr == "INTTRIGGERA7") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_INTTRIGGERA7;
             }
-            else if (updateCounterSourceStr == "AUTOUPDATE") {
+            else if (baseClockUpdateSourceStr == "AUTOUPDATE") {
                 updateCounterSource = XSERIES_AO_UPDATE_COUNTER_AUTOUPDATE;
             }
             else {
@@ -532,18 +537,25 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
                 ok = false;
             }
         }
-        else {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateCounterSource shall be specified");
-        }
     }
     if (ok) {
-        StreamString updateCounterPolarityStr;
-        ok = data.Read("UpdateCounterPolarity", updateCounterPolarityStr);
-        if (ok) {
-            if (updateCounterPolarityStr == "RISING_EDGE") {
+        bool isConfigured = false;
+        StreamString baseClockUpdatePolarityStr;
+        if (data.Read("BaseClockUpdatePolarity", baseClockUpdatePolarityStr)) {
+            isConfigured = true;
+        }
+        else if (data.Read("UpdateCounterPolarity", baseClockUpdatePolarityStr)) {
+            isConfigured = true;
+        }
+        else {
+            updateCounterPolarity = XSERIES_AO_POLARITY_RISING_EDGE;
+            REPORT_ERROR(ErrorManagement::Information, "UpdateCounterPolarity not defined. Using default XSERIES_AO_POLARITY_RISING_EDGE");
+        }
+        if (isConfigured) {
+            if (baseClockUpdatePolarityStr == "RISING_EDGE") {
                 updateCounterPolarity = XSERIES_AO_POLARITY_RISING_EDGE;
             }
-            else if (updateCounterPolarityStr == "FALLING_EDGE") {
+            else if (baseClockUpdatePolarityStr == "FALLING_EDGE") {
                 updateCounterPolarity = XSERIES_AO_POLARITY_FALLING_EDGE;
             }
             else {
@@ -551,158 +563,205 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
                 ok = false;
             }
         }
-        else {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateCounterPolarity shall be specified");
-        }
     }
     if (ok) {
-        StreamString updateIntervalCounterSourceStr;
-        ok = data.Read("UpdateIntervalCounterSource", updateIntervalCounterSourceStr);
-        if (ok) {
-            if (updateIntervalCounterSourceStr == "TB3") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB3;
+        bool isConfigured = false;
+        StreamString clockUpdateSourceStr;
+        if (data.Read("ClockUpdateSource", clockUpdateSourceStr)) {
+            isConfigured = true;
+        }
+        else if (data.Read("UpdateIntervalCounterSource", clockUpdateSourceStr)) {
+            isConfigured = true;
+        }
+        else {
+            clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB3;
+            REPORT_ERROR(ErrorManagement::Information, "UpdateIntervalCounterSource not defined. Using default XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB3");
+        }
+
+        if (isConfigured) {
+            if (clockUpdateSourceStr == "TB3") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB3;
             }
-            else if (updateIntervalCounterSourceStr == "PFI0") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI0;
+            else if (clockUpdateSourceStr == "PFI0") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI0;
             }
-            else if (updateIntervalCounterSourceStr == "PFI1") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI1;
+            else if (clockUpdateSourceStr == "PFI1") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI1;
             }
-            else if (updateIntervalCounterSourceStr == "PFI2") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI2;
+            else if (clockUpdateSourceStr == "PFI2") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI2;
             }
-            else if (updateIntervalCounterSourceStr == "PFI3") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI3;
+            else if (clockUpdateSourceStr == "PFI3") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI3;
             }
-            else if (updateIntervalCounterSourceStr == "PFI4") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI4;
+            else if (clockUpdateSourceStr == "PFI4") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI4;
             }
-            else if (updateIntervalCounterSourceStr == "PFI5") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI5;
+            else if (clockUpdateSourceStr == "PFI5") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI5;
             }
-            else if (updateIntervalCounterSourceStr == "PFI6") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI6;
+            else if (clockUpdateSourceStr == "PFI6") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI6;
             }
-            else if (updateIntervalCounterSourceStr == "PFI7") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI7;
+            else if (clockUpdateSourceStr == "PFI7") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI7;
             }
-            else if (updateIntervalCounterSourceStr == "PFI8") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI8;
+            else if (clockUpdateSourceStr == "PFI8") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI8;
             }
-            else if (updateIntervalCounterSourceStr == "PFI9") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI9;
+            else if (clockUpdateSourceStr == "PFI9") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI9;
             }
-            else if (updateIntervalCounterSourceStr == "RTSI0") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI0;
+            else if (clockUpdateSourceStr == "RTSI0") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI0;
             }
-            else if (updateIntervalCounterSourceStr == "RTSI1") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI1;
+            else if (clockUpdateSourceStr == "RTSI1") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI1;
             }
-            else if (updateIntervalCounterSourceStr == "RTSI2") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI2;
+            else if (clockUpdateSourceStr == "RTSI2") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI2;
             }
-            else if (updateIntervalCounterSourceStr == "RTSI3") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI3;
+            else if (clockUpdateSourceStr == "RTSI3") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI3;
             }
-            else if (updateIntervalCounterSourceStr == "RTSI4") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI4;
+            else if (clockUpdateSourceStr == "RTSI4") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI4;
             }
-            else if (updateIntervalCounterSourceStr == "RTSI5") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI5;
+            else if (clockUpdateSourceStr == "RTSI5") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI5;
             }
-            else if (updateIntervalCounterSourceStr == "RTSI6") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI6;
+            else if (clockUpdateSourceStr == "RTSI6") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI6;
             }
-            else if (updateIntervalCounterSourceStr == "DSTARA") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_DSTARA;
+            else if (clockUpdateSourceStr == "DSTARA") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_DSTARA;
             }
-            else if (updateIntervalCounterSourceStr == "TB2") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB2;
+            else if (clockUpdateSourceStr == "TB2") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB2;
             }
-            else if (updateIntervalCounterSourceStr == "STAR_TRIGGER") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_STAR_TRIGGER;
+            else if (clockUpdateSourceStr == "STAR_TRIGGER") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_STAR_TRIGGER;
             }
-            else if (updateIntervalCounterSourceStr == "PFI10") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI10;
+            else if (clockUpdateSourceStr == "PFI10") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI10;
             }
-            else if (updateIntervalCounterSourceStr == "PFI11") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI11;
+            else if (clockUpdateSourceStr == "PFI11") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI11;
             }
-            else if (updateIntervalCounterSourceStr == "PFI12") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI12;
+            else if (clockUpdateSourceStr == "PFI12") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI12;
             }
-            else if (updateIntervalCounterSourceStr == "PFI13") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI13;
+            else if (clockUpdateSourceStr == "PFI13") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI13;
             }
-            else if (updateIntervalCounterSourceStr == "PFI14") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI14;
+            else if (clockUpdateSourceStr == "PFI14") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI14;
             }
-            else if (updateIntervalCounterSourceStr == "PFI15") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI15;
+            else if (clockUpdateSourceStr == "PFI15") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PFI15;
             }
-            else if (updateIntervalCounterSourceStr == "RTSI7") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI7;
+            else if (clockUpdateSourceStr == "RTSI7") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_RTSI7;
             }
-            else if (updateIntervalCounterSourceStr == "TB1") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB1;
+            else if (clockUpdateSourceStr == "TB1") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_TB1;
             }
-            else if (updateIntervalCounterSourceStr == "PXI_CLK10") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PXI_CLK10;
+            else if (clockUpdateSourceStr == "PXI_CLK10") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_PXI_CLK10;
             }
-            else if (updateIntervalCounterSourceStr == "ANALOG_TRIGGER") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_ANALOG_TRIGGER;
+            else if (clockUpdateSourceStr == "ANALOG_TRIGGER") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_ANALOG_TRIGGER;
             }
-            else if (updateIntervalCounterSourceStr == "DSTARB") {
-                updateIntervalCounterSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_DSTARB;
+            else if (clockUpdateSourceStr == "DSTARB") {
+                clockUpdateSource = XSERIES_OUTTIMER_UPDATE_INTERVAL_COUNTER_DSTARB;
             }
             else {
                 REPORT_ERROR(ErrorManagement::ParametersError, "Invalid UpdateIntervalCounterSource specified");
                 ok = false;
             }
         }
-        else {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterSource shall be specified");
-        }
     }
     if (ok) {
-        StreamString updateIntervalCounterPolarityStr;
-        ok = data.Read("UpdateIntervalCounterPolarity", updateIntervalCounterPolarityStr);
-        if (ok) {
-            if (updateIntervalCounterPolarityStr == "RISING_EDGE") {
-                updateIntervalCounterPolarity = XSERIES_OUTTIMER_POLARITY_RISING_EDGE;
+        bool isConfigured = false;
+        StreamString clockUpdatePolarityStr;
+        if (data.Read("ClockUpdatePolarity", clockUpdatePolarityStr)) {
+            isConfigured = true;
+        }
+        //maintain for backward compatibility
+        else if (data.Read("UpdateIntervalCounterPolarity", clockUpdatePolarityStr)) {
+            isConfigured = true;
+        }
+        else {
+            clockUpdatePolarity = XSERIES_OUTTIMER_POLARITY_RISING_EDGE;
+            REPORT_ERROR(ErrorManagement::Information, "UpdateIntervalCounterPolarity not defined. Using default XSERIES_OUTTIMER_POLARITY_RISING_EDGE");
+        }
+
+        if (isConfigured) {
+            if (clockUpdatePolarityStr == "RISING_EDGE") {
+                clockUpdatePolarity = XSERIES_OUTTIMER_POLARITY_RISING_EDGE;
             }
-            else if (updateIntervalCounterPolarityStr == "FALLING_EDGE") {
-                updateIntervalCounterPolarity = XSERIES_OUTTIMER_POLARITY_FALLING_EDGE;
+            else if (clockUpdatePolarityStr == "FALLING_EDGE") {
+                clockUpdatePolarity = XSERIES_OUTTIMER_POLARITY_FALLING_EDGE;
             }
             else {
-                REPORT_ERROR(ErrorManagement::ParametersError, "Invalid UpdateIntervalCounterPolarity specified");
                 ok = false;
+                REPORT_ERROR(ErrorManagement::ParametersError, "Unsupported ClockUpdatePolarity");
             }
         }
+
+    }
+
+    if (ok) {
+        bool set = false;
+        uint32 samplingFrequency = 0u;
+        //lint -e{9013} SamplingFrequency and ClockUpdateDivisor are mutually exclusive
+        if (data.Read("SamplingFrequency", samplingFrequency)) {
+            ok = (samplingFrequency <= baseSampleClockFrequency) && (samplingFrequency > 0u);
+            if (ok) {
+                clockUpdateDivisor = (baseSampleClockFrequency / samplingFrequency);
+                REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ClockUpdateDivisor set to: %d", clockUpdateDivisor);
+                float32 samplingF = static_cast<float32>(baseSampleClockFrequency) / static_cast<float32>(clockUpdateDivisor);
+                if ((baseSampleClockFrequency % samplingFrequency) > 0u) {
+                    REPORT_ERROR(ErrorManagement::Warning, "SamplingFrequency does not divide exactly DAC base clock (%d). Set to %f", baseSampleClockFrequency, samplingF);
+                }
+            }
+            else {
+                REPORT_ERROR(ErrorManagement::ParametersError, "SamplingFrequency must be minor than DAC base clock (20 MHz) and greater than 0");
+            }
+            set = true;
+        }
+        else if (data.Read("ClockUpdateDivisor", clockUpdateDivisor)) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ClockUpdateDivisor set to: %d", clockUpdateDivisor);
+            set = true;
+        }
+        //maintain for backward compatibility
+        else if (data.Read("UpdateIntervalCounterPeriodDivisor", clockUpdateDivisor)) {
+            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ClockUpdateDivisor set to: %d", clockUpdateDivisor);
+            set = true;
+        }
+        if (ok) {
+            if (!set) {
+                clockUpdateDivisor = 100u;
+                REPORT_ERROR(ErrorManagement::Information,
+                             "Nor SamplingFrequency or ClockUpdateDivisor or UpdateIntervalCounterPeriodDivisor defined. Setting ClockUpdateDivisor=%d", clockUpdateDivisor);
+            }
+        }
+    }
+
+    if (ok) {
+        clockUpdateDelay = 0u;
+
+        //lint -e{9013} ClockUpdateDelay  and UpdateIntervalCounterDelay  are mutually exclusive
+        if (data.Read("ClockUpdateDelay", clockUpdateDelay)) {
+        }
+        else if (data.Read("UpdateIntervalCounterDelay", clockUpdateDelay)) {
+        }
         else {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterPolarity shall be specified");
+            clockUpdateDelay = 2u;
+            REPORT_ERROR(ErrorManagement::Information, "UpdateIntervalCounterDelay not defined. Using default 2");
         }
-    }
-    if (ok) {
-        ok = data.Read("UpdateIntervalCounterPeriodDivisor", updateIntervalCounterPeriodDivisor);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterPeriodDivisor shall be specified");
-        }
-    }
-    if (ok) {
-        ok = (updateIntervalCounterPeriodDivisor > 0u);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterPeriodDivisor shall be > 0");
-        }
-    }
-    if (ok) {
-        ok = data.Read("UpdateIntervalCounterDelay", updateIntervalCounterDelay);
-        if (!ok) {
-            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterDelay shall be specified");
-        }
-    }
-    if (ok) {
-        ok = (updateIntervalCounterDelay > 0u);
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ClockUpdateDelay set to: %d", clockUpdateDelay);
+        ok = (clockUpdateDelay > 0u);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterDelay shall be > 0");
         }
@@ -725,26 +784,18 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
         if (ok) {
             ok = signalsDatabase.MoveToAncestor(1u);
         }
-        uint32 maxChannelId = 0u;
-        while ((i < NI6368DAC_MAX_CHANNELS) && (ok)) {
+        for (i = 0u; (i < data.GetNumberOfChildren()) && ok; i++) {
             if (data.MoveRelative(data.GetChildName(i))) {
                 uint32 channelId;
                 if (data.Read("ChannelId", channelId)) {
+                    if (headerSize == INIT_HEADER_SIZE) {
+                        headerSize = i;
+                    }
                     ok = (channelId < NI6368DAC_MAX_CHANNELS);
                     if (!ok) {
                         REPORT_ERROR(ErrorManagement::ParametersError, "Invalid ChannelId specified.");
                     }
                     if (ok) {
-                        //Channel id must be specified monotonically increasing otherwise there will be a mismatch between the signal memory and the order by which the channels are opened.
-                        if (maxChannelId != 0u) {
-                            ok = (channelId > maxChannelId);
-                        }
-                        if (!ok) {
-                            REPORT_ERROR(ErrorManagement::ParametersError, "ChannelId must be monotonically increasing.");
-                        }
-                    }
-                    if (ok) {
-                        maxChannelId = channelId;
                         dacEnabled[channelId] = true;
                         numberOfDACsEnabled++;
                         StreamString range;
@@ -767,16 +818,54 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
                             }
                         }
                     }
+                    if (ok) {
+                        float32 gain;
+                        if (data.Read("OutputGain", gain)) {
+                            outputGain[channelId] = gain;
+                        }
+                        float32 offset;
+                        if (data.Read("OutputOffset", offset)) {
+                            outputOffset[channelId] = offset;
+                        }
+                    }
+                }
+                else {
+                    ok = (headerSize == INIT_HEADER_SIZE);
+                    if (!ok) {
+                        REPORT_ERROR(ErrorManagement::InitialisationError, "Header signals must be defined before the channels");
+                    }
                 }
                 if (ok) {
                     ok = data.MoveToAncestor(1u);
                 }
-                i++;
             }
             else {
                 break;
             }
         }
+
+        if (ok) {
+            ok = (headerSize <= 1u);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::InitialisationError, "Header can be composed maximum by 1 signals: status");
+            }
+        }
+    }
+    if (ok) {
+
+        const uint32 pxi6363MaxFreq[NI6368DAC_MAX_CHANNELS] = { 2860000u, 2000000u, 1540000u, 1250000u };
+        const uint32 pxi6368MaxFreq[NI6368DAC_MAX_CHANNELS] = { 3300000u, 3300000u, 3300000u, 3300000u };
+
+        if (numberOfDACsEnabled > 0u) {
+            float32 samplingF = static_cast<float32>(baseSampleClockFrequency) / static_cast<float32>(clockUpdateDivisor);
+            uint8 maxFreqIdx = static_cast<uint8>(numberOfDACsEnabled - 1u);
+            uint32 maxFreq = (multiplexed > 0u) ? (pxi6363MaxFreq[maxFreqIdx]) : (pxi6368MaxFreq[maxFreqIdx]);
+            ok = (samplingF <= static_cast<float32>(maxFreq));
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::FatalError, "Sampling frequency (%f) shall be minor than %d", samplingF, maxFreq);
+            }
+        }
+
     }
     if (ok) {
         ok = data.MoveToAncestor(1u);
@@ -787,30 +876,39 @@ bool NI6368DAC::Initialise(StructuredDataI& data) {
     return ok;
 }
 
-bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
+bool NI6368DAC::SetConfiguredDatabase(StructuredDataI &data) {
     uint32 i;
     bool ok = DataSourceI::SetConfiguredDatabase(data);
 
     if (ok) {
         ok = triggerSet;
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "At least one Trigger signal shall be set.");
+        }
     }
-    if (!ok) {
-        REPORT_ERROR(ErrorManagement::ParametersError, "At least one Trigger signal shall be set.");
-    }
+
     if (ok) {
-        uint32 j = 0u;
-        for (i = 0u; (i < NI6368DAC_MAX_CHANNELS) && (ok); i++) {
-            if (dacEnabled[i]) {
-                ok = (GetSignalType(j) == Float32Bit);
-                if (!ok) {
-                    REPORT_ERROR(ErrorManagement::ParametersError, "All the DAC signals shall be of type Float32Bit");
-                }
-                uint32 nElements = 0u;
-                if (ok) {
-                    ok = GetSignalNumberOfElements(j, nElements);
-                    numberOfElements[i] = nElements;
-                }
-                j++;
+        ok = (GetNumberOfSignals() == (headerSize + numberOfDACsEnabled));
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Number of signals mismatch. All signals must be configured in data source");
+        }
+    }
+
+    if (ok) {
+        if (headerSize > 0u) {
+            /*lint -e{9007} no side-effect from GetSignalType*/
+            ok = (GetSignalType(0u) == UnsignedInteger32Bit);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "The first signal (status) shall be of type UnsignedInteger32Bit");
+            }
+        }
+    }
+
+    if (ok) {
+        for (i = 0u; (i < numberOfDACsEnabled) && (ok); i++) {
+            ok = (GetSignalType(headerSize + i) == Float32Bit);
+            if (!ok) {
+                REPORT_ERROR(ErrorManagement::ParametersError, "All the DAC signals shall be of type Float32Bit");
             }
         }
     }
@@ -819,27 +917,62 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
     uint32 functionIdx;
     //Check that the number of elements for all the signals is consistent
     for (functionIdx = 0u; (functionIdx < nOfFunctions) && (ok); functionIdx++) {
+        uint32 signalIdx = 0u;
         uint32 nOfSignals = 0u;
         ok = GetFunctionNumberOfSignals(OutputSignals, functionIdx, nOfSignals);
-
         for (i = 0u; (i < nOfSignals) && (ok); i++) {
             uint32 nSamples = 0u;
             ok = GetFunctionSignalSamples(OutputSignals, functionIdx, i, nSamples);
+            //Is the counter or the time signal?
+            StreamString signalAlias;
             if (ok) {
-                ok = (nSamples == 1u);
+                ok = GetFunctionSignalAlias(OutputSignals, functionIdx, i, signalAlias);
             }
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "All the DAC signals shall have at most one sample");
+            if (ok) {
+                ok = GetSignalIndex(signalIdx, signalAlias.Buffer());
+            }
+            if (ok) {
+                if (signalIdx < headerSize) {
+                    ok = (nSamples == 1u);
+                    if (!ok) {
+                        REPORT_ERROR(ErrorManagement::ParametersError, "The header signal (%d) shall have one and only one sample", signalIdx);
+                    }
+                }
+                else {
+                    if (numberOfSamplesT == 0u) {
+                        numberOfSamplesT = nSamples;
+                    }
+                    else {
+                        ok = (nSamples == numberOfSamplesT);
+                        if (!ok) {
+                            REPORT_ERROR(ErrorManagement::ParametersError, "The number of samples must be the same for all channels");
+                        }
+                    }
+                }
             }
         }
     }
 
-    StreamString fullDeviceName;
-//Configure the board
+    StreamString rootDeviceName;
+    //Configure the board
     if (ok) {
-        ok = fullDeviceName.Printf("%s.%d.ao", deviceName.Buffer(), boardId);
+        ok = rootDeviceName.Printf("%s.%d", deviceName.Buffer(), boardId);
     }
     if (ok) {
+        ok = rootDeviceName.Seek(0LLU);
+    }
+    if (ok) {
+        rootFileDescriptor = open(rootDeviceName.Buffer(), O_RDWR);
+        ok = (rootFileDescriptor > -1);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "Could not open device %s", rootDeviceName);
+        }
+    }
+
+    StreamString fullDeviceName = rootDeviceName;
+    //Configure the board
+    if (ok) {
+        fullDeviceName += ".ao";
         ok = fullDeviceName.Seek(0LLU);
     }
     if (ok) {
@@ -873,8 +1006,7 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
         }
     }
     if (ok) {
-        ok = (xseries_set_ao_update_interval_counter(&dacConfiguration, updateIntervalCounterSource, updateIntervalCounterPolarity,
-                                                     updateIntervalCounterPeriodDivisor, updateIntervalCounterDelay) == 0);
+        ok = (xseries_set_ao_update_interval_counter(&dacConfiguration, clockUpdateSource, clockUpdatePolarity, clockUpdateDivisor, clockUpdateDelay) == 0);
         if (!ok) {
             REPORT_ERROR(ErrorManagement::ParametersError, "Could not xseries_set_ao_update_interval_counter for device %s", fullDeviceName);
         }
@@ -902,7 +1034,7 @@ bool NI6368DAC::SetConfiguredDatabase(StructuredDataI& data) {
         for (i = 0u; (i < NI6368DAC_MAX_CHANNELS) && (ok); i++) {
             if (dacEnabled[i]) {
                 //Allocate memory
-                channelsMemory[i] = new float32[numberOfElements[i]];
+                channelsMemory[i] = new float32[numberOfSamplesT];
                 StreamString channelDeviceName;
                 uint32 ii = i;
                 ok = channelDeviceName.Printf("%s.%d", fullDeviceName.Buffer(), ii);
@@ -933,26 +1065,37 @@ bool NI6368DAC::Synchronise() {
     bool ok = true;
     for (i = 0u; (i < NI6368DAC_MAX_CHANNELS) && (ok); i++) {
         if (dacEnabled[i]) {
-            size_t samplesToWrite = numberOfElements[i];
-            ssize_t k = 0;
-            if (channelsMemory[i] != NULL_PTR(float32 *)) {
+            if (channelsMemory[i] != NULL_PTR(float32*)) {
+                size_t samplesToWrite = numberOfSamplesT;
+                for (uint32 j = 0u; (j < samplesToWrite) && (ok); j++) {
+                    channelsMemory[i][j]=((channelsMemory[i][j] * outputGain[i])+outputOffset[i]);
+                }
+                ssize_t totalWritten = 0;
                 while ((samplesToWrite > 0u) && (ok)) {
-                    ssize_t samplesWritten = xseries_write_ao(channelsFileDescriptors[i], &channelsMemory[i][k], samplesToWrite);
-                    if (samplesWritten < 0) {
-                        ok = false;
-                    }
-                    else {
+                    ssize_t samplesWritten = xseries_write_ao(channelsFileDescriptors[i], &(channelsMemory[i][totalWritten]), samplesToWrite);
+                    ok = (samplesWritten >= 0);
+                    if (ok) {
+                        totalWritten += samplesWritten;
                         samplesToWrite -= static_cast<size_t>(samplesWritten);
-                        k += samplesWritten;
                     }
                 }
             }
         }
     }
+
+    //lint -e{522} -e{565} -e{1080} -e{1055} -e{516} -e{115} -e{1030} -e{40} -e{1013} -e{526} -e{628} -e{746} symbols are in header file
+    if (headerSize > 0u) {
+        xseries_device_status_t devStatus;
+        if (ok) {
+            ok = (xseries_get_device_status(rootFileDescriptor, &devStatus) == 0);
+        }
+        boardStatus = devStatus.currentBoardStatus;
+    }
+
     return ok;
 }
 
-bool NI6368DAC::ReadAOConfiguration(xseries_ao_conf_t * const conf) const {
+bool NI6368DAC::ReadAOConfiguration(xseries_ao_conf_t *const conf) const {
     bool ok = false;
     if (boardFileDescriptor > 0) {
         ok = (xseries_read_ao_conf(boardFileDescriptor, conf) == 0);
