@@ -39,8 +39,9 @@
 #include "EventSem.h"
 #include "SingleThreadService.h"
 
-
-#define _PXI6363_NUMBER_OF_PORTS 3
+/*lint -e1923 allow macros*/
+#define PXI6363_NUMBER_OF_PORTS 3U
+/*lint +e1923 */
 
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
@@ -225,27 +226,22 @@ private:
     /**
      * The input mask of the DIO port
      */
-    uint32 portMask[_PXI6363_NUMBER_OF_PORTS];
+    uint32 portMask[PXI6363_NUMBER_OF_PORTS];
 
     /**
      * The current port value.
      */
-    uint32 portValue[_PXI6363_NUMBER_OF_PORTS];
-
-    /**
-     * The DIO ports ids
-     */
-    uint8 portId[_PXI6363_NUMBER_OF_PORTS];
+    uint32 portValue[PXI6363_NUMBER_OF_PORTS];
 
     /**
      * If the DIO port is enabled
      */
-    bool portEnabled[_PXI6363_NUMBER_OF_PORTS];
+    bool portEnabled[PXI6363_NUMBER_OF_PORTS];
 
     /**
      * The inversion mask
      */
-    uint32 inversionMask[_PXI6363_NUMBER_OF_PORTS];
+    uint32 inversionMask[PXI6363_NUMBER_OF_PORTS];
 
     /**
      * If this data source is sync

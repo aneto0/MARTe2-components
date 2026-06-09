@@ -45,9 +45,10 @@ namespace MARTe {
 /**
  * Number of ADC channels
  */
-/*lint -esym(551, MARTe::NI6368ADC_MAX_CHANNELS) the symbol is used to define the size of several array below*/
+/*lint -esym(551, MARTe::NI6363ADC_MAX_CHANNELS) the symbol is used to define the size of several array below*/
 const uint32 NI6363ADC_MAX_CHANNELS = 32u;
 
+/*lint -esym(551, MARTe::NI6368ADC_MAX_CHANNELS) the symbol is used to define the size of several array below*/
 const uint32 NI6368ADC_MAX_CHANNELS = 16u;
 /**
  * Sampling frequency

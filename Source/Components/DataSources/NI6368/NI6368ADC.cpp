@@ -1629,11 +1629,12 @@ bool NI6368ADC::IsSynchronising() const {
     return synchronising;
 }
 
-//lint -e{565} -e{1080} -e{1055} -e{516} -e{115} -e{1030} -e{40} -e{1013} -e{526} -e{628} symbols are in header file
+//lint -e{522} -e{565} -e{1080} -e{1055} -e{516} -e{115} -e{1030} -e{40} -e{1013} -e{526} -e{628} -e{746} symbols are in header file
 ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFromDMA) {
 
     xseries_device_status_t devStatus;
     if (headerSize > 2u) {
+        //lint -e{534} return value handled directly in devStatus
         xseries_get_device_status(rootFileDescriptor, &devStatus);
     }
     ErrorManagement::ErrorType err;
@@ -1648,12 +1649,13 @@ ErrorManagement::ErrorType NI6368ADC::CopyFromDMA(const size_t numberOfSamplesFr
             uint32 offset = (currentBufferOffset * sampleSize);
             if (calibrate) {
                 if (dmaCalibBuffer != NULL_PTR(float32*)) {
+                    /*lint -e{679} -e{927} -e{9117} -e{732} -e{826} no truncation*/
                     *reinterpret_cast<float32*>(&channelsMemory[currentBufferIdx][dmaChannel][offset]) = ((dmaCalibBuffer[s] * inputGain[dmaChannel])
                             + inputOffset[dmaChannel]);
                 }
             }
             else {
-                //lint -e{679} safe truncation of currentBufferOffset * sampleSize
+                /*lint -e{679} -e{927} -e{9117} -e{732} -e{826} no truncation*/
                 *reinterpret_cast<uint16*>(&channelsMemory[currentBufferIdx][dmaChannel][offset]) = dmaReadBuffer[s];
             }
 
@@ -1735,7 +1737,7 @@ void NI6368ADC::NonSynchroniseLock() {
 
 void NI6368ADC::NonSynchroniseUnLock() {
     if ((!synchronising) && (executionMode == NI6368ADC_EXEC_SPAWNED)) {
-        (void) allBufMux.FastUnLock();
+        allBufMux.FastUnLock();
     }
 }
 

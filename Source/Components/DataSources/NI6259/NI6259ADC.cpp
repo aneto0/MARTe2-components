@@ -1318,8 +1318,9 @@ ErrorManagement::ErrorType NI6259ADC::CopyFromDMA(const size_t numberOfSamplesFr
     //lint -e{565} -e{1080} the symbol is in the header file
     struct pxi6259_board_status boardStatusT;
     if (headerSize > 2u) {
-        //lint -e{1055} -e{746} the symbol is in the header file
-        (void) pxi6259_get_board_status(rootFileDescriptor, &boardStatusT);
+        //lint -e{1055} -e{746} -e{529} the symbol is in the header file. 
+        int32 ignored = pxi6259_get_board_status(rootFileDescriptor, &boardStatusT);
+        //lint -e{529} -e{438} return value ignored as it is handled later with boardStatusT
     }
 
     ErrorManagement::ErrorType err;

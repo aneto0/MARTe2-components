@@ -30,20 +30,22 @@
 /*                         Project header includes                           */
 /*---------------------------------------------------------------------------*/
 #include "AdvancedErrorManagement.h"
-#include "MemoryMapSynchronisedInputBroker.h"
-#include "MemoryMapSynchronisedOutputBroker.h"
 
 #include "NI6368DIO.h"
 
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+
+/*lint -e1923 allow macros*/
 #define INIT_HEADER_SIZE 0xFFFFFFFFu
+/*lint +e1923 */
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
-
+/*lint -efile(526,*NI6368DIO.cpp) symbols in header file.*/
+/*lint -efile(628,*NI6368DIO.cpp) symbols in header file.*/
 namespace MARTe {
 NI6368DIO::NI6368DIO() :
         DataSourceI() {
@@ -53,9 +55,8 @@ NI6368DIO::NI6368DIO() :
     pfiFileDescriptor = -1;
     rootFileDescriptor = -1;
     deviceName = "";
-    for (uint32 i = 0u; i < _PXI6363_NUMBER_OF_PORTS; i++) {
+    for (uint32 i = 0u; i < PXI6363_NUMBER_OF_PORTS; i++) {
         portValue[i] = 0u;
-        portId[i] = 0u;
         portMask[i] = 0u;
         portEnabled[i] = false;
         inversionMask[i] = 0u;
@@ -106,7 +107,7 @@ bool NI6368DIO::GetSignalMemoryBuffer(const uint32 signalIdx,
                                       void *&signalAddress) {
     bool ok = (headerSize != INIT_HEADER_SIZE);
     if (ok) {
-        ok = (signalIdx < (_PXI6363_NUMBER_OF_PORTS + headerSize));
+        ok = (signalIdx < (PXI6363_NUMBER_OF_PORTS + headerSize));
     }
     if (ok) {
         if (signalIdx < headerSize) {
@@ -174,16 +175,16 @@ bool NI6368DIO::Initialise(StructuredDataI &data) {
     }
     if (ok) {
         //Do not allow to add signals in run-time
-        if (ok) {
-            ok = signalsDatabase.MoveRelative("Signals");
-        }
+        ok = signalsDatabase.MoveRelative("Signals");
         if (ok) {
             ok = signalsDatabase.Write("Locked", 1u);
         }
         if (ok) {
             ok = signalsDatabase.MoveToAncestor(1u);
         }
-        ok = data.MoveRelative("Signals");
+        if (ok) {
+            ok = data.MoveRelative("Signals");
+        }
         if (ok) {
             for (uint32 i = 0u; (i < data.GetNumberOfChildren()) && (ok); i++) {
                 if (data.MoveRelative(data.GetChildName(i))) {
@@ -192,7 +193,7 @@ bool NI6368DIO::Initialise(StructuredDataI &data) {
                         if (headerSize == INIT_HEADER_SIZE) {
                             headerSize = i;
                         }
-                        ok = (portId < _PXI6363_NUMBER_OF_PORTS);
+                        ok = (portId < PXI6363_NUMBER_OF_PORTS);
                         if (!ok) {
                             REPORT_ERROR(ErrorManagement::ParametersError, "Invalid PortId specified.");
                         }
@@ -235,7 +236,6 @@ bool NI6368DIO::Initialise(StructuredDataI &data) {
 }
 
 bool NI6368DIO::SetConfiguredDatabase(StructuredDataI &data) {
-    uint32 i;
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     if (ok) {
         ok = triggerSet;
@@ -267,7 +267,7 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI &data) {
         uint32 nOfSignals = 0u;
         ok = GetFunctionNumberOfSignals(InputSignals, functionIdx, nOfSignals);
 
-        for (i = 0u; (i < nOfSignals) && (ok); i++) {
+        for (uint32 i = 0u; (i < nOfSignals) && (ok); i++) {
             uint32 nSamples = 0u;
             ok = GetFunctionSignalSamples(InputSignals, functionIdx, i, nSamples);
             if (ok) {
@@ -282,7 +282,7 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI &data) {
             ok = GetFunctionNumberOfSignals(OutputSignals, functionIdx, nOfSignals);
         }
 
-        for (i = 0u; (i < nOfSignals) && (ok); i++) {
+        for (uint32 i = 0u; (i < nOfSignals) && (ok); i++) {
             uint32 nSamples = 0u;
             ok = GetFunctionSignalSamples(OutputSignals, functionIdx, i, nSamples);
             if (ok) {
@@ -309,14 +309,11 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     if (ok) {
-        if (portEnabled[0u] == true) {
-
+        if (portEnabled[0u]) {
             StreamString fullDeviceName = rootDeviceName;
             //Configure the board
-            if (ok) {
-                fullDeviceName += ".dio";
-                ok = fullDeviceName.Seek(0LLU);
-            }
+            fullDeviceName += ".dio";
+            ok = fullDeviceName.Seek(0LLU);
             if (ok) {
                 boardFileDescriptor = open(fullDeviceName.Buffer(), O_RDWR);
                 ok = (boardFileDescriptor > -1);
@@ -361,21 +358,16 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI &data) {
             if (ok) {
                 uint32 inputPortMask = ((~(portMask[0u])) & (0xFFFFFFFFu));
                 xseries_di_conf_t diConfiguration = xseries_static_di(inputPortMask);
-
-                if (ok) {
-                    ok = (xseries_load_di_conf(boardFileDescriptor, diConfiguration) == 0);
-                    if (!ok) {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Could not load xseries_load_di_conf for device %s", fullDeviceName);
-                    }
+                ok = (xseries_load_di_conf(boardFileDescriptor, diConfiguration) == 0);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Could not load xseries_load_di_conf for device %s", fullDeviceName);
                 }
             }
             if (ok) {
                 xseries_do_conf_t doConfiguration = xseries_static_do(portMask[0u]);
-                if (ok) {
-                    ok = (xseries_load_do_conf(boardFileDescriptor, doConfiguration) == 0);
-                    if (!ok) {
-                        REPORT_ERROR(ErrorManagement::ParametersError, "Could not load xseries_load_do_conf for device %s", fullDeviceName);
-                    }
+                ok = (xseries_load_do_conf(boardFileDescriptor, doConfiguration) == 0);
+                if (!ok) {
+                    REPORT_ERROR(ErrorManagement::ParametersError, "Could not load xseries_load_do_conf for device %s", fullDeviceName);
                 }
             }
             if (ok) {
@@ -396,7 +388,7 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI &data) {
     int32 trigFileDescriptor = -1;
     bool pfiPortsEnabled = false;
     if (ok) {
-        for (uint32 i = 1u; i < _PXI6363_NUMBER_OF_PORTS; i++) {
+        for (uint32 i = 1u; i < PXI6363_NUMBER_OF_PORTS; i++) {
             if (portEnabled[i]) {
                 if (pfiFileDescriptor < 0) {
                     StreamString pfiFullDeviceName = rootDeviceName;
@@ -429,7 +421,7 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI &data) {
                     }
 
                     if (ok) {
-                        ok = (xseries_free_pfi_lines(trigFileDescriptor, 0xFFFF) == 0);
+                        ok = (xseries_free_pfi_lines(trigFileDescriptor, 0xFFFFu) == 0);
                         if (!ok) {
                             REPORT_ERROR(ErrorManagement::FatalError, "Cannot free all PFI lines");
                         }
@@ -451,9 +443,11 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI &data) {
 
         if (ok) {
             if (pfiPortsEnabled) {
-                xseries_set_pfi_for_output(trigFileDescriptor, pfiMask, XSERIES_PFI_OUTPUT_DO);
-                uint32 inputMask = (~(pfiMask)) & 0xFFFFu;
-                xseries_set_pfi_for_input(trigFileDescriptor, inputMask);
+                ok = (xseries_set_pfi_for_output(trigFileDescriptor, pfiMask, XSERIES_PFI_OUTPUT_DO) == 0);
+                if (ok) {
+                    uint32 inputMask = (~(pfiMask)) & 0xFFFFu;
+                    ok = (xseries_set_pfi_for_input(trigFileDescriptor, inputMask) == 0);
+                }
             }
             close(trigFileDescriptor);
         }
@@ -466,6 +460,7 @@ bool NI6368DIO::SetConfiguredDatabase(StructuredDataI &data) {
 bool NI6368DIO::Synchronise() {
     bool ok = true;
 
+    /*lint -e{712} -e{747} -e{9117} accept coercion, loss of precision and change of sign*/
     if (portEnabled[0]) {
         //REPORT_ERROR(ErrorManagement::Information, "Write %0x on port 0", portValue[0]);
         uint32 pfiVal = (portValue[0] ^ inversionMask[0]);
@@ -473,10 +468,11 @@ bool NI6368DIO::Synchronise() {
         ok = (xseries_write_do(boardFileDescriptor, &pfiVal, 1u) == 1);
     }
 
+    /*lint -e{712} -e{747} -e{9117} -e{9119} accept coercion, loss of precision and change of sign*/
     if (ok) {
         uint32 pfiVal = 0u;
         uint32 invMask = 0u;
-        for (uint32 i = 1u; i < _PXI6363_NUMBER_OF_PORTS; i++) {
+        for (uint32 i = 1u; i < PXI6363_NUMBER_OF_PORTS; i++) {
             if (portEnabled[i]) {
                 uint32 shift = (8u * (i - 1u));
                 pfiVal |= (portValue[i] << shift);
@@ -490,6 +486,7 @@ bool NI6368DIO::Synchronise() {
         ok = (wbytes > 0u);
     }
 
+    /*lint -e{712} -e{747} -e{9117} accept coercion, loss of precision and change of sign*/
     if (ok) {
         if (portEnabled[0]) {
             uint32 pfiVal = 0u;
@@ -502,6 +499,7 @@ bool NI6368DIO::Synchronise() {
         }
     }
 
+    /*lint -e{712} -e{747} -e{9117} -e{9119} accept coercion, loss of precision and change of sign*/
     if (ok) {
         uint32 pfiVal = 0u;
         uint32 rbytes = xseries_read_pfi(pfiFileDescriptor, &pfiVal, 1u);
@@ -509,7 +507,7 @@ bool NI6368DIO::Synchronise() {
 
         ok = (rbytes > 0u);
         if (ok) {
-            for (uint32 i = 1u; i < _PXI6363_NUMBER_OF_PORTS; i++) {
+            for (uint32 i = 1u; i < PXI6363_NUMBER_OF_PORTS; i++) {
                 if (portEnabled[i]) {
                     uint32 shift = (8u * (i - 1u));
                     portValue[i] = ((pfiVal >> shift) & 0xFFu) ^ (inversionMask[i] & 0xFFu);
@@ -519,9 +517,12 @@ bool NI6368DIO::Synchronise() {
         }
     }
 
+    //lint -e{40} -e{1013} -e{522} -e{1055} symbols are in header file
     if (headerSize > 0u) {
         xseries_device_status_t devStatus;
-        xseries_get_device_status(rootFileDescriptor, &devStatus);
+        if (ok) {
+            ok = (xseries_get_device_status(rootFileDescriptor, &devStatus) == 0);
+        }
         boardStatus = devStatus.currentBoardStatus;
     }
 

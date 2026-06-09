@@ -51,6 +51,7 @@ namespace MARTe {
 struct AttributeMap {
     const char8 *name;
     pxi6259_segment_attribute attribute;
+//lint -e{9109} -e{770} AttributeMap is private to this file and independent from NI6259ADC.cpp 
 };
 
 static struct AttributeMap attributeMap[] = {

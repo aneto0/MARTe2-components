@@ -37,8 +37,10 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+/*lint -e1923 -e9024 -e767 allow to use #define for constants. DAC_BASE_FREQ is private to this module.*/
 #define DAC_BASE_FREQ 100000000u
 #define INIT_HEADER_SIZE 0xFFFFFFFFu
+/*lint +e1923 +e9024 +e767 */
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -68,8 +70,8 @@ NI6368DAC::NI6368DAC() :
         dacEnabled[n] = false;
         channelsFileDescriptors[n] = -1;
         channelsMemory[n] = NULL_PTR(float32*);
-        outputGain[n] = 1.0;
-        outputOffset[n] = 0.0;
+        outputGain[n] = 1.0F;
+        outputOffset[n] = 0.0F;
     }
 
     numberOfSamplesT = 0u;
@@ -712,15 +714,15 @@ bool NI6368DAC::Initialise(StructuredDataI &data) {
     if (ok) {
         bool set = false;
         uint32 samplingFrequency = 0u;
+        //lint -e{9013} SamplingFrequency and ClockUpdateDivisor are mutually exclusive
         if (data.Read("SamplingFrequency", samplingFrequency)) {
             ok = (samplingFrequency <= baseSampleClockFrequency) && (samplingFrequency > 0u);
             if (ok) {
                 clockUpdateDivisor = (baseSampleClockFrequency / samplingFrequency);
                 REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ClockUpdateDivisor set to: %d", clockUpdateDivisor);
-                float32 samplingF = (baseSampleClockFrequency / (float32) clockUpdateDivisor);
+                float32 samplingF = static_cast<float32>(baseSampleClockFrequency) / static_cast<float32>(clockUpdateDivisor);
                 if ((baseSampleClockFrequency % samplingFrequency) > 0u) {
-                    REPORT_ERROR(ErrorManagement::Warning, "SamplingFrequency does not divide exactly DAC base clock (%d). Set to %f", baseSampleClockFrequency,
-                                 samplingF);
+                    REPORT_ERROR(ErrorManagement::Warning, "SamplingFrequency does not divide exactly DAC base clock (%d). Set to %f", baseSampleClockFrequency, samplingF);
                 }
             }
             else {
@@ -741,8 +743,7 @@ bool NI6368DAC::Initialise(StructuredDataI &data) {
             if (!set) {
                 clockUpdateDivisor = 100u;
                 REPORT_ERROR(ErrorManagement::Information,
-                             "Nor SamplingFrequency or ClockUpdateDivisor or UpdateIntervalCounterPeriodDivisor defined. Setting ClockUpdateDivisor=%d",
-                             clockUpdateDivisor);
+                             "Nor SamplingFrequency or ClockUpdateDivisor or UpdateIntervalCounterPeriodDivisor defined. Setting ClockUpdateDivisor=%d", clockUpdateDivisor);
             }
         }
     }
@@ -750,6 +751,7 @@ bool NI6368DAC::Initialise(StructuredDataI &data) {
     if (ok) {
         clockUpdateDelay = 0u;
 
+        //lint -e{9013} ClockUpdateDelay  and UpdateIntervalCounterDelay  are mutually exclusive
         if (data.Read("ClockUpdateDelay", clockUpdateDelay)) {
         }
         else if (data.Read("UpdateIntervalCounterDelay", clockUpdateDelay)) {
@@ -758,12 +760,10 @@ bool NI6368DAC::Initialise(StructuredDataI &data) {
             clockUpdateDelay = 2u;
             REPORT_ERROR(ErrorManagement::Information, "UpdateIntervalCounterDelay not defined. Using default 2");
         }
-        if (ok) {
-            REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ClockUpdateDelay set to: %d", clockUpdateDelay);
-            ok = (clockUpdateDelay > 0u);
-            if (!ok) {
-                REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterDelay shall be > 0");
-            }
+        REPORT_ERROR_PARAMETERS(ErrorManagement::Information, "ClockUpdateDelay set to: %d", clockUpdateDelay);
+        ok = (clockUpdateDelay > 0u);
+        if (!ok) {
+            REPORT_ERROR(ErrorManagement::ParametersError, "The UpdateIntervalCounterDelay shall be > 0");
         }
     }
 
@@ -857,10 +857,10 @@ bool NI6368DAC::Initialise(StructuredDataI &data) {
         const uint32 pxi6368MaxFreq[NI6368DAC_MAX_CHANNELS] = { 3300000u, 3300000u, 3300000u, 3300000u };
 
         if (numberOfDACsEnabled > 0u) {
-            float32 samplingF = (baseSampleClockFrequency / (float32) clockUpdateDivisor);
-            uint8 maxFreqIdx = (numberOfDACsEnabled - 1u);
+            float32 samplingF = static_cast<float32>(baseSampleClockFrequency) / static_cast<float32>(clockUpdateDivisor);
+            uint8 maxFreqIdx = static_cast<uint8>(numberOfDACsEnabled - 1u);
             uint32 maxFreq = (multiplexed > 0u) ? (pxi6363MaxFreq[maxFreqIdx]) : (pxi6368MaxFreq[maxFreqIdx]);
-            ok = (samplingF <= maxFreq);
+            ok = (samplingF <= static_cast<float32>(maxFreq));
             if (!ok) {
                 REPORT_ERROR(ErrorManagement::FatalError, "Sampling frequency (%f) shall be minor than %d", samplingF, maxFreq);
             }
@@ -1083,9 +1083,12 @@ bool NI6368DAC::Synchronise() {
         }
     }
 
+    //lint -e{522} -e{565} -e{1080} -e{1055} -e{516} -e{115} -e{1030} -e{40} -e{1013} -e{526} -e{628} -e{746} symbols are in header file
     if (headerSize > 0u) {
         xseries_device_status_t devStatus;
-        xseries_get_device_status(rootFileDescriptor, &devStatus);
+        if (ok) {
+            ok = (xseries_get_device_status(rootFileDescriptor, &devStatus) == 0);
+        }
         boardStatus = devStatus.currentBoardStatus;
     }
 

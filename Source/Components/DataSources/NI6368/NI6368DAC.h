@@ -41,6 +41,7 @@
 /*---------------------------------------------------------------------------*/
 
 namespace MARTe {
+/*lint -e551 -e1923 -e767 -e91 allow macros and large lines for comments*/
 /**
  * Number of DAC channels
  */
@@ -108,6 +109,7 @@ const uint32 NI6368DAC_MAX_CHANNELS = 4u;
  * </pre>
  * Note that at least one of the GAMs writing to this DataSource must have set one of the signals with Trigger=1 (which forces the writing of all the signals to the DAC).
  */
+/*lint +e551 +e1923 +e767 +e91*/
 class NI6368DAC: public DataSourceI {
 public:
     CLASS_REGISTER_DECLARATION()

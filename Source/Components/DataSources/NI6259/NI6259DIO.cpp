@@ -47,6 +47,8 @@
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
 /*---------------------------------------------------------------------------*/
+/*lint -efile(526,*NI6259DIO.cpp) symbols in header file.*/
+/*lint -efile(628,*NI6259DIO.cpp) symbols in header file.*/
 
 namespace MARTe {
 NI6259DIO::NI6259DIO() :
@@ -384,12 +386,13 @@ bool NI6259DIO::Synchronise() {
         }
     }
 
-    //lint -e{565} -e{1080} -e{1055} -e{516} -e{115} -e{1030} -e{40} -e{1013} -e{526} -e{628} symbols are in header file
+    //lint -e{565} -e{1080} -e{1055} -e{516} -e{115} -e{1030} -e{40} -e{1013} symbols are in header file
     if (headerSize > 0u) {
         struct pxi6259_board_status boardStatusT;
-        if (pxi6259_get_board_status(rootFileDescriptor, &boardStatusT) == 0) {
-            boardStatus = boardStatusT.currentBoardStatus;
+        if (ok) {
+            ok = (pxi6259_get_board_status(rootFileDescriptor, &boardStatusT) == 0);
         }
+        boardStatus = boardStatusT.currentBoardStatus;
     }
 
     return ok;

@@ -698,7 +698,7 @@ bool NI6368DIOTest::TestGetSignalMemoryBuffer_False_Invalid_Index() {
     }
     if (ok) {
         uint32 *ptr;
-        ok = !test.GetSignalMemoryBuffer(_PXI6363_NUMBER_OF_PORTS + 2u, 0, (void*&) ptr);
+        ok = !test.GetSignalMemoryBuffer(PXI6363_NUMBER_OF_PORTS + 2u, 0, (void*&) ptr);
     }
     return ok;
 }
