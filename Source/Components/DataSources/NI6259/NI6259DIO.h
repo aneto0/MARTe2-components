@@ -51,10 +51,14 @@ namespace MARTe {
  *     DeviceName = "/dev/pxi6259" //Mandatory
  *     BoardId = 0 //Mandatory
  *     Signals = {
+ *         Status = { //Optional. The board status
+ *             Type = uint32 //Bit 0: AI overrun, 1 AI overflow, 2 ao Overrun
+ *         }
  *         DIO0_0 = {
  *             Type = uint32 //Mandatory. Only type that is supported.
  *             PortId = 0 //Mandatory. The port number in the range [0, 2]
  *             Mask = 0x1 //Mandatory. A mask where each bit defines if the pin is an input (bit=0) or an output (bit=1).
+ *             InversionMask = 0xF //Optional, a mask with bits to invert before writing or after reading. Default is 0 (no invert)
  *         }
  *     }
  * }
@@ -103,32 +107,6 @@ NI6259DIO    ();
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data,
             const SignalDirection direction);
-
-    /**
-     * @brief See DataSourceI::GetInputBrokers.
-     * @details Adds a MemoryMapSynchronisedInputBroker instance to the inputBrokers.
-     * @param[out] inputBrokers where the BrokerI instances have to be added to.
-     * @param[in] functionName name of the function being queried.
-     * @param[in] gamMemPtr the GAM memory where the signals will be read from.
-     * @return true if the inputBrokers can be successfully configured.
-     */
-    virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
-
-    /**
-     * @brief See DataSourceI::GetOutputBrokers.
-     * @details If the functionName is one of the functions which requested a Trigger,
-     * it adds a MemoryMapSynchronisedOutputBroker instance to the outputBrokers,
-     * otherwise it adds a MemoryMapOutputBroker instance to the outputBrokers.
-     * @param[out] outputBrokers where the BrokerI instances have to be added to.
-     * @param[in] functionName name of the function being queried.
-     * @param[in] gamMemPtr the GAM memory where the signals will be read from.
-     * @return true if the outputBrokers can be successfully configured.
-     */
-    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
 
     /**
      * @brief See StatefulI::PrepareNextState.
@@ -187,6 +165,11 @@ private:
      */
     int32 boardFileDescriptor;
 
+    /*
+     * The board status file descriptor
+     */
+    int32 rootFileDescriptor;
+
     /**
      * The DIOs that are enabled
      */
@@ -201,6 +184,11 @@ private:
      * The current port values.
      */
     uint32 portValues[PXI6259_NUMBER_OF_PORTS];
+
+    /**
+     * The inversion mask
+     */
+    uint32 inversionMask[PXI6259_NUMBER_OF_PORTS];
 
     /**
      * Number of ports enabled for this board.
@@ -218,9 +206,16 @@ private:
     bool triggerSet;
 
     /**
-     * True if this board is used to write digital values.
+     * The number of signals in header
      */
-    bool outputsEnabled;
+    uint32 headerSize;
+
+    /**
+     * The board status
+     */
+    uint32 boardStatus;
+
+
 };
 }
 

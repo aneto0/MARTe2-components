@@ -54,9 +54,14 @@ TEST(NI6259DACGTest,TestGetNumberOfMemoryBuffers) {
     ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
 }
 
-TEST(NI6259DACGTest,TestGetSignalMemoryBuffer_False) {
+TEST(NI6259DACGTest,TestGetSignalMemoryBuffer_False_Non_Init) {
     NI6259DACTest test;
-    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False());
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False_Non_Init());
+}
+
+TEST(NI6259DACGTest,TestGetSignalMemoryBuffer_False_Invalid_Index) {
+    NI6259DACTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False_Invalid_Index());
 }
 
 TEST(NI6259DACGTest,TestGetSignalMemoryBuffer) {
@@ -119,11 +124,6 @@ TEST(NI6259DACGTest,TestInitialise_ClockUpdateSource) {
     ASSERT_TRUE(test.TestInitialise_ClockUpdateSource());
 }
 
-TEST(NI6259DACGTest,TestInitialise_False_NoClockUpdateSource) {
-    NI6259DACTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoClockUpdateSource());
-}
-
 TEST(NI6259DACGTest,TestInitialise_False_BadClockUpdateSource) {
     NI6259DACTest test;
     ASSERT_TRUE(test.TestInitialise_False_BadClockUpdateSource());
@@ -132,11 +132,6 @@ TEST(NI6259DACGTest,TestInitialise_False_BadClockUpdateSource) {
 TEST(NI6259DACGTest,TestInitialise_ClockUpdatePolarity) {
     NI6259DACTest test;
     ASSERT_TRUE(test.TestInitialise_ClockUpdatePolarity());
-}
-
-TEST(NI6259DACGTest,TestInitialise_False_NoClockUpdatePolarity) {
-    NI6259DACTest test;
-    ASSERT_TRUE(test.TestInitialise_False_NoClockUpdatePolarity());
 }
 
 TEST(NI6259DACGTest,TestInitialise_False_BadClockUpdatePolarity) {
@@ -199,9 +194,9 @@ TEST(NI6259DACGTest,TestSetConfiguredDatabase_False_SignalTypeMismatch) {
     ASSERT_TRUE(test.TestSetConfiguredDatabase_False_SignalTypeMismatch());
 }
 
-TEST(NI6259DACGTest,TestSetConfiguredDatabase_False_SignalNumberOfSamplesGreaterThanOne) {
+TEST(NI6259DACGTest,TestSetConfiguredDatabase_SignalNumberOfSamplesGreaterThanOne) {
     NI6259DACTest test;
-    ASSERT_TRUE(test.TestSetConfiguredDatabase_False_SignalNumberOfSamplesGreaterThanOne());
+    ASSERT_TRUE(test.TestSetConfiguredDatabase_SignalNumberOfSamplesGreaterThanOne());
 }
 
 TEST(NI6259DACGTest,TestSetConfiguredDatabase_False_WrongDeviceName) {

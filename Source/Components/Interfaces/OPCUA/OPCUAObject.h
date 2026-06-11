@@ -28,7 +28,12 @@
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
 /*lint -u__cplusplus This is required as otherwise lint will get confused after including this header file.*/
+#ifndef OPEN62541_NO_ALMAGAMATION
 #include "open62541.h"
+#else
+#include "open62541/client.h"
+#include "open62541/client_highlevel.h"
+#endif
 /*lint -D__cplusplus*/
 
 /*---------------------------------------------------------------------------*/

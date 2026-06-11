@@ -27,8 +27,17 @@
 /*---------------------------------------------------------------------------*/
 /*                        Standard header includes                           */
 /*---------------------------------------------------------------------------*/
+
 /*lint -u__cplusplus This is required as otherwise lint will get confused after including this header file.*/
+#ifndef OPEN62541_NO_ALMAGAMATION
 #include "open62541.h"
+#else
+#include "open62541/client.h"
+#include "open62541/plugin/accesscontrol.h"
+#include "open62541/plugin/accesscontrol_default.h"
+#include "open62541/server.h"
+#include "open62541/server_config_default.h"
+#endif
 /*lint -D__cplusplus*/
 
 /*---------------------------------------------------------------------------*/
@@ -58,6 +67,9 @@ namespace MARTe {
  * and to create the OPCUA Address Space correctly.
  *
  * All the nodes added in the AddressSpace will be of OPCUA Variable type.
+ *
+ * The structured types are registered as OPCUA Objects and thus cannot be read back as ExtensionObjects.
+ * The nodes have to be browsed to access the individual OPCUA Variables.
  * 
  * Authentication type can be defined (either None or UserPassword). When
  * using the UserPassword option, the UserPassword property must also be

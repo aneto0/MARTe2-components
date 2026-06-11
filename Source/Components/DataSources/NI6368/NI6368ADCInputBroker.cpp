@@ -41,31 +41,36 @@ namespace MARTe {
 
 NI6368ADCInputBroker::NI6368ADCInputBroker() :
         BrokerI() {
-    adcBoard = NULL_PTR(NI6368ADC *);
-    copyTable = NULL_PTR(NI6368CopyTableEntry *);
+    adcBoard = NULL_PTR(NI6368ADC*);
+    copyTable = NULL_PTR(NI6368CopyTableEntry*);
 }
 
-NI6368ADCInputBroker::NI6368ADCInputBroker(NI6368ADC * const adcBoardIn) :
+NI6368ADCInputBroker::NI6368ADCInputBroker(NI6368ADC *const adcBoardIn) :
         BrokerI() {
     adcBoard = adcBoardIn;
-    copyTable = NULL_PTR(NI6368CopyTableEntry *);
+    copyTable = NULL_PTR(NI6368CopyTableEntry*);
 }
 
-/*lint -e{1540} the adcBoard is freed by the DataSource*/
+/*lint -e{1540} -e{1740} the adcBoard is freed by the DataSource*/
 NI6368ADCInputBroker::~NI6368ADCInputBroker() {
-
+    if (copyTable != NULL_PTR(NI6368CopyTableEntry*)) {
+        delete[] copyTable;
+    }
 }
 
-bool NI6368ADCInputBroker::Init(const SignalDirection direction, DataSourceI &dataSourceIn, const char8 * const functionName, void * const gamMemoryAddress) {
+bool NI6368ADCInputBroker::Init(const SignalDirection direction,
+                                DataSourceI &dataSourceIn,
+                                const char8 *const functionName,
+                                void *const gamMemoryAddress) {
     DataSourceI *dataSource = &dataSourceIn;
 
     bool ret = InitFunctionPointers(direction, dataSourceIn, functionName, gamMemoryAddress);
 
-    const ClassProperties * properties = GetClassProperties();
+    const ClassProperties *properties = GetClassProperties();
     if (ret) {
         ret = (properties != NULL);
     }
-    const char8* brokerClassName = NULL_PTR(const char8*);
+    const char8 *brokerClassName = NULL_PTR(const char8*);
     if (ret) {
         brokerClassName = properties->GetName();
         ret = (brokerClassName != NULL);
@@ -88,8 +93,8 @@ bool NI6368ADCInputBroker::Init(const SignalDirection direction, DataSourceI &da
     //The same signal can be copied from different ranges. A MemoryMapStatefulBrokerCopyTableEntry is added for each signal range.
     uint32 c = 0u;
     uint32 n;
-    uint32 numberOfBuffers = NUMBER_OF_BUFFERS;
-    if (adcBoard != NULL_PTR(NI6368ADC *)) {
+    uint32 numberOfBuffers = NI6368ADC_NUMBER_OF_BUFFERS;
+    if (adcBoard != NULL_PTR(NI6368ADC*)) {
         numberOfBuffers = adcBoard->GetNumberOfMemoryBuffers();
     }
     for (n = 0u; (n < functionNumberOfSignals) && (ret); n++) {
@@ -108,7 +113,7 @@ bool NI6368ADCInputBroker::Init(const SignalDirection direction, DataSourceI &da
             //Take into account different ranges for the same signal
             uint32 bo;
             for (bo = 0u; (bo < numberOfByteOffsets) && (ret); bo++) {
-                if (copyTable != NULL_PTR(NI6368CopyTableEntry *)) {
+                if (copyTable != NULL_PTR(NI6368CopyTableEntry*)) {
                     copyTable[c].copySize = GetCopyByteSize(c);
                     copyTable[c].gamPointer = GetFunctionPointer(c);
                     copyTable[c].dataSourceOffset = GetCopyOffset(c);
@@ -132,7 +137,7 @@ bool NI6368ADCInputBroker::Init(const SignalDirection direction, DataSourceI &da
 bool NI6368ADCInputBroker::Execute() {
     uint32 n;
     bool ret = true;
-    if (adcBoard != NULL_PTR(NI6368ADC *)) {
+    if (adcBoard != NULL_PTR(NI6368ADC*)) {
         if (adcBoard->IsSynchronising()) {
             ret = adcBoard->Synchronise();
         }
@@ -144,10 +149,9 @@ bool NI6368ADCInputBroker::Execute() {
         //no problem if working on different buffers
         adcBoard->Lock(idx);
 
-
         void *dataSourceSignalPointer;
         for (n = 0u; (n < numberOfCopies) && (ret); n++) {
-            if (copyTable != NULL_PTR(NI6368CopyTableEntry *)) {
+            if (copyTable != NULL_PTR(NI6368CopyTableEntry*)) {
                 dataSourceSignalPointer = copyTable[n].dataSourcePointer[idx];
                 ret = MemoryOperationsHelper::Copy(copyTable[n].gamPointer, dataSourceSignalPointer, copyTable[n].copySize);
             }

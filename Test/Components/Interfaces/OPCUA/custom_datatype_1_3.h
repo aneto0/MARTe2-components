@@ -21,8 +21,6 @@
  * definitions for inline methods which need to be visible to the compiler.
  */
 
-#include "open62541.h"
-
 /* Point */
 typedef struct {
     UA_Float x;

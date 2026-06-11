@@ -54,9 +54,14 @@ TEST(NI6259DIOGTest,TestGetNumberOfMemoryBuffers) {
     ASSERT_TRUE(test.TestGetNumberOfMemoryBuffers());
 }
 
-TEST(NI6259DIOGTest,TestGetSignalMemoryBuffer_False) {
+TEST(NI6259DIOGTest,TestGetSignalMemoryBuffer_False_Non_Init) {
     NI6259DIOTest test;
-    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False());
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False_Non_Init());
+}
+
+TEST(NI6259DIOGTest,TestGetSignalMemoryBuffer_False_Invalid_Index) {
+    NI6259DIOTest test;
+    ASSERT_TRUE(test.TestGetSignalMemoryBuffer_False_Invalid_Index());
 }
 
 TEST(NI6259DIOGTest,TestGetSignalMemoryBuffer) {

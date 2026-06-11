@@ -109,4 +109,6 @@
 -estring(1960, *MARTe::BinaryTree*)
 -estring(1960, *MARTe::BufferedStreamI::*)
 -estring(1960, *MARTe::StaticList*)
--estring(1960,*MARTe::OPCUAReferenceContainer*)
+-estring(1960,*OPCUA*)
+-estring(1960,*UA_LOG_*)
+

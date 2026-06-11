@@ -290,7 +290,8 @@ FileWriterSchedulerTestHelper    () : MARTe::GAMSchedulerI() {
         return ret;
     }
 
-    virtual void CustomPrepareNextState() {
+    virtual bool CustomPrepareNextState() {
+        return true;
     }
 
 private:

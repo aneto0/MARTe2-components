@@ -51,9 +51,11 @@ NI6259ADCInputBroker::NI6259ADCInputBroker(NI6259ADC *const adcBoardIn) :
     copyTable = NULL_PTR(NI6259CopyTableEntry*);
 }
 
-/*lint -e{1540} the adcBoard is freed by the DataSource*/
+/*lint -e{1540} -e{1740} the adcBoard is freed by the DataSource*/
 NI6259ADCInputBroker::~NI6259ADCInputBroker() {
-
+    if(copyTable != NULL_PTR(NI6259CopyTableEntry *)){
+        delete[] copyTable;
+    }
 }
 
 bool NI6259ADCInputBroker::Init(const SignalDirection direction,
@@ -91,7 +93,7 @@ bool NI6259ADCInputBroker::Init(const SignalDirection direction,
     //The same signal can be copied from different ranges. A MemoryMapStatefulBrokerCopyTableEntry is added for each signal range.
     uint32 c = 0u;
     uint32 n;
-    uint32 numberOfBuffers = NUMBER_OF_BUFFERS;
+    uint32 numberOfBuffers = NI6259ADC_NUMBER_OF_BUFFERS;
     if (adcBoard != NULL_PTR(NI6259ADC*)) {
         numberOfBuffers = adcBoard->GetNumberOfMemoryBuffers();
     }

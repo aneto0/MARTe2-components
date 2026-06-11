@@ -188,6 +188,93 @@ static bool PatchConfiguration(const MARTe::char8 *const config1,
 }
 
 //Two channels base configuration
+static const MARTe::char8 *const config1_full = ""
+        "$Test = {"
+        "    Class = RealTimeApplication"
+        "    +Functions = {"
+        "        Class = ReferenceContainer"
+        "        +GAMA = {"
+        "            Class = NI6259ADCTestGAM"
+        "            InputSignals = {"
+        "                Counter = {"
+        "                    DataSource = NI6259_0"
+        "                }"
+        "                Time = {"
+        "                    DataSource = NI6259_0"
+        "                }"
+        "                ADC0_0 = {"
+        "                    DataSource = NI6259_0"
+        "                    Type = int16"
+        "                    Samples = 10000"
+        "                    Frequency = 50"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Data = {"
+        "        Class = ReferenceContainer"
+        "        DefaultDataSource = DDB1"
+        "        +NI6259_0 = {"
+        "            Class = NI6259ADC"
+        "            SamplingFrequency = 1000000"
+        "            DeviceName = \"/dev/pxi6259\""
+        "            BoardId = 0"
+        "            DelayDivisor = 3"
+        "            ClockSampleSource = \"SI_TC\""
+        "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+        "            ClockConvertSource = \"SI2TC\""
+        "            ClockConvertPolarity = \"RISING_EDGE\""
+        "            CPUs = 0xf"
+        "            Signals = {"
+        "                Counter = {"
+        "                    Type = uint64"
+        "                }"
+        "                Time = {"
+        "                    Type = uint64"
+        "                }"
+        "                Status = {"
+        "                    Type = uint32"
+        "                }"
+        "                ADC0_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 0"
+        "                   InputPolarity = Bipolar"
+        "                   InputMode = RSE"
+        "                }"
+        "                ADC1_0 = {"
+        "                   InputRange = 10"
+        "                   Type = int16"
+        "                   ChannelId = 1"
+        "                   InputPolarity = Bipolar"
+        "                   InputMode = RSE"
+        "                }"
+        "            }"
+        "        }"
+        "        +Timings = {"
+        "            Class = TimingDataSource"
+        "        }"
+        "    }"
+        "    +States = {"
+        "        Class = ReferenceContainer"
+        "        +State1 = {"
+        "            Class = RealTimeState"
+        "            +Threads = {"
+        "                Class = ReferenceContainer"
+        "                +Thread1 = {"
+        "                    Class = RealTimeThread"
+        "                    Functions = {GAMA}"
+        "                }"
+        "            }"
+        "        }"
+        "    }"
+        "    +Scheduler = {"
+        "        Class = GAMScheduler"
+        "        TimingDataSource = Timings"
+        "    }"
+        "}";
+
+//Two channels base configuration
 static const MARTe::char8 *const config1 = ""
         "$Test = {"
         "    Class = RealTimeApplication"
@@ -1789,27 +1876,59 @@ bool NI6259ADCTest::TestGetNumberOfMemoryBuffers() {
 
 bool NI6259ADCTest::TestGetSignalMemoryBuffer() {
     using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1_full;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
     NI6259ADC test;
-    uint64 *counter;
-    uint64 *timer;
-    int16 *adc0;
-    int16 *adc31;
-    test.GetSignalMemoryBuffer(0, 0, (void*&) counter);
-    test.GetSignalMemoryBuffer(1, 0, (void*&) timer);
-    test.GetSignalMemoryBuffer(2, 0, (void*&) adc0);
-    test.GetSignalMemoryBuffer(33, 0, (void*&) adc31);
-    bool ok = (counter != NULL);
-    ok &= (timer != NULL);
-    ok &= (adc0 == NULL);
-    ok &= (adc31 == NULL);
+    if (ok) {
+        ok = test.Initialise(cdb);
+    }
+    if (ok) {
+        uint64 *counter = NULL;
+        uint64 *time = NULL;
+        uint32 *status = NULL;
+
+        int16 *adc0 = NULL;
+        int16 *adc31 = NULL;
+
+        test.GetSignalMemoryBuffer(0, 0, (void*&) counter);
+        test.GetSignalMemoryBuffer(1, 0, (void*&) time);
+        test.GetSignalMemoryBuffer(2, 0, (void*&) status);
+
+        test.GetSignalMemoryBuffer(3, 0, (void*&) adc0);
+        test.GetSignalMemoryBuffer(34, 0, (void*&) adc31);
+        ok = (counter != NULL);
+        ok &= (time != NULL);
+        ok &= (adc0 == NULL);
+        ok &= (adc31 == NULL);
+    }
     return ok;
 }
 
-bool NI6259ADCTest::TestGetSignalMemoryBuffer_False() {
+bool NI6259ADCTest::TestGetSignalMemoryBuffer_False_Non_Init() {
     using namespace MARTe;
     NI6259ADC test;
     uint32 *ptr;
-    return !test.GetSignalMemoryBuffer(NI6259ADC_HEADER_SIZE + NI6259ADC_MAX_CHANNELS, 0, (void*&) ptr);
+    return !test.GetSignalMemoryBuffer(0, 0, (void*&) ptr);
+}
+
+bool NI6259ADCTest::TestGetSignalMemoryBuffer_False_Invalid_Index() {
+    using namespace MARTe;
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1_full;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+    bool ok = parser.Parse();
+    cdb.MoveAbsolute("$Test.+Data.+NI6259_0");
+    NI6259ADC test;
+    if (ok) {
+        ok = test.Initialise(cdb);
+    }
+    uint32 *ptr;
+    return !test.GetSignalMemoryBuffer(NI6259ADC_MAX_CHANNELS + 4u, 0, (void*&) ptr);
 }
 
 bool NI6259ADCTest::TestGetBrokerName() {
@@ -1915,7 +2034,7 @@ bool NI6259ADCTest::TestPrepareNextState() {
             ok = application->PrepareNextState("State1");
         }
         if (ok) {
-            ok = (((*counter) < counterBefore) && ((*timer) < timerBefore));
+            ok = (((*counter) == counterBefore) && ((*timer) == timerBefore));
         }
     }
     god->Purge();
@@ -1925,7 +2044,7 @@ bool NI6259ADCTest::TestPrepareNextState() {
 bool NI6259ADCTest::TestInitialise() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
-    StreamString configStream = config1;
+    StreamString configStream = config1_full;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
     bool ok = parser.Parse();
@@ -1987,7 +2106,7 @@ bool NI6259ADCTest::TestInitialise_False_BadSamplingFrequency2() {
     return ok;
 }
 
-bool NI6259ADCTest::TestInitialise_False_BadConvertFrequency(){
+bool NI6259ADCTest::TestInitialise_False_BadConvertFrequency() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config1;
@@ -2003,7 +2122,7 @@ bool NI6259ADCTest::TestInitialise_False_BadConvertFrequency(){
     return ok;
 }
 
-bool NI6259ADCTest::TestInitialise_False_BadConvertFrequency2(){
+bool NI6259ADCTest::TestInitialise_False_BadConvertFrequency2() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
     StreamString configStream = config14;
@@ -3185,7 +3304,7 @@ bool NI6259ADCTest::TestSetConfiguredDatabase_False_MoreThanOneGAM() {
 bool NI6259ADCTest::TestIntegrated() {
     using namespace MARTe;
     ConfigurationDatabase cdb;
-    StreamString configStream = config1;
+    StreamString configStream = config1_full;
     configStream.Seek(0);
     StandardParser parser(configStream, cdb);
 
@@ -3231,6 +3350,146 @@ bool NI6259ADCTest::TestIntegrated() {
     god->Purge();
     return ok;
 }
+
+
+bool NI6259ADCTest::TestIntegrated_IndependentRealTimeThreadExecutionMode() {
+    using namespace MARTe;
+    //Two channels base configuration
+    static const char8 *const config1_full_rt = ""
+            "$Test = {"
+            "    Class = RealTimeApplication"
+            "    +Functions = {"
+            "        Class = ReferenceContainer"
+            "        +GAMA = {"
+            "            Class = NI6259ADCTestGAM"
+            "            InputSignals = {"
+            "                Counter = {"
+            "                    DataSource = NI6259_0"
+            "                }"
+            "                Time = {"
+            "                    DataSource = NI6259_0"
+            "                }"
+            "                ADC0_0 = {"
+            "                    DataSource = NI6259_0"
+            "                    Type = int16"
+            "                    Samples = 10000"
+            "                    Frequency = 50"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Data = {"
+            "        Class = ReferenceContainer"
+            "        DefaultDataSource = DDB1"
+            "        +NI6259_0 = {"
+            "            Class = NI6259ADC"
+            "            SamplingFrequency = 1000000"
+            "            DeviceName = \"/dev/pxi6259\""
+            "            BoardId = 0"
+            "            DelayDivisor = 3"
+            "            ClockSampleSource = \"SI_TC\""
+            "            ClockSamplePolarity = \"ACTIVE_HIGH_OR_RISING_EDGE\""
+            "            ClockConvertSource = \"SI2TC\""
+            "            ClockConvertPolarity = \"RISING_EDGE\""
+            "            CPUs = 0xf"
+            "            ExecutionMode = IndependentRealTimeThread"
+            "            Signals = {"
+            "                Counter = {"
+            "                    Type = uint64"
+            "                }"
+            "                Time = {"
+            "                    Type = uint64"
+            "                }"
+            "                Status = {"
+            "                    Type = uint32"
+            "                }"
+            "                ADC0_0 = {"
+            "                   InputRange = 10"
+            "                   Type = int16"
+            "                   ChannelId = 0"
+            "                   InputPolarity = Bipolar"
+            "                   InputMode = RSE"
+            "                }"
+            "                ADC1_0 = {"
+            "                   InputRange = 10"
+            "                   Type = int16"
+            "                   ChannelId = 1"
+            "                   InputPolarity = Bipolar"
+            "                   InputMode = RSE"
+            "                }"
+            "            }"
+            "        }"
+            "        +Timings = {"
+            "            Class = TimingDataSource"
+            "        }"
+            "    }"
+            "    +States = {"
+            "        Class = ReferenceContainer"
+            "        +State1 = {"
+            "            Class = RealTimeState"
+            "            +Threads = {"
+            "                Class = ReferenceContainer"
+            "                +Thread1 = {"
+            "                    Class = RealTimeThread"
+            "                    Functions = {GAMA}"
+            "                }"
+            "            }"
+            "        }"
+            "    }"
+            "    +Scheduler = {"
+            "        Class = GAMScheduler"
+            "        TimingDataSource = Timings"
+            "    }"
+            "}";
+
+    ConfigurationDatabase cdb;
+    StreamString configStream = config1_full_rt;
+    configStream.Seek(0);
+    StandardParser parser(configStream, cdb);
+
+    bool ok = parser.Parse();
+
+    ObjectRegistryDatabase *god = ObjectRegistryDatabase::Instance();
+
+    if (ok) {
+        god->Purge();
+        ok = god->Initialise(cdb);
+    }
+    ReferenceT<RealTimeApplication> application;
+    if (ok) {
+        application = god->Find("Test");
+        ok = application.IsValid();
+    }
+    if (ok) {
+        ok = application->ConfigureApplication();
+    }
+    ReferenceT<NI6259ADCTestGAM> testGAM;
+    if (ok) {
+        testGAM = application->Find("Functions.GAMA");
+        ok = testGAM.IsValid();
+    }
+    ReferenceT<GAMScheduler> scheduler;
+    if (ok) {
+        scheduler = application->Find("Scheduler");
+        ok = scheduler.IsValid();
+    }
+    if (ok) {
+        application->PrepareNextState("State1");
+
+        application->StartNextStateExecution();
+        while (testGAM->totalSamples < 100000)
+            ;
+        float32 rms = testGAM->rms;
+        if (testGAM->totalSamples > 0) {
+            rms = sqrtf(rms / testGAM->totalSamples);
+        }
+        printf("--->>>RMS = %f\n", rms);
+        application->StopCurrentStateExecution();
+    }
+    god->Purge();
+    return ok;
+}
+
 
 bool NI6259ADCTest::TestIntegrated_RealTimeThreadExecutionMode() {
     using namespace MARTe;

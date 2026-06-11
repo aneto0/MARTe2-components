@@ -52,17 +52,31 @@ const uint32 NI6259DAC_MAX_CHANNELS = 4u;
  *
  * <pre>
  * +NI6259_0_DAC = {
+ *
+ *     // Basic configuration using internal clock
+ *
  *     Class = NI6259::NI6259DAC
  *     DeviceName = "/dev/pxi6259" //Mandatory
  *     BoardId = 0 //Mandatory
- *     ClockUpdateSource = "UI_TC" //Mandatory. Update clock source. Possible values:UI_TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, GPCRT0_OUT, STAR_TRIGGER, GPCTR1_OUT, ANALOG_TRIGGER, LOW
- *     ClockUpdatePolarity = "RISING_EDGE" //Mandatory. Possible values: RISING_EDGE, FALLING_EDGE
- *     ClockUpdateDivisor = 10 //Optional. Default value = 10. Only meaningful if ClockUpdateSource == UI_TC.
+ *     SamplingFrequency = 1000000
+ *
+ *     // Advanced configuration
+ *
+ *     ClockUpdateSource = "UI_TC" //Update clock source. Possible values:UI_TC, PFI0, ..., PFI15, RTSI0, ..., RTSI7, GPCRT0_OUT, STAR_TRIGGER, GPCTR1_OUT, ANALOG_TRIGGER, LOW
+ *     ClockUpdatePolarity = "RISING_EDGE" //Possible values: RISING_EDGE, FALLING_EDGE
+ *     BaseSampleClockFrequency = 20000000 //Default is 20 MHz
+ *     ClockUpdateDivisor = 10 //Overwrites SamplingFrequency if both defined
+ *
+ *
  *     Signals = {
+ *         Status = { //Optional. The board status
+ *             Type = uint32 //Bit 0: AI overrun, 1 AI overflow, 2 ao Overrun
+ *         }
  *         DAC0_0 = {
  *             Type = float32 //Mandatory. Only type that is supported.
  *             ChannelId = 0 //Mandatory. The channel number.
  *             OutputPolarity = Bipolar //Optional. Possible values: Bipolar, Unipolar. Default value Unipolar.
+ *             NumberOfSamples = 10 //Number of samples must be equal in each signal
  *         }
  *     }
  * }
@@ -110,28 +124,6 @@ public:
      * @return MemoryMapSynchronisedOutputBroker if Trigger == 1 for any of the signals, MemoryMapOutputBroker otherwise.
      */
     virtual const char8 *GetBrokerName(StructuredDataI &data, const SignalDirection direction);
-
-    /**
-     * @brief See DataSourceI::GetInputBrokers.
-     * @return false.
-     */
-    virtual bool GetInputBrokers(ReferenceContainer &inputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
-
-    /**
-     * @brief See DataSourceI::GetOutputBrokers.
-     * @details If the functionName is one of the functions which requested a Trigger,
-     * it adds a MemoryMapSynchronisedOutputBroker instance to the outputBrokers,
-     * otherwise it adds a MemoryMapOutputBroker instance to the outputBrokers.
-     * @param[out] outputBrokers where the BrokerI instances have to be added to.
-     * @param[in] functionName name of the function being queried.
-     * @param[in] gamMemPtr the GAM memory where the signals will be read from.
-     * @return true if the outputBrokers can be successfully configured.
-     */
-    virtual bool GetOutputBrokers(ReferenceContainer &outputBrokers,
-            const char8* const functionName,
-            void * const gamMemPtr);
 
     /**
      * @brief See StatefulI::PrepareNextState.
@@ -206,9 +198,24 @@ private:
     ao_dac_polarity_t outputPolarity[NI6259DAC_MAX_CHANNELS];
 
     /**
+     * The output gain
+     */
+    float32 outputGain[NI6259DAC_MAX_CHANNELS];
+
+    /**
+     * The output offset
+     */
+    float32 outputOffset[NI6259DAC_MAX_CHANNELS];
+
+    /**
      * The board file descriptor
      */
     int32 boardFileDescriptor;
+
+    /*
+     * The board status file descriptor
+     */
+    int32 rootFileDescriptor;
 
     /**
      * The channel file descriptors
@@ -218,7 +225,7 @@ private:
     /**
      * The signal memory
      */
-    float32 *channelsMemory;
+    float32 *channelsMemory[NI6259DAC_MAX_CHANNELS];
 
     /**
      * The DACs that are enabled
@@ -234,6 +241,32 @@ private:
      * True if at least one trigger was set.
      */
     bool triggerSet;
+
+    /**
+     * The base clock frequency
+     */
+    uint32 baseSampleClockFrequency;
+
+    /**
+     * The number of samples
+     */
+    uint32 numberOfSamplesT;
+
+
+    /**
+     * Additional attributes.
+     */
+    ConfigurationDatabase attributes;
+
+    /**
+     * The number of signals in header
+     */
+    uint32 headerSize;
+
+    /**
+     * The board status
+     */
+    uint32 boardStatus;
 
 };
 }
