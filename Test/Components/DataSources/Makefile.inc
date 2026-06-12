@@ -46,6 +46,7 @@ SPB+=NI6368.x
 SPB+=NI9157.x
 SPB+=NI9157/Optim.x
 SPB+=NI9157/Optim.x
+SPB+=NI6528.x
 endif
 
 ## Only force EPICSPVA if CCS version is gt v6.1
