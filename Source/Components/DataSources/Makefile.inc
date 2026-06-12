@@ -50,8 +50,8 @@ ifndef EXCLUDE_NI
 SPB    += NI1588.x
 SPB    += NI6259.x
 SPB    += NI6368.x
-SPB    += NI9157.x
 SPB    += NI6528.x
+SPB    += NI9157.x
 endif
 SPB    += DAN.x
 

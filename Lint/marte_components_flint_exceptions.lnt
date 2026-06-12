@@ -53,6 +53,11 @@
 -estring(526,*strtol)
 -estring(628,*strtol)
 
+-estring(526,*strerror)
+-estring(628,*strerror)
+-estring(746,*strerror)
+-estring(1055,*strerror)
+
 -estring(526,*__sync_bool_compare_and_swap)
 -estring(628,*__sync_bool_compare_and_swap)
 -estring(746,*__sync_bool_compare_and_swap)

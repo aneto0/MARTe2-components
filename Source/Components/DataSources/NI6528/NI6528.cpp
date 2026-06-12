@@ -1,8 +1,8 @@
 /**
  * @file NI6528.cpp
  * @brief Source file for class NI6528
- * @date 01/03/2017
- * @author Andre Neto
+ * @date 01/06/2026
+ * @author Giuseppe Ferro
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -39,8 +39,11 @@
 /*---------------------------------------------------------------------------*/
 /*                           Static definitions                              */
 /*---------------------------------------------------------------------------*/
+
+/*lint -e1923 allow macros*/
 #define INVALID_PXI6528_PORT_ID_ 0xFFFFFFFFu
 #define PXI6528_OUTPUT_START_PORT_IDX_ 3u
+/*lint +e1923 */
 
 /*---------------------------------------------------------------------------*/
 /*                           Method definitions                              */
@@ -55,10 +58,11 @@ NI6528::NI6528() :
         portEnabled[i] = INVALID_PXI6528_PORT_ID_;
         inversionMask[i] = 0u;
     }
-    boardFileDescriptor = NULL;
+    boardFileDescriptor = NULL_PTR(pxi6528_device_t);
     boardId = 0u;
 }
 
+/*lint -efile(1740,*NI6528.*) boardFileDescriptor is freed by the driver.*/
 NI6528::~NI6528() {
     (void) pxi6528_close_device(boardFileDescriptor);
 }
@@ -127,6 +131,7 @@ bool NI6528::SetConfiguredDatabase(StructuredDataI &data) {
         int32 ret = pxi6528_open_device(&boardFileDescriptor, fullDeviceName.Buffer(), O_NONBLOCK);
         ok = (ret == 0);
         if (!ok) {
+            //lint -e64 strerror returns a string not an int
             StreamString err = strerror(-ret);
             REPORT_ERROR(ErrorManagement::FatalError, "Could not open device (%s) : %s", deviceName.Buffer(), err.Buffer());
         }
@@ -138,6 +143,7 @@ bool NI6528::SetConfiguredDatabase(StructuredDataI &data) {
         }
     }
     if (ok) {
+        //lint -e{850} i is not modifed by REPORT_ERROR
         for (uint32 i = 0u; (i < numberOfSignals) && ok; i++) {
             ok = (GetSignalType(i) == UnsignedInteger8Bit);
             if (!ok) {
@@ -160,20 +166,22 @@ bool NI6528::Synchronise() {
         if (portEnabled[port] != INVALID_PXI6528_PORT_ID_) {
             if (port < PXI6528_OUTPUT_START_PORT_IDX_) {
                 uint8 val;
-                int32 ret = pxi6528_read_port(boardFileDescriptor, port, &val, 1u);
+                int32 ret = pxi6528_read_port(boardFileDescriptor, static_cast<uint8>(port), &val, 1u);
                 value[portEnabled[port]] = (val ^ inversionMask[port]);
 
                 ok = (ret >= 0);
                 if (!ok) {
+                    //lint -e64 strerror returns a string not an int
                     StreamString err = strerror(-ret);
                     REPORT_ERROR(ErrorManagement::FatalError, "Could not write device (%s.%d) : %s", deviceName.Buffer(), boardId, err.Buffer());
                 }
             }
             else {
                 uint8 val = (value[portEnabled[port]] ^ inversionMask[port]);
-                int32 ret = pxi6528_write_port(boardFileDescriptor, port, val);
+                int32 ret = pxi6528_write_port(boardFileDescriptor, static_cast<uint8>(port), val);
                 ok = (ret >= 0);
                 if (!ok) {
+                    //lint -e64 strerror returns a string not an int
                     StreamString err = strerror(-ret);
                     REPORT_ERROR(ErrorManagement::FatalError, "Could not write device (%s.%d) : %s", deviceName.Buffer(), boardId, err.Buffer());
                 }
@@ -184,6 +192,7 @@ bool NI6528::Synchronise() {
     return ok;
 }
 
+//lint -e{715} bufferIdx is not required but the method is virtual
 bool NI6528::GetSignalMemoryBuffer(const uint32 signalIdx,
                                    const uint32 bufferIdx,
                                    void *&signalAddress) {
@@ -231,6 +240,7 @@ const char8* NI6528::GetBrokerName(StructuredDataI &data,
     return brokerName;
 }
 
+//lint -e{715} currentStateName and nextStateName are unreferenced because the DataSource uses single state
 bool NI6528::PrepareNextState(const char8 *const currentStateName,
                               const char8 *const nextStateName) {
     return true;

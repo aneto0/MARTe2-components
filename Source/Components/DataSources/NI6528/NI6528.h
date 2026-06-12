@@ -1,8 +1,8 @@
 /**
  * @file NI6528.h
  * @brief Header file for class NI6528
- * @date 07/06/2018
- * @author Andre Neto
+ * @date 07/06/2026
+ * @author Giuseppe Ferro
  *
  * @copyright Copyright 2015 F4E | European Joint Undertaking for ITER and
  * the Development of Fusion Energy ('Fusion for Energy').
@@ -34,9 +34,12 @@
 /*---------------------------------------------------------------------------*/
 #include "DataSourceI.h"
 
-#define PXI6528_NUMBER_OF_OUTPUT_PORTS_ 3
-#define PXI6528_NUMBER_OF_INPUT_PORTS_ 3
-#define PXI6528_NUMBER_OF_PORTS_ 6
+/*lint -e1923 allow macros*/
+#define PXI6528_NUMBER_OF_OUTPUT_PORTS_ 3U
+#define PXI6528_NUMBER_OF_INPUT_PORTS_ 3U
+#define PXI6528_NUMBER_OF_PORTS_ 6U
+/*lint +e1923 */
+
 /*---------------------------------------------------------------------------*/
 /*                           Class declaration                               */
 /*---------------------------------------------------------------------------*/
