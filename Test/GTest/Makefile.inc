@@ -75,14 +75,13 @@ ifndef EXCLUDE_NI
 LIBRARIES += -lnisync
 LIBRARIES += -lnixseries
 LIBRARIES += -lpxi6259
-LIBRARIES += -lpxi6528
 LIBRARIES += -lNiFpga
 endif
 
 ## Only force EPICSPVA if CCS version is gt v6.1
-CCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
-ifeq "$(CCSGT61)" "1"
-EPICSPVA = "1"
+ISCCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
+ifeq "$(ISCCSGT61)" "1"
+CCSGT61 = "1"
 endif
 endif
 
@@ -102,8 +101,9 @@ ifdef EPICS_PCAS
 LIBRARIES += -L$(EPICS_PCAS)/lib/$(EPICS_HOST_ARCH) -lgdd -lcas
 endif
 
-ifdef EPICSPVA
+ifdef CCSGT61 
 LIBRARIES += -lpvAccess -lpvData -lpvDatabase -lnt -lpvAccessIOC -lpvAccessCA -ldbRecStd -ldbCore -lca -lCom -lpvaClient 
+LIBRARIES += -lpxi6528
 endif 
 
 ifdef MATLAB_DIR
