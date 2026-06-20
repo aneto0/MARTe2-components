@@ -48,10 +48,15 @@ SPB+=NI9157/Optim.x
 SPB+=NI9157/Optim.x
 endif
 
-## Only force EPICSPVA if CCS version is gt v6.1
+## Only force EPICSPVA if CCS version is gt v6.1 or 6.3
 ISCCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 61 ]; then echo 1; else echo 0; fi)
 ifeq "$(ISCCSGT61)" "1"
 CCSGT61 = "1"
+endif
+
+ISCCSGT63 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 63 ]; then echo 1; else echo 0; fi)
+ifeq "$(ISCCSGT63)" "1"
+CCSGT63 = "1"
 endif
 
 endif
@@ -67,6 +72,9 @@ endif
 
 ifdef CCSGT61
 SPB += EPICSPVA.x
+endif
+
+ifdef CCSGT63
 SPB += NI6528.x
 endif
 

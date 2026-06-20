@@ -58,6 +58,9 @@ endif
 
 ifdef CCSGT61
 LIBRARIES_STATIC+=EPICSPVA/cov/EPICSPVADataSourceTest$(LIBEXT)
+endif
+
+ifdef CCSGT63
 LIBRARIES_STATIC+=NI6528/cov/NI6528Test$(LIBEXT)
 endif
 

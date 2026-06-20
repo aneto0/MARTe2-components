@@ -83,6 +83,11 @@ ISCCSGT61 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 
 ifeq "$(ISCCSGT61)" "1"
 CCSGT61 = "1"
 endif
+ISCCSGT63 = $(shell if [ `codac-version -v | sed 's/\(.*\)\.\(.*\)/\1\2/g'` -ge 63 ]; then echo 1; else echo 0; fi)
+ifeq "$(ISCCSGT63)" "1"
+CCSGT63 = "1"
+endif
+
 endif
 
 ifdef EFDA_MARTe_DIR
@@ -103,6 +108,8 @@ endif
 
 ifdef CCSGT61 
 LIBRARIES += -lpvAccess -lpvData -lpvDatabase -lnt -lpvAccessIOC -lpvAccessCA -ldbRecStd -ldbCore -lca -lCom -lpvaClient 
+endif 
+ifdef CCSGT63 
 LIBRARIES += -lpxi6528
 endif 
 
