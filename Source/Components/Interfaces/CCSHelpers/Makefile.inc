@@ -52,7 +52,6 @@ CPPFLAGS += -std=c++0x
 all: $(OBJS)    \
     $(BUILD_DIR)/CCSHelpers$(LIBEXT) \
     $(BUILD_DIR)/CCSHelpers$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

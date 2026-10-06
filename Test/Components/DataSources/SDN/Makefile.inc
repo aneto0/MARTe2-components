@@ -67,7 +67,6 @@ endif
 
 all: $(OBJS) \
     $(BUILD_DIR)/SDNTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

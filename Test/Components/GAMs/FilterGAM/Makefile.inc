@@ -51,7 +51,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/FilterGAM
 
 all: $(OBJS) \
                 $(BUILD_DIR)/FilterGAMTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

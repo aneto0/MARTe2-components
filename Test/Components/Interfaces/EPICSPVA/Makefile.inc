@@ -68,7 +68,6 @@ INCLUDES += -I../../../../Source/Components/Interfaces/EPICSPVA
 
 all: $(OBJS) \
                 $(BUILD_DIR)/EPICSPVATest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

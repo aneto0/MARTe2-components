@@ -52,7 +52,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/TimeCorrectionGAM
 
 all: $(OBJS) \
                 $(BUILD_DIR)/TimeCorrectionGAMTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

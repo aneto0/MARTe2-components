@@ -25,9 +25,9 @@
 #############################################################
 
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
-OBJSX = BaseLib2GAMGTest.x
+OBJSX = BaseLib2GAMGTest.xns
 
 LIBRARIES_STATIC += $(EFDA_MARTe_DIR)/GAMs/TypeConvertGAM/linux/TypeConvertGAM.o
 

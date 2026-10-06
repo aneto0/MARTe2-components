@@ -57,7 +57,7 @@ INCLUDES += -I$(PROFINET_INCLUDE)
 
 INCLUDES += -I$(ROOT_DIR)/Source/Components/DataSources/ProfinetDataSource
 INCLUDES += -I$(ROOT_DIR)/Source/Components/GAMs/IOGAM
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
 LIBRARIES +=  -L$(PROFINET_LIBRARY) -losal -lprofinet
 

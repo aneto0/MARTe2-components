@@ -54,7 +54,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/IOGAM
 
 all: $(OBJS) \
                 $(BUILD_DIR)/LinkDataSourceTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

@@ -52,7 +52,6 @@ INCLUDES += -I../../../../Source/Components/DataSources/RealTimeThreadSynchronis
 
 all: $(OBJS) \
                 $(BUILD_DIR)/RealTimeThreadSynchronisationTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

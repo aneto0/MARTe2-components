@@ -62,7 +62,6 @@ endif
 all: $(OBJS)    \
     $(BUILD_DIR)/ObjectLoader$(LIBEXT) \
     $(BUILD_DIR)/ObjectLoader$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

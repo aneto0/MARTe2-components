@@ -68,7 +68,6 @@ LIBRARIES += $(BUILD_DIR)/../EPICS/EPICS$(LIBEXT) -L$(EPICS_BASE)/lib/$(EPICS_HO
 all: $(OBJS)    \
     $(BUILD_DIR)/EPICSPVA$(LIBEXT) \
     $(BUILD_DIR)/EPICSPVA$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

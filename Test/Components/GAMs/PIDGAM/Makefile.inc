@@ -50,7 +50,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/PIDGAM
 
 all: $(OBJS) \
                 $(BUILD_DIR)/PIDGAMTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

@@ -57,7 +57,6 @@ endif
 all: $(OBJS)    \
     $(BUILD_DIR)/TcnTimeProvider$(LIBEXT) \
     $(BUILD_DIR)/TcnTimeProvider$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

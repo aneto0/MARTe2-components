@@ -25,7 +25,7 @@
 TARGET=cov
 include Makefile.inc
 
-INCLUDES+=-I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES+=-I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
 LIBRARIES+=-L$(MARTe2_DIR)/Build/x86-linux/Core/
 ifneq ($(wildcard $(MARTe2_DIR)/Build/x86-linux/Core/libMARTe2.so),)
@@ -34,8 +34,8 @@ else
 LIBRARIES+= -lmarte2
 endif
 
-ifneq ($(wildcard $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a),)
-LIBRARIES_STATIC+=$(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest.a $(MARTe2_DIR)/Lib/gtest-1.7.0/libgtest_main.a
+ifneq ($(wildcard $(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/libgtest.a),)
+LIBRARIES_STATIC+=$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/libgtest.a $(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/libgtest_main.a
 else
 LIBRARIES_STATIC+=$(MARTe2_DIR)/Include/Lib/libgtest.a $(MARTe2_DIR)/Include/Lib/libgtest_main.a
 endif

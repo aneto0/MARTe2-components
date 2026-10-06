@@ -26,8 +26,8 @@
 
 LIBRARIES   += -L$(MARTe2_DIR)/Build/x86-linux/Core -lMARTe2 -L$(CODAC_ROOT)/lib -lNiFpga
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
-OBJSX = NI9157MemoryOperationsHelperGTest.x
+OBJSX = NI9157MemoryOperationsHelperGTest.xns
 
 include Makefile.inc

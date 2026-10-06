@@ -22,8 +22,8 @@
 #
 #############################################################
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
-OBJSX = UARTDataSourceGTest.x HighResolutionTimestampProviderGTest.x
+OBJSX = UARTDataSourceGTest.xns HighResolutionTimestampProviderGTest.xns
 
 include Makefile.inc

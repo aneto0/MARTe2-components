@@ -48,7 +48,6 @@ CPPFLAGS += -O3
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/Interleaved2FlatGAM$(LIBEXT) \
 	$(BUILD_DIR)/Interleaved2FlatGAM$(DLLEXT)
-	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 

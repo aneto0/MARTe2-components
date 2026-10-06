@@ -25,9 +25,9 @@
 #############################################################
 
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
-OBJSX = EPICSCAInputGTest.x EPICSCAOutputGTest.x
+OBJSX = EPICSCAInputGTest.xns EPICSCAOutputGTest.xns
 
 include Makefile.inc
 

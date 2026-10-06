@@ -47,7 +47,6 @@ INCLUDES += -I../../Interfaces/MemoryGate
 all: $(OBJS)    \
     $(BUILD_DIR)/LinkDataSource$(LIBEXT) \
     $(BUILD_DIR)/LinkDataSource$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

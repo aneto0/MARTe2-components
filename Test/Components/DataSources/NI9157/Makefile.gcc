@@ -25,12 +25,12 @@
 #############################################################
 
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
-OBJSX = NI9157CircularFifoReaderGTest.x \
-    NI9157MxiDataSourceGTest.x \
-    SampleCheckerGTest.x \
-    CounterCheckerGTest.x \
-    MarkerBitCheckerGTest.x
+OBJSX = NI9157CircularFifoReaderGTest.xns \
+    NI9157MxiDataSourceGTest.xns \
+    SampleCheckerGTest.xns \
+    CounterCheckerGTest.xns \
+    MarkerBitCheckerGTest.xns
 
 include Makefile.inc

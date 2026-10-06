@@ -48,7 +48,6 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4LoggerService
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/SysLogger$(LIBEXT) \
 	$(BUILD_DIR)/SysLogger$(DLLEXT)
-	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 

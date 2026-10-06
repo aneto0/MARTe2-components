@@ -26,10 +26,10 @@
 
 TARGET=cov
 
-OBJSX = ProfinetDataStructureGTest.x \
-    ProfinetDataSourceAdapterGTest.x \
-    ProfinetToMARTeLogAdapterGTest.x \
-    ProfinetDataSourceGTest.x
+OBJSX = ProfinetDataStructureGTest.xns \
+    ProfinetDataSourceAdapterGTest.xns \
+    ProfinetToMARTeLogAdapterGTest.xns \
+    ProfinetDataSourceGTest.xns
 
 include Makefile.inc
 

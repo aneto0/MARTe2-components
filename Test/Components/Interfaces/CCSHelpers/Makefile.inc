@@ -55,7 +55,6 @@ CPPFLAGS += -Wno-error=sign-compare -std=c++0x
 
 all: $(OBJS) \
 	$(BUILD_DIR)/CCSHelpersTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

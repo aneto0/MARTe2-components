@@ -48,7 +48,6 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 all: $(OBJS) $(SUBPROJ) \
     $(BUILD_DIR)/UDP$(LIBEXT) \
     $(BUILD_DIR)/UDP$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

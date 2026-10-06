@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX = Interleaved2FlatGAMGTest.x Interleaved2FlatGAMTest.x
+OBJSX = Interleaved2FlatGAMGTest.xns Interleaved2FlatGAMTest.x
 		
 PACKAGE=Components/GAMs
 ROOT_DIR=../../../..
@@ -52,7 +52,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/Interleaved2FlatGAM
 
 all: $(OBJS) \
     $(BUILD_DIR)/Interleaved2FlatGAMTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

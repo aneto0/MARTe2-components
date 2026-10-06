@@ -62,7 +62,7 @@ INCLUDES += -I../../../../Source/Components/Interfaces/OPCUA
 INCLUDES += -I../../../../Source/Components/DataSources/OPCUADataSource
 INCLUDES += -I../../../../Source/Components/GAMs/IOGAM
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
 ifdef OPEN62541_NO_ALMAGAMATION
 CPPFLAGS += -DOPEN62541_NO_ALMAGAMATION
@@ -70,7 +70,6 @@ endif
 
 all: $(OBJS)    \
     $(BUILD_DIR)/OPCUATest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

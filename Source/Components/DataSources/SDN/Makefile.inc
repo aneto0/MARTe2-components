@@ -73,7 +73,6 @@ endif
 all: $(OBJS)    \
     $(BUILD_DIR)/SDN$(LIBEXT) \
     $(BUILD_DIR)/SDN$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

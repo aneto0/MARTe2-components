@@ -54,7 +54,6 @@ INCLUDES += -I ../../Interfaces/UEIDAQ/UEIDAQMockup
 
 all: $(OBJS) \
     $(BUILD_DIR)/UEIDataSourceTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

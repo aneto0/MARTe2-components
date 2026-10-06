@@ -53,7 +53,6 @@ INCLUDES += -I../../../../Source/Components/Interfaces/ApplicationKiller
 
 all: $(OBJS) \
                 $(BUILD_DIR)/ApplicationKillerTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

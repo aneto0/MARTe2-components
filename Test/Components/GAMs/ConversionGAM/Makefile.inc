@@ -52,7 +52,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/ConversionGAM
 
 all: $(OBJS) \
                 $(BUILD_DIR)/ConversionGAMTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

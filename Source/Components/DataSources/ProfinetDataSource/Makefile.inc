@@ -59,7 +59,6 @@ LIBRARIES += -L$(PROFINET_LIBRARY) -losal -lprofinet
 all: $(OBJS)    \
 	$(BUILD_DIR)/ProfinetDataSource$(LIBEXT) \
 	$(BUILD_DIR)/ProfinetDataSource$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

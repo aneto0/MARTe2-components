@@ -52,7 +52,6 @@ INCLUDES += -I../../../../Source/Components/Interfaces/SysLogger
 
 all: $(OBJS) \
                 $(BUILD_DIR)/SysLoggerTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

@@ -51,7 +51,6 @@ INCLUDES += -I$(EFDA_MARTe_DIR)/Interfaces/BaseLib2Adapter
 
 all: $(OBJS) \
                 $(BUILD_DIR)/BaseLib2WrapperTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

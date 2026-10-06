@@ -48,7 +48,6 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 all: $(OBJS)    \
     $(BUILD_DIR)/NI6528$(LIBEXT) \
     $(BUILD_DIR)/NI6528$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

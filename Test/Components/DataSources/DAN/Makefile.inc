@@ -75,7 +75,6 @@ endif
 
 all: $(OBJS) \
 	$(BUILD_DIR)/DANTest$(LIBEXT)
-	echo  $(OBJS)
 
 
 include depends.$(TARGET)

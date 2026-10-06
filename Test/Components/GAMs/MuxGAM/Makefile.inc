@@ -51,7 +51,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/MuxGAM
 
 all: $(OBJS) \
                 $(BUILD_DIR)/MuxGAMTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

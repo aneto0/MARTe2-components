@@ -26,11 +26,11 @@
 
 TARGET=cov
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
-OBJSX = EPICSPVAChannelWrapperGTest.x\
-	EPICSPVAInputGTest.x \
-	EPICSPVAOutputGTest.x 
+OBJSX = EPICSPVAChannelWrapperGTest.xns\
+	EPICSPVAInputGTest.xns \
+	EPICSPVAOutputGTest.xns 
 
 include Makefile.inc
 

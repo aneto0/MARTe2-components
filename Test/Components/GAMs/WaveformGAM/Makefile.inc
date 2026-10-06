@@ -50,7 +50,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/WaveformGAM
 
 all: $(OBJS) \
                 $(BUILD_DIR)/WaveformGAMTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  HistogramComparatorTTest.x HistogramComparatorTGTest.x HistogramGAMTest.x HistogramGAMGTest.x
+OBJSX +=  HistogramComparatorTTest.x HistogramComparatorTGTest.xns HistogramGAMTest.x HistogramGAMGTest.xns
 		
 PACKAGE=Components/GAMs
 ROOT_DIR=../../../..
@@ -52,7 +52,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/HistogramGAM
 
 all: $(OBJS) \
                 $(BUILD_DIR)/HistogramGAMTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

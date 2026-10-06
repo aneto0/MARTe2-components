@@ -26,18 +26,18 @@
 
 TARGET=cov
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
-OBJSX = EPICSObjectRegistryDatabaseServiceGTest.x \
-	EPICSPVA2V3ServiceGTest.x \
-	EPICSPVADatabaseGTest.x \
-	EPICSPVAHelperGTest.x \
-	EPICSPVAMessageIGTest.x \
-	EPICSPVARecordGTest.x \
-	EPICSPVAStructureDataIGTest.x \
-	EPICSRPCClientMessageFilterGTest.x \
-	EPICSRPCClientGTest.x \
-	EPICSRPCServerGTest.x
+OBJSX = EPICSObjectRegistryDatabaseServiceGTest.xns \
+	EPICSPVA2V3ServiceGTest.xns \
+	EPICSPVADatabaseGTest.xns \
+	EPICSPVAHelperGTest.xns \
+	EPICSPVAMessageIGTest.xns \
+	EPICSPVARecordGTest.xns \
+	EPICSPVAStructureDataIGTest.xns \
+	EPICSRPCClientMessageFilterGTest.xns \
+	EPICSRPCClientGTest.xns \
+	EPICSRPCServerGTest.xns
 
 include Makefile.inc
 

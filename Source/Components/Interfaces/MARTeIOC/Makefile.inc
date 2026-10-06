@@ -63,7 +63,6 @@ LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -L$(EPICS_PCAS)/lib/$(EPICS
 all: $(OBJS)    \
     $(BUILD_DIR)/MARTeIOC$(LIBEXT) \
     $(BUILD_DIR)/MARTeIOC$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

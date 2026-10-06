@@ -47,7 +47,6 @@ INCLUDES += -I../../../../Source/Components/DataSources/UARTDataSource
 
 all: $(OBJS)    \
     $(BUILD_DIR)/UARTDataSourceTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

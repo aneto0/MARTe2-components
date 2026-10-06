@@ -54,7 +54,6 @@ INCLUDES += -I../../../../Test/Components/DataSources/LinuxTimer
 
 all: $(OBJS) \
                 $(BUILD_DIR)/TcnTimeProviderTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

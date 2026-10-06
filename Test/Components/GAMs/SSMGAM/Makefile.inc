@@ -51,7 +51,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/SSMGAM
 
 all: $(OBJS) \
                 $(BUILD_DIR)/SSMGAMTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

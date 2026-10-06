@@ -52,7 +52,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/CRCGAM
 
 all: $(OBJS) \
                 $(BUILD_DIR)/CRCGAMTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

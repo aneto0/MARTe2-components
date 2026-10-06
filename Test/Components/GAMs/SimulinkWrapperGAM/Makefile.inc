@@ -82,7 +82,6 @@ INCLUDES += -I$(MATLAB_DIR)/simulink/include/
 
 all: $(OBJS) \
                 $(BUILD_DIR)/SimulinkWrapperGAMTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

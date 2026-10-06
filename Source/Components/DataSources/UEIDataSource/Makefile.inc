@@ -57,7 +57,6 @@ endif
 all: $(OBJS)    \
 	$(BUILD_DIR)/UEIDataSource$(LIBEXT) \
 	$(BUILD_DIR)/UEIDataSource$(DLLEXT)
-	echo  $(OBJS)
 
 
 include depends.$(TARGET)

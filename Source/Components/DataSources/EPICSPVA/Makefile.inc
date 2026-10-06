@@ -56,7 +56,6 @@ LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -lpvAccess -lpvData -lpvDat
 all: $(OBJS)    \
     $(BUILD_DIR)/EPICSPVADataSource$(LIBEXT) \
     $(BUILD_DIR)/EPICSPVADataSource$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

@@ -55,7 +55,6 @@ CPPFLAGS += -Wno-error=sign-compare
 
 all: $(OBJS) \
 	$(BUILD_DIR)/MDSReaderTest$(LIBEXT)
-	echo  $(OBJS)
 
 
 include depends.$(TARGET)

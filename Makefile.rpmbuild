@@ -42,7 +42,6 @@ M2_RPM_SPEC_FILE_PATH=$(MARTe2_DIR)/Resources/RPM/
 include $(MARTe2_MAKEDEFAULT_DIR)/MakeStdLibDefs.$(TARGET)
 
 all: $(OBJS) $(BUILD_DIR)/$(M2_RPM_ID)-$(M2_RPM_VERSION).rpm check-env
-	echo  $(OBJS)
 
 test: 
 	make -f Makefile.$(TARGET) \

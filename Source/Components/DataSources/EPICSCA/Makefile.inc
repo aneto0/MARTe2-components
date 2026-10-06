@@ -52,7 +52,6 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 all: $(OBJS)    \
     $(BUILD_DIR)/EPICSCA$(LIBEXT) \
     $(BUILD_DIR)/EPICSCA$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

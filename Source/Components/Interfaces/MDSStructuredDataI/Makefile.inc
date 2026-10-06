@@ -52,7 +52,6 @@ CPPFLAGS += -Wno-error=sign-compare
 all: $(OBJS)    \
     $(BUILD_DIR)/MDSStructuredDataI$(LIBEXT) \
     $(BUILD_DIR)/MDSStructuredDataI$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

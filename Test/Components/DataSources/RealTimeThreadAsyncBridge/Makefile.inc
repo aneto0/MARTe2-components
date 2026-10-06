@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX +=  RealTimeThreadAsyncBridgeTest.x RealTimeThreadAsyncBridgeGTest.x
+OBJSX +=  RealTimeThreadAsyncBridgeTest.x RealTimeThreadAsyncBridgeGTest.xns
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..
@@ -52,7 +52,6 @@ INCLUDES += -I../../../../Source/Components/DataSources/RealTimeThreadAsyncBridg
 
 all: $(OBJS) \
                 $(BUILD_DIR)/RealTimeThreadAsyncBridgeTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

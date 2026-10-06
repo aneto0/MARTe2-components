@@ -54,7 +54,6 @@ OPTIM = -O3
 all: $(OBJS)    \
     $(BUILD_DIR)/NI6368$(LIBEXT) \
     $(BUILD_DIR)/NI6368$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

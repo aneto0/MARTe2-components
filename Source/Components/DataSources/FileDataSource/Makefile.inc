@@ -54,7 +54,6 @@ CPPFLAGS += -Wno-error=sign-compare
 all: $(OBJS)    \
     $(BUILD_DIR)/FileDataSource$(LIBEXT) \
     $(BUILD_DIR)/FileDataSource$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

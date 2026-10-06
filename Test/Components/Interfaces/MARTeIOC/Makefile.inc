@@ -30,11 +30,11 @@ OBJSX +=  MARTeChannelTest.x\
     MARTeCommonPvTest.x\
     MARTePvFieldTest.x
 	
-OBJSX += MARTeChannelGTest.x\
-	MARTeIocServerGTest.x\
-	MARTePvGTest.x\
-	MARTeCommonPvGTest.x\
-	MARTePvFieldGTest.x
+OBJSX += MARTeChannelGTest.xns\
+	MARTeIocServerGTest.xns\
+	MARTePvGTest.xns\
+	MARTeCommonPvGTest.xns\
+	MARTePvFieldGTest.xns
 	
 PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..
@@ -42,7 +42,7 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
 INCLUDES += -I$(MARTe2_DIR)/Components/DataSources/LinuxTimer
 INCLUDES += -I$(MARTe2_DIR)/Source/Core/BareMetal/L0Types
@@ -75,7 +75,6 @@ LIBRARIES += -L$(EPICS_BASE)/lib/$(EPICS_HOST_ARCH)/ -L$(EPICS_PCAS)/lib/$(EPICS
 
 all: $(OBJS) \
                 $(BUILD_DIR)/MARTeIOCTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

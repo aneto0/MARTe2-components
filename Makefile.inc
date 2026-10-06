@@ -46,11 +46,14 @@ SUBPROJMAINTESTCLEAN=$(SPBMT:%.x=%.spc)
 
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 
+GTEST_VERSION_AUTODETECT = 1
+#The export guarantees that GTEST_VERSION_AUTODETECT is still valid when calling with make -C
+export GTEST_VERSION_AUTODETECT
+
 ROOT_DIR=.
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 all: $(OBJS) core test
-	echo  $(OBJS)
 
 core: $(SUBPROJMAIN) check-env
 	echo  $(SUBPROJMAIN)

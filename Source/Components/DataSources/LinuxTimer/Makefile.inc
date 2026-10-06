@@ -44,7 +44,6 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L4Messages
 all: $(OBJS)    \
     $(BUILD_DIR)/LinuxTimer$(LIBEXT) \
     $(BUILD_DIR)/LinuxTimer$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

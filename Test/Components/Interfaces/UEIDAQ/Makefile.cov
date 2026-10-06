@@ -26,18 +26,18 @@
 
 TARGET=cov
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
-OBJSX = UEIMasterObjectGTest.x          \
-        UEIDeviceGTest.x                \
-        UEIBufferPointerGTest.x         \
-        UEICircularBufferGTest.x        \
-        UEIAI217_803GTest.x             \
-        UEIDIO404GTest.x                \
-        UEIAO308GTest.x                 \
-        UEIMapContainerGTest.x          \
-        UEIRtDMapGTest.x                \
-        UEIRtVMapGTest.x
+OBJSX = UEIMasterObjectGTest.xns          \
+        UEIDeviceGTest.xns                \
+        UEIBufferPointerGTest.xns         \
+        UEICircularBufferGTest.xns        \
+        UEIAI217_803GTest.xns             \
+        UEIDIO404GTest.xns                \
+        UEIAO308GTest.xns                 \
+        UEIMapContainerGTest.xns          \
+        UEIRtDMapGTest.xns                \
+        UEIRtVMapGTest.xns
 
 
 include Makefile.inc

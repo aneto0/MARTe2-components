@@ -25,8 +25,8 @@
 #############################################################
 
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
-OBJSX = NI6259ADCGTest.x NI6259ADCInputBrokerGTest.x NI6259DACGTest.x NI6259DIOGTest.x
+OBJSX = NI6259ADCGTest.xns NI6259ADCInputBrokerGTest.xns NI6259DACGTest.xns NI6259DIOGTest.xns
 
 include Makefile.inc

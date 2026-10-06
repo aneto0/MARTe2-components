@@ -44,7 +44,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/ConstantGAM
 
 all: $(OBJS) \
                 $(BUILD_DIR)/ConstantGAMTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

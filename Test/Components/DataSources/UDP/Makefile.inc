@@ -51,7 +51,6 @@ INCLUDES += -I../../../../Source/Components/DataSources/UDP
 
 all: $(OBJS) \
     $(BUILD_DIR)/UDPTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

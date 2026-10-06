@@ -22,7 +22,7 @@
 #
 #############################################################
 
-OBJSX = OPCUADSOutputGTest.x \
-	OPCUADSInputGTest.x 
+OBJSX = OPCUADSOutputGTest.xns \
+	OPCUADSInputGTest.xns 
 
 include Makefile.inc

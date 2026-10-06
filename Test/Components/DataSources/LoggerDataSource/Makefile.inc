@@ -52,7 +52,6 @@ INCLUDES += -I../../../../Source/Components/DataSources/LoggerDataSource
 
 all: $(OBJS) \
                 $(BUILD_DIR)/LoggerDataSourceTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

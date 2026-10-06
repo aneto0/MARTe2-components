@@ -26,9 +26,9 @@
 
 TARGET=cov
 
-INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-1.7.0/include
+INCLUDES += -I$(MARTe2_DIR)/Lib/gtest-$(GTEST_VERSION)/include
 
-OBJSX = PlatformGTest.x SignalGTest.x SigblockGTest.x SigblockDoubleBufferGTest.x EpicsInputDataSourceGTest.x EpicsOutputDataSourceGTest.x SharedDataAreaGTest.x
+OBJSX = PlatformGTest.xns SignalGTest.xns SigblockGTest.xns SigblockDoubleBufferGTest.xns EpicsInputDataSourceGTest.xns EpicsOutputDataSourceGTest.xns SharedDataAreaGTest.xns
 
 include Makefile.inc
 

@@ -78,7 +78,6 @@ endif
 all: $(OBJS)    \
 	$(BUILD_DIR)/UEIInterface$(LIBEXT) 		\
 	$(BUILD_DIR)/UEIInterface$(DLLEXT) 
-	echo  $(OBJS)
 
 
 include depends.$(TARGET)

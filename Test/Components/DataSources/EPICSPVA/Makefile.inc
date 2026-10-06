@@ -25,7 +25,7 @@
 #############################################################
 
 OBJSX +=  EPICSPVAChannelWrapperTest.x \
-	EPICSPVAFieldWrapperGTest.x \
+	EPICSPVAFieldWrapperGTest.xns \
 	EPICSPVAInputTest.x \
 	EPICSPVAOutputTest.x
 		
@@ -60,7 +60,6 @@ INCLUDES += -I../../../../Source/Components/DataSources/EPICSPVA
 
 all: $(OBJS) \
                 $(BUILD_DIR)/EPICSPVADataSourceTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

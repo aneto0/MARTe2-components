@@ -24,7 +24,7 @@
 #
 #############################################################
 
-OBJSX += NI1588TimestampTest.x NI1588TimestampGTest.x
+OBJSX += NI1588TimestampTest.x NI1588TimestampGTest.xns
 		
 PACKAGE=Components/DataSources
 ROOT_DIR=../../../..
@@ -54,7 +54,6 @@ INCLUDES += -I../../../../Source/Components/Interfaces/NiSyncDevice
 
 all: $(OBJS) \
 	$(BUILD_DIR)/NI1588Test$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

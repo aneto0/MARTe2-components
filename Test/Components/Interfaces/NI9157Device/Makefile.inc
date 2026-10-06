@@ -25,17 +25,17 @@
 #############################################################
 
 OBJSX +=  CreateNI9157DeviceOperatorTest.x \
-    CreateNI9157DeviceOperatorGTest.x \
+    CreateNI9157DeviceOperatorGTest.xns \
     CreateNI9157DeviceOperatorITest.x \
-    CreateNI9157DeviceOperatorIGTest.x \
+    CreateNI9157DeviceOperatorIGTest.xns \
     NI9157DeviceTest.x \
-    NI9157DeviceGTest.x \
+    NI9157DeviceGTest.xns \
     NI9157DeviceOperatorDatabaseTest.x \
-    NI9157DeviceOperatorDatabaseGTest.x \
+    NI9157DeviceOperatorDatabaseGTest.xns \
     NI9157DeviceOperatorTTest.x \
-    NI9157DeviceOperatorTGTest.x \
+    NI9157DeviceOperatorTGTest.xns \
     NI9157DeviceOperatorTITest.x \
-    NI9157DeviceOperatorTIGTest.x
+    NI9157DeviceOperatorTIGTest.xns
 
 PACKAGE=Components/Interfaces
 ROOT_DIR=../../../..
@@ -76,7 +76,6 @@ endif
 
 all: $(OBJS) \
 	$(BUILD_DIR)/NI9157DeviceTest$(LIBEXT)
-	echo  $(OBJS)
 	-tar -xzvf $(ARCHIVEPATH)/$(ARCHIVE) -C $(ARCHIVEPATH)
 
 include depends.$(TARGET)

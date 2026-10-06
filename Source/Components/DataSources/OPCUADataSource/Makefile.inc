@@ -63,7 +63,6 @@ endif
 all: $(OBJS)    \
     $(BUILD_DIR)/OPCUADataSource$(LIBEXT) \
     $(BUILD_DIR)/OPCUADataSource$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

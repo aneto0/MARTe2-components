@@ -22,15 +22,15 @@
 #
 #############################################################
 
-OBJSX = OPCUAServerGTest.x \
-	OPCUANodeGTest.x \
-	OPCUAObjectGTest.x \
-	OPCUAReferenceContainerGTest.x \
-	OPCUAMessageClientGTest.x \
-    OPCUAClientIGTest.x \
-    OPCUAClientReadGTest.x \
-    OPCUAClientWriteGTest.x \
-    OPCUAClientMethodGTest.x
+OBJSX = OPCUAServerGTest.xns \
+	OPCUANodeGTest.xns \
+	OPCUAObjectGTest.xns \
+	OPCUAReferenceContainerGTest.xns \
+	OPCUAMessageClientGTest.xns \
+    OPCUAClientIGTest.xns \
+    OPCUAClientReadGTest.xns \
+    OPCUAClientWriteGTest.xns \
+    OPCUAClientMethodGTest.xns
 	
 
 include Makefile.inc

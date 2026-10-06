@@ -55,7 +55,6 @@ INCLUDES += -I../../../../Source/Components/DataSources/EPICSCA
 
 all: $(OBJS) \
                 $(BUILD_DIR)/EPICSCATest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

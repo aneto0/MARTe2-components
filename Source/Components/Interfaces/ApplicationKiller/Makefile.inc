@@ -49,7 +49,6 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/Scheduler/L5GAMs
 all: $(OBJS)    \
     $(BUILD_DIR)/ApplicationKiller$(LIBEXT) \
     $(BUILD_DIR)/ApplicationKiller$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

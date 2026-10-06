@@ -52,7 +52,6 @@ INCLUDES += -I../../../../Source/Components/DataSources/EpicsDataSource
 
 all: $(OBJS) \
                 $(BUILD_DIR)/EpicsDataSourceTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

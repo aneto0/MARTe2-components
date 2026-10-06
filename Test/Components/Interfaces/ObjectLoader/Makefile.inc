@@ -28,13 +28,13 @@ OBJSX +=  ObjectLoaderTest.x\
 	ObjectConnectionITest.x\
 	ConfigurationDatabaseConnectionTest.x
 
-OBJSX += ObjectLoaderGTest.x\
-	ObjectConnectionIGTest.x\
-	ConfigurationDatabaseConnectionGTest.x
+OBJSX += ObjectLoaderGTest.xns\
+	ObjectConnectionIGTest.xns\
+	ConfigurationDatabaseConnectionGTest.xns
 
 ifdef MDSPLUS_DIR
 OBJSX += MDSObjectConnectionTest.x\
-	MDSObjectConnectionGTest.x
+	MDSObjectConnectionGTest.xns
 endif
 
 
@@ -72,7 +72,6 @@ endif
 
 all: $(OBJS) \
                 $(BUILD_DIR)/ObjectLoaderTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

@@ -53,7 +53,6 @@ LIBRARIES += -L$(MDSPLUS_DIR)/lib -lMdsObjectsCppShr
 all: $(OBJS)    \
     $(BUILD_DIR)/MDSWriter$(LIBEXT) \
     $(BUILD_DIR)/MDSWriter$(DLLEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

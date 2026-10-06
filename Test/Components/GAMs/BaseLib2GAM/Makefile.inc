@@ -51,7 +51,6 @@ INCLUDES += -I../../../../Source/Components/GAMs/BaseLib2GAM
 
 all: $(OBJS) \
                 $(BUILD_DIR)/BaseLib2GAMTest$(LIBEXT)
-	echo  $(OBJS)
 
 include depends.$(TARGET)
 

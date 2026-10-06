@@ -76,7 +76,6 @@ INCLUDES += -I$(MATLAB_DIR)/simulink/include/
 all: $(OBJS) $(SUBPROJ) \
 	$(BUILD_DIR)/SimulinkWrapperGAM$(LIBEXT) \
 	$(BUILD_DIR)/SimulinkWrapperGAM$(DLLEXT)
-	    echo  $(OBJS)
 
 include $(MAKEDEFAULTDIR)/MakeStdLibRules.$(TARGET)
 

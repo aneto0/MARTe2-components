@@ -53,7 +53,6 @@ INCLUDES += -I../../../../Source/Components/DataSources/NI6528
 
 all: $(OBJS) \
 	$(BUILD_DIR)/NI6528Test$(LIBEXT)
-	echo  $(OBJS)
 
 
 include depends.$(TARGET)

@@ -47,7 +47,6 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 all: $(OBJS)    \
     $(BUILD_DIR)/UARTDataSource$(LIBEXT) \
     $(BUILD_DIR)/UARTDataSource$(DLLEXT)
-	echo $(OBJS)
 
 include depends.$(TARGET)
 
